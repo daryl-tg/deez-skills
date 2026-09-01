@@ -10,9 +10,25 @@ from deezlib import frontmatter, linkplan, registry
 _LOCAL_MERGE = re.compile(
     r"git\s+merge\b|git\s+pull\b(?!\s+--rebase)|merge\s+--ff-only", re.I
 )
+# A line that forbids rather than instructs. Either the negation sits inline
+# before the command, or the line is a bullet under a "Never:" style header.
+_NEGATION = re.compile(r"\b(never|not|no|don't|do not|avoid|forbidden|without)\b", re.I)
+_PROHIBITION_HEADER = re.compile(r"^\s*\**\s*(never|do not|don't|forbidden)\b.*:\s*\**\s*$", re.I)
+_BULLET = re.compile(r"^\s*[-*+]\s")
+
+
+def _prohibits(line, in_prohibition_block):
+    """True when this line forbids the command rather than instructing it."""
+    match = _LOCAL_MERGE.search(line)
+    if match and _NEGATION.search(line[: match.start()]):
+        return True
+    return bool(in_prohibition_block and _BULLET.match(line))
 
 # Roles a playbook step may route to, written as **role-name** in skill bodies.
 _ROLE_REF = re.compile(r"\*\*([a-z][a-z0-9-]{2,})\*\*\s+role")
+
+# A principle cited in bold. If it has no registry entry the route is dead.
+_PRINCIPLE_REF = re.compile(r"\*\*(principle-[a-z0-9-]+)\*\*")
 
 
 @dataclass(frozen=True)
@@ -87,15 +103,47 @@ def _check_local_merge(reg, repo_root):
             skill_md = Path(repo_root) / registry.source_dir(entry, runtime) / "SKILL.md"
             if not skill_md.is_file():
                 continue
+            in_block = False
             for n, line in enumerate(
                 skill_md.read_text(encoding="utf-8", errors="replace").splitlines(), 1
             ):
-                if _LOCAL_MERGE.search(line):
+                if _PROHIBITION_HEADER.match(line):
+                    in_block = True
+                elif line.strip() and not _BULLET.match(line):
+                    in_block = False
+                if _LOCAL_MERGE.search(line) and not _prohibits(line, in_block):
                     findings.append(
                         _fail(
                             "local-merge",
                             f"{entry.name}:{n} instructs a local merge. "
                             f"Landing is rebase, PR, squash",
+                        )
+                    )
+            break
+    return findings
+
+
+def check_citations(reg, repo_root):
+    """Every **principle-x** cited anywhere must be a registered entry."""
+    known = {e.name for e in reg.entries}
+    findings, seen = [], set()
+    for entry in reg.entries:
+        for runtime in entry.runtimes:
+            base = Path(repo_root) / registry.source_dir(entry, runtime)
+            for md in sorted(base.rglob("*.md")):
+                text = md.read_text(encoding="utf-8", errors="replace")
+                for cited in sorted(set(_PRINCIPLE_REF.findall(text))):
+                    if cited in known:
+                        continue
+                    key = (str(md), cited)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    findings.append(
+                        _fail(
+                            "dangling-citation",
+                            f"{md.relative_to(repo_root)} cites {cited}, "
+                            f"which has no registry entry",
                         )
                     )
             break
@@ -183,6 +231,7 @@ def check(reg, repo_root, roots, profile):
     findings.extend(_check_frontmatter(reg, repo_root))
     findings.extend(_check_flags(reg, repo_root))
     findings.extend(_check_local_merge(reg, repo_root))
+    findings.extend(check_citations(reg, repo_root))
     actions = linkplan.compute(reg, repo_root, roots, profile)
 
     # Before migration the hub is deliberately unlinked. Nothing linked at all

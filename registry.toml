@@ -70,6 +70,95 @@ layer    = "workflow"
 category = "core"
 runtimes = ["claude", "codex"]
 
+# --- Principles -------------------------------------------------------------
+# One rule each. Cited by playbooks, never restated in them. Installed on BOTH
+# runtimes so a handoff citing one resolves on the Codex side too.
+
+[skills.principle-announce-the-linked-review]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-bind-assigned-ports]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-build-the-lever]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-delegate-implementation-review-stays-here]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-desktop-before-cloud]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-failing-test-first]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-feature-branch-isolation]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-finish-or-report]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-never-block-on-reversible-work]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-one-commit-lands]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-planning-docs-live-outside-the-repo]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-promote-to-the-main-worktree]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-prove-on-the-real-surface]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-rebase-pr-squash]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-separate-before-serializing-shared-state]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-todo-discipline]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-visual-approval-gates-delivery]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
 [commands]
 
 [agents]

@@ -20,4 +20,21 @@ below this line.
 | --- | --- | --- |
 | `create-verification-skill` | claude, codex | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, … |
 | `maintain-verification-skill` | claude, codex | Periodic pass keeping a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at mo… |
+| `principle-announce-the-linked-review` | claude, codex | Apply at the end of any delivered change. Announce with the PR or MR link, then read the announcement back to confirm it posted. |
+| `principle-bind-assigned-ports` | claude, codex | Apply whenever starting a server, choosing a port, or handing back a URL. Ports are assigned, never chosen. Bind 127.0.0.1 explicitly. Anything the operator op… |
+| `principle-build-the-lever` | claude, codex | Apply to any non-trivial work: edits, migrations, analyses, checks. Build the tool that does or proves it rather than doing it by hand. The tool is the artifac… |
+| `principle-delegate-implementation-review-stays-here` | claude, codex | Apply when handing work to a subagent or another runtime. Implementation delegates; design, review, verification, and git mutations stay with the lead. |
+| `principle-desktop-before-cloud` | claude, codex | Apply to any change spanning the desktop app and its cloud twin. The desktop change lands and is proven first; the cloud fork follows. |
+| `principle-failing-test-first` | claude, codex | Apply before writing production code. Write the failing check first, at the fastest level that expresses the behavior, and watch it fail for the right reason. |
+| `principle-feature-branch-isolation` | claude, codex | Apply before starting any change. Work happens on daryl/<kebab-words> in its own worktree, never on main, never in the primary worktree. |
+| `principle-finish-or-report` | claude, codex | Apply at the end of any run. Never deliver a partial silently. Either the whole thing is done, or say precisely what is left and why. |
+| `principle-never-block-on-reversible-work` | claude, codex | Apply when tempted to ask permission for reversible work. Proceed and present the result. Does not apply to the planning gate or to irreversible actions. |
+| `principle-one-commit-lands` | claude, codex | Apply when delivering a branch. Exactly one commit reaches main, produced by squash at PR merge. Commit freely while implementing; never consolidate locally. |
+| `principle-planning-docs-live-outside-the-repo` | claude, codex | Apply when writing a spec, plan, design doc, research note, or handoff prompt. They live in the dev-notes folder for the task, never in the repo and never comm… |
+| `principle-promote-to-the-main-worktree` | claude, codex | Apply after rebasing a finished feature. Check the branch out in the main worktree so the local dev stack runs it and the operator can test manually. Promotion… |
+| `principle-prove-on-the-real-surface` | claude, codex | Apply after any change, before declaring done. Verify in the running product on the surface the change touches. Tests are necessary and never sufficient; incon… |
+| `principle-rebase-pr-squash` | claude, codex | Apply to every branch delivery. Rebase onto current origin/main, push the branch only, land through the PR or MR squashed. Never merge locally, never push main… |
+| `principle-separate-before-serializing-shared-state` | claude, codex | Apply when concurrent workers might write the same file, branch, port, or object. Eliminate the sharing first; serialize structurally only when one shared writ… |
+| `principle-todo-discipline` | claude, codex | Apply to any multi-step task. A step you skip stays in the list with a stated reason. Silent omission is not allowed. |
+| `principle-visual-approval-gates-delivery` | claude, codex | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. Approval is the operator's, never inferre… |
 
