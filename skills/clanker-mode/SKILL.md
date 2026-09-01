@@ -35,21 +35,37 @@ unread.
 
 ## Principles
 
-Read the leaf in full for any principle you apply.
+Read the leaf in full for any principle you apply. Naming one without a decision
+behind it means you skipped reading it.
 
-**Delivery.** `rebase-pr-squash` · `one-commit-lands` ·
-`feature-branch-isolation` · `promote-to-the-main-worktree` ·
-`announce-the-linked-review` · `desktop-before-cloud`
+**Core.** How much to build, and in what order.
+`laziness-protocol` · `subtract-before-you-add` · `foundational-thinking` ·
+`redesign-from-first-principles` · `outcome-oriented-execution` ·
+`exhaust-the-design-space` · `experience-first` · `build-the-lever` ·
+`minimize-reader-load`
 
-**Verification.** `prove-on-the-real-surface` ·
-`visual-approval-gates-delivery` · `failing-test-first` · `finish-or-report`
-
-**Execution.** `todo-discipline` · `build-the-lever` ·
-`never-block-on-reversible-work` ·
-`delegate-implementation-review-stays-here` ·
+**Architecture.** What shape the code takes.
+`model-the-domain` · `boundary-discipline` · `type-system-discipline` ·
+`make-operations-idempotent` · `migrate-callers-then-delete-legacy-apis` ·
 `separate-before-serializing-shared-state`
 
-**Environment.** `bind-assigned-ports` · `planning-docs-live-outside-the-repo`
+**Verification.** What counts as done.
+`prove-on-the-real-surface` · `visual-approval-gates-delivery` ·
+`failing-test-first` · `fix-root-causes` · `sequence-verifiable-units` ·
+`finish-or-report`
+
+**Delivery.** How work reaches main.
+`rebase-pr-squash` · `one-commit-lands` · `feature-branch-isolation` ·
+`promote-to-the-main-worktree` · `announce-the-linked-review` ·
+`desktop-before-cloud`
+
+**Delegation.** Working with other agents.
+`delegate-implementation-review-stays-here` · `never-block-on-reversible-work` ·
+`guard-the-context-window` · `todo-discipline`
+
+**Environment and meta.**
+`bind-assigned-ports` · `planning-docs-live-outside-the-repo` ·
+`encode-lessons-in-structure`
 
 ## Which stack owns the work
 

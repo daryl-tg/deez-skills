@@ -159,6 +159,91 @@ layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]
 
+[skills.principle-boundary-discipline]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-encode-lessons-in-structure]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-exhaust-the-design-space]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-experience-first]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-fix-root-causes]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-foundational-thinking]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-guard-the-context-window]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-laziness-protocol]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-make-operations-idempotent]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-migrate-callers-then-delete-legacy-apis]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-minimize-reader-load]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-model-the-domain]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-outcome-oriented-execution]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-redesign-from-first-principles]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-sequence-verifiable-units]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-subtract-before-you-add]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-type-system-discipline]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
 # --- Router -----------------------------------------------------------------
 # One router, Claude only. Codex ignores disable-model-invocation, so a mode
 # skill there would fire on description matches. Its playbooks are plain files,
