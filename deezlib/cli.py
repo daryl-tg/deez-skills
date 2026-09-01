@@ -19,6 +19,9 @@ def build_parser():
     link.add_argument("--profile", default=None, help="Profile to install.")
     link.add_argument("--runtime", default=None, choices=registry.RUNTIMES)
     link.add_argument("--apply", action="store_true", help="Actually make changes.")
+
+    doctor_parser = subparsers.add_parser("doctor", help="Report drift. Read-only.")
+    doctor_parser.add_argument("--profile", default=None)
     return parser
 
 
@@ -55,10 +58,33 @@ def cmd_link(args):
     return 0
 
 
+def cmd_doctor(args):
+    from deezlib import doctor
+
+    reg = registry.load(REPO_ROOT / "registry.toml")
+    profile = args.profile or reg.default_profile
+    roots = runtimes.roots(os.environ, Path.home())
+
+    findings = doctor.check(reg, REPO_ROOT, roots, profile)
+    findings.extend(doctor.orphans(roots, reg))
+
+    if not reg.entries:
+        print("registry has 0 entries — nothing migrated yet, nothing linked.")
+
+    for finding in findings:
+        print(f"{finding.level.upper():5} {finding.code:22} {finding.detail}")
+
+    failures = [f for f in findings if f.level == "fail"]
+    warnings = [f for f in findings if f.level == "warn"]
+    print(f"\n{len(failures)} failures, {len(warnings)} warnings")
+    return 1 if failures else 0
+
+
 COMMANDS = {
     "version": cmd_version,
     "python-path": cmd_python_path,
     "link": cmd_link,
+    "doctor": cmd_doctor,
 }
 
 
