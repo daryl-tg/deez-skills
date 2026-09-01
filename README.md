@@ -267,6 +267,31 @@ description is not what makes a runtime truncate its catalogue; the total is.
 
 ## Everything in the hub
 
+### cmux app development
+
+| Name | Layer | Runtimes | Description |
+| --- | --- | --- | --- |
+| `cmux` |  | codex | End-user control of cmux topology and routing (windows, workspaces, panes/surfaces, focus, moves, reorder, identify, trigger flash). Use when automation needs … |
+| `cmux-architecture` |  | codex | cmux package architecture, refactor layering, dependency inversion, file organization, DocC documentation, package design discipline, testability, and Swift 6 … |
+| `cmux-backend` |  | codex | Backend TypeScript and Cloud VM development rules for cmux. Use when editing web/app/api, web/services, backend scripts, Cloud VM lifecycle, provider integrati… |
+| `cmux-billing` |  | codex | Stripe checkout, pricing, subscription, Pro plan, webhook, and entitlement runbook for cmux billing work. Use when editing or debugging billing, pricing, Strip… |
+| `cmux-browser` |  | codex | End-user browser automation with cmux. Use when you need to open sites, interact with pages, wait for state changes, and extract data from cmux browser surface… |
+| `cmux-custom-sidebar` |  | codex | Build a custom cmux sidebar from a plain-language request. Use when the user asks for a custom sidebar, a sidebar that shows their workspaces/tabs/PRs/clock, a… |
+| `cmux-customization` |  | codex | Customize cmux for an end user. Use when changing cmux.json actions, custom commands, workspace layouts, plus-button behavior, surface tab bar buttons, Command… |
+| `cmux-debugging` |  | codex | Debug logging, Debug menu, runtime pitfalls, typing-latency-sensitive paths, SwiftUI list snapshot boundaries, OS-version repros, and local visual iteration fo… |
+| `cmux-dev-workflow` |  | codex | Contributor workflow rules for cmux setup, Xcode project normalization, tagged sidebar ExtensionKit development, and dev builds. Use when setting up the cmux r… |
+| `cmux-diagnostics` |  | codex | Run end-user cmux diagnostics. Use when cmux hooks, notifications, session restore, settings, browser automation, socket access, CLI control, or agent resume b… |
+| `cmux-ghostty` |  | codex | Ghostty submodule and GhosttyKit workflow rules for cmux. Use when modifying the ghostty submodule, rebuilding GhosttyKit.xcframework, updating the parent subm… |
+| `cmux-keyboard-shortcuts` |  | codex | Guide and apply cmux keyboard shortcut customization. Use when the user asks to customize, rebind, unbind, reset, audit, or create shortcut templates for cmux,… |
+| `cmux-localization` |  | codex | Localization rules and audit workflow for cmux UI strings, settings rows, menus, shortcuts, schema/config text, docs, command/help text, alerts, tooltips, and … |
+| `cmux-markdown` |  | codex | Open markdown files in a formatted viewer panel with live reload. Use when you need to display plans, documentation, or notes alongside the terminal with rich … |
+| `cmux-release` |  | codex | cmux release workflow, version bumping, changelog updates, pretag guard, release tags, and release asset expectations. Use when preparing or troubleshooting a … |
+| `cmux-settings` |  | codex | View and edit cmux settings in ~/.config/cmux/cmux.json. Use when the user wants to change cmux preferences (appearance, sidebar, notifications, automation, br… |
+| `cmux-shared-behavior` |  | codex | Shared behavior and mutation-path rules for cmux. Use when a behavior is exposed through multiple entrypoints such as keyboard shortcuts, command palette, cont… |
+| `cmux-socket-policy` |  | codex | Socket command threading and focus policy for cmux CLI/socket work. Use when adding or changing socket commands, CLI commands, telemetry commands, focus/select… |
+| `cmux-testing` |  | codex | cmux testing rules for Swift Testing, test target compilation, test wiring, and package/refactor validation. Use when adding or changing tests, touching packag… |
+| `cmux-workspace` |  | codex | Work inside the current cmux workspace and terminal. Use for cmux workspace, current workspace, caller surface, panes, surfaces, socket targeting, and non-inte… |
+
 ### Always-on essentials
 
 | Name | Layer | Runtimes | Description |
@@ -317,6 +342,36 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `review` |  | claude, codex | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a branch, PR, or MR, dead-code checks, or 'wou… |
 | `test-first` |  | claude, codex | Write the failing check before production code, at the fastest level that expresses the behavior, and report the failing-before evidence. Use before implementi… |
 
+### Go language toolchain
+
+| Name | Layer | Runtimes | Description |
+| --- | --- | --- | --- |
+| `ancient-go-style` |  | claude, codex | Go work where package documentation, dependency source, vendoring, or module setup matters. |
+| `go-config-ko` |  | claude, codex | Go config structs with ko tags, YAML/env wiring, defaults, and ko.Load call sites. |
+| `go-docopt` |  | claude, codex | Go CLI parsing conventions: usage strings, flags, subcommands, argument structs, and dispatch. |
+| `go-karma-log` |  | claude, codex | Go log lines, wrapped errors, and structured context conventions. |
+| `golangci-lint` |  | claude, codex | Go lint setup and configuration: rules, .golangci.yml, project wiring, or linter failures. |
+| `karma-read` |  | claude, codex | Tree-formatted Go logs to structured NDJSON; field, error, and context extraction/filtering. |
+
+### Infrastructure and observability
+
+| Name | Layer | Runtimes | Description |
+| --- | --- | --- | --- |
+| `kolint` |  | claude, codex | YAML config audits against Go structs: schema, defaults, required fields, and unknowns. |
+| `kubectl-logs` |  | claude, codex | Kubernetes deployment pod log capture with the bundled kubectl-logs script. |
+| `logcli` |  | claude, codex | Live Loki log exports, per-pod splits, and saved Kubernetes or service log captures; not logs already on disk. |
+| `stackctl` |  | claude, codex | Live Grafana/Prometheus: dashboards, panels, variables, imports, validation, or PromQL through Grafana. |
+| `tsdbctl` |  | claude, codex | tsdb-gateway market data and research scripts. |
+
+### Kiyotaka / orange stack
+
+| Name | Layer | Runtimes | Description |
+| --- | --- | --- | --- |
+| `authoring-orange-shared-packages` |  | claude | Use when creating or changing a package in the orange-shared workspace (/Users/dboon/Gitlab/orange-shared, @orangecharts npm scope) — adding a shared types/sch… |
+| `kiyotaka-user-docs` |  | claude, codex | Carry a kiyotaka-frontend user-facing change into its docs in the same cycle. Use when shipping a retail-visible feature or setting, when asked to "document X"… |
+| `migrating-types-to-orange-shared` |  | claude | Use when centralising duplicated, hand-copied, or drift-guarded types/constants from kiyotaka-frontend (or another consumer repo) into an @orangecharts package… |
+| `port-designer-ui` |  | claude, codex | Use when porting a component, dialog, page, landing-page redesign, or other visual treatment from Kiyotaka_Mar25_V9 into a Kiyotaka Vue repository, especially … |
+
 ### OM Chat feature delivery
 
 | Name | Layer | Runtimes | Description |
@@ -331,19 +386,43 @@ description is not what makes a runtime truncate its catalogue; the total is.
 
 | Name | Layer | Runtimes | Description |
 | --- | --- | --- | --- |
+| `adhd` |  | claude, codex | Shape output for a reader with ADHD: lead with the next action, number multi-step work, restate state across turns, suppress tangents, give specific time estim… |
+| `ancient-shell-style` |  | claude, codex | Lint, format, test, review, document, and harden maintained Bash and shell scripts with ShellCheck, shfmt, shdoc, and test-runner.bash. Use for Bash, sh, shell… |
 | `blast-radius` |  | claude, codex | Find what a small-looking change could break beyond its diff, proving each safety claim with running code rather than assertion. Use before shipping a change t… |
+| `bump-rc` |  | claude | Release a new @openmarket/rooms-client version — pick the bump from what actually changed, run the repo's release script, then update both GUI consumers' pins.… |
+| `chrome-devtools` |  | claude, codex | Browser automation through the Chrome DevTools Protocol with the bundled chrome-devtools script. |
+| `commit` |  | codex | Commit the currently staged git changes only. Use when the user invokes /commit, asks to commit staged changes, or requests a concise commit from the existing … |
+| `demuddy` |  | claude | Use when a plan, spec, or design doc has accumulated edits from multiple discussion rounds and is about to be handed to an implementing agent (or human) — symp… |
 | `figure-it-out` |  | claude, codex | Design an auditable playbook when no bundled one fits: a large migration, an ambitious multi-part change, or work reviewed after the operator steps away. Scale… |
+| `git` |  | claude, codex | Version-control workflow: commits, staging, rebasing, branching, minimal diffs, and commit messages. |
+| `glab` |  | claude, codex | GitLab MR management via glab. |
+| `graphify` |  | claude, codex | Use for any question about a codebase, its architecture, file relationships, or project content — especially when graphify-out/ exists, where the question shou… |
+| `hatch-pet` |  | codex | Create, repair, validate, visually QA, and package Codex-compatible v2 animated pets from character art, generated images, company or prospect brand cues, or v… |
+| `ivtg` |  | claude | Use when the user wants to queue up bugs, regressions, or issues one at a time and get each one investigated across one or more repos and written up as a fix p… |
+| `labiew` |  | claude, codex | GitLab MR review comments and response planning for the current branch. |
 | `llm-council` |  | claude, codex | Run any question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final… |
+| `loop-me-in` |  | claude | Use when a fix plan, spec, or design doc needs to become a file that a fresh session can execute unattended and prove its own changes landed — "make this runna… |
+| `mailbox` |  | claude, codex | Agent mail, handoffs, replies, waits, handled state, or store inspection. |
+| `maintain-agents-md` |  | claude, codex | AGENTS.md maintenance and repository agent instructions. |
+| `pi-development` |  | claude, codex | Pi asset development: extensions, skills, prompts, themes, packages, providers, models, TUI, or SDK integrations. |
+| `prompt-ready` |  | claude | Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persist… |
 | `recall` |  | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap. |
+| `reviewer` |  | claude, codex | Code, diff, PR, or MR review; dead-code checks, behavior drift, or REVIEW.txt notes. |
 | `show-me-your-work` |  | claude, codex | Keep an auditable decision trail as a committed TSV during long or unattended runs. Use when the operator will review after stepping away, or when the reasonin… |
+| `syncup` |  | claude | Use when the user wants one or more local repos brought up to date with their default branch — refresh main from origin, rebase the working branch onto it, and… |
+| `taskfile` |  | claude, codex | Task runner automation: create, revise, or troubleshoot task definitions and syntax. |
 | `teach` |  | claude, codex | Explain a change or subsystem plainly so a person actually understands it. Runs explore and why, weaves one account, builds diagrams up one part at a time. Use… |
+| `testing-harness` |  | claude | Use when a change has to be proven in the real running product rather than in tests — visually diffing the cloud deployment against the local daemon, sweeping … |
+| `war-diary` |  | claude | Use when updating the Frontend War Diaries from a GitLab activity .atom export and the day's Claude Code sessions — turning a day's GitLab work (pushes, MRs, a… |
 | `why` |  | claude, codex | Recover why something was built the way it is, from git history, review threads, tickets, chat, and incident records. Use for 'why is this like this', 'why was… |
 
 ### Writing and editing
 
 | Name | Layer | Runtimes | Description |
 | --- | --- | --- | --- |
+| `humanize` |  | claude | Use when Claude-authored text (design doc, MR description, README section, chat/message draft) needs to read like Ryan wrote it — before pasting into Discord o… |
 | `unslop` |  | claude, codex | Cut AI tells from any writing. Applies to every prose surface, including your own replies. |
+| `writing-comments` |  | claude, codex | Explicit comment, docstring, commented-out code, or public API documentation work. |
 | `writing-docs` |  | claude, codex | Pick the document's audience and mode first, then apply the matching standard: STE for agent-facing docs, developer style for human-facing ones. Use for docs, … |
 | `writing-instructions` |  | claude, codex | Agent-facing instruction edits: skills, AGENTS.md, guidelines, or prompt docs. Not prose style. |
 | `writing-simplified-technical-english` |  | claude, codex | Rewrite an agent-facing document in ASD-STE100 when it is too long, gets truncated, or reads as dense prose: SKILL.md, AGENTS.md, CLAUDE.md, subagent definitio… |

@@ -1,0 +1,2482 @@
+#!/usr/bin/env python3
+"""Control Chromium page tabs through the DevTools Protocol."""
+
+from __future__ import annotations
+
+import base64
+import hashlib
+import json
+import os
+import re
+import socket
+import ssl
+import struct
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from collections.abc import Callable
+from typing import Any, cast
+
+PROGRAM_NAME = os.path.basename(sys.argv[0]) if sys.argv else "chrome-devtools"
+VERSION = "0.1.0"
+DEFAULT_DEVTOOLS_URL = "http://127.0.0.1:9222"
+DEFAULT_TIMEOUT_MS = 10000
+DEFAULT_MAX_CHARS = 50000
+DEFAULT_LOGS_DURATION_MS = 1000
+DEFAULT_NETWORK_IDLE_MS = 500
+DEFAULT_WAIT_INTERVAL_MS = 250
+DEFAULT_LOG_ENTRY_LIMIT = 500
+DEFAULT_NETWORK_REQUEST_LIMIT = 500
+
+
+class ToolError(Exception):
+    """User-facing command failure."""
+
+
+class CdpError(Exception):
+    """CDP helper/client failure."""
+
+
+class HttpRequestError(ToolError):
+    """DevTools HTTP request failure."""
+
+
+TOP_LEVEL_HELP = """Usage:
+    {program} <command> [options]
+    {program} help [command]
+    {program} --version
+
+Commands:
+    list-tabs    List open Chromium page tabs and show the selected tab.
+    select-tab   Select and activate a page tab for later commands.
+    navigate     Open a URL in a tab, optionally creating a new tab first.
+    evaluate     Run a JavaScript expression in the target page.
+    screenshot   Capture a PNG or JPEG screenshot.
+    click        Click an element by selector/ref or viewport coordinates.
+    type         Type text into an element or the active element.
+    submit       Submit the nearest form for an element or the active element.
+    wait         Wait for a selector, text, URL fragment, or fixed delay.
+    read-page    Print rendered page text, HTML, accessibility, or refs.
+    logs         Capture console/runtime logs and optional network summaries.
+
+Target selection:
+    Page commands target an explicit --tab-id, then selected-tab state, then
+    the sole open page tab. If multiple page tabs are open, select one first
+    or pass --tab-id.
+
+Environment:
+    CHROME_DEVTOOLS_URL        DevTools HTTP endpoint. Default: {default_devtools_url}
+    CHROME_DEVTOOLS_STATE_DIR  Directory for the selected-tab state file.
+
+Help:
+    {program} help <command>     Show detailed help for one command.
+    {program} <command> --help   Same detailed command help.
+
+Examples:
+    {program} list-tabs
+    {program} select-tab C87A0E7D8A
+    {program} navigate --new-tab https://example.com
+    {program} read-page --mode interactive
+    {program} logs --include-network --duration-ms 1000
+"""
+
+COMMAND_HELP_TEMPLATES = {
+    "list-tabs": """Usage:
+    {program} list-tabs [--json]
+
+Summary:
+    List open Chromium page tabs. Text output marks the selected tab with "*".
+
+Options:
+    --json      Print page targets as formatted JSON.
+    -h, --help  Show this help.
+
+Examples:
+    {program} list-tabs
+    {program} list-tabs --json
+""",
+    "select-tab": """Usage:
+    {program} select-tab <tab-id>
+
+Summary:
+    Validate, activate, and save a page tab as the default target for later
+    commands.
+
+Arguments:
+    <tab-id>    DevTools target id from `list-tabs`.
+
+Options:
+    -h, --help  Show this help.
+
+Examples:
+    {program} list-tabs
+    {program} select-tab C87A0E7D8A
+""",
+    "navigate": """Usage:
+    {program} navigate [--tab-id <id>] [--new-tab] [--wait-until <mode>] [--timeout-ms <ms>] <url>
+
+Summary:
+    Navigate an existing tab or a new tab to a URL. Successful navigation saves
+    the tab as the selected target.
+
+Arguments:
+    <url>       Fully-qualified URL, about:blank, or another Chromium URL.
+
+Options:
+    --tab-id <id>       Target this tab instead of selected-tab state.
+    --new-tab           Create a new tab before navigating.
+    --wait-until <mode> domcontentloaded, load, networkIdle, or none. Default: load.
+    --timeout-ms <ms>   Positive integer timeout. Default: {default_timeout_ms}.
+    -h, --help          Show this help.
+
+Examples:
+    {program} navigate --new-tab https://example.com
+    {program} navigate --wait-until networkIdle --timeout-ms 15000 https://example.com/app
+""",
+    "evaluate": """Usage:
+    {program} evaluate [--tab-id <id>] [--await-promise|--no-await-promise] <expression>
+
+Summary:
+    Run JavaScript in the target page and print the result. String results print
+    as text; other JSON-compatible values print as formatted JSON.
+
+Arguments:
+    <expression>          JavaScript expression. Remaining words are joined with spaces.
+
+Options:
+    --tab-id <id>         Target this tab instead of selected-tab state.
+    --await-promise       Await promise results before printing. Default.
+    --no-await-promise    Print the immediate Runtime.evaluate result.
+    -h, --help            Show this help.
+
+Examples:
+    {program} evaluate 'document.title'
+    {program} evaluate --no-await-promise 'fetch("/health")'
+""",
+    "screenshot": """Usage:
+    {program} screenshot [--tab-id <id>] [--full-page] [--format <png|jpeg>] [--quality <0-100>] [--output <path|->]
+
+Summary:
+    Capture a screenshot. Without --output the image is printed as base64.
+    With --output the decoded bytes are written to a file, or to stdout for -.
+
+Options:
+    --tab-id <id>       Target this tab instead of selected-tab state.
+    --full-page         Capture beyond the viewport when Chromium supports it.
+    --format <png|jpeg> Image format. Default: png.
+    --quality <0-100>   JPEG quality; ignored for PNG.
+    --output <path|->   Write decoded bytes to a path or stdout. Default: base64 stdout.
+    -h, --help          Show this help.
+
+Examples:
+    {program} screenshot --full-page --output /tmp/page.png
+    {program} screenshot --format jpeg --quality 80
+""",
+    "click": """Usage:
+    {program} click [--tab-id <id>] (--selector <css>|--ref <ref>|--x <x> --y <y>) [--wait-after-ms <ms>]
+
+Summary:
+    Click an element by CSS selector, a read-page interactive ref, or viewport
+    coordinates.
+
+Target options:
+    --selector <css>      CSS selector for the element to click.
+    --ref <ref>           data-pi-ref from `read-page --mode interactive`.
+    --x <x> --y <y>       Viewport coordinates in CSS pixels.
+
+Options:
+    --tab-id <id>         Target this tab instead of selected-tab state.
+    --wait-after-ms <ms>  Non-negative delay after clicking. Default: 250.
+    -h, --help            Show this help.
+
+Examples:
+    {program} read-page --mode interactive
+    {program} click --ref r1
+    {program} click --selector 'button[type=submit]' --wait-after-ms 500
+""",
+    "type": """Usage:
+    {program} type [--tab-id <id>] [--selector <css>|--ref <ref>] [--clear] [--submit] [--wait-after-ms <ms>] <text>
+
+Summary:
+    Focus an element, optionally clear it, type text, and optionally submit.
+    Without --selector or --ref, the active element is used.
+
+Arguments:
+    <text>                Text to insert. Remaining words are joined with spaces.
+
+Target options:
+    --selector <css>      CSS selector for the input target.
+    --ref <ref>           data-pi-ref from `read-page --mode interactive`.
+
+Options:
+    --tab-id <id>         Target this tab instead of selected-tab state.
+    --clear               Clear the target before typing.
+    --submit              Submit the nearest form after typing; falls back to Enter.
+    --wait-after-ms <ms>  Non-negative delay. Default: 100, or 500 with --submit.
+    -h, --help            Show this help.
+
+Examples:
+    {program} type --selector 'input[name=q]' --clear 'search text'
+    {program} type --ref r2 --submit 'hello world'
+""",
+    "submit": """Usage:
+    {program} submit [--tab-id <id>] [--selector <css>|--ref <ref>] [--wait-after-ms <ms>]
+
+Summary:
+    Submit the nearest form for an element. Without --selector or --ref, the
+    active element is used. If no form is found, the command focuses the target
+    and sends Enter.
+
+Target options:
+    --selector <css>      CSS selector for the submit target.
+    --ref <ref>           data-pi-ref from `read-page --mode interactive`.
+
+Options:
+    --tab-id <id>         Target this tab instead of selected-tab state.
+    --wait-after-ms <ms>  Non-negative delay after submit. Default: 500.
+    -h, --help            Show this help.
+
+Examples:
+    {program} submit --selector 'form button[type=submit]'
+    {program} submit --ref r3
+""",
+    "wait": """Usage:
+    {program} wait [--tab-id <id>] [--selector <css>] [--text <text>] [--url-contains <text>] [--timeout-ms <ms>]
+
+Summary:
+    Wait until all supplied conditions match. With no conditions, sleep for the
+    timeout duration.
+
+Conditions:
+    --selector <css>        Wait until this selector exists.
+    --text <text>           Wait until visible page text contains this text.
+    --url-contains <text>   Wait until location.href contains this fragment.
+
+Options:
+    --tab-id <id>           Target this tab instead of selected-tab state.
+    --timeout-ms <ms>       Positive timeout. Default: {default_timeout_ms} with conditions, 1000 without.
+    -h, --help              Show this help.
+
+Examples:
+    {program} wait --selector '#results' --timeout-ms 10000
+    {program} wait --text 'Saved' --url-contains '/done'
+    {program} wait --timeout-ms 250
+""",
+    "read-page": """Usage:
+    {program} read-page [--tab-id <id>] [--mode <snapshot|text|html|interactive|accessibility>] [--selector <css>] [--max-chars <n>]
+
+Summary:
+    Print rendered page content. Interactive mode writes stable data-pi-ref
+    attributes into the page and prints refs for later click/type/submit calls.
+
+Options:
+    --tab-id <id>       Target this tab instead of selected-tab state.
+    --mode <mode>       snapshot, text, html, interactive, or accessibility. Default: snapshot.
+    --selector <css>    Scope text/html/interactive extraction to this selector.
+    --max-chars <n>     Positive output truncation limit. Default: {default_max_chars}.
+    -h, --help          Show this help.
+
+Examples:
+    {program} read-page
+    {program} read-page --mode interactive --max-chars 20000
+    {program} read-page --mode html --selector '#app'
+""",
+    "logs": """Usage:
+    {program} logs [--tab-id <id>] [--duration-ms <ms>] [--include-network] [--json] [--max-chars <n>]
+
+Summary:
+    Capture console/log/runtime-exception events after attaching. Network mode
+    adds a safe request summary and PerformanceResourceTiming entries; it does
+    not dump request or response headers.
+
+Options:
+    --tab-id <id>       Target this tab instead of selected-tab state.
+    --duration-ms <ms>  Non-negative capture window. Default: {default_logs_duration_ms}.
+    --include-network   Include CDP network events and performance resource timings.
+    --network           Alias for --include-network.
+    --json              Print structured JSON without the formatted text report.
+    --max-chars <n>     Positive report truncation limit. Default: {default_max_chars}.
+    -h, --help          Show this help.
+
+Examples:
+    {program} logs --duration-ms 1000
+    {program} logs --include-network --max-chars 20000
+    {program} logs --json
+""",
+}
+
+
+def format_help(template: str) -> str:
+    return template.format(
+        program=PROGRAM_NAME,
+        default_devtools_url=DEFAULT_DEVTOOLS_URL,
+        default_timeout_ms=DEFAULT_TIMEOUT_MS,
+        default_max_chars=DEFAULT_MAX_CHARS,
+        default_logs_duration_ms=DEFAULT_LOGS_DURATION_MS,
+    )
+
+
+def usage() -> None:
+    sys.stdout.write(format_help(TOP_LEVEL_HELP))
+
+
+def print_command_help(command_name: str) -> None:
+    sys.stdout.write(format_help(COMMAND_HELP_TEMPLATES[command_name]))
+
+
+def die(message: str) -> None:
+    print(f"{PROGRAM_NAME}: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def require_positive_int(value: str, label: str) -> None:
+    if not re.fullmatch(r"[1-9][0-9]*", value):
+        raise ToolError(f"{label} must be a positive integer.")
+
+
+def require_non_negative_int(value: str, label: str) -> None:
+    if not re.fullmatch(r"0|[1-9][0-9]*", value):
+        raise ToolError(f"{label} must be a non-negative integer.")
+
+
+def require_number(value: str, label: str) -> None:
+    if not re.fullmatch(r"-?[0-9]+([.][0-9]+)?", value):
+        raise ToolError(f"{label} must be a number.")
+
+
+def require_choice(value: str, label: str, *choices: str) -> None:
+    if value not in choices:
+        raise ToolError(f"{label} must be one of: {' '.join(choices)}")
+
+
+def compact_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+
+def print_pretty_json(value: Any) -> None:
+    print(json.dumps(value, ensure_ascii=False, indent=2))
+
+
+def print_truncated(text: str, max_chars: int) -> None:
+    total_chars = len(text)
+    if total_chars > max_chars:
+        sys.stdout.write(text[:max_chars])
+        sys.stdout.write(
+            f"\n\n[Output truncated to {max_chars} of {total_chars} characters.]\n"
+        )
+        return
+    print(text)
+
+
+def normalize_devtools_url(url: str) -> str:
+    while url.endswith("/"):
+        url = url[:-1]
+    return url
+
+
+def devtools_url() -> str:
+    return normalize_devtools_url(
+        os.environ.get("CHROME_DEVTOOLS_URL", DEFAULT_DEVTOOLS_URL)
+    )
+
+
+def state_dir() -> str:
+    home = os.environ.get("HOME", ".")
+    xdg_state_home = os.environ.get(
+        "XDG_STATE_HOME", os.path.join(home, ".local", "state")
+    )
+    return os.environ.get(
+        "CHROME_DEVTOOLS_STATE_DIR", os.path.join(xdg_state_home, "chrome-devtools")
+    )
+
+
+def selected_tab_file() -> str:
+    return os.path.join(state_dir(), "selected-tab")
+
+
+def selected_tab_read() -> str:
+    try:
+        with open(selected_tab_file(), encoding="utf-8") as handle:
+            return handle.readline().rstrip("\n")
+    except FileNotFoundError:
+        return ""
+
+
+def selected_tab_write(tab_id: str) -> None:
+    os.makedirs(state_dir(), exist_ok=True)
+    with open(selected_tab_file(), "w", encoding="utf-8") as handle:
+        handle.write(tab_id + "\n")
+
+
+def selected_tab_clear() -> None:
+    try:
+        os.unlink(selected_tab_file())
+    except FileNotFoundError:
+        pass
+
+
+def url_encode(value: str) -> str:
+    return urllib.parse.quote(value, safe="")
+
+
+def http_url(path: str) -> str:
+    return f"{devtools_url()}{path}"
+
+
+def helper_output_error(process: subprocess.CompletedProcess[str]) -> str:
+    combined = (process.stderr or process.stdout or "").strip()
+    return combined or f"exit status {process.returncode}"
+
+
+def http_request(method: str, path: str) -> str:
+    helper = os.environ.get("CHROME_DEVTOOLS_HTTP_HELPER")
+    if helper:
+        try:
+            process = subprocess.run(
+                [helper, method, path],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        except OSError as exc:
+            raise HttpRequestError(
+                f"DevTools HTTP request failed ({method} {path}): {exc}"
+            ) from exc
+        if process.returncode != 0:
+            raise HttpRequestError(
+                f"DevTools HTTP request failed ({method} {path}): {helper_output_error(process)}"
+            )
+        return process.stdout.rstrip("\n")
+
+    request = urllib.request.Request(http_url(path), method=method)
+    try:
+        with urllib.request.urlopen(
+            request, timeout=DEFAULT_TIMEOUT_MS / 1000.0
+        ) as response:
+            return cast(bytes, response.read()).decode("utf-8")
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace") or str(exc)
+        raise HttpRequestError(
+            f"DevTools HTTP request failed ({method} {path}): {detail}"
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise HttpRequestError(
+            f"DevTools HTTP request failed ({method} {path}): {exc.reason}"
+        ) from exc
+    except OSError as exc:
+        raise HttpRequestError(
+            f"DevTools HTTP request failed ({method} {path}): {exc}"
+        ) from exc
+
+
+def http_request_with_fallback(path: str, *methods: str) -> str:
+    last_error = ""
+    for method in methods:
+        try:
+            return http_request(method, path)
+        except HttpRequestError as exc:
+            last_error = str(exc)
+    raise ToolError(last_error)
+
+
+def json_loads(raw: str, context: str) -> Any:
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ToolError(f"{context} did not return valid JSON.") from exc
+
+
+def dict_value(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return cast(dict[str, Any], value)
+    return {}
+
+
+def list_value(value: Any) -> list[Any]:
+    if isinstance(value, list):
+        return value
+    return []
+
+
+def dict_list_value(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    return [cast(dict[str, Any], item) for item in value if isinstance(item, dict)]
+
+
+def targets_list() -> list[dict[str, Any]]:
+    raw = http_request("GET", "/json/list")
+    parsed = json_loads(raw, "DevTools /json/list")
+    if not isinstance(parsed, list):
+        raise ToolError("DevTools /json/list did not return an array.")
+    return [
+        target
+        for target in parsed
+        if isinstance(target, dict) and target.get("type") == "page"
+    ]
+
+
+def target_from_list(
+    targets: list[dict[str, Any]], tab_id: str
+) -> dict[str, Any] | None:
+    for target in targets:
+        if target.get("id") == tab_id:
+            return target
+    return None
+
+
+def target_get(tab_id: str) -> dict[str, Any]:
+    target = target_from_list(targets_list(), tab_id)
+    if target is None:
+        raise ToolError(
+            f"No page tab found with id {tab_id}. Run '{PROGRAM_NAME} list-tabs' to inspect open tabs."
+        )
+    return target
+
+
+def target_resolve(tab_id: str) -> dict[str, Any]:
+    if tab_id:
+        return target_get(tab_id)
+
+    targets = targets_list()
+    selected_tab_id = selected_tab_read()
+    if selected_tab_id:
+        target = target_from_list(targets, selected_tab_id)
+        if target is not None:
+            return target
+        selected_tab_clear()
+
+    count = len(targets)
+    if count == 0:
+        raise ToolError(
+            f"No page tabs found. Run '{PROGRAM_NAME} navigate --new-tab <url>' or open a Chromium page."
+        )
+    if count == 1:
+        return targets[0]
+    raise ToolError(
+        f"Multiple page tabs are open. Run '{PROGRAM_NAME} list-tabs', then '{PROGRAM_NAME} select-tab <tab-id>' or pass --tab-id."
+    )
+
+
+def target_id(target: dict[str, Any]) -> str:
+    return str(target.get("id") or "")
+
+
+def target_title(target: dict[str, Any]) -> str:
+    return str(target.get("title") or "")
+
+
+def target_url(target: dict[str, Any]) -> str:
+    return str(target.get("url") or "")
+
+
+def target_ws_url(target: dict[str, Any]) -> str:
+    ws_url = str(target.get("webSocketDebuggerUrl") or "")
+    if not ws_url:
+        raise ToolError(
+            f"Tab {target_id(target)} does not expose webSocketDebuggerUrl."
+        )
+    return ws_url
+
+
+def tab_activate(tab_id: str) -> None:
+    http_request("GET", f"/json/activate/{url_encode(tab_id)}")
+
+
+def tab_create(initial_url: str) -> dict[str, Any]:
+    raw = http_request_with_fallback(
+        f"/json/new?{url_encode(initial_url)}", "PUT", "GET"
+    )
+    parsed = json_loads(raw, "DevTools /json/new")
+    if isinstance(parsed, dict) and parsed.get("type") == "page":
+        return parsed
+
+    targets = targets_list()
+    for target in targets:
+        if target.get("url") == initial_url:
+            return target
+    if targets:
+        return targets[0]
+    raise ToolError("Chromium did not return a new page target.")
+
+
+def format_tabs(targets: list[dict[str, Any]]) -> str:
+    selected_tab_id = selected_tab_read()
+    if not targets:
+        return "No page tabs found. Start Chromium with --remote-debugging-port=9222 and open a page."
+
+    formatted = []
+    for index, target in enumerate(targets, start=1):
+        marker = "*" if target.get("id") == selected_tab_id else " "
+        title = str(target.get("title") or "") or "(untitled)"
+        url = str(target.get("url") or "") or "about:blank"
+        formatted.append(
+            f"{marker} [{index}] id={target.get('id')}\n    title: {title}\n    url: {url}"
+        )
+    return "\n".join(formatted)
+
+
+class CdpClient:
+    def __init__(self, ws_url: str, timeout_ms: int):
+        self.ws_url = ws_url
+        self.timeout_s = max(timeout_ms / 1000.0, 0.001)
+        self.next_id = 1
+        self.events: list[dict[str, Any]] = []
+        self.sock = self._connect(ws_url)
+
+    def _connect(self, ws_url: str) -> socket.socket:
+        parsed = urllib.parse.urlparse(ws_url)
+        if parsed.scheme not in {"ws", "wss"}:
+            raise CdpError(f"Unsupported WebSocket URL scheme: {parsed.scheme}")
+        host = parsed.hostname
+        if not host:
+            raise CdpError("WebSocket URL is missing a host.")
+        port = parsed.port or (443 if parsed.scheme == "wss" else 80)
+        path = parsed.path or "/"
+        if parsed.query:
+            path += "?" + parsed.query
+
+        raw_sock = socket.create_connection((host, port), timeout=self.timeout_s)
+        if parsed.scheme == "wss":
+            raw_sock = ssl.create_default_context().wrap_socket(
+                raw_sock, server_hostname=host
+            )
+
+        key = base64.b64encode(os.urandom(16)).decode("ascii")
+        host_header = f"{host}:{port}"
+        request = (
+            f"GET {path} HTTP/1.1\r\n"
+            f"Host: {host_header}\r\n"
+            "Upgrade: websocket\r\n"
+            "Connection: Upgrade\r\n"
+            f"Sec-WebSocket-Key: {key}\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        )
+        raw_sock.sendall(request.encode("ascii"))
+        response = b""
+        raw_sock.settimeout(self.timeout_s)
+        while b"\r\n\r\n" not in response:
+            chunk = raw_sock.recv(4096)
+            if not chunk:
+                raise CdpError("WebSocket handshake ended early.")
+            response += chunk
+            if len(response) > 65536:
+                raise CdpError("WebSocket handshake response was too large.")
+
+        header_text = response.split(b"\r\n\r\n", 1)[0].decode("iso-8859-1", "replace")
+        status_line = header_text.split("\r\n", 1)[0]
+        if " 101 " not in f" {status_line} ":
+            raise CdpError(f"WebSocket handshake failed: {status_line}")
+        expected_accept = base64.b64encode(
+            hashlib.sha1(
+                (key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").encode("ascii")
+            ).digest()
+        ).decode("ascii")
+        headers = {}
+        for line in header_text.split("\r\n")[1:]:
+            if ":" in line:
+                name, value = line.split(":", 1)
+                headers[name.strip().lower()] = value.strip()
+        if headers.get("sec-websocket-accept") != expected_accept:
+            raise CdpError(
+                "WebSocket handshake returned an invalid Sec-WebSocket-Accept header."
+            )
+        return raw_sock
+
+    def close(self) -> None:
+        try:
+            self._send_frame(b"", opcode=0x8)
+        except Exception:
+            pass
+        try:
+            self.sock.close()
+        except Exception:
+            pass
+
+    def _recv_exact(self, size: int) -> bytes:
+        chunks = []
+        remaining = size
+        while remaining > 0:
+            chunk = self.sock.recv(remaining)
+            if not chunk:
+                raise CdpError("Chrome DevTools WebSocket closed.")
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        return b"".join(chunks)
+
+    def _send_frame(self, payload: bytes | str, opcode: int = 0x1) -> None:
+        if isinstance(payload, str):
+            payload = payload.encode("utf-8")
+        length = len(payload)
+        if length < 126:
+            header = struct.pack("!BB", 0x80 | opcode, 0x80 | length)
+        elif length <= 0xFFFF:
+            header = struct.pack("!BBH", 0x80 | opcode, 0x80 | 126, length)
+        else:
+            header = struct.pack("!BBQ", 0x80 | opcode, 0x80 | 127, length)
+        mask = os.urandom(4)
+        masked = bytes(byte ^ mask[index % 4] for index, byte in enumerate(payload))
+        self.sock.sendall(header + mask + masked)
+
+    def _recv_frame(self, timeout_s: float | None = None) -> str:
+        self.sock.settimeout(timeout_s if timeout_s is not None else self.timeout_s)
+        while True:
+            first = self._recv_exact(2)
+            byte1, byte2 = first[0], first[1]
+            fin = bool(byte1 & 0x80)
+            opcode = byte1 & 0x0F
+            masked = bool(byte2 & 0x80)
+            length = byte2 & 0x7F
+            if length == 126:
+                length = struct.unpack("!H", self._recv_exact(2))[0]
+            elif length == 127:
+                length = struct.unpack("!Q", self._recv_exact(8))[0]
+            mask = self._recv_exact(4) if masked else b""
+            payload = self._recv_exact(length) if length else b""
+            if masked:
+                payload = bytes(
+                    byte ^ mask[index % 4] for index, byte in enumerate(payload)
+                )
+            if opcode == 0x8:
+                raise CdpError("Chrome DevTools WebSocket closed.")
+            if opcode == 0x9:
+                self._send_frame(payload, opcode=0xA)
+                continue
+            if opcode == 0xA:
+                continue
+            if opcode != 0x1:
+                continue
+            if not fin:
+                raise CdpError("Fragmented WebSocket messages are not supported.")
+            return payload.decode("utf-8")
+
+    def _recv_message(self, timeout_s: float | None = None) -> dict[str, Any]:
+        text = self._recv_frame(timeout_s)
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+
+    def call(self, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        request_id = self.next_id
+        self.next_id += 1
+        self._send_frame(
+            compact_json({"id": request_id, "method": method, "params": params or {}})
+        )
+        deadline = time.monotonic() + self.timeout_s
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise CdpError(
+                    f"Timed out waiting for {method} after {int(self.timeout_s * 1000)}ms."
+                )
+            try:
+                message = self._recv_message(remaining)
+            except TimeoutError as exc:
+                raise CdpError(
+                    f"Timed out waiting for {method} after {int(self.timeout_s * 1000)}ms."
+                ) from exc
+            if message.get("id") == request_id:
+                if "error" in message:
+                    error = message.get("error") or {}
+                    message_text = (
+                        error.get("message", "Chrome DevTools protocol error")
+                        if isinstance(error, dict)
+                        else "Chrome DevTools protocol error"
+                    )
+                    code = error.get("code") if isinstance(error, dict) else None
+                    if code is not None:
+                        message_text = f"{message_text} (code {code})"
+                    raise CdpError(message_text)
+                result = message.get("result") or {}
+                return result if isinstance(result, dict) else {}
+            if "method" in message:
+                self.events.append(message)
+
+    def wait_for_event(
+        self,
+        method: str,
+        timeout_s: float,
+        tracker: Callable[[dict[str, Any]], None] | None = None,
+    ) -> dict[str, Any]:
+        deadline = time.monotonic() + timeout_s
+        while True:
+            for index, event in enumerate(list(self.events)):
+                if tracker:
+                    tracker(event)
+                if event.get("method") == method:
+                    self.events.pop(index)
+                    params = event.get("params") or {}
+                    return params if isinstance(params, dict) else {}
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise CdpError(
+                    f"Timed out waiting for {method} after {int(timeout_s * 1000)}ms."
+                )
+            try:
+                message = self._recv_message(remaining)
+            except TimeoutError as exc:
+                raise CdpError(
+                    f"Timed out waiting for {method} after {int(timeout_s * 1000)}ms."
+                ) from exc
+            if "method" in message:
+                self.events.append(message)
+
+
+def short(value: Any, max_len: int = 80) -> str:
+    if not value:
+        return ""
+    normalized = " ".join(str(value).split())
+    if len(normalized) > max_len:
+        return normalized[: max_len - 1] + "…"
+    return normalized
+
+
+def normalize_text(value: Any) -> str:
+    lines = []
+    for line in str(value or "").replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        normalized = " ".join(line.replace("\t", " ").split())
+        if normalized:
+            lines.append(normalized)
+    text = "\n".join(lines).strip()
+    while "\n\n\n" in text:
+        text = text.replace("\n\n\n", "\n\n")
+    return text
+
+
+def format_runtime_exception(details: dict[str, Any]) -> str:
+    exception = dict_value(details.get("exception"))
+    message = (
+        exception.get("description")
+        or exception.get("unserializableValue")
+        or details.get("text")
+        or "JavaScript exception"
+    )
+    if "lineNumber" in details:
+        line = int(details.get("lineNumber", 0)) + 1
+        column = int(details.get("columnNumber", 0)) + 1
+        message += f" at {line}:{column}"
+    return str(message)
+
+
+def format_remote_object(remote: dict[str, Any]) -> str:
+    if not remote:
+        return "undefined"
+    if "value" in remote:
+        value = remote.get("value")
+        if isinstance(value, str):
+            return value
+        return json.dumps(value, indent=2, ensure_ascii=False)
+    if remote.get("unserializableValue"):
+        return str(remote["unserializableValue"])
+    if remote.get("description"):
+        return str(remote["description"])
+    return str(remote.get("type") or "undefined")
+
+
+def runtime_evaluate(
+    client: CdpClient,
+    expression: str,
+    await_promise: bool = True,
+    return_by_value: bool = True,
+) -> dict[str, Any]:
+    raw = client.call(
+        "Runtime.evaluate",
+        {
+            "expression": expression,
+            "awaitPromise": await_promise,
+            "returnByValue": return_by_value,
+            "userGesture": True,
+        },
+    )
+    exception_details = raw.get("exceptionDetails")
+    if isinstance(exception_details, dict):
+        raise CdpError(format_runtime_exception(exception_details))
+    result = raw.get("result") or {}
+    return result if isinstance(result, dict) else {}
+
+
+def evaluate_value(client: CdpClient, expression: str) -> Any:
+    return runtime_evaluate(
+        client, expression, await_promise=True, return_by_value=True
+    ).get("value")
+
+
+def page_info_expression() -> str:
+    return r"""(() => ({url: location.href, title: document.title}))()"""
+
+
+def network_snapshot_expression() -> str:
+    return r"""(() => {
+        const number = (value) => {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : 0;
+        };
+        const size = (value) => {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
+        };
+        const serialize = (entry) => ({
+            name: String(entry.name || ""),
+            entryType: String(entry.entryType || ""),
+            initiatorType: String(entry.initiatorType || entry.type || ""),
+            startTime: number(entry.startTime),
+            duration: number(entry.duration),
+            transferSize: size(entry.transferSize),
+            encodedBodySize: size(entry.encodedBodySize),
+            decodedBodySize: size(entry.decodedBodySize),
+            nextHopProtocol: String(entry.nextHopProtocol || ""),
+            responseEnd: number(entry.responseEnd),
+        });
+        return {
+            navigation: performance.getEntriesByType("navigation").slice(-1).map(serialize)[0] || null,
+            resources: performance.getEntriesByType("resource").slice(-200).map(serialize),
+        };
+    })()"""
+
+
+def page_snapshot_expression(selector: str) -> str:
+    return r"""(() => {
+        const scopeSelector = %s;
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const normalizeText = (value) => String(value || "")
+            .replace(/\r\n?/g, "\n")
+            .split("\n")
+            .map((line) => line.replace(/[\t ]+/g, " ").trim())
+            .filter(Boolean)
+            .join("\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+        const escapeCss = (value) => globalThis.CSS && CSS.escape ? CSS.escape(String(value)) : String(value).replace(/["\\]/g, "\\$&");
+        const visible = (element) => {
+            if (!element || !(element instanceof Element)) return false;
+            const style = globalThis.getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0" && rect.width > 0 && rect.height > 0;
+        };
+        const selectorFor = (element) => {
+            const tag = element.tagName.toLowerCase();
+            if (element.id) return tag + "#" + escapeCss(element.id);
+            for (const attr of ["name", "type", "aria-label", "placeholder"]) {
+                const value = element.getAttribute(attr);
+                if (value) return tag + "[" + attr + "=\"" + String(value).replace(/["\\]/g, "\\$&") + "\"]";
+            }
+            const parent = element.parentElement;
+            if (!parent) return tag;
+            const siblings = Array.from(parent.children).filter((child) => child.tagName === element.tagName);
+            const index = siblings.indexOf(element) + 1;
+            return tag + ":nth-of-type(" + index + ")";
+        };
+        const describe = (element, index) => {
+            const ref = "r" + index;
+            element.setAttribute("data-pi-ref", ref);
+            const tag = element.tagName.toLowerCase();
+            const role = element.getAttribute("role") || undefined;
+            const type = element.getAttribute("type") || undefined;
+            const label = normalize(element.getAttribute("aria-label") || element.getAttribute("title") || element.getAttribute("alt"));
+            const text = normalize(element.innerText || element.textContent || "");
+            const placeholder = normalize(element.getAttribute("placeholder"));
+            const href = element instanceof HTMLAnchorElement ? element.href : undefined;
+            return { ref, tag, role, type, label, text, href, placeholder, selector: selectorFor(element) };
+        };
+        const root = scopeSelector ? document.querySelector(scopeSelector) : document.body;
+        if (!root) return { url: location.href, title: document.title, text: "", html: "", interactive: [] };
+        const interactiveSelector = [
+            "a[href]", "button", "input", "textarea", "select", "summary", "label",
+            "[contenteditable=true]", "[role=button]", "[role=link]", "[role=textbox]",
+            "[role=checkbox]", "[role=radio]", "[role=switch]", "[role=menuitem]",
+        ].join(",");
+        const elements = Array.from(root.querySelectorAll(interactiveSelector)).filter(visible).slice(0, 120).map(describe);
+        return {
+            url: location.href,
+            title: document.title,
+            text: normalizeText(root.innerText || root.textContent || ""),
+            html: scopeSelector && root instanceof Element ? root.outerHTML : document.documentElement.outerHTML,
+            interactive: elements,
+        };
+    })()""" % json.dumps(selector)
+
+
+def element_point_expression(selector: str, ref: str) -> str:
+    return r"""(() => {
+        const selector = %s;
+        const ref = %s;
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const escapeCss = (value) => globalThis.CSS && CSS.escape ? CSS.escape(String(value)) : String(value).replace(/["\\]/g, "\\$&");
+        const element = selector ? document.querySelector(selector) : ref ? document.querySelector('[data-pi-ref="' + escapeCss(ref) + '"]') : null;
+        if (!element) return { ok: false, error: "No element matched " + (selector ? "selector " + selector : "ref " + ref) };
+        element.scrollIntoView({ block: "center", inline: "center", behavior: "auto" });
+        const rect = element.getBoundingClientRect();
+        const style = globalThis.getComputedStyle(element);
+        if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0" || rect.width <= 0 || rect.height <= 0) {
+            return { ok: false, error: "Matched element is not visible." };
+        }
+        const x = Math.max(0, Math.min(globalThis.innerWidth - 1, rect.left + rect.width / 2));
+        const y = Math.max(0, Math.min(globalThis.innerHeight - 1, rect.top + rect.height / 2));
+        return { ok: true, x, y, description: element.tagName.toLowerCase() + " " + normalize(element.innerText || element.getAttribute("aria-label") || element.getAttribute("title") || element.getAttribute("placeholder")) };
+    })()""" % (json.dumps(selector), json.dumps(ref))
+
+
+def focus_element_expression(selector: str, ref: str, clear: bool) -> str:
+    return r"""(() => {
+        const selector = %s;
+        const ref = %s;
+        const clear = %s;
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const escapeCss = (value) => globalThis.CSS && CSS.escape ? CSS.escape(String(value)) : String(value).replace(/["\\]/g, "\\$&");
+        const element = selector ? document.querySelector(selector) : ref ? document.querySelector('[data-pi-ref="' + escapeCss(ref) + '"]') : document.activeElement;
+        if (!element) return { ok: false, error: "No focus target found." };
+        element.scrollIntoView?.({ block: "center", inline: "center", behavior: "auto" });
+        if (typeof element.focus === "function") element.focus();
+        if (clear) {
+            if ("value" in element) {
+                element.value = "";
+                element.dispatchEvent(new Event("input", { bubbles: true }));
+            } else if (element.isContentEditable) {
+                element.textContent = "";
+                element.dispatchEvent(new Event("input", { bubbles: true }));
+            } else {
+                return { ok: false, error: "Target cannot be cleared because it has no value and is not contenteditable." };
+            }
+        }
+        return { ok: true, description: element.tagName.toLowerCase() + " " + normalize(element.getAttribute?.("aria-label") || element.getAttribute?.("placeholder") || element.textContent) };
+    })()""" % (json.dumps(selector), json.dumps(ref), json.dumps(bool(clear)))
+
+
+def submit_expression(selector: str, ref: str) -> str:
+    return r"""(() => {
+        const selector = %s;
+        const ref = %s;
+        const escapeCss = (value) => globalThis.CSS && CSS.escape ? CSS.escape(String(value)) : String(value).replace(/["\\]/g, "\\$&");
+        const target = selector ? document.querySelector(selector) : ref ? document.querySelector('[data-pi-ref="' + escapeCss(ref) + '"]') : document.activeElement;
+        if (!target) return { ok: false, error: "No submit target found." };
+        const form = target instanceof HTMLFormElement ? target : target.closest?.("form");
+        if (form) {
+            if (typeof form.requestSubmit === "function") form.requestSubmit();
+            else form.submit();
+            return { ok: true, submitted: true, description: "submitted form" };
+        }
+        if (typeof target.focus === "function") target.focus();
+        return { ok: true, submitted: false, description: "no form found; focused target for Enter fallback" };
+    })()""" % (json.dumps(selector), json.dumps(ref))
+
+
+def wait_condition_expression(selector: str, text: str, url_contains: str) -> str:
+    return r"""(() => {
+        const selector = %s;
+        const expectedText = %s;
+        const urlContains = %s;
+        const visibleText = String(document.body?.innerText || document.documentElement?.innerText || "");
+        return {
+            url: location.href,
+            selectorFound: selector ? Boolean(document.querySelector(selector)) : undefined,
+            textFound: expectedText ? visibleText.includes(expectedText) : undefined,
+            urlFound: urlContains ? location.href.includes(urlContains) : undefined,
+        };
+    })()""" % (json.dumps(selector), json.dumps(text), json.dumps(url_contains))
+
+
+def wait_condition_met(result: dict[str, Any], params: dict[str, Any]) -> bool:
+    if params.get("selector") and not result.get("selectorFound"):
+        return False
+    if params.get("text") and not result.get("textFound"):
+        return False
+    if params.get("urlContains") and not result.get("urlFound"):
+        return False
+    return True
+
+
+def dispatch_enter(client: CdpClient) -> None:
+    client.call(
+        "Input.dispatchKeyEvent",
+        {
+            "type": "keyDown",
+            "key": "Enter",
+            "code": "Enter",
+            "windowsVirtualKeyCode": 13,
+        },
+    )
+    client.call(
+        "Input.dispatchKeyEvent",
+        {"type": "keyUp", "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13},
+    )
+
+
+def format_interactive(elements: list[dict[str, Any]]) -> str:
+    if not elements:
+        return "No visible interactive elements found."
+    lines = []
+    for element in elements:
+        label = (
+            element.get("label")
+            or element.get("text")
+            or element.get("placeholder")
+            or element.get("href")
+            or ""
+        )
+        element_type = element.get("type")
+        type_part = f" type={element_type}" if element_type else ""
+        tag_part = f"<{element.get('tag', '')}{type_part}>"
+        parts = [f"[ref={element.get('ref', '')}]", tag_part]
+        if element.get("role"):
+            parts.append(f"role={element['role']}")
+        if label:
+            parts.append(f'"{short(label, 100)}"')
+        if element.get("href"):
+            parts.append(f"href={short(element['href'], 80)}")
+        if element.get("selector"):
+            parts.append(f"selector={element['selector']}")
+        lines.append(" ".join(parts))
+    return "\n".join(lines)
+
+
+def format_snapshot(snapshot: dict[str, Any], mode: str, selector: str) -> str:
+    if mode == "text":
+        return str(snapshot.get("text") or "No visible text found.")
+    if mode == "html":
+        return str(snapshot.get("html") or "No HTML found.")
+    if mode == "interactive":
+        return format_interactive(dict_list_value(snapshot.get("interactive")))
+    parts = [
+        f"URL: {snapshot.get('url', '')}",
+        f"Title: {snapshot.get('title') or '(untitled)'}",
+    ]
+    if selector:
+        parts.append(f"Selector: {selector}")
+    parts.extend(
+        [
+            "",
+            "## Visible text",
+            str(snapshot.get("text") or "No visible text found."),
+            "",
+            "## Interactive elements",
+            format_interactive(dict_list_value(snapshot.get("interactive"))),
+        ]
+    )
+    return "\n".join(parts)
+
+
+def ax_value(raw: Any) -> str | None:
+    if not isinstance(raw, dict):
+        return None
+    value = raw.get("value")
+    if isinstance(value, (str, int, float, bool)):
+        return str(value)
+    return None
+
+
+def read_accessibility(client: CdpClient) -> str:
+    raw = client.call("Accessibility.getFullAXTree", {})
+    nodes = raw.get("nodes") if isinstance(raw, dict) else None
+    if not isinstance(nodes, list):
+        return "Accessibility tree was empty."
+    lines = []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        role = ax_value(node.get("role"))
+        name = ax_value(node.get("name"))
+        value = ax_value(node.get("value"))
+        if not role and not name and not value:
+            continue
+        parts = []
+        if role:
+            parts.append(f"<{role}>")
+        if name:
+            parts.append(f'"{short(name, 120)}"')
+        if value:
+            parts.append(f'value="{short(value, 80)}"')
+        if parts:
+            lines.append(" ".join(parts))
+        if len(lines) >= 500:
+            break
+    return "\n".join(lines) if lines else "Accessibility tree contained no named nodes."
+
+
+def format_log_argument(remote: Any) -> str:
+    if not isinstance(remote, dict):
+        return str(remote)
+    if "value" in remote:
+        value = remote.get("value")
+        if isinstance(value, str):
+            return value
+        return compact_json(value)
+    if remote.get("unserializableValue"):
+        return str(remote["unserializableValue"])
+    if remote.get("description"):
+        return str(remote["description"])
+    return str(remote.get("type") or "")
+
+
+def first_call_frame(stack_trace: Any) -> dict[str, Any]:
+    current = stack_trace if isinstance(stack_trace, dict) else None
+    while current:
+        call_frames = current.get("callFrames")
+        if isinstance(call_frames, list) and call_frames:
+            frame = call_frames[0]
+            if isinstance(frame, dict):
+                return frame
+        current = (
+            current.get("parent") if isinstance(current.get("parent"), dict) else None
+        )
+    return {}
+
+
+def add_frame_location(entry: dict[str, Any], frame: Any) -> dict[str, Any]:
+    if not isinstance(frame, dict):
+        return entry
+    if frame.get("url"):
+        entry["url"] = frame.get("url")
+    if isinstance(frame.get("lineNumber"), int):
+        entry["lineNumber"] = frame["lineNumber"] + 1
+    if isinstance(frame.get("columnNumber"), int):
+        entry["columnNumber"] = frame["columnNumber"] + 1
+    return entry
+
+
+def log_entry_from_event(event: dict[str, Any]) -> dict[str, Any] | None:
+    method = event.get("method")
+    params = dict_value(event.get("params"))
+    if method == "Runtime.consoleAPICalled":
+        args = list_value(params.get("args"))
+        text = (
+            normalize_text(" ".join(format_log_argument(arg) for arg in args))
+            or params.get("type")
+            or "console"
+        )
+        entry = {
+            "kind": "console",
+            "source": "console",
+            "level": params.get("type") or "log",
+            "text": text,
+            "timestamp": params.get("timestamp"),
+        }
+        return add_frame_location(entry, first_call_frame(params.get("stackTrace")))
+    if method == "Log.entryAdded":
+        raw = dict_value(params.get("entry"))
+        entry = {
+            "kind": "log",
+            "source": raw.get("source") or "log",
+            "level": raw.get("level") or "info",
+            "text": normalize_text(raw.get("text") or ""),
+            "timestamp": raw.get("timestamp"),
+        }
+        if raw.get("url"):
+            entry["url"] = raw.get("url")
+        if isinstance(raw.get("lineNumber"), int):
+            entry["lineNumber"] = raw["lineNumber"] + 1
+        if raw.get("networkRequestId"):
+            entry["networkRequestId"] = raw.get("networkRequestId")
+        return entry
+    if method == "Runtime.exceptionThrown":
+        details = dict_value(params.get("exceptionDetails"))
+        entry = {
+            "kind": "exception",
+            "source": "runtime",
+            "level": "error",
+            "text": normalize_text(format_runtime_exception(details)),
+            "timestamp": params.get("timestamp"),
+        }
+        if details.get("url"):
+            entry["url"] = details.get("url")
+        if isinstance(details.get("lineNumber"), int):
+            entry["lineNumber"] = details["lineNumber"] + 1
+        if isinstance(details.get("columnNumber"), int):
+            entry["columnNumber"] = details["columnNumber"] + 1
+        return entry
+    return None
+
+
+def update_network_request(
+    requests: dict[str, dict[str, Any]] | None, event: dict[str, Any]
+) -> None:
+    if requests is None:
+        return
+    params = dict_value(event.get("params"))
+    request_id = params.get("requestId")
+    if not request_id:
+        return
+    request = requests.get(str(request_id))
+    if request is None:
+        if len(requests) >= DEFAULT_NETWORK_REQUEST_LIMIT:
+            return
+        request = {"requestId": request_id}
+        requests[str(request_id)] = request
+    method = event.get("method")
+    if method == "Network.requestWillBeSent":
+        raw_request = dict_value(params.get("request"))
+        initiator = dict_value(params.get("initiator"))
+        request.update(
+            {
+                "url": raw_request.get("url") or request.get("url") or "",
+                "method": raw_request.get("method") or request.get("method") or "",
+                "type": params.get("type") or request.get("type") or "",
+                "initiatorType": initiator.get("type")
+                or request.get("initiatorType")
+                or "",
+                "timestamp": params.get("timestamp"),
+                "wallTime": params.get("wallTime"),
+            }
+        )
+    elif method == "Network.responseReceived":
+        response = dict_value(params.get("response"))
+        request.update(
+            {
+                "url": response.get("url") or request.get("url") or "",
+                "type": params.get("type") or request.get("type") or "",
+                "status": response.get("status"),
+                "statusText": response.get("statusText") or "",
+                "mimeType": response.get("mimeType") or "",
+                "protocol": response.get("protocol") or "",
+                "fromDiskCache": bool(response.get("fromDiskCache", False)),
+            }
+        )
+    elif method == "Network.loadingFinished":
+        request.update(
+            {"finished": True, "encodedDataLength": params.get("encodedDataLength", 0)}
+        )
+    elif method == "Network.loadingFailed":
+        request.update(
+            {
+                "failed": True,
+                "errorText": params.get("errorText") or "",
+                "canceled": bool(params.get("canceled", False)),
+                "blockedReason": params.get("blockedReason") or "",
+            }
+        )
+
+
+def collect_log_event(
+    event: dict[str, Any],
+    entries: list[dict[str, Any]],
+    requests: dict[str, dict[str, Any]] | None,
+) -> None:
+    method = event.get("method")
+    entry = log_entry_from_event(event)
+    if entry is not None and len(entries) < DEFAULT_LOG_ENTRY_LIMIT:
+        entries.append(entry)
+    if isinstance(method, str) and method.startswith("Network."):
+        update_network_request(requests, event)
+
+
+def format_bytes(value: Any) -> str:
+    if value is None or value == "":
+        return ""
+    try:
+        size = float(value)
+    except (TypeError, ValueError):
+        return ""
+    units = ["B", "KiB", "MiB", "GiB"]
+    unit = units[0]
+    for unit in units:
+        if size < 1024 or unit == units[-1]:
+            break
+        size /= 1024
+    if unit == "B":
+        return f"{int(size)} {unit}"
+    return f"{size:.1f} {unit}"
+
+
+def format_ms(value: Any) -> str:
+    try:
+        duration = float(value)
+    except (TypeError, ValueError):
+        return "0ms"
+    return f"{duration:.1f}ms"
+
+
+def format_entry_location(entry: dict[str, Any]) -> str:
+    location = str(entry.get("url") or "")
+    line_number = entry.get("lineNumber")
+    column_number = entry.get("columnNumber")
+    if line_number and location:
+        location += f":{line_number}"
+        if column_number:
+            location += f":{column_number}"
+    elif line_number:
+        location = f"line {line_number}"
+    return location
+
+
+def format_log_entries(entries: list[dict[str, Any]]) -> list[str]:
+    if not entries:
+        return [
+            "No console/log entries captured. CDP streams entries after this command attaches."
+        ]
+    lines = []
+    for entry in entries:
+        label = ".".join(
+            str(part) for part in [entry.get("source"), entry.get("level")] if part
+        )
+        line = f"[{label or 'log'}] {entry.get('text') or '(empty log entry)'}"
+        location = format_entry_location(entry)
+        if location:
+            line += f" ({location})"
+        lines.append(line)
+    return lines
+
+
+def format_network_request(request: dict[str, Any]) -> str:
+    method = request.get("method") or "REQUEST"
+    url = request.get("url") or "(unknown URL)"
+    if request.get("failed"):
+        status = "failed"
+        if request.get("errorText"):
+            status += f" {request['errorText']}"
+    elif request.get("status") is not None:
+        status = str(request.get("status"))
+    elif request.get("finished"):
+        status = "finished"
+    else:
+        status = "pending"
+    extras = []
+    if request.get("type"):
+        extras.append(str(request["type"]).lower())
+    if request.get("mimeType"):
+        extras.append(str(request["mimeType"]))
+    size = format_bytes(request.get("encodedDataLength"))
+    if size:
+        extras.append(size)
+    suffix = f" ({', '.join(extras)})" if extras else ""
+    return f"{method} {status} {short(url, 140)}{suffix}"
+
+
+def format_network_snapshot(network: dict[str, Any]) -> list[str]:
+    lines = ["Captured requests:"]
+    requests = dict_list_value(network.get("requests"))
+    if requests:
+        lines.extend(f"  {format_network_request(request)}" for request in requests)
+    else:
+        lines.append("  No network requests observed during the capture window.")
+
+    performance = dict_value(network.get("performance"))
+    navigation = dict_value(performance.get("navigation"))
+    resources = dict_list_value(performance.get("resources"))
+    if navigation:
+        parts = [format_ms(navigation.get("duration"))]
+        transfer_size = format_bytes(navigation.get("transferSize"))
+        if transfer_size:
+            parts.append(transfer_size)
+        if navigation.get("nextHopProtocol"):
+            parts.append(str(navigation["nextHopProtocol"]))
+        lines.extend(
+            [
+                "",
+                "Navigation timing:",
+                f"  {' '.join(parts)} {short(navigation.get('name') or '', 140)}",
+            ]
+        )
+    lines.extend(["", "Resource timings:"])
+    if resources:
+        for resource in resources:
+            kind = (
+                resource.get("initiatorType") or resource.get("entryType") or "resource"
+            )
+            parts = [str(kind), format_ms(resource.get("duration"))]
+            transfer_size = format_bytes(resource.get("transferSize"))
+            if transfer_size:
+                parts.append(transfer_size)
+            if resource.get("nextHopProtocol"):
+                parts.append(str(resource["nextHopProtocol"]))
+            lines.append(
+                f"  {' '.join(parts)} {short(resource.get('name') or '', 140)}"
+            )
+    else:
+        lines.append("  No PerformanceResourceTiming entries found.")
+    return lines
+
+
+def format_logs_report(result: dict[str, Any]) -> str:
+    lines = [
+        f"URL: {result.get('url', '')}",
+        f"Title: {result.get('title') or '(untitled)'}",
+        f"Capture: {result.get('durationMs', 0)}ms",
+        "",
+        "## Log entries",
+    ]
+    lines.extend(format_log_entries(dict_list_value(result.get("entries"))))
+    network = result.get("network")
+    if isinstance(network, dict):
+        lines.extend(["", "## Network"])
+        lines.extend(format_network_snapshot(network))
+    return "\n".join(lines)
+
+
+def action_navigate(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    url = str(params["url"])
+    wait_until = str(params.get("waitUntil", "load"))
+    timeout_s = max(timeout_ms / 1000.0, 0.001)
+    in_flight = 0
+    idle_since = time.monotonic()
+
+    def track_network(event: dict[str, Any]) -> None:
+        nonlocal in_flight, idle_since
+        method = event.get("method")
+        if method == "Network.requestWillBeSent":
+            in_flight += 1
+        elif method in {"Network.loadingFinished", "Network.loadingFailed"}:
+            in_flight = max(0, in_flight - 1)
+            if in_flight == 0:
+                idle_since = time.monotonic()
+
+    client.call("Page.enable", {})
+    if wait_until == "networkIdle":
+        client.call("Network.enable", {})
+    client.call("Page.navigate", {"url": url})
+    if wait_until == "domcontentloaded":
+        client.wait_for_event("Page.domContentEventFired", timeout_s, None)
+    elif wait_until in {"load", "networkIdle"}:
+        client.wait_for_event(
+            "Page.loadEventFired",
+            timeout_s,
+            track_network if wait_until == "networkIdle" else None,
+        )
+    if wait_until == "networkIdle":
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            while client.events:
+                track_network(client.events.pop(0))
+            if (
+                in_flight == 0
+                and (time.monotonic() - idle_since) * 1000 >= DEFAULT_NETWORK_IDLE_MS
+            ):
+                break
+            try:
+                message = client._recv_message(
+                    min(0.1, max(deadline - time.monotonic(), 0.001))
+                )
+                if "method" in message:
+                    track_network(message)
+            except TimeoutError:
+                pass
+        else:
+            raise CdpError(f"Timed out waiting for network idle after {timeout_ms}ms.")
+    return {"ok": True}
+
+
+def action_evaluate(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    del timeout_ms
+    remote = runtime_evaluate(
+        client, str(params["expression"]), bool(params.get("awaitPromise", True)), True
+    )
+    return {"text": format_remote_object(remote)}
+
+
+def action_screenshot(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    del timeout_ms
+    fmt = str(params.get("format", "png"))
+    capture_params: dict[str, Any] = {
+        "format": fmt,
+        "fromSurface": True,
+        "captureBeyondViewport": bool(params.get("fullPage", False)),
+    }
+    if fmt == "jpeg" and params.get("quality") is not None:
+        capture_params["quality"] = params["quality"]
+    client.call("Page.enable", {})
+    capture = client.call("Page.captureScreenshot", capture_params)
+    data = capture.get("data")
+    if not isinstance(data, str):
+        raise CdpError("Page.captureScreenshot returned no image data.")
+    return {"data": data, "mimeType": "image/jpeg" if fmt == "jpeg" else "image/png"}
+
+
+def action_click(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    del timeout_ms
+    selector = str(params.get("selector") or "")
+    ref = str(params.get("ref") or "")
+    x = params.get("x")
+    y = params.get("y")
+    wait_after_ms = int(params.get("waitAfterMs", 250))
+    description = selector or ref or "coordinates"
+    if selector or ref:
+        point = evaluate_value(client, element_point_expression(selector, ref))
+        if not isinstance(point, dict) or not point.get("ok"):
+            raise CdpError(
+                str(
+                    (point or {}).get("error")
+                    if isinstance(point, dict)
+                    else "Could not compute click point."
+                )
+            )
+        x = point.get("x")
+        y = point.get("y")
+        description = point.get("description") or description
+    if x is None or y is None:
+        raise CdpError("click needs selector, ref, or both x and y coordinates.")
+    client.call("Input.dispatchMouseEvent", {"type": "mouseMoved", "x": x, "y": y})
+    client.call(
+        "Input.dispatchMouseEvent",
+        {"type": "mousePressed", "x": x, "y": y, "button": "left", "clickCount": 1},
+    )
+    client.call(
+        "Input.dispatchMouseEvent",
+        {"type": "mouseReleased", "x": x, "y": y, "button": "left", "clickCount": 1},
+    )
+    time.sleep(wait_after_ms / 1000.0)
+    return {"description": description}
+
+
+def action_type(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    del timeout_ms
+    selector = str(params.get("selector") or "")
+    ref = str(params.get("ref") or "")
+    clear = bool(params.get("clear", False))
+    submit = bool(params.get("submit", False))
+    wait_after_ms = int(params.get("waitAfterMs", 500 if submit else 100))
+    focused = evaluate_value(client, focus_element_expression(selector, ref, clear))
+    if not isinstance(focused, dict) or not focused.get("ok"):
+        raise CdpError(
+            str(
+                (focused or {}).get("error")
+                if isinstance(focused, dict)
+                else "Could not focus target."
+            )
+        )
+    client.call("Input.insertText", {"text": params.get("text", "")})
+    submit_description = ""
+    if submit:
+        submitted = evaluate_value(client, submit_expression(selector, ref))
+        if not isinstance(submitted, dict) or not submitted.get("ok"):
+            raise CdpError(
+                str(
+                    (submitted or {}).get("error")
+                    if isinstance(submitted, dict)
+                    else "Could not submit target."
+                )
+            )
+        if not submitted.get("submitted"):
+            dispatch_enter(client)
+        submit_description = "; " + str(submitted.get("description") or "submitted")
+    time.sleep(wait_after_ms / 1000.0)
+    description = (
+        str(focused.get("description") or selector or ref or "active element")
+        + submit_description
+    )
+    return {"description": description}
+
+
+def action_submit(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    del timeout_ms
+    selector = str(params.get("selector") or "")
+    ref = str(params.get("ref") or "")
+    wait_after_ms = int(params.get("waitAfterMs", 500))
+    submitted = evaluate_value(client, submit_expression(selector, ref))
+    if not isinstance(submitted, dict) or not submitted.get("ok"):
+        raise CdpError(
+            str(
+                (submitted or {}).get("error")
+                if isinstance(submitted, dict)
+                else "Could not submit target."
+            )
+        )
+    if not submitted.get("submitted"):
+        dispatch_enter(client)
+    time.sleep(wait_after_ms / 1000.0)
+    return {
+        "description": submitted.get("description"),
+        "submitted": submitted.get("submitted"),
+    }
+
+
+def action_wait(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    del timeout_ms
+    selector = str(params.get("selector") or "")
+    text = str(params.get("text") or "")
+    url_contains = str(params.get("urlContains") or "")
+    timeout_ms = int(
+        params.get(
+            "timeoutMs",
+            DEFAULT_TIMEOUT_MS if (selector or text or url_contains) else 1000,
+        )
+    )
+    started = time.monotonic()
+    if not selector and not text and not url_contains:
+        time.sleep(timeout_ms / 1000.0)
+        return {"durationMs": timeout_ms, "url": ""}
+    deadline = started + timeout_ms / 1000.0
+    expression = wait_condition_expression(selector, text, url_contains)
+    final = {"url": ""}
+    while time.monotonic() < deadline:
+        result = evaluate_value(client, expression)
+        if isinstance(result, dict):
+            final = result
+            if wait_condition_met(result, params):
+                return {
+                    "durationMs": int((time.monotonic() - started) * 1000),
+                    "url": result.get("url", ""),
+                }
+        time.sleep(DEFAULT_WAIT_INTERVAL_MS / 1000.0)
+    raise CdpError(
+        f"Timed out after {timeout_ms}ms waiting for requested Chrome page condition. Last URL: {final.get('url', '')}"
+    )
+
+
+def action_read_page(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    del timeout_ms
+    mode = str(params.get("mode", "snapshot"))
+    selector = str(params.get("selector") or "")
+    if mode == "accessibility":
+        return {"text": read_accessibility(client)}
+    snapshot = evaluate_value(client, page_snapshot_expression(selector))
+    if not isinstance(snapshot, dict):
+        raise CdpError("Page snapshot returned malformed data.")
+    return {"text": format_snapshot(snapshot, mode, selector)}
+
+
+def action_logs(
+    client: CdpClient, params: dict[str, Any], timeout_ms: int
+) -> dict[str, Any]:
+    del timeout_ms
+    duration_ms = int(params.get("durationMs", 1000))
+    include_network = bool(params.get("includeNetwork", False))
+    timeout_s = max(duration_ms / 1000.0, 0.0)
+    entries: list[dict[str, Any]] = []
+    requests: dict[str, dict[str, Any]] | None = {} if include_network else None
+
+    client.call("Runtime.enable", {})
+    client.call("Log.enable", {})
+    if include_network:
+        client.call("Network.enable", {})
+
+    def drain_events() -> None:
+        while client.events:
+            collect_log_event(client.events.pop(0), entries, requests)
+
+    drain_events()
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        drain_events()
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        try:
+            message = client._recv_message(min(0.1, max(remaining, 0.001)))
+        except TimeoutError:
+            continue
+        if "method" in message:
+            collect_log_event(message, entries, requests)
+    drain_events()
+
+    page_info = evaluate_value(client, page_info_expression())
+    if not isinstance(page_info, dict):
+        page_info = {}
+    result: dict[str, Any] = {
+        "url": page_info.get("url") or "",
+        "title": page_info.get("title") or "",
+        "durationMs": duration_ms,
+        "entries": entries,
+    }
+    if include_network:
+        performance = evaluate_value(client, network_snapshot_expression())
+        if not isinstance(performance, dict):
+            performance = {}
+        result["network"] = {
+            "requests": list((requests or {}).values()),
+            "performance": performance,
+        }
+    result["text"] = format_logs_report(result)
+    return result
+
+
+CDP_ACTIONS: dict[str, Callable[[CdpClient, dict[str, Any], int], dict[str, Any]]] = {
+    "navigate": action_navigate,
+    "evaluate": action_evaluate,
+    "screenshot": action_screenshot,
+    "click": action_click,
+    "type": action_type,
+    "submit": action_submit,
+    "wait": action_wait,
+    "read-page": action_read_page,
+    "logs": action_logs,
+}
+
+
+def run_cdp_action(
+    action: str, ws_url: str, timeout_ms: int, params: dict[str, Any]
+) -> dict[str, Any]:
+    action_func = CDP_ACTIONS.get(action)
+    if action_func is None:
+        raise CdpError(f"Unknown CDP action: {action}")
+    client = CdpClient(ws_url, timeout_ms)
+    try:
+        return action_func(client, params, timeout_ms)
+    finally:
+        client.close()
+
+
+def cdp_invoke(
+    action: str, target: dict[str, Any], timeout_ms: int, params: dict[str, Any]
+) -> dict[str, Any]:
+    ws_url = target_ws_url(target)
+    params_json = compact_json(params)
+    helper = os.environ.get("CHROME_DEVTOOLS_CDP_HELPER")
+    if helper:
+        try:
+            process = subprocess.run(
+                [helper, action, ws_url, str(timeout_ms)],
+                input=params_json + "\n",
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        except OSError as exc:
+            raise ToolError(f"CDP action '{action}' failed: {exc}") from exc
+        if process.returncode != 0:
+            raise ToolError(
+                f"CDP action '{action}' failed: {helper_output_error(process)}"
+            )
+        try:
+            parsed = json.loads(process.stdout)
+        except json.JSONDecodeError as exc:
+            raise ToolError(f"CDP action '{action}' returned invalid JSON.") from exc
+        return parsed if isinstance(parsed, dict) else {}
+
+    try:
+        return run_cdp_action(action, ws_url, timeout_ms, params)
+    except (CdpError, OSError, ssl.SSLError, TimeoutError) as exc:
+        raise ToolError(f"CDP action '{action}' failed: {exc}") from exc
+
+
+def cmd_list_tabs(args: list[str]) -> None:
+    json_output = False
+    while args:
+        arg = args.pop(0)
+        if arg == "--json":
+            json_output = True
+        elif arg in {"-h", "--help"}:
+            print_command_help("list-tabs")
+            return
+        else:
+            raise ToolError(f"unknown list-tabs option: {arg}")
+
+    targets = targets_list()
+    if json_output:
+        print_pretty_json(targets)
+        return
+    print(format_tabs(targets))
+
+
+def cmd_select_tab(args: list[str]) -> None:
+    tab_id = args[0] if args else ""
+    if tab_id in {"-h", "--help"}:
+        print_command_help("select-tab")
+        return
+    if not tab_id:
+        raise ToolError("select-tab needs a tab id.")
+    if len(args) != 1:
+        raise ToolError("select-tab accepts exactly one tab id.")
+
+    target = target_get(tab_id)
+    resolved_tab_id = target_id(target)
+    tab_activate(resolved_tab_id)
+    selected_tab_write(resolved_tab_id)
+    title = target_title(target)
+    url = target_url(target)
+    print(f"Selected tab {resolved_tab_id}: {title or url}")
+
+
+def cmd_navigate(args: list[str]) -> None:
+    tab_id = ""
+    new_tab = False
+    wait_until = "load"
+    timeout_ms = str(DEFAULT_TIMEOUT_MS)
+
+    while args:
+        arg = args[0]
+        if arg == "--tab-id":
+            if len(args) < 2:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args[1]
+            del args[:2]
+        elif arg == "--new-tab":
+            new_tab = True
+            del args[0]
+        elif arg == "--wait-until":
+            if len(args) < 2:
+                raise ToolError("--wait-until needs a value.")
+            wait_until = args[1]
+            del args[:2]
+        elif arg == "--timeout-ms":
+            if len(args) < 2:
+                raise ToolError("--timeout-ms needs a value.")
+            timeout_ms = args[1]
+            del args[:2]
+        elif arg in {"-h", "--help"}:
+            print_command_help("navigate")
+            return
+        elif arg == "--":
+            del args[0]
+            break
+        elif arg.startswith("--"):
+            raise ToolError(f"unknown navigate option: {arg}")
+        else:
+            break
+
+    url = args[0] if args else ""
+    if not url:
+        raise ToolError("navigate needs a URL.")
+    if len(args) != 1:
+        raise ToolError("navigate accepts exactly one URL.")
+    require_choice(
+        wait_until, "--wait-until", "domcontentloaded", "load", "networkIdle", "none"
+    )
+    require_positive_int(timeout_ms, "--timeout-ms")
+
+    target = tab_create("about:blank") if new_tab else target_resolve(tab_id)
+    resolved_tab_id = target_id(target)
+    params = {"url": url, "waitUntil": wait_until}
+    cdp_invoke("navigate", target, int(timeout_ms), params)
+    selected_tab_write(resolved_tab_id)
+
+    updated = target
+    try:
+        candidate = target_from_list(targets_list(), resolved_tab_id)
+        if candidate is not None:
+            updated = candidate
+    except ToolError:
+        pass
+    final_url = target_url(updated)
+    print(f"Navigated tab {resolved_tab_id} to {final_url or url}")
+
+
+def cmd_evaluate(args: list[str]) -> None:
+    tab_id = ""
+    await_promise = True
+
+    while args:
+        arg = args[0]
+        if arg == "--tab-id":
+            if len(args) < 2:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args[1]
+            del args[:2]
+        elif arg == "--await-promise":
+            await_promise = True
+            del args[0]
+        elif arg == "--no-await-promise":
+            await_promise = False
+            del args[0]
+        elif arg in {"-h", "--help"}:
+            print_command_help("evaluate")
+            return
+        elif arg == "--":
+            del args[0]
+            break
+        elif arg.startswith("--"):
+            raise ToolError(f"unknown evaluate option: {arg}")
+        else:
+            break
+
+    if not args:
+        raise ToolError("evaluate needs a JavaScript expression.")
+    expression = " ".join(args)
+    target = target_resolve(tab_id)
+    params = {"expression": expression, "awaitPromise": await_promise}
+    result = cdp_invoke("evaluate", target, DEFAULT_TIMEOUT_MS, params)
+    print(result.get("text") or "")
+
+
+def cmd_screenshot(args: list[str]) -> None:
+    tab_id = ""
+    full_page = False
+    fmt = "png"
+    quality = ""
+    output = ""
+
+    while args:
+        arg = args.pop(0)
+        if arg == "--tab-id":
+            if not args:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args.pop(0)
+        elif arg == "--full-page":
+            full_page = True
+        elif arg == "--format":
+            if not args:
+                raise ToolError("--format needs a value.")
+            fmt = args.pop(0)
+        elif arg == "--quality":
+            if not args:
+                raise ToolError("--quality needs a value.")
+            quality = args.pop(0)
+        elif arg == "--output":
+            if not args:
+                raise ToolError("--output needs a value.")
+            output = args.pop(0)
+        elif arg in {"-h", "--help"}:
+            print_command_help("screenshot")
+            return
+        else:
+            raise ToolError(f"unknown screenshot option: {arg}")
+
+    require_choice(fmt, "--format", "png", "jpeg")
+    params: dict[str, Any] = {"format": fmt, "fullPage": full_page}
+    if quality:
+        require_non_negative_int(quality, "--quality")
+        if int(quality) > 100:
+            raise ToolError("--quality must be between 0 and 100.")
+        params["quality"] = int(quality)
+
+    target = target_resolve(tab_id)
+    result = cdp_invoke("screenshot", target, DEFAULT_TIMEOUT_MS, params)
+    data = str(result.get("data") or "")
+    if output:
+        try:
+            decoded = base64.b64decode(data)
+        except Exception as exc:
+            raise ToolError(f"screenshot data was not valid base64: {exc}") from exc
+        if output == "-":
+            sys.stdout.buffer.write(decoded)
+        else:
+            with open(output, "wb") as handle:
+                handle.write(decoded)
+            print(output)
+        return
+    print(data)
+
+
+def click_params(
+    selector: str, ref: str, x: str, y: str, wait_after_ms: str
+) -> dict[str, Any]:
+    params: dict[str, Any] = {"waitAfterMs": int(wait_after_ms)}
+    if selector:
+        params["selector"] = selector
+    if ref:
+        params["ref"] = ref
+    if x:
+        params["x"] = float(x) if "." in x else int(x)
+    if y:
+        params["y"] = float(y) if "." in y else int(y)
+    return params
+
+
+def cmd_click(args: list[str]) -> None:
+    tab_id = ""
+    selector = ""
+    ref = ""
+    x = ""
+    y = ""
+    wait_after_ms = "250"
+
+    while args:
+        arg = args.pop(0)
+        if arg == "--tab-id":
+            if not args:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args.pop(0)
+        elif arg == "--selector":
+            if not args:
+                raise ToolError("--selector needs a value.")
+            selector = args.pop(0)
+        elif arg == "--ref":
+            if not args:
+                raise ToolError("--ref needs a value.")
+            ref = args.pop(0)
+        elif arg == "--x":
+            if not args:
+                raise ToolError("--x needs a value.")
+            x = args.pop(0)
+        elif arg == "--y":
+            if not args:
+                raise ToolError("--y needs a value.")
+            y = args.pop(0)
+        elif arg == "--wait-after-ms":
+            if not args:
+                raise ToolError("--wait-after-ms needs a value.")
+            wait_after_ms = args.pop(0)
+        elif arg in {"-h", "--help"}:
+            print_command_help("click")
+            return
+        else:
+            raise ToolError(f"unknown click option: {arg}")
+
+    require_non_negative_int(wait_after_ms, "--wait-after-ms")
+    if not selector and not ref and (not x or not y):
+        raise ToolError("click needs --selector, --ref, or both --x and --y.")
+    if x:
+        require_number(x, "--x")
+    if y:
+        require_number(y, "--y")
+
+    target = target_resolve(tab_id)
+    result = cdp_invoke(
+        "click",
+        target,
+        DEFAULT_TIMEOUT_MS,
+        click_params(selector, ref, x, y, wait_after_ms),
+    )
+    description = result.get("description") or "target"
+    print(f"Clicked {description} in tab {target_id(target)}.")
+
+
+def type_params(
+    selector: str, ref: str, text: str, clear: bool, submit: bool, wait_after_ms: str
+) -> dict[str, Any]:
+    params: dict[str, Any] = {
+        "text": text,
+        "clear": clear,
+        "submit": submit,
+        "waitAfterMs": int(wait_after_ms),
+    }
+    if selector:
+        params["selector"] = selector
+    if ref:
+        params["ref"] = ref
+    return params
+
+
+def cmd_type(args: list[str]) -> None:
+    tab_id = ""
+    selector = ""
+    ref = ""
+    clear = False
+    submit = False
+    wait_after_ms = ""
+
+    while args:
+        arg = args[0]
+        if arg == "--tab-id":
+            if len(args) < 2:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args[1]
+            del args[:2]
+        elif arg == "--selector":
+            if len(args) < 2:
+                raise ToolError("--selector needs a value.")
+            selector = args[1]
+            del args[:2]
+        elif arg == "--ref":
+            if len(args) < 2:
+                raise ToolError("--ref needs a value.")
+            ref = args[1]
+            del args[:2]
+        elif arg == "--clear":
+            clear = True
+            del args[0]
+        elif arg == "--submit":
+            submit = True
+            del args[0]
+        elif arg == "--wait-after-ms":
+            if len(args) < 2:
+                raise ToolError("--wait-after-ms needs a value.")
+            wait_after_ms = args[1]
+            del args[:2]
+        elif arg in {"-h", "--help"}:
+            print_command_help("type")
+            return
+        elif arg == "--":
+            del args[0]
+            break
+        elif arg.startswith("--"):
+            raise ToolError(f"unknown type option: {arg}")
+        else:
+            break
+
+    if not args:
+        raise ToolError("type needs text.")
+    text = " ".join(args)
+    if not wait_after_ms:
+        wait_after_ms = "500" if submit else "100"
+    require_non_negative_int(wait_after_ms, "--wait-after-ms")
+
+    target = target_resolve(tab_id)
+    result = cdp_invoke(
+        "type",
+        target,
+        DEFAULT_TIMEOUT_MS,
+        type_params(selector, ref, text, clear, submit, wait_after_ms),
+    )
+    description = result.get("description") or "active element"
+    print(f"Typed {len(text)} characters into {description}.")
+
+
+def submit_params(selector: str, ref: str, wait_after_ms: str) -> dict[str, Any]:
+    params: dict[str, Any] = {"waitAfterMs": int(wait_after_ms)}
+    if selector:
+        params["selector"] = selector
+    if ref:
+        params["ref"] = ref
+    return params
+
+
+def cmd_submit(args: list[str]) -> None:
+    tab_id = ""
+    selector = ""
+    ref = ""
+    wait_after_ms = "500"
+
+    while args:
+        arg = args.pop(0)
+        if arg == "--tab-id":
+            if not args:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args.pop(0)
+        elif arg == "--selector":
+            if not args:
+                raise ToolError("--selector needs a value.")
+            selector = args.pop(0)
+        elif arg == "--ref":
+            if not args:
+                raise ToolError("--ref needs a value.")
+            ref = args.pop(0)
+        elif arg == "--wait-after-ms":
+            if not args:
+                raise ToolError("--wait-after-ms needs a value.")
+            wait_after_ms = args.pop(0)
+        elif arg in {"-h", "--help"}:
+            print_command_help("submit")
+            return
+        else:
+            raise ToolError(f"unknown submit option: {arg}")
+
+    require_non_negative_int(wait_after_ms, "--wait-after-ms")
+    target = target_resolve(tab_id)
+    result = cdp_invoke(
+        "submit",
+        target,
+        DEFAULT_TIMEOUT_MS,
+        submit_params(selector, ref, wait_after_ms),
+    )
+    description = result.get("description") or "active element"
+    print(f"Submitted {description}.")
+
+
+def wait_params(
+    selector: str, text: str, url_contains: str, timeout_ms: str
+) -> dict[str, Any]:
+    params: dict[str, Any] = {"timeoutMs": int(timeout_ms)}
+    if selector:
+        params["selector"] = selector
+    if text:
+        params["text"] = text
+    if url_contains:
+        params["urlContains"] = url_contains
+    return params
+
+
+def cmd_wait(args: list[str]) -> None:
+    tab_id = ""
+    selector = ""
+    text = ""
+    url_contains = ""
+    timeout_ms = ""
+
+    while args:
+        arg = args.pop(0)
+        if arg == "--tab-id":
+            if not args:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args.pop(0)
+        elif arg == "--selector":
+            if not args:
+                raise ToolError("--selector needs a value.")
+            selector = args.pop(0)
+        elif arg == "--text":
+            if not args:
+                raise ToolError("--text needs a value.")
+            text = args.pop(0)
+        elif arg == "--url-contains":
+            if not args:
+                raise ToolError("--url-contains needs a value.")
+            url_contains = args.pop(0)
+        elif arg == "--timeout-ms":
+            if not args:
+                raise ToolError("--timeout-ms needs a value.")
+            timeout_ms = args.pop(0)
+        elif arg in {"-h", "--help"}:
+            print_command_help("wait")
+            return
+        else:
+            raise ToolError(f"unknown wait option: {arg}")
+
+    if not timeout_ms:
+        timeout_ms = str(
+            DEFAULT_TIMEOUT_MS if (selector or text or url_contains) else 1000
+        )
+    require_positive_int(timeout_ms, "--timeout-ms")
+
+    target = target_resolve(tab_id)
+    result = cdp_invoke(
+        "wait",
+        target,
+        int(timeout_ms),
+        wait_params(selector, text, url_contains, timeout_ms),
+    )
+    duration_ms = result.get("durationMs") or 0
+    url = result.get("url") or ""
+    if selector or text or url_contains:
+        print(f"Condition matched after {duration_ms}ms at {url}.")
+        return
+    print(f"Waited {duration_ms}ms.")
+
+
+def read_page_params(mode: str, selector: str) -> dict[str, Any]:
+    params: dict[str, Any] = {"mode": mode}
+    if selector:
+        params["selector"] = selector
+    return params
+
+
+def cmd_read_page(args: list[str]) -> None:
+    tab_id = ""
+    mode = "snapshot"
+    selector = ""
+    max_chars = str(DEFAULT_MAX_CHARS)
+
+    while args:
+        arg = args.pop(0)
+        if arg == "--tab-id":
+            if not args:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args.pop(0)
+        elif arg == "--mode":
+            if not args:
+                raise ToolError("--mode needs a value.")
+            mode = args.pop(0)
+        elif arg == "--selector":
+            if not args:
+                raise ToolError("--selector needs a value.")
+            selector = args.pop(0)
+        elif arg == "--max-chars":
+            if not args:
+                raise ToolError("--max-chars needs a value.")
+            max_chars = args.pop(0)
+        elif arg in {"-h", "--help"}:
+            print_command_help("read-page")
+            return
+        else:
+            raise ToolError(f"unknown read-page option: {arg}")
+
+    require_choice(
+        mode, "--mode", "snapshot", "text", "html", "interactive", "accessibility"
+    )
+    require_positive_int(max_chars, "--max-chars")
+    target = target_resolve(tab_id)
+    result = cdp_invoke(
+        "read-page", target, DEFAULT_TIMEOUT_MS, read_page_params(mode, selector)
+    )
+    print_truncated(str(result.get("text") or ""), int(max_chars))
+
+
+def logs_params(duration_ms: str, include_network: bool) -> dict[str, Any]:
+    return {"durationMs": int(duration_ms), "includeNetwork": include_network}
+
+
+def cmd_logs(args: list[str]) -> None:
+    tab_id = ""
+    duration_ms = str(DEFAULT_LOGS_DURATION_MS)
+    include_network = False
+    json_output = False
+    max_chars = str(DEFAULT_MAX_CHARS)
+
+    while args:
+        arg = args.pop(0)
+        if arg == "--tab-id":
+            if not args:
+                raise ToolError("--tab-id needs a value.")
+            tab_id = args.pop(0)
+        elif arg == "--duration-ms":
+            if not args:
+                raise ToolError("--duration-ms needs a value.")
+            duration_ms = args.pop(0)
+        elif arg in {"--include-network", "--network"}:
+            include_network = True
+        elif arg == "--json":
+            json_output = True
+        elif arg == "--max-chars":
+            if not args:
+                raise ToolError("--max-chars needs a value.")
+            max_chars = args.pop(0)
+        elif arg in {"-h", "--help"}:
+            print_command_help("logs")
+            return
+        else:
+            raise ToolError(f"unknown logs option: {arg}")
+
+    require_non_negative_int(duration_ms, "--duration-ms")
+    require_positive_int(max_chars, "--max-chars")
+    target = target_resolve(tab_id)
+    result = cdp_invoke(
+        "logs",
+        target,
+        int(duration_ms) + DEFAULT_TIMEOUT_MS,
+        logs_params(duration_ms, include_network),
+    )
+    if json_output:
+        result = dict(result)
+        result.pop("text", None)
+        print_pretty_json(result)
+        return
+    print_truncated(str(result.get("text") or ""), int(max_chars))
+
+
+COMMANDS = {
+    "list-tabs": cmd_list_tabs,
+    "select-tab": cmd_select_tab,
+    "navigate": cmd_navigate,
+    "evaluate": cmd_evaluate,
+    "screenshot": cmd_screenshot,
+    "click": cmd_click,
+    "type": cmd_type,
+    "submit": cmd_submit,
+    "wait": cmd_wait,
+    "read-page": cmd_read_page,
+    "logs": cmd_logs,
+}
+
+
+def main(argv: list[str]) -> int:
+    command_name = argv[0] if argv else ""
+    if command_name in {"", "-h", "--help"}:
+        usage()
+        return 0
+    if command_name == "help":
+        if len(argv) == 1:
+            usage()
+            return 0
+        if len(argv) != 2:
+            raise ToolError("help accepts at most one command name.")
+        help_name = argv[1]
+        if help_name not in COMMAND_HELP_TEMPLATES:
+            raise ToolError(f"unknown command: {help_name}")
+        print_command_help(help_name)
+        return 0
+    if command_name in {"--version", "version"}:
+        print(f"{PROGRAM_NAME} {VERSION}")
+        return 0
+
+    command = COMMANDS.get(command_name)
+    if command is None:
+        raise ToolError(f"unknown command: {command_name}")
+    command(list(argv[1:]))
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main(sys.argv[1:]))
+    except BrokenPipeError:
+        raise SystemExit(1) from None
+    except ToolError as exc:
+        die(str(exc))

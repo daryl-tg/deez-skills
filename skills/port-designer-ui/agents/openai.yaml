@@ -1,0 +1,4 @@
+interface:
+  display_name: "Port Designer UI"
+  short_description: "Port approved designer visuals into an existing Kiyotaka UI"
+  default_prompt: "Port the selected designer UI into the current Kiyotaka repository while preserving existing behavior."

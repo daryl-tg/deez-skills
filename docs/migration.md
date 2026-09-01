@@ -48,6 +48,22 @@ bin/adopt /Users/dboon/.local/state/deez-skills/pre-migration/20260901-153647/cl
 
 Symlinks were recorded rather than copied, since their targets survive.
 
+> **Correction, 2026-09-01 (later).** That archive path was **absent** when the
+> sole-source cutover below re-checked it — `~/.local/state/deez-skills` did not
+> exist at all. So "they exist only in that archive now" was not true of any
+> directory, and this section read as a licence to delete originals that had no
+> backup. A fresh archive was taken and verified byte-identical before anything
+> was removed:
+>
+> ```
+> /Users/dboon/.local/state/deez-skills/pre-migration/20260901-154913
+>   claude/   5 real directories + SYMLINKS.txt (55 recorded)
+>   codex/   27 real directories + SYMLINKS.txt (31 recorded)
+> ```
+>
+> Nothing in this doc should be trusted as a statement about the filesystem
+> without checking the filesystem.
+
 **Result:** `~/.claude/skills` 57 entries, `~/.codex/skills` 56, every one of
 them pointing into the hub. `bin/doctor`: 0 failures, 0 warnings.
 
@@ -89,48 +105,90 @@ not been done, so the cutover was undone by following the instructions.
 **Lesson worth keeping:** a migration is not finished while a pointer still
 names the old source. The instructions are part of the system.
 
-## Not started
+## The sole-source cutover, 2026-09-01
 
-**Linking.** The hub is not installed. `~/.claude/skills` and `~/.codex/skills`
-still point at the old sources. `bin/doctor` reports this as `unlinked`, which
-is informational until at least one entry resolves into the hub.
+The hub is now the only source of skills. `bin/doctor`: 0 failures.
 
-**The remaining skillz skills.** `bump-rc`, `demuddy`, `graphify`, `humanize`,
-`ivtg`, `llm-council`, `loop-me-in`, `om-build`, `prompt-ready`, `syncup`,
-`testing-harness`, `war-diary`. Adopt with
-`bin/adopt ~/github/skillz/claude/skills/<name> --category <cat>`.
+**Adopted: 59 skills**, taking every remaining source tree with it.
 
-`openmarket` and `om-chat` in skillz are vendored from the `om` CLI and
-self-update. They belong in `vendor.toml`, not `skills/`.
+| Was | Count | Now |
+|---|---|---|
+| `~/repos/llm/skills` | 23 | hub-owned |
+| `~/Github/skillz` | 12 | hub-owned |
+| No upstream anywhere | 22 | hub-owned (20 `cmux-*`, `hatch-pet`, `adhd`) |
+| `~/Documents/dev-notes/skills` | 3 | hub-owned |
 
-**The 51 orphans** in `~/.claude/skills` and `~/.codex/skills` with no upstream.
-`bin/doctor` lists every one as a warning.
+Two categories were added for the intake: `go` (the Go toolchain, 6) and `cmux`
+(20, Codex-only). Both sit outside the `lean` profile, which is the point of
+having them.
 
-**Third-party.** Twelve of the fourteen `~/.agents/skills` entries still need
-recording in `vendor.toml`.
+**Recorded, not adopted.** `gcx` is a Claude *plugin* — four nested skills and a
+`.claude-plugin` manifest, vendored from `gcx agent skills` — so adopting it
+would fork a generated tree. It went to `vendor.toml`, which now has 17 entries.
 
-## Order of operations
+**Deleted: the 5 dissolved skills.** `om-chat-feature`, `om-chat-feature-completion`,
+`om-mobile-feature`, `-completion`, `-loop` were still live and shadowing the
+`clanker-mode` playbooks that replaced them. Removed from both runtimes, each
+real directory checked against the archive first. Worth a spot-check: 218 lines
+of playbook now carry what was 1050+ lines of skill.
 
-1. Adopt the remaining sources. `bin/doctor` after each.
-2. `bin/link` with no flags and read the plan. Expect `adopt` where the live
-   directory already matches and `backup` where it differs.
-3. `bin/link --apply` on one machine. Verify both runtimes still see every skill
-   by name, and that `$clanker-mode` resolves.
-4. Retire the old source and its installer.
-5. **Only then** `bin/hook-install`, and remove the skillz `PostToolUse` hook in
-   the same change. Never both: they race over edits made through the same
-   symlinks and commit to different repos.
-6. Update `~/.claude/CLAUDE.md`, which still names `dev-notes/agents` as
-   canonical, `tools/skills-*.sh` as the tooling, and `$clanker-agent-polish` as a
-   skill to load.
+**`graphify` forks per runtime.** Claude dispatches with the Agent tool, Codex
+with `spawn_agent`/`wait_agent`. Rather than pick one, the Codex copy lives at
+`skills/graphify.codex` and the entry carries
+`variant = { codex = "skills/graphify.codex" }`.
+
+**`port-designer-ui` had diverged.** The Codex copy was newer and richer (118
+lines, plus an `agents/` directory) than the dev-notes one (67 lines). Adopted
+the Codex copy and carried `TEAM-SHARE.md` over from the other.
+
+**Result**
+
+| | claude | codex |
+|---|---|---|
+| Resolving into the hub | 97 | 107 |
+| Vendored (recorded in `vendor.toml`) | 13 | 2 |
+| Unmanaged | **0** | **0** |
+| Broken links | 0 | 0 |
+
+**What the check learned.** Adoption surfaced six `local-merge` failures that
+were all regex artifacts, so the check was tightened rather than the skills
+bent around it. The rule is now the *ref being merged*, not the flag:
+`git merge-base`/`-tree`/`-file` is plumbing; a merge naming `origin/*` or
+`upstream/*` is a branch catching up to its own remote or a vendored fork
+syncing from what it forked. A merge naming no such ref is a landing whatever
+flags it carries, so `git merge --ff-only` onto main still fails. The existing
+118 tests pin both directions.
+
+**Cost of carrying everything.** `bin/doctor` reports the aggregate, and the
+`full` profile is not free:
+
+```
+claude: 49 visible ~2672 tok every session, 49 routed ~2504 tok not paid
+codex: 107 visible ~5583 tok every session
+```
+
+Codex has no `disable-model-invocation`, so every hub skill is visible there and
+the 20 `cmux-*` are ~1k of that. The `lean` profile, or a `cmux`-less profile,
+is the lever if that gets uncomfortable.
+
+## Still open
+
+**`bin/hook-install` has not been run.** When it is, remove the skillz
+`PostToolUse` hook in the same change. Never both: they race over edits made
+through the same symlinks and commit to different repos.
+
+**`~/.claude/agents`** still carries the five subagent roles from
+`dev-notes/agents/claude-agents`. The hub does not own them, they are not
+collisions, and the playbooks' role routing depends on them.
 
 ## Known follow-ups
 
 - `humanize`'s voice profile is Ryan's, not Daryl's. Run `automate-me` to
   rebuild it, and empty `references/voice.md` rather than leaving a stale
   profile as a fallback.
-- `bin/adopt` copies and does not rewrite the live symlink. Step 3 above does
-  that.
+- `bin/adopt` copies and does not rewrite the live symlink; `bin/link --apply`
+  does that. `bin/link` never prunes, either — an entry it does not own is left
+  alone, so removing a stale one is a separate deliberate step.
 - `~/Documents` resolves through iCloud, so `dev-notes` paths realpath to
   `~/Library/Mobile Documents/com~apple~CloudDocs/...`. Harmless, but the hub
   must not depend on it: keep skills in `~/github/deez-skills`.

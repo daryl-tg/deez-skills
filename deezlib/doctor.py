@@ -7,8 +7,24 @@ from deezlib import frontmatter, linkplan, registry
 # A local merge onto main. The delivery rule is rebase, PR, squash, so any skill
 # that tells an agent to merge locally contradicts it. Matched on the command,
 # not the word, so prose like "never merge locally" stays clean.
+#
+# What separates a landing from a sync is the ref being merged, not the flag:
+#
+#   git merge-base / -tree / -file / -head   read-only plumbing. `\b` after
+#       "merge" matches before a hyphen, so these need an explicit exclusion.
+#   a merge naming origin/* or upstream/*    a branch catching up to its own
+#       remote, or a vendored fork syncing from the project it forked. Neither
+#       lands work, and rebasing a published fork rewrites history.
+#
+# A merge naming no such ref is a landing, whatever flags it carries — which is
+# why `git merge --ff-only` onto main is still a failure.
+_MERGE_PLUMBING = r"(?!-base|-tree|-file|-head)"
+_SYNC_REF = r"(?!.*\b(?:origin|upstream)/)"
 _LOCAL_MERGE = re.compile(
-    r"git\s+merge\b|git\s+pull\b(?!\s+--rebase)|merge\s+--ff-only", re.I
+    rf"git\s+merge{_MERGE_PLUMBING}\b{_SYNC_REF}"
+    rf"|git\s+pull\b(?!\s+--rebase|\s+--ff-only)"
+    rf"|(?<!git )\bmerge\s+--ff-only{_SYNC_REF}",
+    re.I,
 )
 # A line that forbids rather than instructs. Either the negation sits inline
 # before the command, or the line is a bullet under a "Never:" style header.

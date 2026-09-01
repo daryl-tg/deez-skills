@@ -17,6 +17,8 @@ kiyotaka = "Kiyotaka / orange stack"
 workflow = "General workflow"
 writing  = "Writing and editing"
 infra    = "Infrastructure and observability"
+go       = "Go language toolchain"
+cmux     = "cmux app development"
 
 # A profile is what one machine installs. "*" means every category.
 # Skill metadata costs ~5k tokens of context per session at ~70 skills, so a
@@ -370,5 +372,244 @@ category = "workflow"
 runtimes = ["claude", "codex"]
 
 [skills.writing-instructions]
+category = "writing"
+runtimes = ["claude", "codex"]
+
+[skills.adhd]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.ancient-go-style]
+category = "go"
+runtimes = ["claude", "codex"]
+
+[skills.ancient-shell-style]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.authoring-orange-shared-packages]
+category = "kiyotaka"
+runtimes = ["claude"]
+
+[skills.bump-rc]
+category = "workflow"
+runtimes = ["claude"]
+
+[skills.chrome-devtools]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.cmux]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-architecture]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-backend]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-billing]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-browser]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-custom-sidebar]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-customization]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-debugging]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-dev-workflow]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-diagnostics]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-ghostty]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-keyboard-shortcuts]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-localization]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-markdown]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-release]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-settings]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-shared-behavior]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-socket-policy]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-testing]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.cmux-workspace]
+category = "cmux"
+runtimes = ["codex"]
+
+[skills.commit]
+category = "workflow"
+runtimes = ["codex"]
+
+[skills.demuddy]
+category = "workflow"
+runtimes = ["claude"]
+
+[skills.git]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.glab]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.go-config-ko]
+category = "go"
+runtimes = ["claude", "codex"]
+
+[skills.go-docopt]
+category = "go"
+runtimes = ["claude", "codex"]
+
+[skills.go-karma-log]
+category = "go"
+runtimes = ["claude", "codex"]
+
+[skills.golangci-lint]
+category = "go"
+runtimes = ["claude", "codex"]
+
+[skills.graphify]
+category = "workflow"
+runtimes = ["claude", "codex"]
+# The two runtimes fork genuinely: Claude dispatches with the Agent tool, Codex
+# with spawn_agent/wait_agent. Same skill, one source per runtime.
+variant = { codex = "skills/graphify.codex" }
+
+[skills.hatch-pet]
+category = "workflow"
+runtimes = ["codex"]
+
+[skills.humanize]
+category = "writing"
+runtimes = ["claude"]
+
+[skills.ivtg]
+category = "workflow"
+runtimes = ["claude"]
+
+[skills.karma-read]
+category = "go"
+runtimes = ["claude", "codex"]
+
+[skills.kiyotaka-user-docs]
+category = "kiyotaka"
+runtimes = ["claude", "codex"]
+
+[skills.kolint]
+category = "infra"
+runtimes = ["claude", "codex"]
+
+[skills.kubectl-logs]
+category = "infra"
+runtimes = ["claude", "codex"]
+
+[skills.labiew]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.logcli]
+category = "infra"
+runtimes = ["claude", "codex"]
+
+[skills.loop-me-in]
+category = "workflow"
+runtimes = ["claude"]
+
+[skills.mailbox]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.maintain-agents-md]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.migrating-types-to-orange-shared]
+category = "kiyotaka"
+runtimes = ["claude"]
+
+[skills.pi-development]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.port-designer-ui]
+category = "kiyotaka"
+runtimes = ["claude", "codex"]
+
+[skills.prompt-ready]
+category = "workflow"
+runtimes = ["claude"]
+
+[skills.reviewer]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.stackctl]
+category = "infra"
+runtimes = ["claude", "codex"]
+
+[skills.syncup]
+category = "workflow"
+runtimes = ["claude"]
+
+[skills.taskfile]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.testing-harness]
+category = "workflow"
+runtimes = ["claude"]
+
+[skills.tsdbctl]
+category = "infra"
+runtimes = ["claude", "codex"]
+
+[skills.war-diary]
+category = "workflow"
+runtimes = ["claude"]
+
+[skills.writing-comments]
 category = "writing"
 runtimes = ["claude", "codex"]

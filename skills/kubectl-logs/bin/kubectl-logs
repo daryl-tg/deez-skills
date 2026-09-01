@@ -1,0 +1,368 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# @file kubectl-logs
+# @brief Tail Kubernetes deployment pod logs into per-pod files.
+# @description
+#   Collects logs from every pod in one deployment, or every deployment matching
+#   a deployment label selector. Each pod stream is written to OUTDIR/<pod>.log
+#   while pv shows per-pod progress on stderr.
+
+readonly DEFAULT_TAIL=100
+readonly DEFAULT_OUTDIR=.
+readonly EX_USAGE=64
+readonly EX_UNAVAILABLE=69
+readonly EX_TEMPFAIL=75
+
+:usage() {
+    cat <<'EOF'
+Usage:
+    kubectl-logs -c CONTEXT -n NAMESPACE (-d DEPLOYMENT | -l LABEL_SELECTOR) [options]
+
+Options:
+    -c CONTEXT          Kubernetes context.
+    -n NAMESPACE        Kubernetes namespace.
+    -d DEPLOYMENT       Deployment name.
+    -l LABEL_SELECTOR   Deployment label selector, for example mode=cjob.
+    -t TAIL_LINES       Number of tail lines per pod. Default: 100.
+    -o OUTDIR           Output directory. Default: current directory.
+    -h                  Show this help.
+EOF
+}
+
+:error() {
+    printf 'error: %s\n' "$*" >&2
+}
+
+:require-command() {
+    local command_name="$1"
+
+    if ! command -v "$command_name" >/dev/null 2>&1; then
+        :error "$command_name not installed"
+        return "$EX_UNAVAILABLE"
+    fi
+
+    return 0
+}
+
+:is-positive-integer() {
+    local value="$1"
+
+    [[ "$value" =~ ^[1-9][0-9]*$ ]]
+}
+
+:parse-opts() {
+    local -n context_ref="$1"
+    local -n namespace_ref="$2"
+    local -n deployment_ref="$3"
+    local -n label_selector_ref="$4"
+    local -n tail_ref="$5"
+    local -n outdir_ref="$6"
+    shift 6
+
+    local opt
+
+    context_ref=
+    namespace_ref=
+    deployment_ref=
+    label_selector_ref=
+    tail_ref="$DEFAULT_TAIL"
+    outdir_ref="$DEFAULT_OUTDIR"
+
+    OPTIND=1
+    while getopts ':c:n:d:l:t:o:h' opt; do
+        case "$opt" in
+        c) context_ref="$OPTARG" ;;
+        n) namespace_ref="$OPTARG" ;;
+        d) deployment_ref="$OPTARG" ;;
+        l) label_selector_ref="$OPTARG" ;;
+        t) tail_ref="$OPTARG" ;;
+        o) outdir_ref="$OPTARG" ;;
+        h) return 2 ;;
+        :) :error "option -$OPTARG requires an argument" && return "$EX_USAGE" ;;
+        \?) :error "unknown option: -$OPTARG" && return "$EX_USAGE" ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    if (($# > 0)); then
+        :error "unexpected argument: $1"
+        return "$EX_USAGE"
+    fi
+
+    if [[ -z "$context_ref" ]]; then
+        :error '-c CONTEXT required'
+        return "$EX_USAGE"
+    fi
+
+    if [[ -z "$namespace_ref" ]]; then
+        :error '-n NAMESPACE required'
+        return "$EX_USAGE"
+    fi
+
+    if [[ -z "$deployment_ref" && -z "$label_selector_ref" ]]; then
+        :error 'either -d DEPLOYMENT or -l LABEL_SELECTOR required'
+        return "$EX_USAGE"
+    fi
+
+    if [[ -n "$deployment_ref" && -n "$label_selector_ref" ]]; then
+        :error 'use only one of -d DEPLOYMENT or -l LABEL_SELECTOR'
+        return "$EX_USAGE"
+    fi
+
+    if ! :is-positive-integer "$tail_ref"; then
+        :error '-t TAIL_LINES must be a positive integer'
+        return "$EX_USAGE"
+    fi
+
+    if [[ -z "$outdir_ref" ]]; then
+        :error '-o OUTDIR must not be empty'
+        return "$EX_USAGE"
+    fi
+
+    return 0
+}
+
+:list-deployments() {
+    local deployment="$1"
+    local label_selector="$2"
+    shift 2
+
+    local kubectl_cmd=("$@")
+
+    if [[ -n "$deployment" ]]; then
+        printf '%s\n' "$deployment"
+        return 0
+    fi
+
+    "${kubectl_cmd[@]}" get deployments -l "$label_selector" \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
+}
+
+:deployment-selector() {
+    local deployment="$1"
+    shift
+
+    local kubectl_cmd=("$@")
+    local selector_lines
+    local pair
+    local -a pairs=()
+
+    # shellcheck disable=SC2016 # Go template variables are evaluated by kubectl.
+    selector_lines=$("${kubectl_cmd[@]}" get deployment "$deployment" \
+        -o go-template='{{range $k, $v := .spec.selector.matchLabels}}{{printf "%s=%s\n" $k $v}}{{end}}') || return "$EX_TEMPFAIL"
+
+    while IFS= read -r pair; do
+        [[ -n "$pair" ]] || continue
+        pairs+=("$pair")
+    done <<<"$selector_lines"
+
+    if ((${#pairs[@]} == 0)); then
+        :error "deployment $deployment has no matchLabels selector"
+        return "$EX_TEMPFAIL"
+    fi
+
+    local IFS=,
+    printf '%s\n' "${pairs[*]}"
+}
+
+:pods-for-deployment() {
+    local deployment="$1"
+    shift
+
+    local kubectl_cmd=("$@")
+    local selector
+
+    selector=$(:deployment-selector "$deployment" "${kubectl_cmd[@]}") || return "$EX_TEMPFAIL"
+
+    "${kubectl_cmd[@]}" get pods -l "$selector" \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
+}
+
+:split-lines() {
+    local input="$1"
+    local line
+
+    while IFS= read -r line; do
+        [[ -n "$line" ]] || continue
+        printf '%s\n' "$line"
+    done <<<"$input"
+}
+
+:collect-pods() {
+    local -n deployments_ref="$1"
+    shift
+
+    local deployment
+    local kubectl_cmd=("$@")
+    local pod_names
+    local pod
+    local -a deployment_pods=()
+    local -A seen_pods=()
+
+    for deployment in "${deployments_ref[@]}"; do
+        pod_names=$(:pods-for-deployment "$deployment" "${kubectl_cmd[@]}") || return "$EX_TEMPFAIL"
+
+        if [[ -z "$pod_names" ]]; then
+            printf 'No pods found for deployment %s\n' "$deployment" >&2
+            continue
+        fi
+
+        deployment_pods=()
+        mapfile -t deployment_pods < <(:split-lines "$pod_names")
+        for pod in "${deployment_pods[@]}"; do
+            if [[ -n "${seen_pods[$pod]:-}" ]]; then
+                continue
+            fi
+
+            seen_pods["$pod"]=1
+            printf '%s\n' "$pod"
+        done
+    done
+}
+
+:start-log-stream() {
+    local -n pid_ref="$1"
+    local pod="$2"
+    local tail_lines="$3"
+    local outdir="$4"
+    shift 4
+
+    local kubectl_cmd=("$@")
+
+    "${kubectl_cmd[@]}" logs --tail="$tail_lines" -f "$pod" --all-containers 2>&1 |
+        pv -c -N "$pod" -bar >"$outdir/$pod.log" &
+    # shellcheck disable=SC2034 # pid_ref is a nameref output parameter.
+    pid_ref=$!
+}
+
+# shellcheck disable=SC2329 # Invoked by :signal-stop through signal traps.
+:stop-log-streams() {
+    local pid
+
+    for pid in "$@"; do
+        kill "$pid" 2>/dev/null || true
+    done
+
+    wait "$@" 2>/dev/null || true
+}
+
+# shellcheck disable=SC2329 # Invoked by signal traps.
+:signal-stop() {
+    local signal="$1"
+    shift
+
+    printf '\nstopping log streams\n' >&2
+    :stop-log-streams "$@"
+
+    case "$signal" in
+    INT) exit 130 ;;
+    TERM) exit 143 ;;
+    *) exit 0 ;;
+    esac
+}
+
+:wait-for-log-streams() {
+    local pid
+    local status=0
+    local stream_status=0
+
+    for pid in "$@"; do
+        if wait "$pid"; then
+            continue
+        fi
+
+        stream_status=$?
+        if ((status == 0)); then
+            status="$stream_status"
+        fi
+    done
+
+    return "$status"
+}
+
+:main() {
+    local context
+    local namespace
+    local deployment
+    local label_selector
+    local tail_lines
+    local outdir
+    local parse_status=0
+    local deployment_names
+    local pod_names
+    local pod
+    local pid
+    local stream_status=0
+    local -a kubectl_cmd=()
+    local -a deployments=()
+    local -a pods=()
+    local -a log_pids=()
+
+    :parse-opts context namespace deployment label_selector tail_lines outdir "$@" || parse_status=$?
+    case "$parse_status" in
+    0) ;;
+    2)
+        :usage
+        exit 0
+        ;;
+    *)
+        :usage >&2
+        exit "$parse_status"
+        ;;
+    esac
+
+    :require-command kubectl || exit $?
+    :require-command pv || exit $?
+
+    mkdir -p -- "$outdir"
+
+    kubectl_cmd=(kubectl --context="$context" -n "$namespace")
+
+    deployment_names=$(:list-deployments "$deployment" "$label_selector" "${kubectl_cmd[@]}") || exit "$EX_TEMPFAIL"
+    if [[ -z "$deployment_names" ]]; then
+        :error "no deployments found for label selector $label_selector"
+        exit 1
+    fi
+
+    mapfile -t deployments < <(:split-lines "$deployment_names")
+    if ((${#deployments[@]} == 0)); then
+        :error "no deployments found for label selector $label_selector"
+        exit 1
+    fi
+
+    pod_names=$(:collect-pods deployments "${kubectl_cmd[@]}") || exit "$EX_TEMPFAIL"
+    if [[ -z "$pod_names" ]]; then
+        if [[ -n "$label_selector" ]]; then
+            :error "no pods found for deployments matching label selector $label_selector"
+        else
+            :error "no pods found for deployment $deployment"
+        fi
+        exit 1
+    fi
+
+    mapfile -t pods < <(:split-lines "$pod_names")
+
+    trap ':signal-stop INT "${log_pids[@]}"' INT
+    trap ':signal-stop TERM "${log_pids[@]}"' TERM
+
+    for pod in "${pods[@]}"; do
+        :start-log-stream pid "$pod" "$tail_lines" "$outdir" "${kubectl_cmd[@]}"
+        log_pids+=("$pid")
+    done
+
+    if [[ -n "$label_selector" ]]; then
+        printf 'Tailing deployments matching %s (%s deployments, %s pods) -> %s/*.log\n' \
+            "$label_selector" "${#deployments[@]}" "${#log_pids[@]}" "$outdir" >&2
+        printf 'Deployments: %s\n' "${deployments[*]}" >&2
+    else
+        printf 'Tailing %s (%s pods) -> %s/*.log\n' \
+            "$deployment" "${#log_pids[@]}" "$outdir" >&2
+    fi
+    printf 'Ctrl-C to stop.\n' >&2
+
+    :wait-for-log-streams "${log_pids[@]}" || stream_status=$?
+    exit "$stream_status"
+}
+
+:main "$@"

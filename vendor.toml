@@ -104,3 +104,11 @@ source   = "om-cli"
 path     = "skills/openmarket"
 runtimes = ["claude", "codex"]
 
+
+# A Claude plugin, not a skill: four nested skills under skills/ plus a
+# .claude-plugin manifest, and its own README calls it vendored from
+# `gcx agent skills`. Adopting it would fork a generated tree.
+[vendor.gcx]
+source   = "gcx agent skills"
+path     = "skills/gcx"
+runtimes = ["claude", "codex"]
