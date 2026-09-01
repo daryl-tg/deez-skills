@@ -29,9 +29,13 @@ class CliLinkTest(unittest.TestCase):
         self.assertIn("--apply", result.stdout)
         self.assertFalse(Path(self.tmp.name, "claude").exists())
 
-    def test_link_on_the_shipped_registry_plans_zero_actions(self):
+    def test_link_plans_but_never_creates_a_runtime_root(self):
+        """Whatever the registry holds, a bare `link` must not touch disk."""
         result = self.run_deez("link")
-        self.assertIn("0 actions", result.stdout)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("plan only", result.stdout)
+        self.assertFalse(Path(self.tmp.name, "claude").exists())
+        self.assertFalse(Path(self.tmp.name, "codex").exists())
 
     def test_unknown_profile_exits_nonzero(self):
         result = self.run_deez("link", "--profile", "ghost")

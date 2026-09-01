@@ -91,9 +91,11 @@ install_as = { claude = "renamed" }
         warn = [f for f in self.check(self.load(ENTRY)) if f.code == "description-long"]
         self.assertEqual([f.level for f in warn], ["warn"])
 
-    def test_unlinked_entry_is_reported_not_linked(self):
+    def test_wholly_unlinked_is_the_pre_migration_state_not_drift(self):
         self.make_skill("alpha")
-        self.assertIn("not-linked", self.codes(self.check(self.load(ENTRY))))
+        findings = self.check(self.load(ENTRY))
+        self.assertIn("unlinked", [f.code for f in findings])
+        self.assertEqual([f for f in findings if f.level == "fail"], [])
 
     def test_correctly_linked_entry_is_clean(self):
         source = self.make_skill("alpha")

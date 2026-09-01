@@ -56,6 +56,20 @@ git_mutations = "claude"
 
 [skills]
 
+# --- Verification substrate -------------------------------------------------
+# The memory and context every other layer reads. Explicitly invoked, so both
+# carry the flag even though `workflow` does not require it.
+
+[skills.create-verification-skill]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.maintain-verification-skill]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
 [commands]
 
 [agents]

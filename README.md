@@ -14,5 +14,10 @@ below this line.
 
 ## Skills
 
-No entries yet. The framework is in place; migration adds them.
+### Always-on essentials
+
+| Name | Runtimes | Description |
+| --- | --- | --- |
+| `create-verification-skill` | claude, codex | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, … |
+| `maintain-verification-skill` | claude, codex | Periodic pass keeping a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at mo… |
 

@@ -183,7 +183,23 @@ def check(reg, repo_root, roots, profile):
     findings.extend(_check_frontmatter(reg, repo_root))
     findings.extend(_check_flags(reg, repo_root))
     findings.extend(_check_local_merge(reg, repo_root))
-    for act in linkplan.compute(reg, repo_root, roots, profile):
+    actions = linkplan.compute(reg, repo_root, roots, profile)
+
+    # Before migration the hub is deliberately unlinked. Nothing linked at all
+    # is that state, not drift. Some linked and some not is drift.
+    linkable = [a for a in actions if a.verb != "missing-source"]
+    if linkable and all(a.verb == "link" for a in linkable):
+        findings.append(
+            Finding(
+                "info",
+                "unlinked",
+                f"{len(linkable)} entries, none linked. Pre-migration state; "
+                f"run bin/link --apply to install",
+            )
+        )
+        actions = [a for a in actions if a.verb == "missing-source"]
+
+    for act in actions:
         code = _VERB_CODES.get(act.verb)
         if code:
             findings.append(_fail(code, f"{act.runtime} {act.name}: {act.reason}"))

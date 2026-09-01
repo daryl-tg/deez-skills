@@ -90,7 +90,8 @@ def cmd_doctor(args):
 
     failures = [f for f in findings if f.level == "fail"]
     warnings = [f for f in findings if f.level == "warn"]
-    print(f"\n{len(failures)} failures, {len(warnings)} warnings")
+    infos = [f for f in findings if f.level == "info"]
+    print(f"\n{len(failures)} failures, {len(warnings)} warnings, {len(infos)} info")
     return 1 if failures else 0
 
 

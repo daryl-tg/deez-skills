@@ -106,3 +106,57 @@ runtimes = ["claude", "codex"]
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class UnlinkedStateTest(unittest.TestCase):
+    """Pre-migration the hub is deliberately unlinked. That is not drift."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.repo = self.root / "repo"
+        (self.repo / "skills").mkdir(parents=True)
+        self.claude = self.root / "c" / "skills"
+        self.claude.mkdir(parents=True)
+        self.roots = {"claude": {"skill": self.claude}}
+
+    def skill(self, name):
+        f = self.repo / "skills" / name
+        f.mkdir(parents=True, exist_ok=True)
+        (f / "SKILL.md").write_text(f"---\nname: {name}\ndescription: d\n---\n")
+        return f
+
+    def load(self, extra):
+        path = self.repo / "registry.toml"
+        path.write_text(BASE + extra)
+        return registry.load(path)
+
+    TWO = """
+[skills.alpha]
+category = "core"
+runtimes = ["claude"]
+
+[skills.beta]
+category = "core"
+runtimes = ["claude"]
+"""
+
+    def test_nothing_linked_is_reported_not_failed(self):
+        self.skill("alpha"); self.skill("beta")
+        findings = doctor.check(self.load(self.TWO), self.repo, self.roots, "full")
+        self.assertEqual([f for f in findings if f.level == "fail"], [])
+        self.assertIn("unlinked", [f.code for f in findings])
+
+    def test_partially_linked_is_drift_and_fails(self):
+        a = self.skill("alpha"); self.skill("beta")
+        (self.claude / "alpha").symlink_to(a)
+        findings = doctor.check(self.load(self.TWO), self.repo, self.roots, "full")
+        self.assertIn("not-linked", [f.code for f in findings if f.level == "fail"])
+
+    def test_fully_linked_is_clean(self):
+        a = self.skill("alpha"); b = self.skill("beta")
+        (self.claude / "alpha").symlink_to(a)
+        (self.claude / "beta").symlink_to(b)
+        findings = doctor.check(self.load(self.TWO), self.repo, self.roots, "full")
+        self.assertEqual([f for f in findings if f.level == "fail"], [])
