@@ -3,3 +3,4 @@ __pycache__/
 .sync-conflict
 .sync-hold
 .vendor/
+.DS_Store
