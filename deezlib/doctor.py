@@ -1,7 +1,18 @@
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
 from deezlib import frontmatter, linkplan, registry
+
+# A local merge onto main. The delivery rule is rebase, PR, squash, so any skill
+# that tells an agent to merge locally contradicts it. Matched on the command,
+# not the word, so prose like "never merge locally" stays clean.
+_LOCAL_MERGE = re.compile(
+    r"git\s+merge\b|git\s+pull\b(?!\s+--rebase)|merge\s+--ff-only", re.I
+)
+
+# Roles a playbook step may route to, written as **role-name** in skill bodies.
+_ROLE_REF = re.compile(r"\*\*([a-z][a-z0-9-]{2,})\*\*\s+role")
 
 
 @dataclass(frozen=True)
@@ -41,6 +52,75 @@ def _check_unregistered(reg, repo_root):
                 findings.append(
                     _fail("unregistered", f"{kind_dir}/{child.name} has no registry entry")
                 )
+    return findings
+
+
+def _check_flags(reg, repo_root):
+    """A routed layer that stays model-invocable can fire on a description."""
+    findings = []
+    for entry in reg.entries:
+        if not registry.requires_flag(entry.layer):
+            continue
+        for runtime in entry.runtimes:
+            skill_md = Path(repo_root) / registry.source_dir(entry, runtime) / "SKILL.md"
+            if not skill_md.is_file():
+                continue
+            text = skill_md.read_text(encoding="utf-8", errors="replace")
+            head = text.split("---")[1] if text.startswith("---") else ""
+            if "disable-model-invocation: true" not in head:
+                findings.append(
+                    _fail(
+                        "missing-flag",
+                        f"{entry.name}: layer {entry.layer!r} must carry "
+                        f"disable-model-invocation: true",
+                    )
+                )
+            break
+    return findings
+
+
+def _check_local_merge(reg, repo_root):
+    """No skill may instruct a local merge to main. Rebase, PR, squash."""
+    findings = []
+    for entry in reg.entries:
+        for runtime in entry.runtimes:
+            skill_md = Path(repo_root) / registry.source_dir(entry, runtime) / "SKILL.md"
+            if not skill_md.is_file():
+                continue
+            for n, line in enumerate(
+                skill_md.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+            ):
+                if _LOCAL_MERGE.search(line):
+                    findings.append(
+                        _fail(
+                            "local-merge",
+                            f"{entry.name}:{n} instructs a local merge. "
+                            f"Landing is rebase, PR, squash",
+                        )
+                    )
+            break
+    return findings
+
+
+def check_roles(reg, repo_root, known_roles):
+    """A step routing to a role no runtime defines fails at dispatch."""
+    findings = []
+    for entry in reg.entries:
+        for runtime in entry.runtimes:
+            base = Path(repo_root) / registry.source_dir(entry, runtime)
+            for md in sorted(base.rglob("*.md")):
+                for role in set(_ROLE_REF.findall(md.read_text(
+                    encoding="utf-8", errors="replace"
+                ))):
+                    if role not in known_roles:
+                        findings.append(
+                            _fail(
+                                "unknown-role",
+                                f"{md.relative_to(repo_root)} routes to "
+                                f"{role!r}, absent from agent-matrix.tsv",
+                            )
+                        )
+            break
     return findings
 
 
@@ -101,6 +181,8 @@ def check(reg, repo_root, roots, profile):
     findings = []
     findings.extend(_check_unregistered(reg, repo_root))
     findings.extend(_check_frontmatter(reg, repo_root))
+    findings.extend(_check_flags(reg, repo_root))
+    findings.extend(_check_local_merge(reg, repo_root))
     for act in linkplan.compute(reg, repo_root, roots, profile):
         code = _VERB_CODES.get(act.verb)
         if code:

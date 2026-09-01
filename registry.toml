@@ -25,9 +25,33 @@ infra    = "Infrastructure and observability"
 full = ["*"]
 lean = ["core", "workflow", "writing"]
 
+# Where each kind of work runs. Claude hosts the router because
+# disable-model-invocation is a no-op on Codex, and because Claude can dispatch
+# to Codex while the reverse has no clean path.
+#
+# The four below default_lane are not preferences. Design, review, verification,
+# and git mutations stay with Claude whatever default_lane says, and the
+# registry rejects any other value for them.
+#
+# Switching who implements is this one line.
+[routing]
+default_lane  = "codex"
+planning      = "claude"
+review        = "claude"
+verification  = "claude"
+git_mutations = "claude"
+
 # ---------------------------------------------------------------------------
-# Entries are added by migration. Empty on purpose: the framework must not
-# change what is installed until every skill has been moved in deliberately.
+# Every entry declares a `layer`, which decides how it may be invoked:
+#
+#   mode           the router. Sticky, explicitly routed to, Claude only.
+#   principle      one rule. Cited by playbooks. Must be on BOTH runtimes so a
+#                  handoff citation resolves on either side.
+#   playbook-host  owns a playbooks/ directory. Claude only.
+#   workflow       everything else. May stay model-invocable. The default.
+#
+# mode, principle, and playbook-host must ship disable-model-invocation: true.
+# bin/doctor fails the build when a layer and its frontmatter disagree.
 # ---------------------------------------------------------------------------
 
 [skills]
