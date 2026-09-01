@@ -1,12 +1,8 @@
 ---
 name: om-chat
-description: "Read, search, watch, summarize, draft, post, and reply in OM Chat rooms, channels, and DMs as a governed guest, through the OpenMarket MCP rooms tools. Use when the task touches OM Chat: announcing a review, searching for context, or citing a message."
+description: Converse in OM Chat rooms as a governed guest through the OpenMarket MCP server's rooms tools (an agent badge). Use when the user asks you to read, search, watch, summarize, draft/post/reply in an OM Chat room, channel, or DM, or send images and files in a room or channel through the room_* / doc_* tools.
 user-invocable: true
 ---
-
-<!-- Synced from the `om` CLI, not authored here. To refresh:
-     cp ~/.claude/skills/om-chat/SKILL.md skills/om-chat/SKILL.md
-     after an `om` upgrade, then re-read the diff before committing. -->
 
 # OM Chat as a governed guest
 

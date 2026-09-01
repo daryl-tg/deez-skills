@@ -79,3 +79,28 @@ runtimes = ["claude"]
 source   = "github:emilkowalski/skill"
 path     = "skills/write-swift"
 runtimes = ["claude"]
+
+# React and Next.js performance guidance from Vercel Engineering: 70 rules across
+# waterfalls, bundle size, server performance, re-renders, and rendering. Cited
+# by any playbook step doing React work.
+#
+# NOTE the name. The directory upstream is `react-best-practices` but the
+# frontmatter `name:` is `vercel-react-best-practices`, and Codex resolves its
+# catalogue by that field. Cite the frontmatter name, not the directory.
+[vendor.vercel-react-best-practices]
+source   = "github:vercel-labs/agent-skills"
+path     = "skills/react-best-practices"
+runtimes = ["claude", "codex"]
+
+# The emilkowalski/skills motion set is already recorded above: animate,
+# animate-expo, animation-vocabulary, review-animations, improve-animations,
+# find-animation-opportunities, plus emil-design-eng and apple-design for the
+# craft bar behind them.
+
+# Reinstalled by the `om` CLI itself into the runtime roots. Recorded so it does
+# not read as an unadopted orphan; the hub never owns a copy.
+[vendor.openmarket]
+source   = "om-cli"
+path     = "skills/openmarket"
+runtimes = ["claude", "codex"]
+

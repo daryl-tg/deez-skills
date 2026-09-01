@@ -322,7 +322,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | Name | Layer | Runtimes | Description |
 | --- | --- | --- | --- |
 | `om-build` |  | claude, codex | Build an OM Chat GUI from source and put it in front of the operator: the daemon-embedded /rooms GUI, or the hosted /chat/ cloud fork. Covers both targets and … |
-| `om-chat` |  | claude, codex | Read, search, watch, summarize, draft, post, and reply in OM Chat rooms, channels, and DMs as a governed guest, through the OpenMarket MCP rooms tools. Use whe… |
+| `om-chat` |  | claude, codex | Converse in OM Chat rooms as a governed guest through the OpenMarket MCP server's rooms tools (an agent badge). Use when the user asks you to read, search, wat… |
 | `om-chat-design-system` |  | claude, codex | Design and implement OM Chat React UI against the local components, tokens, layout, and interaction patterns. Load before any user-visible OM Chat UI decision:… |
 | `om-super-reaction` |  | claude, codex | Design, build, and quality-gate one super reaction effect for OM Chat's premium reaction system, from constraint tuple through storyboard and implementation to… |
 | `verify-om-chat` |  | claude, codex | Use when a change to the OM Chat GUI (openmarket-chat or openmarket-chat-cloud) needs to be driven and proven in the running app — launching a browser lane, ex… |

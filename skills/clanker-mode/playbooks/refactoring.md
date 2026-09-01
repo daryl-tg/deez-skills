@@ -7,6 +7,9 @@
    preservation from breakage.
 2. **Subtract before adding.** Remove dead paths, one-caller wrappers, and
    duplicated decisions first, then reshape the simpler base.
+   For React work, apply **vercel-react-best-practices**; for motion,
+   **animate** or **animate-expo**. Both are vendored and self-updating,
+   so read them rather than recalling them.
 3. Work in units that each end green, per **principle-todo-discipline**. Never
    batch the edits and verify once at the end.
 4. When a lever can do the edits, build it rather than hand-applying, per

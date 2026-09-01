@@ -9,6 +9,9 @@ the lead.
    implementation.
 3. **Name the data shape first**, and choose its organizing structure before any
    logic: a state machine over scattered booleans, a table or registry over
+   For React work, apply **vercel-react-best-practices**; for motion,
+   **animate** or **animate-expo**. Both are vendored and self-updating,
+   so read them rather than recalling them.
    branching, a typed model over repeated shape assumptions.
 4. **Throughput checkpoint**, four todo items. One that does not apply keeps its
    item with `n/a: <reason>`:

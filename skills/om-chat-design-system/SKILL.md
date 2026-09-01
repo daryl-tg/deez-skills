@@ -13,6 +13,23 @@ This is a companion to `$om-chat-feature`, not a delivery workflow. Load it
 before designing or implementing a user-visible OM Chat change, then return to
 the feature workflow for testing, review, and delivery.
 
+## Before writing React
+
+This skill owns what OM Chat's UI should look like: its components, tokens,
+layout, and interaction patterns. It does not own how React should be written.
+
+- **Performance and structure** come from **vercel-react-best-practices**. Read
+  it before any non-trivial component or data-fetching change, and follow its
+  ordering: waterfalls and bundle size are critical, re-render tuning is medium.
+  Reaching for `memo` before checking for a waterfall optimises the wrong thing.
+- **Motion** comes from **animate**, held to the bar in **emil-design-eng**.
+  Anything gesture-driven or material-like also reads **apple-design**.
+- **The data shape comes first**, per **principle-model-the-domain**. A
+  component tuned for re-renders around the wrong shape is still wrong.
+
+Local patterns in this skill win over general guidance where they conflict: the
+design system is the constraint, the vendored skills are the craft.
+
 ## Discover before coding
 
 1. Read repository instructions, the affected route, and the closest existing

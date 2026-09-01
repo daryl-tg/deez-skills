@@ -23,6 +23,16 @@ unread.
   **principle-visual-approval-gates-delivery**.
 - Any server, port, or URL → **principle-bind-assigned-ports**.
 - Any spec, plan, or handoff → **principle-planning-docs-live-outside-the-repo**.
+- **Any React or Next.js code** → **vercel-react-best-practices**, grounded by
+  **principle-model-the-domain** for the data shape and
+  **principle-minimize-reader-load** for component boundaries. Its 70 rules are
+  ordered by impact: waterfalls and bundle size first, re-render tuning much
+  later. Do not start at memoisation.
+- **Any motion or interaction feel** → **animate** on web, **animate-expo** on
+  Expo. Reviewing existing motion is **review-animations**; auditing a whole
+  codebase is **improve-animations**; naming an effect you cannot name is
+  **animation-vocabulary**. The craft bar behind all of them is
+  **emil-design-eng**, and **apple-design** for gesture and material work.
 - Any prose surface, including your own reply → the **unslop** skill. For text
   going out in the operator's name, **humanize** after it.
 - About to ask a question whose answer you could observe by running something →

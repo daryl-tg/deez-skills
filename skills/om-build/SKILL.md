@@ -107,8 +107,43 @@ one you need and follow it.
 | `--hosted` (default), the daemon `/rooms` GUI at `127.0.0.1:31337` | [`references/hosted.md`](references/hosted.md) |
 | `--cloud`, the `/chat/` fork served locally | [`references/cloud.md`](references/cloud.md) |
 
-`scripts/hosted.sh` is the executable for the `--hosted` path. Its invocation is
-documented in that flow.
+### Running `scripts/hosted.sh`
+
+The script takes its paths from the environment and does not care where it is
+invoked from, so the hub path and the installed symlink behave identically.
+
+```bash
+# canonical, from the hub
+~/github/deez-skills/skills/om-build/scripts/hosted.sh --gate
+
+# equivalent, through the installed symlink
+~/.claude/skills/om-build/scripts/hosted.sh --gate
+```
+
+| Flag | Does |
+|---|---|
+| *(none)* | Gate, then build and install if the gate says to |
+| `--gate` | Gate only. Prints `BUILD` or `SKIP` and exits. **Read-only** |
+| `--force` | Build even when the gate says `SKIP` |
+| `--no-gui` | Daemon only; `/rooms` serves the placeholder |
+
+**Start with `--gate`.** It reports provenance for both repos and runs seven
+checks — live inode against disk, version pin, served stamp against the built
+bundle, and whether GUI, rooms-client, or CLI source is newer than the artifact
+it produced. A `SKIP` means the daemon is already serving what is on disk, and
+building anyway just burns time.
+
+Override the paths when the layout differs:
+
+```bash
+OM_MONO=~/somewhere/openmarket-internal \
+OM_GUI=~/somewhere/openmarket-chat \
+  ~/github/deez-skills/skills/om-build/scripts/hosted.sh --gate
+```
+
+Staged assets overwrite committed stubs during a build, and the script restores
+them on **every** exit path including failure and Ctrl-C. Do not interrupt it
+and then hand-revert; let its own cleanup run.
 
 ## The rules that outlive either flow
 
