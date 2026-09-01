@@ -21,3 +21,61 @@ runtimes = ["claude", "codex"]
 source   = "github:emilkowalski/skill"
 path     = "skills/animate-expo"
 runtimes = ["claude"]
+
+# Lockfile-managed under ~/.agents/skills. The fetcher owns the copies;
+# the hub records them so a fresh machine knows what to re-fetch, and so
+# bin/doctor does not read a citation of one as dangling.
+[vendor.animation-vocabulary]
+source   = "github:emilkowalski/skill"
+path     = "skills/animation-vocabulary"
+runtimes = ["claude"]
+
+[vendor.apple-design]
+source   = "github:emilkowalski/skill"
+path     = "skills/apple-design"
+runtimes = ["claude"]
+
+[vendor.ask-sonner]
+source   = "github:emilkowalski/skill"
+path     = "skills/ask-sonner"
+runtimes = ["claude"]
+
+[vendor.emil-design-eng]
+source   = "github:emilkowalski/skill"
+path     = "skills/emil-design-eng"
+runtimes = ["claude"]
+
+[vendor.find-animation-opportunities]
+source   = "github:emilkowalski/skill"
+path     = "skills/find-animation-opportunities"
+runtimes = ["claude"]
+
+[vendor.find-skills]
+source   = "github:vercel-labs/skills"
+path     = "skills/find-skills"
+runtimes = ["claude"]
+
+[vendor.improve-animations]
+source   = "github:emilkowalski/skill"
+path     = "skills/improve-animations"
+runtimes = ["claude"]
+
+[vendor.pick-ui-library]
+source   = "github:emilkowalski/skill"
+path     = "skills/pick-ui-library"
+runtimes = ["claude"]
+
+[vendor.prototype]
+source   = "github:emilkowalski/skill"
+path     = "skills/prototype"
+runtimes = ["claude"]
+
+[vendor.review-animations]
+source   = "github:emilkowalski/skill"
+path     = "skills/review-animations"
+runtimes = ["claude"]
+
+[vendor.write-swift]
+source   = "github:emilkowalski/skill"
+path     = "skills/write-swift"
+runtimes = ["claude"]
