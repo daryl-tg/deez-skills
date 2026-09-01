@@ -106,6 +106,15 @@ def check(reg, repo_root, roots, profile):
         if code:
             findings.append(_fail(code, f"{act.runtime} {act.name}: {act.reason}"))
 
+    from deezlib import index
+
+    readme = Path(repo_root) / "README.md"
+    if readme.is_file() and index.MARKER in readme.read_text(encoding="utf-8"):
+        if index.is_stale(reg, repo_root, readme):
+            findings.append(
+                _fail("readme-stale", "README index is stale — run bin/index")
+            )
+
     seen, unique = set(), []
     for finding in findings:
         key = (finding.code, finding.detail)

@@ -22,6 +22,9 @@ def build_parser():
 
     doctor_parser = subparsers.add_parser("doctor", help="Report drift. Read-only.")
     doctor_parser.add_argument("--profile", default=None)
+
+    index_parser = subparsers.add_parser("index", help="Regenerate the README index.")
+    index_parser.add_argument("--check", action="store_true", help="Fail if stale.")
     return parser
 
 
@@ -80,11 +83,28 @@ def cmd_doctor(args):
     return 1 if failures else 0
 
 
+def cmd_index(args):
+    from deezlib import index
+
+    reg = registry.load(REPO_ROOT / "registry.toml")
+    readme = REPO_ROOT / "README.md"
+    if args.check:
+        if index.is_stale(reg, REPO_ROOT, readme):
+            print("README is stale — run bin/index", file=sys.stderr)
+            return 1
+        print("README is current")
+        return 0
+    changed = index.write(reg, REPO_ROOT, readme)
+    print("README regenerated" if changed else "README already current")
+    return 0
+
+
 COMMANDS = {
     "version": cmd_version,
     "python-path": cmd_python_path,
     "link": cmd_link,
     "doctor": cmd_doctor,
+    "index": cmd_index,
 }
 
 
