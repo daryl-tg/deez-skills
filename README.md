@@ -94,7 +94,7 @@ start, so a skill installed mid-session stays invisible until then.
 bin/doctor               # exits non-zero on drift
 ```
 
-Then confirm the runtimes actually see it. In Claude Code, `$om-mode` should
+Then confirm the runtimes actually see it. In Claude Code, `$clanker-mode` should
 resolve. In Codex, ask it to list skills whose name starts with `principle-`:
 all seventeen should appear, because principles install on both runtimes so a
 handoff citing one resolves on either side.
@@ -130,12 +130,12 @@ to different repos.
 
 ## Using it
 
-**`$om-mode`** is the entry point for anything needing rigor. It classifies the
+**`$clanker-mode`** is the entry point for anything needing rigor. It classifies the
 request, opens the matching playbook, and copies its steps into a todo list
 before doing anything else.
 
 ```
-$om-mode the reaction picker spacing is off on mobile
+$clanker-mode the reaction picker spacing is off on mobile
 ```
 
 Three skills fire without it, for read-only asks that should not need ceremony:
@@ -168,13 +168,13 @@ Docs: [architecture](./docs/architecture.md) ·
 | Name | Layer | Runtimes | Description |
 | --- | --- | --- | --- |
 | `automate-me` |  | claude, codex | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for 'automate me', 'capture how I work', or … |
+| `clanker-agent` |  | claude | — |
+| `clanker-mode` | router | claude | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or … |
 | `codex-first` |  | claude, codex | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:review) as the primary path, raw codex exec as… |
 | `create-verification-skill` |  | claude, codex | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, … |
 | `design` |  | claude, codex | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implement against the sketch, and scrap it when f… |
 | `herdr-codex-orchestration` |  | claude, codex | Run independent Codex implementation, review, and verification loops through Herdr with isolated worktrees. Covers arena mode (N candidates, one judge) and swa… |
 | `maintain-verification-skill` |  | claude, codex | Periodic pass keeping a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at mo… |
-| `om-agent` |  | claude | — |
-| `om-mode` | router | claude | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /om-mode, $om-mode, or any reques… |
 | `principle-announce-the-linked-review` | principle | claude, codex | Apply at the end of any delivered change. Announce with the PR or MR link, then read the announcement back to confirm it posted. |
 | `principle-bind-assigned-ports` | principle | claude, codex | Apply whenever starting a server, choosing a port, or handing back a URL. Ports are assigned, never chosen. Bind 127.0.0.1 explicitly. Anything the operator op… |
 | `principle-build-the-lever` | principle | claude, codex | Apply to any non-trivial work: edits, migrations, analyses, checks. Build the tool that does or proves it rather than doing it by hand. The tool is the artifac… |

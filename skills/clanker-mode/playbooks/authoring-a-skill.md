@@ -11,8 +11,9 @@ prose: an unhelpful sentence becomes an instruction some future agent follows.
    routing in `SKILL.md`, detail in `references/`, steps in `playbooks/`.
 4. **Cite, never restate.** A rule that exists as a principle gets referenced by
    name. Restating it is how the two copies drift apart.
-5. **Description under 300 characters, ideally under 200.** It loads into every
-   session on every machine. Codex is already truncating.
+5. **Keep the description tight.** No hard limit, but it loads into every
+   session on every machine and Codex is already truncating. A description that
+   will not come down usually means the skill has more than one job.
 6. Run `bin/doctor`. It checks the flag, the citations, the roles, and the
    description budget.
 7. Run `playbooks/opening-a-review.md`.

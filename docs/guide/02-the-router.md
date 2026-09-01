@@ -1,9 +1,9 @@
 # 2. The router
 
-`$om-mode` is one skill whose job is deciding what happens next.
+`$clanker-mode` is one skill whose job is deciding what happens next.
 
 ```
-$om-mode the reaction picker spacing is off on mobile
+$clanker-mode the reaction picker spacing is off on mobile
 ```
 
 It classifies the request, opens the matching playbook, and **copies that
@@ -22,7 +22,7 @@ cannot silently drop it.
 
 ## What it routes to
 
-Twelve playbooks in `skills/om-mode/playbooks/`. Four are task-shaped
+Twelve playbooks in `skills/clanker-mode/playbooks/`. Four are task-shaped
 (investigation, bug fix, feature, refactoring), four are family-specific (OM
 Chat and OM Mobile, each with a feature and a completion playbook), and the rest
 cover loops, skill authoring, opening a review, and session pickup.

@@ -1,12 +1,12 @@
 ---
-name: om-mode
-description: "Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /om-mode, $om-mode, or any request for rigorous work on the OM stacks."
+name: clanker-mode
+description: "Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or any request for rigorous work on the OM stacks."
 disable-model-invocation: true
 mode: true
-reminder: "New task? Playbook match or rigor needed -> apply $om-mode. Casual turn or the operator opts out -> don't."
+reminder: "New task? Playbook match or rigor needed -> apply $clanker-mode. Casual turn or the operator opts out -> don't."
 ---
 
-# OM mode
+# Clanker mode
 
 ## Non-negotiables
 

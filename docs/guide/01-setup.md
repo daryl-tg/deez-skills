@@ -9,7 +9,7 @@ Nothing is copied. `bin/link --apply` creates symlinks from the runtimes' skill
 directories into this repo:
 
 ```
-~/.claude/skills/om-mode        -> ~/github/deez-skills/skills/om-mode
+~/.claude/skills/clanker-mode        -> ~/github/deez-skills/skills/clanker-mode
 ~/.codex/skills/principle-*     -> ~/github/deez-skills/skills/principle-*
 ```
 
@@ -44,7 +44,7 @@ what happens to whatever is at the destination now. The two worth pausing on:
 `bin/doctor` proves the symlinks are right. It cannot prove a runtime *loaded*
 them, because both read their skill directories at session start.
 
-So: restart, then check. `$om-mode` should resolve in Claude Code. In Codex, ask
+So: restart, then check. `$clanker-mode` should resolve in Claude Code. In Codex, ask
 for skills starting with `principle-`; all seventeen should be there.
 
 If a skill is missing on Codex specifically, check the frontmatter `name`

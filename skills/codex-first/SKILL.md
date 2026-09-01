@@ -12,13 +12,13 @@ If you were dispatched as a subagent to execute a task, ignore this skill. Do th
 Claude Code main sessions only. Codex/other harnesses: skip; never self-delegate.
 
 This is the L2 dispatch contract: exactly how a piece of work Claude has
-already decided to hand off becomes a Codex run. `$om-agentic-loop` calls
+already decided to hand off becomes a Codex run. `$clanker-agentic-loop` calls
 this skill for phase 2 (Dispatch) of every goal cycle; it applies just the
 same for ordinary, non-loop delegations.
 
 Rationale: Claude (Fable/Opus) tokens metered + expensive; Codex flat-rate. GPT-5.5+ is usually the better and faster model at writing/implementing code; Claude wins at ergonomics — judgment, design, spec-writing, review, orchestration. So Codex types, Claude thinks and verifies.
 
-Inside `$om-agentic-loop`, the handoff decision is already made: invoking
+Inside `$clanker-agentic-loop`, the handoff decision is already made: invoking
 the loop is the Codex-handoff decision, and the loop dispatches straight
 into the route below for every goal. For ordinary, non-loop work, the
 plan→execution gate in the user's CLAUDE.md still applies — ask before
@@ -34,7 +34,7 @@ Delegate to Codex (default for hands-on work):
 - bulk codebase exploration where raw reading ≫ the answer
 
 Keep in Claude — design judgment, plus the exact exceptions
-`$om-agentic-loop`'s validation-ownership table states, so the two files
+`$clanker-agentic-loop`'s validation-ownership table states, so the two files
 cannot disagree:
 
 - design, API design, architecture, naming, UX judgment
@@ -59,9 +59,9 @@ Template opening line for any Codex prompt (plugin or CLI):
 Read the docs in ~/Documents/dev-notes/<task-slug>/ first — start with <design>.md and <plan>.md. Do not write any code until you have read them. Then implement the plan in <repo path>.
 ```
 
-## Goal-contract handoff (dispatch from `$om-agentic-loop`)
+## Goal-contract handoff (dispatch from `$clanker-agentic-loop`)
 
-When `$om-agentic-loop` dispatches a goal here, the prompt carries the
+When `$clanker-agentic-loop` dispatches a goal here, the prompt carries the
 dev-notes pointer above plus these goal-specific fields, unchanged from the
 loop's dispatch contract:
 
@@ -81,8 +81,8 @@ replacement for it.
 
 Codex starts with zero session context — always give it the exact repo path
 and layer. For the Kiyotaka stack, do not re-derive the repo list here: read
-`$om-agentic-loop`'s profile at
-`/Users/dboon/Documents/dev-notes/agents/om-agentic-loop/profiles/kiyotaka.md`,
+`$clanker-agentic-loop`'s profile at
+`/Users/dboon/Documents/dev-notes/agents/clanker-agentic-loop/profiles/kiyotaka.md`,
 which carries the four repo paths and the order they must land in. For any
 other stack, name the repo's absolute path and its layer explicitly in the
 prompt.
@@ -102,7 +102,7 @@ The `codex@openai-codex` plugin owns delegation for the repo the session is in: 
 **Manage jobs:** `/codex:status` (progress), `/codex:result` (final output + session id), `/codex:cancel` (kill a runaway).
 
 **Codex as reviewer** (supplements, never replaces, Claude's own review). The
-om families — `$om-chat-feature`, `$om-agentic-loop`, `$om-mobile-feature` —
+om families — `$om-chat-feature`, `$clanker-agentic-loop`, `$om-mobile-feature` —
 have cross-model review switched **off**: they run Claude's review only, and a
 Codex pass happens there just when the operator asks for it by name. Outside
 those families the commands below are ordinary tools:
@@ -180,9 +180,9 @@ Codex starts with zero session context. Every prompt: **the dev-notes docs folde
 
 ## Verify
 
-Validation and review ownership belong to `$om-agentic-loop`'s
+Validation and review ownership belong to `$clanker-agentic-loop`'s
 validation-ownership table, not to this skill — see
-`/Users/dboon/Documents/dev-notes/agents/om-agentic-loop/SKILL.md` for what
+`/Users/dboon/Documents/dev-notes/agents/clanker-agentic-loop/SKILL.md` for what
 Claude runs directly versus what Codex output only advises. This skill
 governs dispatch, not verification.
 

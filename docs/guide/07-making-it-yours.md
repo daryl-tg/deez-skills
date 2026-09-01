@@ -32,8 +32,16 @@ and became a 30-line playbook plus a reference file, because its phases were
 always playbook content and only its boundaries were skill content.
 
 **Descriptions are the expensive part.** They load into every session on every
-machine. Under 300 characters is enforced; under 200 is the target. Five
-descriptions arrived over the limit during migration — one was 505.
+machine, before you type anything.
+
+There is deliberately **no per-skill limit**. A single long description is not
+the problem; a runtime truncating the whole catalogue is. `bin/doctor` reports
+the aggregate per runtime instead, which is the number that predicts truncation.
+
+Structure is what keeps it down. A routed layer costs nothing on Claude, and a
+skill decomposed properly needs a short description because it does one thing.
+When a description will not come down, that is usually the skill telling you it
+has more than one job.
 
 ## Cite, never restate
 
@@ -61,13 +69,13 @@ person's register.
 
 ## Retire deliberately
 
-Retiring is harvest-then-delete. `om-agent-polish` was retired, but it owned the
+Retiring is harvest-then-delete. `clanker-agent-polish` was retired, but it owned the
 evidence publishing contract, so that moved to the terminal gate and the control
 wrapper first. Deleting it outright would have lost the only statement of how
 proof gets published.
 
 Check what references a skill before removing it. Two things referenced
-`om-agent-polish`, and both needed editing in the same change.
+`clanker-agent-polish`, and both needed editing in the same change.
 
 ## Capture what a session taught
 

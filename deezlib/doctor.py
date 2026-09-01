@@ -123,6 +123,55 @@ def _check_local_merge(reg, repo_root):
     return findings
 
 
+def budget(reg, repo_root):
+    """Report what skill metadata costs per runtime.
+
+    There is no per-skill limit. A single long description is not a problem; a
+    runtime truncating the whole catalogue is. The aggregate is the number that
+    predicts that, so it gets reported rather than gated. Structure is what
+    keeps it down: a routed layer costs nothing on a runtime that honours the
+    flag, and a well-decomposed skill needs a short description anyway.
+    """
+    per_runtime = {}
+    for entry in reg.entries:
+        for runtime in entry.runtimes:
+            folder = Path(repo_root) / registry.source_dir(entry, runtime)
+            skill_md = folder / "SKILL.md" if folder.is_dir() else folder
+            if not skill_md.is_file():
+                continue
+            try:
+                fields = frontmatter.parse(skill_md)
+            except frontmatter.FrontmatterError:
+                continue
+            cost = len(fields["description"]) + len(entry.name)
+            # Only Claude honours the flag; on Codex everything is visible.
+            routed = (
+                runtime == "claude"
+                and "disable-model-invocation: true"
+                in skill_md.read_text(encoding="utf-8", errors="replace")
+            )
+            slot = per_runtime.setdefault(runtime, {"visible": 0, "routed": 0,
+                                                    "n_vis": 0, "n_rt": 0})
+            if routed:
+                slot["routed"] += cost
+                slot["n_rt"] += 1
+            else:
+                slot["visible"] += cost
+                slot["n_vis"] += 1
+
+    findings = []
+    for runtime in sorted(per_runtime):
+        s = per_runtime[runtime]
+        detail = (
+            f"{runtime}: {s['n_vis']} visible ~{s['visible'] // 4} tok "
+            f"every session"
+        )
+        if s["n_rt"]:
+            detail += f", {s['n_rt']} routed ~{s['routed'] // 4} tok not paid"
+        findings.append(Finding("info", "budget", detail))
+    return findings
+
+
 def check_citations(reg, repo_root):
     """Every **principle-x** cited anywhere must be a registered entry."""
     known = {e.name for e in reg.entries}
@@ -194,23 +243,6 @@ def _check_frontmatter(reg, repo_root):
                         "name-mismatch",
                         f"{skill_md}: frontmatter name {fields['name']!r} != "
                         f"install name {expected!r} for {runtime}",
-                    )
-                )
-            size = len(fields["description"])
-            if size > frontmatter.DESCRIPTION_FAIL:
-                findings.append(
-                    _fail(
-                        "description-too-long",
-                        f"{entry.name}: description is {size} chars "
-                        f"(limit {frontmatter.DESCRIPTION_FAIL})",
-                    )
-                )
-            elif size > frontmatter.DESCRIPTION_WARN:
-                findings.append(
-                    _warn(
-                        "description-long",
-                        f"{entry.name}: description is {size} chars "
-                        f"(soft limit {frontmatter.DESCRIPTION_WARN})",
                     )
                 )
     return findings

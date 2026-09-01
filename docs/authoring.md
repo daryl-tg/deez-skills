@@ -21,9 +21,11 @@ anything — see `docs/migration.md`.
 - The frontmatter `name:` must equal the install name. Codex resolves its
   catalogue by that field, so a mismatch makes a skill invisible even when the
   symlink is perfect.
-- `description` must be under 300 characters, and under 200 is better. Every
-  description is loaded into every session on every machine — at ~70 skills
-  that is already ~5,000 tokens before you type anything.
+- Keep the `description` tight, but there is **no character limit**. A
+  well-decomposed skill needs a short description anyway; a long one is usually
+  a symptom of a skill doing too much, which the structure catches better than a
+  number would. What matters is the aggregate: `bin/doctor` reports the metadata
+  cost per runtime, because that is what a runtime truncates on.
 - Every folder under `skills/` needs a registry entry, and every entry needs a
   folder.
 - The README index must be current. Run `bin/index` after any registry change.

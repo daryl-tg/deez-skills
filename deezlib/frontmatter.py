@@ -1,9 +1,6 @@
 import re
 from pathlib import Path
 
-DESCRIPTION_FAIL = 300
-DESCRIPTION_WARN = 200
-
 _BLOCK = re.compile(r"^---\n(.*?)\n---", re.DOTALL)
 _KEY = re.compile(r"^([A-Za-z_][\w-]*):[ \t]*(.*)$")
 

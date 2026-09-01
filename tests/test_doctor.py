@@ -82,14 +82,10 @@ install_as = { claude = "renamed" }
 """)
         self.assertNotIn("name-mismatch", self.codes(self.check(reg)))
 
-    def test_description_over_300_chars_fails(self):
-        self.make_skill("alpha", "x" * 301)
-        self.assertIn("description-too-long", self.codes(self.check(self.load(ENTRY))))
-
-    def test_description_over_200_chars_warns(self):
-        self.make_skill("alpha", "x" * 250)
-        warn = [f for f in self.check(self.load(ENTRY)) if f.code == "description-long"]
-        self.assertEqual([f.level for f in warn], ["warn"])
+    def test_a_long_description_is_not_a_failure(self):
+        self.make_skill("alpha", "x" * 600)
+        findings = self.check(self.load(ENTRY))
+        self.assertEqual([f for f in findings if f.level == "fail"], [])
 
     def test_wholly_unlinked_is_the_pre_migration_state_not_drift(self):
         self.make_skill("alpha")

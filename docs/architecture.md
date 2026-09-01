@@ -44,9 +44,13 @@ layers exist to protect.
 | Visible on Claude | 6 | **3** | 69 |
 | Metadata paid | ~290 tok | **~128 tok** | ~4,900 tok |
 
-Codex ignores the flag, so it sees all 33 at ~1,638 tokens. Still well under the
-~4,100 it currently pays, and it was **already truncating descriptions** at that
-level, which is a correctness problem rather than a cost one.
+Codex ignores the flag, so it sees every skill. Still well under the ~4,100 it
+currently pays, and it was **already truncating descriptions** at that level,
+which is a correctness problem rather than a cost one.
+
+There is no per-skill description limit. `bin/doctor` reports the aggregate per
+runtime, since that is what a runtime truncates on, and the layers plus ordinary
+decomposition are what keep it down.
 
 ## Delegation
 

@@ -53,9 +53,6 @@ class ParseTest(unittest.TestCase):
                 frontmatter.parse(path)
             self.assertIn("name", str(ctx.exception))
 
-    def test_budget_constants_match_the_spec(self):
-        self.assertEqual(frontmatter.DESCRIPTION_FAIL, 300)
-        self.assertEqual(frontmatter.DESCRIPTION_WARN, 200)
 
 
 class RealWorldTest(unittest.TestCase):

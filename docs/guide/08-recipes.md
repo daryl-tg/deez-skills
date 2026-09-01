@@ -3,7 +3,7 @@
 ## Daily
 
 ```
-$om-mode <what you want>          rigor: classify, route, copy steps in
+$clanker-mode <what you want>          rigor: classify, route, copy steps in
 why is the transcript virtualized this way
 teach me how the rooms cache works
 unslop                            clean the last thing written
