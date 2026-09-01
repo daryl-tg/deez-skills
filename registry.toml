@@ -159,6 +159,21 @@ layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]
 
+# --- Router -----------------------------------------------------------------
+# One router, Claude only. Codex ignores disable-model-invocation, so a mode
+# skill there would fire on description matches. Its playbooks are plain files,
+# readable by absolute path from either runtime without being installed.
+
+[skills.om-mode]
+layer    = "mode"
+category = "core"
+runtimes = ["claude"]
+
 [commands]
 
 [agents]
+
+[agents.om-agent]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude"]

@@ -54,7 +54,7 @@ def compute(reg, repo_root, roots, profile):
             if root is None:
                 continue
             src = repo_root / registry.source_dir(entry, runtime)
-            dest = root / registry.install_name(entry, runtime)
+            dest = root / registry.install_filename(entry, runtime)
             verb, reason = _classify(src, dest)
             actions.append(
                 Action(verb, runtime, entry.kind, entry.name, src, dest, reason)

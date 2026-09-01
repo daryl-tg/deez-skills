@@ -73,8 +73,23 @@ def install_name(entry, runtime):
     return entry.install_as.get(runtime, entry.name)
 
 
+# Skills are directories. Commands and agents are single markdown files, so
+# their paths carry the extension both in the repo and at the install site.
+FILE_KINDS = ("command", "agent")
+
+
+def _suffix(kind):
+    return ".md" if kind in FILE_KINDS else ""
+
+
 def source_dir(entry, runtime):
-    return entry.variant.get(runtime, f"{KIND_DIRS[entry.kind]}/{entry.name}")
+    default = f"{KIND_DIRS[entry.kind]}/{entry.name}{_suffix(entry.kind)}"
+    return entry.variant.get(runtime, default)
+
+
+def install_filename(entry, runtime):
+    """The basename to create at the install root."""
+    return f"{install_name(entry, runtime)}{_suffix(entry.kind)}"
 
 
 def _parse_entries(data, categories):

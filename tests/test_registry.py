@@ -170,3 +170,50 @@ runtimes = ["claude"]
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class KindPathTest(unittest.TestCase):
+    """Skills are directories; commands and agents are single .md files."""
+
+    def load(self, extra):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        return registry.load(write(self.tmp.name, BASE + extra))
+
+    def test_skill_resolves_to_a_directory(self):
+        reg = self.load("""
+[skills.alpha]
+category = "core"
+runtimes = ["claude"]
+""")
+        self.assertEqual(registry.source_dir(reg.entries[0], "claude"), "skills/alpha")
+
+    def test_command_resolves_to_a_markdown_file(self):
+        reg = self.load("""
+[commands.mr-markdown]
+category = "core"
+runtimes = ["claude"]
+""")
+        self.assertEqual(
+            registry.source_dir(reg.entries[0], "claude"), "commands/mr-markdown.md"
+        )
+
+    def test_agent_resolves_to_a_markdown_file(self):
+        reg = self.load("""
+[agents.om-agent]
+category = "core"
+runtimes = ["claude"]
+""")
+        self.assertEqual(
+            registry.source_dir(reg.entries[0], "claude"), "agents/om-agent.md"
+        )
+
+    def test_install_name_keeps_the_extension_for_files(self):
+        reg = self.load("""
+[agents.om-agent]
+category = "core"
+runtimes = ["claude"]
+""")
+        self.assertEqual(
+            registry.install_filename(reg.entries[0], "claude"), "om-agent.md"
+        )
