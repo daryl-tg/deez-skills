@@ -1,12 +1,12 @@
 ### OM Chat feature
 
-**Repos:** `openmarket-chat` (desktop/daemon source), `openmarket-chat-cloud`
-(its ordered hosted sister), `@openmarket/rooms-client` (browser-safe shared
-protocol). **This family stops at `ready_for_review`.** It never merges.
+**Repos:** `openmarket-chat` (desktop/daemon source), `@openmarket/rooms-client`
+(browser-safe shared protocol), and `openmarket-chat-cloud` only when the
+operator names it. **This family stops at `ready_for_review`.** It never merges.
 
 Read `references/om-chat-boundaries.md` before editing. The short version:
-desktop is proven first, then only approved hosted-compatible behavior is
-ported, and a synced file is never edited independently in both copies.
+cloud parity is retired, the repo's own fences still have to be green, and a
+synced file is never edited independently in both copies.
 
 1. **Resolve the candidate.** Read each affected repo's `AGENTS.md`. Route to
    the **explore** role. Load **om-chat-design-system** before any user-visible
@@ -37,8 +37,10 @@ ported, and a synced file is never edited independently in both copies.
    diagnosing a failed gate only.
 7. **Publish and wait for approval**, per
    **principle-visual-approval-gates-delivery**.
-8. **Port to cloud** and prove it separately on its own surface.
-9. Run `playbooks/om-chat-completion.md`.
+8. Run `playbooks/om-chat-completion.md`.
+
+**No cloud port.** Parity with `openmarket-chat-cloud` is retired: a desktop
+change is done without it. Port only when the operator names that change.
 
 **Reply:** what changed per surface, the gate results, the evidence URL, what is
 open.
