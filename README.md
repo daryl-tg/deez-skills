@@ -17,9 +17,11 @@ bin/link            # preview. changes nothing
 bin/link --apply    # install into ~/.claude and ~/.codex
 ```
 
-Restart both runtimes. Then `bin/doctor` to confirm. Full setup, including the
-Python 3.11 requirement and what every `bin/link` verb means, is in
-[the guide](./docs/guide/01-setup.md).
+Restart both runtimes, then `bin/doctor` to confirm.
+
+**That installs the hub. It does not set up verification** — that is one session
+per repository and is the step everything else leans on.
+[Chapter 0](./docs/guide/00-first-run.md) is the ordered checklist for both.
 
 ## get started
 

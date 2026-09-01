@@ -61,6 +61,9 @@ per feature from source, then one live session exercising every feature, then at
 most one PR of proven corrections.
 
 A map that has drifted from the app is worse than no map, because it produces
-confident wrong verification.
+confident wrong verification. When to run that pass, and why not on a daily
+timer, is [chapter 9](./09-keeping-it-honest.md).
+
+First time setting this up for a repo? [Chapter 0, step 3](./00-first-run.md).
 
 Next: [Delivery](./05-delivery.md).
