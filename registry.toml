@@ -1,0 +1,37 @@
+# The index. Every skill, command, and subagent this hub owns is listed here,
+# and nothing is linked into a runtime unless it appears below.
+#
+# Adding an entry by hand is fine, but `bin/new` and `bin/adopt` do it for you
+# and regenerate the README. `bin/doctor` fails if this file and the folders on
+# disk disagree.
+
+[meta]
+version = 1
+default_profile = "full"
+
+# Categories are the unit profiles select on, so keep them coarse.
+[categories]
+core     = "Always-on essentials"
+om-chat  = "OM Chat feature delivery"
+kiyotaka = "Kiyotaka / orange stack"
+workflow = "General workflow"
+writing  = "Writing and editing"
+infra    = "Infrastructure and observability"
+
+# A profile is what one machine installs. "*" means every category.
+# Skill metadata costs ~5k tokens of context per session at ~70 skills, so a
+# machine that does not need a stack should not carry it.
+[profiles]
+full = ["*"]
+lean = ["core", "workflow", "writing"]
+
+# ---------------------------------------------------------------------------
+# Entries are added by migration. Empty on purpose: the framework must not
+# change what is installed until every skill has been moved in deliberately.
+# ---------------------------------------------------------------------------
+
+[skills]
+
+[commands]
+
+[agents]
