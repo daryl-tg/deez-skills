@@ -94,27 +94,43 @@ through the MR. Neither ever merges locally.
 
 ## Delegation
 
-Playbook steps name a **role**, never a model or a runtime. Resolve at dispatch:
+**Implementation goes to Codex. Everything else stays here.** That is the
+default, and it is the one thing about delegation worth remembering.
 
-| Role | Claude | Codex |
+| Work | Lane | How |
 |---|---|---|
-| **explore** role | `Agent(subagent_type: "explore")` | `agent_type: explore` |
-| **executor** role | `Agent(subagent_type: "executor")` | `agent_type: executor` |
-| **test-engineer** role | `Agent(subagent_type: "test-engineer")` | `agent_type: test-engineer` |
-| **code-reviewer** role | `Agent(subagent_type: "code-reviewer")` | `agent_type: code-reviewer` |
-| **verifier** role | `Agent(subagent_type: "verifier")` | `agent_type: verifier` |
+| **Implementation** — writing or changing product code | **Codex** | `Agent(subagent_type: "codex:codex-rescue")` |
+| Exploration, mapping, "where does X live" | Claude | `Agent(subagent_type: "explore")` |
+| Test design and running the repo's gates | Claude | `Agent(subagent_type: "test-engineer")` |
+| Review | Claude | `Agent(subagent_type: "code-reviewer")` |
+| Verification and claim validation | Claude | `Agent(subagent_type: "verifier")` |
+| Planning, design, every git mutation | Claude, **never dispatched** | you |
 
-Implementation dispatches to Codex by default via
-`Agent(subagent_type: "codex:codex-rescue")`. Use raw `codex exec` when you need
-a structured return (`--output-schema`), an explicit sandbox, or an ephemeral
-run. Planning, review, verification, and git mutations never dispatch.
+When a playbook step says "delegate implementation", it means the first row. It
+does **not** mean an in-session Claude subagent. Reaching for
+`subagent_type: "executor"` on Claude for implementation is the common mistake:
+it works, so nothing complains, and the whole reason for the split quietly stops
+happening.
 
-Every handoff is self-contained. Codex does not inherit your context: cite the
-playbook by **absolute path** and the principles **by name**, since those exist
-on its runtime too. Resume within one feature's lifecycle, go fresh at a phase
-boundary.
+Why the split: Claude tokens are metered and expensive, Codex is flat-rate, and
+GPT is usually faster at writing code while Claude is better at judgment,
+design, review and orchestration. **Codex types, Claude thinks and verifies.**
 
-Own every delegate's work. Review the diff and write your own summary.
+**Changing the default.** `[routing]` in `registry.toml` is the source of truth.
+Set `default_lane = "claude"` there to keep implementation in-session, and
+`bin/doctor` fails if this section and that file disagree. The four reserved
+lanes below it are not preferences and the registry rejects any other value.
+
+**Escape hatch.** Raw `codex exec` when you need a structured return
+(`--output-schema`), an explicit sandbox, or an ephemeral run. `codex-first`
+holds the dispatch contract.
+
+**Every handoff is self-contained.** Codex does not inherit your context: cite
+the playbook by **absolute path** and the principles **by name**, since both
+exist on its runtime. Resume the thread within one feature's lifecycle, go fresh
+at a phase boundary.
+
+Own every delegate's work. Review the diff yourself and write your own summary.
 
 ## Playbooks
 

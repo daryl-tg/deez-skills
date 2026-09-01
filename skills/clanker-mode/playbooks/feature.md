@@ -21,9 +21,10 @@ the lead.
    - Shared mutable state. Default to splitting the target, per
      **principle-separate-before-serializing-shared-state**.
    - Smallest safe decomposition. If one worker is best, name why.
-5. **Failing check first**, then delegate implementation to the **executor**
-   role with a specific scope: file paths, the named data shape, success
-   criteria. Review the diff yourself.
+5. **Failing check first**, then **dispatch implementation to Codex** via
+   `Agent(subagent_type: "codex:codex-rescue")`, with a specific scope: file
+   paths, the named data shape, success criteria, and the playbook cited by
+   absolute path. Review the diff yourself.
 6. **Verify on the matching surface** with `control-<app>`.
 7. Rebase into ordered commits, verifying each before the next.
 8. Run `playbooks/opening-a-review.md`.

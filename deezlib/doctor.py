@@ -251,6 +251,46 @@ def check_skill_references(reg, repo_root, extra_known=()):
     return findings
 
 
+def check_routing(reg, repo_root):
+    """The mode skill must say what registry.toml's default_lane says.
+
+    They drifted once, and the failure was silent: the config said codex, the
+    router showed a two-column role table with no rule for picking, and every
+    run quietly stayed on Claude because that is the column an agent running on
+    Claude reads. Config nothing reads is not configuration.
+    """
+    lane = reg.routing.get("default_lane", "codex")
+    modes = [e for e in reg.entries if e.layer == "mode"]
+    findings = []
+    for entry in modes:
+        md = Path(repo_root) / registry.source_dir(entry, "claude") / "SKILL.md"
+        if not md.is_file():
+            continue
+        text = md.read_text(encoding="utf-8", errors="replace").lower()
+        says_codex = "implementation" in text and "codex" in text and (
+            "dispatch implementation to codex" in text
+            or "implementation goes to codex" in text
+        )
+        if lane == "codex" and not says_codex:
+            findings.append(
+                _fail(
+                    "routing-drift",
+                    f"registry.toml sets default_lane = \"codex\" but "
+                    f"{entry.name} does not tell an agent to dispatch "
+                    f"implementation to Codex",
+                )
+            )
+        if lane == "claude" and says_codex:
+            findings.append(
+                _fail(
+                    "routing-drift",
+                    f"registry.toml sets default_lane = \"claude\" but "
+                    f"{entry.name} still dispatches implementation to Codex",
+                )
+            )
+    return findings
+
+
 def check_roles(reg, repo_root, known_roles):
     """A step routing to a role no runtime defines fails at dispatch."""
     findings = []
@@ -316,6 +356,7 @@ def check(reg, repo_root, roots, profile):
     findings.extend(_check_flags(reg, repo_root))
     findings.extend(_check_local_merge(reg, repo_root))
     findings.extend(check_citations(reg, repo_root))
+    findings.extend(check_routing(reg, repo_root))
     actions = linkplan.compute(reg, repo_root, roots, profile)
 
     # Before migration the hub is deliberately unlinked. Nothing linked at all

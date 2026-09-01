@@ -11,8 +11,9 @@ ported, and a synced file is never edited independently in both copies.
 1. **Resolve the candidate.** Read each affected repo's `AGENTS.md`. Route to
    the **explore** role. Load **om-chat-design-system** before any user-visible
    UI decision, and **om-chat** only when task context is an OM Chat link.
-2. **Failing check first**, then implement. Delegate to the **executor** role
-   with a specific scope; review the diff yourself.
+2. **Failing check first**, then **dispatch implementation to Codex** via
+   `Agent(subagent_type: "codex:codex-rescue")`, with a specific scope and the
+   playbook cited by absolute path. Review the diff yourself.
 3. **Static gates**, per repo, against the final candidate. For
    `openmarket-chat`: lint, typecheck, build, `bun tools/check-dist.ts`, tests.
    For `openmarket-chat-cloud`: frozen install in the owned worktree only when
