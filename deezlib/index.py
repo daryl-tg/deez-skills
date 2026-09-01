@@ -13,16 +13,25 @@ def _description(entry, repo_root):
         return "—"
 
 
+_LAYER_MARK = {
+    "mode": "router",
+    "principle": "principle",
+    "playbook-host": "playbooks",
+    "workflow": "",
+}
+
+
 def _row(entry, repo_root):
     runtimes = ", ".join(entry.runtimes)
     description = _description(entry, repo_root).replace("|", "\\|")
     if len(description) > 160:
         description = description[:159] + "…"
-    return f"| `{entry.name}` | {runtimes} | {description} |"
+    layer = _LAYER_MARK.get(entry.layer, entry.layer)
+    return f"| `{entry.name}` | {layer} | {runtimes} | {description} |"
 
 
 def render(reg, repo_root):
-    lines = [MARKER, "", "## Skills", ""]
+    lines = [MARKER, "", "## Everything in the hub", ""]
     if not reg.entries:
         lines += [
             "No entries yet. The framework is in place; migration adds them.",
@@ -37,8 +46,8 @@ def render(reg, repo_root):
     for category in sorted(by_category):
         lines.append(f"### {reg.categories[category]}")
         lines.append("")
-        lines.append("| Name | Runtimes | Description |")
-        lines.append("| --- | --- | --- |")
+        lines.append("| Name | Layer | Runtimes | Description |")
+        lines.append("| --- | --- | --- | --- |")
         for entry in sorted(by_category[category], key=lambda e: e.name):
             lines.append(_row(entry, repo_root))
         lines.append("")
