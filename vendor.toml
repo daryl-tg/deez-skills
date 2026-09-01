@@ -10,6 +10,10 @@ source   = "github:emilkowalski/skill"
 path     = "skills/animate"
 runtimes = ["claude"]
 
+# NOT FETCHED on this seat, and absent from ~/.agents/.skill-lock.json. The
+# `agent-browser` CLI itself is installed (/opt/homebrew/bin/agent-browser), so
+# every skill that drives it works; only the guidance doc is missing. Kept
+# recorded because create-verification-skill cites it.
 [vendor.agent-browser]
 source   = "github:obra/agent-browser"
 path     = "skills/agent-browser"
@@ -75,6 +79,7 @@ source   = "github:emilkowalski/skill"
 path     = "skills/review-animations"
 runtimes = ["claude"]
 
+# NOT FETCHED on this seat, and absent from ~/.agents/.skill-lock.json.
 [vendor.write-swift]
 source   = "github:emilkowalski/skill"
 path     = "skills/write-swift"
@@ -87,6 +92,7 @@ runtimes = ["claude"]
 # NOTE the name. The directory upstream is `react-best-practices` but the
 # frontmatter `name:` is `vercel-react-best-practices`, and Codex resolves its
 # catalogue by that field. Cite the frontmatter name, not the directory.
+# NOT FETCHED on this seat, and absent from ~/.agents/.skill-lock.json.
 [vendor.vercel-react-best-practices]
 source   = "github:vercel-labs/agent-skills"
 path     = "skills/react-best-practices"
@@ -112,3 +118,26 @@ runtimes = ["claude", "codex"]
 source   = "gcx agent skills"
 path     = "skills/gcx"
 runtimes = ["claude", "codex"]
+
+# Vue-stack skills from antfu/skills, present in ~/.agents/skills and confirmed
+# by ~/.agents/.skill-lock.json. Recorded so a fresh seat is reproducible and so
+# doctor does not read them as orphans. Not linked into either runtime today.
+[vendor.pinia]
+source   = "github:antfu/skills"
+path     = "skills/pinia"
+runtimes = []
+
+[vendor.vite]
+source   = "github:antfu/skills"
+path     = "skills/vite"
+runtimes = []
+
+[vendor.vue]
+source   = "github:antfu/skills"
+path     = "skills/vue"
+runtimes = []
+
+[vendor.vue-best-practices]
+source   = "github:antfu/skills"
+path     = "skills/vue-best-practices"
+runtimes = []
