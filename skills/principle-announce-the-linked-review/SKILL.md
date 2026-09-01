@@ -1,6 +1,6 @@
 ---
 name: principle-announce-the-linked-review
-description: "Apply at the end of any delivered change. Announce with the PR or MR link, then read the announcement back to confirm it posted."
+description: "Apply at the end of any delivered change. Announce as a title line, a body in the operator's /adhd voice, and the PR or MR link — nothing else — then read the announcement back to confirm it posted."
 disable-model-invocation: true
 ---
 
@@ -25,8 +25,18 @@ branch name, and what is still open. Whoever cares opens the link for all of
 that. A room announcement is a notification, not a report, and the operator
 reads these rooms on a phone: anything past the link is scrolling.
 
-The operator's own rules for this shape live in the `i-have-adhd` plugin
-skill, which only they can invoke (`/i-have-adhd`).
+**Write it in the operator's `/adhd` voice.** Read
+`~/.claude/commands/adhd.md` and apply it to the announcement text, whether or
+not the mode is on for the session. The rules that bite here:
+
+- Lead with what now works. Not context, not what the work was.
+- Number anything multi-part, five items or fewer, one bounded item each.
+- Cut preambles, recaps, tangents, and closing pleasantries.
+- State a change as its outcome, not its process.
+
+The fuller version of that style is the operator's `i-have-adhd` plugin skill,
+which only they invoke (`/i-have-adhd`). The `/adhd` command file is the part
+an agent may read and apply on its own.
 
 **The rule.**
 
