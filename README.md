@@ -18,7 +18,9 @@ below this line.
 
 | Name | Runtimes | Description |
 | --- | --- | --- |
+| `automate-me` | claude, codex | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for 'automate me', 'capture how I work', or … |
 | `create-verification-skill` | claude, codex | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, … |
+| `design` | claude, codex | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implement against the sketch, and scrap it when f… |
 | `maintain-verification-skill` | claude, codex | Periodic pass keeping a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at mo… |
 | `om-agent` | claude | — |
 | `om-mode` | claude | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /om-mode, $om-mode, or any reques… |
@@ -39,4 +41,25 @@ below this line.
 | `principle-separate-before-serializing-shared-state` | claude, codex | Apply when concurrent workers might write the same file, branch, port, or object. Eliminate the sharing first; serialize structurally only when one shared writ… |
 | `principle-todo-discipline` | claude, codex | Apply to any multi-step task. A step you skip stays in the list with a stated reason. Silent omission is not allowed. |
 | `principle-visual-approval-gates-delivery` | claude, codex | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. Approval is the operator's, never inferre… |
+| `reflect` | claude, codex | Mine a finished session for durable lessons and route each to a concrete skill edit, gated on approval. Use when the operator says reflect, or after a complex … |
+| `review` | claude, codex | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a branch, PR, or MR, dead-code checks, or 'wou… |
+| `test-first` | claude, codex | Write the failing check before production code, at the fastest level that expresses the behavior, and report the failing-before evidence. Use before implementi… |
+
+### General workflow
+
+| Name | Runtimes | Description |
+| --- | --- | --- |
+| `blast-radius` | claude, codex | Find what a small-looking change could break beyond its diff, proving each safety claim with running code rather than assertion. Use before shipping a change t… |
+| `figure-it-out` | claude, codex | Design an auditable playbook when no bundled one fits: a large migration, an ambitious multi-part change, or work reviewed after the operator steps away. Scale… |
+| `recall` | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap. |
+| `show-me-your-work` | claude, codex | Keep an auditable decision trail as a committed TSV during long or unattended runs. Use when the operator will review after stepping away, or when the reasonin… |
+| `teach` | claude, codex | Explain a change or subsystem plainly so a person actually understands it. Runs explore and why, weaves one account, builds diagrams up one part at a time. Use… |
+| `why` | claude, codex | Recover why something was built the way it is, from git history, review threads, tickets, chat, and incident records. Use for 'why is this like this', 'why was… |
+
+### Writing and editing
+
+| Name | Runtimes | Description |
+| --- | --- | --- |
+| `unslop` | claude, codex | Cut AI tells from any writing. Applies to every prose surface, including your own replies. |
+| `writing-docs` | claude, codex | Pick the document's audience and mode first, then apply the matching standard: STE for agent-facing docs, developer style for human-facing ones. Use for docs, … |
 

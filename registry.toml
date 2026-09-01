@@ -169,6 +169,76 @@ layer    = "mode"
 category = "core"
 runtimes = ["claude"]
 
+# --- Workflow skills --------------------------------------------------------
+# Adopted from pstack where nothing local covered the ground, merged with the
+# local counterpart where both had a stronger half. Installed on both runtimes:
+# an executor needs the rules and the craft skills, just not the routing.
+
+[skills.unslop]
+layer    = "workflow"
+category = "writing"
+runtimes = ["claude", "codex"]
+
+[skills.teach]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.why]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.recall]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.blast-radius]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.show-me-your-work]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.figure-it-out]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.reflect]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.automate-me]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.design]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.test-first]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.review]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.writing-docs]
+layer    = "workflow"
+category = "writing"
+runtimes = ["claude", "codex"]
+
 [commands]
 
 [agents]
