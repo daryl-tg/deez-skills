@@ -1,0 +1,16 @@
+# Third-party skills this hub does NOT vendor. ~/.agents/skills is owned by the
+# skill fetcher and its .skill-lock.json; this file records what should be
+# present so a fresh machine is reproducible, and lets bin/doctor warn when the
+# pins disagree. Nothing here is ever written by deez.
+#
+# Populated during migration — docs/migration.md carries the full list of 14.
+
+[vendor.animate]
+source   = "github:emilkowalski/skill"
+path     = "skills/animate"
+runtimes = ["claude"]
+
+[vendor.agent-browser]
+source   = "github:obra/agent-browser"
+path     = "skills/agent-browser"
+runtimes = ["claude", "codex"]

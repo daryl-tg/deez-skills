@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Register the PostToolUse auto-sync hook in ~/.claude/settings.json.
+#
+# NOT run during framework setup — this is a migration-time step, because it is
+# the only script here that writes outside the repo.
+set -euo pipefail
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SETTINGS="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
+
+[ -f "$SETTINGS" ] || {
+  echo "hook-install: no $SETTINGS" >&2
+  exit 1
+}
+cp "$SETTINGS" "$SETTINGS.bak-$(date +%Y%m%d-%H%M%S)"
+
+jq --arg cmd "$REPO/bin/sync" '
+  .hooks //= {} |
+  .hooks.PostToolUse //= [] |
+  .hooks.PostToolUse |= (map(select(.__deez != true)) + [{
+    "__deez": true,
+    "matcher": "Edit|Write",
+    "hooks": [{"type": "command", "command": $cmd}]
+  }])
+' "$SETTINGS" >"$SETTINGS.tmp" && mv "$SETTINGS.tmp" "$SETTINGS"
+
+echo "hook-install: registered $REPO/bin/sync"
+echo "hook-install: backup kept next to settings.json"

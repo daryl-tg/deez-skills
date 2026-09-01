@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Commit and push repo changes. Never force-pushes. Stops on conflict.
+#   touch .sync-hold   to pause;  rm .sync-hold   to resume.
+#
+# NOT wired up during framework setup. bin/hook-install registers it, and that
+# has deliberately not been run.
+set -euo pipefail
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO"
+
+if [ -e .sync-hold ]; then
+  echo "sync: .sync-hold present — skipping."
+  exit 0
+fi
+
+if [ -z "$(git status --porcelain)" ]; then
+  echo "sync: nothing to do."
+  exit 0
+fi
+
+git add -A
+git commit -q -m "skills: sync $(date +%Y-%m-%dT%H:%M:%S)"
+
+if ! git pull --rebase --quiet; then
+  git rebase --abort 2>/dev/null || true
+  cat >.sync-conflict <<'MSG'
+sync stopped: rebase conflict. Your commit is local and safe.
+Resolve the conflict, then run bin/sync again.
+MSG
+  echo "sync: conflict — see .sync-conflict" >&2
+  exit 1
+fi
+
+rm -f .sync-conflict
+git push --quiet
+echo "sync: pushed."
