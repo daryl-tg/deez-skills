@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Run the test suite with the same interpreter bin/deez resolves.
+set -euo pipefail
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PY="$("$REPO/bin/deez" python-path)"
+cd "$REPO"
+exec "$PY" -m unittest discover -s tests -v
