@@ -359,8 +359,11 @@ def check(reg, repo_root, roots, profile):
     return unique
 
 
-def orphans(roots, reg):
+def orphans(roots, reg, repo_root=None):
+    """Real directories nobody owns. A vendor.toml entry counts as owned:
+    its fetcher installs it, so it is managed, just not by this repo."""
     managed = set()
+    vendored = _vendored(repo_root) if repo_root else set()
     for entry in reg.entries:
         for runtime in entry.runtimes:
             managed.add((runtime, registry.install_name(entry, runtime)))
@@ -374,7 +377,7 @@ def orphans(roots, reg):
                 continue
             if child.name.startswith("."):
                 continue
-            if (runtime, child.name) in managed:
+            if (runtime, child.name) in managed or child.name in vendored:
                 continue
             findings.append(
                 _warn("orphan", f"{runtime}: {child.name} is unadopted (no source repo)")

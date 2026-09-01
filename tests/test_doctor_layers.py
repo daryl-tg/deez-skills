@@ -333,3 +333,30 @@ runtimes = ["claude", "codex"]
         reg = self.build("See **principle-ghost**.")
         self.assertEqual([x.code for x in doctor.check_citations(reg, self.repo)],
                          ["dangling-citation"])
+
+
+class VendoredOrphanTest(unittest.TestCase):
+    """A recorded vendored skill installed by its own fetcher is not an orphan."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.repo = self.root / "repo"
+        (self.repo / "skills").mkdir(parents=True)
+        (self.repo / "registry.toml").write_text(BASE)
+        self.claude = self.root / "c" / "skills"
+        self.claude.mkdir(parents=True)
+        (self.claude / "openmarket").mkdir()
+        self.roots = {"claude": {"skill": self.claude}}
+
+    def test_unrecorded_real_dir_is_an_orphan(self):
+        (self.repo / "vendor.toml").write_text("")
+        reg = registry.load(self.repo / "registry.toml")
+        codes = [f.code for f in doctor.orphans(self.roots, reg, self.repo)]
+        self.assertEqual(codes, ["orphan"])
+
+    def test_recorded_vendored_dir_is_not(self):
+        (self.repo / "vendor.toml").write_text('[vendor.openmarket]\nsource = "om-cli"\n')
+        reg = registry.load(self.repo / "registry.toml")
+        self.assertEqual(doctor.orphans(self.roots, reg, self.repo), [])

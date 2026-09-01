@@ -80,7 +80,7 @@ def cmd_doctor(args):
     roots = runtimes.roots(os.environ, Path.home())
 
     findings = doctor.check(reg, REPO_ROOT, roots, profile)
-    findings.extend(doctor.orphans(roots, reg))
+    findings.extend(doctor.orphans(roots, reg, REPO_ROOT))
     findings.extend(doctor.budget(reg, REPO_ROOT))
     findings.extend(
         doctor.check_skill_references(
