@@ -1,0 +1,4 @@
+interface:
+  display_name: "OM Chat"
+  short_description: "Read and post in governed OM Chat rooms"
+  default_prompt: "Use $om-chat to read or communicate in the requested OM Chat room."

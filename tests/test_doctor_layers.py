@@ -243,3 +243,52 @@ runtimes = ["claude", "codex"]
 
     def test_git_pull_rebase_is_fine(self):
         self.assertNotIn("local-merge", self.codes_for("Run `git pull --rebase` first."))
+
+
+class MixedPreMigrationTest(unittest.TestCase):
+    """Old symlinks pointing elsewhere are still the unlinked state, not drift."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.repo = self.root / "repo"
+        (self.repo / "skills").mkdir(parents=True)
+        self.old = self.root / "old-source"
+        self.old.mkdir()
+        self.claude = self.root / "c" / "skills"
+        self.claude.mkdir(parents=True)
+        self.roots = {"claude": {"skill": self.claude}}
+
+    def skill(self, name):
+        f = self.repo / "skills" / name
+        f.mkdir(parents=True, exist_ok=True)
+        (f / "SKILL.md").write_text(f"---\nname: {name}\ndescription: d\n---\n")
+        return f
+
+    def load(self):
+        p = self.repo / "registry.toml"
+        p.write_text(BASE + """
+[skills.alpha]
+category = "core"
+runtimes = ["claude"]
+
+[skills.beta]
+category = "core"
+runtimes = ["claude"]
+""")
+        return registry.load(p)
+
+    def test_old_symlinks_elsewhere_are_still_unlinked_not_drift(self):
+        self.skill("alpha"); self.skill("beta")
+        stale = self.old / "alpha"; stale.mkdir()
+        (self.claude / "alpha").symlink_to(stale)   # points at the old source
+        findings = doctor.check(self.load(), self.repo, self.roots, "full")
+        self.assertIn("unlinked", [f.code for f in findings])
+        self.assertEqual([f for f in findings if f.level == "fail"], [])
+
+    def test_one_pointing_into_the_hub_makes_the_rest_drift(self):
+        a = self.skill("alpha"); self.skill("beta")
+        (self.claude / "alpha").symlink_to(a)       # points into the hub
+        findings = doctor.check(self.load(), self.repo, self.roots, "full")
+        self.assertIn("not-linked", [f.code for f in findings if f.level == "fail"])

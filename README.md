@@ -19,8 +19,10 @@ below this line.
 | Name | Runtimes | Description |
 | --- | --- | --- |
 | `automate-me` | claude, codex | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for 'automate me', 'capture how I work', or … |
+| `codex-first` | claude, codex | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:review) as the primary path, raw codex exec as… |
 | `create-verification-skill` | claude, codex | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, … |
 | `design` | claude, codex | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implement against the sketch, and scrap it when f… |
+| `herdr-codex-orchestration` | claude, codex | Run independent Codex implementation, review, and verification loops through Herdr with isolated worktrees. Covers arena mode (N candidates, one judge) and swa… |
 | `maintain-verification-skill` | claude, codex | Periodic pass keeping a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at mo… |
 | `om-agent` | claude | — |
 | `om-mode` | claude | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /om-mode, $om-mode, or any reques… |
@@ -45,6 +47,14 @@ below this line.
 | `review` | claude, codex | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a branch, PR, or MR, dead-code checks, or 'wou… |
 | `test-first` | claude, codex | Write the failing check before production code, at the fastest level that expresses the behavior, and report the failing-before evidence. Use before implementi… |
 
+### OM Chat feature delivery
+
+| Name | Runtimes | Description |
+| --- | --- | --- |
+| `om-chat` | claude, codex | Read, search, summarize, draft, and post in OM Chat rooms, channels, and DMs as a governed guest, through the OpenMarket MCP rooms tools. Use when the task con… |
+| `om-chat-design-system` | claude, codex | Design and implement OM Chat React UI against the local components, tokens, layout, and interaction patterns. Load before any user-visible OM Chat UI decision:… |
+| `om-super-reaction` | claude, codex | Design, build, and quality-gate one super reaction effect for OM Chat's premium reaction system, from constraint tuple through storyboard and implementation to… |
+
 ### General workflow
 
 | Name | Runtimes | Description |
@@ -62,4 +72,5 @@ below this line.
 | --- | --- | --- |
 | `unslop` | claude, codex | Cut AI tells from any writing. Applies to every prose surface, including your own replies. |
 | `writing-docs` | claude, codex | Pick the document's audience and mode first, then apply the matching standard: STE for agent-facing docs, developer style for human-facing ones. Use for docs, … |
+| `writing-simplified-technical-english` | claude, codex | Rewrite an agent-facing document in ASD-STE100 when it is too long, gets truncated, or reads as dense prose: SKILL.md, AGENTS.md, CLAUDE.md, subagent definitio… |
 

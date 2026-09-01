@@ -236,8 +236,12 @@ def check(reg, repo_root, roots, profile):
 
     # Before migration the hub is deliberately unlinked. Nothing linked at all
     # is that state, not drift. Some linked and some not is drift.
+    # The hub is "unlinked" when nothing resolves into it yet. Destinations may
+    # be absent, or may still point at whatever source owned them before
+    # migration; either way this repo is not installed. Drift begins once at
+    # least one entry does resolve here and others do not.
     linkable = [a for a in actions if a.verb != "missing-source"]
-    if linkable and all(a.verb == "link" for a in linkable):
+    if linkable and not any(a.verb == "ok" for a in linkable):
         findings.append(
             Finding(
                 "info",

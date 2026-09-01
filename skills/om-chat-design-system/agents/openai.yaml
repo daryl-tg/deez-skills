@@ -1,0 +1,4 @@
+interface:
+  display_name: "OM Chat Design System"
+  short_description: "Ship consistent, polished OM Chat UI"
+  default_prompt: "Use $om-chat-design-system to design and validate this OM Chat UI change."

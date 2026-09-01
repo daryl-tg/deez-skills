@@ -247,3 +247,27 @@ runtimes = ["claude", "codex"]
 layer    = "workflow"
 category = "core"
 runtimes = ["claude"]
+
+[skills.om-chat]
+category = "om-chat"
+runtimes = ["claude", "codex"]
+
+[skills.om-chat-design-system]
+category = "om-chat"
+runtimes = ["claude", "codex"]
+
+[skills.om-super-reaction]
+category = "om-chat"
+runtimes = ["claude", "codex"]
+
+[skills.codex-first]
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.herdr-codex-orchestration]
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.writing-simplified-technical-english]
+category = "writing"
+runtimes = ["claude", "codex"]

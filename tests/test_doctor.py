@@ -102,17 +102,29 @@ install_as = { claude = "renamed" }
         (self.skills_root / "alpha").symlink_to(source)
         self.assertEqual(self.check(self.load(ENTRY)), [])
 
+    def _install_a_correct_link(self):
+        """Drift codes only apply once the hub is actually installed."""
+        anchor = self.make_skill("anchor")
+        (self.skills_root / "anchor").symlink_to(anchor)
+        return ENTRY + """
+[skills.anchor]
+category = "core"
+runtimes = ["claude"]
+"""
+
     def test_real_directory_at_destination_is_not_symlink(self):
+        entry = self._install_a_correct_link()
         self.make_skill("alpha")
         (self.skills_root / "alpha").mkdir()
-        self.assertIn("not-symlink", self.codes(self.check(self.load(ENTRY))))
+        self.assertIn("not-symlink", self.codes(self.check(self.load(entry))))
 
     def test_symlink_to_the_wrong_place_is_wrong_target(self):
+        entry = self._install_a_correct_link()
         self.make_skill("alpha")
         other = self.root / "elsewhere"
         other.mkdir()
         (self.skills_root / "alpha").symlink_to(other)
-        self.assertIn("wrong-target", self.codes(self.check(self.load(ENTRY))))
+        self.assertIn("wrong-target", self.codes(self.check(self.load(entry))))
 
     def test_orphans_are_warnings_only(self):
         orphan = self.skills_root / "ancient-go-style"

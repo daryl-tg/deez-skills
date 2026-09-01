@@ -1,0 +1,4 @@
+interface:
+  display_name: "Herdr Codex Orchestration"
+  short_description: "Isolated Codex loops with final review handoff"
+  default_prompt: "Use $herdr-codex-orchestration to run this task in isolated Herdr worktrees, promote the final branch, open its PR or MR, and announce it."
