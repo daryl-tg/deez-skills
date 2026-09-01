@@ -19,7 +19,7 @@ ported, and a synced file is never edited independently in both copies.
    needed, then lint, typecheck, build, dist check, tests. **Isolate baseline
    failures against the branch point; never call a partially failing suite
    green.**
-4. **Inner loop while implementing:** `control-omchat doctor`, then replay the
+4. **Inner loop while implementing:** `control-om-chat doctor`, then replay the
    feature map recipe for what changed. Cheap, deterministic, after every
    meaningful edit.
 5. **Freeze and review.** Record the commit or tree hash and the exact diff
