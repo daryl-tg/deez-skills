@@ -15,3 +15,9 @@ source   = "github:obra/agent-browser"
 path     = "skills/agent-browser"
 runtimes = ["claude", "codex"]
 
+
+# Cited by clanker-mode's om-mobile-feature playbook for motion work.
+[vendor.animate-expo]
+source   = "github:emilkowalski/skill"
+path     = "skills/animate-expo"
+runtimes = ["claude"]

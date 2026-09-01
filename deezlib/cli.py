@@ -82,6 +82,13 @@ def cmd_doctor(args):
     findings = doctor.check(reg, REPO_ROOT, roots, profile)
     findings.extend(doctor.orphans(roots, reg))
     findings.extend(doctor.budget(reg, REPO_ROOT))
+    findings.extend(
+        doctor.check_skill_references(
+            reg, REPO_ROOT,
+            extra_known=("explore", "executor", "test-engineer",
+                         "code-reviewer", "verifier"),
+        )
+    )
 
     if not reg.entries:
         print("registry has 0 entries — nothing migrated yet, nothing linked.")

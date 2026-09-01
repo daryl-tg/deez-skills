@@ -12,7 +12,7 @@ desktop or web change is `playbooks/om-chat-feature.md`.
    `src/navigation/`, `docs/ROOMS_CACHE.md` for persistence,
    `docs/PUSH_NOTIFICATIONS.md` for push. **Query the graphify graph before
    grep** for any where-is or what-calls question.
-2. **With a web reference**, treat `openmarket-chat` as **read-only**. Port the
+2. **With a web reference**, treat `openmarket-chat` as read-only. Port the
    **logic contract**, never the web design. Judge whether the web flow suits
    mobile at all, then build mobile-native UI.
 3. **Failing check first**, then implement. Wire types and domain models come

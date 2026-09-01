@@ -59,6 +59,36 @@ not collisions, and the playbooks' role routing depends on them.
 `~/.agents/skills` (`animate`, `agent-browser`, `write-swift` and the rest), and
 `openmarket`. Their sources are untouched; re-link or re-fetch when wanted.
 
+## The dev-notes resurrection, 2026-09-01
+
+Hours after the clean install, 16 dev-notes symlinks reappeared and shadowed the
+hub. Six hub-owned skills were being ignored, and nine retired skills were back
+competing with `clanker-mode`'s playbooks. `create-verification-skill` also
+wrote its output into `dev-notes/agents/verify-om-chat` and registered it in
+`install-matrix.tsv`.
+
+**Cause:** `~/.claude/CLAUDE.md` still named `dev-notes/agents` as the canonical
+skill source and `tools/skills-install.sh` as the tooling. A session read that
+and did exactly what it said. The pointer was the last migration item and had
+not been done, so the cutover was undone by following the instructions.
+
+**Fixed by:**
+
+1. `verify-om-chat` adopted into the hub, with its five feature files and
+   helper.
+2. `install-matrix.tsv` neutralised — all 17 rows commented out, with a header
+   saying why running the old installer shadows the hub.
+3. All 32 dev-notes symlinks removed from both runtimes, sources untouched.
+4. `bin/link --apply` re-run.
+5. `~/.claude/CLAUDE.md` rewritten to name the hub as canonical, state that
+   dev-notes is retired as a skill source, and say where a generated skill
+   belongs. Stale references to `$om-agentic-loop` and `$delivery-contract`
+   replaced with the playbook and principles that superseded them. Backup kept
+   alongside.
+
+**Lesson worth keeping:** a migration is not finished while a pointer still
+names the old source. The instructions are part of the system.
+
 ## Not started
 
 **Linking.** The hub is not installed. `~/.claude/skills` and `~/.codex/skills`

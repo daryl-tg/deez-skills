@@ -292,3 +292,44 @@ runtimes = ["claude"]
         (self.claude / "alpha").symlink_to(a)       # points into the hub
         findings = doctor.check(self.load(), self.repo, self.roots, "full")
         self.assertIn("not-linked", [f.code for f in findings if f.level == "fail"])
+
+
+class VendorCitationTest(unittest.TestCase):
+    """A cited vendored skill is not dangling. vendor.toml owns it."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.repo = Path(self.tmp.name) / "repo"
+        (self.repo / "skills").mkdir(parents=True)
+
+    def build(self, body, vendor=""):
+        f = self.repo / "skills" / "principle-x"
+        f.mkdir(parents=True, exist_ok=True)
+        (f / "SKILL.md").write_text(
+            f"---\nname: principle-x\ndescription: d\n"
+            f"disable-model-invocation: true\n---\n\n{body}\n")
+        (self.repo / "registry.toml").write_text(BASE + """
+[skills.principle-x]
+layer = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+""")
+        (self.repo / "vendor.toml").write_text(vendor)
+        return registry.load(self.repo / "registry.toml")
+
+    def test_an_unrecorded_skill_reference_warns(self):
+        reg = self.build("Ground it in **react-best-practices**.")
+        f = doctor.check_skill_references(reg, self.repo)
+        self.assertEqual([x.code for x in f], ["unknown-reference"])
+        self.assertEqual([x.level for x in f], ["warn"])
+
+    def test_a_vendored_skill_reference_is_silent(self):
+        reg = self.build("Ground it in **react-best-practices**.",
+                         vendor='[vendor.react-best-practices]\nsource = "github:x/y"\n')
+        self.assertEqual(doctor.check_skill_references(reg, self.repo), [])
+
+    def test_a_dangling_principle_still_fails_hard(self):
+        reg = self.build("See **principle-ghost**.")
+        self.assertEqual([x.code for x in doctor.check_citations(reg, self.repo)],
+                         ["dangling-citation"])

@@ -21,7 +21,7 @@ A change is only as small as its reach. This finds what else it touches, and
 4. **Prove the safety claims.** For each "this one is fine", say how you know,
    and make it runnable: a test that fails without the change, a script that
    greps the real data, an exercised path. **A claim proven by reasoning is
-   unproven.** This is where the principle **build-the-lever** applies — the
+   unproven.** This is where the principle **principle-build-the-lever** applies — the
    proof should be a thing a reviewer reruns.
 5. **Name what you could not prove.** An honest unproven item is worth more than
    a confident wrong one.

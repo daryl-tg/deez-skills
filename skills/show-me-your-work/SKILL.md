@@ -30,7 +30,7 @@ time	phase	decision	reason	evidence	result
 - **A row as each unit lands**, not the whole trail written at the end. A trail
   reconstructed afterwards is a story, not a record.
 - **Evidence is a pointer, not prose.** Prefer something a reviewer can rerun,
-  per **build-the-lever**.
+  per **principle-build-the-lever**.
 - **Log the reversals too.** A hypothesis that failed and what it cost is the
   most useful row in the file.
 - **Commit it** when the run is large enough that the reasoning has to be

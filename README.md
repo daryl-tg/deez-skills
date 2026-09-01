@@ -325,6 +325,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `om-chat` |  | claude, codex | Read, search, watch, summarize, draft, post, and reply in OM Chat rooms, channels, and DMs as a governed guest, through the OpenMarket MCP rooms tools. Use whe… |
 | `om-chat-design-system` |  | claude, codex | Design and implement OM Chat React UI against the local components, tokens, layout, and interaction patterns. Load before any user-visible OM Chat UI decision:… |
 | `om-super-reaction` |  | claude, codex | Design, build, and quality-gate one super reaction effect for OM Chat's premium reaction system, from constraint tuple through storyboard and implementation to… |
+| `verify-om-chat` |  | claude, codex | Use when a change to the OM Chat GUI (openmarket-chat or openmarket-chat-cloud) needs to be driven and proven in the running app — launching a browser lane, ex… |
 
 ### General workflow
 
@@ -332,6 +333,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | --- | --- | --- | --- |
 | `blast-radius` |  | claude, codex | Find what a small-looking change could break beyond its diff, proving each safety claim with running code rather than assertion. Use before shipping a change t… |
 | `figure-it-out` |  | claude, codex | Design an auditable playbook when no bundled one fits: a large migration, an ambitious multi-part change, or work reviewed after the operator steps away. Scale… |
+| `llm-council` |  | claude, codex | Run any question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final… |
 | `recall` |  | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap. |
 | `show-me-your-work` |  | claude, codex | Keep an auditable decision trail as a committed TSV during long or unattended runs. Use when the operator will review after stepping away, or when the reasonin… |
 | `teach` |  | claude, codex | Explain a change or subsystem plainly so a person actually understands it. Runs explore and why, weaves one account, builds diagrams up one part at a time. Use… |
@@ -343,5 +345,6 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | --- | --- | --- | --- |
 | `unslop` |  | claude, codex | Cut AI tells from any writing. Applies to every prose surface, including your own replies. |
 | `writing-docs` |  | claude, codex | Pick the document's audience and mode first, then apply the matching standard: STE for agent-facing docs, developer style for human-facing ones. Use for docs, … |
+| `writing-instructions` |  | claude, codex | Agent-facing instruction edits: skills, AGENTS.md, guidelines, or prompt docs. Not prose style. |
 | `writing-simplified-technical-english` |  | claude, codex | Rewrite an agent-facing document in ASD-STE100 when it is too long, gets truncated, or reads as dense prose: SKILL.md, AGENTS.md, CLAUDE.md, subagent definitio… |
 

@@ -35,7 +35,7 @@ cross-fork alarm that exists; both forks can be green while drifting.
 
 ## Remote viewing — every rig is reached through the SSH tunnel
 
-This skill runs on **dboons-mac-mini**, and nothing it starts is looked at on
+This skill runs on `dboons-mac-mini`, and nothing it starts is looked at on
 that box. The operator views it from the MacBook over an SSH tunnel, so a rig that is
 demonstrably serving on the mini can still be invisible — because it took an
 unforwarded port, or bound the wrong loopback. Neither failure has a local

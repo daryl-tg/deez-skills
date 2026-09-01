@@ -360,3 +360,15 @@ runtimes = ["claude", "codex"]
 [skills.om-chat]
 category = "om-chat"
 runtimes = ["claude", "codex"]
+
+[skills.verify-om-chat]
+category = "om-chat"
+runtimes = ["claude", "codex"]
+
+[skills.llm-council]
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.writing-instructions]
+category = "writing"
+runtimes = ["claude", "codex"]

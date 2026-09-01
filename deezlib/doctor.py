@@ -27,8 +27,25 @@ def _prohibits(line, in_prohibition_block):
 # Roles a playbook step may route to, written as **role-name** in skill bodies.
 _ROLE_REF = re.compile(r"\*\*([a-z][a-z0-9-]{2,})\*\*\s+role")
 
-# A principle cited in bold. If it has no registry entry the route is dead.
+# A skill cited in bold. Dangling only when neither the registry nor vendor.toml
+# knows the name: a vendored skill is legitimately cited and legitimately absent
+# from skills/, because its fetcher owns the copy.
 _PRINCIPLE_REF = re.compile(r"\*\*(principle-[a-z0-9-]+)\*\*")
+_VENDOR_ENTRY = re.compile(r"^\[vendor\.([a-z0-9-]+)\]", re.M)
+
+
+# Skill-name shaped: lowercase with at least one hyphen. A heuristic, so it
+# only ever warns — the corpus also contains hostnames ("dboons-mac-mini"),
+# adjectives ("read-only") and repo names in bold, and failing on those would
+# make the check noise.
+_SKILLISH_REF = re.compile(r"\*\*([a-z][a-z0-9]*(?:-[a-z0-9]+)+)\*\*")
+
+
+def _vendored(repo_root):
+    path = Path(repo_root) / "vendor.toml"
+    if not path.is_file():
+        return set()
+    return set(_VENDOR_ENTRY.findall(path.read_text(encoding="utf-8")))
 
 
 @dataclass(frozen=True)
@@ -174,7 +191,7 @@ def budget(reg, repo_root):
 
 def check_citations(reg, repo_root):
     """Every **principle-x** cited anywhere must be a registered entry."""
-    known = {e.name for e in reg.entries}
+    known = {e.name for e in reg.entries} | _vendored(repo_root)
     findings, seen = [], set()
     for entry in reg.entries:
         for runtime in entry.runtimes:
@@ -192,7 +209,42 @@ def check_citations(reg, repo_root):
                         _fail(
                             "dangling-citation",
                             f"{md.relative_to(repo_root)} cites {cited}, "
-                            f"which has no registry entry",
+                            f"which is in neither registry.toml nor vendor.toml",
+                        )
+                    )
+            break
+    return findings
+
+
+def check_skill_references(reg, repo_root, extra_known=()):
+    """Warn on a bold skill-shaped name nothing in the hub or vendor.toml knows.
+
+    Heuristic by design. It caught four real citation bugs on first run — a
+    principle cited without its prefix, a vendored skill nobody had recorded,
+    and two skills cited but never migrated — at the cost of a handful of
+    false positives it deliberately does not fail on.
+    """
+    known = {e.name for e in reg.entries} | _vendored(repo_root) | set(extra_known)
+    findings, seen = [], set()
+    for entry in reg.entries:
+        for runtime in entry.runtimes:
+            base = Path(repo_root) / registry.source_dir(entry, runtime)
+            if not base.is_dir():
+                continue
+            for md in sorted(base.rglob("*.md")):
+                text = md.read_text(encoding="utf-8", errors="replace")
+                for cited in sorted(set(_SKILLISH_REF.findall(text))):
+                    if cited in known or cited.startswith("principle-"):
+                        continue
+                    key = (str(md), cited)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    findings.append(
+                        _warn(
+                            "unknown-reference",
+                            f"{md.relative_to(repo_root)} mentions **{cited}**, "
+                            f"which is not a hub skill, a vendor entry, or a role",
                         )
                     )
             break

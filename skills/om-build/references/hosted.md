@@ -148,8 +148,8 @@ done
 
 **State it plainly and early**, e.g.:
 
-> Building from **openmarket-internal** `main @ 2041dae1` (clean) and
-> **openmarket-chat** `main @ 20e8862f` (clean).
+> Building from `openmarket-internal` `main @ 2041dae1` (clean) and
+> `openmarket-chat` `main @ 20e8862f` (clean).
 
 **Call it out loudly when it is not plain `main`, clean, and level with origin.**
 Any of these belongs in the opening line *and* the final report, because the
