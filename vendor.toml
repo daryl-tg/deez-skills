@@ -15,12 +15,3 @@ source   = "github:obra/agent-browser"
 path     = "skills/agent-browser"
 runtimes = ["claude", "codex"]
 
-# Ships with the `om` CLI and self-updates through `.om-skill-manifest.json`.
-# The hub must not own a copy: a vendored skill that is also checked in here
-# goes stale the moment `om` updates, and then two versions disagree about the
-# tool contract. Recorded so a fresh machine knows it should be present.
-[vendor.om-chat]
-source   = "om-cli"
-path     = "claude/skills/om-chat"
-runtimes = ["claude", "codex"]
-note     = "Synced by the om CLI. Never hand-edit, never vendor into skills/."

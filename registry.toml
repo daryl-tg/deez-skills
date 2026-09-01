@@ -356,3 +356,7 @@ runtimes = ["claude", "codex"]
 [skills.om-build]
 category = "om-chat"
 runtimes = ["claude", "codex"]
+
+[skills.om-chat]
+category = "om-chat"
+runtimes = ["claude", "codex"]

@@ -24,6 +24,41 @@ Five descriptions arrived over the 300-character limit and were trimmed:
 **Originals are untouched.** `bin/adopt` copies. Nothing under
 `dev-notes/agents` or `skillz` was modified or deleted.
 
+## The clean install, 2026-09-01
+
+Both runtime skill directories were emptied and relinked to the hub alone.
+
+**Everything was archived first**, byte-identical and verified before anything
+was removed:
+
+```
+/Users/dboon/.local/state/deez-skills/pre-migration/20260901-153647/
+  claude/   28 real directories + SYMLINKS.txt (42 recorded)
+  codex/    49 real directories + SYMLINKS.txt (20 recorded)
+```
+
+The 77 real directories are the skills with **no upstream anywhere** — the
+`cmux-*` family, the Go and shell toolchain, `gcx`, `logcli`, `kolint`,
+`stackctl`, `tsdbctl`, `mailbox`, `pi-development`. They exist only in that
+archive now. Adopt any of them with:
+
+```bash
+bin/adopt /Users/dboon/.local/state/deez-skills/pre-migration/20260901-153647/claude/<name> --category <cat>
+```
+
+Symlinks were recorded rather than copied, since their targets survive.
+
+**Result:** `~/.claude/skills` 57 entries, `~/.codex/skills` 56, every one of
+them pointing into the hub. `bin/doctor`: 0 failures, 0 warnings.
+
+**Left alone deliberately:** `~/.claude/agents` still carries the five subagent
+roles from `dev-notes/agents/claude-agents`. The hub does not own them, they are
+not collisions, and the playbooks' role routing depends on them.
+
+**Now absent until their owners reinstall:** the 14 vendored skills from
+`~/.agents/skills` (`animate`, `agent-browser`, `write-swift` and the rest), and
+`openmarket`. Their sources are untouched; re-link or re-fetch when wanted.
+
 ## Not started
 
 **Linking.** The hub is not installed. `~/.claude/skills` and `~/.codex/skills`
