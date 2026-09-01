@@ -14,7 +14,7 @@
 | `dev-notes/agents/om-mobile-feature` | **Dissolved.** 343 lines became `clanker-mode/playbooks/om-mobile-feature.md` plus `references/openfloor-lane.md` |
 | `dev-notes/agents/om-*-completion` | **Dissolved** into `clanker-mode/playbooks/om-chat-completion.md` and `om-mobile-completion.md` |
 | `dev-notes/agents/om-*-loop` | **Dissolved** into `clanker-mode/playbooks/agentic-loop.md` |
-| `dev-notes/agents/clanker-agentic-loop`, `-stub` | **Retired.** A loop is a playbook, not a second router |
+| `dev-notes/agents/om-agentic-loop`, `-stub` | **Retired.** A loop is a playbook, not a second router |
 | `dev-notes/agents/clanker-agent-polish` | **Retired.** Evidence contract moved to the terminal gate and `control-<app> evidence publish`; the audit checklist belongs with `om-chat-design-system` |
 | `dev-notes/agents/delivery-contract` | **Retired.** Superseded by `principle-rebase-pr-squash`, `principle-one-commit-lands`, `principle-promote-to-the-main-worktree`, and `playbooks/opening-a-review.md` |
 

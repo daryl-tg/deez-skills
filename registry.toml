@@ -333,10 +333,6 @@ layer    = "workflow"
 category = "core"
 runtimes = ["claude"]
 
-[skills.om-chat]
-category = "om-chat"
-runtimes = ["claude", "codex"]
-
 [skills.om-chat-design-system]
 category = "om-chat"
 runtimes = ["claude", "codex"]
@@ -355,4 +351,8 @@ runtimes = ["claude", "codex"]
 
 [skills.writing-simplified-technical-english]
 category = "writing"
+runtimes = ["claude", "codex"]
+
+[skills.om-build]
+category = "om-chat"
 runtimes = ["claude", "codex"]
