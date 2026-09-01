@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  One agent per repo. Copy, substitute, drop in ~/Library/LaunchAgents/, load.
+
+    SKILL   verify-om-chat
+    REPO    /Users/dboon/github/openmarket-chat
+    HOUR    stagger these. Never two repos on the same hour: they compete for
+            the simulator lane and the review renderer.
+
+  launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.deez.maintain-SKILL.plist
+  launchctl bootout   gui/$(id -u)/com.deez.maintain-SKILL          # to stop
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>              <string>com.deez.maintain-SKILL</string>
+  <key>ProcessType</key>        <string>Background</string>
+  <key>WorkingDirectory</key>   <string>/Users/dboon</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/dboon/github/deez-skills/skills/maintain-verification-skill/scripts/scheduled-run.sh</string>
+    <string>REPO</string>
+    <string>SKILL</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>   <integer>HOUR</integer>
+    <key>Minute</key> <integer>17</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/dboon/.local/state/deez-skills/maintain/SKILL.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/dboon/.local/state/deez-skills/maintain/SKILL.err.log</string>
+  <key>RunAtLoad</key>          <false/>
+</dict>
+</plist>

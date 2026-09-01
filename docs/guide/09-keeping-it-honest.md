@@ -105,9 +105,56 @@ If you do schedule it:
   an interval from evidence rather than from a guess. If nothing was learned in
   a month of manual passes, automating them will not help.
 
-My recommendation: run it on the four signals, keep a fortnightly backstop in
-your own head or your task tracker, and leave it unautomated until you have a
-month of real results to tune against.
+### Setting up a schedule
+
+Two prerequisites, and the schedule is useless without both. The repo needs a
+verification skill **with a feature map**, and its `control-<app>` wrapper must
+exist and be executable in that repo. Without them every pass fails at the first
+`doctor` call, which is a broken job rather than a finding.
+
+`scripts/scheduled-run.sh` handles one repo per invocation:
+
+```bash
+skills/maintain-verification-skill/scripts/scheduled-run.sh \
+  ~/github/openmarket-chat verify-om-chat
+```
+
+It checks those preconditions and **skips quietly** when they are unmet, takes a
+per-skill lock so two passes never drive the same app at once, and exits `0` on
+`clean`, `2` on `changed`, `3` on `blocked`, `1` when it could not run. Only the
+non-clean paths print. That asymmetry is deliberate: a nightly job reporting
+success is one you stop reading.
+
+The lock is an atomic `mkdir` with stale detection, because macOS has no
+`flock(1)` and because a lock is stale when its owner is gone, not when it is
+old — per **principle-make-operations-idempotent**.
+
+To schedule it, copy
+`scripts/com.deez.maintain-verify.plist.template`, substitute `SKILL`, `REPO`,
+and `HOUR`, then:
+
+```bash
+cp com.deez.maintain-verify-om-chat.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.deez.maintain-verify-om-chat.plist
+launchctl bootout   gui/$(id -u)/com.deez.maintain-verify-om-chat   # to stop
+```
+
+**Stagger the hours.** Never two repos on the same hour: they compete for the
+simulator lane and the review renderer, and the second one queues behind the
+first for as long as a full live pass takes.
+
+**One caveat worth weighing.** An unattended `claude -p` run cannot answer a
+permission prompt, so it needs permissions granted up front. The maintenance
+skill's edit scope is narrow by contract — its own directory, never product
+code — but a scheduling flag does not enforce that contract; the skill does.
+Read the first few `changed` diffs before trusting the arrangement.
+
+### The recommendation stands
+
+Run it on the four signals, keep a fortnightly backstop in your tracker, and
+leave it unscheduled until you have a month of real results. Then set the
+interval from what the passes actually found, not from a guess. The tooling
+above is here for when that month is done.
 
 ## When there is no map yet
 
