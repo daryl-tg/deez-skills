@@ -28,7 +28,8 @@ back returns you to the list where you left it.
 ```bash
 export AGENT_BROWSER_SESSION=verify-mobile
 agent-browser set viewport 390 844
-agent-browser open "http://127.0.0.1:18099/rooms/tools/visual/shell-fixture.html?view=home&alerts=quiet"
+agent-browser open "$(./control-om-chat url \
+  'tools/visual/shell-fixture.html?view=home&alerts=quiet')"
 ```
 
 The widths the navigation suite gates at are **320, 360, 390, 430, 768**. Drive

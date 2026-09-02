@@ -39,7 +39,8 @@ vocabulary. `?view=` does nothing here.
 ```bash
 export AGENT_BROWSER_SESSION=verify-settings
 agent-browser set viewport 1440 900
-agent-browser open "http://127.0.0.1:18099/rooms/tools/visual/settings-fixture.html?host=user&page=appearance"
+agent-browser open "$(./control-om-chat url \
+  'tools/visual/settings-fixture.html?host=user&page=appearance')"
 ```
 
 | Route | State |

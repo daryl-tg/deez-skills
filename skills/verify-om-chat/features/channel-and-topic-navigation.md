@@ -13,13 +13,18 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   row.
 - The topic view's breadcrumb and its **Back to #channel** return.
 - The composer retargeting to whatever is open.
-- The channel header, which is **three** separate mechanisms, not one list:
+- The channel header, which is **five** separate mechanisms, not one list:
   - a `tablist` named "Channel view" holding exactly two tabs, **Chat** and
     **Topics 6**;
   - a standalone Alerts beacon `button`, whose name carries its state
     (`Alerts: nothing firing`, `Alerts: 3 feeds are ringing`);
   - a side panel opened by "Show or hide side panel", whose own tablist holds
-    **Members** and **Library**.
+    **Members** and **Library**;
+  - an Inbox `button`, whose name also carries its count
+    (`Inbox: 9 unread`);
+  - the search cluster — `Open search in #ops`, a `combobox` named
+    `Search #ops`, and `Open search panel`
+    ([search-and-filters.md](search-and-filters.md)).
   Pins, bookmarks and to-dos are none of those — they are menu items behind
   "More channel actions".
 
@@ -35,10 +40,12 @@ says it will post into the topic rather than the channel. You click **Back to
 
 ```bash
 cd /Users/dboon/github/openmarket-chat
-OM_CHAT_LANE_PORT=18099 ./control-om-chat up
+export OM_CHAT_LANE_PORT=<your assigned 18097-18197 port>
+./control-om-chat up
 export AGENT_BROWSER_SESSION=verify-nav
 agent-browser set viewport 1440 900
-agent-browser open "http://127.0.0.1:18099/rooms/tools/visual/shell-fixture.html?view=room&alerts=quiet"
+agent-browser open "$(./control-om-chat url \
+  'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
 ```
 
 Routes:

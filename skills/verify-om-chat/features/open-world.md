@@ -32,7 +32,8 @@ has its own harness:
 ```bash
 export AGENT_BROWSER_SESSION=verify-world
 agent-browser set viewport 1440 900
-agent-browser open "http://127.0.0.1:18099/rooms/mocks/world-solo/index.html?worldprobe=1"
+agent-browser open "$(./control-om-chat url \
+  'mocks/world-solo/index.html?worldprobe=1')"
 ```
 
 That mounts `WorldView` directly over a stub session port. Observations that

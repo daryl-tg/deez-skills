@@ -26,7 +26,8 @@ add a friend, start a DM, or browse public channels.
 ```bash
 export AGENT_BROWSER_SESSION=verify-dm
 agent-browser set viewport 1440 900
-agent-browser open "http://127.0.0.1:18099/rooms/tools/visual/shell-fixture.html?view=home&alerts=quiet"
+agent-browser open "$(./control-om-chat url \
+  'tools/visual/shell-fixture.html?view=home&alerts=quiet')"
 ```
 
 Routes:
