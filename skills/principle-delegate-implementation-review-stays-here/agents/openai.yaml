@@ -1,0 +1,7 @@
+interface:
+  display_name: "Delegate Implementation Review Stays Here"
+  short_description: "Apply when handing work to a subagent or another runtime"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Encode Lessons In Structure"
+  short_description: "Apply when you catch yourself writing the same instruction a"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Guard The Context Window"
+  short_description: "Apply when context fills up: large outputs, long files, repe"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

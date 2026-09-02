@@ -1,0 +1,7 @@
+interface:
+  display_name: "Blast Radius"
+  short_description: "Find what a small-looking change could break beyond its diff"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Desktop Before Cloud"
+  short_description: "Apply only when the operator asks for a change in both the d"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

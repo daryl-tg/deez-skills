@@ -1,0 +1,7 @@
+interface:
+  display_name: "Maintain Verification Skill"
+  short_description: "Periodic pass keeping a project's verification skill and fea"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

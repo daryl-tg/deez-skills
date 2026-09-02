@@ -1,0 +1,7 @@
+interface:
+  display_name: "Foundational Thinking"
+  short_description: "Apply before writing logic: choosing core types and data str"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

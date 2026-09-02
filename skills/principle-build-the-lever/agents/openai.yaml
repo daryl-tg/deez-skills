@@ -1,0 +1,7 @@
+interface:
+  display_name: "Build The Lever"
+  short_description: "Apply to any non-trivial work: edits, migrations, analyses,"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

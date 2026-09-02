@@ -1,0 +1,7 @@
+interface:
+  display_name: "Outcome Oriented Execution"
+  short_description: "Apply during planned rewrites and migrations with explicit p"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

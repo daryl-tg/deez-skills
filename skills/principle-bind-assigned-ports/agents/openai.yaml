@@ -1,0 +1,7 @@
+interface:
+  display_name: "Bind Assigned Ports"
+  short_description: "Apply whenever starting a server, choosing a port, or handin"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Announce The Linked Review"
+  short_description: "Apply at the end of any delivered change"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

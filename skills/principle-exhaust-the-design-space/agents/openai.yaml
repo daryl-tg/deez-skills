@@ -1,0 +1,7 @@
+interface:
+  display_name: "Exhaust The Design Space"
+  short_description: "Apply to a novel interaction or architectural decision with"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

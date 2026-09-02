@@ -1,0 +1,7 @@
+interface:
+  display_name: "Recall"
+  short_description: "Rebuild your context on a topic from prior sessions and the"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

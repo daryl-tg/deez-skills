@@ -1,0 +1,7 @@
+interface:
+  display_name: "Model The Domain"
+  short_description: "Apply when writing stateful logic, or when code branches a l"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

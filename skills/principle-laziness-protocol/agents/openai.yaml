@@ -1,0 +1,7 @@
+interface:
+  display_name: "Laziness Protocol"
+  short_description: "Apply when refactoring, sizing a diff, or tempted to add abs"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

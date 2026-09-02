@@ -54,24 +54,25 @@ category = "core"
 runtimes = ["claude"]
 """)
 
-    def test_mode_must_be_claude_only(self):
-        with self.assertRaises(registry.RegistryError) as ctx:
-            load(self.tmp.name, """
-[skills.om-mode]
+    def test_mode_may_install_on_both_runtimes(self):
+        """Codex gates via agents/openai.yaml, so the router is not Claude-only.
+        Superseded the earlier rule on 2026-09-02."""
+        reg = load(self.tmp.name, """
+[skills.clanker-mode]
 layer = "mode"
 category = "core"
 runtimes = ["claude", "codex"]
 """)
-        self.assertIn("claude", str(ctx.exception))
+        self.assertEqual(reg.entries[0].runtimes, ("claude", "codex"))
 
-    def test_playbook_host_must_be_claude_only(self):
-        with self.assertRaises(registry.RegistryError):
-            load(self.tmp.name, """
+    def test_playbook_host_may_install_on_both_runtimes(self):
+        reg = load(self.tmp.name, """
 [skills.om-chat-feature]
 layer = "playbook-host"
 category = "core"
 runtimes = ["claude", "codex"]
 """)
+        self.assertEqual(reg.entries[0].runtimes, ("claude", "codex"))
 
     def test_principle_must_be_on_both_runtimes(self):
         with self.assertRaises(registry.RegistryError) as ctx:

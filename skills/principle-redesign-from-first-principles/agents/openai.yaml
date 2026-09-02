@@ -1,0 +1,7 @@
+interface:
+  display_name: "Redesign From First Principles"
+  short_description: "Apply when integrating a new requirement into an existing de"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

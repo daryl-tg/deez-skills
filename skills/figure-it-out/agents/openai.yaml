@@ -1,0 +1,7 @@
+interface:
+  display_name: "Figure It Out"
+  short_description: "Design an auditable playbook when no bundled one fits: a lar"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

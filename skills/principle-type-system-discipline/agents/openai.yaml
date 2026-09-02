@@ -1,0 +1,7 @@
+interface:
+  display_name: "Type System Discipline"
+  short_description: "Apply when designing types or a signature in any statically"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

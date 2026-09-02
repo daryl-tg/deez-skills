@@ -1,0 +1,7 @@
+interface:
+  display_name: "Subtract Before You Add"
+  short_description: "Apply when sequencing an addition, refactor, or rewrite"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

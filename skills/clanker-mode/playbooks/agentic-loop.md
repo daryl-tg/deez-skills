@@ -1,7 +1,12 @@
 ### Agentic loop
 
-A plan of several approved goals, run as one bounded loop that dispatches
-implementation to Codex. Claude orchestrates; it never hands the loop away.
+A plan of several approved goals, run as one bounded loop. The lead
+orchestrates and never hands the loop away.
+
+**Runs on either runtime.** On Codex, goals go to the **executor** role
+natively. On Claude, the operator may instead ask for a Codex handoff per goal
+via `codex-first` — that is a preference they state, not this playbook's
+default.
 
 **Entering this playbook pre-answers the execution gate for the whole run.** Do
 not re-ask per goal.
@@ -14,8 +19,8 @@ validation step.
    plan is not frozen, stop: that is the planning gate, and it is not this
    playbook's to skip.
 2. **One branch per repository** for the whole run, not per goal.
-3. **Per goal:** dispatch implementation to Codex with a self-contained handoff
-   citing the playbook path and the principles by name. Resume the thread within
+3. **Per goal:** delegate implementation to the **executor** role with a
+   self-contained handoff citing the playbook path and the principles by name. Resume the thread within
    the run; go fresh at a phase boundary. Review the diff yourself. Run the
    inner-loop verification.
 4. **Never deliver a goal.** No incremental push, review request, announcement,

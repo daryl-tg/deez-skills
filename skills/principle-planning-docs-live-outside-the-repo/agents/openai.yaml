@@ -1,0 +1,7 @@
+interface:
+  display_name: "Planning Docs Live Outside The Repo"
+  short_description: "Apply when writing a spec, plan, design doc, research note,"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

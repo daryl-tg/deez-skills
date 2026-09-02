@@ -112,6 +112,54 @@ def _check_flags(reg, repo_root):
     return findings
 
 
+def check_gates(reg, repo_root):
+    """A routed layer must be gated on every runtime it installs to.
+
+    Claude reads `disable-model-invocation` in the frontmatter and ignores
+    agents/openai.yaml. Codex does the reverse. A skill carrying only one gate
+    behaves correctly on one runtime and leaks into description-matching on the
+    other, which is invisible until it fires.
+    """
+    findings = []
+    for entry in reg.entries:
+        base = Path(repo_root) / registry.source_dir(entry, entry.runtimes[0])
+        skill_md = base / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+
+        text = skill_md.read_text(encoding="utf-8", errors="replace")
+        head = text.split("---")[1] if text.startswith("---") else ""
+        claude_gated = "disable-model-invocation: true" in head
+
+        if registry.requires_flag(entry.layer) and not claude_gated:
+            findings.append(
+                _fail("missing-flag",
+                      f"{entry.name}: layer {entry.layer!r} needs "
+                      f"disable-model-invocation: true for Claude")
+            )
+            claude_gated = True  # report the Codex side too, not just this
+
+        # Gating is the author's decision, not the layer's. Whatever the layer,
+        # a skill gated on one runtime must be gated on every runtime it
+        # installs to, or it behaves differently depending which CLI you opened.
+        if not claude_gated or "codex" not in entry.runtimes:
+            continue
+        yaml = base / "agents" / "openai.yaml"
+        gated = (
+            yaml.is_file()
+            and "allow_implicit_invocation: false"
+            in yaml.read_text(encoding="utf-8", errors="replace")
+        )
+        if not gated:
+            findings.append(
+                _fail("missing-codex-gate",
+                      f"{entry.name}: layer {entry.layer!r} installs to Codex, "
+                      f"so agents/openai.yaml needs "
+                      f"policy.allow_implicit_invocation: false")
+            )
+    return findings
+
+
 def _check_local_merge(reg, repo_root):
     """No skill may instruct a local merge to main. Rebase, PR, squash."""
     findings = []
@@ -161,12 +209,15 @@ def budget(reg, repo_root):
             except frontmatter.FrontmatterError:
                 continue
             cost = len(fields["description"]) + len(entry.name)
-            # Only Claude honours the flag; on Codex everything is visible.
-            routed = (
-                runtime == "claude"
-                and "disable-model-invocation: true"
-                in skill_md.read_text(encoding="utf-8", errors="replace")
-            )
+            # Each runtime reads its own gate: Claude the frontmatter flag,
+            # Codex agents/openai.yaml.
+            if runtime == "claude":
+                routed = ("disable-model-invocation: true"
+                          in skill_md.read_text(encoding="utf-8", errors="replace"))
+            else:
+                y = skill_md.parent / "agents" / "openai.yaml"
+                routed = (y.is_file() and "allow_implicit_invocation: false"
+                          in y.read_text(encoding="utf-8", errors="replace"))
             slot = per_runtime.setdefault(runtime, {"visible": 0, "routed": 0,
                                                     "n_vis": 0, "n_rt": 0})
             if routed:
@@ -251,43 +302,38 @@ def check_skill_references(reg, repo_root, extra_known=()):
     return findings
 
 
-def check_routing(reg, repo_root):
-    """The mode skill must say what registry.toml's default_lane says.
+def check_runtime_neutrality(reg, repo_root):
+    """Playbook steps must name a role, not a runtime's dispatch mechanism.
 
-    They drifted once, and the failure was silent: the config said codex, the
-    router showed a two-column role table with no rule for picking, and every
-    run quietly stayed on Claude because that is the column an agent running on
-    Claude reads. Config nothing reads is not configuration.
+    The same playbooks run on Claude and on Codex, so a step saying
+    `Agent(subagent_type: ...)` is unreadable in Codex and `agent_type:` is
+    unreadable in Claude. Naming the role keeps one text correct on both.
+
+    Replaces an earlier routing-drift check that compared registry.toml's
+    default_lane against the mode skill's prose. That comparison described a
+    cross-runtime dispatch that no longer exists.
     """
-    lane = reg.routing.get("default_lane", "codex")
-    modes = [e for e in reg.entries if e.layer == "mode"]
+    mechanisms = ("agent(subagent_type:", "agent_type:", "codex:codex-rescue")
     findings = []
-    for entry in modes:
-        md = Path(repo_root) / registry.source_dir(entry, "claude") / "SKILL.md"
-        if not md.is_file():
+    for entry in reg.entries:
+        if entry.layer not in ("mode", "playbook-host"):
             continue
-        text = md.read_text(encoding="utf-8", errors="replace").lower()
-        says_codex = "implementation" in text and "codex" in text and (
-            "dispatch implementation to codex" in text
-            or "implementation goes to codex" in text
-        )
-        if lane == "codex" and not says_codex:
-            findings.append(
-                _fail(
-                    "routing-drift",
-                    f"registry.toml sets default_lane = \"codex\" but "
-                    f"{entry.name} does not tell an agent to dispatch "
-                    f"implementation to Codex",
-                )
-            )
-        if lane == "claude" and says_codex:
-            findings.append(
-                _fail(
-                    "routing-drift",
-                    f"registry.toml sets default_lane = \"claude\" but "
-                    f"{entry.name} still dispatches implementation to Codex",
-                )
-            )
+        base = Path(repo_root) / registry.source_dir(entry, entry.runtimes[0])
+        pb = base / "playbooks"
+        if not pb.is_dir():
+            continue
+        for md in sorted(pb.glob("*.md")):
+            low = md.read_text(encoding="utf-8", errors="replace").lower()
+            for mech in mechanisms:
+                if mech in low:
+                    findings.append(
+                        _fail(
+                            "runtime-specific-dispatch",
+                            f"{md.relative_to(repo_root)} names {mech!r}. "
+                            f"Playbooks name a role; the runtime resolves it",
+                        )
+                    )
+                    break
     return findings
 
 
@@ -353,10 +399,10 @@ def check(reg, repo_root, roots, profile):
     findings = []
     findings.extend(_check_unregistered(reg, repo_root))
     findings.extend(_check_frontmatter(reg, repo_root))
-    findings.extend(_check_flags(reg, repo_root))
+    findings.extend(check_gates(reg, repo_root))
     findings.extend(_check_local_merge(reg, repo_root))
     findings.extend(check_citations(reg, repo_root))
-    findings.extend(check_routing(reg, repo_root))
+    findings.extend(check_runtime_neutrality(reg, repo_root))
     actions = linkplan.compute(reg, repo_root, roots, profile)
 
     # Before migration the hub is deliberately unlinked. Nothing linked at all

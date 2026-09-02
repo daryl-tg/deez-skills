@@ -15,8 +15,8 @@ desktop or web change is `playbooks/om-chat-feature.md`.
 2. **With a web reference**, treat `openmarket-chat` as read-only. Port the
    **logic contract**, never the web design. Judge whether the web flow suits
    mobile at all, then build mobile-native UI.
-3. **Failing check first**, then **dispatch implementation to Codex**. Wire
-   types and domain models come
+3. **Failing check first**, then delegate implementation to the **executor**
+   role. Wire types and domain models come
    from `@openmarket/rooms-client` subpath imports. Load **animate-expo** for
    motion work.
 4. **Static gates carry the whole loop**, since they need no device:

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Boundary Discipline"
+  short_description: "Apply when wiring validation, error handling, or framework a"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

@@ -19,8 +19,7 @@ refutes a hypothesis, revert what it motivated.
    mechanism with runtime evidence before designing the fix.
 3. **Write the failing check first**, per **principle-failing-test-first**, at
    the level that expresses the bug. Watch it fail for the right reason.
-4. **Fix it.** **Dispatch to Codex** via
-   `Agent(subagent_type: "codex:codex-rescue")` with a specific scope; review
+4. **Fix it.** Delegate to the **executor** role with a specific scope; review
    the diff yourself. Smallest change the evidence justifies.
 5. **Verify on the same surface as the repro.** The original repro now passes.
    Wrong-surface or inconclusive is not a pass; say so.

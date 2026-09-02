@@ -1,0 +1,7 @@
+interface:
+  display_name: "Prove On The Real Surface"
+  short_description: "Apply after any change, before declaring done"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

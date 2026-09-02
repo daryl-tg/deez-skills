@@ -1,0 +1,7 @@
+interface:
+  display_name: "Failing Test First"
+  short_description: "Apply before writing production code"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

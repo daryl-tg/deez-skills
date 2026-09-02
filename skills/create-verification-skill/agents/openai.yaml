@@ -1,0 +1,7 @@
+interface:
+  display_name: "Create Verification Skill"
+  short_description: "Generate a project-local verification skill and its control"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false
