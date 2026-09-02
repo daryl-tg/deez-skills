@@ -76,10 +76,18 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
   `[data-mobile-detail]` — attribute selectors, not roles. Quote them carefully
   through the shell.
 - **`[data-mobile-detail]` does not cover every detail.** It is set only for
-  `room`, `dm`, and `world`. Library notes and om threads open through a
-  different full-screen path marked `[data-mobile-takeover]`. Asserting
-  `[data-mobile-detail].length === 1` there reads 0 while the UI is correctly
-  in a one-pane detail — check the takeover marker instead.
+  `room`, `dm`, and `world`. Library notes and settings open through a
+  different full-screen path marked `[data-mobile-takeover]` — set by
+  `Panel.tsx` and `MobileSurface.tsx`, used by `DocPane.tsx` and
+  `SettingsShell.tsx`. Asserting `[data-mobile-detail].length === 1` there
+  reads 0 while the UI is correctly in a one-pane detail — check the takeover
+  marker instead.
+- **The om root is not a takeover.** `agent` and `agents` both classify to the
+  `om` root tab, and that surface renders inside the root card with the tab bar
+  still mounted — no Back control, no `[data-mobile-takeover]` anywhere in
+  `AgentPane` or `AgentCenterPane`. The per-agent detail panel went away in
+  Agent Center v6, so there is no om thread left to take the screen; an
+  individual agent DM is an ordinary `dm` detail.
 - The Open World tab is **not** a sixth root. It classifies under **Spaces**,
   so the tab bar stays five.
 - Switching roots does **not** always change the URL hash meaningfully

@@ -40,13 +40,24 @@ That mounts `WorldView` directly over a stub session port. Observations that
 tell you it actually came up, rather than rendering an empty shell:
 
 ```bash
-agent-browser eval 'document.querySelectorAll("canvas").length'   # 2, not 0
-agent-browser eval 'document.body.innerText.slice(0, 80)'         # "#west-bank-street …"
+agent-browser eval '(()=>document.querySelectorAll("canvas").length)()'
+#   2, not 0
+agent-browser eval '(()=>document.querySelector(".world-status-area")?.textContent)()'
+#   "#west-bank-street"
+agent-browser eval '(()=>document.querySelector(".world-chat-empty")?.textContent)()'
+#   "Create a #world channel to talk here"
 ```
 
-The channel name in the header (`#west-bank-street`) is the cheap second
-observation: it proves the world loaded a location and bound a channel to it,
-not merely that a canvas element exists.
+`#west-bank-street` is the cheap second observation, but be precise about what
+it proves. It is **not a channel name**: it is the *area* label the HUD shows,
+from `areaAt()` in rooms-client, rendered into `.world-status-area`. It proves
+the world loaded a location — nothing about channel binding.
+
+Channel binding is a separate element (`.world-chat`) and in this harness it is
+always **unbound**: the stub hands `WorldView` a space whose `rooms` is empty,
+so `findWorldRoom()` returns null and the empty state renders. Read
+`.world-chat-empty` to prove that state deliberately, and never caption a frame
+as if the area label showed a bound channel.
 
 ## Gotchas
 

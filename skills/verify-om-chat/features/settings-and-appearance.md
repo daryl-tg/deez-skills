@@ -18,10 +18,13 @@ interaction end to end.
   layout** and **Direct message layout** (Bubbles / Streamlined each). A fourth
   radiogroup, **Message display** (Cozy / Compact), sits alongside them.
 - High-contrast mode and its interaction with every palette.
-- Server settings: roles, moderation, access, invites.
+- Server settings: Overview, Roles, Members, Moderation, Invites, Integrations,
+  Work Ledger, Library, Recovery, Import Vault, Danger. There is **no Access
+  page on the server host** — Access is a channel page.
 - Channel settings: Overview, Access, Webhooks, Moderation, Danger — gated by
   the viewer's role. Overview carries the per-channel to-do widget placement
-  control; the matching per-viewer override lives at `?host=user&page=todos`.
+  control ("To-do widgets", gated by `canManageTodoDisplay`). The matching
+  **per-viewer** override is not reachable from this fixture — see Gotchas.
 - Settings search, the Esc-to-close rail behavior, and the open/close
   transition.
 
@@ -51,7 +54,7 @@ agent-browser open "$(./control-om-chat url \
 | `settings-fixture.html?host=user&page=appearance&contrast=high` | High contrast |
 | `settings-fixture.html?host=user&page=notifications` | Notifications |
 | `settings-fixture.html?host=user&page=accessibility` | Accessibility |
-| `settings-fixture.html?host=user&page=todos` | Per-viewer to-do visibility |
+| `settings-fixture.html?host=user&page=todos` | To-dos — **account-wide defaults only**, not the per-channel override |
 | `settings-fixture.html?host=server&page=roles&perms=owner` | Server roles, as owner |
 | `settings-fixture.html?host=server&page=moderation&perms=owner` | Server moderation |
 | `settings-fixture.html?host=channel&page=access&perms=owner` | Channel access |
@@ -111,6 +114,14 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
   `dataset.accent` is always undefined and an assertion on it always fails.
 - Changing the theme mid-run changes every later screenshot. Capture the frames
   that need dark **before** you flip, or reopen with `?theme=` and start clean.
+- **The per-channel viewer override cannot be reached from the settings
+  fixture.** After the to-do consolidation (5416196a) it lives in
+  `TodosSettingsPage`, which renders its "this channel" section only when
+  `UserSettings` is given an `initialRoom` prop. `settings-fixture.tsx` never
+  passes one and has no `room=` parameter, so `?host=user&page=todos` shows
+  only the account-wide radiogroups ("Which to-dos appear in chat or topics",
+  "Whether to-do status updates appear in chat"). Proving that sub-feature
+  needs a fixture change, not a different query.
 - `?perms=` gates what server and channel settings render. A missing control
   may be a correct permission outcome rather than a regression — check the
   route you opened before reporting one.
