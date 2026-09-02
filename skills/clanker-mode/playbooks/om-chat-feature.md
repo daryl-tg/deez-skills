@@ -38,6 +38,15 @@ synced file is never edited independently in both copies.
    **principle-visual-approval-gates-delivery**.
 8. Run `playbooks/om-chat-completion.md`.
 
+**Before handing off: did you drive a surface the map does not cover?** If the
+terminal gate exercised anything with no feature file, write one now, following
+the four-H2 contract in `features/README.md`. You have the handles in front of
+you and you know what proved it works. A maintenance pass can recover that later
+from source, but it costs a full live sweep to learn what you already know right
+now. Per **principle-encode-lessons-in-structure**: capture it where it is
+cheap.
+
+
 **No cloud port.** Parity with `openmarket-chat-cloud` is retired: a desktop
 change is done without it. Port only when the operator names that change.
 

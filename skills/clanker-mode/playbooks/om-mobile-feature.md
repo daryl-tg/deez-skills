@@ -34,5 +34,14 @@ desktop or web change is `playbooks/om-chat-feature.md`.
 7. **Publish and wait for approval.**
 8. Run `playbooks/om-mobile-completion.md`.
 
+**Before handing off: did you drive a surface the map does not cover?** If the
+terminal gate exercised anything with no feature file, write one now, following
+the four-H2 contract in `features/README.md`. You have the handles in front of
+you and you know what proved it works. A maintenance pass can recover that later
+from source, but it costs a full live sweep to learn what you already know right
+now. Per **principle-encode-lessons-in-structure**: capture it where it is
+cheap.
+
+
 **Reply:** what changed, the gate results, the iOS evidence URL, the Android
 delta stated plainly, what is open.

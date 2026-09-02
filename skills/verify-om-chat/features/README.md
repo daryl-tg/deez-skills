@@ -57,6 +57,18 @@ ringing feeds (`Alerts: 3 feeds are ringing`) while the board renders the
 **two** rows actually seeded (`af-store-5xx`, `af-relay-latency`). Do not report
 that gap as a product bug, and do not caption a screenshot with the badge count.
 
+## Who adds to this map
+
+Two paths, and the first is the cheap one.
+
+**A feature run**, when its terminal gate drives a surface no file covers. That
+is the moment the handles are known and the proof is fresh, so writing the file
+costs almost nothing. The feature playbooks require it before handing off.
+
+**A maintenance pass**, sweeping recent churn for surfaces the map never heard
+of. That works, but it rediscovers from source what a feature run already knew,
+and pays a full live sweep to do it. `open-world.md` arrived this way.
+
 ## Files
 
 - [channel-and-topic-navigation.md](channel-and-topic-navigation.md)

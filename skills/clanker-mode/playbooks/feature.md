@@ -28,5 +28,14 @@ the lead.
 7. Rebase into ordered commits, verifying each before the next.
 8. Run `playbooks/opening-a-review.md`.
 
+**Before handing off: did you drive a surface the map does not cover?** If the
+terminal gate exercised anything with no feature file, write one now, following
+the four-H2 contract in `features/README.md`. You have the handles in front of
+you and you know what proved it works. A maintenance pass can recover that later
+from source, but it costs a full live sweep to learn what you already know right
+now. Per **principle-encode-lessons-in-structure**: capture it where it is
+cheap.
+
+
 **Reply:** what you built, what you chose and why, open decisions. Tables for
 design alternatives.
