@@ -201,10 +201,16 @@ process holding an agent port.
 session in an `autofill` proxy whose fallback (`INERT`) is callable and
 truthy. Any predicate the fixture does not spell out therefore returns
 "yes" — so blocked, locked, pending, and error states default **on**. This is
-why `?view=room` renders a read-only composer under *"This draft is open in
-another tab"*: `session.composerLaneOwnedElsewhere` is unstubbed. The fixture
-lane cannot verify typing or sending until that predicate is spelled out as
-`false` in `tools/visual/shell-fixture.tsx`.
+why the composer renders read-only under *"This draft is open in another tab"*:
+`session.composerLaneOwnedElsewhere` is unstubbed. It is not one view's problem
+— `room`, `topic` and `dm` all come up with `textarea.readOnly === true` and the
+banner showing. The fixture lane cannot verify typing or sending until that
+predicate is spelled out as `false` in `tools/visual/shell-fixture.tsx`.
+
+Check the property, not the appearance: the textarea is `readOnly`, **not**
+`disabled`, so it still takes focus and `disabled` reads `false`. Keystrokes are
+swallowed silently, and an agent that asserts on `disabled` concludes the
+composer works.
 
 The same trap bites methods newly added to a store: when a component starts
 calling `session.alerts.stripFeedForRoom(...)` and the fixture's `alertsStub`
@@ -222,7 +228,18 @@ there is gitignored and regenerable.
 
 **`agent-browser viewport` is not a command.** It is `agent-browser set
 viewport <w> <h>`. A screenshot at the wrong size is evidence of the wrong
-layout.
+layout. Typing is `type <selector> <text>` — the selector is not optional, and
+`type "some text"` treats the text as a selector and fails on it.
+
+**`agent-browser eval` shares one global scope across calls.** A second call
+declaring the same name dies with `Identifier 'x' has already been declared`,
+and the failure looks like a page problem rather than a shell one. Wrap every
+eval in an IIFE and the scope never leaks:
+
+```bash
+agent-browser eval '(()=>{const t = document.querySelector("textarea");
+  return JSON.stringify({readOnly: t.readOnly});})()'
+```
 
 **Not every control in the fixture is wired.** "Search or jump to…" is inert
 there. Confirm a control does something before you build a proof on it, and if
