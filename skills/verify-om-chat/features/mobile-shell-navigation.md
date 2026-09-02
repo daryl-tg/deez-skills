@@ -31,8 +31,10 @@ agent-browser set viewport 390 844
 agent-browser open "http://127.0.0.1:18099/rooms/tools/visual/shell-fixture.html?view=home&alerts=quiet"
 ```
 
-The supported phone widths this repo gates at are **320, 360, 390, 430, 768**.
-Drive the matrix, not just 390 — 320 is where controls overflow their clips.
+The widths the navigation suite gates at are **320, 360, 390, 430, 768**. Drive
+the matrix, not just 390 — 320 is where controls overflow their clips. Other
+mobile suites in the repo use a shorter list (320, 360, 390, 430, no 768), so
+match the suite you are defending rather than assuming one canonical matrix.
 
 Handles that resolve today:
 
@@ -72,6 +74,13 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
 - The root marker is `[data-mobile-root="<root>"]` and detail is
   `[data-mobile-detail]` — attribute selectors, not roles. Quote them carefully
   through the shell.
+- **`[data-mobile-detail]` does not cover every detail.** It is set only for
+  `room`, `dm`, and `world`. Library notes and om threads open through a
+  different full-screen path marked `[data-mobile-takeover]`. Asserting
+  `[data-mobile-detail].length === 1` there reads 0 while the UI is correctly
+  in a one-pane detail — check the takeover marker instead.
+- The Open World tab is **not** a sixth root. It classifies under **Spaces**,
+  so the tab bar stays five.
 - Switching roots does **not** always change the URL hash meaningfully
   (`Chats` lands on `#/`). Assert the DOM marker, not the route, for root
   switches — the route *is* reliable for detail opens.

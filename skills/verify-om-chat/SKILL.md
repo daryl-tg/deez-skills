@@ -170,8 +170,23 @@ OM_CHAT_LANE_PORT=18099 ./control-om-chat down       # by pidfile, never by name
 
 `down` kills the recorded pid and nothing else. **Never** match on process name:
 `pkill vite` takes out the operator's `8097` server and every other session's
-lane at once. If `down` says there is no run-owned lane, that port belongs to
-someone else — leave it alone.
+lane at once.
+
+If `down` says there is no run-owned lane but the port is still busy, do not
+assume it is a neighbour's. Vite re-execs when the dependency graph changes
+underneath it — someone syncing the branch, or a dependency install landing
+mid-run, is enough — and the new process reparents to PID 1, orphaning the
+pidfile. Then `doctor` reports
+`BUSY, not ours` about a lane **you** started. Check before you walk away:
+
+```bash
+lsof -nP -iTCP:<port> -sTCP:LISTEN
+```
+
+A `vite --port <your assigned port> --strictPort --host 127.0.0.1` in the
+`18097`–`18197` range with `PPID 1` is your own residue — kill that pid and
+delete the stale `.control-om-chat/lane-<port>.pid`. Anything else, leave it
+alone and take another port.
 
 Evidence survives teardown. It lives under `~/.local/state/om-chat-feature/`,
 not in the repo, so the gallery URL keeps working after the lane is gone.
