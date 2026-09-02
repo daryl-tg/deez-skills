@@ -25,9 +25,12 @@ several reviews. The plan is the deliverable. Do not implement.
    run **unslop** over it. The body is a how-to.
    Explanation and reference live in the appendices. Every heading states the
    task or the finding. No long dashes. No mid-sentence colons.
-6. **Read it back against the skeleton** before you hand it over. Every box
-   names the evidence that checks it. A box checkable by opinion is not a box.
-   Fix what fails, per **principle-encode-lessons-in-structure**.
+6. **Run the shape check** and fix every line it prints.
+   `~/github/deez-skills/bin/check-plan <plan path>` holds the skeleton, the
+   verification rule in every verify block, and the punctuation. It is the
+   lesson in structure rather than in prose, per
+   **principle-encode-lessons-in-structure**. What it cannot check is whether a
+   box is checkable by evidence rather than by opinion. Read for that yourself.
 7. **Hand back and stop.** Post the plan path, then ask which execution path the
    operator wants. That gate is never auto-picked, and this playbook ends at it.
 
@@ -73,17 +76,21 @@ real-surface box are both checked.
 
 - [ ] <One observable result, with the exact log line or screen state.>
 
-**Verify, unit.** Tests alone are not sufficient.
+**Verify, unit.** Tests alone are not sufficient. A unit is verified when its
+unit box and its real-surface box are both checked.
 
 - [ ] `<test file>` gains <the case>. It fails before the change. Run `<command>`.
 
-**Verify, real surface.** Tests alone are not sufficient.
+**Verify, real surface.** Tests alone are not sufficient. A unit is verified when
+its unit box and its real-surface box are both checked.
 
 - [ ] <Scenario.> Driven through `verify-<app>`. Saves `<slug>.png`. Passes when
       <predicate>.
 
-**Review gate.** <The operator reviews the published evidence before delivery, or
-"None." with no boxes.>
+**Review gate.** <The operator reviews the published evidence before delivery.
+Write "None." with no boxes when the unit changes no interaction.>
+
+- [ ] Publish the evidence and hold for the operator's sign-off.
 
 ## Close
 
@@ -105,6 +112,6 @@ Each question that stays unproven.>
 <Each risk, the unit it lands in, and what the executor watches.>
 ````
 
-**Reply:** the plan path, the units with their dependencies, which units are
-review-gated, what the prototypes proved and what stays unproven, and the
-execution-path question.
+**Reply:** the plan path, the check script's output, the units with their
+dependencies, which units are review-gated, what the prototypes proved and what
+stays unproven, and the execution-path question.

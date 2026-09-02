@@ -249,6 +249,7 @@ bin/link        preview the install. --apply to make it so
 bin/new         scaffold and register a skill
 bin/adopt       pull an existing skill in from elsewhere
 bin/index       regenerate the table below
+bin/check-plan  check a multi-phase plan against the skeleton its playbook publishes
 bin/sync        commit and push. rebases first, never force-pushes
 bin/test        the suite
 ```
