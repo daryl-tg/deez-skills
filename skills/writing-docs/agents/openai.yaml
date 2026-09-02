@@ -1,0 +1,7 @@
+interface:
+  display_name: "Writing Docs"
+  short_description: "Pick the document's audience and mode first, then apply the"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

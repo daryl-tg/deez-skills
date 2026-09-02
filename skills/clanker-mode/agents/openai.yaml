@@ -1,0 +1,7 @@
+interface:
+  display_name: "Clanker Mode"
+  short_description: "Daryl's agent style: routed playbooks, cited principles, pro"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

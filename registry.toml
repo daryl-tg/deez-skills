@@ -27,17 +27,17 @@ cmux     = "cmux app development"
 full = ["*"]
 lean = ["core", "workflow", "writing"]
 
-# Where each kind of work runs. Claude hosts the router because
-# disable-model-invocation is a no-op on Codex, and because Claude can dispatch
-# to Codex while the reverse has no clean path.
+# What may be delegated, and what never may.
 #
-# The four below default_lane are not preferences. Design, review, verification,
-# and git mutations stay with Claude whatever default_lane says, and the
-# registry rejects any other value for them.
+# Both runtimes run the full suite, so this no longer picks a runtime: the
+# operator does that when they choose a CLI. `default_lane` records which lane
+# implementation goes to within the current runtime.
 #
-# Switching who implements is this one line.
+# The four below it are not preferences. Design, review, verification, and every
+# git mutation stay with the lead on either runtime, and the registry rejects
+# any other value for them.
 [routing]
-default_lane  = "codex"
+default_lane  = "claude"
 planning      = "claude"
 review        = "claude"
 verification  = "claude"
@@ -254,7 +254,7 @@ runtimes = ["claude", "codex"]
 [skills.clanker-mode]
 layer    = "mode"
 category = "core"
-runtimes = ["claude"]
+runtimes = ["claude", "codex"]
 
 # --- Workflow skills --------------------------------------------------------
 # Adopted from pstack where nothing local covered the ground, merged with the

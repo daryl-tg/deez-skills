@@ -4,15 +4,22 @@
 
 - `openmarket-chat` — the desktop and daemon source. Changes land and are proven
   here first.
-- `openmarket-chat-cloud` — the ordered hosted sister. Receives only approved,
-  hosted-compatible behavior, after desktop is proven.
+- `openmarket-chat-cloud` — the hosted sister. **Parity is no longer required.**
+  A desktop change is complete without a cloud port; do not open one, do not
+  gate delivery on one, and do not treat the twin lagging as a defect. Port only
+  when the operator asks for that change by name.
 - `@openmarket/rooms-client` — owns browser-safe shared protocol behavior. Wire
   types, request clients, and domain models come from here. Never re-derive
   protocol behavior in a consumer.
 
-**Never independently edit both copies of a synced file.** Change the source,
-then port. Two independent edits of the same synced file is the drift this rule
-exists to prevent.
+**Never independently edit both copies of a synced file.** This survives the
+parity retirement: if a run does touch both forks, it changes the source and
+ports, because two independent edits of the same synced file is drift that no
+fence in either repo can see.
+
+The repos still carry their own mechanical fences (the parity manifest, the
+shared-style coverage ratchet). Keep them green in whichever repo you are
+editing. Green there is not a claim about the other fork.
 
 ## Services and ports
 

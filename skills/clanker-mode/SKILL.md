@@ -94,27 +94,40 @@ through the MR. Neither ever merges locally.
 
 ## Delegation
 
-Playbook steps name a **role**, never a model or a runtime. Resolve at dispatch:
+**This skill runs the same on Claude Code and on Codex.** Same playbooks, same
+principles, same roles. Only the resolution differs, and the runtime you are in
+resolves its own.
 
-| Role | Claude | Codex |
+Playbook steps name a **role**. Never a model, never a runtime.
+
+| Role | On Claude | On Codex |
 |---|---|---|
-| **explore** role | `Agent(subagent_type: "explore")` | `agent_type: explore` |
-| **executor** role | `Agent(subagent_type: "executor")` | `agent_type: executor` |
-| **test-engineer** role | `Agent(subagent_type: "test-engineer")` | `agent_type: test-engineer` |
-| **code-reviewer** role | `Agent(subagent_type: "code-reviewer")` | `agent_type: code-reviewer` |
-| **verifier** role | `Agent(subagent_type: "verifier")` | `agent_type: verifier` |
+| **explore** | `Agent(subagent_type: "explore")` | `agent_type: explore` |
+| **executor** | `Agent(subagent_type: "executor")` | `agent_type: executor` |
+| **test-engineer** | `Agent(subagent_type: "test-engineer")` | `agent_type: test-engineer` |
+| **code-reviewer** | `Agent(subagent_type: "code-reviewer")` | `agent_type: code-reviewer` |
+| **verifier** | `Agent(subagent_type: "verifier")` | `agent_type: verifier` |
 
-Implementation dispatches to Codex by default via
-`Agent(subagent_type: "codex:codex-rescue")`. Use raw `codex exec` when you need
-a structured return (`--output-schema`), an explicit sandbox, or an ephemeral
-run. Planning, review, verification, and git mutations never dispatch.
+All five are defined for both runtimes in `agent-matrix.tsv`.
 
-Every handoff is self-contained. Codex does not inherit your context: cite the
-playbook by **absolute path** and the principles **by name**, since those exist
-on its runtime too. Resume within one feature's lifecycle, go fresh at a phase
-boundary.
+**Nothing crosses the runtime boundary.** Work started in Codex finishes in
+Codex; work started in Claude finishes in Claude. Do not hand a task to the
+other CLI mid-run — the operator picks the runtime when they pick the CLI, and
+that choice is the whole point of having both.
 
-Own every delegate's work. Review the diff and write your own summary.
+`codex-first` and `herdr-codex-orchestration` remain available on Claude for the
+cases where the operator explicitly asks for a Codex handoff. They are not the
+default and no playbook step reaches for them.
+
+**Non-delegable, on either runtime:** design, review, verification, and every
+git mutation. Those stay with the lead — you — regardless of what the roles
+table offers. `[routing]` in `registry.toml` records that, and the registry
+rejects any other value for them.
+
+**Own every delegate's work.** Review the diff yourself and write your own
+summary. Inspect the artifact, never the self-report. A delegate does not
+inherit your context, so every handoff cites the playbook by absolute path and
+the principles by name.
 
 ## Playbooks
 
@@ -132,7 +145,7 @@ before any task-specific todos. A step you skip stays in the list with
 | `playbooks/om-chat-completion.md` | The terminal phase for OM Chat. Stops at ready_for_review |
 | `playbooks/om-mobile-feature.md` | An OpenFloor mobile change |
 | `playbooks/om-mobile-completion.md` | The terminal phase for mobile. Lands by squash-merge through the MR |
-| `playbooks/agentic-loop.md` | A multi-goal plan run as a loop, dispatching to Codex |
+| `playbooks/agentic-loop.md` | A multi-goal plan run as one bounded loop |
 | `playbooks/authoring-a-skill.md` | Writing or editing a SKILL.md |
 | `playbooks/opening-a-review.md` | Invoked at the end of every delivering playbook |
 | `playbooks/session-pickup.md` | Resuming in-flight work from a prior session |

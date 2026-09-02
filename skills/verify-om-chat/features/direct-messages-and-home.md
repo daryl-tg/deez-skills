@@ -9,9 +9,10 @@ conversation, and the friends surfaces that feed it.
   "Waiting for you" queue, and the agent entry points.
 - The DM list with per-conversation unread counts and presence.
 - One DM conversation: header with presence, tape, composer.
-- Friends: Online / All / Pending / Blocked tabs, and their empty states.
+- Connections: the Connections / Friends / Requests / Blocked chips, and their
+  empty states.
 - The public-channel browse board.
-- Inbox and message search openers from the Home header.
+- Inbox and message search openers — **mobile only**, see Gotchas.
 
 ## How to get to it (user POV)
 
@@ -34,12 +35,13 @@ Routes:
 |---|---|
 | `?view=home` | Home landing surface |
 | `?view=dm&dm=ana` | One DM conversation (`dm=` picks the peer; defaults to `ana`) |
-| `?view=friends&tab=online` | Friends, Online tab |
-| `?view=friends&tab=pending` | Friends, Pending — an **empty** state, the one most often unlooked-at |
-| `?view=friends&tab=blocked` | Friends, Blocked — likewise empty |
+| `?view=friends&tab=connections` | Connections — the default, an empty state |
+| `?view=friends&tab=friends` | Friends |
+| `?view=friends&tab=requests` | Requests (what this file used to call Pending) |
+| `?view=friends&tab=blocked` | Blocked — **currently crashes**, see Gotchas |
 | `?view=channels` | Public-channel browse board |
 | `?view=empty` | No destination selected |
-| `?dmTyping=<name>` | A typing indicator in the DM |
+| `?dmTyping=peer` | A typing indicator in the DM — the literal string `peer`, not a name |
 | `?inbox=open` | Topic inbox dialog open over the surface |
 
 Handles that resolve today:
@@ -50,10 +52,11 @@ agent-browser find role button   click --name "Home: DMs and friends, 1 pending 
 agent-browser find role button   click --name "New DM"
 agent-browser find role button   click --name "Add Friend"
 agent-browser find role button   click --name "See all friends"
-agent-browser find role button   click --name "Search messages"
-agent-browser find role button   click --name "Inbox"
 agent-browser find role button   click --name "Create or Join Server"
 ```
+
+On the Connections surface the chips are `button`, not `tab`: `"Connections"`,
+`"Friends"`, `"Requests"`, `"Blocked"`.
 
 Observations worth capturing:
 
@@ -68,13 +71,35 @@ seeded presence state — a good second observation alongside the route.
 
 ## Gotchas
 
-- Home renders **two `<h1>` headings** (`"Home"` and the unread summary). Scope
-  by name, not by "the heading", or an assertion will match the wrong one.
+- **Home renders one `<h1>` on desktop**, the unread summary
+  (`"2 unread across 1 conversation."`). The `"Home"` heading is inside the
+  mobile-only header block (`max-width: 768px`), so at 1440×900 it does not
+  exist. Looking for a second heading there is looking for nothing.
+- **"Search messages" and "Inbox" are mobile-only too**, in that same header
+  block. Neither resolves on desktop Home. The desktop search entry point is
+  the sidebar's "Search or jump to…" pill, and that is inert in the fixture —
+  so message search has no driveable desktop route here at all.
+- **`tab=` takes the real tab ids only.** They are `connections`, `friends`,
+  `requests`, `blocked`. The old `online`, `all`, and `pending` are not
+  translated by the fixture and fall through to Connections — while the hash
+  still echoes what you passed (`?tab=pending` → `#/connections/pending`
+  showing Connections). Trust the rendered chip, never the route, for this one.
+- **`?view=friends&tab=blocked` crashes the pane today.** You get *"People
+  could not load"* with a Try again / Reload pair. It is fixture seeding, not a
+  product regression: the fixture stubs `session.blocks` as `[]` while
+  `BlockedView` expects `{rows, …} | null`, so `state?.rows.length` throws on
+  the missing `rows`. Do not caption this as a bug in the app, and do not
+  "fix" it by editing the map — it needs a fixture-seed change in
+  `tools/visual/shell-fixture.tsx`, which belongs to whoever next ships a
+  Blocked-tab change.
 - The DM rail rows are `treeitem`; the Home surface's own conversation cards are
   `button` (`"ana · Direct message 2"`). The same conversation is reachable two
   ways with two different roles — verify both if your change touches either.
-- Friends' Pending and Blocked tabs are empty by design in the fixture. An
-  empty pane there is the state under test, not a failure to load.
+  That card is specifically the "Waiting for you" row, and it is only there
+  because the fixture seeds ana with 2 unread.
+- **The DM peer id is hardcoded.** The fixture answers `"u-ana"` for
+  `dmPeerUserId()` whatever `?dm=` says, so `?view=dm&dm=dax` renders dax's
+  name over ana's avatar and presence. Only `dm=ana` is coherent.
 - The composer in a DM is subject to the same read-only draft lease as
   everywhere else — see [composer-and-sending.md](composer-and-sending.md).
 - Presence in the fixture is seeded, not live. Anything about presence

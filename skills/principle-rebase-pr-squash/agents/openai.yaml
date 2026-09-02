@@ -1,0 +1,7 @@
+interface:
+  display_name: "Rebase Pr Squash"
+  short_description: "Apply to every branch delivery"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

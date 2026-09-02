@@ -1,0 +1,7 @@
+interface:
+  display_name: "Make Operations Idempotent"
+  short_description: "Apply when designing commands, lifecycle steps, or loops tha"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

@@ -7,16 +7,21 @@ interaction end to end.
 
 ## Sub-features
 
-- User settings: Account, Profiles, Privacy, Sealed Messages, Appearance,
-  Notifications, Audio, Keyboard Shortcuts, Accessibility, Doc Editing, Agent
-  Settings.
+- User settings: My Account, Profiles, Privacy, Sealed Messages, Appearance,
+  Notifications, Audio, To-dos, Keyboard Shortcuts, Accessibility, Doc Editing,
+  Agent Settings — then a Help group (How Agents Work, How the Library Works,
+  How Apps Work, Slash Commands, Moderating Servers) and Log Out.
 - Appearance: theme (dark / light / sync with OS), palette (Graphite, Slate,
   Moss, Warm, Brass), accent (Clay, Blue, Iris, Plum, White), and per-context
-  message density (Bubbles / Streamlined / Custom, split Server vs Direct
-  message).
+  message density. Density is three nested `radiogroup`s, not tabs: **Chat
+  layout** (Bubbles / Streamlined / Custom), and under Custom, **Server channel
+  layout** and **Direct message layout** (Bubbles / Streamlined each). A fourth
+  radiogroup, **Message display** (Cozy / Compact), sits alongside them.
 - High-contrast mode and its interaction with every palette.
 - Server settings: roles, moderation, access, invites.
-- Channel settings: access and permissions, gated by the viewer's role.
+- Channel settings: Overview, Access, Webhooks, Moderation, Danger — gated by
+  the viewer's role. Overview carries the per-channel to-do widget placement
+  control; the matching per-viewer override lives at `?host=user&page=todos`.
 - Settings search, the Esc-to-close rail behavior, and the open/close
   transition.
 
@@ -45,9 +50,11 @@ agent-browser open "http://127.0.0.1:18099/rooms/tools/visual/settings-fixture.h
 | `settings-fixture.html?host=user&page=appearance&contrast=high` | High contrast |
 | `settings-fixture.html?host=user&page=notifications` | Notifications |
 | `settings-fixture.html?host=user&page=accessibility` | Accessibility |
+| `settings-fixture.html?host=user&page=todos` | Per-viewer to-do visibility |
 | `settings-fixture.html?host=server&page=roles&perms=owner` | Server roles, as owner |
 | `settings-fixture.html?host=server&page=moderation&perms=owner` | Server moderation |
 | `settings-fixture.html?host=channel&page=access&perms=owner` | Channel access |
+| `settings-fixture.html?host=channel&page=overview&perms=owner` | Channel overview, incl. to-do widget placement |
 
 The dialog is `dialog` named **"Settings"**; the section list is `navigation`
 named **"Settings navigation"**. Scope to them when a label is ambiguous.
@@ -75,7 +82,7 @@ agent-browser find role button   click --name "Notifications"
 agent-browser find role searchbox fill  "keyboard" --name "Search settings"
 agent-browser find role radio    click --name "Moss palette"
 agent-browser find role radio    click --name "Iris accent"
-agent-browser find role tab      click --name "Direct message"
+agent-browser find role tab      click --name "Direct message"   # preview toggle, NOT density
 ```
 
 ## Gotchas
@@ -84,14 +91,23 @@ agent-browser find role tab      click --name "Direct message"
   `"Light theme (selected)"`, not `"Light theme"`. An `--exact` match on the
   bare label stops resolving the moment the control becomes selected — which is
   exactly when a naive assertion runs. Match the `[checked]` attribute from the
-  snapshot instead, or allow the suffix.
-- **Bubbles / Streamlined / Custom appear twice**, once for Server and once for
-  Direct message, with identical names. Scope to the `tab` you selected or you
-  will drive the wrong one.
-- Theme is written to `document.documentElement.dataset.theme`, so it survives
-  outside the dialog — that is what makes it a usable side-effect check. Palette
-  and accent land as separate attributes; read them the same way rather than
-  judging colour from a screenshot.
+  snapshot instead, or allow the suffix. The suffix is not theme-only: it is
+  the same shared swatch, so `"Graphite palette (selected)"` and
+  `"Clay accent (selected)"` behave identically.
+- **Bubbles / Streamlined appear three times** — once in Chat layout, once in
+  Server channel layout, once in Direct message layout, with identical names.
+  Scope to the enclosing `radiogroup` by its aria-label. Do **not** scope by
+  tab: the only `tablist` on this page is "Preview conversation"
+  (Server / Direct message), which just swaps the preview mock and changes no
+  density setting. `find role tab --name "Direct message"` resolves, and drives
+  the wrong control.
+- **The three appearance axes land in three different places.** Theme is
+  `document.documentElement.dataset.theme`. Palette is
+  `document.documentElement.dataset.palette`, but only once you move off the
+  Graphite default — it is absent, not `"graphite"`, at first paint. Accent is
+  not an attribute at all: it is inline CSS custom properties, so read
+  `getComputedStyle(document.documentElement).getPropertyValue("--m-accent")`.
+  `dataset.accent` is always undefined and an assertion on it always fails.
 - Changing the theme mid-run changes every later screenshot. Capture the frames
   that need dark **before** you flip, or reopen with `?theme=` and start clean.
 - `?perms=` gates what server and channel settings render. A missing control

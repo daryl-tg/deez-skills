@@ -13,11 +13,17 @@ class ScaffoldTest(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.work = Path(self.tmp.name) / "repo"
-        shutil.copytree(
-            REPO,
-            self.work,
-            ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc"),
-        )
+        # Copy only what the CLI needs. Copying the whole tree meant every
+        # skill added to the hub slowed these five tests down; the suite went
+        # from 3s to 54s before anyone noticed.
+        self.work.mkdir(parents=True)
+        for item in ("bin", "deezlib", "templates"):
+            shutil.copytree(REPO / item, self.work / item,
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        for item in ("registry.toml", "vendor.toml", "README.md"):
+            shutil.copy2(REPO / item, self.work / item)
+        for d in ("skills", "commands", "agents"):
+            (self.work / d).mkdir(exist_ok=True)
         self.env = {
             **os.environ,
             "DEEZ_CLAUDE_HOME": f"{self.tmp.name}/claude",

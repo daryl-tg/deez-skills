@@ -1,0 +1,7 @@
+interface:
+  display_name: "Show Me Your Work"
+  short_description: "Keep an auditable decision trail as a committed TSV during l"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

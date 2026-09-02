@@ -13,7 +13,10 @@ cannot verify, and agents lose runs discovering that mid-drive.
 - The formatting toolbar and its selection clearance.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
-- Send disabled while empty; Enter-to-send versus newline.
+- Send disabled while empty; Enter-to-send versus newline. The Send **button**
+  is a phone-width control only — desktop has no send affordance but Enter.
+- The over-limit "send as file" offer and the mass-mention brake, both of which
+  can refuse a send that otherwise looks ready.
 
 ## How to get to it (user POV)
 
@@ -32,7 +35,10 @@ prove:
 agent-browser snapshot -c | grep -i textbox
 #   "Message #ops"  ->  "Message in CPI print — Aug"  ->  "Message ana · $ for markets · /chart to post one"
 
-# Send is disabled on an empty draft.
+# Send is disabled on an empty draft — but ONLY at a phone width. The Send
+# button renders under `max-width: 768px`; on desktop there is no such button
+# and Enter sends. Set the viewport first or this looks like a regression.
+agent-browser set viewport 390 844
 agent-browser find role button text --name "Send message" --exact
 agent-browser snapshot -i -c | grep "Send message"        # [disabled]
 
@@ -40,9 +46,13 @@ agent-browser snapshot -i -c | grep "Send message"        # [disabled]
 agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text"
 ```
 
-Related handles that do resolve: `"Add attachment or action"`,
-`"Add reaction"`, `"Resend exact message"`, `"Discard & edit as new"`,
-`"Retry"`, `"Delete"`.
+Related handles that do resolve. In the composer row itself:
+`"Summon your om here"`, `"Add attachment or action"`,
+`"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
+On a message or the recovery banner: `"Add reaction"`,
+`"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
+Note the composer's emoji control is `"Choose emoji or GIF"` — `"Add reaction"`
+is the message-row control and will not match in the composer.
 
 For anything requiring real text entry or a real send, use the **daemon-pair
 lane**:

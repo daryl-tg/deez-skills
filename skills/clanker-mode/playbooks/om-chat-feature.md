@@ -1,25 +1,25 @@
 ### OM Chat feature
 
-**Repos:** `openmarket-chat` (desktop/daemon source), `openmarket-chat-cloud`
-(its ordered hosted sister), `@openmarket/rooms-client` (browser-safe shared
-protocol). **This family stops at `ready_for_review`.** It never merges.
+**Repos:** `openmarket-chat` (desktop/daemon source), `@openmarket/rooms-client`
+(browser-safe shared protocol), and `openmarket-chat-cloud` only when the
+operator names it. **This family stops at `ready_for_review`.** It never merges.
 
 Read `references/om-chat-boundaries.md` before editing. The short version:
-desktop is proven first, then only approved hosted-compatible behavior is
-ported, and a synced file is never edited independently in both copies.
+cloud parity is retired, the repo's own fences still have to be green, and a
+synced file is never edited independently in both copies.
 
 1. **Resolve the candidate.** Read each affected repo's `AGENTS.md`. Route to
    the **explore** role. Load **om-chat-design-system** before any user-visible
    UI decision, and **om-chat** only when task context is an OM Chat link.
-2. **Failing check first**, then implement. Delegate to the **executor** role
-   with a specific scope; review the diff yourself.
+2. **Failing check first**, then delegate implementation to the **executor**
+   role with a specific scope. Review the diff yourself.
 3. **Static gates**, per repo, against the final candidate. For
    `openmarket-chat`: lint, typecheck, build, `bun tools/check-dist.ts`, tests.
    For `openmarket-chat-cloud`: frozen install in the owned worktree only when
    needed, then lint, typecheck, build, dist check, tests. **Isolate baseline
    failures against the branch point; never call a partially failing suite
    green.**
-4. **Inner loop while implementing:** `control-omchat doctor`, then replay the
+4. **Inner loop while implementing:** `control-om-chat doctor`, then replay the
    feature map recipe for what changed. Cheap, deterministic, after every
    meaningful edit.
 5. **Freeze and review.** Record the commit or tree hash and the exact diff
@@ -36,8 +36,10 @@ ported, and a synced file is never edited independently in both copies.
    diagnosing a failed gate only.
 7. **Publish and wait for approval**, per
    **principle-visual-approval-gates-delivery**.
-8. **Port to cloud** and prove it separately on its own surface.
-9. Run `playbooks/om-chat-completion.md`.
+8. Run `playbooks/om-chat-completion.md`.
+
+**No cloud port.** Parity with `openmarket-chat-cloud` is retired: a desktop
+change is done without it. Port only when the operator names that change.
 
 **Reply:** what changed per surface, the gate results, the evidence URL, what is
 open.

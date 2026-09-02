@@ -21,8 +21,13 @@ DEFAULT_LAYER = "workflow"
 # explicit routing; description-matching them is the failure this prevents.
 FLAGGED_LAYERS = ("mode", "principle", "playbook-host")
 
-# Layers that cannot run on Codex, which ignores the flag entirely.
-CLAUDE_ONLY_LAYERS = ("mode", "playbook-host")
+# Nothing is Claude-only any more. Codex gates invocation through
+# agents/openai.yaml (`policy.allow_implicit_invocation: false`), verified
+# 2026-09-02 with two probe skills differing only in that field: Codex listed
+# the open one and not the gated one. The earlier restriction assumed Codex had
+# no gate at all, which was a wrong conclusion drawn from looking in
+# config.toml rather than at the skill.
+CLAUDE_ONLY_LAYERS = ()
 
 # Layers that must be installed everywhere, or a cited rule goes missing.
 BOTH_RUNTIME_LAYERS = ("principle",)

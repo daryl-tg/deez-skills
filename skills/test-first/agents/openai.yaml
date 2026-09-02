@@ -1,0 +1,7 @@
+interface:
+  display_name: "Test First"
+  short_description: "Write the failing check before production code, at the faste"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

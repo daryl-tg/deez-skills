@@ -1,0 +1,7 @@
+interface:
+  display_name: "Promote To The Main Worktree"
+  short_description: "Apply after rebasing a finished feature"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

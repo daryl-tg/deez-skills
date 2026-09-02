@@ -1,0 +1,7 @@
+interface:
+  display_name: "Migrate Callers Then Delete Legacy Apis"
+  short_description: "Apply when introducing a new internal API while old callers"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

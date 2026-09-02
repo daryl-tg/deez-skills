@@ -1,0 +1,7 @@
+interface:
+  display_name: "Minimize Reader Load"
+  short_description: "Apply when reviewing or shaping code that is hard to trace"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false
