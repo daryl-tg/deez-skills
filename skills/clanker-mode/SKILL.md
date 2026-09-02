@@ -145,10 +145,16 @@ before any task-specific todos. A step you skip stays in the list with
 | `playbooks/om-chat-completion.md` | The terminal phase for OM Chat. Stops at ready_for_review |
 | `playbooks/om-mobile-feature.md` | An OpenFloor mobile change |
 | `playbooks/om-mobile-completion.md` | The terminal phase for mobile. Lands by squash-merge through the MR |
+| `playbooks/prototype.md` | A throwaway sketch that settles a design or empirical fork |
+| `playbooks/perf-issue.md` | A slowness with a number on it, fixed against a baseline |
+| `playbooks/forensics.md` | A live process or a dropped trace, read to a cited diagnosis |
+| `playbooks/visual-parity.md` | Pixel-exact equivalence, decided by image diff |
+| `playbooks/multi-phase-plan.md` | Work spanning phases. The plan is the deliverable |
 | `playbooks/agentic-loop.md` | A multi-goal plan run as one bounded loop |
 | `playbooks/authoring-a-skill.md` | Writing or editing a SKILL.md |
 | `playbooks/opening-a-review.md` | Invoked at the end of every delivering playbook |
 | `playbooks/session-pickup.md` | Resuming in-flight work from a prior session |
+| `playbooks/pause-safely.md` | Stopping cleanly, so the next session can resume |
 
 No playbook fits? Design one: state the definition of done as a falsifiable
 predicate, decompose into independently verifiable units, run each as an

@@ -28,7 +28,7 @@ truncated instruction, so the registry rejects one that is not on both.
 
 ## Why playbooks are not skills
 
-They are plain `.md` files inside the mode skill. Twelve of them cost zero
+They are plain `.md` files inside the mode skill. Eighteen of them cost zero
 registry entries and zero session tokens, and they are readable by absolute path
 from either runtime without being installed anywhere. A Codex handoff cites the
 path directly.

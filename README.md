@@ -5,7 +5,7 @@ and Codex on every machine. Skills live here once and are symlinked into both
 runtimes, so there is no second copy to drift.
 
 The architecture is [pstack](https://github.com/cursor/plugins/tree/main/pstack),
-adapted for two runtimes instead of one. Thirty-four principles, twelve
+adapted for two runtimes instead of one. Thirty-four principles, eighteen
 playbooks, one router.
 
 ## install
@@ -50,10 +50,10 @@ That is it. Everything else the router reaches for when a step needs it.
 
 ## usage
 
-`$clanker-mode` matches your task to one of twelve playbooks and runs it.
+`$clanker-mode` matches your task to one of eighteen playbooks and runs it.
 
 <details>
-<summary>the twelve playbooks</summary>
+<summary>the eighteen playbooks</summary>
 
 | playbook | for |
 |---|---|
@@ -65,10 +65,16 @@ That is it. Everything else the router reaches for when a step needs it.
 | [om-chat-completion](./skills/clanker-mode/playbooks/om-chat-completion.md) | the terminal phase for OM Chat. stops at ready_for_review |
 | [om-mobile-feature](./skills/clanker-mode/playbooks/om-mobile-feature.md) | an OpenFloor mobile change. device verification once, at the end |
 | [om-mobile-completion](./skills/clanker-mode/playbooks/om-mobile-completion.md) | the terminal phase for mobile. lands by squash-merge through the MR |
+| [prototype](./skills/clanker-mode/playbooks/prototype.md) | a throwaway sketch that settles a design or an empirical fork |
+| [perf-issue](./skills/clanker-mode/playbooks/perf-issue.md) | a slowness with a number on it. baseline, fix, post-fix number |
+| [forensics](./skills/clanker-mode/playbooks/forensics.md) | a live process or a dropped trace, read down to a cited diagnosis |
+| [visual-parity](./skills/clanker-mode/playbooks/visual-parity.md) | pixel-exact equivalence, decided by image diff and never by eye |
+| [multi-phase-plan](./skills/clanker-mode/playbooks/multi-phase-plan.md) | work spanning phases. the plan is the deliverable, not the code |
 | [agentic-loop](./skills/clanker-mode/playbooks/agentic-loop.md) | a multi-goal plan run as one bounded loop, dispatching to Codex |
 | [authoring-a-skill](./skills/clanker-mode/playbooks/authoring-a-skill.md) | writing or editing a SKILL.md |
 | [opening-a-review](./skills/clanker-mode/playbooks/opening-a-review.md) | invoked at the end of every delivering playbook |
 | [session-pickup](./skills/clanker-mode/playbooks/session-pickup.md) | resuming in-flight work from a prior session or branch |
+| [pause-safely](./skills/clanker-mode/playbooks/pause-safely.md) | stopping cleanly, so the next session resumes from a note |
 
 </details>
 
@@ -231,7 +237,7 @@ and there is no clean path back, so Claude plans and Codex implements.
 **Principles install on both** because a handoff to Codex cites them by name,
 and that citation only resolves if the leaf exists on that side.
 
-Playbooks are plain markdown inside the router, not registry entries, so twelve
+Playbooks are plain markdown inside the router, not registry entries, so eighteen
 of them cost nothing at session start and can still be read by absolute path
 from either runtime.
 
