@@ -57,7 +57,7 @@ Routes:
 | `shell-fixture.html?view=topic&topic=cpi-print-aug` | One topic's own chat, entered directly |
 | `shell-fixture.html?view=room&channels=many` | Long channel list — sidebar overflow and scroll |
 | `shell-fixture.html?view=room&bulk=120` | A loaded tape, for scroll and virtualisation work |
-| `shell-fixture.html?view=room&peek=cpi-print-aug` | Topic open in the right sidebar rather than the main pane |
+| `shell-fixture.html?view=room&topics=on&peek=cpi-print-aug` | Topic open in the right sidebar rather than the main pane — **not rendering today, see Gotchas** |
 
 Handles that resolve today:
 
@@ -103,6 +103,18 @@ the navigation retargeted the *write* path, not only the read pane.
 - Alerts is a `button`, not a third tab. `find role tab --name "Alerts"` fails,
   and the name changes with state, so match on the `Alerts:` prefix rather than
   a fixed string.
+- **The topic peek pane does not render right now.** `?peek=<topicId>` is read
+  (it seeds `session.topicPeek`), and the Shell gate needs `active.kind ===
+  "room"`, a matching room, and a viewport wider than the `max-width: 1099px`
+  overlay query — all satisfied at 1440×900. `[data-topic-peek]` is still
+  absent. This is not a query you are getting wrong: the repo's own
+  `tools/visual/topic-peek-drop.visual.ts` drives the identical URL and fails
+  on `expect(pane).toBeVisible()`, and it fails on `main` as far back as
+  `25fe4e6b`. The Playwright suite is not part of the merge gate
+  (`lint && typecheck && build && check-dist && test-fast`), which is how it
+  rotted unnoticed. Do not spend a run rediscovering this, and do not report it
+  as caused by your change — but do check whether it has been fixed before
+  planning a proof that needs the peek pane.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
   opens nothing; there is no quick-switcher dialog to drive here.
 - The **Open World** row above `DESK` is inert here too. It renders as a
