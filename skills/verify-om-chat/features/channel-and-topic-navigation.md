@@ -27,9 +27,12 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   "More channel actions".
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
-  (`src/components/RightPanels.tsx`): a collapse/expand toggle plus one button
-  per panel (**Members**, **Library**). There is no side-panel `tablist` any
-  more, and `"Show or hide side panel"` no longer exists anywhere in `src/`.
+  (`src/components/RightPanels.tsx:153-218`): a collapse/expand toggle plus one
+  button per panel — **Members** and **Library** in the seeded fixture room,
+  plus **To-dos** where the room has one; `alerts` is deliberately filtered
+  out. `"Show or hide side panel"` no longer exists anywhere in `src/`. The old
+  in-panel `tablist` is not merely hidden: every live render site passes
+  `showSlotTabs={false}`, so it is dead on every route.
 
 ## How to get to it (user POV)
 
@@ -126,9 +129,13 @@ the navigation retargeted the *write* path, not only the read pane.
   absent. This is not a query you are getting wrong: the repo's own
   `tools/visual/topic-peek-drop.visual.ts` drives the identical URL and fails
   on `expect(pane).toBeVisible()`, and it fails on `main` as far back as
-  `25fe4e6b`, and still fails at `50a5b29f` — the `#689` PeekIntent refactor
-  looks like it would have fixed this and did not, so do not read that commit
-  as a fix. The Playwright suite is not part of the merge gate
+  `25fe4e6b`, and still fails at `50a5b29f`. Do not read `#689` ("unify the peek
+  hover machine into PeekIntent") as a fix for it: that commit touches
+  `channel-peek.ts` and `dm-peek.ts`, the sidebar **hover popovers**, which are
+  a different mechanism from the topic side pane. This seam —
+  `?peek=` → `fixtureTopicPeek` → `session.topicPeek` → Shell's gate →
+  `TopicPeekPane` — was not in its diff at all. The Playwright suite is not
+  part of the merge gate
   (`lint && typecheck && build && check-dist && test-fast`), which is how it
   rotted unnoticed. Do not spend a run rediscovering this, and do not report it
   as caused by your change — but do check whether it has been fixed before

@@ -48,10 +48,10 @@ Handles that resolve today:
 
 ```bash
 agent-browser find role treeitem click --name "Direct message with ana, 2 unread"
-agent-browser find role button   click --name "Home: DMs and friends, 1 pending friend request"
+agent-browser find role button   click --name "Home: DMs and connections, 1 pending follow request"
 agent-browser find role button   click --name "New DM"
-agent-browser find role button   click --name "Add Friend"
-agent-browser find role button   click --name "See all friends"
+agent-browser find role button   click --name "Follow someone"
+agent-browser find role button   click --name "See connections"
 agent-browser find role button   click --name "Create or Join Server"
 ```
 
@@ -59,6 +59,15 @@ On the Connections surface the chips are `button`, not `tab`: `"Connections"`,
 `"Requests"`, `"Blocked"`. There is **no Friends chip** — `#697` cut the surface
 down to three (`FriendsPane.tsx:104-106`). Opening Requests adds two more chips
 beside them, `"Incoming"` and `"Sent"`.
+
+`#697` renamed the friend vocabulary to follow vocabulary throughout, and the
+map's old handles went with it: **"Add Friend" is now "Follow someone"**,
+**"See all friends" is now "See connections"**, and the sidebar door reads
+**"Home: DMs and connections, N pending follow request"**. The *concept* of a
+friend survives only internally — a mutual follow is still `rel === "friends"`
+in `FriendsPane.tsx`, but every row that used to say "Friends" now says
+"Following", and the "Friends" chips on the profile panel and popover were
+deleted. Do not expect the word anywhere in the UI.
 
 Observations worth capturing:
 

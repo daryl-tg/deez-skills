@@ -78,19 +78,29 @@ agent-browser snapshot -c | grep -i combobox
 
 ## Gotchas
 
-- **Enter does not execute a search in the fixture.** The grammar composes, the
-  typeahead resolves, and then nothing happens: no results panel, no route
-  change. Use `?panel=search` for a run you can photograph. A proof that
-  types a query and screenshots the unchanged pane is evidence of nothing.
+- **Enter does not put a results panel on screen in the fixture.** The grammar
+  composes, the typeahead resolves, you press Enter — and nothing appears: no
+  panel, no route change. Verified twice, with free text typed into the box
+  (the input does accept typing, unlike the composer) and with no suggestion
+  highlighted.
+
+  Be precise about whose fault that is. In product code the handler is real and
+  unit-tested: `SearchBar.tsx`'s Enter path calls `session.search.run`, and
+  `test/search-bar.test.tsx` asserts it. What does not happen is the fixture
+  rendering a panel off that call. So this is a limitation of the lane, **not**
+  dead product code — do not file it as a product bug, and do not "fix" it by
+  typing harder. Use `?panel=search` for a run you can photograph.
 - **`?searchState=error` alone renders nothing.** The message only exists
   inside the panel, so it needs `panel=search` beside it. On its own the
   parameter looks dead.
-- **Only the combobox is wired.** Its two neighbours are not: "Open search in
-  #ops" leaves focus on the button with the combobox still collapsed, and
-  "Open search panel" opens no panel. **"More filters"** closes the dropdown
-  and inserts no token. None of the three is a regression to report from this
-  lane — the fixture simply does not seed them — but do not build a proof on
-  any of them. Reach the panel by route instead.
+- **Only the combobox does anything you can see.** "Open search in #ops" leaves
+  focus on the button with the combobox still collapsed; "Open search panel"
+  opens no panel; **"More filters"** closes the dropdown and inserts no token.
+  The same caveat as above applies to the last two: `SearchBar.tsx` wires both
+  to `session.search.run` and the unit tests cover it, so the product code is
+  live even though this lane shows nothing. Only "Open search in #ops" is a
+  genuine no-op on the search seam — it just expands the compact bar. Build no
+  proof on any of the three; reach the panel by route instead.
 - **The sidebar's "Search or jump to…" is a different control** and is also
   inert (see [channel-and-topic-navigation.md](channel-and-topic-navigation.md)).
   Do not confuse the two: the header combobox is the one that works.
