@@ -88,11 +88,7 @@ def cmd_doctor(args):
     findings.extend(doctor.orphans(roots, reg, REPO_ROOT))
     findings.extend(doctor.budget(reg, REPO_ROOT))
     findings.extend(
-        doctor.check_skill_references(
-            reg, REPO_ROOT,
-            extra_known=("explore", "executor", "test-engineer",
-                         "code-reviewer", "verifier"),
-        )
+        doctor.check_skill_references(reg, REPO_ROOT, extra_known=doctor.ROLES)
     )
 
     if not reg.entries:

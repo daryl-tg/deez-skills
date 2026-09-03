@@ -25,7 +25,7 @@ vocabulary both runtimes hold.
 read. Codex follows the steps without the router existing there.
 
 **Steps name a role, never a model.** The five roles are defined for both
-runtimes in `agent-matrix.tsv`, and the router resolves the role to a lane at
+runtimes as agent definitions, and the router resolves the role to a lane at
 dispatch.
 
 ## How dispatch actually happens

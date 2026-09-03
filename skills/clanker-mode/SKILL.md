@@ -113,7 +113,9 @@ Playbook steps name a **role**. Never a model, never a runtime.
 | **code-reviewer** | `Agent(subagent_type: "code-reviewer")` | `agent_type: code-reviewer` |
 | **verifier** | `Agent(subagent_type: "verifier")` | `agent_type: verifier` |
 
-All five are defined for both runtimes in `agent-matrix.tsv`.
+All five exist as agent definitions in both runtimes, under
+`~/.claude/agents/` and `~/.codex/agents/`. The hub does not version them
+yet, so a fresh machine has the playbooks without the lanes they route to.
 
 **Nothing crosses the runtime boundary.** Work started in Codex finishes in
 Codex; work started in Claude finishes in Claude. Do not hand a task to the
@@ -156,8 +158,14 @@ before any task-specific todos. A step you skip stays in the list with
 | `playbooks/visual-parity.md` | Pixel-exact equivalence, decided by image diff |
 | `playbooks/multi-phase-plan.md` | Work spanning phases. The plan is the deliverable |
 | `playbooks/agentic-loop.md` | A multi-goal plan run as one bounded loop |
+| `playbooks/autonomous-run.md` | One predicate, driven unattended until it holds |
+| `playbooks/hillclimb.md` | One metric, driven to a target over many attempts |
+| `playbooks/eval.md` | Does a change to how an agent works actually help |
 | `playbooks/authoring-a-skill.md` | Writing or editing a SKILL.md |
 | `playbooks/opening-a-review.md` | Invoked at the end of every delivering playbook |
+| `playbooks/review-to-green.md` | An open review driven to merge-ready. Never past it |
+| `playbooks/landing.md` | Landing verified work, once the operator says so |
+| `playbooks/cleanup.md` | Pruning worktrees, simulators, and the run's servers |
 | `playbooks/session-pickup.md` | Resuming in-flight work from a prior session |
 | `playbooks/pause-safely.md` | Stopping cleanly, so the next session can resume |
 

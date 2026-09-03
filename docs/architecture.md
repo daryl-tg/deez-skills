@@ -28,7 +28,7 @@ truncated instruction, so the registry rejects one that is not on both.
 
 ## Why playbooks are not skills
 
-They are plain `.md` files inside the mode skill. Eighteen of them cost zero
+They are plain `.md` files inside the mode skill. Twenty-four of them cost zero
 registry entries and zero session tokens, and they are readable by absolute path
 from either runtime without being installed anywhere. A Codex handoff cites the
 path directly.
@@ -56,7 +56,7 @@ decomposition are what keep it down.
 
 Playbook steps name a **role**, never a model or a runtime, and the router
 resolves it at dispatch. The five roles are defined for both runtimes in
-`agent-matrix.tsv`.
+agent definitions installed in both runtimes, which the hub does not yet version.
 
 Implementation dispatches to Codex through
 `Agent(subagent_type: "codex:codex-rescue")` — the official OpenAI plugin's

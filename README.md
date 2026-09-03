@@ -5,7 +5,7 @@ and Codex on every machine. Skills live here once and are symlinked into both
 runtimes, so there is no second copy to drift.
 
 The architecture is [pstack](https://github.com/cursor/plugins/tree/main/pstack),
-adapted for two runtimes instead of one. Thirty-four principles, eighteen
+adapted for two runtimes instead of one. Thirty-four principles, twenty-four
 playbooks, one router.
 
 ## install
@@ -50,10 +50,10 @@ That is it. Everything else the router reaches for when a step needs it.
 
 ## usage
 
-`$clanker-mode` matches your task to one of eighteen playbooks and runs it.
+`$clanker-mode` matches your task to one of twenty-four playbooks and runs it.
 
 <details>
-<summary>the eighteen playbooks</summary>
+<summary>the twenty-four playbooks</summary>
 
 | playbook | for |
 |---|---|
@@ -71,8 +71,14 @@ That is it. Everything else the router reaches for when a step needs it.
 | [visual-parity](./skills/clanker-mode/playbooks/visual-parity.md) | pixel-exact equivalence, decided by image diff and never by eye |
 | [multi-phase-plan](./skills/clanker-mode/playbooks/multi-phase-plan.md) | work spanning phases. the plan is the deliverable, not the code |
 | [agentic-loop](./skills/clanker-mode/playbooks/agentic-loop.md) | a multi-goal plan run as one bounded loop, dispatching to Codex |
+| [autonomous-run](./skills/clanker-mode/playbooks/autonomous-run.md) | one predicate, driven unattended until it holds. no delivery mid-run |
+| [hillclimb](./skills/clanker-mode/playbooks/hillclimb.md) | one metric, driven to a target. one change, one measurement, keep or revert |
+| [eval](./skills/clanker-mode/playbooks/eval.md) | does a change to how an agent works actually help. blind candidates, one judge |
 | [authoring-a-skill](./skills/clanker-mode/playbooks/authoring-a-skill.md) | writing or editing a SKILL.md |
 | [opening-a-review](./skills/clanker-mode/playbooks/opening-a-review.md) | invoked at the end of every delivering playbook |
+| [review-to-green](./skills/clanker-mode/playbooks/review-to-green.md) | an open review driven to merge-ready. never past it |
+| [landing](./skills/clanker-mode/playbooks/landing.md) | landing verified work, once the operator says so |
+| [cleanup](./skills/clanker-mode/playbooks/cleanup.md) | pruning worktrees, simulators, and the servers a run started |
 | [session-pickup](./skills/clanker-mode/playbooks/session-pickup.md) | resuming in-flight work from a prior session or branch |
 | [pause-safely](./skills/clanker-mode/playbooks/pause-safely.md) | stopping cleanly, so the next session resumes from a note |
 
@@ -237,7 +243,7 @@ and there is no clean path back, so Claude plans and Codex implements.
 **Principles install on both** because a handoff to Codex cites them by name,
 and that citation only resolves if the leaf exists on that side.
 
-Playbooks are plain markdown inside the router, not registry entries, so eighteen
+Playbooks are plain markdown inside the router, not registry entries, so twenty-four
 of them cost nothing at session start and can still be read by absolute path
 from either runtime.
 

@@ -42,6 +42,11 @@ def _prohibits(line, in_prohibition_block):
 
 # Roles a playbook step may route to, written as **role-name** in skill bodies.
 _ROLE_REF = re.compile(r"\*\*([a-z][a-z0-9-]{2,})\*\*\s+role")
+# The five roles a playbook step may route to. Both runtimes define all five as
+# agent definitions; the hub does not version them yet.
+ROLES = ("explore", "executor", "test-engineer", "code-reviewer", "verifier")
+# A step that says `playbooks/x.md` dead-ends unless x.md sits next to it.
+_PLAYBOOK_REF = re.compile(r"playbooks/([a-z0-9][a-z0-9-]*\.md)")
 
 # A skill cited in bold. Dangling only when neither the registry nor vendor.toml
 # knows the name: a vendored skill is legitimately cited and legitimately absent
@@ -353,6 +358,40 @@ def check_runtime_neutrality(reg, repo_root):
     return findings
 
 
+def check_playbook_links(reg, repo_root):
+    """A step citing `playbooks/x.md` must land on a file that exists.
+
+    Nothing checked this before, so a playbook could route to a sibling that
+    was renamed, never written, or deliberately not adopted. The reader only
+    finds out mid-task, which is the worst moment to discover it.
+    """
+    findings, seen = [], set()
+    for entry in reg.entries:
+        if entry.layer not in ("mode", "playbook-host"):
+            continue
+        base = Path(repo_root) / registry.source_dir(entry, entry.runtimes[0])
+        pb = base / "playbooks"
+        if not pb.is_dir():
+            continue
+        for md in sorted(base.rglob("*.md")):
+            text = md.read_text(encoding="utf-8", errors="replace")
+            for name in sorted(set(_PLAYBOOK_REF.findall(text))):
+                if (pb / name).is_file():
+                    continue
+                key = (str(md), name)
+                if key in seen:
+                    continue
+                seen.add(key)
+                findings.append(
+                    _fail(
+                        "dangling-playbook",
+                        f"{md.relative_to(repo_root)} routes to "
+                        f"playbooks/{name}, which does not exist",
+                    )
+                )
+    return findings
+
+
 def check_roles(reg, repo_root, known_roles):
     """A step routing to a role no runtime defines fails at dispatch."""
     findings = []
@@ -368,7 +407,7 @@ def check_roles(reg, repo_root, known_roles):
                             _fail(
                                 "unknown-role",
                                 f"{md.relative_to(repo_root)} routes to "
-                                f"{role!r}, absent from agent-matrix.tsv",
+                                f"{role!r}, which no runtime defines",
                             )
                         )
             break
@@ -419,6 +458,8 @@ def check(reg, repo_root, roots, profile):
     findings.extend(_check_local_merge(reg, repo_root))
     findings.extend(check_citations(reg, repo_root))
     findings.extend(check_runtime_neutrality(reg, repo_root))
+    findings.extend(check_playbook_links(reg, repo_root))
+    findings.extend(check_roles(reg, repo_root, ROLES))
     actions = linkplan.compute(reg, repo_root, roots, profile)
 
     # Before migration the hub is deliberately unlinked. Nothing linked at all
