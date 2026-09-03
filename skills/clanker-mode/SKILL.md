@@ -29,10 +29,15 @@ unread.
   ordered by impact: waterfalls and bundle size first, re-render tuning much
   later. Do not start at memoisation.
 - **Any motion or interaction feel** → **animate** on web, **animate-expo** on
-  Expo. Reviewing existing motion is **review-animations**; auditing a whole
-  codebase is **improve-animations**; naming an effect you cannot name is
-  **animation-vocabulary**. The craft bar behind all of them is
-  **emil-design-eng**, and **apple-design** for gesture and material work.
+  Expo. The craft bar behind both is **emil-design-eng**, and **apple-design**
+  for gesture and material work. Auditing a codebase's motion is
+  **improve-animations**, and **find-animation-opportunities** for what should
+  move and does not. Both return a roadmap, which is
+  `playbooks/multi-phase-plan.md` work rather than something to start applying.
+  Naming an effect you cannot name is **animation-vocabulary**.
+- **review-animations** is the one you cannot load. It is operator-invoked, so
+  ask for `/review-animations` on the diff. Never claim a motion review you did
+  not run.
 - Any prose surface, including your own reply → the **unslop** skill. For text
   going out in the operator's name, **humanize** after it.
 - About to ask a question whose answer you could observe by running something →
