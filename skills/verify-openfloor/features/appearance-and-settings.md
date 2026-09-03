@@ -9,7 +9,21 @@ across a cold start.
 
 - `you-overview` shows profile, connection state and status.
 - `you-notifications` toggles notifications and opens chat notification rules.
-- `settings-tree` lists Profile, App theme, Chat notifications, Advanced.
+- `settings-tree` lists three groups: **ACCOUNT** (Profile), **APP SETTINGS**
+  (Appearance, App theme, Chat notifications, Advanced) and **SUPPORT**
+  (Your docs, Follows, Help), over a `Search settings` field that really filters.
+- `settings-profile` edits display name (32 chars) and bio (190 chars) behind
+  the app's only Save button, plus the avatar picker — **Save is a real server
+  write**.
+- `settings-advanced` holds a doc auto-publish stepper (5s/15s/30s/1min/5min,
+  device-only, does **not** sync) and a DIAGNOSTICS group (`Copy recent frames`,
+  frames seen/stale/unclassified counts).
+- `settings-search` filters the tree over each row's label, detail and keywords
+  — typing `colour` finds App theme.
+- `settings-appearance` is its own screen between the tree and App theme:
+  THEME (Match device theme, Theme), MESSAGE DISPLAY (Cozy / Compact),
+  TEXT SIZE (Chat text size smaller/bigger, with a percentage),
+  LINK PREVIEWS, MOTION (Follow device / Always reduce).
 - `theme-palette` picks Warm graphite / Graphite / Slate / Brass.
 - `theme-accent` picks Ember / Blurple / Honey.
 - `theme-mode` picks System / light / dark.
@@ -30,6 +44,18 @@ Preconditions:
   — so a theme change is visible in the operator's web client too. Note the
   starting palette and accent before touching them, restore them afterwards, and
   say in the delta that you changed them.
+- **Every appearance dial travels, not just the theme ones.** `appearanceKeys()`
+  in `src/ui/appearance-sync.ts` pushes **seven** keys into the user-prefs blob
+  the web client reads: scheme, palette, accent, **density, chat font scale,
+  reduce-motion and link previews**. So the Appearance section's dials are
+  production-visible too, and there is no cheap local preference to poke on this
+  surface — note and restore anything you touch on either screen.
+
+  `theme-section.tsx` carries a comment saying sync pushes "theme, palette and
+  accent… and nothing else is promised". That comment is **stale** — read
+  `appearanceKeys()`, not the comment. Persistence itself is local
+  (`SecureStore`, `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`), which is what survives
+  `app reset`.
 
 Stable handles:
 
@@ -41,20 +67,37 @@ Stable handles:
 | `role=button label="Appearance"` | into the settings tree — **role is required** |
 | `label="Notifications"` | a `[switch]` |
 | `label="Chat notification rules"`, `label="Friends"`, `label="Apps"`, `label="Settings"` | You rows |
-| `label="Search settings"`, `label="Profile"`, `label="App theme"`, `label="Chat notifications"`, `label="Advanced"` | settings tree |
-| `label="Back to settings"` | back from App theme |
+| `label="Search settings"`, `label="Clear settings search"` | the tree's filter |
+| `label="Profile"`, `label="Appearance"`, `label="App theme"`, `label="Chat notifications"`, `label="Advanced"`, `label="Your docs"`, `label="Follows"`, `label="Help"` | the eight settings rows, in three groups |
+| `label="Retry the OpenMarket connection"` | the You tab's reconnect control |
+| `label="Log out"` | **destructive**; sign-out calls `clearAll()` on the cache |
+| `label="Match device theme"`, `label="Theme"` | the Appearance section's THEME group |
+| `label="Cozy"`, `label="Compact"` | MESSAGE DISPLAY |
+| `label="Chat text size smaller"`, `label="Chat text size bigger"`, `label="Reset to default"` | TEXT SIZE |
+| `label="Show link previews"` | a `[switch]` |
+| `label="Follow device"`, `label="Always reduce"` | MOTION |
+| `role=button label="Back to settings"` | back from App theme — **role is required** |
 | `label="Preview: Graphite · Ember"` | the live preview — **the assertion target**, `"Preview: <Palette> · <Accent>"` |
-| `label="Graphite"`, `label="Slate"`, `label="Brass"` | palette swatches (**not** `Warm graphite`) |
-| `label="Blurple"`, `label="Honey"` | accent swatches (**not** `Ember`) |
+| `label="Graphite"`, `label="Slate"`, `label="Brass"` | palette swatches — safe by label |
+| `label="Blurple"`, `label="Honey"` | accent swatches — safe by label |
+| `label="Warm graphite"`, `label="Ember"` | the **first** swatch of each row — these names each match TWO nodes, and pressing by label hits the wrong swatch. See the gotcha. |
 | `label="System"`, `label="Dark"`, `label="Cream"` | LIGHT OR DARK rows; the active one carries `[selected]` |
-| `[text] "Graphite · Ember"` | the summary line under the dials — the one place the active accent is readable when it is the un-addressable first swatch |
+| `[text] "Graphite · Ember"` | the summary line under the dials — a second, screenshot-friendly reading of both dials |
 
-- **Reach App theme.** Run
-  `./control-openfloor device press 'label="You"' --settle`, then
-  `./control-openfloor device press 'role=button label="Appearance"' --settle`,
-  then `./control-openfloor device press 'label="App theme"' --settle`. The
-  settled diff carries `Preview: <Palette> · <Accent>` — record it as the
-  restore target.
+- **Reach App theme.** Two hops named `Appearance`, then the theme screen:
+
+  ```
+  ./control-openfloor device press 'label="You"' --settle
+  ./control-openfloor device press 'role=button label="Appearance"' --settle   # -> the settings tree
+  ./control-openfloor device press 'role=button label="App theme"' --settle
+  ```
+
+  The tree's own `Appearance` row goes to the Appearance section instead, and
+  that section's `Theme` button reaches the same App theme screen — so
+  `press 'role=button label="Appearance"'` twice, then
+  `press 'role=button label="Theme"'`, is the equivalent route and the one that
+  also exercises `settings-appearance`. Either way the settled diff carries
+  `Preview: <Palette> · <Accent>` — record it as the restore target.
 - **Capture the before state.**
   `./control-openfloor device screenshot --out "$PWD/artifacts/<run>/<rev>/01-theme-before.png" --normalize-status-bar`
 - **Change the accent.** Run
@@ -67,33 +110,53 @@ Stable handles:
   theme and read the preview again. Still `Preview: Graphite · Blurple` means
   the value reached disk rather than living in a store.
 - **Restore.** Press the original swatch. If the original was the *first* in its
-  row it is not reachable by label; see the gotcha and use coordinates, then
-  record that in the delta.
+  row, press its **child node** — by ref from a raw snapshot, or by its own
+  72pt rect's centre — never by label. See the gotcha.
 - **Proof.** Three frames — before, after, after-cold-start — plus the two
   `--settle` diffs. Then
   `./control-openfloor evidence publish <run-id> <revision>`.
 
 ## Gotchas
 
-- **The first swatch in each row is not addressable by label.** iOS merges it
-  into the parent `[cell]`, whose frame spans the whole row. `press
-  'label="Ember"'` taps the row's centre — dead space between Blurple and
-  Honey — and returns success while changing nothing. The same applies to
-  `Warm graphite` in PALETTE. Only `Blurple`/`Honey` and
-  `Graphite`/`Slate`/`Brass` are reachable by name. Reaching `Ember` or `Warm
-  graphite` needs raw coordinates (Ember sat at `(69, 633)` on a 402×874 iPhone
-  17 Pro frame); geometry is frame-dependent, so re-read it from a screenshot
-  rather than reusing that pair.
+- **Pressing the first swatch by label selects the WRONG swatch — silently.**
+  This is worse than the "it does nothing" this file used to claim, and it is
+  the single most expensive trap on the screen. iOS gives the swatch *strip*
+  the name of its first child, so `label="Ember"` matches **two** nodes: the
+  strip (`x16 w370 h114`) and the real swatch (`x33 w72 h80`). `press` takes the
+  strip, taps its centre at `x≈201` — which lands inside **Honey's** box — and
+  reports success. Verified 2026-09-03: `press 'label="Ember"'` moved
+  `Preview: Graphite · Blurple` to `Preview: Graphite · **Honey**`.
+
+  The fix is to press the child, not the strip. Read it out of a raw snapshot
+  and press its ref:
+
+  ```
+  ./control-openfloor device snapshot --raw     # find the node with value "radio button, …"
+  ./control-openfloor device press '@e31'       # -> tapped (69, 479), Warm graphite selected
+  ```
+
+  Its rect centre works too (`press 69 645` restored Ember on a 402×874 iPhone
+  17 Pro frame), but geometry is frame-dependent — re-read it rather than
+  reusing a pair. `Graphite`/`Slate`/`Brass` and `Blurple`/`Honey` remain safe
+  by label, because only the first child lends the strip its name.
 - **`label="Appearance"` is ambiguous** — `[other]` and `[button]` both match and
   `press` fails with `AMBIGUOUS_MATCH`. Always `role=button label="Appearance"`.
-- **The merged first swatch never reports `[selected]`.** Because it is folded
-  into the parent `[cell]`, `Ember` shows no selected state even when active,
-  while `Graphite` and `Dark` show theirs. Read the summary line
-  (`[text] "Graphite · Ember"`) or the preview's accessible name instead of
-  inferring the accent from `[selected]` flags.
-- **The Appearance row opens the whole settings tree**, not an appearance-only
-  screen. App theme is one row inside it, and both it and `Back to settings`
-  need the `role=button` qualifier.
+- **Every swatch does report its state — read it with `get attrs`.** The child
+  node carries `value: "radio button, checked"` and `selected: true`, first
+  swatch included, so
+  `./control-openfloor device get attrs 'label="Ember"'` tells you whether Ember
+  is active. What you cannot trust is the `-i` snapshot's rendering, where the
+  first swatch shows as a `[cell]` and its `[selected]` flag is easy to miss.
+  The preview's accessible name (`Preview: <Palette> · <Accent>`) remains the
+  cheapest single assertion for both dials at once.
+- **`Appearance` names two different rows on two different screens.** On the You
+  tab it opens the **whole settings tree**; inside that tree it opens the
+  **Appearance section**. Both need `role=button`, and pressing it twice in a
+  row is a legitimate route, not a mistake.
+- **`Back to settings` is ambiguous too** — `[other]` and `[button]` both match.
+  `role=button label="Back to settings"`. Expect this on every wrapped header
+  back control: `Back to chats` on Activity and `Back` on the Alerts board have
+  the same shape.
 - **Settings routes hide the tab dock.** `label="Primary navigation"` is absent
   on App theme and on the settings tree, so the selected-tab press is not a way
   out. Use `press 'role=button label="Back to settings"'` then
@@ -105,4 +168,9 @@ Stable handles:
   app resumes on the same screen. That proves nothing about persistence — use
   `app reset`.
 - The `[switch] "Notifications"` toggle changes real push registration. Read it;
-  do not flip it to make a screenshot.
+  do not flip it to make a screenshot. The same applies to `Log out`, which
+  wipes the account-scoped cache.
+- **A cold start shows the Chats tab with no count** (`label="Chats"`, not
+  `Chats, <n> unread`) until the inbox hydrates. If a recipe presses the dock
+  right after `app reset`, that is the label to expect.
+- Palette, accent, mode names and the preview handle re-verified live 2026-09-03 on `f2c3f88`; `theme-accent` and `theme-persist` were exercised and restored to `Graphite · Ember`.
