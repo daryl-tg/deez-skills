@@ -10,7 +10,10 @@ another agent's thread.
 2. **Run the doctor** for the affected repo. An instance left over from the
    prior session may be serving a tree nobody is editing any more.
 3. **Reconstruct the goal** from the dev-notes folder for the task, by absolute
-   path, not from the transcript alone.
+   path, not from the transcript alone. A session that stopped under
+   `playbooks/pause-safely.md` left `resume.md` there. Read it for the intent and
+   the next action, then hold it to step 1 anyway. It states what the prior
+   session believed.
 4. **Re-verify the last claimed-complete step** rather than trusting it. This is
    the step most likely to be wrong, because it is the one that was interrupted.
 5. **Re-enter the matching playbook** at the first unproven step, copying its

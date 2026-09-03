@@ -22,10 +22,14 @@ cannot silently drop it.
 
 ## What it routes to
 
-Twelve playbooks in `skills/clanker-mode/playbooks/`. Four are task-shaped
-(investigation, bug fix, feature, refactoring), four are family-specific (OM
-Chat and OM Mobile, each with a feature and a completion playbook), and the rest
-cover loops, skill authoring, opening a review, and session pickup.
+Eighteen playbooks in `skills/clanker-mode/playbooks/`. Four are task-shaped
+(investigation, bug fix, feature, refactoring). Four are family-specific (OM
+Chat and OM Mobile, each with a feature and a completion playbook). Five widen
+the middle, where a plain feature is the wrong shape: prototype before the
+build, perf issue and forensics when the answer is a number or an artifact,
+visual parity for pixel work, multi-phase plan when the plan is the deliverable.
+The rest cover loops, skill authoring, opening a review, and the session pair of
+pause and pickup.
 
 The router also holds the table of which repository belongs to which family.
 That used to be prose in a CLAUDE.md, where it worked only if the model happened

@@ -31,6 +31,11 @@ def build_parser():
     new_parser.add_argument("--category", required=True)
     new_parser.add_argument("--runtimes", default="claude,codex")
 
+    plan_parser = subparsers.add_parser(
+        "check-plan", help="Check a multi-phase plan against the skeleton."
+    )
+    plan_parser.add_argument("path")
+
     adopt_parser = subparsers.add_parser("adopt", help="Copy a skill into the repo.")
     adopt_parser.add_argument("path")
     adopt_parser.add_argument("--name", default=None)
@@ -184,6 +189,27 @@ def cmd_adopt(args):
     return 0
 
 
+def cmd_check_plan(args):
+    from deezlib import plancheck
+
+    path = Path(args.path).expanduser()
+    if not path.is_file():
+        print(f"check-plan: no plan at {path}", file=sys.stderr)
+        return 2
+    text = path.read_text(encoding="utf-8")
+    units = plancheck.summary(text)
+    for line in units:
+        print(line)
+    found = plancheck.problems(text)
+    print(
+        f"{len(units)} unit{'' if len(units) == 1 else 's'}, "
+        f"{len(found)} problem{'' if len(found) == 1 else 's'}"
+    )
+    for problem in found:
+        print(f"{path}:{problem.line}: {problem.message}", file=sys.stderr)
+    return 1 if found else 0
+
+
 COMMANDS = {
     "version": cmd_version,
     "python-path": cmd_python_path,
@@ -192,6 +218,7 @@ COMMANDS = {
     "index": cmd_index,
     "new": cmd_new,
     "adopt": cmd_adopt,
+    "check-plan": cmd_check_plan,
 }
 
 
