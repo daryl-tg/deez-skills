@@ -1,0 +1,7 @@
+interface:
+  display_name: "ADHD"
+  short_description: "Shape output for a reader with ADHD: lead with the next acti"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false
