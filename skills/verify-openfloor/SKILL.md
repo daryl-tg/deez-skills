@@ -34,11 +34,16 @@ boundary:
 | **Operator's call** | Posting in any other space; changing any space's roles or permissions, Home included |
 | **Out of reach here** | Push delivery, Keychain, background lifecycle, deep links from cold, any SQL migration over a database a previous build created — all device-tier |
 
-> **Home currently has no channels.** As of 2026-09-02 the Servers tab shows
-> `HO, Home, 0 channels` and the server screen reads *"This server has no
+> **Home still has no channels.** Re-checked **2026-09-03**: the Servers tab
+> shows `HO, Home, 0 channels` and the server screen reads *"This server has no
 > visible channels."* So the one write-safe room is not reachable, and
-> **sending a message cannot be proven in this lane right now.** Report that as
-> a verification delta; do not substitute a production channel for it.
+> **sending a message cannot be proven in this lane.** Report that as a
+> verification delta; do not substitute a production channel for it.
+>
+> What *can* be proven without a writable room is the composer's own gate: fill
+> an empty channel's composer, watch `Send message` stop being `[disabled]`,
+> then clear it with `device type $'\b'`. That verifies `composer-typing` and
+> leaves nothing behind. It does not verify `send`, and saying so is the point.
 
 Anything device-tier goes in the run's `verificationDelta`, never quietly
 omitted and never described as passing.
@@ -53,6 +58,16 @@ pnpm start          # Metro on 8081, in the background. Leave it running.
 ./control-openfloor doctor
 ./control-openfloor app open
 ```
+
+**Turn the dev-client Tools button off, once per simulator.** If `app open`'s
+snapshot contains `[other] "gearshape.fill"`, the expo-dev-client floating gear
+is on, and its hit area swallows taps in the top-right of the Chats header:
+pressing `label="Filter chats"` opens the **Expo dev menu** instead of the
+filter drawer, reproducibly, by label and by raw coordinates alike. Open the dev
+menu (press the gear, or Cmd+D in the Simulator), scroll to **Tools button**,
+switch it off. It stays off across launches, and `gearshape.fill` disappearing
+from the snapshot is how you know. Note it in the delta if you change it —
+it is the operator's simulator.
 
 `app open` foregrounds the app and returns the shell snapshot. `app reset` does
 a true cold start (`simctl terminate`, then relaunch) — use it whenever a recipe
@@ -119,6 +134,20 @@ Four rules that come straight from this app's shape:
   row resolves to its display name (`geraldlee`, `Nicholas`, `ryan`) via
   `resolveMemberName`. Snapshot twice before asserting a name, or assert after
   the roster has warmed.
+- **Refs go stale between invocations, not just between mutations.** Every
+  `./control-openfloor device …` is its own `agent-device` call, so a bare
+  `@e20` read in one shell command can be pinned to a dead snapshot in the next
+  and press whatever now occupies those coordinates. Use the `~sN`-pinned form
+  a `--settle` diff hands you (`@e20~s142731`), or a selector.
+- **Qualify a wrapped header back control with `role=button`.** `Back`,
+  `Back to chats`, `Back to settings`, `Back to server` and `Appearance` each
+  match an `[other]` and a `[button]`, and a bare press fails with
+  `AMBIGUOUS_MATCH`.
+- **`fill` by a composer's label silently does nothing.** The label matches the
+  `[other]` wrapper before the `[text-view]`; the fill reports success and the
+  field stays empty. Fill the `[text-view]`'s own ref.
+- **Clear a text field with `device type $'\b'`, one backspace per character.**
+  `fill … ""` is rejected, and the on-screen `delete` key dispatches onto `v`.
 - **Verify the named thing.** A bare screenshot is not verification. Confirm
   with the settle diff, `wait text "..."`, `find`, `get`, or `is`.
 
@@ -198,6 +227,16 @@ device lease, and the next run meets `DEVICE_IN_USE`.
 
 ## Gotchas that cost a run
 
+**A collapsed accessibility tree is recovered by `app reset`, not `app open`.**
+When a screen publishes nothing readable — *"No snapshot backend could read this
+screen"*, a 1- or 2-node snapshot — **every selector fails** with `Selector did
+not match`, including ones that resolved a second earlier. `app open` cannot
+even find the shell and dies with *"app shell never appeared"*.
+`./control-openfloor app reset` recovers it. This session met the collapse after
+driving the emoji picker; it did **not** reproduce on the server-channel route
+that the feature map used to warn about, so treat collapse as intermittent
+rather than expected, and never as a reason to retry a selector.
+
 **`open --relaunch` strands you on the dev-client launcher.** This is a dev
 client, not Expo Go. `--relaunch` reliably lands on *Development Build /
 DEVELOPMENT SERVERS* and stays there. `control-openfloor app` uses a deep link
@@ -219,30 +258,48 @@ with `agent-device close --session X`. Check the session directory's mtime under
 `~/.agent-device/sessions/` before assuming it is stale — a live owner is
 someone else's run.
 
-**The server channel screen can collapse the accessibility tree.** Pressing a
-channel in a large server (OpenMarket, 23 channels) produced *"Detected an
-overly complex or slow accessibility tree. Fell back to the private-ax snapshot
-backend"* and a 2-node snapshot. While collapsed, **no selector resolves** —
-every `press 'label="…"'` fails with `Selector did not match`. Recovery is
-`control-openfloor app open` (a deep-link re-entry), not retrying the selector.
-DM conversations do **not** show this; their trees are rich and healthy, so
-prefer a DM when the claim is about the shared conversation surface, and say so
-if you had to.
+**A DM is still the safest way into the conversation surface.** DM transcripts
+produce rich trees (46 nodes on a normal conversation) and have never collapsed
+here. A channel reached from the server tree produced an equally healthy tree on
+2026-09-03 in a 25-channel server, so the old "expect a collapse in a large
+server" rule is retired — but if you do prove the surface through a DM because
+the channel route failed, that is a delta, not a pass: the channel entry point
+is not verified by it. Recovery when a tree does collapse is above.
 
 **Never clear a text field by pressing `delete`.** `press 'label="delete"'`
 resolved to the keyboard but dispatched onto the **`v` key** — four presses
 turned `Home` into `Homevvvv`. And `fill <target> ""` is rejected outright
-(`Expected text to be a non-empty string`). Use a visible clear control, or
-`control-openfloor app reset` and start over.
+(`Expected text to be a non-empty string`). Use `device type $'\b'`, one
+backspace per character — verified 2026-09-03 on both a composer and a search
+field — or a visible clear control where the screen has one. `app reset` is no
+longer necessary for this.
 
-**The first swatch in a swatch row is not addressable.** On App theme, iOS
-merges the first option into the parent `[cell]`, whose frame spans the whole
-row: `[cell] "Ember"` sits beside `[other] "Blurple"` and `[other] "Honey"`, and
-pressing `label="Ember"` taps the row's centre — dead space — leaving the
-selection unchanged with no error. Only the non-first swatches are reachable by
-label. The same shape applies to PALETTE (`[cell] "Warm graphite"` +
-Graphite/Slate/Brass). Reaching the first swatch needs raw coordinates; note it
-in the delta when you do.
+**A left-up keyboard outlives a navigation.** After typing in the inbox search
+the keyboard stayed over the list, hiding the rows a recipe wanted to press.
+`app open` only foregrounds and does not dismiss it, and `device keyboard
+dismiss` reports no dismiss key on these screens. `app reset` clears it.
+
+**`is` has no `enabled`/`disabled` predicate.** It takes only
+`visible|hidden|exists|editable|selected|focused|text`, so
+`is 'label="Send direct message"' --disabled` fails with `INVALID_ARGS`. Read
+`[disabled]` off `snapshot -i` instead.
+
+**A live ticker means `--settle` never settles.** The Alerts board's header
+carries `updated <n>s ago`, so `press … --settle` there burns the whole budget
+and returns *"not settled after 10001ms"* with no diff. Use `snapshot -i` or
+`wait text` on screens that tick.
+
+**Pressing the first swatch in a swatch row selects the WRONG swatch.** On App
+theme, iOS gives the swatch *strip* the name of its first child, so
+`label="Ember"` matches two nodes: the strip (`x16 w370`) and the real swatch
+(`x33 w72`). `press` takes the strip and taps its centre at `x≈201` — inside
+**Honey's** box — then reports success. Verified 2026-09-03: `press
+'label="Ember"'` moved the preview from `Graphite · Blurple` to `Graphite ·
+Honey`. It is not a no-op; it is a silent wrong answer, and the same shape
+applies to `Warm graphite` in PALETTE. Press the **child** node instead — its
+ref from `snapshot --raw` (the one carrying `value: "radio button, …"`), or its
+own 72pt rect's centre. `get attrs` on either name does report `selected`
+correctly, so use that to read the current value.
 
 **`label="Appearance"` is ambiguous.** Two nodes match (`[other]` and
 `[button]`) and `press` fails with `AMBIGUOUS_MATCH`. Narrow it:
@@ -267,9 +324,13 @@ photographing a spinner.
 matches only while the field is empty; after typing `ger` the handle is
 `label="ger"`. Capture the target before you type.
 
-**Settings routes hide the tab dock.** `label="Primary navigation"` is absent on
-the settings tree and App theme, so the selected-tab press is not a way out
-there — use the screen's own `Back to settings`, then `back`.
+**Most pushed routes hide the tab dock**, so the selected-tab press is not a
+universal escape. Verified 2026-09-03, `label="Primary navigation"` is present
+on the five tab roots **and the server screen**, and absent on a channel, a DM,
+the settings tree, the Appearance section, App theme, the Alerts board,
+Activity, and both Library screens. On those, use the screen's own back control
+— `role=button label="Back to settings"` then `back` on App theme, and the
+`role=button`-qualified twin elsewhere.
 
 **`screenshot` takes `--out`, not `--path`.**
 
@@ -285,7 +346,10 @@ directory. Run it after capturing frames, then replace every `TODO`.
 
 `features/` is the maintained source for the routes and handles of each surface,
 and it goes stale the way any documentation does — the handles above were read
-off a live simulator on 2026-09-02. `maintain-verification-skill` is the upkeep
-pass: run it when a mapped handle stops resolving, when a new user-facing surface
-lands, or when a gotcha here turns out to be fixed. The Home-server note is the
-first thing to re-check.
+off a live simulator on **2026-09-03** at `f2c3f88`.
+`maintain-verification-skill` is the upkeep pass: run it when a mapped handle
+stops resolving, when a new user-facing surface lands, or when a gotcha here
+turns out to be fixed. The Home-server note is the first thing to re-check.
+
+`features/README.md` ends with a **Known gaps** section naming the surfaces the
+map still does not cover. Read it before claiming a run covered the app.
