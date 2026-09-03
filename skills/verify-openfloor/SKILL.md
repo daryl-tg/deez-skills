@@ -18,8 +18,16 @@ evidence someone else can open. The `om-mobile-feature` family owns the
 This skill owns the *mechanics*. When they disagree, policy wins.
 
 Everything goes through `control-openfloor`, which lives in the repo it drives
-(`/Users/dboon/Gitlab/openmarket-chat-app/control-openfloor`) so it versions
-with the app.
+(`/Users/dboon/Gitlab/openmarket-chat-app/control-openfloor`) because it binds
+that repo's preconditions — Metro's port, the bundle id, the evidence root.
+
+**It is deliberately never committed.** It is operator tooling, not app source,
+and it is hidden from `git status` through `.git/info/exclude` rather than
+`.gitignore`, so nothing tracked advertises it. Two consequences worth knowing
+before a run: a fresh clone of the app repo **will not have it**, and doctor's
+`working tree` line will not report it as making the tree dirty. If it is
+missing, that is an operator ask — do not reconstruct it from this document and
+do not commit a copy to either repo.
 
 ## What this lane can and cannot prove
 
