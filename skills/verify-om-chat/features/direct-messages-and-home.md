@@ -9,7 +9,7 @@ conversation, and the friends surfaces that feed it.
   "Waiting for you" queue, and the agent entry points.
 - The DM list with per-conversation unread counts and presence.
 - One DM conversation: header with presence, tape, composer.
-- Connections: the Connections / Friends / Requests / Blocked chips, and their
+- Connections: the Connections / Requests / Blocked chips, and their
   empty states.
 - The public-channel browse board.
 - Inbox and message search openers — **mobile only**, see Gotchas.
@@ -37,7 +37,6 @@ Routes:
 | `?view=home` | Home landing surface |
 | `?view=dm&dm=ana` | One DM conversation (`dm=` picks the peer; defaults to `ana`) |
 | `?view=friends&tab=connections` | Connections — the default, an empty state |
-| `?view=friends&tab=friends` | Friends |
 | `?view=friends&tab=requests` | Requests (what this file used to call Pending) |
 | `?view=friends&tab=blocked` | Blocked — **currently crashes**, see Gotchas |
 | `?view=channels` | Public-channel browse board |
@@ -57,7 +56,9 @@ agent-browser find role button   click --name "Create or Join Server"
 ```
 
 On the Connections surface the chips are `button`, not `tab`: `"Connections"`,
-`"Friends"`, `"Requests"`, `"Blocked"`.
+`"Requests"`, `"Blocked"`. There is **no Friends chip** — `#697` cut the surface
+down to three (`FriendsPane.tsx:104-106`). Opening Requests adds two more chips
+beside them, `"Incoming"` and `"Sent"`.
 
 Observations worth capturing:
 
@@ -80,11 +81,14 @@ seeded presence state — a good second observation alongside the route.
   block. Neither resolves on desktop Home. The desktop search entry point is
   the sidebar's "Search or jump to…" pill, and that is inert in the fixture —
   so message search has no driveable desktop route here at all.
-- **`tab=` takes the real tab ids only.** They are `connections`, `friends`,
-  `requests`, `blocked`. The old `online`, `all`, and `pending` are not
-  translated by the fixture and fall through to Connections — while the hash
-  still echoes what you passed (`?tab=pending` → `#/connections/pending`
-  showing Connections). Trust the rendered chip, never the route, for this one.
+- **Only `requests` and `blocked` reach the hash.** `?tab=requests` gives
+  `#/connections/requests` and `?tab=blocked` gives `#/connections/blocked`.
+  Everything else — `connections`, the retired `friends`, and any unknown value
+  like `pending` — lands on `#/connections/online` no matter what you passed,
+  and no chip renders as active. So the route tells you nothing on the default
+  view, and neither does the active state. Assert on the chip list itself.
+  The real tab ids are `connections`, `requests`, `blocked`; `friends` retired
+  with `#697`, and `online`, `all` and `pending` were never translated.
 - **`?view=friends&tab=blocked` crashes the pane today.** You get *"People
   could not load"* with a Try again / Reload pair. It is fixture seeding, not a
   product regression: the fixture stubs `session.blocks` as `[]` while
