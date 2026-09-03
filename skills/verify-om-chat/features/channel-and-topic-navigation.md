@@ -13,13 +13,11 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   row.
 - The topic view's breadcrumb and its **Back to #channel** return.
 - The composer retargeting to whatever is open.
-- The channel header, which is **five** separate mechanisms, not one list:
+- The channel header, which is **four** separate mechanisms, not one list:
   - a `tablist` named "Channel view" holding exactly two tabs, **Chat** and
     **Topics 6**;
   - a standalone Alerts beacon `button`, whose name carries its state
     (`Alerts: nothing firing`, `Alerts: 3 feeds are ringing`);
-  - a side panel opened by "Show or hide side panel", whose own tablist holds
-    **Members** and **Library**;
   - an Inbox `button`, whose name also carries its count
     (`Inbox: 9 unread`);
   - the search cluster — `Open search in #ops`, a `combobox` named
@@ -27,6 +25,11 @@ topics. The most-driven surface in the app and the cheapest one to prove.
     ([search-and-filters.md](search-and-filters.md)).
   Pins, bookmarks and to-dos are none of those — they are menu items behind
   "More channel actions".
+- The right-panel **dock**, which is no longer in the header at all. `#694`
+  moved it out to its own `nav` named **"Panel functions"**
+  (`src/components/RightPanels.tsx`): a collapse/expand toggle plus one button
+  per panel (**Members**, **Library**). There is no side-panel `tablist` any
+  more, and `"Show or hide side panel"` no longer exists anywhere in `src/`.
 
 ## How to get to it (user POV)
 
@@ -68,8 +71,11 @@ agent-browser find role treeitem click --name "All 6 topics in ops"
 agent-browser find role button   click --name "Back to #ops"
 agent-browser find role button   click --name "Hide this channel's topics"
 agent-browser find role button   click --name "6 open topics. Cycle topic rows"
-agent-browser find role button   click --name "Show or hide side panel"
 agent-browser find role button   click --name "More channel actions"   # then pins/bookmarks/to-dos
+
+# The right-panel dock. BOTH names below flip with state — see Gotchas.
+agent-browser find role button   click --name "Expand panel"
+agent-browser find role button   click --name "Members"
 ```
 
 Three independent observations, all cheap:
@@ -103,6 +109,16 @@ the navigation retargeted the *write* path, not only the read pane.
 - Alerts is a `button`, not a third tab. `find role tab --name "Alerts"` fails,
   and the name changes with state, so match on the `Alerts:` prefix rather than
   a fixed string.
+- **The right-panel dock renames itself, twice.** The toggle is
+  `"Expand panel"` when the panel is shut and `"Collapse panel"` when it is
+  open; each panel button is `"Members"` when that panel is shut and
+  `"Close Members"` when it is open — `RightPanels.tsx` builds that name as
+  *active ? "Close " + label : label*. The container class moves too —
+  `.right-panel-dock-standalone` while collapsed, `.right-panel-dock` once
+  expanded — so a selector written against the collapsed state stops matching
+  the moment you open it. Drive the stable hooks instead:
+  `[data-slot-tab="members"]` and `[data-slot-tab="library"]`, reading
+  `aria-pressed` for which panel is open and `aria-expanded` on the toggle.
 - **The topic peek pane does not render right now.** `?peek=<topicId>` is read
   (it seeds `session.topicPeek`), and the Shell gate needs `active.kind ===
   "room"`, a matching room, and a viewport wider than the `max-width: 1099px`
@@ -110,7 +126,9 @@ the navigation retargeted the *write* path, not only the read pane.
   absent. This is not a query you are getting wrong: the repo's own
   `tools/visual/topic-peek-drop.visual.ts` drives the identical URL and fails
   on `expect(pane).toBeVisible()`, and it fails on `main` as far back as
-  `25fe4e6b`. The Playwright suite is not part of the merge gate
+  `25fe4e6b`, and still fails at `50a5b29f` — the `#689` PeekIntent refactor
+  looks like it would have fixed this and did not, so do not read that commit
+  as a fix. The Playwright suite is not part of the merge gate
   (`lint && typecheck && build && check-dist && test-fast`), which is how it
   rotted unnoticed. Do not spend a run rediscovering this, and do not report it
   as caused by your change — but do check whether it has been fixed before

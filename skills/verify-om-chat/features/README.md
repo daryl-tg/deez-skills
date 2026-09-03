@@ -109,6 +109,9 @@ the board disagree, and both are fixture seeding: the beacon hardcodes **three**
 ringing feeds (`Alerts: 3 feeds are ringing`) while the board renders the
 **two** rows actually seeded (`af-store-5xx`, `af-relay-latency`). Do not report
 that gap as a product bug, and do not caption a screenshot with the badge count.
+Those two are seed **ids**, not rendered text — the row reads
+`store-5xx · check pods`, so grepping a snapshot for `af-store-5xx` finds
+nothing and looks like the board failed to render.
 
 ## Who adds to this map
 

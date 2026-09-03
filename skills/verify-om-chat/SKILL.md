@@ -14,9 +14,27 @@ you saw into evidence someone else can open.
 invalidated, what the operator must approve. This skill owns the *mechanics*.
 When they disagree, policy wins.
 
-Everything here goes through `control-om-chat`, which lives in the repo it
-drives (`/Users/dboon/github/openmarket-chat/control-om-chat`) so it versions
-with the app.
+Everything here goes through `control-om-chat`, at
+`/Users/dboon/github/openmarket-chat/control-om-chat`.
+
+It sits in the repo it drives, but it does **not** version with it: the file is
+untracked, excluded via `.git/info/exclude`, and present on no branch. Two
+consequences worth knowing before you plan a run. A `git worktree` of the repo
+does not have it, so a lane you start from a worktree fails with
+`no such file or directory`. And because the script resolves its own repo from
+`dirname "$BASH_SOURCE"`, calling it by absolute path serves the **primary
+checkout** whatever your cwd is — so you cannot point it at a worktree by
+invoking it from there. To drive a specific tree, copy the script into that
+tree and run it from the copy:
+
+```bash
+cp /Users/dboon/github/openmarket-chat/control-om-chat <worktree>/
+cd <worktree> && OM_CHAT_LANE_PORT=<port> ./control-om-chat doctor
+```
+
+That matters more than it sounds: the primary checkout is frequently parked on
+somebody else's feature branch, so "run the wrapper" and "drive `main`" are not
+the same thing.
 
 ## Pick a lane before you launch
 
