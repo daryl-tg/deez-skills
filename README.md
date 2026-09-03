@@ -250,7 +250,8 @@ from either runtime.
 ## the tooling
 
 ```bash
-bin/doctor      drift, dangling citations, unknown roles, layer violations, budget
+bin/doctor      drift, dangling citations and playbooks, unknown roles, untracked
+                Codex gates, layer violations, budget
 bin/link        preview the install. --apply to make it so
 bin/new         scaffold and register a skill
 bin/adopt       pull an existing skill in from elsewhere

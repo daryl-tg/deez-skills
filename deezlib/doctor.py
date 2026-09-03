@@ -358,6 +358,44 @@ def check_runtime_neutrality(reg, repo_root):
     return findings
 
 
+def check_gate_tracking(reg, repo_root):
+    """A gate file that was written but never added breaks the next clone.
+
+    The gates are marked generated in .gitattributes so they stay out of review
+    diffs, which is the same property that lets an untracked one sit unnoticed
+    in `git status` behind a wall of other noise. Git is the authority here, so
+    ask it. Outside a work tree there is nothing to ask, and the check is silent.
+    """
+    import subprocess
+
+    root = Path(repo_root)
+    try:
+        listed = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "--", "*/agents/openai.yaml"],
+            capture_output=True, text=True, check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return []
+
+    tracked = {line.strip() for line in listed.stdout.splitlines() if line.strip()}
+    findings = []
+    for entry in reg.entries:
+        base = root / registry.source_dir(entry, entry.runtimes[0])
+        gate = base / "agents" / "openai.yaml"
+        if not gate.is_file():
+            continue
+        relative = gate.relative_to(root).as_posix()
+        if relative not in tracked:
+            findings.append(
+                _fail(
+                    "untracked-gate",
+                    f"{relative} exists but git does not track it. "
+                    f"A clone would fail the Codex gate check",
+                )
+            )
+    return findings
+
+
 def check_playbook_links(reg, repo_root):
     """A step citing `playbooks/x.md` must land on a file that exists.
 
@@ -459,6 +497,7 @@ def check(reg, repo_root, roots, profile):
     findings.extend(check_citations(reg, repo_root))
     findings.extend(check_runtime_neutrality(reg, repo_root))
     findings.extend(check_playbook_links(reg, repo_root))
+    findings.extend(check_gate_tracking(reg, repo_root))
     findings.extend(check_roles(reg, repo_root, ROLES))
     actions = linkplan.compute(reg, repo_root, roots, profile)
 

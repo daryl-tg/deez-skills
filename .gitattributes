@@ -1,0 +1,6 @@
+# Codex invocation gates. bin/doctor requires one beside every gated skill that
+# installs to Codex, so they are tracked and a clone without them fails. They
+# are also mechanical, seventy-plus near-identical four-line files, so they are
+# marked generated and collapse in review instead of burying the real diff.
+# Tracked, hidden. Never ignored: .gitignore here would break the next clone.
+**/agents/openai.yaml linguist-generated=true
