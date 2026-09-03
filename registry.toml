@@ -367,6 +367,10 @@ runtimes = ["claude", "codex"]
 category = "om-chat"
 runtimes = ["claude", "codex"]
 
+[skills.verify-openfloor]
+category = "om-chat"
+runtimes = ["claude", "codex"]
+
 [skills.llm-council]
 category = "workflow"
 runtimes = ["claude", "codex"]
