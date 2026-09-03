@@ -335,6 +335,37 @@ layer    = "workflow"
 category = "core"
 runtimes = ["claude"]
 
+# The five roles every playbook step routes to. Claude only, because the hub
+# links agents into ~/.claude/agents and Codex resolves its own lanes from
+# oh-my-codex (recorded in vendor.toml). Before these were registered they were
+# symlinks into the retired dev-notes source, so a fresh clone carried the
+# playbooks and none of the lanes they name.
+
+[agents.explore]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude"]
+
+[agents.executor]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude"]
+
+[agents.test-engineer]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude"]
+
+[agents.code-reviewer]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude"]
+
+[agents.verifier]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude"]
+
 [skills.om-chat-design-system]
 category = "om-chat"
 runtimes = ["claude", "codex"]

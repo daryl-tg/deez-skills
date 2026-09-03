@@ -141,3 +141,15 @@ runtimes = []
 source   = "github:antfu/skills"
 path     = "skills/vue-best-practices"
 runtimes = []
+
+
+# The Codex half of the roles table. Every playbook step names a role, and on
+# Codex those five resolve to oh-my-codex agents under ~/.codex/agents/*.toml,
+# which that package owns and updates. The hub links agents into ~/.claude only,
+# so it versions the Claude halves in agents/ and records these rather than
+# copying them. A copy would go stale the moment oh-my-codex moved, and would
+# then disagree with the lane Codex actually dispatches.
+[vendor.oh-my-codex]
+source   = "oh-my-codex"
+path     = "agents"
+runtimes = ["codex"]

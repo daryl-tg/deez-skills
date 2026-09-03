@@ -113,9 +113,10 @@ Playbook steps name a **role**. Never a model, never a runtime.
 | **code-reviewer** | `Agent(subagent_type: "code-reviewer")` | `agent_type: code-reviewer` |
 | **verifier** | `Agent(subagent_type: "verifier")` | `agent_type: verifier` |
 
-All five exist as agent definitions in both runtimes, under
-`~/.claude/agents/` and `~/.codex/agents/`. The hub does not version them
-yet, so a fresh machine has the playbooks without the lanes they route to.
+All five resolve on both runtimes. The hub versions the Claude halves in
+`agents/` and links them into `~/.claude/agents/`. On Codex they are oh-my-codex
+agents under `~/.codex/agents/`, owned by that package and recorded in
+`vendor.toml` rather than copied.
 
 **Nothing crosses the runtime boundary.** Work started in Codex finishes in
 Codex; work started in Claude finishes in Claude. Do not hand a task to the

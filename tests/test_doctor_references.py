@@ -139,6 +139,26 @@ class RoleCheckTest(unittest.TestCase):
             codes = [f.code for f in doctor.check(reg, repo, roots, "full")]
             self.assertNotIn("unknown-role", codes)
 
+    def test_every_role_a_playbook_routes_to_is_versioned_in_the_hub(self):
+        """A fresh clone must carry the lanes, not just the steps that use them.
+
+        These five lived as symlinks into the retired dev-notes source, so a
+        second machine got twenty-four playbooks and no agents to run them.
+        """
+        repo = Path(__file__).resolve().parents[1]
+        reg = registry.load(repo / "registry.toml")
+        agents = {e.name for e in reg.entries if e.kind == "agent"}
+        self.assertEqual(set(doctor.ROLES) - agents, set())
+
+    def test_every_role_definition_is_a_real_file(self):
+        repo = Path(__file__).resolve().parents[1]
+        reg = registry.load(repo / "registry.toml")
+        for entry in reg.entries:
+            if entry.kind != "agent":
+                continue
+            source = repo / registry.source_dir(entry, "claude")
+            self.assertTrue(source.is_file(), f"{source} is registered but absent")
+
     def test_the_five_roles_are_named_in_one_place(self):
         self.assertEqual(
             doctor.ROLES,

@@ -312,9 +312,12 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `automate-me` |  | claude, codex | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for 'automate me', 'capture how I work', or … |
 | `clanker-agent` |  | claude | — |
 | `clanker-mode` | router | claude, codex | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or … |
+| `code-reviewer` |  | claude | — |
 | `codex-first` |  | claude, codex | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:review) as the primary path, raw codex exec as… |
 | `create-verification-skill` |  | claude, codex | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, … |
 | `design` |  | claude, codex | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implement against the sketch, and scrap it when f… |
+| `executor` |  | claude | — |
+| `explore` |  | claude | — |
 | `herdr-codex-orchestration` |  | claude, codex | Run independent Codex implementation, review, and verification loops through Herdr with isolated worktrees. Covers arena mode (N candidates, one judge) and swa… |
 | `maintain-verification-skill` |  | claude, codex | Periodic pass keeping a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at mo… |
 | `principle-announce-the-linked-review` | principle | claude, codex | Apply at the end of any delivered change. Announce as a title line, a body in the operator's /adhd voice, and the PR or MR link — nothing else — then read the … |
@@ -353,7 +356,9 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-visual-approval-gates-delivery` | principle | claude, codex | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. Approval is the operator's, never inferre… |
 | `reflect` |  | claude, codex | Mine a finished session for durable lessons and route each to a concrete skill edit, gated on approval. Use when the operator says reflect, or after a complex … |
 | `review` |  | claude, codex | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a branch, PR, or MR, dead-code checks, or 'wou… |
+| `test-engineer` |  | claude | — |
 | `test-first` |  | claude, codex | Write the failing check before production code, at the fastest level that expresses the behavior, and report the failing-before evidence. Use before implementi… |
+| `verifier` |  | claude | — |
 
 ### Go language toolchain
 
