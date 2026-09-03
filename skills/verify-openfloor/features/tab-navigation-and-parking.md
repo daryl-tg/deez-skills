@@ -50,11 +50,19 @@ Stable handles:
   `./control-openfloor device press 'label="Servers"' --settle`. The server
   detail is replaced by the server list.
 
-  This is **not** a universal escape — it only works where the dock is present.
-  Verified 2026-09-03, the dock survives on the tab roots and on the server
-  screen, and is **absent** on a channel, a DM, the settings tree, App theme,
-  the Appearance section, the Alerts board, Activity, and both Library screens.
-  On those, use the screen's own back control.
+  This is **not** a universal escape — it only works where the dock is present,
+  and the rule is a two-entry list in source:
+  `TAB_BAR_ROUTES = ['index', 'server/[spaceId]/index']`
+  (`src/rooms/bottom-tabs-dock-geometry.tsx`). The dock shows on the home floor
+  and on a server's channel list, and **nowhere else** — not on a channel, a DM,
+  either details route, settings, activity, apps, library, docs, follows, help,
+  alerts, invite or `new/*`. Matches what driving showed on 2026-09-03. On every
+  other route, use the screen's own back control.
+
+  That constant is also why the selected-tab press works on the server screen
+  despite its unlabelled back control — the server screen keeps the dock. And a
+  rename there breaks the dock silently (`docs/NAVIGATION.md` §7), which is
+  exactly what the "Confirm the shell" step would catch.
 - **Verify parking.** Prove it with *retained state*, not scroll offset — the
   inbox is often too short to scroll. Type into the inbox search, leave, and
   come back:

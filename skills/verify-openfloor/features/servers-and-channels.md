@@ -9,7 +9,8 @@ beside each channel and the server's Library above them.
 
 - `servers-grid` lists joined servers.
 - `servers-search` filters that list (network-backed).
-- `server-channels` shows the channel tree, grouped and unread-first.
+- `server-channels` shows the channel tree, grouped by category in the server's
+  own arrangement — **not unread-first**.
 - `server-topics` toggles a channel's topic list.
 - `server-library` opens the server's shared-document destination.
 - `server-manage` opens role and permission management.
@@ -111,17 +112,30 @@ carry counts that drift. `find "channel go-tasks"` is the safe form.
   is one of the few pushed routes that **keeps** the dock. This is a product
   accessibility gap, reported to the operator, not something to work around
   quietly: a screen-reader user gets an unnamed button.
-- **The row's channel count and the screen's header disagree.** On 2026-09-03
-  the row read `OpenMarket, 32 channels` while the screen read `25 CHANNELS`
-  (it was 30 vs 23 the day before — the numbers move, the disagreement does
-  not). Do not assert either number as the other's value.
-- **Long-pressing a channel row mutes it.** `onLongPress` on the row is the mute
-  toggle, so `longpress` on a channel is a production write. Use `press`.
-- **Server search is network-backed and fails live.** Typing into
-  `label="Search servers"` produced *"OpenMarket authentication is temporarily
-  unreachable"* and hung on *"Loading OpenMarket servers…"*. Prefer the cached
-  list. If search is the point of the proof, `wait text` for a result and report
-  the failure rather than photographing the spinner.
+- **The row's channel count and the screen's header disagree, and here is why.**
+  The grid tile counts `item.rooms.length` — every room in the space — while the
+  channel-tree header counts `visibleChannels.length`, which drops alert-home
+  channels via `alertHomeHiddenFor`. So the row is "all rooms" and the header is
+  "channels you can see". On 2026-09-03 that read `OpenMarket, 32 channels` over
+  `25 CHANNELS` (30 vs 23 the day before — the numbers move, the gap does not).
+  Never assert either as the other's value.
+- **Long-pressing a channel row opens the attention drawer.** The row carries
+  `accessibilityHint="Long-press to mute this channel"` and its `onLongPress`
+  opens `AttentionDrawer`, where picking a level calls
+  `mutes.setChannelAttention` — a production write. Opening the drawer is a
+  read; choosing in it is not, and it is the operator's call, the same posture
+  as `server-manage`. Use `press` on channels so you never open it by accident.
+- **Server search is local and instant — the old "network-backed" warning was a
+  misattribution.** `filteredServers` in `src/rooms/rooms-screen.tsx` is a pure
+  client-side `.filter()` over the already-loaded servers, matching a server's
+  name or any of its room titles; typing makes no request. The
+  *"OpenMarket authentication is temporarily unreachable"* string lives in
+  `src/auth/auth-backend.ts` and is an auth failure, and
+  *"Loading OpenMarket servers…"* is gated on the initial directory fetch
+  (`directoryStatus === 'loading' && servers.length === 0`). An earlier run
+  caught a directory hiccup while also touching search and blamed the field. If
+  you want to prove the loading or error state, drive it right after `app open`
+  while the directory is still fetching — not by typing.
 - **Home is the only write-safe server, and it still has no channels.**
   Re-checked 2026-09-03: the row reads `HO, Home, 0 channels` and the screen
   reads *"This server has no visible channels."* Nothing in this file makes a

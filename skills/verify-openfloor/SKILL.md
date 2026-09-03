@@ -210,10 +210,13 @@ Leave Metro running — it is the operator's, it is a singleton, and doctor's jo
 is to tell you whether it is yours to use. Never `pkill node` or `pkill expo`:
 that takes out the operator's bundler and every other worktree's lane at once.
 
-Restore anything you mutated, and remember not every "local" preference is
-local: App theme states outright that it *"travels to your OpenMarket web
-session"*. This session changed the accent to prove the lane and put it back;
-say so in the delta.
+Restore anything you mutated, and remember that **no** appearance preference is
+local: `appearanceKeys()` in `src/ui/appearance-sync.ts` pushes all seven —
+scheme, palette, accent, density, chat font scale, reduce-motion and link
+previews — into the user-prefs blob the web client reads. App theme says so on
+screen (*"travels to your OpenMarket web session"*); the Appearance section does
+not, but syncs just the same. This session changed the accent to prove the lane
+and put it back; say so in the delta.
 
 Evidence survives teardown — it lives under `~/.local/state/om-mobile-feature/`,
 not in the simulator. Confirm it:
@@ -325,10 +328,11 @@ matches only while the field is empty; after typing `ger` the handle is
 `label="ger"`. Capture the target before you type.
 
 **Most pushed routes hide the tab dock**, so the selected-tab press is not a
-universal escape. Verified 2026-09-03, `label="Primary navigation"` is present
-on the five tab roots **and the server screen**, and absent on a channel, a DM,
-the settings tree, the Appearance section, App theme, the Alerts board,
-Activity, and both Library screens. On those, use the screen's own back control
+universal escape. The rule is a two-entry list in source —
+`TAB_BAR_ROUTES = ['index', 'server/[spaceId]/index']`
+(`src/rooms/bottom-tabs-dock-geometry.tsx`) — so `label="Primary navigation"`
+appears on the home floor and a server's channel list and **nowhere else**;
+driving on 2026-09-03 matched. Everywhere else use the screen's own back control
 — `role=button label="Back to settings"` then `back` on App theme, and the
 `role=button`-qualified twin elsewhere.
 

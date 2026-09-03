@@ -23,6 +23,9 @@ there is something to send.
 - `convo-topics` opens the channel's topic list and search.
 - `convo-call` shows the call strip and its join control.
 - `convo-actions` opens a message's action sheet from a long press.
+- `composer-length` counts down to the send cap and refuses past it.
+- `convo-present` offers a jump back to the newest message once scrolled away.
+- `convo-incoming-call` shows who is on a call and offers to join it.
 
 ## How to get to it (user POV)
 
@@ -52,6 +55,11 @@ Stable handles (read off a DM):
 | `label="Open link preview <title>"` | an unfurl card, a `[link]` |
 | `label="Cancel direct message reply"` | dismiss a staged reply (channel twin: `Cancel room reply`) |
 | `label="Mention <handle>"`, `label="Insert <glyph> <shortcode>"`, `label="Topic <label>"`, `label="Channel <label>"` | composer autocomplete rows |
+| `label="Scroll to the newest message"` | the jump-to-present pill, once >240pt from the bottom (both DM and channel) |
+| `label="<n> characters left."` | the composer counter, **silent until within 200 of the cap** |
+| `label="<too-long sentence> Over by <n> characters."` | the same node past the cap, e.g. *"Too long for a DM (10000 max) — shorten it before sending."* |
+| `label="On the call: You, <names>"` | the in-call strip, an `[accessibilityRole=text]` node |
+| `label="Join the call, <n> people in it"` | the joinable-call pill (singular: `<n> person`) |
 | `label="Open attachment menu"` | composer attachment control |
 | `label="Direct message Message <name>"` | the composer, a `[text-view]` |
 | `label="Open emoji picker"` | composer emoji control |
@@ -137,6 +145,13 @@ until a channel with topics has been driven.
 
   Prefer a channel whose transcript reads `No messages in this room yet.` so a
   stray draft cannot be mistaken for a real one.
+- **Prove `composer-length` the same way, with a long fill.** The counter is
+  **silent until within 200 characters of the cap** (`COMPOSER_COUNTER_LEAD`),
+  so a short probe shows nothing. Fill past ~9800 characters, assert a node
+  labelled `"<n> characters left."`, push past the cap and assert the over-limit
+  sentence plus send staying `[disabled]`, then clear with `device type $'\b'`.
+  New in `f2c3f88` (`src/rooms/composer-length.tsx`); the label is built by
+  `composerLengthLabel()`.
 - **Sending.** Only in Home, and **Home still has no visible channels**
   (re-checked 2026-09-03), so a real send remains unreachable in this lane.
   When it is reachable the shape is: fill the composer, assert send is enabled,

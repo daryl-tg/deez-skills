@@ -80,6 +80,17 @@ surface with no entry of its own yet:
 - **Friends, Apps, Follows, Help, Chat notifications, Profile, Advanced,
   invites, and the new-group / new-server / connections flows** are reachable
   from mapped screens and unmapped themselves.
+- **Deep-link entry points** (`om://room/x`, `om://dm/alice`, notification
+  taps) — `src/app/+native-intent.ts`, `src/navigation/chat-href.ts`,
+  `src/navigation/navigation-provider.tsx`. No file owns them.
+- **Route restore across process death** —
+  `src/navigation/route-restore.ts`, `src/navigation/route-memory.tsx`,
+  `redirectSystemPath` in `+native-intent.ts`. Plausibly drivable here, because
+  `app reset` is a real `simctl terminate`: navigate somewhere restorable,
+  `app reset`, then assert the restored route. Two guardrails if someone writes
+  that recipe — the details routes (`/room/x/details`, `/dm/x/details`) are
+  never remembered by design, and `/` forgets by design, so neither is a valid
+  starting point.
 
 ## Feature entry contract
 

@@ -7,7 +7,8 @@ notifications bell; a floating `+` opens the new-conversation menu.
 
 ## Sub-features
 
-- `inbox-list` renders DM rows and server rollup rows in one feed.
+- `inbox-list` renders **three** row kinds in one feed: DM rows, server rollup
+  rows, and joined public-room rows.
 - `inbox-search` filters rows by typed text.
 - `inbox-filter` opens the filter drawer beside search: an All chats / Servers /
   Direct messages choice plus an `Unread only` switch.
@@ -58,6 +59,13 @@ Inside the filter drawer:
 Row labels follow `"<name>, <when>, <preview>"` for DMs
 (`"geraldlee, Yesterday, still removed sadly"`) and
 `"<server>, OpenMarket server"` for rollups (`"OpenMarket, OpenMarket server"`).
+
+The third kind is a **joined public room** (`InboxItem` kind `'room'`,
+`src/rooms/inbox.ts`). It leads with a `◉` glyph instead of an avatar, titles as
+`◉ <room title or name>`, previews the room description or the literal
+`Public room`, carries a `ROOM` eyebrow, and shows an **activity** indicator
+rather than a true unread count. Match it with
+`find "◉ <title>"` or on the title substring.
 
 - **Reach the inbox.** Run `./control-openfloor app open`. The returned snapshot
   carries `label="Chats inbox"` and the dock shows `Chats, <n> unread`
@@ -131,6 +139,12 @@ Row labels follow `"<name>, <when>, <preview>"` for DMs
 - **A text field's label is its content once it has any.** This bites every
   editable target, not just search: capture the handle before you type, and use
   the typed value afterwards.
+- **The filter drawer silently hides public-room rows.** The scope filter keeps
+  only `kind === 'server'` or `kind === 'dm'`, and the drawer offers no Rooms
+  choice — so a joined public room appears under **All chats only**. A run that
+  sets the filter and then reports "no room rows" has proved nothing about them.
+  If the account has joined no public rooms, that row kind is unreachable:
+  report it skipped with the precondition, do not omit it.
 - **The activity and alerts destinations are their own surfaces.** `inbox-alerts`
   and `inbox-activity` are entry points here; what is behind them lives in
   [alerts](./alerts.md) and [activity-and-requests](./activity-and-requests.md).

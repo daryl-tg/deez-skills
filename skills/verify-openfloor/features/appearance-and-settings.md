@@ -12,6 +12,14 @@ across a cold start.
 - `settings-tree` lists three groups: **ACCOUNT** (Profile), **APP SETTINGS**
   (Appearance, App theme, Chat notifications, Advanced) and **SUPPORT**
   (Your docs, Follows, Help), over a `Search settings` field that really filters.
+- `settings-profile` edits display name (32 chars) and bio (190 chars) behind
+  the app's only Save button, plus the avatar picker — **Save is a real server
+  write**.
+- `settings-advanced` holds a doc auto-publish stepper (5s/15s/30s/1min/5min,
+  device-only, does **not** sync) and a DIAGNOSTICS group (`Copy recent frames`,
+  frames seen/stale/unclassified counts).
+- `settings-search` filters the tree over each row's label, detail and keywords
+  — typing `colour` finds App theme.
 - `settings-appearance` is its own screen between the tree and App theme:
   THEME (Match device theme, Theme), MESSAGE DISPLAY (Cozy / Compact),
   TEXT SIZE (Chat text size smaller/bigger, with a percentage),
@@ -36,11 +44,18 @@ Preconditions:
   — so a theme change is visible in the operator's web client too. Note the
   starting palette and accent before touching them, restore them afterwards, and
   say in the delta that you changed them.
-- **Only three dials travel.** `appearance-sync` pushes *scheme, palette and
-  accent* to the user-prefs blob the web client reads, and nothing else. The
-  Appearance section's dials — message density, chat text size, link previews,
-  reduce-motion — stay on this device. That makes them the cheaper things to
-  exercise when a claim only needs "a preference persisted".
+- **Every appearance dial travels, not just the theme ones.** `appearanceKeys()`
+  in `src/ui/appearance-sync.ts` pushes **seven** keys into the user-prefs blob
+  the web client reads: scheme, palette, accent, **density, chat font scale,
+  reduce-motion and link previews**. So the Appearance section's dials are
+  production-visible too, and there is no cheap local preference to poke on this
+  surface — note and restore anything you touch on either screen.
+
+  `theme-section.tsx` carries a comment saying sync pushes "theme, palette and
+  accent… and nothing else is promised". That comment is **stale** — read
+  `appearanceKeys()`, not the comment. Persistence itself is local
+  (`SecureStore`, `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`), which is what survives
+  `app reset`.
 
 Stable handles:
 
