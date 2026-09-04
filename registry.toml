@@ -648,3 +648,10 @@ runtimes = ["claude"]
 [skills.writing-comments]
 category = "writing"
 runtimes = ["claude", "codex"]
+
+# Adopted from humanlayer/skills (plugins/show-me). Edited rather than vendored:
+# its HTML step ran `open` on the host, which shows the page to a browser the
+# operator is not sitting in front of.
+[skills.show-me]
+category = "workflow"
+runtimes = ["claude", "codex"]

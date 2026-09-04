@@ -35,7 +35,9 @@ not that you change anything.
    watches the system assemble. To teach A to B to C: draw A to B, then redraw
    adding C, then redraw adding the return edge. Three small growing diagrams
    beat one crowded one. A single all-at-once diagram, especially saved for the
-   end, is reference, not teaching.
+   end, is reference, not teaching. Which form each one takes, a call tree, a
+   component tree, a shaped diff, comes from **show-me**. This step owns the
+   pacing only.
 
 Write every response through **unslop**, in plain spoken English. Tight, not
 terse: cut filler, keep what makes it click. Give each concept one name and keep

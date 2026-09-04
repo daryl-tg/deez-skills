@@ -428,6 +428,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `prompt-ready` |  | claude | Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persist… |
 | `recall` |  | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap. |
 | `reviewer` |  | claude, codex | Code, diff, PR, or MR review; dead-code checks, behavior drift, or REVIEW.txt notes. |
+| `show-me` |  | claude, codex | Explain the current topic visually, picking the smallest view that makes the point: pseudocode, a call tree, a component or file tree, a Mermaid diagram, a sha… |
 | `show-me-your-work` |  | claude, codex | Keep an auditable decision trail as a committed TSV during long or unattended runs. Use when the operator will review after stepping away, or when the reasonin… |
 | `syncup` |  | claude | Use when the user wants one or more local repos brought up to date with their default branch — refresh main from origin, rebase the working branch onto it, and… |
 | `taskfile` |  | claude, codex | Task runner automation: create, revise, or troubleshoot task definitions and syntax. |
