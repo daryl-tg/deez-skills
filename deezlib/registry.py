@@ -9,10 +9,10 @@ RUNTIME_KINDS = {"claude": ("skill", "command", "agent"), "codex": ("skill",)}
 ALL = "*"
 
 # A layer says what a skill is for, which determines how it may be invoked.
-#   mode          the router. Sticky, routed to explicitly, Claude only.
+#   mode          the router. Sticky, routed to explicitly, never matched.
 #   principle     one rule. Cited by playbooks, must exist on both runtimes so
 #                 a handoff citation resolves on either side.
-#   playbook-host a skill owning a playbooks/ directory. Claude only.
+#   playbook-host a skill owning a playbooks/ directory.
 #   workflow      everything else. May stay model-invocable.
 LAYERS = ("mode", "principle", "playbook-host", "workflow")
 DEFAULT_LAYER = "workflow"

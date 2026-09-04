@@ -46,10 +46,10 @@ git_mutations = "claude"
 # ---------------------------------------------------------------------------
 # Every entry declares a `layer`, which decides how it may be invoked:
 #
-#   mode           the router. Sticky, explicitly routed to, Claude only.
+#   mode           the router. Sticky, explicitly routed to, never matched.
 #   principle      one rule. Cited by playbooks. Must be on BOTH runtimes so a
 #                  handoff citation resolves on either side.
-#   playbook-host  owns a playbooks/ directory. Claude only.
+#   playbook-host  owns a playbooks/ directory.
 #   workflow       everything else. May stay model-invocable. The default.
 #
 # mode, principle, and playbook-host must ship disable-model-invocation: true.
@@ -247,9 +247,11 @@ category = "core"
 runtimes = ["claude", "codex"]
 
 # --- Router -----------------------------------------------------------------
-# One router, Claude only. Codex ignores disable-model-invocation, so a mode
-# skill there would fire on description matches. Its playbooks are plain files,
-# readable by absolute path from either runtime without being installed.
+# One router, on both runtimes. Codex ignores disable-model-invocation, so a
+# mode skill there would fire on description matches; agents/openai.yaml carries
+# the gate instead, and bin/doctor fails a gated skill missing either half. The
+# playbooks are plain files, readable by absolute path from either runtime
+# without being installed.
 
 [skills.clanker-mode]
 layer    = "mode"

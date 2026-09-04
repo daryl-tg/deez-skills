@@ -5,9 +5,9 @@ which one an entry belongs to, and `bin/doctor` enforces the consequences.
 
 | Layer | What it is | Runtimes | Flag |
 |---|---|---|---|
-| `mode` | The router. Classifies a request, copies a playbook's steps in verbatim | Claude only | required |
+| `mode` | The router. Classifies a request, copies a playbook's steps in verbatim | **both** | required |
 | `principle` | One rule. Cited by playbooks, never restated in them | **both** | required |
-| `playbook-host` | A skill owning a `playbooks/` directory | Claude only | required |
+| `playbook-host` | A skill owning a `playbooks/` directory | **both** | required |
 | `workflow` | Everything else | either | optional |
 
 ## Why the router is Claude-only

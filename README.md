@@ -8,6 +8,45 @@ The architecture is [pstack](https://github.com/cursor/plugins/tree/main/pstack)
 adapted for two runtimes instead of one. Thirty-four principles, twenty-four
 playbooks, one router.
 
+```mermaid
+flowchart TB
+  subgraph hub["one repo, one source of truth"]
+    reg["registry.toml<br/>121 skills, 6 agents,<br/>a layer each"]
+    ven["vendor.toml<br/>22 third-party entries,<br/>recorded, never copied"]
+    lnk["bin/link<br/>symlinks, never copies"]
+    doc["bin/doctor<br/>gates, citations, roles,<br/>playbook links, budget"]
+    reg --> lnk
+    reg --> doc
+    ven --> doc
+  end
+
+  cc["~/.claude<br/>skills, commands, agents"]
+  cx["~/.codex<br/>skills"]
+
+  subgraph work["what one request runs"]
+    router["$clanker-mode<br/>the router. same on both runtimes"]
+    pb["1 of 24 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
+    prin["34 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
+    role["5 roles<br/>explore, executor, test-engineer,<br/>code-reviewer, verifier"]
+    craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, show-me"]
+    ship["opening-a-review, then landing<br/>evidence approved before anything ships"]
+    router --> pb
+    pb --> prin
+    pb --> role
+    pb --> craft
+    pb --> ship
+  end
+
+  lnk --> cc
+  lnk --> cx
+  cc --> router
+  cx --> router
+```
+
+You type one thing, `$clanker-mode`. It picks the playbook, the playbook names
+the principles and the roles, and `bin/doctor` fails the build when any of those
+names points at something that is not there.
+
 ## install
 
 ```bash
