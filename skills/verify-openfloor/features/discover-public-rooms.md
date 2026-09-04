@@ -35,7 +35,7 @@ Stable handles:
 | `label="Public Rooms"` | the screen title in the home header |
 | `label="Search public rooms"` | the search field |
 | `label="Clear public room search"` | a real, labelled clear control |
-| `label="Open conversations"` | the directory list container |
+| `label="Open conversations"` | **not a container** — a one-time intro heading, rendered only while the account has joined zero public rooms |
 | `label="Join public room <name>"` | a directory row's join control |
 | `label="Open public room <name>"` | the same control once joined |
 | `label="Open joined public room <name>"` | a joined-room row |
@@ -61,6 +61,15 @@ Stable handles:
   entries"*). `find "Chats"` here can match that paragraph instead of the dock
   tab and tap the wrong thing. Press the dock tab by its own label, or by a
   ref from a settle diff.
+- **The intro card disappears for good once anything is joined.** Both
+  `Open conversations` and the *"do not become permanent Chats entries"* copy
+  live in one card gated on `!hasJoinedRooms`, and joined rooms are persisted —
+  so on any account that has ever joined a public room, neither string is on
+  screen and their absence is not a bug to chase. That also blunts the `find`
+  warning below: the copy it warns about may simply not be there.
+- **A `Join` control also vanishes while offline.** The row is disabled and
+  reads `Offline` unless the connection status is `ready`, so a selector built
+  on `Join public room <name>` stops matching for two different reasons.
 - **The join and open controls share one row.** `Join public room <name>`
   becomes `Open public room <name>` once joined, so a selector built on `Join`
   silently stops matching for exactly the rooms you already belong to.

@@ -47,7 +47,10 @@ Stable handles:
 | `label="Create note"` | create; `[disabled]` until the path field has text |
 | `label="Expand <folder>"` / `label="Collapse <folder>"` | a folder row's disclosure |
 | `label="Rename <folder>"` | a folder row's rename control |
-| `label="Open <title or path>"` | a document row |
+| `label="Open <title or path>"` | a document row **in a search result or Shared with me** |
+| `label="Open <filename>"` | a document row in the default **Yours** folder tree — the last path segment, never the title, even when one is set |
+| `label="New to-do"`, `label="Add to-do"` | add a to-do; `Add to-do` is disabled until the field has text |
+| `label="Folder name"`, `label="Confirm folder rename"`, `label="Cancel folder rename"` | the rename flow's own controls, behind `Rename <folder>` |
 | `label="Complete <todo title>"` | a to-do's completion control |
 | `label="Open the doc for <todo title>"` | a to-do's document |
 | `label="Open source message in #<channel>"` | a to-do's originating message |
@@ -58,8 +61,10 @@ Stable handles:
 - **Read each segment.** Press `Shared with me, …` and `Todos, …` on their
   stable leading substring with `find`, never on the full label — both embed a
   live count. `./control-openfloor device find "Shared with me"`.
-- **Search.** `fill 'label="Search your docs"' "journal" --settle`, then clear
-  with `press 'label="Clear search"'`.
+- **Search.** `fill 'label="Search your docs"' "journal" --settle`. Typing only
+  live-filters; **`Clear search` does not exist until the search is submitted**,
+  because it is gated on submitted hits. Send the return key first, or clear
+  with `device type $'\b'` instead.
 - **Verify the create gate without creating.**
   `./control-openfloor device snapshot -i` on arrival shows
   `[button] "Create note" [disabled]` beside an empty `New note path`. That
@@ -86,4 +91,9 @@ Stable handles:
   server screen, and in Channel tools.
 - **`Create note` is one press from a production document.** It sits next to a
   text field on the default screen, so be deliberate about what you fill.
+- **`Add documents to your library` opens a multi-step sheet**, not a picker:
+  a menu (`Import document…`, `Import folder…`, `New from template…`), an
+  import-review step with a `Replace documents that already exist` switch and an
+  `Import <n> documents` button, and a from-template step. Importing is a
+  production write. Source-confirmed, not driven.
 - Verified live 2026-09-03 on `f2c3f88` (iPhone 17 Pro, iOS 26.5).

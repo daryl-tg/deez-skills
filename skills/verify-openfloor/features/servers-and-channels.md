@@ -75,7 +75,10 @@ carry counts that drift. `find "channel go-tasks"` is the safe form.
   display name. Reading that line without knowing so suggests the opposite.
   The settled diff flips the label to `Hide <roomId> topics` and opens a panel
   in one of four states: rows, `Loading topics…`, `No open topics`, or
-  `Topics unavailable · tap to retry`.
+  `Topics unavailable · tap to retry`. **The rows are live targets**, which this
+  file used to stop short of saying: up to three topics render, each pressable
+  and jumping straight into that topic, and below them an `All topics · <n>` row
+  opens the channel's full topic panel. Both are reads.
 - **Open the Library.** Run
   `./control-openfloor device press 'label="Open OpenMarket Library"' --settle`.
   The screen carries `label="Back to server"` (**ambiguous — needs

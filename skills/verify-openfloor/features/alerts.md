@@ -40,7 +40,7 @@ Stable handles:
 | `label="Alerts: <n> feeds need an answer"` | awaiting an answer (singular: `feed needs`) |
 | `label="Alerts: nothing firing"` | quiet — **the beacon still renders and is still the way in** |
 | `id=alerts-header-button` | the beacon by identifier — **state-proof, unlike its label** |
-| `label="New alert"` | the create control |
+| `label="New alert"` / `label="New alert in #<channel>"` | the create control — **the label is not stable**: it gains the channel whenever a conversation has been opened this session, and returning to the Chats root does not clear it. Use `find "New alert"`. |
 | `label="How alerts work"` | the explainer |
 | `label="Show <feed> activity"` / `label="Hide <feed> activity"` | a row's inline activity |
 | `label="Load older triggers"` | history control on a feed screen |
@@ -48,15 +48,19 @@ Stable handles:
 | `label="Alerts"` | the board's own empty/error state block |
 
 Feed rows are a composite: `"<feed>, in <channel>, <verb>, <n> unanswered[,
-fired repeatedly with nobody responding for <n> days][, muted], last fired
-<when>"`.
+<state phrase>][, muted][, flagged], last fired <when>"`. The state phrase is
+fixed text, not a template — the neglected one is literally *"fired repeatedly
+with nobody responding for 30 days"*, and the same slot also carries the tuning
+and archived phrases.
 
 - **Read the beacon, then open it.** Because the label changes with state, drive
   it by identifier: `./control-openfloor device press 'id=alerts-header-button'`.
   Capture the label first if the beacon's own state is part of the claim.
 - **Read the board.** `./control-openfloor device snapshot -i`. The header reads
   `<n> FEEDS ARE RINGING` over `"<n> feeds across <n> channels · updated <n>s
-  ago"`, then a `Firing` section of rows.
+  ago"`, then the sections. There are up to **six**, not just the `Firing` one a
+  2026-09-03 run happened to see: `Firing`, `Someone's on it`, tuning, quiet,
+  `Logs`, and `Unanswered`.
 - **Expand a feed's activity.**
   `press 'label="Show sentinel activity"' --settle` and assert the rows in the
   diff, then press the `Hide …` twin.
@@ -71,7 +75,9 @@ fired repeatedly with nobody responding for <n> days][, muted], last fired
 ## Gotchas
 
 - **The board never settles, so `--settle` always times out on it.** The header
-  carries a live `updated <n>s ago` ticker. `press … --settle` returns *"not
+  carries a live `updated <n>s ago` ticker, driven by a one-second interval in
+  `src/ui/active-clock.ts` — so it re-renders every second for as long as the
+  screen is active. `press … --settle` returns *"not
   settled after 10001ms — the UI kept changing for the whole settle budget"*
   and gives you no diff. Use `snapshot -i` or `wait text` for this screen, and
   reserve `--settle` for the rows, which do settle.

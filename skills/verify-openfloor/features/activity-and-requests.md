@@ -7,7 +7,9 @@ a request is accepted, declined or cancelled.
 
 ## Sub-features
 
-- `activity-all` lists mentions and friend activity, grouped by day.
+- `activity-all` lists mentions and friend activity, grouped by day. Day sections come from a fixed order — `TODAY`, `YESTERDAY`,
+`THIS WEEK`, `THIS MONTH`, `EARLIER` — so an older account shows more than the
+three a fresh one does.
 - `activity-replies` lists replies to this account.
 - `activity-expand` expands one notification to its full text.
 - `activity-requests` lists incoming friend requests.
@@ -50,7 +52,8 @@ Stable handles:
 Row shapes, both composites that inline the whole message body:
 
 - mention: `"<initial>, <handle> mentioned you in #<roomId>, <body>, Expand notification from <handle>"`
-- reply: `"<handle> replied to you in <where>, unread"`
+- reply: `"<handle> replied to you in <where>, unread"`, where `<where>` falls
+  back to the literal **`unknown channel`** when the room has no resolved title
 - friend: `"You are now friends with <name>"`
 
 - **Open it.** `./control-openfloor device press 'label="Open notifications and requests"' --settle`.
@@ -77,8 +80,12 @@ Row shapes, both composites that inline the whole message body:
   `mentioned you in #edfe132d4117`, not `#dev-forums`. That is what the app
   renders today — do not "correct" it in a caption, and do not build a selector
   on a channel name that is not there. Reply rows have the mirror problem and
-  fall back to a generic `in chat`. Both are reported to the operator as
-  product gaps, not doc drift.
+  fall back to the literal **`unknown channel`** (`activity-screen.tsx`,
+  `const roomLabel = roomTitle?.trim() || 'unknown channel';`; the repo's own
+  test asserts `#unknown channel`). An earlier version of this file said the
+  fallback was `in chat` — that string is not on this surface at all, and the
+  only `in chat` in the repo is an unrelated alerts phrase. Both fallbacks are
+  reported to the operator as product gaps, not doc drift.
 - **Row labels inline the entire message body**, including mentions, code and
   URLs. Match a short leading substring with `find`, never the full label.
 - **The accept and decline controls sit inside the row you are reading.** They
