@@ -49,11 +49,16 @@ One surface has a fourth, dedicated harness: the Open World tab, at
 `mocks/world-solo/index.html?worldprobe=1`. See
 [open-world.md](open-world.md) — it is not reachable through the shell fixture.
 
-The other files in `tools/visual/` are **not** driveable harnesses.
-`agent-center-fixture.html`, `person-presence-fixture.html`, and
-`reaction-scene-fixture.tsx` are opened only by their Playwright visual specs,
-and `chat-rendering-gallery.html` is a static mock nothing references. Opening
-one expecting `?view=`-style behavior wastes a run.
+`tools/visual/agent-center-fixture.html` is a fourth harness, and a real one:
+it opens standalone and renders the Agent Center's consent queue with content.
+Its vocabulary is only `state=desk-off`, `theme` and `zoom` — none of the shell
+fixture's grammar. See [om-and-agents.md](om-and-agents.md).
+
+The remaining files in `tools/visual/` are **not** driveable harnesses.
+`person-presence-fixture.html` and `reaction-scene-fixture.tsx` are opened only
+by their Playwright visual specs, and `chat-rendering-gallery.html` is a static
+mock nothing references. Opening one expecting `?view=`-style behavior wastes a
+run.
 
 `?view=` values on the shell fixture: `room` (default), `topics`, `topic`,
 `required`, `public`, `dm`, `home`, `channels`, `friends`, `library`, `agent`,
@@ -109,9 +114,12 @@ the board disagree, and both are fixture seeding: the beacon hardcodes **three**
 ringing feeds (`Alerts: 3 feeds are ringing`) while the board renders the
 **two** rows actually seeded (`af-store-5xx`, `af-relay-latency`). Do not report
 that gap as a product bug, and do not caption a screenshot with the badge count.
-Those two are seed **ids**, not rendered text — the row reads
-`store-5xx · check pods`, so grepping a snapshot for `af-store-5xx` finds
-nothing and looks like the board failed to render.
+Those two are seed **ids**, not rendered text, so grepping a snapshot for
+`af-store-5xx` finds nothing and looks like the board failed to render. What
+you will find is `store-5xx · check pods` — and that string comes from the
+**strip**, which renders `name · actionLine` and is layered above the content,
+not from the board's own row, which shows the bare name. Both are on screen
+under `?alerts=board`; say which one a caption means.
 
 ## Who adds to this map
 
@@ -133,4 +141,5 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [direct-messages-and-home.md](direct-messages-and-home.md)
 - [settings-and-appearance.md](settings-and-appearance.md)
 - [search-and-filters.md](search-and-filters.md)
+- [om-and-agents.md](om-and-agents.md)
 - [open-world.md](open-world.md)

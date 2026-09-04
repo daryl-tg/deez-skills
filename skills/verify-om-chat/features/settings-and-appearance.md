@@ -7,10 +7,15 @@ interaction end to end.
 
 ## Sub-features
 
-- User settings: My Account, Profiles, Privacy, Sealed Messages, Appearance,
-  Notifications, Audio, To-dos, Keyboard Shortcuts, Accessibility, Doc Editing,
-  Agent Settings — then a Help group (How Agents Work, How the Library Works,
-  How Apps Work, Slash Commands, Moderating Servers) and Log Out.
+- User settings, nineteen entries: My Account, Profiles, Privacy, Sealed
+  Messages, Appearance, Notifications, Audio, To-dos, Keyboard Shortcuts,
+  Accessibility, Doc Editing, **Recovered Drafts**, Agent Settings — then a Help
+  group (How Agents Work, How the Library Works, How Apps Work, Slash Commands,
+  Moderating Servers) and Log Out. Recovered Drafts arrived with `#741` and its
+  page id is `draft-recovery`, not `recovered-drafts`. It is **ungated** — no
+  permission, no flag, no "only when you have orphans" check — so nineteen is
+  the count in every state, and a nav that comes back eighteen is a real
+  regression rather than a seeding difference.
 - Appearance: theme (dark / light / sync with OS), palette (Graphite, Slate,
   Moss, Warm, Brass), accent (Clay, Blue, Iris, Plum, White), and per-context
   message density. Density is three nested `radiogroup`s, not tabs: **Chat
@@ -55,6 +60,7 @@ agent-browser open "$(./control-om-chat url \
 | `settings-fixture.html?host=user&page=notifications` | Notifications |
 | `settings-fixture.html?host=user&page=accessibility` | Accessibility |
 | `settings-fixture.html?host=user&page=todos` | To-dos — **account-wide defaults only**, not the per-channel override |
+| `settings-fixture.html?host=user&page=draft-recovery` | Recovered Drafts — **empty state only**; nothing seeds a draft |
 | `settings-fixture.html?host=server&page=roles&perms=owner` | Server roles, as owner |
 | `settings-fixture.html?host=server&page=moderation&perms=owner` | Server moderation |
 | `settings-fixture.html?host=channel&page=access&perms=owner` | Channel access |

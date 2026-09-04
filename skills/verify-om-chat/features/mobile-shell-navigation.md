@@ -93,7 +93,14 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
 - Switching roots does **not** always change the URL hash meaningfully
   (`Chats` lands on `#/`). Assert the DOM marker, not the route, for root
   switches — the route *is* reliable for detail opens.
-- A "one Back" assertion must allow both spellings: `Back` and `Back to X`.
+- A "one Back" assertion must allow three spellings: `Back`, `Back to X`, and
+  `Back to conversation`. The third comes from `#653`: opening OM settings,
+  schedules or alerts from inside Your om renders a `Back to conversation`
+  control, and it is not gated on `useIsMobile()`, so it appears at phone width
+  too — without a takeover or a detail marker, still inside the om root card
+  with the tab bar mounted. You will not meet it in the fixture, because Your om
+  there is stuck on its not-running empty state
+  ([om-and-agents.md](om-and-agents.md)); it needs a running daemon.
 - Chromium at a narrow viewport is not iOS WKWebView or Android WebView. A
   green matrix here is a `web-bundle` claim only; native certification is
   still open (`docs/mobile-native-release-checklist.md`).

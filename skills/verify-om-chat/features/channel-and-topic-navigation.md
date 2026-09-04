@@ -76,8 +76,8 @@ agent-browser find role button   click --name "Hide this channel's topics"
 agent-browser find role button   click --name "6 open topics. Cycle topic rows"
 agent-browser find role button   click --name "More channel actions"   # then pins/bookmarks/to-dos
 
-# The right-panel dock. BOTH names below flip with state — see Gotchas.
-agent-browser find role button   click --name "Expand panel"
+# The right-panel dock. This name flips with state — see Gotchas. The dock's
+# collapse toggle is NOT driveable here; do not reach for "Expand panel".
 agent-browser find role button   click --name "Members"
 ```
 
@@ -112,18 +112,45 @@ the navigation retargeted the *write* path, not only the read pane.
 - Alerts is a `button`, not a third tab. `find role tab --name "Alerts"` fails,
   and the name changes with state, so match on the `Alerts:` prefix rather than
   a fixed string.
-- **The right-panel dock renames itself, twice.** The toggle is
-  `"Expand panel"` when the panel is shut and `"Collapse panel"` when it is
-  open; each panel button is `"Members"` when that panel is shut and
-  `"Close Members"` when it is open — `RightPanels.tsx` builds that name as
-  *active ? "Close " + label : label*. The container class moves too —
-  `.right-panel-dock-standalone` while collapsed, `.right-panel-dock` once
-  expanded — so a selector written against the collapsed state stops matching
-  the moment you open it. Drive the stable hooks instead:
+- **The dock's panel buttons rename themselves.** Each is `"Members"` when that
+  panel is shut and `"Close Members"` when it is open — `RightPanels.tsx` builds
+  the name as *closes ? "Close " + label : label*. The container classes do
+  **not** move with state, whatever an older reading of this file said:
+  `.right-panel-dock-standalone > nav.right-panel-dock` is nested and present
+  in both states at desktop width, because `#715` hoisted the dock into
+  `ConversationRightRegion` where it renders unconditionally. The bare `nav`
+  without its wrapper appears only under the mobile overlay
+  (`RightPanels.tsx:150`), which is a viewport distinction, not an open one.
+  Drive the stable hooks —
   `[data-slot-tab="members"]` and `[data-slot-tab="library"]`, reading
-  `aria-pressed` for which panel is open and `aria-expanded` on the toggle.
+  `aria-pressed` for which panel is open. That pair still works: clicking
+  Members flips `aria-pressed` to `true`, renames the button, and puts a
+  `.right-panel-drawer` on screen.
+- **The dock's collapse toggle is dead in this lane, and lies about its state.**
+  It reads `"Collapse panel"` even with the panel plainly shut, `"Expand panel"`
+  never appears, `aria-expanded` is not rendered at all, and clicking it changes
+  nothing. Do not build a proof on it and do not report it as a product bug.
+
+  `#715` rebuilt the toggle around a right *region* that stays open while the
+  panel collapses, so the label now keys on `session.rightRegionOpen()`
+  (`RightPanels.tsx:187`) rather than on whether a panel is open. `#715` added
+  that seam and `#735` swapped its body to route through `rightRegionTenant`,
+  which is why a docked note counts as open and a topic peek does not. The
+  fixture stubs none of `rightRegionOpen`, `collapseRightRegion` or
+  `expandRightRegion`, so all three fall through to the `INERT` proxy: truthy
+  for the label, a no-op for the click, and not a boolean — which is why React
+  drops `aria-expanded` instead of printing it. Spelling those three out in
+  `tools/visual/shell-fixture.tsx` is what would fix it.
+
+  The split within one dock is the useful lesson. Its panel buttons read
+  `rightRegionTenant(session)`, which branches on `session.rightPanel` — a
+  **field** the fixture spells out, so it yields real booleans and
+  `aria-pressed` works. The toggle calls `session.rightRegionOpen()` — a
+  **method** the fixture never mentions, so it yields `INERT`. Stubbed field
+  versus unstubbed method, same component, opposite outcomes: when half a
+  control works and half does not, that is the first thing to check.
 - **The topic peek pane does not render right now.** `?peek=<topicId>` is read
-  (it seeds `session.topicPeek`), and the Shell gate needs `active.kind ===
+  (it seeds `session.topicPeek`), and the gate needs `active.kind ===
   "room"`, a matching room, and a viewport wider than the `max-width: 1099px`
   overlay query — all satisfied at 1440×900. `[data-topic-peek]` is still
   absent. This is not a query you are getting wrong: the repo's own
@@ -133,8 +160,12 @@ the navigation retargeted the *write* path, not only the read pane.
   hover machine into PeekIntent") as a fix for it: that commit touches
   `channel-peek.ts` and `dm-peek.ts`, the sidebar **hover popovers**, which are
   a different mechanism from the topic side pane. This seam —
-  `?peek=` → `fixtureTopicPeek` → `session.topicPeek` → Shell's gate →
-  `TopicPeekPane` — was not in its diff at all. The Playwright suite is not
+  `?peek=` → `fixtureTopicPeek` → `session.topicPeek` → the gate →
+  `TopicPeekPane` — was not in its diff at all. The gate itself did move,
+  though: `#731` lifted it out of `Shell.tsx` into `ConversationRightRegion`
+  (`RightPanels.tsx:241`), byte-identical, now called from `ChatPane.tsx` and
+  `TopicListView.tsx` rather than from one Shell site. Same boolean, new owner —
+  look there when it next needs checking. The Playwright suite is not
   part of the merge gate
   (`lint && typecheck && build && check-dist && test-fast`), which is how it
   rotted unnoticed. Do not spend a run rediscovering this, and do not report it
