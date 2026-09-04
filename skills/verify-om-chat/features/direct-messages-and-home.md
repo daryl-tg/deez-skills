@@ -98,6 +98,18 @@ seeded presence state — a good second observation alongside the route.
   view, and neither does the active state. Assert on the chip list itself.
   The real tab ids are `connections`, `requests`, `blocked`; `friends` retired
   with `#697`, and `online`, `all` and `pending` were never translated.
+
+  Do not try to derive this from `hashForView` — reading that function alone
+  predicts `?tab=pending` lands on `#/connections/pending`, and it does not.
+  The cause is a **fixture stub**: `openFriends` there is written
+  `openFriends: () => navigate({ kind: "friends", tab: "online" })`
+  (`tools/visual/shell-fixture.tsx:2114`) — no parameter, hardcoded tab, unlike
+  the real `ChatSession.openFriends`, which honours its argument. Boot seeds the
+  hash, routing parses it back, the parsed view differs in shape from the raw
+  fixture view for every id except `requests` and `blocked`, so navigation
+  fires and the argument-blind stub lands on `online` every time. Those two are
+  immune only because they round-trip identically and the equality guard
+  returns early before the stub is ever called.
 - **`?view=friends&tab=blocked` crashes the pane today.** You get *"People
   could not load"* with a Try again / Reload pair. It is fixture seeding, not a
   product regression: the fixture stubs `session.blocks` as `[]` while
