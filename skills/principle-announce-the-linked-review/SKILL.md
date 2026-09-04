@@ -20,10 +20,12 @@ believes it went out.
    paragraph or a few bullets, not a changelog of files.
 3. **The PR or MR link.** On its own line, last.
 
-Leave out the evidence or preview URL, the gate results, the test counts, the
-branch name, and what is still open. Whoever cares opens the link for all of
-that. A room announcement is a notification, not a report, and the operator
-reads these rooms on a phone: anything past the link is scrolling.
+Leave out the gate results, the test counts, the branch name, and what is still
+open. Whoever cares opens the link for all of that. A room announcement is a
+notification, not a report, and the operator reads these rooms on a phone:
+anything past the link is scrolling. The evidence or preview URL is barred
+outright rather than merely trimmed, because a room has other readers and the
+renderer is loopback. See **principle-visual-approval-gates-delivery**.
 
 **Write it in the operator's `/adhd` voice.** Read
 `~/.claude/commands/adhd.md` and apply it to the announcement text, whether or

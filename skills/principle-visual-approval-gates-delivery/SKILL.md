@@ -27,3 +27,10 @@ judgement the operator makes by looking.
 **Never hand over an untunnelled URL.** Agent test servers on `18097`–`18197`
 are unreachable from the operator's machine, so one offered as a review link is
 a dead end that reads as a working one. See **principle-bind-assigned-ports**.
+
+**The evidence URL is for the operator alone.** It is loopback on their own
+machine, so it is dead for everyone else. It goes in the reply and nowhere a
+third party reads: not a PR or MR body, not a review comment, not a room
+announcement, not an issue, not a commit message. Those get what was driven and
+what it showed, in words. A link only the author can open is worse than no
+link, because it reads as proof anyone could check.

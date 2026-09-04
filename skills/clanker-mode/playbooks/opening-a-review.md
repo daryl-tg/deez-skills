@@ -20,8 +20,12 @@ Invoked at the end of every delivering playbook. Applies
    running.
 5. **Push the feature branch only.** Never main. Never push unless the operator
    asked.
-6. **Open the PR or MR** with the standard body: what changed, why, how it was
-   verified, and the evidence URL.
+6. **Open the PR or MR** with the standard body: what changed, why, and how it
+   was verified. **Never put the evidence URL in it.** That renderer lives on
+   the operator's loopback, so the link is dead for every other reader and
+   reads as a broken promise of proof. Describe what was driven and what it
+   showed; the URL belongs in the reply, per
+   **principle-visual-approval-gates-delivery**.
 7. **Announce** with the link and read the announcement back, per
    **principle-announce-the-linked-review**.
 8. **Clean up** the worktree.
