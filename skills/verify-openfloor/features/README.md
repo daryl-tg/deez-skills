@@ -4,8 +4,16 @@ The maintained source for verifying user-facing behavior on the OpenFloor iOS
 simulator lane. Read this index before driving, then use the matching feature
 file as the recipe.
 
-Handles below were read off a live simulator on **2026-09-03** (iPhone 17 Pro,
-iOS 26.5, `sh.openmarket.openfloor`, Metro on 8081, app at `f2c3f88`).
+Handles below were read off a live simulator on **2026-09-04** at `b916dff` for
+the sheet surfaces (chats-inbox, conversation-and-composer, servers-and-channels)
+and on 2026-09-03 at `f2c3f88` for the rest (iPhone 17 Pro, iOS 26.5,
+`sh.openmarket.openfloor`, Metro on 8081).
+
+**Five files have not been exercised live since `f2c3f88`:**
+appearance-and-settings, alerts, activity-and-requests, discover-public-rooms,
+your-library-and-todos. The 2026-09-04 pass was blocked before reaching them.
+Their handles are unverified against the native-sheet refactor, so treat any
+sheet they describe as suspect until driven.
 
 ## Baseline preconditions
 
@@ -47,6 +55,9 @@ iOS 26.5, `sh.openmarket.openfloor`, Metro on 8081, app at `f2c3f88`).
   `role=button`.
 - **Only the tab roots and the server screen show the dock.** Everywhere else
   the selected-tab press is unavailable — use the screen's own back control.
+- **A sheet is a modal `[window]` and the snapshot truncates to it.** Nothing
+  behind a sheet resolves while it is open. No sheet has a close control since
+  `5c51af4`; dismiss with `./control-openfloor device back`.
 - Restore anything you mutate. Never remove proof artifacts.
 
 ## Proof and skip reporting

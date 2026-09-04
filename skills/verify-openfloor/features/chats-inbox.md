@@ -46,11 +46,11 @@ Stable handles on this screen:
 | `label="Chats viewport"` | the tab's outer container |
 | `label="Cancel selection"`, `label="Selection actions"` | multi-select mode; the actions are production writes |
 
-Inside the filter drawer:
+Inside the filter drawer, which is now a **modal `[window] "Filter chats"`** —
+see the sheet gotcha below before writing a selector against it:
 
 | Handle | What it is |
 |---|---|
-| `label="Close chat filters"` | dismiss |
 | `label="All chats, Servers and direct messages"` | the default scope |
 | `label="Servers, Only OpenMarket server inboxes"` | server rollups only |
 | `label="Direct messages, Only one-to-one conversations"` | DMs only |
@@ -93,7 +93,9 @@ rather than a true unread count. Match it with
   `./control-openfloor device press 'label="Filter chats"' --settle`. **This
   fails on a dev client with the Tools button on** — the floating
   `gearshape.fill` overlay swallows the tap and the Expo dev menu opens
-  instead. Turn the Tools button off first; see the gotcha.
+  instead. Turn the Tools button off first; see the gotcha. Dismiss the drawer
+  with `./control-openfloor device back` — **there is no close control any
+  more**.
 - **Open activity.** Run
   `./control-openfloor device press 'label="Open notifications and requests"' --settle`.
   Accepting, declining or cancelling a request is a **production write** — read
@@ -129,6 +131,13 @@ rather than a true unread count. Match it with
 - The alerts control's label changes with state (`Alerts, checking` while it
   resolves). Do not build a selector on the ringing variant unless you have
   waited for it.
+- **The filter drawer is a native sheet now, and it hides the rest of the app.**
+  Since `5c51af4` it presents as `[window] "Filter chats"` and the snapshot
+  **truncates to the sheet** — 9 nodes, with the dock, the inbox and the header
+  all absent. Do not read "the inbox is gone" as a crash, and do not try to
+  assert a background element while a sheet is open. `Close chat filters` was
+  deleted with the old drawer; dismiss with `device back`. Verified live
+  2026-09-04.
 - **The dev-client Tools button eats `Filter chats`.** With the expo-dev-client
   floating gear on screen (`[other] "gearshape.fill"` in the snapshot), pressing
   `label="Filter chats"` opens the **Expo dev menu**, not the drawer —

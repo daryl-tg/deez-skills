@@ -86,12 +86,17 @@ from the visible text, so a row reads
 `"<author>[, APP], <Today at 11:47 AM>, <the entire body>"`. That is why the DM
 recipe's `Message from <name>` does not match in a channel.
 
-Behind `label="Channel tools"`, all read off a live sheet on 2026-09-03:
-`Close channel tools`, `To-dos`, `Members`, `Pins`, `Saved`, `Search`,
-`Library`, `Convert to alerts…`, `Topics`, `Copy channel link`,
-`Copy channel ID`. Behind its `Topics`, also live: `Close topics`, `View all`,
-`Search topics`, `Channel stream, MESSAGES WITHOUT A TOPIC`, and the empty
-states `No topics in this room yet.` / `No topics in this channel yet.`
+Behind `label="Channel tools"`, re-verified live 2026-09-04 at `b916dff`:
+`To-dos`, `Members`, `Pins`, `Saved`, `Search`, `Library`,
+`Convert to alerts…`, `Topics`, `Copy channel link`, `Copy channel ID`,
+interleaved with unlabelled `[other] "settings-divider"` nodes. Behind its
+`Topics`: `View all`, `Search topics`,
+`Channel stream, MESSAGES WITHOUT A TOPIC`, and the empty states
+`No topics in this room yet.` / `No topics in this channel yet.`
+
+**`Close channel tools` and `Close topics` no longer exist** — see the sheet
+gotcha. Both sheets present as `[window]`s and are dismissed with
+`device back`.
 
 The rest of the topic tooling from commit `72b6e89` is **read from source and
 not yet confirmed live**, because the channel driven had no topics to act on:
@@ -124,13 +129,17 @@ until a channel with topics has been driven.
   assert new `Message from …` rows in the diff.
 - **Open the attachment menu.** Run
   `./control-openfloor device press 'label="Open attachment menu"' --settle`.
-  The diff adds `Gallery`, `Camera`, `File`, `Poll` and
-  `Close attachment menu`. Opening it is free; picking a file that would send is
-  not.
+  It presents as `[window] "Attach"`. **The tiles differ by surface**, verified
+  live 2026-09-04: a **DM** offers `Gallery`, `Camera`, `File` — three — while a
+  **channel** adds `Poll` for four. There is no `Close attachment menu` any
+  more; dismiss with `./control-openfloor device back`. Opening it is free;
+  picking a file that would send is not.
 - **Open Channel tools.** Run
   `./control-openfloor device press 'label="Channel tools"' --settle`, then
   `press 'role=button label="Topics"'` for the topic list. Both are read-only to
-  open. Leave with `Close channel tools` / `Close topics`.
+  open. Leave with `./control-openfloor device back` — and note that **one
+  `back` from the nested Topics sheet dismissed both**, landing on the channel
+  rather than back on Channel tools.
 - **Prove `composer-typing` without sending.** Fill the composer, assert send
   is no longer `[disabled]`, then clear it. Verified 2026-09-03 in OpenMarket's
   empty `testing-123345556` channel:
@@ -200,9 +209,19 @@ until a channel with topics has been driven.
 - **Long-pressing a message row opens its action sheet** (`onLongPress` →
   `onActions`), which is one step from a reaction or a deletion. Use `press`,
   and treat `convo-actions` as read-only-to-open.
-- **The emoji picker's rows are shortcodes, not glyphs** (`heart`, `heart_eyes`),
-  and this session met an AX-tree collapse right after driving it — a 1-node
-  snapshot with *"No snapshot backend could read this screen"*, recovered only
-  by `app reset`. Open it, snapshot it, and leave by resetting rather than by
-  toggling it closed.
+- **Every sheet on this surface is a modal `[window]` that hides the app behind
+  it.** Since `5c51af4` the attachment menu, Channel tools, Topics and the
+  emoji picker present through the platform's sheet controller, and the
+  snapshot **truncates to the sheet** — 6 nodes for the attachment menu, and
+  nothing of the transcript, composer or header. That is normal, not a crash.
+  It also revises the 2026-09-03 note below: what was recorded as an "AX-tree
+  collapse right after driving the emoji picker" was most likely this
+  truncation over a sheet with no accessible content, not a broken tree.
+- **No sheet has a close control, and no grabber is exposed.** `BottomDrawer`
+  took a `closeAccessibilityLabel`; `BottomSheet` has no such prop and the
+  string is gone from the whole repo. The library documents a `Sheet Grabber`
+  accessible node by default — **it did not appear in any live snapshot**, so
+  do not build a selector on it. `./control-openfloor device back` dismisses
+  every one of them, verified on four sheets.
+- **The emoji picker's rows are shortcodes, not glyphs** (`heart`, `heart_eyes`).
 - Every DM handle in this file re-verified live 2026-09-03 on `f2c3f88`; the channel handles were read the same day.

@@ -69,6 +69,14 @@ switch it off. It stays off across launches, and `gearshape.fill` disappearing
 from the snapshot is how you know. Note it in the delta if you change it —
 it is the operator's simulator.
 
+**The bundle entry is `/.expo/.virtual-metro-entry.bundle`, not `/index.bundle`.**
+An Expo Router app does not bundle from the latter — probing it proves nothing.
+The real entry measured ~17MB and **78s cold** on 2026-09-04, which outlasts the
+dev client's own load timeout and strands the launch on *"There was a problem
+loading the project."* `control-openfloor app` now warms that entry before every
+launch (~0.3s once warm; any edit invalidates the cache). That removes one cause
+of the strand and **is not a complete cure** — see the gotcha below.
+
 `app open` foregrounds the app and returns the shell snapshot. `app reset` does
 a true cold start (`simctl terminate`, then relaunch) — use it whenever a recipe
 says "from a fresh start", and to prove that something persisted.
@@ -230,6 +238,36 @@ device lease, and the next run meets `DEVICE_IN_USE`.
 
 ## Gotchas that cost a run
 
+**A sheet is a modal `[window]`, and the snapshot truncates to it.** Since
+`5c51af4` all 22 sheets present through the platform's sheet controller
+(`@lodev09/react-native-true-sheet`). While one is open the tree contains the
+sheet and nothing else — 9 nodes for the chat filters, 6 for the attachment
+menu, with the dock, header and content all absent. That is normal. Two
+consequences: never assert a background element while a sheet is open, and do
+not read the shrunken tree as a crash. It also explains the 2026-09-03
+"emoji-picker AX collapse" more plausibly than a broken tree did.
+
+**No sheet has a close control any more.** `BottomDrawer` took a
+`closeAccessibilityLabel`; `BottomSheet` has no such prop, and `5c51af4` deleted
+all ten of them — `Close action sheet`, `Close attachment menu`,
+`Close channel settings`, `Close channel tools`, `Close chat filters`,
+`Close message details`, `Close notification options`, `Close poll composer`,
+`Close status`, `Close topics`. Every recipe that pressed one of those now fails
+with `Selector did not match`. **`./control-openfloor device back` dismisses a
+sheet**, verified on four of them 2026-09-04. The library documents a
+`Sheet Grabber` node by default; it did **not** appear in any live snapshot, so
+do not select on it.
+
+**The dev client strands intermittently, and this is unresolved.** On 2026-09-04
+the app launched at `b916dff`, drove six sheets, then after an `app reset`
+refused to load again — on an unchanged tree, with Metro answering the warm
+entry in 0.3s, through eight further 15s polls. Ruled out: cold bundle, dirty
+tree, a JS bundle error (200, 17MB, carrying the new `sheetChrome` and none of
+the removed `closeAccessibilityLabel`), and the wrong simulator
+(`DEVICE_IN_USE` confirmed the session held the right device). If you meet it,
+you have not done anything wrong and there is no known recovery — say so in the
+delta rather than burning the run on it.
+
 **A collapsed accessibility tree is recovered by `app reset`, not `app open`.**
 When a screen publishes nothing readable — *"No snapshot backend could read this
 screen"*, a 1- or 2-node snapshot — **every selector fails** with `Selector did
@@ -350,7 +388,8 @@ directory. Run it after capturing frames, then replace every `TODO`.
 
 `features/` is the maintained source for the routes and handles of each surface,
 and it goes stale the way any documentation does — the handles above were read
-off a live simulator on **2026-09-03** at `f2c3f88`.
+off a live simulator on **2026-09-04** at `b916dff` for the sheet surfaces, and
+on 2026-09-03 at `f2c3f88` for the rest.
 `maintain-verification-skill` is the upkeep pass: run it when a mapped handle
 stops resolving, when a new user-facing surface lands, or when a gotcha here
 turns out to be fixed. The Home-server note is the first thing to re-check.
