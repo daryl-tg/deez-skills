@@ -218,17 +218,28 @@ process holding an agent port.
 **Unstubbed session predicates answer truthy.** The shell fixture wraps its
 session in an `autofill` proxy whose fallback (`INERT`) is callable and
 truthy. Any predicate the fixture does not spell out therefore returns
-"yes" — so blocked, locked, pending, and error states default **on**. This is
-why the composer renders read-only under *"This draft is open in another tab"*:
-`session.composerLaneOwnedElsewhere` is unstubbed. It is not one view's problem
-— `room`, `topic` and `dm` all come up with `textarea.readOnly === true` and the
-banner showing. The fixture lane cannot verify typing or sending until that
-predicate is spelled out as `false` in `tools/visual/shell-fixture.tsx`.
+"yes" — so blocked, locked, pending, and error states default **on**.
 
-Check the property, not the appearance: the textarea is `readOnly`, **not**
-`disabled`, so it still takes focus and `disabled` reads `false`. Keystrokes are
-swallowed silently, and an agent that asserts on `disabled` concludes the
-composer works.
+The live example is the right-panel dock's collapse toggle. Its label keys on
+`session.rightRegionOpen()`, which the fixture never spells out, so `INERT`
+answers truthy: the toggle reads *"Collapse panel"* with the panel plainly
+shut, *"Expand panel"* never appears, `aria-expanded` does not render because
+`INERT` is not a boolean, and the click handler is a no-op. Half the same dock
+works fine, because its panel buttons read `session.rightPanel` — a **field**
+the fixture does spell out. Stubbed field versus unstubbed method, one
+component, opposite outcomes.
+
+The composer used to be this section's example: `composerLaneOwnedElsewhere`
+and `composerDeliveryRecovery` were unstubbed, so it rendered `readOnly` under
+two fixture-artefact banners. `#777` spelled both out, and the composer now
+types and sends in the fixture lane. Kept here because it is the shape of the
+fix — spell the predicate out in the explicit session map in
+`tools/visual/shell-fixture.tsx` — and because a map that still warned about
+the old behaviour would have sent runs to the daemon-pair lane for nothing.
+
+Check the property, not the appearance. A locked textarea is `readOnly`, not
+`disabled`, so it still takes focus and `disabled` reads `false`; an agent that
+asserts on `disabled` concludes a dead control works.
 
 The same trap bites methods newly added to a store: when a component starts
 calling `session.alerts.stripFeedForRoom(...)` and the fixture's `alertsStub`

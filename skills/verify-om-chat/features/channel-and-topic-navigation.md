@@ -23,14 +23,22 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   - the search cluster — `Open search in #ops`, a `combobox` named
     `Search #ops`, and `Open search panel`
     ([search-and-filters.md](search-and-filters.md)).
-  Pins, bookmarks and to-dos are none of those — they are menu items behind
-  "More channel actions".
+  To-dos is none of those — it survives as a menu item behind "More channel
+  actions", spelled "Hide to-dos". **Pins and bookmarks are no longer menu
+  items**: they moved into the dock below. The menu today is Join voice, Brief,
+  Invite people, Invite agent, Your agents…, New topic…, Summon your om,
+  Channel settings, Mark as read, Mute channel, Hide to-dos, Convert to
+  alerts…, Copy channel link.
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
-  (`src/components/RightPanels.tsx:153-218`): a collapse/expand toggle plus one
-  button per panel — **Members** and **Library** in the seeded fixture room,
-  plus **To-dos** where the room has one; `alerts` is deliberately filtered
-  out. `"Show or hide side panel"` no longer exists anywhere in `src/`. The old
+  (`src/components/RightPanels.tsx:179`): a collapse/expand toggle plus one
+  button per panel. In the seeded fixture room that is **four** — Library,
+  Bookmarks, Members, Pins — carrying `data-slot-tab` values `library`,
+  `bookmarks`, `members`, `pins`. The dock filters
+  `["todos","library","bookmarks","members","pins"]` (`RightPanels.tsx:193`)
+  against what `rightSlotTabsFor` offers, so `todos` shows only where the room
+  has one, and `alerts` is excluded from the dock even when offered.
+  `"Show or hide side panel"` no longer exists anywhere in `src/`, and the old
   in-panel `tablist` is not merely hidden: every live render site passes
   `showSlotTabs={false}`, so it is dead on every route.
 
@@ -73,7 +81,6 @@ agent-browser find role treeitem click --name "channel ops, 4 unread, 5 unread i
 agent-browser find role treeitem click --name "All 6 topics in ops"
 agent-browser find role button   click --name "Back to #ops"
 agent-browser find role button   click --name "Hide this channel's topics"
-agent-browser find role button   click --name "6 open topics. Cycle topic rows"
 agent-browser find role button   click --name "More channel actions"   # then pins/bookmarks/to-dos
 
 # The right-panel dock. This name flips with state — see Gotchas. The dock's
@@ -106,9 +113,16 @@ the navigation retargeted the *write* path, not only the read pane.
   match them. **This includes the `All N topics in <channel>` overflow row** —
   it looks like a button and is not one, and `find role button` fails on it
   with "none match name".
-- The topic-count control's full accessible name is `6 open topics. Cycle topic
-  rows`, not `Cycle topic rows`. An `--exact` match on the short form finds
-  nothing.
+- **The topic-count control is no longer a control.** It used to be a `button`
+  named `6 open topics. Cycle topic rows` that cycled hidden → yours → all.
+  `#781` deleted the whole cycling feature — `cycleTopicList`, `TopicListMode`
+  and the persisted `topicsAllOpen` state went with it. What is left is a plain
+  `<span class="channel-topic-cycle" data-channel-topic-count title="6 open
+  topics">`: no role, no `aria-label`, not focusable.
+  `find role button --name "6 open topics. Cycle topic rows"` now fails with
+  "none match name". Read the `title`, or the `[data-channel-topic-count]`
+  attribute, if you need the count. "Hide this channel's topics" is a separate
+  control and still works.
 - Alerts is a `button`, not a third tab. `find role tab --name "Alerts"` fails,
   and the name changes with state, so match on the `Alerts:` prefix rather than
   a fixed string.
@@ -120,7 +134,7 @@ the navigation retargeted the *write* path, not only the read pane.
   in both states at desktop width, because `#715` hoisted the dock into
   `ConversationRightRegion` where it renders unconditionally. The bare `nav`
   without its wrapper appears only under the mobile overlay
-  (`RightPanels.tsx:150`), which is a viewport distinction, not an open one.
+  (`RightPanels.tsx:160`), which is a viewport distinction, not an open one.
   Drive the stable hooks —
   `[data-slot-tab="members"]` and `[data-slot-tab="library"]`, reading
   `aria-pressed` for which panel is open. That pair still works: clicking
@@ -133,7 +147,7 @@ the navigation retargeted the *write* path, not only the read pane.
 
   `#715` rebuilt the toggle around a right *region* that stays open while the
   panel collapses, so the label now keys on `session.rightRegionOpen()`
-  (`RightPanels.tsx:187`) rather than on whether a panel is open. `#715` added
+  (`RightPanels.tsx:213`) rather than on whether a panel is open. `#715` added
   that seam and `#735` swapped its body to route through `rightRegionTenant`,
   which is why a docked note counts as open and a topic peek does not. The
   fixture stubs none of `rightRegionOpen`, `collapseRightRegion` or
@@ -163,7 +177,7 @@ the navigation retargeted the *write* path, not only the read pane.
   `?peek=` → `fixtureTopicPeek` → `session.topicPeek` → the gate →
   `TopicPeekPane` — was not in its diff at all. The gate itself did move,
   though: `#731` lifted it out of `Shell.tsx` into `ConversationRightRegion`
-  (`RightPanels.tsx:241`), byte-identical, now called from `ChatPane.tsx` and
+  (`RightPanels.tsx:275`), byte-identical, now called from `ChatPane.tsx` and
   `TopicListView.tsx` rather than from one Shell site. Same boolean, new owner —
   look there when it next needs checking. The Playwright suite is not
   part of the merge gate

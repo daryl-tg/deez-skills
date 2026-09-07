@@ -94,13 +94,21 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
   (`Chats` lands on `#/`). Assert the DOM marker, not the route, for root
   switches — the route *is* reliable for detail opens.
 - A "one Back" assertion must allow three spellings: `Back`, `Back to X`, and
-  `Back to conversation`. The third comes from `#653`: opening OM settings,
-  schedules or alerts from inside Your om renders a `Back to conversation`
-  control, and it is not gated on `useIsMobile()`, so it appears at phone width
-  too — without a takeover or a detail marker, still inside the om root card
-  with the tab bar mounted. You will not meet it in the fixture, because Your om
-  there is stuck on its not-running empty state
-  ([om-and-agents.md](om-and-agents.md)); it needs a running daemon.
+  `Back to conversation`. The third comes from the om surface, and it has two
+  different shapes, which is why a blanket count of Back controls misleads:
+  - Opening om **settings** or **watches** from inside Your om renders a
+    `Back to conversation` control that is *not* gated on `useIsMobile()`, so it
+    appears at phone width too — no takeover, no detail marker, still inside the
+    om root card with the tab bar mounted.
+  - Opening **Recents** renders a control with the same accessible name that
+    behaves the opposite way: it **is** gated on `useIsMobile()` and **does**
+    render as a `[data-mobile-takeover]` dialog, the name belonging to a close
+    icon rather than to visible text (`AgentSessionRail.tsx` via
+    `MobileTakeover`).
+
+  You will meet neither in the fixture: Your om there is stuck on its
+  not-running empty state ([om-and-agents.md](om-and-agents.md)), and reaching
+  any of them needs a running daemon.
 - Chromium at a narrow viewport is not iOS WKWebView or Android WebView. A
   green matrix here is a `web-bundle` claim only; native certification is
   still open (`docs/mobile-native-release-checklist.md`).

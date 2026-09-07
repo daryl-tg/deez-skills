@@ -3,14 +3,24 @@
 The two agent doors in the rail. **Your om** is your own daemon-backed
 assistant; **Agents** is the Agent Center, where other people's agents ask for
 access and yours are wired up. `#653` grew the om side enormously — session
-rail, alerts, schedules, settings, some 13k lines — and almost none of it is
+rail, settings and a watches surface, some 13k lines — and almost none of it is
 reachable from the fixture lane. Read the gotchas before planning a proof.
 
 ## Sub-features
 
-- The rail doors: `button` **"Your om"** and `button` **"Agents"**.
+- The rail doors: `button` **"Your om"** and `button` **"Agents"** — but the
+  names carry app mode, becoming **"Your om, not running"** and
+  **"Agents, not running"** when `session.mode === "away"`, which the fixture
+  can set with `?mode=away`. An `--exact` match on the bare name misses there.
+  Note this is whole-app away mode, a different thing from the daemon not
+  running.
 - Your om: the running conversation, and its **not-running** empty state.
-- The `#653` session sidebar, alerts, schedules and om settings.
+- The running om's four sub-surfaces, held in one local `surface` state:
+  **conversation** (the chat), **compose** (the new-session landing),
+  **watches**, and **settings**. `#783` collapsed the original alerts and
+  schedules panes into watches — `OmAlertsSurface.tsx` and
+  `OmSchedulesSurface.tsx` are deleted, `OmWatchesSurface.tsx` replaces both.
+  Watches has its own file, [your-om-watches.md](your-om-watches.md).
 - The Agent Center roster: your agents, their access level, and
   **"+ Wire an agent"**.
 - The consent queue: agents asking for access, with Allow / No, and the
@@ -66,9 +76,13 @@ queue seeded at all.
 - **The fixture cannot show a running om.** `?view=agent` renders the empty
   state — `h1` *"om isn't running"*, *"No recent daemon snapshot is available on
   this device"*, and an `om serve` hint — and there is no parameter to change
-  that. The shell fixture reads around sixty query parameters and **none** of
-  them seed a daemon snapshot, om session, alert or schedule. So the whole
-  `#653` surface (session sidebar, alerts, schedules, om settings) is
+  that. The shell fixture reads over a hundred query parameters and **none** of
+  them seed a daemon snapshot, om session, watch or schedule. It is stronger
+  than a missing stub: the gate reads `presence.running`, which comes from a
+  real `fetchOmHealth()` network call with no fixture hook at all, so no
+  parameter *could* be added to the fixture alone to get past it. (Do not be
+  fooled by `?alerts=`, which seeds the unrelated room price-alert feed.) So the whole
+  `#653` surface (session sidebar, compose, watches, om settings) is
   `verified-unreachable` from this lane; the unmet prerequisite is a running
   daemon, which means the daemon-served rig, not the fixture.
 - **`agent-center-fixture.html` is a real harness, despite where it sits.**

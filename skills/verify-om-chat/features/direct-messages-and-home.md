@@ -56,7 +56,12 @@ agent-browser find role button   click --name "Create or Join Server"
 ```
 
 On the Connections surface the chips are `button`, not `tab`: `"Connections"`,
-`"Requests"`, `"Blocked"`. There is **no Friends chip** — `#697` cut the surface
+`"Requests"`, `"Blocked"` — three, and only three, in this lane. The product
+also has a second row of `.cx-chip.is-mini` filters (All / Followers /
+Following) and a `role="tablist"` "Request type" switch, but both render only
+once `tab === "connections"` or a real request filter is active, and the
+fixture's tab normalisation (below) never gets there. Measured live: three
+`.cx-chip`, zero `.cx-chip.is-mini`, no tablist. There is **no Friends chip** — `#697` cut the surface
 down to three (`FriendsPane.tsx:104-106`). Opening Requests adds two more chips
 beside them, `"Incoming"` and `"Sent"`.
 
@@ -103,7 +108,7 @@ seeded presence state — a good second observation alongside the route.
   predicts `?tab=pending` lands on `#/connections/pending`, and it does not.
   The cause is a **fixture stub**: `openFriends` there is written
   `openFriends: () => navigate({ kind: "friends", tab: "online" })`
-  (`tools/visual/shell-fixture.tsx:2114`) — no parameter, hardcoded tab, unlike
+  (`tools/visual/shell-fixture.tsx:2318`) — no parameter, hardcoded tab, unlike
   the real `ChatSession.openFriends`, which honours its argument. Boot seeds the
   hash, routing parses it back, the parsed view differs in shape from the raw
   fixture view for every id except `requests` and `blocked`, so navigation

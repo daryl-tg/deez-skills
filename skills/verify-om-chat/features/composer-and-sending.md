@@ -1,13 +1,19 @@
 # Composer and sending
 
-Writing a message and putting it on the wire. **Read the gotchas before you
-plan a proof here** — this is the one major feature the default fixture lane
-cannot verify, and agents lose runs discovering that mid-drive.
+Writing a message and putting it on the wire. This file used to open by saying
+the fixture lane could not verify any of it. That stopped being true with
+`#777`: the fixture now types and sends. What still needs the daemon-pair lane
+is the **wire** — delivery, a second identity, recovery states — not text entry.
+Read the gotchas for where the line now falls.
 
 ## Sub-features
 
 - Typing, and the Send control enabling as a draft becomes non-empty.
-- Draft persistence per destination (channel, topic, DM) across navigation.
+- Draft persistence per destination (channel, topic, DM) across navigation —
+  public drafts only. `#777` split the two: public composer drafts stay
+  localStorage-backed under `om.chat.composerDrafts.<userId>`, while private
+  om-lane drafts moved to memory-only volatile lanes and are rejected before
+  they reach localStorage, so they do not survive a reload.
 - Attachments: the `+` menu, drag-and-drop, staged chips with per-item removal.
 - Replies, mentions (`@user`, role tags), slash commands, `$` market refs.
 - The formatting toolbar and its selection clearance.
@@ -27,8 +33,21 @@ it.
 
 ## Driving it with control-om-chat
 
-**The fixture lane cannot type into the composer.** See Gotchas. What it *can*
-prove:
+**The fixture lane types and sends.** `#777` spelled out the two predicates
+that used to lock it (see Gotchas), so a plain `?view=room` composer accepts
+keystrokes and Enter appends to the tape:
+
+```bash
+agent-browser click "textarea"
+agent-browser keyboard type "probe line"
+agent-browser press Enter
+agent-browser eval '(()=>document.querySelectorAll("[data-message-row]").length)()'
+#   one more than before; the textarea is empty and the line is in the tape
+```
+
+That is a **local** send into the fixture's seeded store. It proves the write
+path, the clear-on-send, and the tape update — and nothing about the relay.
+What the lane also proves:
 
 ```bash
 # The composer's destination follows navigation.
@@ -54,8 +73,9 @@ On a message or the recovery banner: `"Add reaction"`,
 Note the composer's emoji control is `"Choose emoji or GIF"` — `"Add reaction"`
 is the message-row control and will not match in the composer.
 
-For anything requiring real text entry or a real send, use the **daemon-pair
-lane**:
+For anything on the **wire** — delivery states, a second identity receiving the
+message, reconnection — use the **daemon-pair lane**. Text entry and a local
+send no longer need it:
 
 ```bash
 bun run build                       # the pair refuses a bundle built from another tree
@@ -72,27 +92,28 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
 
 ## Gotchas
 
-- **The default fixture composer is read-only.** The shell fixture wraps its
-  session in an `autofill` proxy whose fallback (`INERT`) is callable and
-  truthy, so every predicate the fixture does not spell out answers "yes".
-  `session.composerLaneOwnedElsewhere` is unstubbed, so the composer renders
-  under *"This draft is open in another tab"* with `readOnly: true`. Typing
-  succeeds silently and changes nothing; Send stays disabled.
+- **The composer is no longer read-only, and the two banners are gone.** For a
+  long while the fixture left `session.composerLaneOwnedElsewhere` and
+  `session.composerDeliveryRecovery` unstubbed, so the `INERT` proxy answered
+  truthy for both, the textarea rendered `readOnly`, and *"This draft is open in
+  another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
+  stubbed them — `composerDeliveryRecovery: () => null` and
+  `composerLaneOwnedElsewhere: () => false`, `tools/visual/shell-fixture.tsx`,
+  with a comment naming the lock it was removing. Measured on `def2146f`:
+  `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
-  Verify it before blaming your change:
+  If you find either banner back, that is a fixture regression rather than the
+  expected state — the opposite of the advice this file used to give. And there
+  is now no way to stage them on purpose: `composerDeliveryRecovery` is
+  hardcoded to `null`, so even `?delivery=fail-once` — which does make a send
+  fail — will not raise the recovery banner. Proving those two states needs a
+  fixture change, not a query.
 
-  ```bash
-  agent-browser eval 'const t=document.querySelector("textarea"); t && t.readOnly'
-  ```
-
-  To unlock it, spell the predicate out as `false` in the explicit session map
-  in `tools/visual/shell-fixture.tsx`. That is a legitimate part of shipping a
-  composer change, not a workaround.
-
-- The same proxy is why *"Delivery could not be confirmed"* is on by default
-  (`session.composerDeliveryRecovery` is unstubbed). Both banners are fixture
-  artefacts. Do not report them as regressions, and do not caption a screenshot
-  as if they were the state under test.
+- **A local send is not a wire send.** Enter appends a row to the seeded tape
+  and clears the box, which is enough to prove the composer's write path. It
+  says nothing about the relay, about a second identity seeing the message, or
+  about delivery and recovery states. Keep those claims on the daemon-pair
+  lane and say which lane a frame came from.
 
 - The composer is a `textarea` with `role="textbox"`, not a `contenteditable`.
   `document.querySelector("[contenteditable=true]")` finds nothing.

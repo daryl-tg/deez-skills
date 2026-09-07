@@ -108,6 +108,6 @@ agent-browser snapshot -c | grep -i combobox
   together (`From a specific user from: user`). An `--exact` match on either
   half alone finds nothing.
 - The result count is not pluralised — a single hit reads **`1 results`**
-  (`SearchPanel.tsx:1230`, `:1238`). That is the product string, not a fixture
+  (`SearchPanel.tsx:1246`, `:1254`). That is the product string, not a fixture
   artefact; caption a screenshot around it rather than quietly "fixing" it in
   the caption.
