@@ -10,10 +10,15 @@ Read the gotchas for where the line now falls.
 
 - Typing, and the Send control enabling as a draft becomes non-empty.
 - Draft persistence per destination (channel, topic, DM) across navigation —
-  public drafts only. `#777` split the two: public composer drafts stay
-  localStorage-backed under `om.chat.composerDrafts.<userId>`, while private
-  om-lane drafts moved to memory-only volatile lanes and are rejected before
-  they reach localStorage, so they do not survive a reload.
+  durably for some lanes only. `#777` split them by lane name: `dm:<user>`,
+  `room:<room>` and `room:<room>#<topic>` stay localStorage-backed under
+  `om.chat.composerDrafts.<userId>`, while anything on an `om:`-prefixed lane is
+  rejected at the storage boundary (`isVolatileLane`, `composer-draft-store.ts`)
+  and lives in memory only. That covers the private/agent plane **and** an
+  active whisper lane even while nominally public (`om:dm:<user>`). The
+  difference is reload-durability specifically: volatile lanes still survive
+  in-tab navigation, because the session's in-memory map is the live source
+  either way.
 - Attachments: the `+` menu, drag-and-drop, staged chips with per-item removal.
 - Replies, mentions (`@user`, role tags), slash commands, `$` market refs.
 - The formatting toolbar and its selection clearance.
@@ -61,7 +66,9 @@ agent-browser set viewport 390 844
 agent-browser find role button text --name "Send message" --exact
 agent-browser snapshot -i -c | grep "Send message"        # [disabled]
 
-# A seeded draft renders and survives a round trip.
+# A seeded draft renders and survives a round trip. ?draft= seeds TWO lanes
+# with the same text — room:ops and dm:<?dm= or ana> — so it works whichever
+# of the two views you land on.
 agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text"
 ```
 

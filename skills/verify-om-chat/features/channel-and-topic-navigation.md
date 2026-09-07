@@ -25,10 +25,10 @@ topics. The most-driven surface in the app and the cheapest one to prove.
     ([search-and-filters.md](search-and-filters.md)).
   To-dos is none of those — it survives as a menu item behind "More channel
   actions", spelled "Hide to-dos". **Pins and bookmarks are no longer menu
-  items**: they moved into the dock below. The menu today is Join voice, Brief,
-  Invite people, Invite agent, Your agents…, New topic…, Summon your om,
-  Channel settings, Mark as read, Mute channel, Hide to-dos, Convert to
-  alerts…, Copy channel link.
+  items**: `#740` gave them rail doors and dropped them from here. The menu
+  today is Join voice, Brief, Invite people, Invite agent, Your agents…, New
+  topic…, Summon your om, Channel settings, Mark as read, Mute channel, Hide
+  to-dos, Convert to alerts…, Copy channel link.
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
   (`src/components/RightPanels.tsx:179`): a collapse/expand toggle plus one
@@ -36,8 +36,13 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   Bookmarks, Members, Pins — carrying `data-slot-tab` values `library`,
   `bookmarks`, `members`, `pins`. The dock filters
   `["todos","library","bookmarks","members","pins"]` (`RightPanels.tsx:193`)
-  against what `rightSlotTabsFor` offers, so `todos` shows only where the room
-  has one, and `alerts` is excluded from the dock even when offered.
+  against what `rightSlotTabsFor` offers, and `alerts` is excluded even when
+  offered. **To-dos can never appear here**, and not because this room lacks
+  one: the personal doors come from `session.rightRailTabs?.(room)`
+  (`ChannelToolbar.tsx:236`), which the fixture never stubs, so it resolves
+  through the `INERT` proxy — and `INERT[Symbol.iterator]` is an empty
+  generator (`shell-fixture.tsx:1673`), so spreading it yields nothing for
+  every room. Four is the ceiling in this lane, not a seeding accident.
   `"Show or hide side panel"` no longer exists anywhere in `src/`, and the old
   in-panel `tablist` is not merely hidden: every live render site passes
   `showSlotTabs={false}`, so it is dead on every route.
