@@ -29,7 +29,7 @@ interaction end to end.
 - Channel settings: Overview, Access, Webhooks, Moderation, Danger — gated by
   the viewer's role. Overview carries the per-channel to-do widget placement
   control ("To-do widgets", gated by `canManageTodoDisplay`). The matching
-  **per-viewer** override is not reachable from this fixture — see Gotchas.
+  *per-viewer* override is not reachable from this fixture — see Gotchas.
 - Settings search, the Esc-to-close rail behavior, and the open/close
   transition.
 

@@ -14,7 +14,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   can set with `?mode=away`. An `--exact` match on the bare name misses there.
   Note this is whole-app away mode, a different thing from the daemon not
   running.
-- Your om: the running conversation, and its **not-running** empty state.
+- Your om: the running conversation, and its *not-running* empty state.
 - The running om's four sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing),
   **watches**, and **settings**. `#783` collapsed the original alerts and
