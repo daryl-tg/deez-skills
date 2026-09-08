@@ -8,12 +8,17 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 
 ## Sub-features
 
-- The rail doors: `button` **"Your om"** and `button` **"Agents"** — but the
-  names carry app mode, becoming **"Your om, not running"** and
-  **"Agents, not running"** when `session.mode === "away"`, which the fixture
-  can set with `?mode=away`. An `--exact` match on the bare name misses there.
-  Note this is whole-app away mode, a different thing from the daemon not
-  running.
+- The rail doors: `button` **"Your om"** and `button` **"Agents"** — but both
+  names move with state, and the two doors do not move the same way.
+  **"Your om"** becomes **"Your om, not running"** when
+  `session.mode === "away"` (the fixture sets it with `?mode=away`), on
+  desktop and mobile alike. **"Agents"** differs by chrome: the mobile segment
+  reads **"Agents, not running"**, while the desktop rail reads
+  **"Agents, needs your om running"** — and if any agent is armed the count
+  wins outright and away is masked entirely, giving **"Agents, N armed"**
+  (`Shell.tsx:2735-2741`). So an `--exact` match on the bare name misses three
+  different ways, and matching the mobile string on desktop misses too. Away
+  is a whole-app state, a different thing from the daemon not running.
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's four sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing),
@@ -68,8 +73,13 @@ agent-browser find role button click --name "Reject"
 agent-browser find role button click --name "Open om"
 ```
 
-Its header reads `WAITING ON YOU · 4`, which is the cheap observation that the
-queue seeded at all.
+Its header *looks* like `WAITING ON YOU · 4`, and that is the cheap
+observation that the queue seeded at all — but read it carefully. The DOM text
+is sentence case, `Waiting on you · 4` (`AgentCenterWork.tsx:393`); the
+capitals come from `text-transform: uppercase` on `.ac-section-h`
+(`agent-center.css:36`). `innerText` applies the transform and hands you the
+shouted version, while `textContent` and the accessibility tree hand you the
+real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ## Gotchas
 
