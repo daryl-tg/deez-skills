@@ -14,8 +14,10 @@ Read the gotchas for where the line now falls.
   `room:<room>` and `room:<room>#<topic>` stay localStorage-backed under
   `om.chat.composerDrafts.<userId>`, while anything on an `om:`-prefixed lane is
   rejected at the storage boundary (`isVolatileLane`, `composer-draft-store.ts`)
-  and lives in memory only. That covers the private/agent plane **and** an
-  active whisper lane even while nominally public (`om:dm:<user>`). The
+  and lives in memory only. That covers the private/agent plane, an active
+  whisper lane even while nominally public (`om:dm:<user>`), and the
+  per-session lanes `#786` added (`om:draft:<owner>`, `om:session:<id>`) —
+  they inherit the rule by name rather than needing their own. The
   difference is reload-durability specifically: volatile lanes still survive
   in-tab navigation, because the session's in-memory map is the live source
   either way.
@@ -105,8 +107,9 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   truthy for both, the textarea rendered `readOnly`, and *"This draft is open in
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
-  `composerLaneOwnedElsewhere: () => false`, `tools/visual/shell-fixture.tsx`,
-  with a comment naming the lock it was removing. Measured on `def2146f`:
+  `composerLaneOwnedElsewhere: () => false`
+  (`tools/visual/shell-fixture.tsx:2677-2678`), with a comment naming the lock
+  it was removing. Measured again on `490cb8d0`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
   If you find either banner back, that is a fixture regression rather than the

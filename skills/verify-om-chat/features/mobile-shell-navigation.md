@@ -77,11 +77,13 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
   through the shell.
 - **`[data-mobile-detail]` does not cover every detail.** It is set only for
   `room`, `dm`, and `world`. Library notes and settings open through a
-  different full-screen path marked `[data-mobile-takeover]` — set by
-  `Panel.tsx` and `MobileSurface.tsx`, used by `DocPane.tsx` and
-  `SettingsShell.tsx`. Asserting `[data-mobile-detail].length === 1` there
-  reads 0 while the UI is correctly in a one-pane detail — check the takeover
-  marker instead.
+  different full-screen path marked `[data-mobile-takeover]`. Four files set
+  that attribute independently on their own root — `Panel.tsx`,
+  `MobileSurface.tsx`, `DocPane.tsx` and `SettingsShell.tsx`. It is a shared
+  naming convention, not one component delegating to another, so do not go
+  hunting for the wrapper that stamps it. Asserting
+  `[data-mobile-detail].length === 1` there reads 0 while the UI is correctly
+  in a one-pane detail — check the takeover marker instead.
 - **The om root is not a takeover.** `agent` and `agents` both classify to the
   `om` root tab, and that surface renders inside the root card with the tab bar
   still mounted — no Back control, no `[data-mobile-takeover]` anywhere in
