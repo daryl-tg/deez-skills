@@ -263,12 +263,41 @@ frames, fill in the captions, then `evidence check`.
 
 Two halves, tracked in opposite ways on purpose.
 
-**This skill is tracked in git.** It lives in the skills hub
-(`/Users/dboon/Github/deez-skills/skills/verify-kiyotaka`) and reaches
-`~/.claude/skills/verify-kiyotaka` as a symlink, exactly like `verify-om-chat`
-and `verify-openfloor`. Edit it through either path — they are the same files.
+**This skill is tracked in git**, in the skills hub, and reaches
+`~/.claude/skills/verify-kiyotaka` as a symlink — exactly like `verify-om-chat`
+and `verify-openfloor`. Edit it through either path; they are the same files.
 Never copy it into `~/.claude/skills` as a real directory: that is how a feature
 map ends up with no history, no diffs, and no way to reach another machine.
+
+Until this skill's branch lands on the hub's `main`, the symlink points into a
+worktree rather than the main checkout:
+
+```
+~/.claude/skills/verify-kiyotaka
+  -> /Users/dboon/Github/deez-skills-verify-kiyotaka/skills/verify-kiyotaka
+     (worktree on branch skills/verify-kiyotaka)
+```
+
+**Why it is not pointed at the main checkout yet, and the trap that forces
+this:** a tracked directory only exists in a working tree while a branch
+carrying it is checked out. The hub's main checkout is usually parked on some
+other skill's feature branch, and switching branches there **deletes this
+directory**, leaving `~/.claude/skills/verify-kiyotaka` a dangling symlink and
+the skill silently unavailable. The content is never lost — it is in the pushed
+commit — but nothing warns you, and the failure looks like the skill was never
+installed. The worktree pins one branch to one path, so no branch switch
+elsewhere can pull the ground out.
+
+Once this branch is on `main`, repoint the symlink at
+`/Users/dboon/Github/deez-skills/skills/verify-kiyotaka` and remove the
+worktree (`git worktree remove /Users/dboon/Github/deez-skills-verify-kiyotaka`).
+From then on it rides `main` like every other skill.
+
+If the symlink ever dangles, check it before assuming anything is broken:
+
+```bash
+ls -la ~/.claude/skills/verify-kiyotaka && ls ~/.claude/skills/verify-kiyotaka/
+```
 
 **`control-kiyotaka` is deliberately NOT tracked.** It sits at the root of
 kiyotaka-frontend, hidden via `.git/info/exclude`, because AGENTS.md keeps that
@@ -288,12 +317,14 @@ a dirty working tree is a correction the next session on another machine will no
 have, so it will rediscover the same drift the hard way. Land it:
 
 ```bash
-cd /Users/dboon/Github/deez-skills
-git checkout -b skills/verify-kiyotaka-<what-changed> origin/main
+cd /Users/dboon/Github/deez-skills-verify-kiyotaka   # or the main checkout, once landed
 git add skills/verify-kiyotaka
 git commit -m "skills(verify-kiyotaka): <what the live pass proved>"
-git push -u origin HEAD
+git push
 ```
+
+From the main checkout instead, branch off `origin/main` first
+(`git checkout -b skills/verify-kiyotaka-<what-changed> origin/main`).
 
 Branch off `origin/main`, stage **only** `skills/verify-kiyotaka`, and leave any
 unrelated modified skill in the tree alone — the hub usually has another skill
