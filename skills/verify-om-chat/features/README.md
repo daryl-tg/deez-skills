@@ -93,6 +93,15 @@ topics policy (default `allowed`). When a parameter seems to do nothing, grep
 dead — and check whether it needs a companion, the way `searchState` needs
 `panel=search`.
 
+Sixteen more exist and are documented in no feature file at all, most of them
+state seeds worth knowing before you conclude a surface has no route:
+`directory=empty`, `dmDisplay`, `dmmuted=1`, `docAccess=readonly`,
+`docMode=history|edit`, `docState=reconcile|review|history`,
+`fixtureState=loading`, `g1=spacer`, `homeImport=open`, `import=<phase>`,
+`lateImage=1` with `lateImageDelay=<ms>`, `libraryState=error`, `links=1`,
+`sealedAutoMove=1`, `sealedBusy=1`. None came in with the recent composer work
+— they are older seams nobody wrote down.
+
 **`message=cozy` is sticky, and nothing unsets it.** It writes
 `om.chat.messageDisplay` to `localStorage` and the fixture has no `else` branch
 to clear it, so every later load in that browser session stays cozy — including

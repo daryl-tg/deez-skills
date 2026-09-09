@@ -39,9 +39,9 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   against what `rightSlotTabsFor` offers, and `alerts` is excluded even when
   offered. **To-dos can never appear here**, and not because this room lacks
   one: the personal doors come from `session.rightRailTabs?.(room)`
-  (`ChannelToolbar.tsx:236`), which the fixture never stubs, so it resolves
+  (`ChannelToolbar.tsx:235`), which the fixture never stubs, so it resolves
   through the `INERT` proxy — and `INERT[Symbol.iterator]` is an empty
-  generator (`shell-fixture.tsx:1673`), so spreading it yields nothing for
+  generator (`shell-fixture.tsx:1698`), so spreading it yields nothing for
   every room. Four is the ceiling in this lane, not a seeding accident.
   `"Show or hide side panel"` no longer exists anywhere in `src/`, and the old
   in-panel `tablist` is not merely hidden: every live render site passes

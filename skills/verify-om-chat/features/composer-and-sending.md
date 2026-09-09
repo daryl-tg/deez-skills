@@ -26,8 +26,11 @@ Read the gotchas for where the line now falls.
   send it, the image one portaled under `document.body` so composer overflow
   cannot clip it.
 - A code-fence panel behind the text. `#799` paints a full-width panel behind
-  each fenced region of the draft, incomplete fences included; `#797` hides the
-  fence marker lines themselves once the cursor leaves the block.
+  each fenced region of the draft, incomplete fences included, and dims the
+  fence marker lines with `.composer-token-code-marker` (`color: var(--text-faint)`
+  — dimmed, never removed). Do not look for `#797` here: that commit touches
+  only `src/editor/live-preview.ts`, so the cursor-based *hiding* of fence
+  markers is a doc-editor behaviour, not a composer one.
 - Replies, mentions (`@user`, role tags), slash commands, `$` market refs.
 - The formatting toolbar and its selection clearance.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
@@ -74,8 +77,15 @@ agent-browser set viewport 390 844
 agent-browser find role button text --name "Send message" --exact
 agent-browser snapshot -i -c | grep "Send message"        # [disabled]
 
-# The code-fence panel (#799). Enter SENDS, so Shift+Enter is the only way to
-# type a multi-line fence at all.
+# The code-fence panel (#799). Cheapest route is to seed the draft, since
+# ?draft= feeds the same `text` state the fence parser reads:
+agent-browser open ".../shell-fixture.html?view=room&draft=%60%60%60js%0Aconsole.log(1)%0A%60%60%60"
+agent-browser eval '(()=>document.querySelectorAll("[data-code-panel]").length)()'
+#   1, with [data-code-region] at 3 and two .composer-token-code-marker spans
+#   for the fence lines — dimmed, still in the DOM
+
+# Or type it. Enter SENDS, so Shift+Enter is the only way to type a multi-line
+# fence at all.
 agent-browser click "textarea"
 agent-browser keyboard type '```js'
 agent-browser press "Shift+Enter"
@@ -125,8 +135,8 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:2677-2678`), with a comment naming the lock
-  it was removing. Measured again on `490cb8d0`:
+  (`tools/visual/shell-fixture.tsx:2703-2704`), with a comment naming the lock
+  it was removing. Measured again on `502a9520`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
   If you find either banner back, that is a fixture regression rather than the
@@ -144,13 +154,18 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   contains a real `pre.code-wrap` — inside `[role=log]`, not near the composer.
   Assert on `[data-code-panel]`, and check `closest("[role=log]")` before
   believing any `pre` you find is yours.
-- **Staged image and video previews cannot be reached from the fixture.**
-  `#796` and `#798` need a genuinely staged attachment, and nothing here stages
-  one: no query parameter does it (all sixty-odd `params.get` keys enumerated),
-  and `stagedAttachments` is never seeded in `tools/visual/shell-fixture.tsx`.
-  The unmet prerequisite is a real file drop or picker, so this is
-  `verified-unreachable` in this lane rather than a recipe someone forgot to
-  write. The `+` menu opens; the preview behind it does not.
+- **Staged image and video previews are not reachable by query parameter.**
+  `#796` and `#798` need a genuinely staged attachment: a ready image renders a
+  `button` named `Preview <filename>` and a video one named `Play <filename>`
+  inside `.composer-attachment-card`, and clicking either portals an
+  `.ui-lightbox[role="dialog"]` under `document.body` — which pages across every
+  staged image *and* video, so one click can arrow into the neighbouring file.
+  Nothing here stages one: no parameter does it (all sixty-odd `params.get`
+  keys enumerated) and the fixture's pending-attachment arrays start empty, fed
+  only by `session.acceptFile` behind the real file input. The unmet
+  prerequisite is a staged file. Whether the harness can drive that hidden
+  `<input type="file">` directly is untested — treat this as unreached rather
+  than unreachable until someone tries it.
 - **A local send is not a wire send.** Enter appends a row to the seeded tape
   and clears the box, which is enough to prove the composer's write path. It
   says nothing about the relay, about a second identity seeing the message, or
