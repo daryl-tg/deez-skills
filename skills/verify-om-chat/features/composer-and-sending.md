@@ -21,7 +21,13 @@ Read the gotchas for where the line now falls.
   difference is reload-durability specifically: volatile lanes still survive
   in-tab navigation, because the session's in-memory map is the live source
   either way.
-- Attachments: the `+` menu, drag-and-drop, staged chips with per-item removal.
+- Attachments: the `+` menu, drag-and-drop, staged chips with per-item removal,
+  and — since `#796`/`#798` — a preview of a staged image or video before you
+  send it, the image one portaled under `document.body` so composer overflow
+  cannot clip it.
+- A code-fence panel behind the text. `#799` paints a full-width panel behind
+  each fenced region of the draft, incomplete fences included; `#797` hides the
+  fence marker lines themselves once the cursor leaves the block.
 - Replies, mentions (`@user`, role tags), slash commands, `$` market refs.
 - The formatting toolbar and its selection clearance.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
@@ -67,6 +73,17 @@ agent-browser snapshot -c | grep -i textbox
 agent-browser set viewport 390 844
 agent-browser find role button text --name "Send message" --exact
 agent-browser snapshot -i -c | grep "Send message"        # [disabled]
+
+# The code-fence panel (#799). Enter SENDS, so Shift+Enter is the only way to
+# type a multi-line fence at all.
+agent-browser click "textarea"
+agent-browser keyboard type '```js'
+agent-browser press "Shift+Enter"
+agent-browser keyboard type 'const x = 1'
+agent-browser press "Shift+Enter"
+agent-browser keyboard type '```'
+agent-browser eval '(()=>document.querySelectorAll("[data-code-panel]").length)()'
+#   1, with [data-code-region] at 3 and .composer-backdrop present
 
 # A seeded draft renders and survives a round trip. ?draft= seeds TWO lanes
 # with the same text — room:ops and dm:<?dm= or ana> — so it works whichever
@@ -119,6 +136,21 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   fail — will not raise the recovery banner. Proving those two states needs a
   fixture change, not a query.
 
+- **The fence panel is not a rendered preview, and the tape's code block is not
+  the panel.** `#799` is called "preview fenced code blocks" but it renders no
+  code: it paints a panel *behind* the textarea, marked
+  `.composer-code-panel` / `[data-code-panel]`, with `[data-code-region]` per
+  region and a `.composer-backdrop` layer. Meanwhile the seeded tape already
+  contains a real `pre.code-wrap` — inside `[role=log]`, not near the composer.
+  Assert on `[data-code-panel]`, and check `closest("[role=log]")` before
+  believing any `pre` you find is yours.
+- **Staged image and video previews cannot be reached from the fixture.**
+  `#796` and `#798` need a genuinely staged attachment, and nothing here stages
+  one: no query parameter does it (all sixty-odd `params.get` keys enumerated),
+  and `stagedAttachments` is never seeded in `tools/visual/shell-fixture.tsx`.
+  The unmet prerequisite is a real file drop or picker, so this is
+  `verified-unreachable` in this lane rather than a recipe someone forgot to
+  write. The `+` menu opens; the preview behind it does not.
 - **A local send is not a wire send.** Enter appends a row to the seeded tape
   and clears the box, which is enough to prove the composer's write path. It
   says nothing about the relay, about a second identity seeing the message, or
