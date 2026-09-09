@@ -152,6 +152,7 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [settings-and-appearance.md](settings-and-appearance.md)
 - [search-and-filters.md](search-and-filters.md)
 - [om-and-agents.md](om-and-agents.md)
+- [home-history-restore.md](home-history-restore.md)
 - [your-om-watches.md](your-om-watches.md)
 - [your-om-drafts.md](your-om-drafts.md)
 - [your-om-unread.md](your-om-unread.md)
