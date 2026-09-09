@@ -49,10 +49,26 @@ One surface has a fourth, dedicated harness: the Open World tab, at
 `mocks/world-solo/index.html?worldprobe=1`. See
 [open-world.md](open-world.md) — it is not reachable through the shell fixture.
 
-`tools/visual/agent-center-fixture.html` is a fourth harness, and a real one:
-it opens standalone and renders the Agent Center's consent queue with content.
-Its vocabulary is only `state=desk-off`, `theme` and `zoom` — none of the shell
-fixture's grammar. See [om-and-agents.md](om-and-agents.md).
+Two more standalone harnesses are real, and neither speaks the shell fixture's
+grammar. `tools/visual/agent-center-fixture.html` renders the Agent Center's
+consent queue with content; its vocabulary is only `state=desk-off`, `theme`
+and `zoom` (see [om-and-agents.md](om-and-agents.md)).
+`tools/visual/persona-panel-fixture.html` renders the persona panel — "Your
+voice", an `IDENTITY` section, a `Learning` section and a `switch` named
+**"Learn from my messages"** — and takes `theme` plus `state`, whose four
+values each land a different journey:
+
+| Route | State |
+|---|---|
+| `persona-panel-fixture.html` | The voice card (`state=card` is the default) |
+| `persona-panel-fixture.html?state=awaiting` | "Make your messages sound like you" — nothing learned yet |
+| `persona-panel-fixture.html?state=proposed` | "Your first voice card", with an **Accept** button |
+| `persona-panel-fixture.html?state=pending` | "Proposed changes", with **Review**, **Accept** and **Not now** |
+
+The same panel is also reachable inside the shell at
+`?view=agents&panel=persona`, which is the route
+[home-history-restore.md](home-history-restore.md) drives for the history
+journey.
 
 The remaining files in `tools/visual/` are **not** driveable harnesses.
 `person-presence-fixture.html` and `reaction-scene-fixture.tsx` are opened only
@@ -83,7 +99,7 @@ Common modifiers, all on the shell fixture: `alerts=quiet|board`,
 
 That list is the common set, not the whole vocabulary — the fixture reads
 around sixty parameters. The ones worth knowing beyond the list:
-`panel=search|library|topic-draft` (and `searchState=error`, which only renders
+`panel=search|library|persona|topic-draft` (and `searchState=error`, which only renders
 once `panel=search` has seeded a run — see
 [search-and-filters.md](search-and-filters.md)), `lens=todos|agents` on
 `view=library` (which routes to `#/library/todos` and `#/library/agents`),
@@ -100,7 +116,8 @@ state seeds worth knowing before you conclude a surface has no route:
 `fixtureState=loading`, `g1=spacer`, `homeImport=open`, `import=<phase>`,
 `lateImage=1` with `lateImageDelay=<ms>`, `libraryState=error`, `links=1`,
 `sealedAutoMove=1`, `sealedBusy=1`. None came in with the recent composer work
-— they are older seams nobody wrote down.
+— they are older seams nobody wrote down. `#792` added one more, `restore=fail-once`,
+which makes the first HOME history restore fail so the retry path can be driven.
 
 **`message=cozy` is sticky, and nothing unsets it.** It writes
 `om.chat.messageDisplay` to `localStorage` and the fixture has no `else` branch
