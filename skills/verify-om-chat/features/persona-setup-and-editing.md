@@ -27,7 +27,7 @@ Capture at 1440x1000 and 390x844. With an actual API response cached, go offline
 
 ## Switching profiles
 
-Use `personaState=profiles` for deterministic multi-profile rendering, or the actual API rig for persisted selection. Add sample profiles creates Brief, Warm and Skeptical without loading one. Choose Profile to load, then Load profile. Assert both Loaded profile text and the API selectedDocId. Repeat in the same mounted panel, then Use default voice and assert a null selection and cleared derived digest. Changing the picker alone must not change the loaded card.
+Use `personaState=profiles` for deterministic multi-profile rendering, or the actual API rig for persisted selection. Add sample profiles creates Brief, Warm, Skeptical, Sarcastic and Show Me without loading one. Existing three-sample homes add only the two missing cards. Choose Profile to load, then Load profile. Assert both Loaded profile text and the API selectedDocId. Repeat in the same mounted panel, then Use default voice and assert a null selection and cleared derived digest. Changing the picker alone must not change the loaded card.
 
 Open chosen profile opens an inactive card through the library route without loading it. Duplicate names include their paths in the picker. Importing a second card with the same managed skill name can fail to load; verify actionable rename guidance and that the prior selection and digest remain intact.
 
