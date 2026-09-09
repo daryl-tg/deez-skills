@@ -269,41 +269,29 @@ and `verify-openfloor`. Edit it through either path; they are the same files.
 Never copy it into `~/.claude/skills` as a real directory: that is how a feature
 map ends up with no history, no diffs, and no way to reach another machine.
 
-Until this skill's branch lands on the hub's `main`, the symlink points into a
-worktree rather than the main checkout:
+This skill rides the hub's `main`, and the symlink resolves through the hub's
+main checkout, exactly like every other skill:
 
 ```
 ~/.claude/skills/verify-kiyotaka
-  -> /Users/dboon/Github/deez-skills-verify-kiyotaka/skills/verify-kiyotaka
-     (worktree on branch skills/verify-kiyotaka)
+  -> /Users/dboon/Github/deez-skills/skills/verify-kiyotaka
 ```
 
-**Why it is not pointed at the main checkout yet, and the trap that forces
-this:** a tracked directory only exists in a working tree while a branch
-carrying it is checked out. The hub's main checkout is usually parked on some
-other skill's feature branch, and switching branches there **deletes this
-directory**, leaving `~/.claude/skills/verify-kiyotaka` a dangling symlink and
-the skill silently unavailable. The content is never lost — it is in the pushed
-commit — but nothing warns you, and the failure looks like the skill was never
-installed. The worktree pins one branch to one path, so no branch switch
-elsewhere can pull the ground out.
-
-Once this branch is on `main`, repoint the symlink at
-`/Users/dboon/Github/deez-skills/skills/verify-kiyotaka` and remove the
-worktree (`git worktree remove /Users/dboon/Github/deez-skills-verify-kiyotaka`).
-From then on it rides `main` like every other skill.
-
-If the symlink ever dangles, check it before assuming anything is broken:
+**The one way that goes dark, and it is not breakage:** a tracked directory only
+exists in a working tree while a branch carrying it is checked out. When the hub
+checkout is parked on an older skill's feature branch — one that predates this
+skill landing — the directory is absent there and the symlink dangles. The
+content is never lost; it is on `main`. Nothing warns you, and the failure reads
+as "the skill was never installed", so check the symlink before concluding
+anything:
 
 ```bash
 ls -la ~/.claude/skills/verify-kiyotaka && ls ~/.claude/skills/verify-kiyotaka/
 ```
 
-**`control-kiyotaka` is deliberately NOT tracked.** It sits at the root of
-kiyotaka-frontend, hidden via `.git/info/exclude`, because AGENTS.md keeps that
-repo's root to a fixed set of files and this is operator tooling rather than app
-source. A fresh clone or a new worktree will not have it. When it is missing,
-regenerate it with `create-verification-skill` — do not add it to a commit.
+It resolves again the moment the hub is back on `main` (`cd
+/Users/dboon/Github/deez-skills && git checkout main`), or once that feature
+branch is rebased onto a `main` containing this skill.
 
 ## Keeping this current
 
