@@ -135,8 +135,8 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:2703-2704`), with a comment naming the lock
-  it was removing. Measured again on `502a9520`:
+  (`tools/visual/shell-fixture.tsx:2860-2861`), with a comment naming the lock
+  it was removing. Measured again on `515df5b3`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
   If you find either banner back, that is a fixture regression rather than the

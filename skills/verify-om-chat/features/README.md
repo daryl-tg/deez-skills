@@ -116,8 +116,21 @@ state seeds worth knowing before you conclude a surface has no route:
 `fixtureState=loading`, `g1=spacer`, `homeImport=open`, `import=<phase>`,
 `lateImage=1` with `lateImageDelay=<ms>`, `libraryState=error`, `links=1`,
 `sealedAutoMove=1`, `sealedBusy=1`. None came in with the recent composer work
-— they are older seams nobody wrote down. `#792` added one more, `restore=fail-once`,
-which makes the first HOME history restore fail so the retry path can be driven.
+— they are older seams nobody wrote down. `#792` added one more,
+`restore=fail-once`, which makes the first HOME history restore fail so the
+retry path can be driven ([home-history-restore.md](home-history-restore.md)).
+
+And sixteen more again, all pre-dating that commit, with what each seeds:
+`approval=auto` and `lane=on` (fixture-only approval and lane state),
+`capture=1` (a capture overlay — a real parameter, despite reading like the
+screenshot guidance elsewhere in this file), `card=1` (a live cursor overlay),
+`confirm=topics-only` (auto-opens a confirm dialog), `connection`,
+`docs=500` (a 1337-doc library corpus), `failed=room|dm` (a failed-delivery
+row), `history=detached` (topics start in detached history), `list=flat` (sets
+a localStorage library-list mode — sticky with no companion to clear it, the
+same shape as `message=cozy`), `note=long|wrapped` (bench doc variants),
+`rail`, `requests=<n>`, `scope=server`, `status=<text>`, and `title=<slug>`
+(overrides the room title, default `ops`).
 
 **`message=cozy` is sticky, and nothing unsets it.** It writes
 `om.chat.messageDisplay` to `localStorage` and the fixture has no `else` branch

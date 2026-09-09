@@ -16,7 +16,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   reads **"Agents, not running"**, while the desktop rail reads
   **"Agents, needs your om running"** — and if any agent is armed the count
   wins outright and away is masked entirely, giving **"Agents, N armed"**
-  (`Shell.tsx:2735-2741`). So an `--exact` match on the bare name misses three
+  (`Shell.tsx:2852-2858`). So an `--exact` match on the bare name misses three
   different ways, and matching the mobile string on desktop misses too. Away
   is a whole-app state, a different thing from the daemon not running.
 - Your om: the running conversation, and its *not-running* empty state.
@@ -27,7 +27,15 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   `OmSchedulesSurface.tsx` are deleted, `OmWatchesSurface.tsx` replaces both.
   Watches has its own file, [your-om-watches.md](your-om-watches.md).
 - The Agent Center roster: your agents, their access level, and
-  **"+ Wire an agent"**.
+  **"+ Wire an agent"** — which `#792` made one of **two** tabs. `?view=agents`
+  now opens a `tablist` named **"Agent pages"** holding **"Agent Center"**
+  (`#agent-center-page-tab`, selected by default) and **"Your voice"**
+  (`#persona-page-tab`). Clicking the second flips `aria-selected`, mounts
+  `.persona-panel`, and pushes `panel=persona` onto the URL, so the route
+  round-trips as `?view=agents&panel=persona#/agents`. The panel itself has its
+  own standalone harness with four seeded states — see
+  [README.md](README.md) — and the shell route seeds different content from it,
+  so do not expect the harness's "Learn from my messages" switch here.
 - The consent queue: agents asking for access, with Allow / No, and the
   review pair Accept / Reject.
 - Entry points out: "Message", "Agent settings", "How agents work", and the
@@ -47,7 +55,8 @@ Two harnesses, and they reach different halves.
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=agent` | Your om — **only** the not-running empty state |
-| `shell-fixture.html?view=agents` | The Agent Center roster inside the shell |
+| `shell-fixture.html?view=agents` | The Agent Center roster — now the **first of two tabs** |
+| `shell-fixture.html?view=agents&panel=persona` | The same route's second tab, the persona panel |
 | `agent-center-fixture.html` | The Agent Center standalone, with a seeded consent queue |
 | `agent-center-fixture.html?state=desk-off` | The same, still assembling ("assembling the roster…") |
 
@@ -59,6 +68,10 @@ agent-browser find role button click --name "Agents"
 agent-browser find role button click --name "How agents work"
 agent-browser find role button click --name "Agent settings"
 agent-browser find role button click --name "+ Wire an agent"
+
+# The two Agent pages tabs (#792). Driving the second is what reaches persona.
+agent-browser find role tab click --name "Agent Center"
+agent-browser find role tab click --name "Your voice"
 ```
 
 And in the standalone `agent-center-fixture.html`, which is where the
