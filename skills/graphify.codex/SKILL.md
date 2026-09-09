@@ -65,30 +65,39 @@ Only when the path is one or more `https://github.com/...` URLs, or several loca
 ```bash
 # Detect the correct Python interpreter (handles uv tool, pipx, venv, system installs)
 PYTHON=""
-GRAPHIFY_BIN=$(which graphify 2>/dev/null)
-# 1. uv tool installs — most reliable on modern Mac/Linux
-if [ -z "$PYTHON" ] && command -v uv >/dev/null 2>&1; then
-    _UV_PY=$(uv tool run graphifyy python -c "import sys; print(sys.executable)" 2>/dev/null)
-    if [ -n "$_UV_PY" ]; then PYTHON="$_UV_PY"; fi
-fi
-# 2. Read shebang from graphify binary (pipx and direct pip installs)
-if [ -z "$PYTHON" ] && [ -n "$GRAPHIFY_BIN" ]; then
+GRAPHIFY_BIN=$(command -v graphify 2>/dev/null || true)
+# 1. Read shebang from an installed graphify binary (uv, pipx, or direct pip).
+if [ -n "$GRAPHIFY_BIN" ]; then
     _SHEBANG=$(head -1 "$GRAPHIFY_BIN" | tr -d '#!')
     case "$_SHEBANG" in
         *[!a-zA-Z0-9/_.-]*) ;;
         *) "$_SHEBANG" -c "import graphify" 2>/dev/null && PYTHON="$_SHEBANG" ;;
     esac
 fi
-# 3. Fall back to python3
-if [ -z "$PYTHON" ]; then PYTHON="python3"; fi
+# 2. Fall back to an available Python 3.10+ interpreter. Prefer Homebrew on
+# macOS, where /usr/bin/python3 can be too old for graphifyy.
+if [ -z "$PYTHON" ]; then
+    for _CANDIDATE in /opt/homebrew/bin/python3 /usr/local/bin/python3 python3; do
+        if command -v "$_CANDIDATE" >/dev/null 2>&1 && \
+          "$_CANDIDATE" -c 'import sys; raise SystemExit(sys.version_info < (3, 10))' 2>/dev/null; then
+            PYTHON="$_CANDIDATE"
+            break
+        fi
+    done
+fi
+if [ -z "$PYTHON" ]; then
+    echo "Graphify requires Python 3.10 or newer." >&2
+    exit 1
+fi
 if ! "$PYTHON" -c "import graphify" 2>/dev/null; then
     if command -v uv >/dev/null 2>&1; then
         uv tool install --upgrade graphifyy -q 2>&1 | tail -3
         _UV_PY=$(uv tool run graphifyy python -c "import sys; print(sys.executable)" 2>/dev/null)
         if [ -n "$_UV_PY" ]; then PYTHON="$_UV_PY"; fi
     else
-        "$PYTHON" -m pip install graphifyy -q 2>/dev/null \
-          || "$PYTHON" -m pip install graphifyy -q --break-system-packages 2>&1 | tail -3
+        "$PYTHON" -m venv graphify-out/.venv
+        PYTHON="graphify-out/.venv/bin/python"
+        "$PYTHON" -m pip install --upgrade graphifyy -q
     fi
 fi
 # Write interpreter path for all subsequent steps (persists across invocations)
