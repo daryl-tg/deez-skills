@@ -8,7 +8,9 @@ conversation, and the friends surfaces that feed it.
 - Home as a landing surface: unread summary, recent destinations, a
   "Waiting for you" queue, and the agent entry points.
 - The DM list with per-conversation unread counts and presence.
-- One DM conversation: header with presence, tape, composer.
+- One direct or group DM conversation: header, tape, composer, and group
+  members panel.
+- Editing your own DM: More -> Edit Message -> inline editor -> save/cancel.
 - Connections: the Connections / Requests / Blocked chips, and their
   empty states.
 - The public-channel browse board.
@@ -36,6 +38,8 @@ Routes:
 |---|---|
 | `?view=home` | Home landing surface |
 | `?view=dm&dm=ana` | One DM conversation (`dm=` picks the peer; defaults to `ana`) |
+| `?view=dm&dm=OM%20chatters` | Seeded group DM with link/file messages and a driveable Members panel |
+| `?view=dm&dm=OM%20chatters&panel=members` | The same group DM with Members already open |
 | `?view=friends&tab=connections` | Connections — the default, an empty state |
 | `?view=friends&tab=requests` | Requests (what this file used to call Pending) |
 | `?view=friends&tab=blocked` | Blocked — **currently crashes**, see Gotchas |
@@ -48,12 +52,28 @@ Handles that resolve today:
 
 ```bash
 agent-browser find role treeitem click --name "Direct message with ana, 2 unread"
+agent-browser find role treeitem click --name "Group message OM chatters, 7 members"
+agent-browser find role button   click --name "Members"
 agent-browser find role button   click --name "Home: DMs and connections, 1 pending follow request"
 agent-browser find role button   click --name "New DM"
 agent-browser find role button   click --name "Follow someone"
 agent-browser find role button   click --name "See connections"
 agent-browser find role button   click --name "Create or Join Server"
 ```
+
+To drive a DM edit, hover your own seeded message (`"yep, watching the next
+print"`), open `More`, choose `Edit Message`, then use the inline controls:
+
+```bash
+agent-browser find role button click --name "More"
+agent-browser find role menuitem click --name "Edit Message"
+agent-browser find role textbox fill --name "Edit message" "replacement text"
+agent-browser find role button click --name "save"
+agent-browser eval 'document.documentElement.dataset.fixtureDmEdit'
+```
+
+The last command returns `saved:c1:m2` for the default `ana` fixture. `c1` is
+the stable conversation id carried through the edit; `m2` is the message id.
 
 On the Connections surface the chips are `button`, not `tab`: `"Connections"`,
 `"Requests"`, `"Blocked"` — three, and only three, in this lane. The product
@@ -131,6 +151,12 @@ seeded presence state — a good second observation alongside the route.
 - **The DM peer id is hardcoded.** The fixture answers `"u-ana"` for
   `dmPeerUserId()` whatever `?dm=` says, so `?view=dm&dm=dax` renders dax's
   name over ana's avatar and presence. Only `dm=ana` is coherent.
+- `OM chatters` seeds a group DM tape with a long link and a long-name PDF so
+  the narrowed transcript and Members panel can be reviewed together. `just
+  me` also resolves as a group route, but it is intentionally sparse. Group
+  routing still uses `conversationId`, never the mutable display label; prove
+  that wire identity separately with the focused session tests when changing
+  routing behavior.
 - The composer in a DM is subject to the same read-only draft lease as
   everywhere else — see [composer-and-sending.md](composer-and-sending.md).
 - Presence in the fixture is seeded, not live. Anything about presence
