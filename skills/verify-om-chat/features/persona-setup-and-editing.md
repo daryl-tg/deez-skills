@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- Explicit global profile selection, default voice, fixed samples and per-profile learning permission.
+- Explicit global profile selection, loaded preview, full-profile spotlight, fixed samples and per-profile learning permission.
 - Immediate historical setup, active progress, insufficient history, resume and cancellation.
 - Manual creation, structured edits, concurrent revision reconciliation and reviewed learning holds.
 - Native selfmd pair or folded Markdown import; save separately from selection.
@@ -27,7 +27,9 @@ Capture at 1440x1000 and 390x844. With an actual API response cached, go offline
 
 ## Switching profiles
 
-Use `personaState=profiles` for deterministic multi-profile rendering, or the actual API rig for persisted selection. Add sample profiles creates Brief, Warm, Skeptical, Sarcastic and Show Me without loading one. Existing three-sample homes add only the two missing cards. Choose Profile to load, then Load profile. Assert both Loaded profile text and the API selectedDocId. Repeat in the same mounted panel, then Use default voice and assert a null selection and cleared derived digest. Changing the picker alone must not change the loaded card.
+Use `personaState=profiles` for deterministic multi-profile rendering, or the actual API rig for persisted selection. Add sample profiles creates Brief, Warm, Skeptical, Sarcastic and Show Me without loading one. Existing three-sample homes add only the two missing cards. Choose Profile to load, then Load profile. Assert both Loaded profile text and the API selectedDocId. Repeat in the same mounted panel, then Use default voice and assert a null selection and cleared derived digest. Changing the picker alone must not change the loaded card or its preview. Profile to load is a custom menu button, not a native select. Open it by accessible name and pick the named menu item; Arrow keys, Enter and Escape must work.
+
+The loaded preview shows voice rules and an example from the selected profile. View full profile opens a focused read-only dialog with the complete readable card body, including advanced sections and code blocks. Check the last section against the API report, close with Escape and verify focus returns to View full profile. Reopen and exercise Close. At 390x844, verify the dialog fits the viewport and the body scrolls. Offline cached views must say they are cached, and an account switch must clear the previous profile and close its dialog. Older reports without profileMarkdown may show available details, with a clear limit and the advanced document route.
 
 Open chosen profile opens an inactive card through the library route without loading it. Duplicate names include their paths in the picker. Importing a second card with the same managed skill name can fail to load; verify actionable rename guidance and that the prior selection and digest remain intact.
 
