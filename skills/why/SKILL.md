@@ -1,6 +1,7 @@
 ---
 name: why
 description: "Recover why something was built the way it is, from git history, review threads, tickets, chat, and incident records. Use for 'why is this like this', 'why was Y chosen', or regression archaeology."
+disable-model-invocation: true
 ---
 
 # Why

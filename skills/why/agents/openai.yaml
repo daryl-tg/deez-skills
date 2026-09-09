@@ -1,0 +1,7 @@
+interface:
+  display_name: "Why"
+  short_description: "Recover why something was built the way it is"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

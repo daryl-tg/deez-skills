@@ -3,6 +3,7 @@ name: reviewer
 description: >-
   Code, diff, PR, or MR review; dead-code checks, behavior
   drift, or REVIEW.txt notes.
+disable-model-invocation: true
 ---
 ## Scope
 

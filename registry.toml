@@ -161,6 +161,11 @@ layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]
 
+[skills.principle-attack-the-premise]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
 [skills.principle-boundary-discipline]
 layer    = "principle"
 category = "core"
@@ -237,6 +242,11 @@ category = "core"
 runtimes = ["claude", "codex"]
 
 [skills.principle-subtract-before-you-add]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-test-behavior-not-implementation]
 layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]

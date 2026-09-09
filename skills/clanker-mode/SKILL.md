@@ -16,7 +16,9 @@ the choice it changed. A citation with no decision behind it means the leaf went
 unread.
 
 - Any code change → **principle-failing-test-first**, at the fastest level that
-  expresses the behavior.
+  expresses the behavior. Any test you write, change, or decide to keep →
+  **principle-test-behavior-not-implementation**. A check that would pass with
+  every import returning `undefined` is not a check.
 - Any claim that something works → **principle-prove-on-the-real-surface**.
   Inconclusive is not a pass.
 - Before promoting, reviewing, or announcing →
@@ -55,9 +57,9 @@ behind it means you skipped reading it.
 
 **Core.** How much to build, and in what order.
 `laziness-protocol` · `subtract-before-you-add` · `foundational-thinking` ·
-`redesign-from-first-principles` · `outcome-oriented-execution` ·
-`exhaust-the-design-space` · `experience-first` · `build-the-lever` ·
-`minimize-reader-load`
+`redesign-from-first-principles` · `attack-the-premise` ·
+`outcome-oriented-execution` · `exhaust-the-design-space` · `experience-first` ·
+`build-the-lever` · `minimize-reader-load`
 
 **Architecture.** What shape the code takes.
 `model-the-domain` · `boundary-discipline` · `type-system-discipline` ·
@@ -66,8 +68,8 @@ behind it means you skipped reading it.
 
 **Verification.** What counts as done.
 `prove-on-the-real-surface` · `visual-approval-gates-delivery` ·
-`failing-test-first` · `fix-root-causes` · `sequence-verifiable-units` ·
-`finish-or-report`
+`failing-test-first` · `test-behavior-not-implementation` · `fix-root-causes` ·
+`sequence-verifiable-units` · `finish-or-report`
 
 **Delivery.** How work reaches main.
 `rebase-pr-squash` · `one-commit-lands` · `feature-branch-isolation` ·

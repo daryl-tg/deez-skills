@@ -3,6 +3,14 @@
 Invoked at the end of every delivering playbook. Applies
 **principle-rebase-pr-squash** and **principle-one-commit-lands**.
 
+**Resolve the forge first, once.** Read `git remote get-url origin` before the
+first review operation and hold that answer for create, edit, view, watch, and
+land. GitHub remotes take `gh`. GitLab remotes take `glab`, with the **glab**
+skill for writes and **labiew** for review threads. Never infer the forge from
+the directory name or from the last repository you worked in. The OM stacks are
+GitHub and the Kiyotaka stack is GitLab. A session that carries `gh` into a
+GitLab repository fails at the first call with nothing landed.
+
 1. **Rebase** onto current `origin/main`. Resolve every conflict in the
    worktree. Never consolidate commits locally.
 2. **Promote**: check the branch out in the main worktree, per
@@ -33,4 +41,5 @@ Invoked at the end of every delivering playbook. Applies
 Landing, where the family lands, is squash-merge **through the review request**.
 Never a local merge, in any repository.
 
-**Reply:** the review URL, what it contains, what was verified, what is open.
+**Reply:** the resolved forge, the review URL, what it contains, what was
+verified, what is open.

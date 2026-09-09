@@ -1,6 +1,7 @@
 ---
 name: humanize
 description: Use when Claude-authored text (design doc, MR description, README section, chat/message draft) needs to read like Ryan wrote it — before pasting into Discord or GitLab, before publishing a doc, or when text shows AI tells like perfect parallelism, em-dash qualifiers, "Crucially,", recap paragraphs, zero first person. Trigger: /humanize [light] [path].
+disable-model-invocation: true
 ---
 
 # Humanize — make Claude output read like Ryan wrote it

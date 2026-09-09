@@ -1,6 +1,7 @@
 ---
 name: unslop
 description: "Cut AI tells from any writing. Applies to every prose surface, including your own replies."
+disable-model-invocation: true
 ---
 
 # Unslop

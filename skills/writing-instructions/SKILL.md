@@ -3,6 +3,7 @@ name: writing-instructions
 description: >-
   Agent-facing instruction edits: skills, AGENTS.md, guidelines,
   or prompt docs. Not prose style.
+disable-model-invocation: true
 ---
 ## Scope
 

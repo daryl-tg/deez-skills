@@ -1,6 +1,7 @@
 ---
 name: show-me
 description: "Explain the current topic visually, picking the smallest view that makes the point: pseudocode, a call tree, a component or file tree, a Mermaid diagram, a shaped diff, or one focused HTML page. Use for 'show me', 'draw this', 'what does this look like'. Not the decision trail, which is show-me-your-work."
+disable-model-invocation: true
 ---
 
 Help the user understand the current topic of conversation visually. Skip the preamble and keep prose brief. Pick the smallest view that makes the key point clear.

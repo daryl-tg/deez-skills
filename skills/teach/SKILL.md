@@ -1,6 +1,7 @@
 ---
 name: teach
 description: "Explain a change or subsystem plainly so a person actually understands it. Runs explore and why, weaves one account, builds diagrams up one part at a time. Use for 'teach me this' or 'help me really understand X'."
+disable-model-invocation: true
 ---
 
 # Teach

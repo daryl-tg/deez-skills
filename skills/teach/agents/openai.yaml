@@ -1,0 +1,7 @@
+interface:
+  display_name: "Teach"
+  short_description: "Explain a change so a person understands it"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false
