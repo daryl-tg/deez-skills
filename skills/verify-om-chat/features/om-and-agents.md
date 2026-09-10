@@ -37,9 +37,10 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   `find role button click --name "Voice & away"`.
 
   Clicking it mounts `.persona-panel` with its own sub-nav — Voice, Away,
-  Activity — under the heading **"Voice & away"**. It does **not** push
-  `panel=persona` onto the URL, though `?view=agents&panel=persona` still works
-  as an entry route.
+  Activity — under the heading **"Voice & away"**, and the hash becomes
+  `#/agent/voice`. Each of the three is independently addressable as
+  `?view=agent&panel=voice|away|activity`; their headings are "Your voice",
+  "Away coverage" and "Activity".
 - The consent queue: agents asking for access, with Allow / No, and the
   review pair Accept / Reject.
 - Entry points out: "Message", "Agent settings", "How agents work", and the
@@ -60,7 +61,10 @@ Two harnesses, and they reach different halves.
 |---|---|
 | `shell-fixture.html?view=agent` | Your om — **only** the not-running empty state |
 | `shell-fixture.html?view=agents` | The Agent Center roster — the first of two Agent pages |
-| `shell-fixture.html?view=agents&panel=persona` | The second page, "Voice & away" — chrome only, see Gotchas |
+| `shell-fixture.html?view=agent&panel=voice` | "Your voice" — the persona card, mocked and loaded |
+| `shell-fixture.html?view=agent&panel=away` | "Away coverage" |
+| `shell-fixture.html?view=agent&panel=activity` | "Activity" |
+| `shell-fixture.html?view=agents&panel=persona` | **Legacy.** Redirects to `#/agent/voice` unmocked — see Gotchas |
 | `agent-center-fixture.html` | The Agent Center standalone, with a seeded consent queue |
 | `agent-center-fixture.html?state=desk-off` | The same, still assembling ("assembling the roster…") |
 
@@ -112,16 +116,22 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
   `#653` surface (session sidebar, compose, watches, om settings) is
   `verified-unreachable` from this lane; the unmet prerequisite is a running
   daemon, which means the daemon-served rig, not the fixture.
-- **The shell reaches the Voice & away chrome, not its content.** Behind the
-  nav and the Voice / Away / Activity sub-nav, the panel body reads *"Your
-  voice could not be loaded. Try again in a moment."* with a **Retry** button.
-  `#91514c3a` made the persona cluster load on demand, and the shell fixture
-  does not serve what it then asks for. So this route proves the door and the
-  chrome; for the panel's actual content — the identity and census text, the
-  "Learn from my messages" switch, proposals — use the standalone
-  `persona-panel-fixture.html`, which stubs those fetches ([README.md](README.md)).
-  A screenshot of the shell route is a picture of a failed load, whatever the
-  surrounding chrome suggests.
+- **`?view=agents&panel=persona` is a trap, and it used to be this file's own
+  advice.** `#807` moved the fixture's persona gate to `view === "agent"`
+  (singular) with `panel` one of `voice`, `away` or `activity`;
+  `panel === "persona"` appears nowhere in the fixture now. The old route still
+  *looks* like it works, because the product's legacy-route handling redirects
+  `#/agents?panel=persona` to `#/agent/voice` — but the fixture evaluates its
+  persona gate once, synchronously, from the original query, so the redirect
+  arrives after the mock was already skipped. You land on the panel with the
+  real un-mocked client and it reads *"Your voice could not be loaded. Try
+  again in a moment."*
+
+  That failure is the route, not the lane. Driven side by side:
+  `?view=agents&panel=persona` lands on `#/agent/voice` with the load failure,
+  while `?view=agent&panel=voice` lands on the same hash and renders a
+  **LOADED PROFILE**. If you see the Retry button, check your query before
+  concluding anything about the fixture.
 - **`agent-center-fixture.html` is a real harness, despite where it sits.**
   It opens standalone and renders the consent queue with content. Its
   vocabulary is only `state=desk-off`, `theme` and `zoom` — no `?view=`, no

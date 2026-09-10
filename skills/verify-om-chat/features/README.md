@@ -65,12 +65,14 @@ values each land a different journey:
 | `persona-panel-fixture.html?state=proposed` | "Your first voice card", with an **Accept** button |
 | `persona-panel-fixture.html?state=pending` | "Proposed changes", with **Review**, **Accept**, **Not now** and **Export card** |
 
-The shell reaches the same surface at `?view=agents&panel=persona` — the route
-[home-history-restore.md](home-history-restore.md) drives — but only its
-chrome: the panel body there fails to load and offers a **Retry**, because
-`#91514c3a` made the persona cluster load on demand and the shell fixture does
-not serve it. This harness is where the content actually renders, because it
-stubs the fetches itself. See [om-and-agents.md](om-and-agents.md).
+The shell reaches the same surface at `?view=agent&panel=voice` (or `away`, or
+`activity`) — note the **singular** `agent`. `#807` moved the fixture's gate
+there, and `?view=agents&panel=persona` now only redirects, arriving after the
+persona mock was skipped, so it renders a load failure. `?personaState=` seeds
+that mock with `ready` (the default), `empty`, `setup`, `invalid`, `hold` or
+`profiles`, and `?backend=real` with `?backendOrigin=<url>` points the persona
+scene at a real daemon while everything else stays synthetic. See
+[om-and-agents.md](om-and-agents.md).
 
 The remaining files in `tools/visual/` are **not** driveable harnesses.
 `person-presence-fixture.html` and `reaction-scene-fixture.tsx` are opened only
@@ -101,7 +103,8 @@ Common modifiers, all on the shell fixture: `alerts=quiet|board`,
 
 That list is the common set, not the whole vocabulary — the fixture reads
 around sixty parameters. The ones worth knowing beyond the list:
-`panel=search|library|persona|topic-draft` (and `searchState=error`, which only renders
+`panel=search|library|topic-draft`, plus `voice|away|activity` which are gated
+on `view=agent` (and `searchState=error`, which only renders
 once `panel=search` has seeded a run — see
 [search-and-filters.md](search-and-filters.md)), `lens=todos|agents` on
 `view=library` (which routes to `#/library/todos` and `#/library/agents`),
