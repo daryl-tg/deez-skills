@@ -224,6 +224,53 @@ done
 printf '\n'
 [ "$BOOTED" = 1 ] || die "daemon did not answer on 31337 within 90s -- see ~/.openmarket/runner.log"
 
+# ---------------------------------------------------------------- mcp
+# The symlink repoint above is what strands the MCP servers. A process resolves
+# /opt/homebrew/bin/om ONCE at exec and keeps that binary for its whole life, so
+# installing a new daemon leaves every running MCP server on the old build --
+# launchd does not watch the symlink. On 2026-09-09 that drift reached nine
+# versions and half the governed tools answered `home_needs_watch_reset`.
+#
+# Only the launchd singleton is kicked: it is shared infrastructure that comes
+# back on its own. The stdio servers belong to live agent sessions, so they are
+# COUNTED, never killed -- killing one takes that session's om tools out from
+# under it mid-turn, and a session started after this run already execs current.
+#
+# Skipped in repo mode: there launchd runs $OUT directly while the MCP plist
+# still runs the symlink, so the two are different builds by construction and a
+# kick cannot align them.
+mcpver() {  # binary path of an om pid, or empty
+  lsof -p "$1" 2>/dev/null | awk '/openmarket\/0\./ && $4=="txt" {print $NF; exit}'
+}
+if [ "$MODE" = repo ]; then
+  say "mcp singleton:         skipped (repo mode runs \$OUT, mcp runs the symlink)"
+else
+  MCP_LABEL=${OM_MCP_LABEL:-com.openmarket.mcp-operator}
+  if ! launchctl print "gui/$(id -u)/$MCP_LABEL" >/dev/null 2>&1; then
+    say "mcp singleton:         not installed ($MCP_LABEL)"
+  else
+    launchctl kickstart -k "gui/$(id -u)/$MCP_LABEL" >/dev/null 2>&1 \
+      || say "mcp singleton:         WARN kickstart failed"
+    MV=""
+    for _ in $(seq 1 20); do            # poll, never a fixed sleep
+      MP=$(pgrep -f 'om mcp serve --http' | head -1)
+      [ -n "$MP" ] && MV=$(mcpver "$MP")
+      case "$MV" in */"$NEWVER"/*) break ;; esac
+      sleep 1
+    done
+    case "$MV" in
+      */"$NEWVER"/*) say "mcp singleton:         $NEWVER" ;;
+      "")            say "mcp singleton:         WARN not answering after kickstart" ;;
+      *)             say "mcp singleton:         WARN still on $(printf '%s' "$MV" | sed 's|.*/openmarket/||;s|/bin/om||'), expected $NEWVER" ;;
+    esac
+  fi
+  STALE=0
+  for p in $(pgrep -f 'om mcp serve --stdio'); do
+    case "$(mcpver "$p")" in */"$NEWVER"/*) ;; *) STALE=$((STALE + 1)) ;; esac
+  done
+  [ "$STALE" = 0 ] || say "stale stdio mcp:       $STALE (live agent sessions; they exec current on restart)"
+fi
+
 cleanup; STAGED=0
 say "monorepo dirty:        $(git -C "$MONO" status --short | wc -l | tr -d ' ')"
 say "GUI repo dirty:        $(git -C "$GUI" status --short | wc -l | tr -d ' ')"
