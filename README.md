@@ -324,9 +324,11 @@ description is not what makes a runtime truncate its catalogue; the total is.
 
 | Name | Layer | Runtimes | Description |
 | --- | --- | --- | --- |
+| `adhd` |  | claude | — |
 | `automate-me` |  | claude, codex | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for 'automate me', 'capture how I work', or … |
 | `clanker-agent` |  | claude | — |
 | `clanker-mode` | router | claude, codex | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or … |
+| `clanker-mode` |  | claude | — |
 | `code-reviewer` |  | claude | — |
 | `codex-first` |  | claude, codex | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:review) as the primary path, raw codex exec as… |
 | `create-verification-skill` |  | claude, codex | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, … |
@@ -428,6 +430,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `bump-rc` |  | claude | Release a new @openmarket/rooms-client version — pick the bump from what actually changed, run the repo's release script, then update both GUI consumers' pins.… |
 | `chrome-devtools` |  | claude, codex | Browser automation through the Chrome DevTools Protocol with the bundled chrome-devtools script. |
 | `commit` |  | codex | Commit the currently staged git changes only. Use when the user invokes /commit, asks to commit staged changes, or requests a concise commit from the existing … |
+| `commit` |  | claude | — |
 | `demuddy` |  | claude | Use when a plan, spec, or design doc has accumulated edits from multiple discussion rounds and is about to be handed to an implementing agent (or human) — symp… |
 | `figure-it-out` |  | claude, codex | Design an auditable playbook when no bundled one fits: a large migration, an ambitious multi-part change, or work reviewed after the operator steps away. Scale… |
 | `git` |  | claude, codex | Version-control workflow: commits, staging, rebasing, branching, minimal diffs, and commit messages. |
@@ -440,6 +443,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `loop-me-in` |  | claude | Use when a fix plan, spec, or design doc needs to become a file that a fresh session can execute unattended and prove its own changes landed — "make this runna… |
 | `mailbox` |  | claude, codex | Agent mail, handoffs, replies, waits, handled state, or store inspection. |
 | `maintain-agents-md` |  | claude, codex | AGENTS.md maintenance and repository agent instructions. |
+| `mr-markdown` |  | claude | — |
 | `pi-development` |  | claude, codex | Pi asset development: extensions, skills, prompts, themes, packages, providers, models, TUI, or SDK integrations. |
 | `prompt-ready` |  | claude | Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persist… |
 | `recall` |  | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap. |
@@ -452,6 +456,10 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `testing-harness` |  | claude | Use when a change has to be proven in the real running product rather than in tests — visually diffing the cloud deployment against the local daemon, sweeping … |
 | `war-diary` |  | claude | Use when updating the Frontend War Diaries from a GitLab activity .atom export and the day's Claude Code sessions — turning a day's GitLab work (pushes, MRs, a… |
 | `why` |  | claude, codex | Recover why something was built the way it is, from git history, review threads, tickets, chat, and incident records. Use for 'why is this like this', 'why was… |
+| `worktree-cleanup` |  | claude | — |
+| `worktree-feat` |  | claude | — |
+| `worktree-feat-done` |  | claude | — |
+| `worktree-promote` |  | claude | — |
 
 ### Writing and editing
 

@@ -255,6 +255,44 @@ layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]
 
+# --- Commands ---------------------------------------------------------------
+# Claude slash commands. Codex has no command kind, so these are Claude-only by
+# construction. Three of them are thin wrappers over a gated skill: a skill with
+# `disable-model-invocation: true` is unreachable through the Skill tool, so
+# `/name` needs a command that tells the session to read the skill file.
+
+[commands.clanker-mode]
+category = "core"
+runtimes = ["claude"]
+
+[commands.adhd]
+category = "core"
+runtimes = ["claude"]
+
+[commands.commit]
+category = "workflow"
+runtimes = ["claude"]
+
+[commands.mr-markdown]
+category = "workflow"
+runtimes = ["claude"]
+
+[commands.worktree-feat]
+category = "workflow"
+runtimes = ["claude"]
+
+[commands.worktree-promote]
+category = "workflow"
+runtimes = ["claude"]
+
+[commands.worktree-feat-done]
+category = "workflow"
+runtimes = ["claude"]
+
+[commands.worktree-cleanup]
+category = "workflow"
+runtimes = ["claude"]
+
 # --- Router -----------------------------------------------------------------
 # One router, on both runtimes. Codex ignores disable-model-invocation, so a
 # mode skill there would fire on description matches; agents/openai.yaml carries
