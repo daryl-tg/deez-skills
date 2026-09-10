@@ -27,15 +27,19 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   `OmSchedulesSurface.tsx` are deleted, `OmWatchesSurface.tsx` replaces both.
   Watches has its own file, [your-om-watches.md](your-om-watches.md).
 - The Agent Center roster: your agents, their access level, and
-  **"+ Wire an agent"** — which `#792` made one of **two** tabs. `?view=agents`
-  now opens a `tablist` named **"Agent pages"** holding **"Agent Center"**
-  (`#agent-center-page-tab`, selected by default) and **"Your voice"**
-  (`#persona-page-tab`). Clicking the second flips `aria-selected`, mounts
-  `.persona-panel`, and pushes `panel=persona` onto the URL, so the route
-  round-trips as `?view=agents&panel=persona#/agents`. The panel itself has its
-  own standalone harness with four seeded states — see
-  [README.md](README.md) — and the shell route seeds different content from it,
-  so do not expect the harness's "Learn from my messages" switch here.
+  **"+ Wire an agent"** — which `#792` made one of two pages, and `#807`
+  rebuilt. `?view=agents` carries a `nav` named **"Agent pages"**, and it is
+  **not** a `tablist`: it holds a `span` reading **"Agent Center"**
+  (`aria-current="page"`) and a `button` reading **"Voice & away"**. `#792`'s
+  `role="tab"` pair and its `#agent-center-page-tab` / `#persona-page-tab` ids
+  are gone, and so is the old **"Your voice"** button name, so
+  `find role tab` and any of those three names now match nothing. Drive
+  `find role button click --name "Voice & away"`.
+
+  Clicking it mounts `.persona-panel` with its own sub-nav — Voice, Away,
+  Activity — under the heading **"Voice & away"**. It does **not** push
+  `panel=persona` onto the URL, though `?view=agents&panel=persona` still works
+  as an entry route.
 - The consent queue: agents asking for access, with Allow / No, and the
   review pair Accept / Reject.
 - Entry points out: "Message", "Agent settings", "How agents work", and the
@@ -55,8 +59,8 @@ Two harnesses, and they reach different halves.
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=agent` | Your om — **only** the not-running empty state |
-| `shell-fixture.html?view=agents` | The Agent Center roster — now the **first of two tabs** |
-| `shell-fixture.html?view=agents&panel=persona` | The same route's second tab, the persona panel |
+| `shell-fixture.html?view=agents` | The Agent Center roster — the first of two Agent pages |
+| `shell-fixture.html?view=agents&panel=persona` | The second page, "Voice & away" — chrome only, see Gotchas |
 | `agent-center-fixture.html` | The Agent Center standalone, with a seeded consent queue |
 | `agent-center-fixture.html?state=desk-off` | The same, still assembling ("assembling the roster…") |
 
@@ -69,9 +73,9 @@ agent-browser find role button click --name "How agents work"
 agent-browser find role button click --name "Agent settings"
 agent-browser find role button click --name "+ Wire an agent"
 
-# The two Agent pages tabs (#792). Driving the second is what reaches persona.
-agent-browser find role tab click --name "Agent Center"
-agent-browser find role tab click --name "Your voice"
+# The two Agent pages (#792, rebuilt by #807). "Agent Center" is a span with
+# aria-current, not a control; only the second one is clickable.
+agent-browser find role button click --name "Voice & away"
 ```
 
 And in the standalone `agent-center-fixture.html`, which is where the
@@ -108,6 +112,16 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
   `#653` surface (session sidebar, compose, watches, om settings) is
   `verified-unreachable` from this lane; the unmet prerequisite is a running
   daemon, which means the daemon-served rig, not the fixture.
+- **The shell reaches the Voice & away chrome, not its content.** Behind the
+  nav and the Voice / Away / Activity sub-nav, the panel body reads *"Your
+  voice could not be loaded. Try again in a moment."* with a **Retry** button.
+  `#91514c3a` made the persona cluster load on demand, and the shell fixture
+  does not serve what it then asks for. So this route proves the door and the
+  chrome; for the panel's actual content — the identity and census text, the
+  "Learn from my messages" switch, proposals — use the standalone
+  `persona-panel-fixture.html`, which stubs those fetches ([README.md](README.md)).
+  A screenshot of the shell route is a picture of a failed load, whatever the
+  surrounding chrome suggests.
 - **`agent-center-fixture.html` is a real harness, despite where it sits.**
   It opens standalone and renders the consent queue with content. Its
   vocabulary is only `state=desk-off`, `theme` and `zoom` — no `?view=`, no

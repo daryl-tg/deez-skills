@@ -60,15 +60,17 @@ values each land a different journey:
 
 | Route | State |
 |---|---|
-| `persona-panel-fixture.html` | The voice card (`state=card` is the default) |
+| `persona-panel-fixture.html` | The voice card (`state=card` is the default), with **Export card**, **Import a card** and **Create manually** |
 | `persona-panel-fixture.html?state=awaiting` | "Make your messages sound like you" — nothing learned yet |
 | `persona-panel-fixture.html?state=proposed` | "Your first voice card", with an **Accept** button |
-| `persona-panel-fixture.html?state=pending` | "Proposed changes", with **Review**, **Accept** and **Not now** |
+| `persona-panel-fixture.html?state=pending` | "Proposed changes", with **Review**, **Accept**, **Not now** and **Export card** |
 
-The same panel is also reachable inside the shell at
-`?view=agents&panel=persona`, which is the route
-[home-history-restore.md](home-history-restore.md) drives for the history
-journey.
+The shell reaches the same surface at `?view=agents&panel=persona` — the route
+[home-history-restore.md](home-history-restore.md) drives — but only its
+chrome: the panel body there fails to load and offers a **Retry**, because
+`#91514c3a` made the persona cluster load on demand and the shell fixture does
+not serve it. This harness is where the content actually renders, because it
+stubs the fetches itself. See [om-and-agents.md](om-and-agents.md).
 
 The remaining files in `tools/visual/` are **not** driveable harnesses.
 `person-presence-fixture.html` and `reaction-scene-fixture.tsx` are opened only
