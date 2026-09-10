@@ -31,7 +31,10 @@ Read the gotchas for where the line now falls.
   — dimmed, never removed). Do not look for `#797` here: that commit touches
   only `src/editor/live-preview.ts`, so the cursor-based *hiding* of fence
   markers is a doc-editor behaviour, not a composer one.
-- Replies, mentions (`@user`, role tags), slash commands, `$` market refs.
+- Replies, mentions (`@user`, role tags), slash commands, `$` market refs, and
+  library-reference pills. `ac43c466` extended the bound-name trick already used
+  for topics and multiword roles to `om://doc`, `om://folder` and `om://tag`
+  URIs, so a draft can carry a full URI while showing a short label.
 - The formatting toolbar and its selection clearance.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
@@ -84,8 +87,15 @@ agent-browser eval '(()=>document.querySelectorAll("[data-code-panel]").length)(
 #   1, with [data-code-region] at 3 and two .composer-token-code-marker spans
 #   for the fence lines — dimmed, still in the DOM
 
-# Or type it. Enter SENDS, so Shift+Enter is the only way to type a multi-line
-# fence at all.
+# A library-reference pill (ac43c466) — typing the URI is enough:
+agent-browser click "textarea"
+agent-browser keyboard type "see om://doc/doc-card for context"
+agent-browser eval '(()=>{const b=document.querySelector(".composer-backdrop");
+  return [...b.querySelectorAll("[data-pill]")].map(r=>r.textContent)})()'
+#   ["om://doc/doc-card⧉ doc"]
+
+# Or type the fence. Enter SENDS, so Shift+Enter is the only way to type a
+# multi-line fence at all.
 agent-browser click "textarea"
 agent-browser keyboard type '```js'
 agent-browser press "Shift+Enter"
@@ -135,8 +145,8 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:2860-2861`), with a comment naming the lock
-  it was removing. Measured again on `515df5b3`:
+  (`tools/visual/shell-fixture.tsx:3219-3220`), with a comment naming the lock
+  it was removing. Measured again on `9902d149`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
   If you find either banner back, that is a fixture regression rather than the
@@ -160,12 +170,23 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   inside `.composer-attachment-card`, and clicking either portals an
   `.ui-lightbox[role="dialog"]` under `document.body` — which pages across every
   staged image *and* video, so one click can arrow into the neighbouring file.
-  Nothing here stages one: no parameter does it (all sixty-odd `params.get`
-  keys enumerated) and the fixture's pending-attachment arrays start empty, fed
+  Nothing here stages one: no parameter does it (all seventy-odd `params.get`
+  keys enumerated — 72 on `9902d149`) and the fixture's pending-attachment arrays start empty, fed
   only by `session.acceptFile` behind the real file input. The unmet
   prerequisite is a staged file. Whether the harness can drive that hidden
   `<input type="file">` directly is untested — treat this as unreached rather
   than unreachable until someone tries it.
+- **A reference pill is a backdrop token, not a DOM node in the textarea.**
+  Typing an `om://doc/...` URI into the composer paints a run in
+  `.composer-backdrop` carrying `data-pill="true"` and
+  `class="composer-token composer-token-doc"`, reading `om://doc/doc-card ⧉ doc`
+  while `textarea.value` keeps the raw URI. Query the backdrop, not the page:
+  a bare `[data-pill]` sweep also catches the sidebar's `rail-pill` and
+  `unread-pill` elements and will make you think you found one when you have
+  not. The *bound short label* half — a friendly name standing in for the URI —
+  comes from dragging or pasting out of the Library with its metadata, and
+  nothing in the fixture seeds `referenceBindings`, so that half is unreached
+  here for the same reason the staged previews are.
 - **A local send is not a wire send.** Enter appends a row to the seeded tape
   and clears the box, which is enough to prove the composer's write path. It
   says nothing about the relay, about a second identity seeing the message, or
