@@ -320,31 +320,6 @@ description is not what makes a runtime truncate its catalogue; the total is.
 
 ## Everything in the hub
 
-### cmux app development
-
-| Name | Layer | Runtimes | Description |
-| --- | --- | --- | --- |
-| `cmux` |  | codex | End-user control of cmux topology and routing (windows, workspaces, panes/surfaces, focus, moves, reorder, identify, trigger flash). Use when automation needs … |
-| `cmux-architecture` |  | codex | cmux package architecture, refactor layering, dependency inversion, file organization, DocC documentation, package design discipline, testability, and Swift 6 … |
-| `cmux-backend` |  | codex | Backend TypeScript and Cloud VM development rules for cmux. Use when editing web/app/api, web/services, backend scripts, Cloud VM lifecycle, provider integrati… |
-| `cmux-billing` |  | codex | Stripe checkout, pricing, subscription, Pro plan, webhook, and entitlement runbook for cmux billing work. Use when editing or debugging billing, pricing, Strip… |
-| `cmux-browser` |  | codex | End-user browser automation with cmux. Use when you need to open sites, interact with pages, wait for state changes, and extract data from cmux browser surface… |
-| `cmux-custom-sidebar` |  | codex | Build a custom cmux sidebar from a plain-language request. Use when the user asks for a custom sidebar, a sidebar that shows their workspaces/tabs/PRs/clock, a… |
-| `cmux-customization` |  | codex | Customize cmux for an end user. Use when changing cmux.json actions, custom commands, workspace layouts, plus-button behavior, surface tab bar buttons, Command… |
-| `cmux-debugging` |  | codex | Debug logging, Debug menu, runtime pitfalls, typing-latency-sensitive paths, SwiftUI list snapshot boundaries, OS-version repros, and local visual iteration fo… |
-| `cmux-dev-workflow` |  | codex | Contributor workflow rules for cmux setup, Xcode project normalization, tagged sidebar ExtensionKit development, and dev builds. Use when setting up the cmux r… |
-| `cmux-diagnostics` |  | codex | Run end-user cmux diagnostics. Use when cmux hooks, notifications, session restore, settings, browser automation, socket access, CLI control, or agent resume b… |
-| `cmux-ghostty` |  | codex | Ghostty submodule and GhosttyKit workflow rules for cmux. Use when modifying the ghostty submodule, rebuilding GhosttyKit.xcframework, updating the parent subm… |
-| `cmux-keyboard-shortcuts` |  | codex | Guide and apply cmux keyboard shortcut customization. Use when the user asks to customize, rebind, unbind, reset, audit, or create shortcut templates for cmux,… |
-| `cmux-localization` |  | codex | Localization rules and audit workflow for cmux UI strings, settings rows, menus, shortcuts, schema/config text, docs, command/help text, alerts, tooltips, and … |
-| `cmux-markdown` |  | codex | Open markdown files in a formatted viewer panel with live reload. Use when you need to display plans, documentation, or notes alongside the terminal with rich … |
-| `cmux-release` |  | codex | cmux release workflow, version bumping, changelog updates, pretag guard, release tags, and release asset expectations. Use when preparing or troubleshooting a … |
-| `cmux-settings` |  | codex | View and edit cmux settings in ~/.config/cmux/cmux.json. Use when the user wants to change cmux preferences (appearance, sidebar, notifications, automation, br… |
-| `cmux-shared-behavior` |  | codex | Shared behavior and mutation-path rules for cmux. Use when a behavior is exposed through multiple entrypoints such as keyboard shortcuts, command palette, cont… |
-| `cmux-socket-policy` |  | codex | Socket command threading and focus policy for cmux CLI/socket work. Use when adding or changing socket commands, CLI commands, telemetry commands, focus/select… |
-| `cmux-testing` |  | codex | cmux testing rules for Swift Testing, test target compilation, test wiring, and package/refactor validation. Use when adding or changing tests, touching packag… |
-| `cmux-workspace` |  | codex | Work inside the current cmux workspace and terminal. Use for cmux workspace, current workspace, caller surface, panes, surfaces, socket targeting, and non-inte… |
-
 ### Always-on essentials
 
 | Name | Layer | Runtimes | Description |

@@ -122,6 +122,11 @@ Two categories were added for the intake: `go` (the Go toolchain, 6) and `cmux`
 (20, Codex-only). Both sit outside the `lean` profile, which is the point of
 having them.
 
+**The `cmux` family was removed on 2026-09-10** as irrelevant to this operator's
+stacks, taking the category with it. The 20 skills and their 77 files are in
+this repository's history, so `git show` recovers any of them. Counts elsewhere
+in this document describe the September 1 intake and are left as written.
+
 **Recorded, not adopted.** `gcx` is a Claude *plugin* — four nested skills and a
 `.claude-plugin` manifest, vendored from `gcx agent skills` — so adopting it
 would fork a generated tree. It went to `vendor.toml`, which now has 17 entries.
