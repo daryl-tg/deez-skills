@@ -181,7 +181,6 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [composer-and-sending.md](composer-and-sending.md)
 - [direct-messages-and-home.md](direct-messages-and-home.md)
 - [mermaid-message-rendering.md](mermaid-message-rendering.md)
-- [message-editing.md](message-editing.md)
 - [settings-and-appearance.md](settings-and-appearance.md)
 - [search-and-filters.md](search-and-filters.md)
 - [om-and-agents.md](om-and-agents.md)
