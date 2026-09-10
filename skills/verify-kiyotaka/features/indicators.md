@@ -39,11 +39,18 @@ Preconditions:
   The new key is in the array — that is the assertion, not the legend text.
 - **Drive the legend.** It is engine-built DOM, not Vue:
   `./control-kiyotaka browser eval "window.tc[0].metadata.find(m=>m.settings?.ovType==='<KEY>').legends.settingsBtn.click()"`.
-  Also available: `closeBtn`, `toggleVisibilityBtn`, `loader`. For a deterministic
+  Also available: `closeBtn`, `toggleVisibilityBtn`, `loader`, plus `codeBtn`,
+  `infoBtn`, `guideBtn`, `alertBtn`, `maximizeBtn`, `moveUpBtn` / `moveDownBtn`,
+  `collapseLegendBtn`, `pinToChartBtn` and `mergePaneBtn`. For a deterministic
   spinner state in a layout proof, use
   `window.tc[0].updateLoadState(<metaId>, true)`.
-- **Guest cap.** The ticker bar reads `Indicators 2/3` as a guest. Assert the text,
-  then that a fourth add is refused.
+  **Poll after a legend click, never assert straight after it** — a `closeBtn`
+  click took several seconds to leave `metadata`, so an immediate re-read reports
+  the overlay still mounted and the teardown looks broken.
+- **Guest cap.** The ticker bar reads `Indicators 2/3` as a guest, rising to
+  `3/3`; the dialog carries the same count as `button "2 / 3"`. Assert the text,
+  then that a fourth add is refused — the refusal is silent, so prove it by
+  re-reading `metadata` and finding it unchanged rather than by expecting a throw.
 - **Proof.** Screenshot the pane with the legend visible, plus the engine-state
   read naming the overlay. Capture the settings dialog as its own frame if the
   claim is about settings.

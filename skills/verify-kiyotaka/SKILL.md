@@ -63,6 +63,16 @@ repo's documented dev port and the operator's own server.
 **A first launch after a dependency change reinstalls `node_modules` and takes
 minutes.** That is `pnpm`, not a hang; watch `.control-kiyotaka/lane-<port>.log`.
 
+**`up` must redirect the backgrounded group, not the command inside it.** If a
+regenerated wrapper ever launches vite as
+`( cd "$REPO" && nohup pnpm exec vite … >"$LOGFILE" 2>&1 & echo $! >"$PIDFILE" )`,
+patch it back to `{ cd "$REPO" && exec nohup pnpm exec vite …; } >"$LOGFILE" 2>&1
+</dev/null &`. With the redirection on the inner command the launcher shell keeps
+whatever stdout/stderr `up` was called with and then waits on vite forever, so any
+caller reading `up` through a pipe or `$(...)` — which is most agent harnesses —
+never sees EOF. The lane is serving HTTP 200 the whole time and `up` reads as
+wedged, which is the most expensive way this can fail.
+
 Teardown is [Cleanup](#cleanup).
 
 ## Doctor
@@ -115,8 +125,11 @@ wrong layout.
   "(()=>{const t=window.tc?.[0];return (t?.metadata?.[0]?.rawData?.length ?? 0)>50})()"
 ```
 
-Poll that until `true` (a cold boot with a re-optimizing vite can take ~60s).
-`window.tc[0].metadata` is the overlay array; `[0].rawData` is candles.
+Poll that until `true`. Budget **two minutes** on a cold boot — a lane whose vite
+is re-optimizing dependencies has taken ~105s to first candles; a warm reopen
+lands in ~35s. `window.tc[0].metadata` is the overlay array; `[0].rawData` is
+candles. `browser open` sometimes prints `✗ Operation timed out` while the
+navigation in fact succeeded, so let the candle predicate decide, not that line.
 
 **Drive by ARIA role and accessible name.** The chrome is labelled well:
 
@@ -124,6 +137,21 @@ Poll that until `true` (a cold boot with a re-optimizing vite can take ~60s).
 ./control-kiyotaka browser find role button click --name "Indicators" --exact
 ./control-kiyotaka browser find role button click --name "BINANCE.F BTCUSDT"
 ./control-kiyotaka browser find role button click --name "1m"
+```
+
+Where a control has **no** accessible name — layout grid cells, chart-type
+entries, drawing tools — use the testid rather than giving up on it:
+
+```bash
+./control-kiyotaka browser find testid tb-editor-toggle-btn click
+```
+
+Fill text is **positional**, `find <locator> <value> fill "<text>"`. There is no
+`--text` flag, and passing one types the literal `--TEXT <text>` into the field,
+which reads downstream as a search that legitimately found nothing:
+
+```bash
+./control-kiyotaka browser find placeholder "Search by symbol or name" fill "ETHUSDT"
 ```
 
 Re-snapshot after anything that changes the page — refs go stale immediately.
@@ -235,6 +263,38 @@ them; `agent-browser` called directly does not.
 
 **A clean exit is not proof.** A blank chart, the wrong interval, and guest
 chrome all screenshot successfully. Open the PNG.
+
+**Check exit codes unpiped.** `./control-kiyotaka doctor | tail` reports `tail`'s
+status, not doctor's, so a failing doctor reads as a pass. Redirect to a file and
+test `$?` when the exit code is the thing you are asserting.
+
+**The agent-browser daemon wedges under sustained software-GL load, and it does
+not announce itself as the cause.** The screenshot path goes first:
+
+```
+✗ Failed to read: Resource temporarily unavailable (os error 35)
+```
+
+while `eval` still answers normally — so every non-visual assertion keeps passing
+and only evidence capture dies. Left running it degrades to
+`✗ CDP command timed out: Runtime.evaluate`. `agent-browser close --session` does
+**not** clear it, and it can leave the previous run's Chrome alive as well.
+Recover by killing the daemon and its Chrome **by pid**:
+
+```bash
+ps aux | grep -e agent-browser-darwin-arm64 -e 'remote-debugging-port'   # find the pair
+kill -9 <daemon-pid> <chrome-pid>
+```
+
+Never `close --all` and never kill every Chrome: other sessions own theirs, and
+an unrelated long-lived Chrome is normally on this machine. Match the pids by
+start time against your own run.
+
+**A dead lane presents as a dead browser.** When `eval` starts timing out, run
+`doctor` before blaming the harness — a vite that died under memory pressure
+shows up as `lane … DOWN`, and no amount of browser restarting fixes it. This
+lane died mid-pass once with the software-GL Chrome running and system memory at
+32% free.
 
 ## When the chart itself misbehaves
 

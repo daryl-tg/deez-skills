@@ -14,7 +14,9 @@ map depends on this one working, so verify it first and never assume it.
 ## How to get to it (user POV)
 
 - Open `http://127.0.0.1:<lane>/chart/`. Nothing to click; the chart restores the
-  last symbol (guest defaults to `BINANCE.F BTCUSDT PERP`, `1m`).
+  last symbol (a guest with no stored state lands on `BINANCE.F BTCUSDT PERP` at
+  `1h`). Read `chartStore.activeInterval` rather than assuming an interval — a
+  recipe that hardcodes one silently proves the wrong timeframe.
 
 ## Driving it with control-kiyotaka
 
@@ -26,7 +28,9 @@ Preconditions:
   `./control-kiyotaka browser open "$(./control-kiyotaka url)"`.
 - **Wait for data, not for time.** Poll
   `./control-kiyotaka browser eval "(()=>{const t=window.tc?.[0];return (t?.metadata?.[0]?.rawData?.length ?? 0)>50})()"`
-  until it returns `true`. A cold boot with a re-optimizing vite can take ~60s.
+  until it returns `true`. Budget **at least 2 minutes** on a cold boot: a lane
+  whose vite is re-optimizing dependencies has taken ~105s to first candles. A
+  warm reopen lands in ~35s.
 - **Read the engine.** Run
   `./control-kiyotaka browser eval "(()=>{const t=window.tc[0];return JSON.stringify({bars:t.metadata[0].rawData.length,overlays:t.metadata.length})})()"`.
   A healthy guest boot returns ~250 bars and 4 overlays.
@@ -40,13 +44,14 @@ Preconditions:
   `FUNDING / COUNTDOWN`. `—` in the volume/OI slots means the `/api` proxy is
   down (backend lane), not that the chart is broken.
 - **Proof.** Dismiss the guest modal and capture in the same step — it re-raises:
-  `./control-kiyotaka browser find role button click --name "Close"` then
+  `./control-kiyotaka browser find role button click --name "Close" --exact` then
   `./control-kiyotaka browser screenshot artifacts/<run>/<rev>/boot-candles.png`,
   with `./control-kiyotaka browser snapshot -i -c` saved beside it. Confirm
-  nothing is on top first
-  (`eval "document.querySelectorAll('[role=dialog]').length"`), then **open the
-  PNG**: it must show drawn candlesticks, not a dialog. The engine read is the
-  side effect; the frame is the only proof pixels arrived.
+  nothing is on top first, with the union rather than a bare dialog count:
+  `eval "document.querySelectorAll('.q-dialog, .dialog-style, [role=dialog].open').length"`
+  must read `0`.
+  Then **open the PNG**: it must show drawn candlesticks, not a dialog. The
+  engine read is the side effect; the frame is the only proof pixels arrived.
 
 ## Gotchas
 
@@ -62,3 +67,21 @@ Preconditions:
   `http proxy error: /api/v1/... ECONNREFUSED`. None of these are the bug.
 - The canvas is WebGL and invisible to the a11y tree — a snapshot alone can never
   prove the chart drew.
+- **`[role=dialog]` is the wrong thing to count, in both directions.** A clean
+  desktop boot with nothing on top already reads `1`, because `MobilePopupSheet.vue`
+  (behind `MobileEntryDialog`) renders its `role=dialog` markup unconditionally at
+  every width and hides it with CSS rather than `v-if`. And the guest signup modal,
+  the one that actually eats clicks, carries **no** `role=dialog` at all, so the
+  count never rises when it raises. Use
+  `.q-dialog, .dialog-style, [role=dialog].open`. When something blocks a click,
+  `agent-browser` also names the covering element
+  (`covered by <div.dialog-style.dialog-overlay>`), which is the faster signal.
+- **The signup modal is time-gated, so an early screenshot is not proof it is
+  gone.** It arms only after the first chart paint plus ~8s of visible time, then
+  waits for ~2s idle. Poll past that window before deciding the coast is clear.
+- **It raises as a modal once per browser session, then downgrades to a bar.** The
+  once-per-session latch means a second drive in the same tab gets
+  `GuestSignupPromptBar` instead, which is non-blocking and carries different
+  testids. Both answer to `--name "Close"`, so the dismiss step still works, but a
+  frame comparison across drives is comparing two different surfaces. Discarding
+  the browser profile resets the latch and brings the modal back.
