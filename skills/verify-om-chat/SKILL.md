@@ -247,6 +247,29 @@ does not list it, the surface crashes with `is not a function` and takes the
 whole route down. Fixing the stub is part of shipping the feature, not a
 separate chore.
 
+**Where the method lives decides whether you notice.** That crash happens
+because `alertsStub` is a plain object — a missing key really is `undefined`.
+On the **proxied session root** the same omission is silent: the call resolves
+to `INERT` instead of throwing, so an awaited fetch "succeeds", returns a
+callable proxy, and the component renders it. `INERT`'s iterator is an empty
+generator, so a list comes back with zero rows and **no error branch ever
+runs**.
+
+`?view=library&lens=archive` is the worked example. `session.archivedDocs` and
+`session.restoreDoc` are unstubbed, so the lens renders its heading and a
+Refresh button and simply sits there — no rows, no message, no failure. Read
+from source it looks certain to land in `ArchiveView.load()`'s `catch` with
+*"Couldn't load archived notes"*; driven, that branch is unreachable. Two
+sessions predicted the error state from source and both were wrong the same
+way.
+
+This is the mode that corrupts findings rather than blocking runs. A crash
+announces itself; a silent empty state looks exactly like real emptiness, and
+gets written down as *"the archive is empty"* or reported as a product bug. So
+when a surface comes back plausibly empty, check whether the method behind it
+is stubbed **before** believing the emptiness — and never predict an error
+path from source alone on this fixture.
+
 **A stale linked `rooms-client` breaks every route at once.** `@openmarket/
 rooms-client` may be symlinked to a local `openmarket-internal` checkout whose
 `dist/` is behind its `src/`. The symptom is a vite error naming a missing
