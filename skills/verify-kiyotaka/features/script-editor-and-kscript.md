@@ -41,14 +41,23 @@ Preconditions:
   Super Search lists **nothing** until it has a query — opening it and
   snapshotting shows only `textbox "Search the platform"`. Once typed, the row's
   accessible name is `Script Editor`, not `Editor`.
-- **Confirm it opened, by polling.** The panel is a lazy chunk: for several
-  seconds it renders skeleton placeholders while the a11y tree shows none of its
-  controls, so an immediate snapshot reads as "it did not open". Poll for
-  CodeMirror, then snapshot and screenshot:
+- **Confirm it opened, by polling — and poll for the DRAWER, not CodeMirror.** The
+  panel is a lazy chunk: for several seconds it renders skeleton placeholders while
+  the a11y tree shows none of its controls, so an immediate snapshot reads as "it
+  did not open". The drawer mounts as a `role=complementary` region named `Editor`,
+  and that is what proves `ks-open`:
 
   ```bash
-  ./control-kiyotaka browser eval "document.querySelectorAll('.cm-editor').length"
+  ./control-kiyotaka browser eval "(()=>[...document.querySelectorAll('[role=complementary]')].map(e=>e.getAttribute('aria-label')).join(','))()"
   ```
+
+  `.cm-editor` stays `0` on a blank tab no matter how long you poll, because the
+  tab opens on the template picker rather than a buffer (below) — so a CodeMirror
+  poll reports a working editor as never opening. Poll `.cm-editor` only AFTER
+  taking a template. A drawer that mounts with the right name but renders no
+  content at all is the backend lane failing, not the chunk: the editor's script
+  list and analysis worker need the stack, and a 500-ing stack leaves the region
+  present and empty.
 
   A mounted drawer is a `role=complementary` region named `Editor`, carrying
   `New indicator`, `Templates`, `New kScript (legacy)`, `Manage groups`, a

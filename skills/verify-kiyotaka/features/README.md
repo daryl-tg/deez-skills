@@ -13,24 +13,35 @@ before driving, then use the matching feature file as the recipe.
   minutes on a cold boot.
 - Interval read, never assumed: `chartStore.activeInterval` (a guest with no
   stored state lands on `1h`).
-- Guest signup modal dismissed (`find role button click --name "Close" --exact`)
-  — dismiss it immediately before each capture, never once up front.
+- The catalog endpoint actually serves:
+  `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/scripts/query -H 'Content-Type: application/json' -d '{"limit":1}'`
+  reads `200`. `doctor`'s `backend :3000 up` accepts any status code, so a stack
+  whose `/scripts/query` returns `500` passes doctor while the indicator catalog
+  and every dialog-driven add are unreachable.
+- Guest signup modal dismissed
+  (`find testid guest-signup-modal-close-btn click`) — dismiss it immediately
+  before each capture, never once up front. Do **not** drive it by the name
+  `Close`: three buttons answer to that name and the matcher picks one under the
+  overlay.
 - Nothing on top:
   `eval "document.querySelectorAll('.q-dialog, .dialog-style, [role=dialog].open').length"`
-  reads `0`. Do **not** count bare `[role=dialog]`: `MobilePopupSheet.vue` renders
-  its markup unconditionally at every width (visibility is CSS, not `v-if`), so a
-  clean desktop boot already reads `1`, and the guest signup modal carries no
-  `role=dialog` at all. `.q-dialog` is what catches a Quasar dialog left open by
-  an earlier step.
+  reads `0`. Do **not** count bare `[role=dialog]`: the signup modal and both
+  app dialogs are `.dialog-style` overlays carrying no `role=dialog`, so that
+  count stays `0` whether or not something is on top.
 - Never drive an instance this verification run did not start.
 
 ## Driving conventions
 
 - Start every recipe from the baseline unless its preconditions say otherwise.
 - Prefer ARIA roles and accessible names over CSS selectors or DOM position.
-  Where a control has no accessible name — layout grid cells, chart-type entries,
-  drawing tools — fall back to `find testid <data-testid>`, which this app
-  populates well, rather than concluding there is no handle.
+  Where a control has no accessible name — layout grid cells, Panels rows, drawing
+  tools — fall back to `find testid <data-testid>`, which this app populates well,
+  rather than concluding there is no handle. Chart-type entries DO carry names, but
+  as `generic` nodes, so match their text rather than a button role.
+- **A name is not a handle if several controls share it.** A guest boot carries
+  three buttons named `Close`; `--name "Close" --exact` picks one of the two that
+  sit under the signup overlay and the drive dies as `covered by
+  <div.dialog-style.dialog-overlay>`. Where a name is ambiguous, use the testid.
 - Never key on an accessible name that is really *content*. The symbol-search
   field's name is the current symbol; match its placeholder instead.
 - Browser actions run through `control-kiyotaka browser`, terminal actions

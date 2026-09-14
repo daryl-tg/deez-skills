@@ -88,6 +88,20 @@ tree actually compiles on demand, the chart-schema seam, backend availability,
 v2 gateway reachability, and the harness. It exits non-zero when the instance is
 not worth driving.
 
+**Two of those lines are reachability, not health, and a degraded stack passes
+both.** `backend :3000 up` accepts ANY HTTP status from `/`, and `v2 gateway
+reachable` is a TCP probe of the gateway host. A stack whose
+`POST /api/v1/scripts/query` returns `500`, and whose v2 calls time out, reports
+fully green while the indicator catalog renders `Couldn't load indicators` and
+symbol search returns `0 results`. Candles still draw, so the chart looks fine.
+When a catalog or a search comes back empty, probe the endpoint itself before
+treating it as a frontend bug:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X POST \
+  http://127.0.0.1:3000/api/v1/scripts/query -H 'Content-Type: application/json' -d '{"limit":1}'
+```
+
 **The `chart-schema` line is the one that silently burns a run.** `vite.config.ts`
 aliases `@orangecharts/chart-schema` to the *sibling* `orange-shared` checkout's
 source in dev only, bypassing `node_modules`. A sibling behind this repo's pin
@@ -232,15 +246,29 @@ never hand-roll the launch.
 
 **The guest signup modal eats the first click, and it comes back.** A guest boot
 raises *"See what moves price. / Join for free"* over the chart. Dismiss it with
-`find role button click --name "Close"` **immediately before each capture**, not
-once at the start — it re-raises, and a frame shot after it returns is a
-photograph of the modal. Assert what is on top before you shoot:
-`eval "document.querySelectorAll('[role=dialog]').length"`.
+`find testid guest-signup-modal-close-btn click` **immediately before each
+capture**, not once at the start — it re-raises after a reload, and a frame shot
+after it returns is a photograph of the modal. Do **not** dismiss it by the name
+`Close`: a guest boot carries three buttons with that accessible name
+(`objects-close-btn`, `outage-corner-card-collapse-btn` and the modal's own), and
+`--name "Close" --exact` picks one of the two sitting UNDER the overlay, so the
+drive dies with `covered by <div.dialog-style.dialog-overlay>` and reads as an
+undismissable modal. Assert what is on top before you shoot, with the union —
+bare `[role=dialog]` reads `0` even while the modal is up:
+`eval "document.querySelectorAll('.q-dialog, .dialog-style, [role=dialog].open').length"`.
 
 **A dialog left open by an earlier drive photographs itself.** Nothing warns you:
 the engine read still passes, the a11y snapshot still returns, and the PNG shows
 last step's dialog over the chart you meant to capture. Check the dialog count
 and the visible text before every screenshot, and open the PNG afterwards.
+
+**A guest-walled click leaves a sign-in dialog that no close button clears.** Any
+control behind `promptGuestLogin` (multi-chart layouts, the editor's write paths)
+raises the sign-in wall in the same `.dialog-style.dialog-overlay` shell the
+signup modal uses, and it reads as *"Back to log in / Forgot your password?"*. It
+has no close control in its button list, so it blocks every later click until you
+reload the lane. Probe `[data-testid=guest-signup-modal-close-btn]` to tell the
+two overlays apart before trying to dismiss one.
 
 **Drawing tools have no accessible names.** Every left-toolbar tool snapshots as
 `button "More tools"`. Do not drive them by name — use `<ToolGlyph>`'s owning

@@ -13,12 +13,14 @@ must show the chart actually reloaded — not just that a menu opened.
 - `tb-plot` the chart-type picker changes plot type.
 - `tb-layout` the layout picker changes the grid.
 - `tb-hover` the pickers peek on hover and pin on click.
+- `tb-panels` the Panels menu opens and pins a panel.
 
 ## How to get to it (user POV)
 
 - Click the symbol button (`BINANCE.F BTCUSDT`), type, pick a result.
 - Click `1m` / `1h` directly, or hover the interval chevron for the full list.
 - Hover or click `Candle` for chart type, `Layout` for the grid.
+- Click `Panels` for Hyperliquid View, Calls, Heatmap, Objects and Journal.
 
 ## Driving it with control-kiyotaka
 
@@ -81,6 +83,24 @@ Preconditions:
   ```
 
   **As a guest the grid never applies** — see Gotchas.
+- **Panels.** The ticker bar folds the panel toggles under one
+  `button "Panels"` (`tb-panels-trigger-btn`); it reports `expanded=true` once open.
+  The popover is `tb-panels-menu` and its rows carry their own testids, because the
+  row labels snapshot without a button role:
+
+  ```bash
+  ./control-kiyotaka browser find testid tb-panels-trigger-btn click
+  ./control-kiyotaka browser find testid tb-panels-row-heatmap click
+  ```
+
+  Rows are `tb-panels-row-{hlView,calls,heatmap,objects,journal}`, each with a
+  `tb-panels-pin-<id>-btn` that pins it back out into the bar, plus
+  `tb-panels-customize-btn` ("Customize shortcuts…"). `tb-panels-on-dot` on the
+  trigger is the "some panel is on" indicator, and an active row carries its own
+  `tb-panels-row-<id>-on`. The catalog is `src/constants/toolbar-panels.constants.ts`;
+  its id union includes `goLive`, but `Go live` did NOT render in the guest menu —
+  read the catalog rather than assuming every id is present. The rows show their
+  keyboard doors (`⌥ ⇧ C`, `⌥ ⇧ H`, `⌥ ⇧ O`, `⌥ ⇧ J`).
 - **Proof.** For each change: the accessible name of the control after the change,
   the engine read showing bars reloaded, and a screenshot. Restore the original
   symbol, interval and plot type afterwards.
@@ -89,6 +109,20 @@ Preconditions:
 
 - **A label change is not a symbol change.** The ticker bar updates optimistically;
   the engine reload is the real event. Always re-assert the candle predicate.
+- **An empty result list is usually the symbol DIRECTORY, not the search.** The
+  dialog can open, accept the fill, and still read `ALL MARKETS 0 results` with
+  `Network issue. Results may be out of date. Retry`, because the exchange/coin
+  directory rides the v2 websocket and the console carries
+  `Failed to fetch exchanges` / `Failed to get exchange info list:
+  V2 WebSocket connection timeout`. `doctor`'s `v2 gateway reachable` is a TCP
+  probe of the gateway host and passes while those calls time out, so it does not
+  clear this. With zero results, `sym-search` — the actual symbol switch — is
+  unreachable; report it with the console signature rather than reporting the
+  dialog as broken.
+- **The chart-type entries DO carry accessible names, as `generic` nodes.** They
+  snapshot as `generic "Hollow Candle"`, `generic "Heikin Ashi"`, `generic
+  "Step Line"` and so on, so `find role button --name` misses them while the name
+  is right there. Click them by their text, not by a button role.
 - The pickers are hover-driven. `agent-browser` `click` does not emit the hover
   sequence, so a click-only drive can miss a peek-only state — and touch and the
   agent puppet deliberately never hover-open.
