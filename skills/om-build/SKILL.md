@@ -164,3 +164,13 @@ These hold whichever target you picked, and every one of them has been paid for.
 - **Never hand over an `18097`–`18197` URL.** Those are not tunnelled.
 - **`8098` is hands off.** Never start, restart, stop, or replace the review
   renderer. It is not an om-build rig.
+- **Never run `om service install` from a rig, worktree or away-run build.** It
+  bakes `ProgramArguments[0]` from `stableBinaryPath(process.execPath)`, which
+  falls back to the invoking binary's own path whenever that binary is not
+  reachable through `/opt/homebrew/bin/om`, `~/.local/bin/om` or a Cellar shim.
+  launchd then runs THAT file forever: it never reads the symlink om-build
+  repoints, so every later install lands on a path nothing executes and the
+  daemon silently freezes at the rig's version. `start`, `stop` and `restart` are
+  safe — they require an installed supervisor and write no unit. Only `install`
+  writes the plist, so run it from the installed `om` and nothing else.
+  Diagnose with `launchctl print gui/$(id -u)/xyz.openmarket.runner | grep program`.

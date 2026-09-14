@@ -57,18 +57,35 @@ for R in "$MONO" "$GUI"; do
 done
 
 # Where does the daemon actually live? Read it, never assume -- the plist has
-# been repointed at the repo build tree before (openmarket-chat #603).
-TARGET=$(sed -n '/ProgramArguments/,/<\/array>/p' "$PLIST" 2>/dev/null \
-         | grep -o '<string>[^<]*om</string>' | head -1 | sed 's/<[^>]*>//g')
+# been repointed at the repo build tree before (openmarket-chat #603), and on
+# 2026-09-11 at an away-run build named `om-away-workload-live`. Take the FIRST
+# <string> in ProgramArguments, which is the program path whatever it is called:
+# the old pattern `<string>[^<]*om</string>` required the path to END in "om", so
+# the away build did not match, TARGET fell back to the ASSUMED symlink, and every
+# check below then described a binary launchd was not running. Three days and ~50
+# versions of "successful" installs went to a path nothing executed.
+TARGET=$(sed -n '/<key>ProgramArguments<\/key>/,/<\/array>/p' "$PLIST" 2>/dev/null \
+         | grep -o '<string>[^<]*</string>' | head -1 | sed 's/<[^>]*>//g')
 [ -n "$TARGET" ] || TARGET=/opt/homebrew/bin/om
 [ -e "$TARGET" ] || die "cannot determine the daemon binary from $PLIST or PATH"
 # Resolve it. The plist normally names /opt/homebrew/bin/om, which is a SYMLINK,
 # and macOS `stat -f` is lstat -- it would report the link's own inode (size 49,
 # the target path string) and check [1] could never match the running binary.
 TARGET=$(realpath "$TARGET")
-case "$TARGET" in *dist/om) MODE=repo ;; *) MODE=versioned ;; esac
-say "daemon target:         $TARGET  [$MODE]"
 case "$TARGET" in *"/Cellar/openmarket/"*) die "target is a Homebrew install -- see SKILL.md hard rules" ;; esac
+# Classify by LOCATION, never by filename. A foreign program is fatal here rather
+# than at the closing stamp check: installing cannot change what launchd runs, so
+# every step after this would be work thrown away.
+case "$TARGET" in
+  "$HOME"/.local/opt/openmarket/*/bin/om) MODE=versioned ;;
+  "$MONO"/packages/cli/dist/om)           MODE=repo ;;
+  *) die "launchd runs a FOREIGN binary, so installing cannot change what runs:
+    $TARGET
+  It is neither a versioned install (~/.local/opt/openmarket/<ver>/bin/om) nor
+  this monorepo's $MONO/packages/cli/dist/om.
+  Repoint launchd at the install you actually build:  om service install" ;;
+esac
+say "daemon target:         $TARGET  [$MODE]"
 
 # ---------------------------------------------------------------- skip gate
 say ""; say "== gate =="
@@ -81,11 +98,14 @@ if [ -z "$pid" ]; then
   flag "daemon not answering on 31337"
 else
   disk=$(stat -f '%i' "$TARGET" 2>/dev/null)
-  # match /om$, NOT /bin\/om/ -- the narrow pattern silently misses a repo-tree
-  # daemon and reports an empty inode as if the daemon were sick.
-  live=$(lsof -p "$pid" 2>/dev/null | awk '$4=="txt" && $NF ~ /\/om$/ {print $(NF-1); exit}')
+  # The FIRST txt entry of the process is its main executable. Do not filter on
+  # the name: a pattern like /om$ misses a repo-tree or renamed daemon and then
+  # reports an empty inode, which reads as a sick daemon rather than a foreign
+  # one. Print the path so a mismatch names the binary that is actually running.
+  live_path=$(lsof -p "$pid" 2>/dev/null | awk '$4=="txt" {print $NF; exit}')
+  live=$(lsof -p "$pid" 2>/dev/null | awk '$4=="txt" {print $(NF-1); exit}')
   say "  [1] inode disk=$disk live=$live"
-  [ "$disk" = "$live" ] || flag "daemon runs inode ${live:-<none>}, disk has $disk"
+  [ "$disk" = "$live" ] || flag "daemon runs ${live_path:-<unknown>} (inode ${live:-<none>}), disk has $disk"
 fi
 
 src_ver=$(grep -m1 '"version"' "$MONO/packages/cli/package.json" | grep -o '[0-9][0-9.]*')
