@@ -9,6 +9,11 @@ Read the gotchas for where the line now falls.
 ## Sub-features
 
 - Typing, and the Send control enabling as a draft becomes non-empty.
+- The composer's placeholder, which names the destination and — since `#826` —
+  advertises the market and chart shorthands on channels too, not only in DMs:
+  `Message #ops · $ for markets · /chart to post one`. A topic keeps the bare
+  `Message in <topic>`, so the three are no longer one channel-shaped pattern
+  and two advertisements.
 - Draft persistence per destination (channel, topic, DM) across navigation —
   durably for some lanes only. `#777` split them by lane name: `dm:<user>`,
   `room:<room>` and `room:<room>#<topic>` stay localStorage-backed under
@@ -71,7 +76,9 @@ What the lane also proves:
 ```bash
 # The composer's destination follows navigation.
 agent-browser snapshot -c | grep -i textbox
-#   "Message #ops"  ->  "Message in CPI print — Aug"  ->  "Message ana · $ for markets · /chart to post one"
+#   "Message #ops · $ for markets · /chart to post one"
+#   -> "Message in CPI print — Aug"
+#   -> "Message ana · $ for markets · /chart to post one"
 
 # Send is disabled on an empty draft — but ONLY at a phone width. The Send
 # button renders under `max-width: 768px`; on desktop there is no such button

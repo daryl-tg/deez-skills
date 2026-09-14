@@ -8,7 +8,8 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 
 ## Sub-features
 
-- The rail doors: `button` **"Your om"** and `button` **"Agents"** — but both
+- The rail doors: `button` **"Your om"** and `button` **"Agents"**, joined by
+  **"Browse features"** since `#846` added its feature-catalog tile — but both
   names move with state, and the two doors do not move the same way.
   **"Your om"** becomes **"Your om, not running"** when
   `session.mode === "away"` (the fixture sets it with `?mode=away`), on
@@ -27,20 +28,22 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   `OmSchedulesSurface.tsx` are deleted, `OmWatchesSurface.tsx` replaces both.
   Watches has its own file, [your-om-watches.md](your-om-watches.md).
 - The Agent Center roster: your agents, their access level, and
-  **"+ Wire an agent"** — which `#792` made one of two pages, and `#807`
-  rebuilt. `?view=agents` carries a `nav` named **"Agent pages"**, and it is
-  **not** a `tablist`: it holds a `span` reading **"Agent Center"**
-  (`aria-current="page"`) and a `button` reading **"Voice & away"**. `#792`'s
-  `role="tab"` pair and its `#agent-center-page-tab` / `#persona-page-tab` ids
-  are gone, and so is the old **"Your voice"** button name, so
-  `find role tab` and any of those three names now match nothing. Drive
-  `find role button click --name "Voice & away"`.
+  **"+ Wire an agent"**. This page has had a door bolted on and torn off twice
+  in a fortnight, so trust the routes below rather than any remembered control:
+  `#792` gave `?view=agents` a `role="tab"` pair, `#807` replaced it with a
+  `nav` named "Agent pages" holding a span and a "Voice & away" button, and
+  `#830` removed that nav altogether. On `40c7ff0f` there is **no** "Agent
+  pages" nav, no tablist and no "Voice & away" button anywhere on
+  `?view=agents`; persona is opened from inside the running om surface, via
+  `openPersonaView` on controls this fixture cannot reach because the om
+  surface is stuck on its not-running state.
 
-  Clicking it mounts `.persona-panel` with its own sub-nav — Voice, Away,
-  Activity — under the heading **"Voice & away"**, and the hash becomes
-  `#/agent/voice`. Each of the three is independently addressable as
-  `?view=agent&panel=voice|away|activity`; their headings are "Your voice",
-  "Away coverage" and "Activity".
+  What survives churn is the routing. `?view=agent&panel=voice|away|activity`
+  each land directly, and `#830` renamed what they render: the surface heading
+  is now **"Persona"**, and beneath it `voice` reads "Voice" / "Current",
+  `away` reads "Research om is covering you", and `activity` reads "Away
+  activity". The older "Voice & away", "Your voice", "Away coverage" and
+  "Activity" headings are all gone.
 - The consent queue: agents asking for access, with Allow / No, and the
   review pair Accept / Reject.
 - Entry points out: "Message", "Agent settings", "How agents work", and the
@@ -61,9 +64,9 @@ Two harnesses, and they reach different halves.
 |---|---|
 | `shell-fixture.html?view=agent` | Your om — **only** the not-running empty state |
 | `shell-fixture.html?view=agents` | The Agent Center roster — the first of two Agent pages |
-| `shell-fixture.html?view=agent&panel=voice` | "Your voice" — the persona card, mocked and loaded |
-| `shell-fixture.html?view=agent&panel=away` | "Away coverage" |
-| `shell-fixture.html?view=agent&panel=activity` | "Activity" |
+| `shell-fixture.html?view=agent&panel=voice` | Persona → "Voice" / "Current", mocked and loaded |
+| `shell-fixture.html?view=agent&panel=away` | Persona → "Research om is covering you" |
+| `shell-fixture.html?view=agent&panel=activity` | Persona → "Away activity" |
 | `shell-fixture.html?view=agents&panel=persona` | **Legacy.** Redirects to `#/agent/voice` unmocked — see Gotchas |
 | `agent-center-fixture.html` | The Agent Center standalone, with a seeded consent queue |
 | `agent-center-fixture.html?state=desk-off` | The same, still assembling ("assembling the roster…") |
@@ -77,9 +80,8 @@ agent-browser find role button click --name "How agents work"
 agent-browser find role button click --name "Agent settings"
 agent-browser find role button click --name "+ Wire an agent"
 
-# The two Agent pages (#792, rebuilt by #807). "Agent Center" is a span with
-# aria-current, not a control; only the second one is clickable.
-agent-browser find role button click --name "Voice & away"
+# There is no persona control on this page any more (#830 removed the nav).
+# Reach the three surfaces by route instead — see the table above.
 ```
 
 And in the standalone `agent-center-fixture.html`, which is where the
