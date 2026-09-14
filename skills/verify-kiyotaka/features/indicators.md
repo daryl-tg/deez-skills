@@ -50,13 +50,23 @@ Preconditions:
 - **Add without the UI**, when the proof is about the overlay rather than the
   dialog — but only with a key whose CONTROL IS ALREADY LOADED:
   `./control-kiyotaka browser eval "document.querySelector('#tc-container-0').__vueParentComponent.setupState.chartStore.addIndicator('ORDERBOOK_DEPTH',{},0)"`.
-  Registry keys are the SCREAMING_SNAKE ids in `src/constants/indicator-names.ts`;
-  a kScript indicator is `TECHNICAL_SCRIPT` with `ovType` in params.
+  Registry keys are the `INDICATOR_TYPES` ids from
+  `@orangecharts/chart-schema/indicator-types` — every type registered by
+  `indicatorRegistry.set(...)` under `src/indicators/controls/*/index.ts`, and
+  enumerable without importing anything as `KNOWN_INDICATOR_TYPES`.
+  `src/constants/indicator-names.ts` is the cross-language search-alias map, not
+  the registry. A kScript indicator is `TECHNICAL_SCRIPT` with `ovType` in params.
 
-  **Controls load lazily, so most keys fail from a fresh boot.**
-  `src/indicators/indicator-registry.ts` imports each control on demand: only the
-  always-load set plus whatever the workspace restored is in `indicatorRegistry`,
-  and the rest arrive when the picker loads them. A key outside that set throws
+  **Controls load lazily, so warm the registry before an eval add.**
+  `src/indicators/indicator-registry.ts` imports each of the ~84 controls on
+  demand; a fresh boot holds only `ALWAYS_LOAD_TYPES` (`TRADING_TOTAL_VOLUME`,
+  `TRADING_TOTAL_LIQUIDITY`, `ORDERBOOK_DEPTH`) plus whatever the workspace
+  restored. Opening the Indicators dialog schedules `loadAllControls()` at idle
+  with a 2000ms timeout, so **open it once, wait ~3s, close it, then eval-add**.
+  `addIndicator` does `await loadControl(type)` itself, so a miss on a KNOWN type
+  is the control module failing to import (the path settles `module-load`), not a
+  missing recipe step — which is what happened on the run that wrote this note.
+  It throws
 
   ```
   addIndicator: no indicatorControl registered for type='TIME_PRICE_OPPORTUNITY'
@@ -70,7 +80,10 @@ Preconditions:
   guest boot. For anything else, add it through the dialog, which is the user path
   the proof should be using anyway.
 - **Confirm it mounted.** Run
-  `./control-kiyotaka browser eval "(()=>JSON.stringify(window.tc[0].metadata.map(m=>m.settings?.ovType ?? m.type)))()"`.
+  `./control-kiyotaka browser eval "(()=>JSON.stringify(window.tc[0].metadata.map(m=>m.settings?.ovType ?? m.overlayType ?? m.type)))()"`.
+  Keep the `overlayType` rung: on an overlay row `type` is the SIDE
+  (`onchart` / `offchart`), not an indicator key, so a bare `?? m.type` prints
+  placeholders that read like overlays.
   The new key is in the array — that is the assertion, not the legend text.
 - **Drive the legend.** It is engine-built DOM, not Vue:
   `./control-kiyotaka browser eval "window.tc[0].metadata.find(m=>m.settings?.ovType==='<KEY>').legends.settingsBtn.click()"`.
@@ -95,8 +108,14 @@ Preconditions:
   the DIALOG's Add button, because **the cap is a UI gate that
   `chartStore.addIndicator` does not enforce**. A programmatic fourth add mounts
   regardless: the counter stayed pinned at `Indicators 3/3` while `metadata` grew
-  to six entries. Re-reading `metadata` after a programmatic add therefore proves
-  nothing about the cap, and reads as the cap being broken when it is not.
+  to six entries. The gate runs only when the caller passes `opts.recordUndo` or
+  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1189`), and a
+  bare `addIndicator(KEY,{},0)` passes neither. Re-reading `metadata` after a
+  programmatic add therefore proves nothing about the cap, and reads as the cap
+  being broken when it is not. Use eval adds to REACH three slots, then assert the
+  at-limit surfaces: the refusal is **not** silent — at 3/3 the dialog shows a
+  banner (`indicator-list-card-upgrade-btn`, "You've used all 3 free slots") and a
+  UI add opens the upgrade dialog.
 - **Proof.** Screenshot the pane with the legend visible, plus the engine-state
   read naming the overlay. Capture the settings dialog as its own frame if the
   claim is about settings.
@@ -127,6 +146,13 @@ Preconditions:
   so "the dialog has content" is not proof the catalog loaded.
 - Do not assert an overlay mounted by reading the legend — the legend is engine
   DOM that appears a frame later. Read `metadata`.
+- **Every DIALOG add path is guest-walled, so `ind-add` via the UI is not a guest
+  proof.** `useIndicatorCatalog.addIndicator` opens with
+  `if (handleGuestAccess(FeatureId.INDICATORS)) return;`, so a guest row click
+  raises the sign-in wall instead of mounting; the `/` hotkey is walled too, while
+  the ticker-bar button that OPENS the dialog is not. On the guest lane the engine
+  add (`chartStore.addIndicator`) is the only way to mount an overlay — and it is
+  the one that bypasses the cap, so guest proves the cap's DISPLAY only.
 - Persisted overlay visibility is user intent only. Never assert on
   `overlay.isHidden` to prove an app-side hide; app-side hides are engine-side
   gates.

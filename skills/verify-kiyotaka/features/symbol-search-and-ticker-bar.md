@@ -71,7 +71,8 @@ Preconditions:
   `HLC Area`, `Area`, `Baseline`) do snapshot, so `hover` then `snapshot` proves
   the peek. The engine read is `chartStore.plotTypeForChart` — picking `Line`
   makes it `"spline"`, and the ticker-bar button's own name changes to `Line`.
-- **Layout.** `button "Layout"` opens on click. Its contents are invisible to the
+- **Layout.** `button "Layout"` peeks on hover and pins on click, same as chart
+  type — a click-only drive forfeits the `tb-hover` half of the proof. Its contents are invisible to the
   a11y tree: the grid groups (1, 2, 3, 4, 5, 6, 8, 9, 12, 16), the custom N×N
   matrix and the SYNC toggles all snapshot as unnamed `generic` nodes. Drive them
   by `data-testid` instead — `tb-layout-entry-2H-btn`, `tb-layout-entry-3x3-btn`,
@@ -100,7 +101,19 @@ Preconditions:
   `tb-panels-row-<id>-on`. The catalog is `src/constants/toolbar-panels.constants.ts`;
   its id union includes `goLive`, but `Go live` did NOT render in the guest menu —
   read the catalog rather than assuming every id is present. The rows show their
-  keyboard doors (`⌥ ⇧ C`, `⌥ ⇧ H`, `⌥ ⇧ O`, `⌥ ⇧ J`).
+  keyboard doors (`⌥ ⇧ C`, `⌥ ⇧ H`, `⌥ ⇧ O`, `⌥ ⇧ J`), and an active row carries
+  `tb-panels-row-<id>-on`.
+
+  Two hazards. **A pin persists** — to user settings and a localStorage mirror —
+  and survives a reload even for a guest, so a recipe that pins must unpin.
+  **The folded hosts arm on a paced warm phase seconds after first paint**, so a
+  row clicked too early is a silent no-op. And unpinned is not merely hidden:
+  `goLive`, `objects` and `journal` are absent from the DOM entirely, while
+  `heatmap`, `hlView` and `calls` exist only as hidden headless hosts with their
+  triggers suppressed — so `tb-go-live-btn`, `tb-objects-toggle-btn` and
+  `tb-journal-toggle-btn` are unfindable on a default boot. `tb-panels-row-<id>`
+  is their only handle. `tb-editor-toggle-btn` and `tb-terminal-toggle-btn` were
+  NOT folded and still sit directly in the bar.
 - **Proof.** For each change: the accessible name of the control after the change,
   the engine read showing bars reloaded, and a screenshot. Restore the original
   symbol, interval and plot type afterwards.
@@ -132,17 +145,27 @@ Preconditions:
   `promptGuestLogin(FeatureId.MULTI_CHART)` in `src/store/dialog.ts`. Only the
   picker opening is provable on the guest lane; report the grid itself as
   unreachable rather than photographing a click that did nothing.
+  Two details a recipe trips on: the free multichart limit is **1**, so every entry
+  above one chart already renders `locked` before the click; and the 1x1 matrix
+  cell (`tb-layout-matrix-cell-0-0-btn`) is the one allowed cell, raising a
+  **Monitor** wall instead of the Multi-Chart one. Matrix testids are
+  `<col>-<row>`, zero-indexed and column-first.
   `src/constants/authFeatures.constants.ts` is the registry of every surface that
   behaves this way — read it before mapping something as guest-reachable.
 - **`search-v2` is OFF for every guest, so the guest lane exercises the LEGACY
   dialog.** `src/store/feature-flags.ts:72` spells it out: the guest path is
   deliberately not wired, the server resolves guests all-false, and the unloaded
-  default reads false. Read the category labels to tell which dialog you are
-  driving. Legacy (`dialogs.symbolSelection.intentFilter`, two rows) says `All`,
-  `Equities`, `CME`, `Macro`, `Predict`. v2 (`symbolSearchV2.categories`, one
-  `CategoryStrip`) says `All markets`, `Stocks`, `Predictions`, `Economics`.
-  Seeing `Equities` and `Macro` means you are on legacy and any v2 claim you make
-  from that run is about the wrong UI. Proving `sym-scope` on v2 needs an internal
+  default reads false. (`DEV_FORCED_FLAGS` forces only `free-trial`, so a dev lane
+  does not light it either.)
+
+  **Tell the dialogs apart by testid, not by category labels.** Legacy renders
+  `intent-filter-class-<id>-btn`; v2 renders `search-v2-category-<id>-btn`. The
+  labels overlap badly: v2's strip reads `All`, `Crypto`, `Equities`, `Forex`,
+  `Commodities`, `Predict`, `Economics`, so `Equities` appears on BOTH and the
+  often-quoted v2 set (`All markets`, `Stocks`, `Predictions`) appears on neither.
+  Only `Macro` and `CME` are legacy-only, and only `Economics` is v2-only. Legacy's
+  keys live under `symbolSelection.intentFilter` (one unified pill row, not two).
+  Proving `sym-scope` on v2 needs an internal
   role (ADMIN / FRONTEND_DEV / QA), which is not the guest lane.
 - v2's `ScopeChips` is not a fixed row of category buttons at all. It renders only
   the active, removable filter tokens, so there is no persistent `All` chip to

@@ -41,13 +41,19 @@ Preconditions:
   is not a stable proof; `metadata[0].rawData.length` is.
 - **Confirm the worker is alive.** Run
   `./control-kiyotaka browser console` and assert **zero** matches for
-  `Error initializing worker` and `V2StreamingConnectionUnavailable`. Either one
-  present means the data plane is dead and every downstream proof is void.
+  `Error initializing worker`, `[worker] failed to load worker-impl`,
+  `WorkerManager: Failed to create Worker` and `worker parked`. Any of them means
+  the data plane is dead and every downstream proof is void.
+  Do **not** assert on `V2StreamingConnectionUnavailable`: it is an `Error.name`
+  that is deliberately swallowed and never printed, so grepping for it always
+  returns zero and the check passes vacuously on a dead lane.
 - **Confirm the live edge.** Run
   `./control-kiyotaka browser eval "(()=>document.body.innerText.slice(0,300).replace(/\s+/g,' '))()"`.
   It carries the symbol, price, `24H VOLUME`, `OPEN INTEREST`, and
-  `FUNDING / COUNTDOWN`. `—` in the volume/OI slots means the `/api` proxy is
-  down (backend lane), not that the chart is broken.
+  `FUNDING / COUNTDOWN`. `—` in those slots means the **v2 gateway lane** did not
+  answer, not that `/api` is down: all three ride `V2Service.fetchData` through the
+  worker, the same transport as candles. Proven here — a stack whose `/api` calls
+  were 500-ing still filled `$8.12B` / `$8.24B` / `+0.0043%`.
 - **Proof.** Dismiss the guest modal and capture in the same step — it re-raises:
   `./control-kiyotaka browser find testid guest-signup-modal-close-btn click` then
   `./control-kiyotaka browser screenshot artifacts/<run>/<rev>/boot-candles.png`,
@@ -66,8 +72,9 @@ Preconditions:
   `orange-shared` behind this repo's pin kills `worker-impl` at module scope.
 - The chart answers HTTP and mounts `window.tc` well before it has data. Asserting
   on mount alone passes on a permanently empty chart.
-- Candles do **not** need the backend. `:3000` down still draws them; it only
-  removes login, workspaces, volume/OI/funding, and the official catalog.
+- Candles do **not** need the backend. `:3000` down still draws them **and still
+  fills volume/OI/funding** (those ride the v2 gateway too); it removes login,
+  workspaces, and the official catalog.
 - Guest emits a benign `401`; `:3000` down adds `[refresh-token] 502` and
   `http proxy error: /api/v1/... ECONNREFUSED`. None of these are the bug.
 - The canvas is WebGL and invisible to the a11y tree — a snapshot alone can never
@@ -102,9 +109,15 @@ Preconditions:
 - **The signup modal is time-gated, so an early screenshot is not proof it is
   gone.** It arms only after the first chart paint plus ~8s of visible time, then
   waits for ~2s idle. Poll past that window before deciding the coast is clear.
-- **It raises as a modal once per browser session, then downgrades to a bar.** The
-  once-per-session latch means a second drive in the same tab gets
-  `GuestSignupPromptBar` instead, which is non-blocking and carries different
-  testids. Both answer to `--name "Close"`, so the dismiss step still works, but a
-  frame comparison across drives is comparing two different surfaces. Discarding
-  the browser profile resets the latch and brings the modal back.
+- **The latch is per TAB, and the modal burns the bar's day too.** Showing the
+  modal writes a sessionStorage latch AND marks the prompt bar as shown for that
+  local day, so a second drive in the same tab on the same day gets **neither**
+  surface — not a bar. `control-kiyotaka browser open` lands in a fresh tab, which
+  resets the latch and brings the modal back, which is why it can reappear
+  mid-session after a reopen. `GuestSignupPromptBar` (non-blocking, different
+  testids) is only reachable on a later local day, so a frame comparison across
+  drives can be comparing two different surfaces.
+- **The modal waits for you to get out of the way, then pops.** Its gate suppresses
+  firing while any `.dialog-style` / `.q-dialog` is open, so it deliberately holds
+  until the driver closes whatever it opened and then raises over the next step.
+  That is the common way a mid-run capture photographs the modal.
