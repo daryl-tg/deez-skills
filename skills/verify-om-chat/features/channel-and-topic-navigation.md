@@ -196,7 +196,14 @@ the navigation retargeted the *write* path, not only the read pane.
   as caused by your change — but do check whether it has been fixed before
   planning a proof that needs the peek pane.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
-  opens nothing; there is no quick-switcher dialog to drive here.
+  opens nothing — confirmed live. But that is a fact about the *control*, not
+  about the surface: **`?switcher=open` mounts the quick-switcher**
+  (`shell-fixture.tsx:2903` seeds `palette`), and it comes up with real
+  content — a `div.quick-switcher` carrying `role="combobox"`, an input
+  placeheld `Search messages, or jump anywhere...`, and the empty state
+  *"Nowhere recent yet. Type to search, or start with @, #, * or ."* with its
+  PROTIP line beneath. So there **is** a switcher to drive here; it just does
+  not open from the thing that looks like it opens it.
 - The **Open World** row above `DESK` is inert here too. It renders as a
   `treeitem` in its own `tree`, but clicking it leaves the route on
   `#/room/ops` and mounts no canvas — the shell fixture never stubs the world

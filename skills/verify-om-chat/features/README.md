@@ -74,11 +74,31 @@ that mock with `ready` (the default), `empty`, `setup`, `invalid`, `hold` or
 scene at a real daemon while everything else stays synthetic. See
 [om-and-agents.md](om-and-agents.md).
 
-The remaining files in `tools/visual/` are **not** driveable harnesses.
-`person-presence-fixture.html` and `reaction-scene-fixture.tsx` are opened only
-by their Playwright visual specs, and `chat-rendering-gallery.html` is a static
-mock nothing references. Opening one expecting `?view=`-style behavior wastes a
-run.
+Four more in `tools/visual/` **are** driveable harnesses, and this file used to
+imply they were not. Opened by hand on the lane, each comes up with real
+content and no error:
+
+- `away-panel-fixture.html` — the whole Away surface, standalone: "Persona /
+  Voice / Away coverage / Activity", an `active` state, *"Research om is
+  covering you"*, `1h 18m remaining · This Mac`, Refresh, ~20 controls. This is
+  the **only** door into the om surface that works from this lane, since the
+  shell fixture cannot get past the not-running gate
+  ([om-and-agents.md](om-and-agents.md)).
+- `compact-attachment-only-fixture.html` — the compact attachment-only row
+  layout, with its own explanation of where the author lead-in sits.
+- `poll-cache-fixture.html` — a poll with a `roster loads: N` counter, for the
+  `#752` roster session cache.
+- `poll-results-fixture.html` — the closed-poll results dialog, *"Final
+  results · 14 votes"* with per-option percentages.
+
+None of the four is referenced by any Playwright spec or any other file in the
+repo, which is why they were mistaken for dead code. They are not dead; they
+are undocumented, and each is a cheap proof for a surface with no feature file.
+
+Genuinely **not** driveable: `person-presence-fixture.html` and
+`reaction-scene-fixture.tsx` are opened only by their Playwright visual specs,
+and `chat-rendering-gallery.html` is a static mock nothing references. Opening
+one of those expecting `?view=`-style behavior wastes a run.
 
 `?view=` values on the shell fixture: `room` (default), `topics`, `topic`,
 `required`, `public`, `dm`, `home`, `channels`, `friends`, `library`, `agent`,
@@ -137,6 +157,23 @@ same shape as `message=cozy`), `note=long|wrapped` (bench doc variants),
 `rail`, `requests=<n>`, `scope=server`, `status=<text>`, and `title=<slug>`
 (overrides the room title, default `ops`).
 
+Four more that a `params.get(` sweep finds and no feature file mentioned, all
+pre-dating the recent churn:
+
+- **`switcher=open`** (`shell-fixture.tsx:2903`) seeds the quick-switcher
+  palette, and it really does mount — see
+  [channel-and-topic-navigation.md](channel-and-topic-navigation.md), whose
+  "nothing to drive here" note this parameter contradicts.
+- **`reply=1`** (`:2333`) seeds a reply target, the entry at `seq === 103`.
+- **`tape=lists`** (`:1305`) selects a mosaic-tape variant.
+- **`perms=noupload`** (`:2802`) makes `canUploadServerWide` answer false on
+  the **shell** fixture. Note this is a different parameter from the
+  `?perms=owner` documented for `settings-fixture.html` in
+  [settings-and-appearance.md](settings-and-appearance.md) — same spelling,
+  different harness, different values. Remember that `canUploadServerWide` is
+  cosmetic: the store enforces, so a false here dims a control rather than
+  proving a denial.
+
 **`message=cozy` is sticky, and nothing unsets it.** It writes
 `om.chat.messageDisplay` to `localStorage` and the fixture has no `else` branch
 to clear it, so every later load in that browser session stays cozy — including
@@ -193,3 +230,4 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [your-om-drafts.md](your-om-drafts.md)
 - [your-om-unread.md](your-om-unread.md)
 - [open-world.md](open-world.md)
+- [your-library.md](your-library.md)
