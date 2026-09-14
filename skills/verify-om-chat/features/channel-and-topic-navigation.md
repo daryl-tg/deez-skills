@@ -17,7 +17,9 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   - a `tablist` named "Channel view" holding exactly two tabs, **Chat** and
     **Topics 6**;
   - a standalone Alerts beacon `button`, whose name carries its state
-    (`Alerts: nothing firing`, `Alerts: 3 feeds are ringing`);
+    (`Alerts: nothing firing`, `Alerts: 3 feeds are ringing`, and a third
+    state for tuning, `Alerts: 2 feeds need an answer` —
+    `AlertsBeacon.tsx:58-61`);
   - an Inbox `button`, whose name also carries its count
     (`Inbox: 9 unread`);
   - the search cluster — `Open search in #ops`, a `combobox` named
@@ -27,8 +29,11 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   actions", spelled "Hide to-dos". **Pins and bookmarks are no longer menu
   items**: `#740` gave them rail doors and dropped them from here. The menu
   today is Join voice, Brief, Invite people, Invite agent, Your agents…, New
-  topic…, Summon your om, Channel settings, Mark as read, Mute channel, Hide
-  to-dos, Convert to alerts…, Copy channel link.
+  topic…, Summon your om, Channel settings, Mark as read, **Notification
+  settings**, Mute channel, Hide to-dos, Convert to alerts…, Copy channel
+  link — fourteen items. Notification settings is the newest, added by
+  `58aaefa9` with a submenu of its own, and it sits between Mark as read and
+  Mute channel (`ChannelHeaderMenus.tsx:114`).
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
   (`src/components/RightPanels.tsx:179`): a collapse/expand toggle plus one
@@ -41,8 +46,8 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   one: the personal doors come from `session.rightRailTabs?.(room)`
   (`ChannelToolbar.tsx:235`), which the fixture never stubs, so it resolves
   through the `INERT` proxy — and `INERT[Symbol.iterator]` is an empty
-  generator (`shell-fixture.tsx:2200`), so spreading it yields nothing for
-  every room. Four is the ceiling in this lane, not a seeding accident.
+  generator (`shell-fixture.tsx:2443`, the trap itself at `:2445`), so
+  spreading it yields nothing for every room. Four is the ceiling in this lane, not a seeding accident.
   `"Show or hide side panel"` no longer exists anywhere in `src/`, and the old
   in-panel `tablist` is not merely hidden: every live render site passes
   `showSlotTabs={false}`, so it is dead on every route.

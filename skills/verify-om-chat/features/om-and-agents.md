@@ -17,14 +17,32 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   reads **"Agents, not running"**, while the desktop rail reads
   **"Agents, needs your om running"** — and if any agent is armed the count
   wins outright and away is masked entirely, giving **"Agents, N armed"**
-  (`Shell.tsx:2852-2858`). So an `--exact` match on the bare name misses three
+  (`Shell.tsx:3011-3241`). So an `--exact` match on the bare name misses three
   different ways, and matching the mobile string on desktop misses too. Away
   is a whole-app state, a different thing from the daemon not running.
+
+  On desktop there is a **third** state neither of those covers:
+  `#829` made the rail label its destinations during a reconnect, so both
+  doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
+  (`Shell.tsx:3140`) and, crossing armed × away × reconnecting,
+  **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
+  (`Shell.tsx:3206-3211`). Two states is the old shape; matching on it during a
+  flaky connect misses silently.
+
+  `#846` made rail zone 1 customizable, which raises an obvious question about
+  these two doors: the answer is that **Agents cannot be unpinned**.
+  `REQUIRED_RAIL_FEATURE_IDS = ["rail-agents"]` (`rail-layout.ts:24`) holds it
+  in place while Library, News, Alerts and Browse channels became optional. A
+  missing Agents door is a regression, never a layout preference.
 - Your om: the running conversation, and its *not-running* empty state.
-- The running om's four sub-surfaces, held in one local `surface` state:
-  **conversation** (the chat), **compose** (the new-session landing),
-  **watches**, and **settings**. `#783` collapsed the original alerts and
-  schedules panes into watches — `OmAlertsSurface.tsx` and
+- The running om's **three** sub-surfaces, held in one local `surface` state:
+  **conversation** (the chat), **compose** (the new-session landing), and
+  **watches** (`ChatPane.tsx:478`). Settings used to be the fourth and is not
+  any more: `c40dbc5d` turned it into a rail row that calls
+  `session.requestSettings?.("om")` (`ChatPane.tsx:523`), which opens the
+  **global Settings dialog** on its new OM Settings page.
+  `surface === "settings"` appears nowhere in `src/`. `#783` collapsed the
+  original alerts and schedules panes into watches — `OmAlertsSurface.tsx` and
   `OmSchedulesSurface.tsx` are deleted, `OmWatchesSurface.tsx` replaces both.
   Watches has its own file, [your-om-watches.md](your-om-watches.md).
 - The Agent Center roster: your agents, their access level, and
@@ -34,20 +52,51 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   `nav` named "Agent pages" holding a span and a "Voice & away" button, and
   `#830` removed that nav altogether. On `40c7ff0f` there is **no** "Agent
   pages" nav, no tablist and no "Voice & away" button anywhere on
-  `?view=agents`; persona is opened from inside the running om surface, via
-  `openPersonaView` on controls this fixture cannot reach because the om
-  surface is stuck on its not-running state.
+  `?view=agents`.
+
+  What `#830` put in its place is the Agent Center's own context rail — an
+  `aside` named **"Agent roster"** holding a `nav` named **"Roster sections"**
+  with three buttons, **Roster**, **Waiting on you** and **In progress**
+  (`AgentCenterPane.tsx:578-620`), plus a separate `button` named **"Persona"**
+  (`:650`). Driven in this lane the nav reads exactly those three names and the
+  Persona button is present. But read the trap in the Gotchas before clicking
+  it: it navigates correctly and still lands on a failure, because the fixture
+  decided about mocking before you clicked.
 
   What survives churn is the routing. `?view=agent&panel=voice|away|activity`
   each land directly, and `#830` renamed what they render: the surface heading
   is now **"Persona"**, and beneath it `voice` reads "Voice" / "Current",
   `away` reads "Research om is covering you", and `activity` reads "Away
-  activity". The older "Voice & away", "Your voice", "Away coverage" and
-  "Activity" headings are all gone.
+  activity" — all three measured on the mocked route. The older "Voice & away",
+  "Away coverage" and "Activity" headings are gone.
+
+  **"Your voice" is the exception, and it is a diagnostic.** It survives in
+  `PersonaPanel.tsx` as the heading of exactly two states — loading (`:903`)
+  and load-failed (`:916`). It never appears over a loaded profile. So an `h1`
+  reading "Your voice" is not a stale heading to write down; it is the panel
+  telling you the profile did not load, and on this lane that almost always
+  means the route problem below.
+
+  Where the three tabs live depends on chrome. On **desktop**, with the om
+  session rail mounted, `VoiceAwayPanel` takes `navigation="external"` and
+  renders no tabs of its own — `.persona-hub-tabs` is absent and the controls
+  live in the rail as `.om-session-persona-nav`
+  (`AgentSessionRail.tsx:1179`), each carrying `data-om-nav-persona-view`.
+  Only on **mobile** does the panel render its own `.persona-hub-tabs`
+  (`PersonaPanel.tsx:114`). Both are named "Persona sections", so the name
+  alone will not tell you which one you matched — check the class.
 - The consent queue: agents asking for access, with Allow / No, and the
   review pair Accept / Reject.
 - Entry points out: "Message", "Agent settings", "How agents work", and the
   pointer that server apps live in server settings.
+- **A second door, through Settings.** `c40dbc5d` added **OM Settings** and
+  **Persona** rows to the Agents group of user settings
+  (`UserSettings.tsx:249-281`), supplied by `Shell.tsx:4085-4086`. They reach
+  the same two surfaces without touching the rail or the Agent Center, and
+  they are why the live settings nav is twenty-one entries while the settings
+  fixture shows nineteen — that fixture passes neither prop, so **this route
+  is not drivable there either**
+  ([settings-and-appearance.md](settings-and-appearance.md)).
 
 ## How to get to it (user POV)
 
@@ -118,9 +167,9 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
   `#653` surface (session sidebar, compose, watches, om settings) is
   `verified-unreachable` from this lane; the unmet prerequisite is a running
   daemon, which means the daemon-served rig, not the fixture.
-- **`?view=agents&panel=persona` is a trap, and it used to be this file's own
-  advice.** `#807` moved the fixture's persona gate to `view === "agent"`
-  (singular) with `panel` one of `voice`, `away` or `activity`;
+- **Persona is unreachable from a `view=agents` page load — by any control,
+  not just the old query.** `#807` moved the fixture's persona gate to
+  `view === "agent"` (singular) with `panel` one of `voice`, `away` or `activity`;
   `panel === "persona"` appears nowhere in the fixture now. The old route still
   *looks* like it works, because the product's legacy-route handling redirects
   `#/agents?panel=persona` to `#/agent/voice` — but the fixture evaluates its
@@ -129,11 +178,20 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
   real un-mocked client and it reads *"Your voice could not be loaded. Try
   again in a moment."*
 
-  That failure is the route, not the lane. Driven side by side:
-  `?view=agents&panel=persona` lands on `#/agent/voice` with the load failure,
-  while `?view=agent&panel=voice` lands on the same hash and renders a
-  **LOADED PROFILE**. If you see the Retry button, check your query before
-  concluding anything about the fixture.
+  The decisive point is that this is a property of the **page load**, not of
+  the spelling. `#830`'s "Persona" button is a real, correct control, and
+  clicking it from `?view=agents` still lands you in the failure: driven here
+  it moved the hash to `#/agent/voice` and rendered "Your voice could not be
+  loaded", because the fixture had already skipped its mock when the page
+  loaded under `view=agents`. Nothing you click your way to from that page can
+  escape it.
+
+  That failure is the route, not the lane, and not the button. Driven side by
+  side: `?view=agents` → Persona button lands on `#/agent/voice` with the load
+  failure, while `?view=agent&panel=voice` lands on the same hash and renders a
+  **LOADED PROFILE**. Same hash, opposite outcome. If you see Retry or an `h1`
+  of "Your voice", fix the URL you opened — do not click, and do not conclude
+  anything about the product.
 - **`agent-center-fixture.html` is a real harness, despite where it sits.**
   It opens standalone and renders the consent queue with content. Its
   vocabulary is only `state=desk-off`, `theme` and `zoom` — no `?view=`, no

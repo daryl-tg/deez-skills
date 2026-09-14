@@ -16,6 +16,17 @@ interaction end to end.
   permission, no flag, no "only when you have orphans" check — so nineteen is
   the count in every state, and a nav that comes back eighteen is a real
   regression rather than a seeding difference.
+
+  **Nineteen is fixture truth, not app truth, since `c40dbc5d`.** That commit
+  added two conditional rows to the Agents group, **OM Settings** (id `om`)
+  and **Persona** (id `persona`), rendered only when the caller supplies the
+  matching `omPage` / `personaPage` props. `Shell.tsx:4085-4086` passes both
+  unconditionally, so the **running app shows twenty-one**;
+  `settings-fixture.tsx` passes neither, so this lane shows nineteen —
+  measured, not inferred. Count nineteen here and you have confirmed the
+  fixture, not the product. Those two rows are also a second way into OM
+  settings and the persona editor that bypasses the rail entirely
+  ([om-and-agents.md](om-and-agents.md)).
 - Appearance: theme (dark / light / sync with OS), palette (Graphite, Slate,
   Moss, Warm, Brass), accent (Clay, Blue, Iris, Plum, White), and per-context
   message density. Density is three nested `radiogroup`s, not tabs: **Chat
@@ -31,7 +42,9 @@ interaction end to end.
   control ("To-do widgets", gated by `canManageTodoDisplay`). The matching
   *per-viewer* override is not reachable from this fixture — see Gotchas.
 - Settings search, the Esc-to-close rail behavior, and the open/close
-  transition.
+  transition. Since `06ee56bd` the dialog also closes on **browser Back**:
+  `SettingsShell.tsx:191` calls `useOverlayHistoryDismiss`
+  (`src/lib/overlay-history.ts`), so Esc is no longer the only dismissal path.
 
 ## How to get to it (user POV)
 
