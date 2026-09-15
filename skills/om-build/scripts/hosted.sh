@@ -49,7 +49,14 @@ run_step() {
 # Staged assets are a working-tree overwrite of committed stubs. Restore them on
 # EVERY exit path -- failure and Ctrl-C included, which is where they used to leak.
 STAGED=0
+GUI_WS_BAK=""
+restore_gui_workspace() {
+  [ -n "$GUI_WS_BAK" ] && [ -d "$GUI_WS_BAK" ] || return 0
+  cp "$GUI_WS_BAK/package.json" "$GUI_WS_BAK/bun.lock" "$GUI/" 2>/dev/null
+  rm -rf "$GUI_WS_BAK"; GUI_WS_BAK=""
+}
 cleanup() {
+  restore_gui_workspace
   [ "$STAGED" = 1 ] || return 0
   git -C "$MONO" checkout -- packages/cli/assets/rooms-gui/ 2>/dev/null
   rm -f "$MONO"/packages/cli/.*.bun-build
@@ -172,30 +179,38 @@ if [ "$NO_GUI" = 0 ]; then
     say "rooms-client:          $(grep -o '"[0-9][0-9.]*"' "$MONO/packages/rooms-client/dist/version.js" | head -1 | tr -d '"')"
   fi
 
-  # The one-repo refactor (openmarket-chat f190644c) made apps/cloud a workspace of
-  # this root, so a plain root `bun install` now resolves @orangecharts as well --
-  # and $GUI/README.md's install contract applies to EVERY build, desktop included:
+  # openmarket-chat f190644c made apps/cloud a workspace of this root, so a plain
+  # root `bun install` now resolves apps/cloud's @orangecharts dependency -- an npm
+  # org this machine has no read access to. npm answers 404 (never 403) for a
+  # private package you cannot authenticate to, so the desktop build died with
+  # "12.45.0 not found" on a package it never loads: @orangecharts belongs to the
+  # Kiyotaka/orange stack, and nothing under src/ imports it.
   #
-  #   1. both scope tokens must be present; bunfig.toml binds one per scope, and
-  #      npm answers 404 (never 403) for a private package you cannot authenticate
-  #      to, so a missing token is indistinguishable from a deleted version;
-  #   2. npm config must be ISOLATED, because Bun 1.3.14 lets a registry-wide
-  #      ~/.npmrc credential override BOTH scope credentials -- a global token with
-  #      no @orangecharts access then wins over the scope token that would work.
+  # Neither --filter nor --production sidesteps it (both still plan the package --
+  # the root lockfile is resolved as ONE graph and hoisted), so drop apps/cloud
+  # from `workspaces` for the duration of the install and put package.json and
+  # bun.lock straight back. The cleanup trap restores them on EVERY exit path,
+  # failure and Ctrl-C included -- leaving a truncated workspaces array behind
+  # would silently break the next cloud build.
   #
-  # That is why this cannot be a bare `bun install`: with a populated ~/.npmrc it
-  # fails EVEN IF both tokens are exported.
-  for _t in NPM_READ_TOKEN ORANGECHARTS_NPM_READ_TOKEN; do
-    [ -n "$(printenv "$_t")" ] || die "$_t is not set.
-  $GUI/README.md: registry access needs NPM_READ_TOKEN (OpenMarket) and
-  ORANGECHARTS_NPM_READ_TOKEN (OrangeCharts), both from your secret manager.
-  Export both and re-run; apps/cloud is a workspace now, so the desktop build
-  resolves the OrangeCharts scope too."
-  done
-  GUI_NPM_CFG=$(mktemp -d)
-  gui_install() { cd "$GUI" && XDG_CONFIG_HOME="$GUI_NPM_CFG" bun install --frozen-lockfile; }
+  # No scope tokens needed: with apps/cloud excluded the only private scope left is
+  # @openmarket, which ~/.npmrc already covers. That is also why npm config is NOT
+  # isolated here -- the README's XDG_CONFIG_HOME dance exists to stop a
+  # registry-wide credential from beating TWO scope tokens, and there is only one
+  # scope in play now.
+  GUI_WS_BAK=$(mktemp -d)
+  cp "$GUI/package.json" "$GUI/bun.lock" "$GUI_WS_BAK/" || die "backing up the GUI workspace files"
+  python3 - "$GUI/package.json" <<'PYEOF' || die "editing workspaces"
+import collections, json, sys
+path = sys.argv[1]
+doc = json.load(open(path), object_pairs_hook=collections.OrderedDict)
+doc["workspaces"] = [w for w in doc["workspaces"] if "cloud" not in w]
+json.dump(doc, open(path, "w"), indent=2)
+PYEOF
+  gui_install() { cd "$GUI" && bun install; }
   run_step "GUI bun install" gui_install
-  rm -rf "$GUI_NPM_CFG"
+  restore_gui_workspace
+  say "workspaces:            apps/cloud excluded for install (restored)"
   # `bun install` silently replaces the rooms-client SYMLINK with the PUBLISHED
   # registry copy whenever the npm token works, downgrading the GUI to whatever
   # npm has. SKILL.md documents the opposite failure (the install 404s on the
