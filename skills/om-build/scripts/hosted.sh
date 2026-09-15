@@ -32,6 +32,20 @@ esac; done
 say() { printf '%s\n' "$*"; }
 die() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
+# Run a build step quietly but KEEP its output, and print the tail when it fails.
+# `>/dev/null 2>&1` on these turned a precise cause ("404 @orangecharts/...") into
+# a bare "FAIL: GUI bun install" that said nothing about what to do next.
+run_step() {
+  _label=$1; shift
+  _log=$(mktemp)
+  if ( "$@" ) >"$_log" 2>&1; then rm -f "$_log"; return 0; fi
+  printf -- '--- %s output (tail) ---\n' "$_label" >&2
+  tail -25 "$_log" >&2
+  printf -- '---\n' >&2
+  rm -f "$_log"
+  die "$_label"
+}
+
 # Staged assets are a working-tree overwrite of committed stubs. Restore them on
 # EVERY exit path -- failure and Ctrl-C included, which is where they used to leak.
 STAGED=0
@@ -149,7 +163,8 @@ fi
 # ---------------------------------------------------------------- build
 if [ "$NO_GUI" = 0 ]; then
   say ""; say "== build =="
-  ( cd "$MONO" && bun install ) >/dev/null 2>&1 || die "monorepo bun install"
+  mono_install() { cd "$MONO" && bun install; }
+  run_step "monorepo bun install" mono_install
   if [ "${RC_STALE:-0}" != 0 ] || [ "$src_ver" != "$run_ver" ]; then
     # tsc exits 2 on three known TS2835 imports but still emits -- don't gate on it
     ( cd "$MONO/packages/rooms-client" && bun run build ) >/dev/null 2>&1
@@ -157,7 +172,30 @@ if [ "$NO_GUI" = 0 ]; then
     say "rooms-client:          $(grep -o '"[0-9][0-9.]*"' "$MONO/packages/rooms-client/dist/version.js" | head -1 | tr -d '"')"
   fi
 
-  ( cd "$GUI" && bun install ) >/dev/null 2>&1 || die "GUI bun install"
+  # The one-repo refactor (openmarket-chat f190644c) made apps/cloud a workspace of
+  # this root, so a plain root `bun install` now resolves @orangecharts as well --
+  # and $GUI/README.md's install contract applies to EVERY build, desktop included:
+  #
+  #   1. both scope tokens must be present; bunfig.toml binds one per scope, and
+  #      npm answers 404 (never 403) for a private package you cannot authenticate
+  #      to, so a missing token is indistinguishable from a deleted version;
+  #   2. npm config must be ISOLATED, because Bun 1.3.14 lets a registry-wide
+  #      ~/.npmrc credential override BOTH scope credentials -- a global token with
+  #      no @orangecharts access then wins over the scope token that would work.
+  #
+  # That is why this cannot be a bare `bun install`: with a populated ~/.npmrc it
+  # fails EVEN IF both tokens are exported.
+  for _t in NPM_READ_TOKEN ORANGECHARTS_NPM_READ_TOKEN; do
+    [ -n "$(printenv "$_t")" ] || die "$_t is not set.
+  $GUI/README.md: registry access needs NPM_READ_TOKEN (OpenMarket) and
+  ORANGECHARTS_NPM_READ_TOKEN (OrangeCharts), both from your secret manager.
+  Export both and re-run; apps/cloud is a workspace now, so the desktop build
+  resolves the OrangeCharts scope too."
+  done
+  GUI_NPM_CFG=$(mktemp -d)
+  gui_install() { cd "$GUI" && XDG_CONFIG_HOME="$GUI_NPM_CFG" bun install --frozen-lockfile; }
+  run_step "GUI bun install" gui_install
+  rm -rf "$GUI_NPM_CFG"
   # `bun install` silently replaces the rooms-client SYMLINK with the PUBLISHED
   # registry copy whenever the npm token works, downgrading the GUI to whatever
   # npm has. SKILL.md documents the opposite failure (the install 404s on the
@@ -206,7 +244,8 @@ if [ "$MODE" = repo ] && [ -n "$pid" ]; then
   sleep 3
   curl -s -o /dev/null -m 3 "$HEALTH" && die "service still answering after stop; refusing to overwrite a running binary"
 fi
-( cd "$MONO" && bun install && bun run build ) >/dev/null 2>&1 || die "monorepo compile"
+mono_compile() { cd "$MONO" && bun install && bun run build; }
+run_step "monorepo compile" mono_compile
 [ -x "$OUT" ] || die "no binary at $OUT"
 NEWVER=$("$OUT" --version) || die "compiled binary will not run"
 SIZE=$(ls -lh "$OUT" | awk '{print $5}')
