@@ -36,6 +36,44 @@ That matters more than it sounds: the primary checkout is frequently parked on
 somebody else's feature branch, so "run the wrapper" and "drive `main`" are not
 the same thing.
 
+## Where the source lives (changed in `f190644c`)
+
+**`src/` is no longer the code. It is 185 one-line re-export shims.**
+`f190644c` made this one repo for both GUIs, and every component, lib module
+and stylesheet moved under `packages/chat-ui/`:
+
+```
+src/components/Shell.tsx      ->  1 line: export * from "@openmarket/chat-ui/components/Shell";
+packages/chat-ui/src/components/Shell.tsx   ->  the real 4512 lines
+```
+
+`src/lib/` and `src/styles.css` are shims by the same rule. So grep
+`packages/chat-ui/src/`, not `src/`, or you will read a stub and conclude the
+map is catastrophically stale. That failure is quiet and convincing: the path
+exists, the file opens, it simply has one line in it.
+
+What did **not** move: `tools/visual/` is untouched, so every fixture and every
+`shell-fixture.tsx:NNNN` citation still resolves exactly where it says.
+`mocks/world-solo/` likewise.
+
+Two more consequences of that commit:
+
+- **Line numbers survived the move.** The refactor relocated files wholesale
+  rather than rewriting them, so a citation that was right before is right
+  after, at the same number, under the new root. Audited across this skill:
+  of 35 file:line citations, 29 landed unchanged. Re-measure before assuming a
+  shift.
+- **`tools/parity-manifest.json` and `tools/sync-shared.ts` are deleted.** The
+  copy-between-forks workflow they implemented is over; sharing is now a
+  package import. Any instruction anywhere to run `sync-shared.ts` or read the
+  parity manifest is dead, and a `--diff` "in step" result can no longer be
+  obtained or cited.
+
+Behaviour did not change. Driven after the refactor, every surface in this map
+rendered identically — same 14-item channel menu, same 19-entry settings nav,
+same library markers, same world canvases. This was a code move, and the only
+thing it invalidates is where you look.
+
 ## Pick a lane before you launch
 
 Two lanes exist and they prove different claims. Choosing the wrong one is the

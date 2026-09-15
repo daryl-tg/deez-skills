@@ -17,16 +17,16 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   reads **"Agents, not running"**, while the desktop rail reads
   **"Agents, needs your om running"** — and if any agent is armed the count
   wins outright and away is masked entirely, giving **"Agents, N armed"**
-  (`Shell.tsx:3011-3241`). So an `--exact` match on the bare name misses three
+  (`Shell.tsx:3019-3214`). So an `--exact` match on the bare name misses three
   different ways, and matching the mobile string on desktop misses too. Away
   is a whole-app state, a different thing from the daemon not running.
 
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3140`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3143`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3206-3211`). Two states is the old shape; matching on it during a
+  (`Shell.tsx:3209-3214`). Two states is the old shape; matching on it during a
   flaky connect misses silently.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -57,8 +57,8 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   What `#830` put in its place is the Agent Center's own context rail — an
   `aside` named **"Agent roster"** holding a `nav` named **"Roster sections"**
   with three buttons, **Roster**, **Waiting on you** and **In progress**
-  (`AgentCenterPane.tsx:578-620`), plus a separate `button` named **"Persona"**
-  (`:650`). Driven in this lane the nav reads exactly those three names and the
+  (`AgentCenterPane.tsx:582-625`), plus a separate `button` named **"Persona"**
+  (`:654`). Driven in this lane the nav reads exactly those three names and the
   Persona button is present. But read the trap in the Gotchas before clicking
   it: it navigates correctly and still lands on a failure, because the fixture
   decided about mocking before you clicked.
@@ -81,7 +81,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   session rail mounted, `VoiceAwayPanel` takes `navigation="external"` and
   renders no tabs of its own — `.persona-hub-tabs` is absent and the controls
   live in the rail as `.om-session-persona-nav`
-  (`AgentSessionRail.tsx:1179`), each carrying `data-om-nav-persona-view`.
+  (`AgentSessionRail.tsx:1180`), each carrying `data-om-nav-persona-view`.
   Only on **mobile** does the panel render its own `.persona-hub-tabs`
   (`PersonaPanel.tsx:114`). Both are named "Persona sections", so the name
   alone will not tell you which one you matched — check the class.
@@ -149,7 +149,7 @@ Its header *looks* like `WAITING ON YOU · 4`, and that is the cheap
 observation that the queue seeded at all — but read it carefully. The DOM text
 is sentence case, `Waiting on you · 4` (`AgentCenterWork.tsx:393`); the
 capitals come from `text-transform: uppercase` on `.ac-section-h`
-(`agent-center.css:36`). `innerText` applies the transform and hands you the
+(`agent-center.css:209`). `innerText` applies the transform and hands you the
 shouted version, while `textContent` and the accessibility tree hand you the
 real one. Match the sentence-case string, or a screenshot, never the caps.
 

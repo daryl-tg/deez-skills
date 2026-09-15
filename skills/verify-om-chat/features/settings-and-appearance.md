@@ -44,7 +44,7 @@ interaction end to end.
 - Settings search, the Esc-to-close rail behavior, and the open/close
   transition. Since `06ee56bd` the dialog also closes on **browser Back**:
   `SettingsShell.tsx:191` calls `useOverlayHistoryDismiss`
-  (`src/lib/overlay-history.ts`), so Esc is no longer the only dismissal path.
+  (`packages/chat-ui/src/lib/overlay-history.ts`), so Esc is no longer the only dismissal path.
 
 ## How to get to it (user POV)
 

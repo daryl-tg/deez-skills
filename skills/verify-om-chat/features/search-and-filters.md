@@ -3,7 +3,7 @@
 Finding a message. A combobox in the channel header takes a query in Discord's
 filter grammar (`from:`, `in:`, `mentions:`, `has:`, `is:`), completes each
 filter's operand from a typeahead, and puts the hits in a right-slot results
-panel. Landed in #703; `src/components/SearchPanel.tsx` is the panel.
+panel. Landed in #703; `packages/chat-ui/src/components/SearchPanel.tsx` is the panel.
 
 The header cluster and the results panel are **two different things**, and the
 fixture wires them to different degrees. Read the gotchas before planning a

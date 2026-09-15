@@ -36,7 +36,7 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   Mute channel (`ChannelHeaderMenus.tsx:114`).
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
-  (`src/components/RightPanels.tsx:179`): a collapse/expand toggle plus one
+  (`packages/chat-ui/src/components/RightPanels.tsx:179`): a collapse/expand toggle plus one
   button per panel. In the seeded fixture room that is **four** — Library,
   Bookmarks, Members, Pins — carrying `data-slot-tab` values `library`,
   `bookmarks`, `members`, `pins`. The dock filters

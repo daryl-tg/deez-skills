@@ -132,7 +132,7 @@ and `?libraryState=error` (`:4059`).
   channel **restores that shelf's own query** rather than clearing it. A
   filter box that is not empty when you arrive is the feature, not residue.
 - Server-scope persistence across same-space channel switches lives in
-  `src/lib/rooms-hydration.ts`, not in `LibraryPanel.tsx`. Look there when a
+  `packages/chat-ui/src/lib/rooms-hydration.ts`, not in `LibraryPanel.tsx`. Look there when a
   scope fails to survive a channel change.
 - The full page is 8800+ lines and its save-state chip
   (`data-home-library-save-state`) has ten values, `idle` through
