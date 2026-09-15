@@ -63,6 +63,16 @@ repo's documented dev port and the operator's own server.
 **A first launch after a dependency change reinstalls `node_modules` and takes
 minutes.** That is `pnpm`, not a hang; watch `.control-kiyotaka/lane-<port>.log`.
 
+**`up` must redirect the backgrounded group, not the command inside it.** If a
+regenerated wrapper ever launches vite as
+`( cd "$REPO" && nohup pnpm exec vite … >"$LOGFILE" 2>&1 & echo $! >"$PIDFILE" )`,
+patch it back to `{ cd "$REPO" && exec nohup pnpm exec vite …; } >"$LOGFILE" 2>&1
+</dev/null &`. With the redirection on the inner command the launcher shell keeps
+whatever stdout/stderr `up` was called with and then waits on vite forever, so any
+caller reading `up` through a pipe or `$(...)` — which is most agent harnesses —
+never sees EOF. The lane is serving HTTP 200 the whole time and `up` reads as
+wedged, which is the most expensive way this can fail.
+
 Teardown is [Cleanup](#cleanup).
 
 ## Doctor
@@ -77,6 +87,35 @@ It reports the working tree, whether the lane is yours or foreign, whether the
 tree actually compiles on demand, the chart-schema seam, backend availability,
 v2 gateway reachability, and the harness. It exits non-zero when the instance is
 not worth driving.
+
+**Two of those lines are reachability, not health, and a degraded stack passes
+both.** `backend :3000 up` accepts ANY HTTP status from `/`, and `v2 gateway
+reachable` is a TCP probe of the gateway host. A stack whose v2 calls time out
+reports fully green while symbol search returns `0 results`. Candles still draw,
+so the chart looks fine.
+
+The `catalog` line is narrower than it looks: it probes
+`POST /api/v1/scripts/query` itself, so it does catch a `500`, but **a `2xx`
+means the endpoint SERVES, not that the catalog is SEEDED.** An unseeded local
+mongo answers `200` with zero official rows, which reads in the dialog as a
+search that found nothing. `features/indicators.md` carries the tell.
+
+**Run `doctor` twice on a lane you just brought up, and believe the second.**
+Its probes are HTTP calls with timeouts, and the first transform after `up`
+compiles the whole module graph behind `worker.ts` — measured over 25s, against
+~50ms warm. A cold run has reported `transform … the tree does not compile` and
+`catalog … UNREACHABLE` on an instance that was healthy, then gone green
+seconds later untouched. The budgets are now 90s and 20s, but a loaded machine
+can still outrun them, and the failure text accuses the tree rather than the
+clock.
+
+**A regenerated wrapper ships the old budgets.** `control-kiyotaka` is
+git-excluded, so a fresh clone rebuilds it from `create-verification-skill` with
+`--max-time 25` on the transform probe and `--max-time 5` on the catalog probe,
+and the false cold failure comes back. Raise them to `90` and `20`, and replace
+each probe's `|| echo 000` with `|| true` — `curl -w '%{http_code}'` already
+prints `000` on a timeout, so the fallback concatenates and doctor reports a
+six-digit `000000` that reads as garbage rather than as a timeout.
 
 **The `chart-schema` line is the one that silently burns a run.** `vite.config.ts`
 aliases `@orangecharts/chart-schema` to the *sibling* `orange-shared` checkout's
@@ -115,8 +154,11 @@ wrong layout.
   "(()=>{const t=window.tc?.[0];return (t?.metadata?.[0]?.rawData?.length ?? 0)>50})()"
 ```
 
-Poll that until `true` (a cold boot with a re-optimizing vite can take ~60s).
-`window.tc[0].metadata` is the overlay array; `[0].rawData` is candles.
+Poll that until `true`. Budget **two minutes** on a cold boot — a lane whose vite
+is re-optimizing dependencies has taken ~105s to first candles; a warm reopen
+lands in ~35s. `window.tc[0].metadata` is the overlay array; `[0].rawData` is
+candles. `browser open` sometimes prints `✗ Operation timed out` while the
+navigation in fact succeeded, so let the candle predicate decide, not that line.
 
 **Drive by ARIA role and accessible name.** The chrome is labelled well:
 
@@ -124,6 +166,21 @@ Poll that until `true` (a cold boot with a re-optimizing vite can take ~60s).
 ./control-kiyotaka browser find role button click --name "Indicators" --exact
 ./control-kiyotaka browser find role button click --name "BINANCE.F BTCUSDT"
 ./control-kiyotaka browser find role button click --name "1m"
+```
+
+Where a control has **no** accessible name — layout grid cells, chart-type
+entries, drawing tools — use the testid rather than giving up on it:
+
+```bash
+./control-kiyotaka browser find testid tb-editor-toggle-btn click
+```
+
+Fill text is **positional**, `find <locator> <value> fill "<text>"`. There is no
+`--text` flag, and passing one types the literal `--TEXT <text>` into the field,
+which reads downstream as a search that legitimately found nothing:
+
+```bash
+./control-kiyotaka browser find placeholder "Search by symbol or name" fill "ETHUSDT"
 ```
 
 Re-snapshot after anything that changes the page — refs go stale immediately.
@@ -204,15 +261,32 @@ never hand-roll the launch.
 
 **The guest signup modal eats the first click, and it comes back.** A guest boot
 raises *"See what moves price. / Join for free"* over the chart. Dismiss it with
-`find role button click --name "Close"` **immediately before each capture**, not
-once at the start — it re-raises, and a frame shot after it returns is a
-photograph of the modal. Assert what is on top before you shoot:
-`eval "document.querySelectorAll('[role=dialog]').length"`.
+`find testid guest-signup-modal-close-btn click` **immediately before each
+capture**, not once at the start — it re-raises after a reload, and a frame shot
+after it returns is a photograph of the modal. Do **not** dismiss it by the name
+`Close`: a guest boot carries three buttons with that accessible name
+(`objects-close-btn`, `outage-corner-card-collapse-btn` and the modal's own), and
+`--name "Close" --exact` picks one of the two sitting UNDER the overlay, so the
+drive dies with `covered by <div.dialog-style.dialog-overlay>` and reads as an
+undismissable modal. Assert what is on top before you shoot, with the union —
+bare `[role=dialog]` reads `0` even while the modal is up:
+`eval "document.querySelectorAll('.q-dialog, .dialog-style, [role=dialog].open').length"`.
 
 **A dialog left open by an earlier drive photographs itself.** Nothing warns you:
 the engine read still passes, the a11y snapshot still returns, and the PNG shows
 last step's dialog over the chart you meant to capture. Check the dialog count
 and the visible text before every screenshot, and open the PNG afterwards.
+
+**A guest-walled click leaves a sign-in dialog with no close button — press
+`Escape`.** Any control behind `promptGuestLogin` (multi-chart layouts, the
+Terminal toggle, the editor's write paths) raises the sign-in wall in the same
+`.dialog-style.dialog-overlay` shell the signup modal uses, and it reads as
+*"Back to log in / Forgot your password?"*. Its button list carries no close
+control, which reads as undismissable and has cost a lane reload per wall;
+`Escape` clears it outright — `isAuthenticationDialogOpen` goes `false`, the
+overlay count returns to `0`, and the next click lands. Probe
+`[data-testid=guest-signup-modal-close-btn]` to tell the two overlays apart:
+absent on the wall, present on the signup modal.
 
 **Drawing tools have no accessible names.** Every left-toolbar tool snapshots as
 `button "More tools"`. Do not drive them by name — use `<ToolGlyph>`'s owning
@@ -235,6 +309,38 @@ them; `agent-browser` called directly does not.
 
 **A clean exit is not proof.** A blank chart, the wrong interval, and guest
 chrome all screenshot successfully. Open the PNG.
+
+**Check exit codes unpiped.** `./control-kiyotaka doctor | tail` reports `tail`'s
+status, not doctor's, so a failing doctor reads as a pass. Redirect to a file and
+test `$?` when the exit code is the thing you are asserting.
+
+**The agent-browser daemon wedges under sustained software-GL load, and it does
+not announce itself as the cause.** The screenshot path goes first:
+
+```
+✗ Failed to read: Resource temporarily unavailable (os error 35)
+```
+
+while `eval` still answers normally — so every non-visual assertion keeps passing
+and only evidence capture dies. Left running it degrades to
+`✗ CDP command timed out: Runtime.evaluate`. `agent-browser close --session` does
+**not** clear it, and it can leave the previous run's Chrome alive as well.
+Recover by killing the daemon and its Chrome **by pid**:
+
+```bash
+ps aux | grep -e agent-browser-darwin-arm64 -e 'remote-debugging-port'   # find the pair
+kill -9 <daemon-pid> <chrome-pid>
+```
+
+Never `close --all` and never kill every Chrome: other sessions own theirs, and
+an unrelated long-lived Chrome is normally on this machine. Match the pids by
+start time against your own run.
+
+**A dead lane presents as a dead browser.** When `eval` starts timing out, run
+`doctor` before blaming the harness — a vite that died under memory pressure
+shows up as `lane … DOWN`, and no amount of browser restarting fixes it. This
+lane died mid-pass once with the software-GL Chrome running and system memory at
+32% free.
 
 ## When the chart itself misbehaves
 
