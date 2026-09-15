@@ -343,7 +343,6 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-boundary-discipline` | principle | claude, codex | Apply when wiring validation, error handling, or framework adapters. Concentrate guards at system boundaries; trust internal types and keep business logic pure. |
 | `principle-build-the-lever` | principle | claude, codex | Apply to any non-trivial work: edits, migrations, analyses, checks. Build the tool that does or proves it rather than doing it by hand. The tool is the artifac… |
 | `principle-delegate-implementation-review-stays-here` | principle | claude, codex | Apply when handing work to a subagent or another runtime. Implementation delegates; design, review, verification, and git mutations stay with the lead. |
-| `principle-desktop-before-cloud` | principle | claude, codex | Apply only when the operator asks for a change in both the desktop app and its cloud twin. Cloud parity is retired, so a desktop change no longer implies a clo… |
 | `principle-encode-lessons-in-structure` | principle | claude, codex | Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a check, a type, a lint, or a sc… |
 | `principle-exhaust-the-design-space` | principle | claude, codex | Apply to a novel interaction or architectural decision with no precedent in the codebase. Build two or three competing sketches and compare before committing. |
 | `principle-experience-first` | principle | claude, codex | Apply to product, UX, and feature-scope tradeoffs. Choose user delight over implementation convenience; ship fewer polished things over more rough ones. |
@@ -363,6 +362,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-outcome-oriented-execution` | principle | claude, codex | Apply during planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture rather than preserving throwaway compatibility… |
 | `principle-planning-docs-live-outside-the-repo` | principle | claude, codex | Apply when writing a spec, plan, design doc, research note, or handoff prompt. They live in the dev-notes folder for the task, never in the repo and never comm… |
 | `principle-promote-to-the-main-worktree` | principle | claude, codex | Apply after rebasing a finished feature. Check the branch out in the main worktree so the local dev stack runs it and the operator can test manually. Promotion… |
+| `principle-prove-every-host` | principle | claude, codex | Apply when a change touches shared UI consumed by more than one application host. The change reaches every host at once, so every host runs its own gate and ca… |
 | `principle-prove-on-the-real-surface` | principle | claude, codex | Apply after any change, before declaring done. Verify in the running product on the surface the change touches. Tests are necessary and never sufficient; incon… |
 | `principle-rebase-pr-squash` | principle | claude, codex | Apply to every branch delivery. Rebase onto current origin/main, push the branch only, land through the PR or MR squashed. Never merge locally, never push main… |
 | `principle-redesign-from-first-principles` | principle | claude, codex | Apply when integrating a new requirement into an existing design. Redesign as if the requirement had been foundational from day one instead of bolting it on. |
@@ -417,7 +417,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `om-chat` |  | claude, codex | Converse in OM Chat rooms as a governed guest through the OpenMarket MCP server's rooms tools (an agent badge). Use when the user asks you to read, search, wat… |
 | `om-chat-design-system` |  | claude, codex | Design and implement OM Chat React UI against the local components, tokens, layout, and interaction patterns. Load before any user-visible OM Chat UI decision:… |
 | `om-super-reaction` |  | claude, codex | Design, build, and quality-gate one super reaction effect for OM Chat's premium reaction system, from constraint tuple through storyboard and implementation to… |
-| `verify-om-chat` |  | claude, codex | Use when a change to the OM Chat GUI (openmarket-chat or openmarket-chat-cloud) needs to be driven and proven in the running app — launching a browser lane, ex… |
+| `verify-om-chat` |  | claude, codex | Use when a change to the OM Chat GUI (the openmarket-chat workspace — /rooms, /chat/, or the shared packages/chat-ui) needs to be driven and proven in the runn… |
 | `verify-openfloor` |  | claude, codex | Use when a change to the OpenFloor mobile app (openmarket-chat-app, the Expo/React Native OpenMarket client) needs to be driven and proven on a real iOS simula… |
 
 ### General workflow
@@ -427,7 +427,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `adhd` |  | claude, codex | Shape output for a reader with ADHD: lead with the next action, number multi-step work, restate state across turns, suppress tangents, give specific time estim… |
 | `ancient-shell-style` |  | claude, codex | Lint, format, test, review, document, and harden maintained Bash and shell scripts with ShellCheck, shfmt, shdoc, and test-runner.bash. Use for Bash, sh, shell… |
 | `blast-radius` |  | claude, codex | Find what a small-looking change could break beyond its diff, proving each safety claim with running code rather than assertion. Use before shipping a change t… |
-| `bump-rc` |  | claude | Release a new @openmarket/rooms-client version — pick the bump from what actually changed, run the repo's release script, then update both GUI consumers' pins.… |
+| `bump-rc` |  | claude | Release a new @openmarket/rooms-client version — pick the bump from what actually changed, run the repo's release script, then repin all three places the OM Ch… |
 | `chrome-devtools` |  | claude, codex | Browser automation through the Chrome DevTools Protocol with the bundled chrome-devtools script. |
 | `commit` |  | codex | Commit the currently staged git changes only. Use when the user invokes /commit, asks to commit staged changes, or requests a concise commit from the existing … |
 | `commit` |  | claude | — |

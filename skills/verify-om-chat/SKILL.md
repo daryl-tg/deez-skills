@@ -1,12 +1,12 @@
 ---
 name: verify-om-chat
-description: Use when a change to the OM Chat GUI (openmarket-chat or openmarket-chat-cloud) needs to be driven and proven in the running app — launching a browser lane, exercising a surface the way a user would, capturing screenshots, and publishing an evidence gallery for review.
+description: Use when a change to the OM Chat GUI (the openmarket-chat workspace — /rooms, /chat/, or the shared packages/chat-ui) needs to be driven and proven in the running app — launching a browser lane, exercising a surface the way a user would, capturing screenshots, and publishing an evidence gallery for review.
 ---
 
 # Verify OM Chat
 
-OM Chat is a React web GUI served at `/rooms/` (this repo) and `/chat/` (the
-hosted twin). This skill is the executable half of verification: how to get a
+OM Chat is a React web GUI served at `/rooms/` and `/chat/` — two hosts in one
+repo since `f190644c`, over the shared `packages/chat-ui`. This skill is the executable half of verification: how to get a
 driveable instance up, how to drive it by accessible name, and how to turn what
 you saw into evidence someone else can open.
 

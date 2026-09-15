@@ -6,13 +6,20 @@ disable-model-invocation: true
 
 # om-build — build an OM Chat GUI from source
 
-Two different products live behind this skill. Pick the target before doing
-anything; they share no build, no artifact shape, and no verification.
+Two different products live behind this skill. Since `f190644c` they share one
+repo — `openmarket-chat`, a Bun workspace whose `packages/chat-ui` holds the UI
+both consume. They still share no build, no artifact shape, and no
+verification. Pick the target before doing anything.
 
-| Flag | Source repo | Artifact | Where it shows up | Touches the `om` binary |
+| Flag | Host in the workspace | Artifact | Where it shows up | Touches the `om` binary |
 |---|---|---|---|---|
-| `--hosted` (default) | `openmarket-chat` | `assets/rooms.js` + `rooms.css` + `index.html`, embedded into `om` | `http://127.0.0.1:31337/rooms#/` | yes — recompiles and swaps it |
-| `--cloud` | `openmarket-chat-cloud` | fingerprinted `assets/chat-<hash>.js` at base `/chat/` | a local server you start, at `/chat/` | never |
+| `--hosted` (default) | repo root (`src/`) | `assets/rooms.js` + `rooms.css` + `index.html`, embedded into `om` | `http://127.0.0.1:31337/rooms#/` | yes — recompiles and swaps it |
+| `--cloud` | `apps/cloud/` | fingerprinted `assets/chat-<hash>.js` at base `/chat/` | a local server you start, at `/chat/` | never |
+
+One repo does **not** mean one build. `--cloud` still never writes the `om`
+binary. What it does mean: a change under `packages/chat-ui` is already in both
+artifacts, so if the operator asked to see the shared change, they need both
+targets run, not one — **principle-prove-every-host**.
 
 The names read backwards if you assume "hosted" means the SaaS:
 `--hosted` is the daemon **hosting** the GUI at `/rooms`; `--cloud` is the
@@ -20,16 +27,18 @@ The names read backwards if you assume "hosted" means the SaaS:
 
 **Never mix them in one run.** `--cloud` never writes the `om` binary, never
 runs `om service restart`, and never stages anything into the monorepo.
-`--hosted` never touches the cloud repo. `--no-gui` means nothing under
-`--cloud`.
+`--no-gui` means nothing under `--cloud`. Run the skill twice if both artifacts
+are wanted; report them as two rigs.
 
 **Announce at start:** "Using om-build to build and install om from source"
 (`--hosted`) or "Using om-build to build and serve the cloud /chat/ fork"
 (`--cloud`).
 
-If either fork's copy of a file in `tools/parity-manifest.json` was edited,
-run `bun tools/sync-shared.ts --diff` before building. It is the only
-cross-fork alarm that exists; both forks can be green while drifting.
+**`tools/parity-manifest.json` and `tools/sync-shared.ts` are deleted.** There
+is no cross-fork drift to check for and no manifest to refresh — the two hosts
+import one package. If anything sends you looking for them, it is out of date.
+The fence that replaced them is `test/chat-ui-workspace.test.ts`, which runs in
+the ordinary suite.
 
 ---
 
@@ -62,7 +71,7 @@ ports` in `~/.claude/CLAUDE.md`; the rows this skill touches:
 | 8097 | the operator's local dev server — `--cloud` rig B | operator-owned; preflight, never kill an existing process, never bind from an agent worktree |
 | 8098 | device-owned review renderer (singleton) | **hands off** — never start, restart, stop, or replace it. Not an om-build rig |
 | 4178 | `--cloud` rig A, `vite preview` | run-owned; stop what you started |
-| 13137 | `--cloud` rig C, docker gateway parity | run-owned; stop what you started |
+| 13137 | `--cloud` rig C, docker gateway (built from the GitLab cloud repo) | run-owned; stop what you started |
 | 18097–18197 | agent-owned test servers | deliberately **not** tunneled — never hand one of these to the operator as a URL |
 
 Two rules follow from the `-L <port>:127.0.0.1:<port>` form, and neither failure
@@ -105,7 +114,7 @@ one you need and follow it.
 | Target | Flow |
 |---|---|
 | `--hosted` (default), the daemon `/rooms` GUI at `127.0.0.1:31337` | [`references/hosted.md`](references/hosted.md) |
-| `--cloud`, the `/chat/` fork served locally | [`references/cloud.md`](references/cloud.md) |
+| `--cloud`, the `/chat/` host served locally | [`references/cloud.md`](references/cloud.md) |
 
 ### Running `scripts/hosted.sh`
 

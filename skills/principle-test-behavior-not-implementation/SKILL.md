@@ -48,5 +48,6 @@ written. This one decides whether what you wrote is a check at all. A test that
 never failed for the right reason usually fails this rule too.
 
 Naming follows the repository, never `*.spec.*`: `test/<name>.test.ts(x)` in
-`openmarket-chat` and `openmarket-chat-cloud`, the app's jest convention in
+`openmarket-chat` (root `test/` for canonical UI, `apps/cloud/test/` for
+host-local), the app's jest convention in
 `openmarket-chat-app`.

@@ -70,9 +70,12 @@ field list is in `references/stack-idioms.md`. Stay inside the DOM-backend
 rules: `plus-lighter` additive layering, ≤120 garnish DOM nodes,
 compositor-only motion (`transform`/`opacity` only), named easing (never
 linear). Add the metadata entry to the identity leaf's catalog and register
-the effect file. Manifest every new or changed file in the same change
-(`tools/parity-manifest.json`, then `bun tools/sync-shared.ts --refresh`) —
-every new `src/` file in this repo is shared by default.
+the effect file. **Write it under `packages/chat-ui/src/`, not `src/`** —
+since `f190644c` the host `src/` trees are re-export facades and the shared UI
+is the package. There is no manifest to refresh: `tools/parity-manifest.json`
+and `tools/sync-shared.ts` are deleted, and sharing is now the package import
+itself. A shared effect is therefore live in `/rooms` and `/chat/` at once —
+both gates, per **principle-prove-every-host**.
 
 Test-first applies to the deterministic parts: seeded randomness, timing/phase
 math, catalog registration, and manifest wiring get a failing

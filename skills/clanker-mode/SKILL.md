@@ -74,7 +74,7 @@ behind it means you skipped reading it.
 **Delivery.** How work reaches main.
 `rebase-pr-squash` · `one-commit-lands` · `feature-branch-isolation` ·
 `promote-to-the-main-worktree` · `announce-the-linked-review` ·
-`desktop-before-cloud`
+`prove-every-host`
 
 **Delegation.** Working with other agents.
 `delegate-implementation-review-stays-here` · `never-block-on-reversible-work` ·
@@ -91,7 +91,7 @@ its repo's row.
 
 | Repository | Family | Playbook |
 |---|---|---|
-| `openmarket-chat`, `openmarket-chat-cloud`, `packages/rooms-client` | OM Chat | `playbooks/om-chat-feature.md` |
+| `openmarket-chat` (both hosts: `/rooms` root, `apps/cloud`), `packages/rooms-client` | OM Chat | `playbooks/om-chat-feature.md` |
 | `openmarket-chat-app` | OM Mobile | `playbooks/om-mobile-feature.md` |
 | `kiyotaka-frontend`, `orange-v2-backend`, `tharamine-user-service`, `auth-service-backend`, `orange-shared` | Kiyotaka | Generic flow. No playbook yet |
 | Anything else | none | Generic flow |
@@ -151,7 +151,7 @@ before any task-specific todos. A step you skip stays in the list with
 | `playbooks/bug-fix.md` | A defect to reproduce, root-cause, and fix with runtime evidence |
 | `playbooks/feature.md` | New or changed behavior, built from a named data shape |
 | `playbooks/refactoring.md` | A behavior-preserving change to structure |
-| `playbooks/om-chat-feature.md` | An OM Chat change, desktop then cloud |
+| `playbooks/om-chat-feature.md` | An OM Chat change, in the one workspace both hosts share |
 | `playbooks/om-chat-completion.md` | The terminal phase for OM Chat. Stops at ready_for_review |
 | `playbooks/om-mobile-feature.md` | An OpenFloor mobile change |
 | `playbooks/om-mobile-completion.md` | The terminal phase for mobile. Lands by squash-merge through the MR |

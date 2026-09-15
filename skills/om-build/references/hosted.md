@@ -569,8 +569,8 @@ find ~ -maxdepth 4 -type d -name openmarket-chat 2>/dev/null
 **Set the paths once. Every step below uses them.**
 
 ```bash
-export MONO=~/Documents/GitLab/openmarket-internal   # <- yours may differ
-export GUI=~/Documents/GitLab/openmarket-chat
+export MONO=~/github/openmarket-internal   # <- the script's own default
+export GUI=~/github/openmarket-chat
 export OM_BIN="$(command -v om || echo ~/.local/bin/om)"
 echo "$MONO"; echo "$GUI"; echo "$OM_BIN"
 ```

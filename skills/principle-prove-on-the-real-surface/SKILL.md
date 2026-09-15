@@ -16,9 +16,9 @@ and acting on a wrong inference costs far more than checking.
 
 **The rule.** Match the proof to the change. A UI change is proven by driving
 the UI. A CLI change is proven by running the command and reading the exit code.
-A migration is proven by replaying real input. A desktop change is proven on
-desktop; cloud is proven separately only when the operator asked for the cloud
-change too, per **principle-desktop-before-cloud**.
+A migration is proven by replaying real input. A change to code shared by
+several application hosts is proven on each host's own surface, per
+**principle-prove-every-host**.
 
 **Three verdicts, and only one passes.** VERIFIED, NOT VERIFIED, INCONCLUSIVE.
 Inconclusive is not a pass. Wrong-surface is not a pass. Say so rather than

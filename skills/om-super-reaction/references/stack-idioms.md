@@ -141,8 +141,10 @@ it in). Read `webgl.ts` directly before writing a webgl-backend effect —
 this section documents the landed contract, not a guarantee of exact
 current line numbers.
 
-- **`bun add ogl`, pinned in `package.json` and `tools/parity-manifest.json`
-  dependencies** — same mechanism as animejs. Lands ONLY in the lazy
+- **`bun add ogl`, pinned in the root `package.json`** — same mechanism as
+  animejs. If the renderer lives in `packages/chat-ui`, `ogl` also needs a
+  `peerDependencies` entry there and a matching pin in `apps/cloud/package.json`;
+  `tools/parity-manifest.json` is deleted and pins nothing. Lands ONLY in the lazy
   `super-reactions` chunk; verify a build the same way as animejs
   (`grep -c "createTimeline" dist/assets/rooms.js` for animejs,
   `grep -c "WEBGL_lose_context"` or any OGL/GLSL-specific string for OGL —

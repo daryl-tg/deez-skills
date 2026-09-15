@@ -1,6 +1,6 @@
 interface:
-  display_name: "Desktop Before Cloud"
-  short_description: "Apply only when the operator asks for a change in both the d"
+  display_name: "Prove Every Host"
+  short_description: "Apply when a change touches shared UI consumed by more t"
 # Routed to explicitly, never matched. The Codex counterpart of
 # disable-model-invocation in the frontmatter.
 policy:

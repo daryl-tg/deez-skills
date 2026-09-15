@@ -4,7 +4,8 @@
 is OpenFloor; the company, services, and protocol references stay OpenMarket.
 **This family lands**, by squash-merge through the MR.
 
-This playbook never edits `openmarket-chat` or `openmarket-chat-cloud`. A
+This playbook never edits `openmarket-chat` (either host, or the shared
+`packages/chat-ui`). A
 desktop or web change is `playbooks/om-chat-feature.md`.
 
 1. **Resolve the candidate.** Read the repo's `CLAUDE.md` and `AGENTS.md`, plus

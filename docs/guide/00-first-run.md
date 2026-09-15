@@ -66,7 +66,7 @@ Start with three to five features, not everything. The map grows as you touch
 new surfaces.
 
 Seed order matches the delivery order: `openmarket-chat` first, then
-`openmarket-chat-cloud`, then `openmarket-chat-app`.
+`openmarket-chat-app`.
 
 ## Step 4 — Learn the two verification lanes
 

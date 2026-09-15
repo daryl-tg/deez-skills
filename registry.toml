@@ -95,11 +95,6 @@ layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]
 
-[skills.principle-desktop-before-cloud]
-layer    = "principle"
-category = "core"
-runtimes = ["claude", "codex"]
-
 [skills.principle-failing-test-first]
 layer    = "principle"
 category = "core"
@@ -131,6 +126,11 @@ category = "core"
 runtimes = ["claude", "codex"]
 
 [skills.principle-promote-to-the-main-worktree]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.principle-prove-every-host]
 layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]

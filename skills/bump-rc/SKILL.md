@@ -1,15 +1,27 @@
 ---
 name: bump-rc
-description: Release a new @openmarket/rooms-client version — pick the bump from what actually changed, run the repo's release script, then update both GUI consumers' pins. Trigger: /bump-rc [version]
+description: Release a new @openmarket/rooms-client version — pick the bump from what actually changed, run the repo's release script, then repin all three places the OM Chat workspace declares it. Trigger: /bump-rc [version]
 ---
 
 # bump-rc — release rooms-client and repin its consumers
 
-`@openmarket/rooms-client` lives in `openmarket-internal` and is consumed by two
-forks that pin it exactly: `openmarket-chat` (bun) and `openmarket-chat-cloud`
-(pnpm). Publishing without repinning leaves both forks on the old version;
-repinning without publishing leaves them unresolvable. This skill does the whole
-sequence.
+`@openmarket/rooms-client` lives in `~/github/openmarket-internal` and is
+consumed by the `openmarket-chat` workspace, which pins it **exactly, in three
+places that must agree**:
+
+| File | Field | Why it is there |
+|---|---|---|
+| `package.json` | `dependencies` | the `/rooms` host |
+| `apps/cloud/package.json` | `dependencies` | the `/chat/` host |
+| `packages/chat-ui/package.json` | `peerDependencies` | the shared UI, which must resolve to whatever its hosts installed |
+
+Before `f190644c` these were two separate repos on two package managers. They
+are one Bun workspace now: one `bun.lock`, one install, **never pnpm**. Two
+agreeing pins and one stale peer is the failure this skill exists to prevent —
+the install resolves, and the peer warning is the only thing that says so.
+
+Publishing without repinning leaves the workspace on the old version; repinning
+without publishing leaves it unresolvable. This skill does the whole sequence.
 
 **Announce at start:** "Using bump-rc to release rooms-client."
 
@@ -28,18 +40,22 @@ sequence.
 ### 1. Read the current state
 
 ```bash
-cd ~/Documents/GitLab/openmarket-internal
+cd ~/github/openmarket-internal
 git status --short                       # must be clean; the script refuses otherwise
 git branch --show-current                # publish expects main
 grep '"version"' packages/rooms-client/package.json
 ```
 
-Also read the consumers' current pins, so step 6 has a before/after:
+Also read all three current pins, so step 6 has a before/after:
 
 ```bash
-grep '"@openmarket/rooms-client"' ~/Documents/GitLab/openmarket-chat/package.json \
-  ~/Documents/GitLab/openmarket-chat-cloud/package.json
+cd ~/github/openmarket-chat
+grep -n '"@openmarket/rooms-client"' \
+  package.json apps/cloud/package.json packages/chat-ui/package.json
 ```
+
+All three must already read the same version. If they do not, say so before
+publishing anything — that is an existing bug, not something this run created.
 
 ### 2. Decide the bump from what actually changed
 
@@ -106,25 +122,40 @@ If the script instead reports the version is already published, **do not bump
 past it silently** — the release may have half-landed. Verify with
 `npm view @openmarket/rooms-client@0.X.0 version` and report what you find.
 
-### 6. Update both GUI consumers
+### 6. Repin all three, in the one workspace
 
-Once npm reports the new version:
+Once npm reports the new version. Both host pins go through `bun add`; the
+shared package's peer range is edited by hand, because `bun add` writes a
+dependency, not a peer:
 
 ```bash
-cd ~/Documents/GitLab/openmarket-chat
+cd ~/github/openmarket-chat
 bun add @openmarket/rooms-client@0.X.0 --exact
+bun add --cwd=apps/cloud @openmarket/rooms-client@0.X.0 --exact
 
-cd ~/Documents/GitLab/openmarket-chat-cloud
-pnpm add @openmarket/rooms-client@0.X.0 --save-exact
+# packages/chat-ui declares it as a peer — edit the value, then reinstall once
+#   "peerDependencies": { "@openmarket/rooms-client": "0.X.0", ... }
+bun install
 ```
 
-Two traps, both real:
+Confirm all three moved before going on — a missed peer is invisible until a
+consumer resolves a second copy:
+
+```bash
+grep -n '"@openmarket/rooms-client"' \
+  package.json apps/cloud/package.json packages/chat-ui/package.json
+```
+
+Three traps, all real:
 
 - `openmarket-chat` may have rooms-client **symlinked** to a local monorepo
   checkout (`tools/link-rooms-client.ts`). `bun add` replaces the link. Check
   `readlink node_modules/@openmarket/rooms-client` first; if it was linked and
   the session still needs the link, relink after the pin lands:
   `bun tools/link-rooms-client.ts --unlink && OM_REPO=<checkout> bun tools/link-rooms-client.ts`.
+- **Never `pnpm add` here.** `apps/cloud` has no lockfile of its own; the root
+  `bun.lock` covers both hosts. A pnpm install in this tree creates a second
+  dependency graph that the workspace fences will not see.
 - Pre-public-launch, the registry may not serve the package at all. If the add
   fails to resolve, report it and fall back to the local tarball flow rather
   than editing the pin by hand:
@@ -134,15 +165,21 @@ Two traps, both real:
 ### 7. Verify and report
 
 ```bash
-grep '"@openmarket/rooms-client"' ~/Documents/GitLab/openmarket-chat/package.json \
-  ~/Documents/GitLab/openmarket-chat-cloud/package.json
-cd ~/Documents/GitLab/openmarket-chat && bun run typecheck
-cd ~/Documents/GitLab/openmarket-chat-cloud && pnpm run typecheck
+cd ~/github/openmarket-chat
+grep -n '"@openmarket/rooms-client"' \
+  package.json apps/cloud/package.json packages/chat-ui/package.json
+bun run typecheck                        # /rooms host
+bun run --cwd apps/cloud typecheck       # /chat/ host
 ```
 
-Commit each consumer's pin change (`package.json` + its lockfile) via the
-`/commit` skill: `chore: rooms-client 0.X.0`.
+Both hosts typecheck, not one — a protocol change lands in both at once through
+`packages/chat-ui`, per **principle-prove-every-host**.
 
-Report: the version published, why that bump, both consumer pins before/after,
+Commit the pin change as one unit (all three `package.json` files plus
+`bun.lock`) via the `/commit` skill: `chore: rooms-client 0.X.0`. They are one
+logical change; splitting them leaves a commit where the peer disagrees with
+its hosts.
+
+Report: the version published, why that bump, all three pins before/after, both
 typecheck results, and anything left for Ryan (a relink, an unpushed commit, a
 failed resolve).

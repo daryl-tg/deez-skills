@@ -63,11 +63,11 @@ The two surfaces:
 
 | Target  | URL                                | Role                                     |
 | ------- | ---------------------------------- | ---------------------------------------- |
-| `cloud` | `https://openmarket.xyz/chat/#/`   | parity baseline — what `openmarket-chat-cloud` has |
+| `cloud` | `https://openmarket.xyz/chat/#/`   | parity baseline — what the **deployed** `/chat/` has |
 | `local` | `http://127.0.0.1:31417/rooms#/`   | candidate — the daemon serving your branch |
 
 Changes land in `openmarket-chat` first and are synced to
-`openmarket-chat-cloud` afterwards, so **cloud is "before" and local is
+the deployed `/chat/` afterwards, so **cloud is "before" and local is
 "after"**. Both proxy to the same production rooms backend
 (`ROOM_CHAT_API_URL`, `ROOMS_WS_URL` in `packages/cli/src/constants.ts`), so the
 account, rooms, and messages are identical on both sides. The only variable is
@@ -168,7 +168,7 @@ its `SEL` block; reuse from there rather than re-deriving.
 | --- | --- |
 | `textarea[data-composer-input]` | the message composer — also the "chat shell is up" signal |
 | `.message-row` | one rendered message |
-| `#login-identity`, `#login-password`, `#login-twofa` | the GUI's own login form (`src/components/Login.tsx`) |
+| `#login-identity`, `#login-password`, `#login-twofa` | the GUI's own login form (`packages/chat-ui/src/components/Login.tsx`) |
 | `[data-testid="rebrand-close-btn"]` | the rebrand overlay that swallows clicks on a fresh cloud profile |
 | `[data-testid="profile-guest-mode-btn"]` | the chart shell's guest pill |
 
