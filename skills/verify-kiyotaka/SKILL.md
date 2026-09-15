@@ -90,17 +90,32 @@ not worth driving.
 
 **Two of those lines are reachability, not health, and a degraded stack passes
 both.** `backend :3000 up` accepts ANY HTTP status from `/`, and `v2 gateway
-reachable` is a TCP probe of the gateway host. A stack whose
-`POST /api/v1/scripts/query` returns `500`, and whose v2 calls time out, reports
-fully green while the indicator catalog renders `Couldn't load indicators` and
-symbol search returns `0 results`. Candles still draw, so the chart looks fine.
-When a catalog or a search comes back empty, probe the endpoint itself before
-treating it as a frontend bug:
+reachable` is a TCP probe of the gateway host. A stack whose v2 calls time out
+reports fully green while symbol search returns `0 results`. Candles still draw,
+so the chart looks fine.
 
-```bash
-curl -s -o /dev/null -w '%{http_code}\n' -X POST \
-  http://127.0.0.1:3000/api/v1/scripts/query -H 'Content-Type: application/json' -d '{"limit":1}'
-```
+The `catalog` line is narrower than it looks: it probes
+`POST /api/v1/scripts/query` itself, so it does catch a `500`, but **a `2xx`
+means the endpoint SERVES, not that the catalog is SEEDED.** An unseeded local
+mongo answers `200` with zero official rows, which reads in the dialog as a
+search that found nothing. `features/indicators.md` carries the tell.
+
+**Run `doctor` twice on a lane you just brought up, and believe the second.**
+Its probes are HTTP calls with timeouts, and the first transform after `up`
+compiles the whole module graph behind `worker.ts` — measured over 25s, against
+~50ms warm. A cold run has reported `transform … the tree does not compile` and
+`catalog … UNREACHABLE` on an instance that was healthy, then gone green
+seconds later untouched. The budgets are now 90s and 20s, but a loaded machine
+can still outrun them, and the failure text accuses the tree rather than the
+clock.
+
+**A regenerated wrapper ships the old budgets.** `control-kiyotaka` is
+git-excluded, so a fresh clone rebuilds it from `create-verification-skill` with
+`--max-time 25` on the transform probe and `--max-time 5` on the catalog probe,
+and the false cold failure comes back. Raise them to `90` and `20`, and replace
+each probe's `|| echo 000` with `|| true` — `curl -w '%{http_code}'` already
+prints `000` on a timeout, so the fallback concatenates and doctor reports a
+six-digit `000000` that reads as garbage rather than as a timeout.
 
 **The `chart-schema` line is the one that silently burns a run.** `vite.config.ts`
 aliases `@orangecharts/chart-schema` to the *sibling* `orange-shared` checkout's
@@ -262,13 +277,16 @@ the engine read still passes, the a11y snapshot still returns, and the PNG shows
 last step's dialog over the chart you meant to capture. Check the dialog count
 and the visible text before every screenshot, and open the PNG afterwards.
 
-**A guest-walled click leaves a sign-in dialog that no close button clears.** Any
-control behind `promptGuestLogin` (multi-chart layouts, the editor's write paths)
-raises the sign-in wall in the same `.dialog-style.dialog-overlay` shell the
-signup modal uses, and it reads as *"Back to log in / Forgot your password?"*. It
-has no close control in its button list, so it blocks every later click until you
-reload the lane. Probe `[data-testid=guest-signup-modal-close-btn]` to tell the
-two overlays apart before trying to dismiss one.
+**A guest-walled click leaves a sign-in dialog with no close button — press
+`Escape`.** Any control behind `promptGuestLogin` (multi-chart layouts, the
+Terminal toggle, the editor's write paths) raises the sign-in wall in the same
+`.dialog-style.dialog-overlay` shell the signup modal uses, and it reads as
+*"Back to log in / Forgot your password?"*. Its button list carries no close
+control, which reads as undismissable and has cost a lane reload per wall;
+`Escape` clears it outright — `isAuthenticationDialogOpen` goes `false`, the
+overlay count returns to `0`, and the next click lands. Probe
+`[data-testid=guest-signup-modal-close-btn]` to tell the two overlays apart:
+absent on the wall, present on the signup modal.
 
 **Drawing tools have no accessible names.** Every left-toolbar tool snapshots as
 `button "More tools"`. Do not drive them by name — use `<ToolGlyph>`'s owning

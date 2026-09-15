@@ -34,7 +34,8 @@ Preconditions:
   Driven live, the click left `dialogStore.isAuthenticationDialogOpen = true` and
   `guestLoginFeatureId = "script-editor"` with `.cm-editor` still `0`. Use it only
   to prove the wall — and note it leaves that dialog covering the chart, which
-  blocks every later click until you reload the lane:
+  blocks every later click until you clear it with `Escape` (see the chart-boot
+  gotcha; a lane reload works too but costs a full re-boot):
 
   ```bash
   ./control-kiyotaka browser find testid tb-editor-toggle-btn click
@@ -52,7 +53,12 @@ Preconditions:
   ./control-kiyotaka browser click "@eN"
   ```
 
-  Super Search lists **nothing** until it has a query. There is no keyboard route:
+  The `Script Editor` row needs a query — but Super Search is not empty before one:
+  it opens on suggested "who to follow" rows, so rows on screen are not proof your
+  query landed. Match the row you want, never the row count. Give the overlay a
+  beat, too: right after `isSuperSearchOpen = true` the input exists and is
+  visible while `find placeholder` still misses it, and the same call succeeds a
+  few seconds later. There is no keyboard route:
   `keyboardShortcuts.constants.ts` registers no editor action, so do not look for a
   `chartShortcuts` binding.
 - **Confirm it opened with `inert`, not with a name or a chunk.** `EditorDrawer`
@@ -65,10 +71,17 @@ Preconditions:
   ```
 
   A closed drawer reads `{exists:true, inert:true}` with empty text — that is the
-  resting state, **not** a failed chunk and not a backend problem. Open reads
-  `inert:false`, and CodeMirror follows a few seconds later (`.cm-editor` reached
-  `1` about 12s after the drawer opened), so poll `inert` first and `.cm-editor`
-  only after.
+  resting state, **not** a failed chunk and not a backend problem.
+  **Open reads `inert:false` at once, and then the drawer is EMPTY for about 25
+  seconds.** `inert` flips within a second of the Super Search click while
+  `innerText.length` stays `0`, `children` sits at `2` and `kscript-run-btn` does
+  not exist; the content appears around t+25s and settles by t+30s. Nothing marks
+  the gap — no chunk error, no spinner — so a verifier who budgets ten or fifteen
+  seconds reads an open-but-blank drawer and reports the editor as broken. Poll
+  `kscript-run-btn` for at least 45s before concluding anything.
+  **Do not wait on `.cm-editor` at all on the guest lane: it stays `0` forever**,
+  because a guest has no writable buffer to mount. It is not a timing signal and
+  not a failure.
 - **The template picker is authed-only — a guest never sees it.** It renders behind
   `canWriteKScript`, which is `useJwtStore().isLoggedIn`, and that getter excludes
   `ROLES.GUEST` by construction. On the guest lane

@@ -13,11 +13,16 @@ before driving, then use the matching feature file as the recipe.
   minutes on a cold boot.
 - Interval read, never assumed: `chartStore.activeInterval` (a guest with no
   stored state lands on `1h`).
-- The catalog endpoint actually serves:
-  `curl -s -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/scripts/query -H 'Content-Type: application/json' -d '{"limit":1}'`
-  reads `200`. `doctor`'s `backend :3000 up` accepts any status code, so a stack
-  whose `/scripts/query` returns `500` passes doctor while the indicator catalog
-  and every dialog-driven add are unreachable.
+- The catalog endpoint serves AND is seeded. `doctor`'s `catalog` line probes
+  `/scripts/query` and catches a `500`, but a `200` only means the endpoint
+  answered: an unseeded local mongo serves `200` with zero official rows. The
+  seeded check is in the dialog, under `Browse all indicators` — a header reading
+  `OFFICIAL INDICATORS 0` plus a banner naming
+  `node scripts/seed-official-catalog.mjs` means `ind-catalog` is unreachable, and
+  that is an operator-stack blocker, not drift.
+- `doctor` run twice on a freshly-`up`ed lane, with the second run believed. Its
+  first transform probe compiles the module graph cold and has exceeded the
+  budget, printing `the tree does not compile` about a healthy tree.
 - Guest signup modal dismissed
   (`find testid guest-signup-modal-close-btn click`) — dismiss it immediately
   before each capture, never once up front. Do **not** drive it by the name
@@ -66,12 +71,15 @@ real account's autosaving workspace — use a throwaway account.
 
 A guest-lane surface can still stop at a sign-in wall partway through: the entry
 point opens, the control responds, and the *commit* raises
-`Sign in or create an account`. `src/constants/authFeatures.constants.ts` lists
-every gated surface (`MULTI_CHART`, `WORKSPACE`, `ALERT`, `WATCHLIST`,
-`FAVORITES`, `ONE_SECOND_INTERVAL`, `TAPE_MODE`, `LAYOUTS`, …) and
+`Sign in or create an account`. `src/constants/authFeatures.constants.ts` is the
+registry of every gated surface — 41 ids, among them `MULTI_CHART`, `MONITOR`,
+`SCRIPT_EDITOR`, `TERMINAL`, `INDICATORS`, `WORKSPACE`, `ALERT`, `WATCHLIST`,
+`FAVORITES`, `ONE_SECOND_INTERVAL`, `TAPE_MODE` and `LAYOUTS` — and
 `promptGuestLogin` is what raises the wall. Read it before mapping something as
 guest-reachable, and report the wall as the unmet precondition rather than
-photographing a click that did nothing.
+photographing a click that did nothing. Clear the wall with `Escape` before the
+next step: it has no close button but it is not sticky, and
+`dialogStore.guestLoginFeatureId` names the surface that raised it.
 
 ## Proof and skip reporting
 

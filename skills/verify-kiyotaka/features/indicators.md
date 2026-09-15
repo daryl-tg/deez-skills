@@ -34,9 +34,12 @@ Preconditions:
   has two modes and the default is `indicator-control-bar-wrun-registry-btn`
   ("Indicators"), which lists `REGISTRY` packages and the `PORTED FROM KSCRIPT` set.
   Native/official indicators — TPO, volume, open interest, RSI — live behind
-  `indicator-control-bar-legacy-btn` ("kScript LEGACY"), whose own row of filters
-  reads `Official`, `Community`, `All`, `Technical`, `Volatility`, `Statistics`,
-  `Quant`, `Validation`, `Volume`, `Footprints`, `Market Analysis`:
+  `indicator-control-bar-legacy-btn` ("kScript LEGACY"), which opens **two**
+  control rows, not one. Source is a tab pair — `tab "Official"` (selected) and
+  `tab "Community"` — and the categories below it are seven buttons: `All`,
+  `Technical`, `Volatility`, `Statistics`, `Quant Validation`, `Volume
+  Footprints`, `Market Analysis`. `Quant Validation` and `Volume Footprints` are
+  each ONE label; matching `Quant` or `Volume` alone finds nothing:
 
   ```bash
   ./control-kiyotaka browser find testid indicator-control-bar-legacy-btn click
@@ -47,6 +50,13 @@ Preconditions:
   indicator being missing rather than as the wrong view. The control bar also
   carries `indicator-control-bar-favorites-btn` and
   `indicator-control-bar-build-btn`.
+- **The legacy view lands on `Discover`, which lists nothing, and the official
+  catalog is one more click down.** Under the category row sits a second tab pair,
+  `tab "Discover"` (selected) and `tab "All"`, beside `button "Browse all
+  indicators"`. `Discover` renders no rows at all on a guest boot, so a verifier
+  who stops there reads an empty dialog as a dead catalog. Take `Browse all
+  indicators` — that is the view whose header reads `OFFICIAL INDICATORS <n>` and
+  the only one that tells you whether the catalog is seeded.
 - **Add without the UI**, when the proof is about the overlay rather than the
   dialog — but only with a key whose CONTROL IS ALREADY LOADED:
   `./control-kiyotaka browser eval "document.querySelector('#tc-container-0').__vueParentComponent.setupState.chartStore.addIndicator('ORDERBOOK_DEPTH',{},0)"`.
@@ -74,11 +84,13 @@ Preconditions:
 
   into the console and mounts nothing, while `addIndicator` itself returns
   normally — so the drive looks like a silent no-op, not an error. Read the console
-  before concluding the indicator is broken. `ORDERBOOK_DEPTH`,
-  `ORDERBOOK_HEATMAP`, `CUMULATIVE_VOLUME_DELTA`, `PM_SIGNAL`,
-  `TRADING_TOTAL_VOLUME` and `TRADING_TOTAL_LIQUIDITY` were registered on a plain
-  guest boot. For anything else, add it through the dialog, which is the user path
-  the proof should be using anyway.
+  before concluding the indicator is broken. Only three keys are guaranteed:
+  `ALWAYS_LOAD_TYPES` is `TRADING_TOTAL_VOLUME`, `TRADING_TOTAL_LIQUIDITY` and
+  `ORDERBOOK_DEPTH` (`src/indicators/indicator-registry.ts`). `ORDERBOOK_HEATMAP`,
+  `CUMULATIVE_VOLUME_DELTA` and `PM_SIGNAL` have also been seen registered on a
+  guest boot, but only because that workspace restored them — a different venue or
+  a cleared workspace drops them. For anything else, add it through the dialog,
+  which is the user path the proof should be using anyway.
 - **Confirm it mounted.** Run
   `./control-kiyotaka browser eval "(()=>JSON.stringify(window.tc[0].metadata.map(m=>m.settings?.ovType ?? m.overlayType ?? m.type)))()"`.
   Keep the `overlayType` rung: on an overlay row `type` is the SIDE
@@ -102,14 +114,18 @@ Preconditions:
   Whether that is the engine or the bypassed add path is unresolved — so prove any
   legend claim on a dialog-added overlay, and do not report a removal bug from a
   programmatic one.
-- **Guest cap.** The ticker bar reads `Indicators 2/3` as a guest, rising to
-  `3/3`; the dialog carries the same count as `button "2 / 3"` (testid
+- **Guest cap.** The ticker bar reads `Indicators 2/3` once the guest workspace's
+  own two overlays have restored, rising to `3/3`. **Read it after the restore, not
+  after first paint** — the same boot reads `Indicators 0/3` for the first seconds
+  while `metadata` already holds three entries, so an early read invents a wrong
+  baseline and every later delta is off by two. The dialog carries the same count
+  as `button "2 / 3"` (testid
   `indicator-search-bar-chart-only-btn`). Assert that text — and assert it through
   the DIALOG's Add button, because **the cap is a UI gate that
   `chartStore.addIndicator` does not enforce**. A programmatic fourth add mounts
   regardless: the counter stayed pinned at `Indicators 3/3` while `metadata` grew
   to six entries. The gate runs only when the caller passes `opts.recordUndo` or
-  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1189`), and a
+  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1239`), and a
   bare `addIndicator(KEY,{},0)` passes neither. Re-reading `metadata` after a
   programmatic add therefore proves nothing about the cap, and reads as the cap
   being broken when it is not. Use eval adds to REACH three slots, then assert the
@@ -127,7 +143,8 @@ Preconditions:
   mongo therefore shows zero official indicators — RSI, Open Interest, the whole
   options suite — which reads as a broken feature. Fix with
   `./control-kiyotaka cli -- node scripts/seed-official-catalog.mjs`. Dev builds
-  render a warning banner in the dialog when this state is detected.
+  render a warning banner naming that command — but only under `Browse all
+  indicators`, never on the `Discover` tab the legacy view opens on.
 - **A catalog endpoint that ERRORS looks nothing like an unseeded one, and doctor
   calls it green.** When the stack answers but fails, the LEGACY view renders
   `Couldn't load indicators / Check your connection, then try again. Retry` and
@@ -138,10 +155,24 @@ Preconditions:
     http://127.0.0.1:3000/api/v1/scripts/query -H 'Content-Type: application/json' -d '{"limit":1}'
   ```
 
-  `200` is a usable catalog; `500` means `ind-catalog` and every dialog-driven add
-  are unreachable on this stack, and that is an operator-stack blocker, not drift.
-  `doctor` reports `backend :3000 up` off a bare `curl` to `/` that accepts any
-  status code, so a 500-ing stack passes it.
+  `500` means `ind-catalog` and every dialog-driven add are unreachable on this
+  stack, and that is an operator-stack blocker, not drift.
+
+  **A `200` is not a seeded catalog, and this is the trap that looks like drift.**
+  The endpoint answering says nothing about whether the rows exist: an unseeded
+  local mongo answers `200` and returns zero official rows, so a search for `RSI`
+  reads `RESULTS 0 / No indicators found` — indistinguishable from a broken search
+  until you open `Browse all indicators`, which names it outright:
+
+  ```
+  OFFICIAL INDICATORS 0
+  Official catalog is empty: this local stack has no seeded official indicators.
+  Run: node scripts/seed-official-catalog.mjs
+  ```
+
+  That banner is the only unambiguous signal, and it does **not** render on the
+  `Discover` tab the view opens on. `doctor`'s `catalog` line probes the endpoint,
+  so it goes green on exactly this stack.
 - On the guest lane the dialog still lists WRUN packages and `@parity/*` ports,
   so "the dialog has content" is not proof the catalog loaded.
 - Do not assert an overlay mounted by reading the legend — the legend is engine

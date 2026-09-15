@@ -53,10 +53,15 @@ Preconditions:
   against the clicked dialog finds nothing.
 - **Read the result shape.** Results group by asset class, each group capped with a
   `See all <Class>` row; the right-hand rail previews the highlighted symbol and
-  its venues, and the footer carries the match count (`ALL MARKETS`, `24 results`).
-  Picking a symbol takes two steps when the venue matters: the row, then the venue
-  in the rail (`BTCTetherBINANCE.FPERP…`). Re-snapshot before each click — the
-  rows are new refs.
+  its venues. Picking a symbol takes two steps when the venue matters: the row,
+  then the venue in the rail (`ETHTetherBINANCE.FPERP2,482.68↓ 1.44%`, a `generic`
+  node — click it by ref).
+  **The result rows themselves do not need refs.** The asset column carries
+  `asset-row-<name>|<ticker>-btn` (`asset-row-ethereum|eth-btn`) and its symbol
+  rows carry `symbol-row-<EXCHANGE>|<SYMBOL>-btn`
+  (`symbol-row-BINANCE|WBETHUSDT-btn`), both stable across re-renders. Only the
+  venue rail is ref-driven, so re-snapshot before that click alone rather than
+  before every one.
 - **Prove the switch reached the engine**, not just the label: poll the candle
   predicate again and read
   `./control-kiyotaka browser eval "(()=>JSON.stringify({title:document.title,bars:window.tc[0].metadata[0].rawData.length}))()"`.
@@ -69,15 +74,32 @@ Preconditions:
 - **Chart type.** `button "Candle"` peeks on hover and pins on click; the entries
   (`Hollow Candle`, `Heikin Ashi`, `Line`, `Line with Markers`, `Step Line`,
   `HLC Area`, `Area`, `Baseline`) do snapshot, so `hover` then `snapshot` proves
-  the peek. The engine read is `chartStore.plotTypeForChart` — picking `Line`
-  makes it `"spline"`, and the ticker-bar button's own name changes to `Line`.
+  the peek. **Click them by testid, not by their text.** Every entry carries
+  `tb-chart-type-option-<value>-btn` — `candle`, `hollowCandle`, `heikinAshi`,
+  `ohlcBar`, `volumeCandle`, `columns`, `highLow`, `spline`, `markerLine`,
+  `stepLine`, `hlcArea`, `area`, `baseline`, `footprint`, `tpo` (sixteen, well
+  past the eight the a11y names suggest). A `find text "Line" click --exact`
+  returns `No element found by text` against a menu that is plainly open, and the
+  popover closes under a slow drive, so pair them: hover
+  `tb-chart-type-trigger-btn`, then click the option testid.
+
+  ```bash
+  ./control-kiyotaka browser find testid tb-chart-type-trigger-btn hover
+  ./control-kiyotaka browser find testid tb-chart-type-option-heikinAshi-btn click
+  ```
+
+  The engine read is `chartStore.plotTypeForChart` — picking `Line` makes it
+  `"spline"` — and the trigger's `aria-label` follows the pick, which is the
+  cheaper of the two reads.
 - **Layout.** `button "Layout"` peeks on hover and pins on click, same as chart
   type — a click-only drive forfeits the `tb-hover` half of the proof. Its contents are invisible to the
   a11y tree: the grid groups (1, 2, 3, 4, 5, 6, 8, 9, 12, 16), the custom N×N
   matrix and the SYNC toggles all snapshot as unnamed `generic` nodes. Drive them
   by `data-testid` instead — `tb-layout-entry-2H-btn`, `tb-layout-entry-3x3-btn`,
-  `tb-layout-matrix-cell-<r>-<c>-btn`, `tb-layout-sync-symbol-btn` (the full set
-  is built in `src/composables/chart/useMonitorPicker.ts`):
+  `tb-layout-matrix-cell-<col>-<row>-btn`, `tb-layout-sync-symbol-btn` (the full
+  set is built in `src/composables/chart/useMonitorPicker.ts`). The matrix key is
+  `${col}-${row}`, zero-indexed and **column-first**: the first row of cells reads
+  `0-0`, `1-0`, `2-0`, `3-0`:
 
   ```bash
   ./control-kiyotaka browser find testid tb-layout-entry-2H-btn click
@@ -145,11 +167,13 @@ Preconditions:
   `promptGuestLogin(FeatureId.MULTI_CHART)` in `src/store/dialog.ts`. Only the
   picker opening is provable on the guest lane; report the grid itself as
   unreachable rather than photographing a click that did nothing.
-  Two details a recipe trips on: the free multichart limit is **1**, so every entry
-  above one chart already renders `locked` before the click; and the 1x1 matrix
-  cell (`tb-layout-matrix-cell-0-0-btn`) is the one allowed cell, raising a
-  **Monitor** wall instead of the Multi-Chart one. Matrix testids are
-  `<col>-<row>`, zero-indexed and column-first.
+  Two details a recipe trips on. The free multichart limit is **1**, so every entry
+  above one chart already renders `locked` before the click. And the 1x1 matrix
+  cell (`tb-layout-matrix-cell-0-0-btn`) is the one allowed cell: from the default
+  single-chart guest boot it raises **nothing at all** — no wall, no dialog,
+  `guestLoginFeatureId` stays `null` — because the layout it selects is the one
+  already applied. Do not use it to prove a wall; prove the wall on any multi-cell
+  (`tb-layout-matrix-cell-1-1-btn`), which reliably reads `multi-chart`.
   `src/constants/authFeatures.constants.ts` is the registry of every surface that
   behaves this way — read it before mapping something as guest-reachable.
 - **`search-v2` is OFF for every guest, so the guest lane exercises the LEGACY
@@ -159,7 +183,12 @@ Preconditions:
   does not light it either.)
 
   **Tell the dialogs apart by testid, not by category labels.** Legacy renders
-  `intent-filter-class-<id>-btn`; v2 renders `search-v2-category-<id>-btn`. The
+  `intent-filter-class-<id>-btn`; v2 renders `search-v2-category-<id>-btn`.
+  Legacy's ids are not its labels: the `Macro` pill is
+  `intent-filter-class-economics-btn`, so `Macro` and v2's `Economics` are one id
+  under two names and `intent-filter-class-macro-btn` does not exist. The other
+  seven match (`all`, `equities`, `cme`, `crypto`, `forex`, `commodities`,
+  `predict`). The
   labels overlap badly: v2's strip reads `All`, `Crypto`, `Equities`, `Forex`,
   `Commodities`, `Predict`, `Economics`, so `Equities` appears on BOTH and the
   often-quoted v2 set (`All markets`, `Stocks`, `Predictions`) appears on neither.

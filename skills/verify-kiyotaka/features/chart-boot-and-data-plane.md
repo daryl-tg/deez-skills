@@ -101,11 +101,19 @@ Preconditions:
   ```
 - **The signup modal is not the only overlay that blocks a mid-drive click.** Any
   guest-walled control (`promptGuestLogin`) raises the sign-in dialog in the same
-  `.dialog-style.dialog-overlay` shell, and it has no close button in its button
-  list — it reads as "Back to log in / Forgot your password?". Identify what is on
-  top before dismissing: a `[data-testid=guest-signup-modal-close-btn]` probe tells
-  the two apart, and the sign-in wall is cleared by reloading the lane, not by a
-  close click.
+  `.dialog-style.dialog-overlay` shell, and it reads as "Back to log in / Forgot
+  your password?". Identify what is on top before dismissing: a
+  `[data-testid=guest-signup-modal-close-btn]` probe tells the two apart — it is
+  absent on the wall, present on the signup modal.
+  **The wall has no close button, but `Escape` clears it.** It carries no close
+  control in its button list, which reads as undismissable; pressing `Escape`
+  takes `dialogStore.isAuthenticationDialogOpen` back to `false`, leaves the
+  overlay count at `0`, and the very next click lands normally. Reloading the lane
+  also works and costs a 45-115s re-boot, so reach for `Escape` first:
+
+  ```bash
+  ./control-kiyotaka browser press Escape
+  ```
 - **The signup modal is time-gated, so an early screenshot is not proof it is
   gone.** It arms only after the first chart paint plus ~8s of visible time, then
   waits for ~2s idle. Poll past that window before deciding the coast is clear.
