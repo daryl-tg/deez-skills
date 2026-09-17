@@ -231,3 +231,5 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [your-om-unread.md](your-om-unread.md)
 - [open-world.md](open-world.md)
 - [your-library.md](your-library.md)
+- [agent-token-usage.md](agent-token-usage.md)
+- [message-editing.md](message-editing.md)

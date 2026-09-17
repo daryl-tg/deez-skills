@@ -37,12 +37,22 @@ Samples start fixed. Confirm Learning paused for this profile and the separate g
 
 At desktop width, measure both Learning text and controls. A parent grid with `minmax(0, 1fr) auto` can collapse text to zero width when the new controls contain prose. Check computed widths and readable text, not only horizontal overflow. Capture the fixed-profile explanation at desktop and phone widths. Offline cached profile controls must be disabled.
 
+## Proposed changes review
+
+Use `tools/visual/persona-panel-fixture.html?state=pending-long` for a synthetic 96-line proposal with six separated change hunks. Add `theme=light` for the light palette. The fixture uses the actual `.persona-scroll` viewport and stateful Accept / Not now responses; it does not contact the armed daemon.
+
+Proposed changes is one section near the top. Each proposal starts collapsed with Show changes, Read all, Accept and Not now visible. Show changes expands only that proposal; Hide changes collapses it. Scroll the actual persona pane and measure `.persona-proposal-toolbar` against `.persona-proposal`: the toolbar pins at the pane top while its article continues, then moves out with the article. A 390x600 viewport allows scrolling beyond the whole long proposal. No toolbar may cover the next voice card after its article ends.
+
+Read all opens the Proposed voice changes dialog. Verify Current voice / Proposed voice file headers, old/new line numbers, context, hunk headers and distinct additions/deletions. Long prose wraps at 390px without horizontal overflow. Scroll Full proposed wording to the end and confirm Accept / Not now remain visible. Escape restores focus to Read all. In the pending-long fixture, Accept removes the proposal and changes v7 to v8; Not now removes the proposal and retains v7. Conflict/stale proposals retain the guarded reconciliation path. Hidden metadata must stay absent from the visible diff while clean acceptance retains the complete raw merged payload.
+
+The revamp uses centered content columns beside the sidebar. Check the composed Shell Voice, Away coverage and Activity routes at 1440x1000, rather than measuring against the whole viewport. Voice editing is reached through Edit, Saved profiles holds profile selection, and Manage voice cards holds import/create/export. Existing full-profile viewing is separate from proposal review.
+
 ## Gotchas
 
 The canned fixture proves navigation and component behavior. An actual HTTP handler with a synthetic relay adapter proves API integration, not deployed relay delivery. Setup with an injected zero-history learner does not prove a paid model pass. Test durable checkpoint reuse and publication separately in the daemon suite.
 
 The report can legitimately contain text:null for no selected card. Treat it as an empty state, not an old daemon. A missing model must leave the editor usable. Learning may remain off after setup or reviewed-baseline resume. Hand-edited empty rules must not revive stale embedded JSON. Never include private evidence in exported proof artifacts by default.
 
-In a named worktree, sync-shared.ts defaults to the primary desktop checkout. Pass the twin path explicitly for a real cross-fork drift report. Do not overwrite an unrelated dirty twin to make a fence green.
+There is no cross-fork drift report: `sync-shared.ts` was deleted in `f190644c` and the persona UI is one shared implementation under `packages/chat-ui/src/`. A persona change is in `/rooms` and `/chat/` at once, so drive both hosts rather than looking for a twin to reconcile.
 
 The actual API rig must include a synthetic HOME mirror-health entry and directory to prove managed voice skill publication. Missing mirror state should produce an unavailable load and preserve the previous selection; a 200 report by itself is not proof that the voice skill exists. Never configure that rig against the operator’s real mirror.
