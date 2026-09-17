@@ -17,31 +17,73 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   reads **"Agents, not running"**, while the desktop rail reads
   **"Agents, needs your om running"** — and if any agent is armed the count
   wins outright and away is masked entirely, giving **"Agents, N armed"**
-  (`Shell.tsx:3019-3214`). So an `--exact` match on the bare name misses three
+  (`Shell.tsx:3201-3396`). So an `--exact` match on the bare name misses three
   different ways, and matching the mobile string on desktop misses too. Away
   is a whole-app state, a different thing from the daemon not running.
 
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3143`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3325`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3209-3214`). Two states is the old shape; matching on it during a
+  (`Shell.tsx:3391-3396`). Two states is the old shape; matching on it during a
   flaky connect misses silently.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
   these two doors: the answer is that **Agents cannot be unpinned**.
-  `REQUIRED_RAIL_FEATURE_IDS = ["rail-agents"]` (`rail-layout.ts:24`) holds it
-  in place while Library, News, Alerts and Browse channels became optional. A
-  missing Agents door is a regression, never a layout preference.
+  `REQUIRED_RAIL_FEATURE_IDS = ["rail-agents"]` (`rail-layout.ts:23`) holds it
+  in place while the rest became optional. `RAIL_FEATURE_IDS` is now
+  `rail-agents`, `rail-library`, `rail-news`, `rail-alerts`
+  (`rail-layout.ts:17-22`) — **Browse channels is no longer among them.**
+  `38d0c72d`'s T145 retired it from the catalog because it already has a
+  permanent dock door, and a stored pin for it is purged on the next write.
+  Driven here, the "Browse features" popover offers exactly **Library** and
+  **Alerts**. A missing Agents door is a regression, never a layout
+  preference; a missing Browse-channels *tile* is the intended state.
+- **Collapsible space groups** in the rail, new in `38d0c72d` (T102). Space
+  tiles can be collected into a folder: a collapsed group renders one tile with
+  a 2x2 preview and a single aggregated mention badge, expands in place, and
+  persists device-locally while the server keeps the flattened order. Markers
+  are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
+  collapsed) and `.rail-group-open` on the expanded container
+  (`Shell.tsx:3636-3667`).
+
+  **It takes two steps to reach, and neither is a query parameter.** The
+  fixture seeds one space, so there is nothing to group, and the layout is
+  device-local rather than fixture-seeded. Both halves are solvable:
+
+  ```bash
+  # 1. populate the rail — ?rail=many gives s1..s7
+  agent-browser open "$(./control-om-chat url 'tools/visual/shell-fixture.html?rail=many')"
+
+  # 2. write the layout under the fixture user, then reload
+  agent-browser eval '(()=>{localStorage.setItem("om.chat.railLayout.device.u1",
+    JSON.stringify({version:1,features:[{kind:"item",id:"rail-agents"}],
+    spaces:[{kind:"group",id:"g1",name:"Work",members:["s2","s3","s4","s5"]},
+            {kind:"item",id:"s1"},{kind:"item",id:"s6"},{kind:"item",id:"s7"}],
+    collapsed:["g1"]}));return "seeded";})()'
+  ```
+
+  The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
+  **`u1`** (`shell-fixture.tsx:1037` maps the `kyle` handle to `u1`; every
+  other handle becomes `u-<handle>`). Write it under the wrong id and nothing
+  happens, silently. Proven end to end on lane 18118: after the reload one
+  `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
+  clicking it drops `data-rail-group-collapsed`, mounts `.rail-group-open`,
+  and reveals member tiles `s2`–`s5`.
+
+  Like `message=cozy`, this write is **sticky** — it is the app's own
+  persistence, not a fixture seed, so it survives every later load in that
+  browser session. Remove the key before capturing any other rail frame.
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
   **watches** (`ChatPane.tsx:478`). Settings used to be the fourth and is not
-  any more: `c40dbc5d` turned it into a rail row that calls
-  `session.requestSettings?.("om")` (`ChatPane.tsx:523`), which opens the
-  **global Settings dialog** on its new OM Settings page.
-  `surface === "settings"` appears nowhere in `src/`. `#783` collapsed the
+  any more: `c40dbc5d` moved it to the global Settings dialog, and
+  `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
+  home rail entirely** as duplicates. `ChatPane` no longer calls
+  `requestSettings` at all, and `surface === "settings"` appears nowhere.
+  The only way in is Settings itself (below). `#783` collapsed the
   original alerts and schedules panes into watches — `OmAlertsSurface.tsx` and
   `OmSchedulesSurface.tsx` are deleted, `OmWatchesSurface.tsx` replaces both.
   Watches has its own file, [your-om-watches.md](your-om-watches.md).
@@ -57,8 +99,8 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   What `#830` put in its place is the Agent Center's own context rail — an
   `aside` named **"Agent roster"** holding a `nav` named **"Roster sections"**
   with three buttons, **Roster**, **Waiting on you** and **In progress**
-  (`AgentCenterPane.tsx:582-625`), plus a separate `button` named **"Persona"**
-  (`:654`). Driven in this lane the nav reads exactly those three names and the
+  (`AgentCenterPane.tsx:577-620`), plus a separate `button` named **"Persona"**
+  (`:652`). Driven in this lane the nav reads exactly those three names and the
   Persona button is present. But read the trap in the Gotchas before clicking
   it: it navigates correctly and still lands on a failure, because the fixture
   decided about mocking before you clicked.
@@ -77,21 +119,27 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   telling you the profile did not load, and on this lane that almost always
   means the route problem below.
 
-  Where the three tabs live depends on chrome. On **desktop**, with the om
-  session rail mounted, `VoiceAwayPanel` takes `navigation="external"` and
-  renders no tabs of its own — `.persona-hub-tabs` is absent and the controls
-  live in the rail as `.om-session-persona-nav`
-  (`AgentSessionRail.tsx:1180`), each carrying `data-om-nav-persona-view`.
-  Only on **mobile** does the panel render its own `.persona-hub-tabs`
-  (`PersonaPanel.tsx:114`). Both are named "Persona sections", so the name
-  alone will not tell you which one you matched — check the class.
+  **The tabs no longer move with the chrome — that split is gone.** Until
+  `38d0c72d` desktop suppressed the panel's own tabs and rendered them in the
+  rail as `.om-session-persona-nav`. F18 deleted that nav: the class appears
+  nowhere in `packages/chat-ui/src/` now, and `VoiceAwayPanel` passes
+  `navigation="inline"` unconditionally (`PersonaPanel.tsx:171`). Direct
+  persona routes got their own inline header, tabs and **Back** control
+  instead.
+
+  Driven at 1440x900 on `?view=agent&panel=voice`: `.persona-hub-tabs` is
+  **present** on desktop, `.om-session-persona-nav` is absent, a Back button
+  is there, and the tabs read **Voice / Away coverage / Activity**
+  (`PersonaPanel.tsx:114`). Note "Away coverage" survives as a *tab* label
+  even though it is no longer a heading — matching it proves the tab strip,
+  not the panel you landed on.
 - The consent queue: agents asking for access, with Allow / No, and the
   review pair Accept / Reject.
 - Entry points out: "Message", "Agent settings", "How agents work", and the
   pointer that server apps live in server settings.
 - **A second door, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings
-  (`UserSettings.tsx:249-281`), supplied by `Shell.tsx:4085-4086`. They reach
+  (`UserSettings.tsx:249-281`), supplied by `Shell.tsx:4207-4208`. They reach
   the same two surfaces without touching the rail or the Agent Center, and
   they are why the live settings nav is twenty-one entries while the settings
   fixture shows nineteen — that fixture passes neither prop, so **this route
