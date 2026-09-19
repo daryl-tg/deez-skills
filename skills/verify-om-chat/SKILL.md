@@ -47,10 +47,17 @@ src/components/Shell.tsx      ->  1 line: export * from "@openmarket/chat-ui/com
 packages/chat-ui/src/components/Shell.tsx   ->  the real 4512 lines
 ```
 
-`src/lib/` and `src/styles.css` are shims by the same rule. So grep
-`packages/chat-ui/src/`, not `src/`, or you will read a stub and conclude the
-map is catastrophically stale. That failure is quiet and convincing: the path
-exists, the file opens, it simply has one line in it.
+`src/lib/`, `src/styles.css` and `src/world/` are shims by the same rule, and
+so is **`apps/cloud/src/`** — the hosted app re-exports the same package. So
+grep `packages/chat-ui/src/`, not `src/` and not `apps/cloud/src/`, or you will
+read a stub and conclude the map is catastrophically stale. That failure is
+quiet and convincing: the path exists, the file opens, it simply has one line
+in it.
+
+It also distorts commit stats. `#946` reads as touching a dozen
+`apps/cloud/src/world/*` files by one or two lines each; those are the shims
+being written, and the actual feature is one 843-line file under
+`packages/chat-ui/src/world/`.
 
 What did **not** move: `tools/visual/` is untouched, so every fixture and every
 `shell-fixture.tsx:NNNN` citation still resolves exactly where it says.
@@ -73,6 +80,30 @@ Behaviour did not change. Driven after the refactor, every surface in this map
 rendered identically — same 14-item channel menu, same 19-entry settings nav,
 same library markers, same world canvases. This was a code move, and the only
 thing it invalidates is where you look.
+
+## There is a second, larger feature map in the repo
+
+Since `ea0ee262` (#954) the product repo carries **`docs/feature-map/`** — 142
+files, ~28k lines, built by the om-bug-loop pipeline in a private notes vault
+and snapshotted into the repo on 2026-09-17. It uses the same four sections as
+this map (Sub-features / How to get to it / Driving it / Gotchas) and covers
+much of the same ground at finer grain: `library-panel.md`,
+`composer-code-fence-preview.md`, `topic-peek*.md`, `world-view.md` and so on.
+
+Know it exists, and know how the two differ before you trust either:
+
+- **That one is a snapshot and says so.** `SNAPSHOT.md` states the live copy
+  lives outside the repo and a file there is "correct as of the snapshot, not
+  current". Entries carry a provenance block naming the commit they were read
+  at, and the `Audited` links do not resolve — those logs were left out.
+- **This one is re-driven.** Every entry here has been exercised live against
+  the lane, most of them repeatedly, and the whole map is re-audited each
+  maintenance pass.
+
+So prefer this map for anything you are about to drive, and reach for
+`docs/feature-map/` for breadth — surfaces this map has no file for at all.
+Where the two disagree, re-measure rather than picking; both can be stale, but
+only one of them claims not to be.
 
 ## Pick a lane before you launch
 

@@ -36,39 +36,56 @@ agent-browser open "$(./control-om-chat url \
   'mocks/world-solo/index.html?worldprobe=1')"
 ```
 
-That mounts `WorldView` directly over a stub session port. Observations that
-tell you it actually came up, rather than rendering an empty shell:
+That mounts `WorldView` directly over a stub session port. **`#946` rebuilt
+this surface** — the OpenScape 3D town and channel-chat alpha, then `#947`,
+`#948` and `#953` on top — so the observations below replace the older ones.
+Measured on lane 18120 at `ea0ee262`:
 
 ```bash
 agent-browser eval '(()=>document.querySelectorAll("canvas").length)()'
-#   2, not 0
-agent-browser eval '(()=>document.querySelector(".world-status-area")?.textContent)()'
-#   "#west-bank-street"
-agent-browser eval '(()=>document.querySelector(".world-chat-empty")?.textContent)()'
-#   "Create a #world channel to talk here"
+#   2, not 0   (unchanged)
+agent-browser eval '(()=>document.querySelector(".world-status")?.textContent.trim())()'
+#   "world offline, retrying"
+agent-browser eval '(()=>document.querySelector(".world-chat-connection")?.textContent.trim())()'
+#   "Chat: reconnecting"
+agent-browser eval '(()=>document.querySelector(".world-conversation")?.textContent.trim())()'
+#   "ExpandHideNo #world channel"
 ```
 
-`#west-bank-street` is the cheap second observation, but be precise about what
-it proves. It is **not a channel name**: it is the *area* label the HUD shows,
-from `areaAt()` in rooms-client, rendered into `.world-status-area`. It proves
-the world loaded a location — nothing about channel binding.
+**Do not reach for `.world-status-area` as the cheap second observation any
+more.** The element still exists (`WorldView.tsx:739`) but it is filled through
+a **ref**, imperatively, from the running renderer — so with the solo harness
+offline it stays **empty**, and an assertion on `#west-bank-street` now fails
+against a perfectly healthy rig. Use `.world-status` for liveness instead.
 
-Channel binding is a separate element (`.world-chat`) and in this harness it is
-always **unbound**: the stub hands `WorldView` a space whose `rooms` is empty,
-so `findWorldRoom()` returns null and the empty state renders. Read
-`.world-chat-empty` to prove that state deliberately, and never caption a frame
-as if the area label showed a bound channel.
+**`.world-chat` and `.world-chat-empty` are gone.** The string *"Create a
+#world channel to talk here"* appears nowhere in the source; only an orphaned
+`.world-chat-empty` rule survives in `world.css:203`, which is why a grep for
+the class still finds something. The unbound state now reads **"No #world
+channel"** inside `.world-conversation`, alongside its own **Expand** and
+**Hide** controls, and the chat is an overlay (`.world-chat-overlay`) with a
+separate connection line (`.world-chat-connection`).
+
+New in the same rebuild, all present in the solo harness: a `.world-minimap`,
+two `.world-view-control` buttons named **"Follow player"** and **"Enter
+fullscreen"**, and four `.world-look` swatches — **Blue, Green, Amber,
+Violet**.
 
 ## Gotchas
 
 - **The solo harness has no transport.** It comes up reading *"world offline,
-  retrying"* and *"Create a #world channel to talk here"*. That is the harness,
+  retrying"*, *"Chat: reconnecting"* and *"No #world channel"*. That is the harness,
   not a regression — it proves rendering, layout, and the bound-channel empty
   state, and nothing about movement sync, presence, or the wire. Anything about
   two occupants seeing each other needs a real relay.
 - **Two canvases, not one.** Assert `>= 1` or exactly 2; a `querySelector`
   written as if there were a single canvas will still pass while testing the
   wrong layer.
+- **The world's real source root is `packages/chat-ui/src/world/`.** Both
+  `src/world/WorldView.tsx` and `apps/cloud/src/world/WorldView.tsx` are
+  one-line re-export shims, so `#946`'s stat showing a dozen `apps/cloud/src/
+  world/*` files changed by one line each is the shims being written, not the
+  feature. Read the 843-line file under `packages/chat-ui/`.
 - The sidebar row is a `treeitem` inside its own `tree` named "Open World", not
   a button and not part of the `DESK` tree. `find role button` will not match
   it, and in the shell fixture matching it buys you nothing anyway.

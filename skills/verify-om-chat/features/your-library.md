@@ -45,9 +45,9 @@ Four sidebar lenses, each stamped `data-home-library-lens-{id}` and carrying
 **Agents** (`?lens=agents`), and **Archive** (`?lens=archive`). All four are
 present in this lane; Archive is the newest.
 
-Archive renders `data-home-library-archive` (`LibraryView.tsx:8737`) with an
+Archive renders `data-home-library-archive` (`LibraryView.tsx:8706`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
-`data-home-archived-doc={docId}` (`:8787`).
+`data-home-archived-doc={docId}` (`:8756`).
 
 ## How to get to it (user POV)
 
@@ -111,7 +111,7 @@ and `?libraryState=error` (`:4059`).
   exactly `"Archived"` and a `Refresh` button: zero rows, no message, no
   failure text, and it stays that way. `session.archivedDocs` and
   `session.restoreDoc` are **not stubbed anywhere in the fixture**, so
-  `LibraryView.tsx:8724`'s `await session.archivedDocs(homeSpaceId)` resolves
+  `LibraryView.tsx:8693`'s `await session.archivedDocs(homeSpaceId)` resolves
   through the `INERT` proxy, which **answers instead of throwing**. `INERT`'s
   iterator is an empty generator, so the list renders empty and the `catch`
   never runs.

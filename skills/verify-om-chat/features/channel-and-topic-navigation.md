@@ -185,16 +185,31 @@ the navigation retargeted the *write* path, not only the read pane.
   `channel-peek.ts` and `dm-peek.ts`, the sidebar **hover popovers**, which are
   a different mechanism from the topic side pane. This seam —
   `?peek=` → `fixtureTopicPeek` → `session.topicPeek` → the gate →
-  `TopicPeekPane` — was not in its diff at all. The gate itself did move,
-  though: `#731` lifted it out of `Shell.tsx` into `ConversationRightRegion`
-  (`RightPanels.tsx:275`), byte-identical, now called from `ChatPane.tsx` and
-  `TopicListView.tsx` rather than from one Shell site. Same boolean, new owner —
-  look there when it next needs checking. The Playwright suite is not
+  `TopicPeekPane` — was not in its diff at all. The Playwright suite is not
   part of the merge gate
   (`lint && typecheck && build && check-dist && test-fast`), which is how it
   rotted unnoticed. Do not spend a run rediscovering this, and do not report it
-  as caused by your change — but do check whether it has been fixed before
-  planning a proof that needs the peek pane.
+  as caused by your change.
+
+  **The gate has moved twice and now explains itself.** `#731` lifted it out of
+  `Shell.tsx` into `ConversationRightRegion`; it is now back in `Shell.tsx`
+  (`:4109-4118`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
+  More useful than the address is the condition it gained:
+
+  ```
+  !conversationRowOwnsRightRegion &&
+  session.topicPeek && session.active.kind === "room" &&
+  session.active.name === session.topicPeek.room && !panelOverlay
+  ```
+
+  Its own comment calls it a *"card-level fallback only where no conversation
+  row can own the right region"*, with the ownership predicate there to
+  "prevent a second live mount". So in the ordinary seeded channel route the
+  conversation row owns the region and the fallback is **correctly** skipped —
+  re-driven at `ea0ee262`, `?peek=` still mounts nothing, and that is now a
+  designed outcome rather than an open question. Reaching the pane means
+  finding a route where no conversation row owns the right region; do not plan
+  a proof that assumes `?peek=` alone is enough.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
   opens nothing — confirmed live. But that is a fact about the *control*, not
   about the surface: **`?switcher=open` mounts the quick-switcher**

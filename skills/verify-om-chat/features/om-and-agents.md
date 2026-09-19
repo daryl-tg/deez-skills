@@ -17,21 +17,21 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   reads **"Agents, not running"**, while the desktop rail reads
   **"Agents, needs your om running"** — and if any agent is armed the count
   wins outright and away is masked entirely, giving **"Agents, N armed"**
-  (`Shell.tsx:3201-3396`). So an `--exact` match on the bare name misses three
+  (`Shell.tsx:3051-3706`). So an `--exact` match on the bare name misses three
   different ways, and matching the mobile string on desktop misses too. Away
   is a whole-app state, a different thing from the daemon not running.
 
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3325`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3706`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3391-3396`). Two states is the old shape; matching on it during a
+  (`Shell.tsx:3051-3056`). Two states is the old shape; matching on it during a
   flaky connect misses silently.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
   these two doors: the answer is that **Agents cannot be unpinned**.
-  `REQUIRED_RAIL_FEATURE_IDS = ["rail-agents"]` (`rail-layout.ts:23`) holds it
+  `REQUIRED_RAIL_FEATURE_IDS = ["rail-agents"]` (`rail-layout.ts:24`) holds it
   in place while the rest became optional. `RAIL_FEATURE_IDS` is now
   `rail-agents`, `rail-library`, `rail-news`, `rail-alerts`
   (`rail-layout.ts:17-22`) — **Browse channels is no longer among them.**
@@ -46,7 +46,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:3636-3667`).
+  (`Shell.tsx:3773-3797`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -78,7 +78,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:478`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:480`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -99,8 +99,8 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   What `#830` put in its place is the Agent Center's own context rail — an
   `aside` named **"Agent roster"** holding a `nav` named **"Roster sections"**
   with three buttons, **Roster**, **Waiting on you** and **In progress**
-  (`AgentCenterPane.tsx:577-620`), plus a separate `button` named **"Persona"**
-  (`:652`). Driven in this lane the nav reads exactly those three names and the
+  (`AgentCenterPane.tsx:576-620`), plus a separate `button` named **"Persona"**
+  (`:651`). Driven in this lane the nav reads exactly those three names and the
   Persona button is present. But read the trap in the Gotchas before clicking
   it: it navigates correctly and still lands on a failure, because the fixture
   decided about mocking before you clicked.
@@ -139,7 +139,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   pointer that server apps live in server settings.
 - **A second door, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings
-  (`UserSettings.tsx:249-281`), supplied by `Shell.tsx:4207-4208`. They reach
+  (`UserSettings.tsx:258-290`), supplied by `Shell.tsx:4448-4449`. They reach
   the same two surfaces without touching the rail or the Agent Center, and
   they are why the live settings nav is twenty-one entries while the settings
   fixture shows nineteen — that fixture passes neither prop, so **this route
