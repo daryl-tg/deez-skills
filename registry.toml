@@ -624,3 +624,7 @@ runtimes = ["claude", "codex"]
 [skills.show-me]
 category = "workflow"
 runtimes = ["claude", "codex"]
+
+[skills.verify-om]
+category = "om-chat"
+runtimes = ["claude", "codex"]

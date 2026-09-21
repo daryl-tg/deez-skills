@@ -1,0 +1,374 @@
+#!/usr/bin/env bash
+# control-om — the deterministic verification lane for the `om` daemon + CLI.
+#
+# Lives in the repo it drives but is deliberately UNTRACKED (.git/info/exclude):
+# this repo is the Apache-2.0 public export and faces the boundary and license
+# gates, so a personal driving tool never lands on a branch. Thin by
+# construction: it binds this repo's preconditions (assigned ports, an isolated
+# OM_HOME, the device-owned review renderer) and delegates driving to the `om`
+# CLI and agent-browser rather than reimplementing either.
+#
+#   doctor                        is this lane worth driving?
+#   up [--port N] [--env K=V ...]  start a run-owned lane daemon (background)
+#   down                          stop only what `up` started
+#   url [path]                    print the lane URL for a daemon path
+#   om -- <args...>               run the om CLI BOUND TO THE LANE
+#   cli -- <command...>           run a repo command, capture stdout/stderr/exit
+#   evidence publish <run> <rev>  copy artifacts to the review renderer root
+#
+# The full reserved-port table is `## Reserved ports` in ~/.claude/CLAUDE.md.
+# 8097 is the operator's dev server, 8098 the device-owned review renderer,
+# 31337 the operator's own om daemon. This script binds none of them and
+# refuses to target them.
+set -euo pipefail
+
+# The repo comes from WHERE YOU ARE STANDING, not from where this script lives.
+# This file is tracked in the skills hub and reached through a PATH symlink, so
+# resolving from $BASH_SOURCE would pin every run to one checkout; resolving
+# from the cwd means the same one copy drives whichever worktree you are in.
+# OM_REPO_ROOT overrides for the rare call from outside a checkout.
+if [ -n "${OM_REPO_ROOT:-}" ]; then
+  REPO_ROOT="$OM_REPO_ROOT"
+else
+  REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+fi
+[ -n "$REPO_ROOT" ] || {
+  printf 'control-om: not inside a git worktree. cd into an openmarket-internal checkout, or set OM_REPO_ROOT.\n' >&2
+  exit 1
+}
+# Driving the wrong repo is worse than not running: every verb here assumes the
+# om daemon's layout, and a lane booted from a stranger's tree proves nothing.
+[ -f "$REPO_ROOT/packages/cli/src/bootstrap.ts" ] || {
+  printf 'control-om: %s is not an openmarket-internal checkout (no packages/cli/src/bootstrap.ts).\n' "$REPO_ROOT" >&2
+  exit 1
+}
+
+# Assigned, never chosen. 18097-18197 is the agent-owned test-server range and
+# is deliberately NOT tunnelled to the MacBook: a lane URL is never a review
+# URL. 18101 is this lane's conventional first slot (18097-18099 are the
+# om-chat lane's).
+LANE_PORT="${OM_LANE_PORT:-18101}"
+LANE_PORT_MIN=18097
+LANE_PORT_MAX=18197
+FORBIDDEN_PORTS="8097 8098 8099 31337 31338"
+
+REVIEW_ORIGIN="http://127.0.0.1:8098"
+REVIEW_ROOT="${OM_REVIEW_ROOT:-$HOME/.local/state/om-chat-feature}"
+ARTIFACTS="${ARTIFACTS:-$REPO_ROOT/artifacts}"
+RUN_STATE="${OM_LANE_STATE:-$REPO_ROOT/.control-om}"
+BOOT_TIMEOUT_S="${OM_LANE_BOOT_TIMEOUT_S:-120}"
+
+die() { printf 'control-om: %s\n' "$*" >&2; exit 1; }
+note() { printf 'control-om: %s\n' "$*" >&2; }
+
+lane_origin() { printf 'http://127.0.0.1:%s' "$LANE_PORT"; }
+lane_home()   { printf '%s/home-%s' "$RUN_STATE" "$LANE_PORT"; }
+pidfile()     { printf '%s/lane-%s.pid' "$RUN_STATE" "$LANE_PORT"; }
+logfile()     { printf '%s/lane-%s.log' "$RUN_STATE" "$LANE_PORT"; }
+envfile()     { printf '%s/lane-%s.env' "$RUN_STATE" "$LANE_PORT"; }
+
+assert_lane_port() {
+  for p in $FORBIDDEN_PORTS; do
+    [ "$LANE_PORT" = "$p" ] && die "port $LANE_PORT is reserved for another owner. Never bind, target or stop it."
+  done
+  [ "$LANE_PORT" -ge "$LANE_PORT_MIN" ] 2>/dev/null && [ "$LANE_PORT" -le "$LANE_PORT_MAX" ] \
+    || die "lane port $LANE_PORT is outside the agent range $LANE_PORT_MIN-$LANE_PORT_MAX. Take an assigned port, never a merely-free one."
+}
+
+# A lane home that resolves to the operator's default home would put every
+# verification write into the daemon on 31337. Refuse before anything runs.
+assert_lane_home() {
+  local home; home="$(lane_home)"
+  case "$home" in
+    "$HOME/.openmarket"|"$HOME/.openmarket/") die "lane OM_HOME resolves to the operator's default home. Refusing." ;;
+  esac
+}
+
+port_busy() { nc -z 127.0.0.1 "$1" >/dev/null 2>&1; }
+lane_is_ours() { [ -f "$(pidfile)" ] && kill -0 "$(cat "$(pidfile)")" 2>/dev/null; }
+
+healthz() { curl -fsS --max-time 3 "$(lane_origin)/healthz" 2>/dev/null; }
+
+# ---------------------------------------------------------------------------
+# doctor — read-only. Never starts, stops, or mutates anything.
+# ---------------------------------------------------------------------------
+cmd_doctor() {
+  local fail=0
+  assert_lane_port
+  assert_lane_home
+
+  printf 'repo         %s\n' "$REPO_ROOT"
+  printf 'head         %s\n' "$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+  printf 'lane origin  %s\n' "$(lane_origin)"
+  printf 'lane home    %s\n' "$(lane_home)"
+
+  # The daemon serves its SPA from apps/dashboard/dist. A checkout that never
+  # ran `bun test` or `bun run dashboard:stubs` has no dist, and every
+  # dashboard route 404s while /healthz is perfectly happy.
+  if [ -f "$REPO_ROOT/apps/dashboard/dist/assets/app.js" ]; then
+    printf 'dashboard    dist present (%s bytes, built %s)\n' \
+      "$(wc -c < "$REPO_ROOT/apps/dashboard/dist/assets/app.js" | tr -d ' ')" \
+      "$(date -r "$REPO_ROOT/apps/dashboard/dist/assets/app.js" '+%Y-%m-%d %H:%M' 2>/dev/null || echo unknown)"
+    # Presence is not freshness. The daemon embeds this bundle at module load,
+    # so a source edit after the last build serves OLD UI from a lane whose
+    # every other signal is green — the trap that wastes a whole dashboard drive.
+    local newer
+    newer="$(find "$REPO_ROOT/apps/dashboard/src" -type f -newer "$REPO_ROOT/apps/dashboard/dist/assets/app.js" 2>/dev/null | wc -l | tr -d ' ')"
+    if [ "${newer:-0}" -gt 0 ]; then
+      printf 'dashboard    STALE — %s source file(s) newer than the bundle. Run `bun run build:dashboard` before driving the SPA.\n' "$newer"
+      fail=1
+    fi
+  else
+    printf 'dashboard    dist MISSING — run `bun run dashboard:stubs` (stub) or `bun run build:dashboard` (real)\n'
+    fail=1
+  fi
+
+  # Source lane vs compiled lane. A source lane IS the working tree; a compiled
+  # lane is whatever `bun run build` last wrote, which nothing else says is old.
+  if [ -x "$REPO_ROOT/packages/cli/dist/om" ]; then
+    printf 'binary       dist/om present (%s) — a compiled lane may predate the tree\n' \
+      "$(date -r "$REPO_ROOT/packages/cli/dist/om" '+%Y-%m-%d %H:%M' 2>/dev/null || echo unknown)"
+  else
+    printf 'binary       no dist/om — source lane only (the lane runs the working tree)\n'
+  fi
+
+  if lane_is_ours; then
+    printf 'lane         RUNNING, ours (pid %s)\n' "$(cat "$(pidfile)")"
+    if [ -s "$(envfile)" ]; then
+      printf 'lane env     %s\n' "$(tr '\n' ' ' < "$(envfile)")"
+    fi
+  elif port_busy "$LANE_PORT"; then
+    printf 'lane         BUSY, not ours — check `lsof -nP -iTCP:%s -sTCP:LISTEN` before assuming\n' "$LANE_PORT"
+    fail=1
+  else
+    printf 'lane         down (start it with `./control-om up`)\n'
+  fi
+
+  local health; health="$(healthz || true)"
+  if [ -n "$health" ]; then
+    local served tree
+    served="$(printf '%s' "$health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')"
+    printf 'health       ok (version %s, auth %s)\n' \
+      "$served" \
+      "$(printf '%s' "$health" | sed -n 's/.*"auth":"\([^"]*\)".*/\1/p')"
+    # A source lane is the tree AT BOOT, not the tree now. Another session
+    # syncing the repo mid-run leaves a lane quietly serving old code, and no
+    # other line here can see it.
+    tree="$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$REPO_ROOT/package.json" | head -1)"
+    if [ -n "$tree" ] && [ "$served" != "$tree" ]; then
+      printf 'lane version STALE — lane serves %s, working tree is %s. Relaunch (`down` then `up`) before trusting a drive.\n' "$served" "$tree"
+      fail=1
+    fi
+  else
+    printf 'health       no answer on %s/healthz\n' "$(lane_origin)"
+  fi
+
+  # The operator's own daemon. Named so a run can never mistake it for the lane.
+  if port_busy 31337; then
+    printf "operator     om daemon LIVE on 31337 — not yours, never restart or stop it\\n"
+  else
+    printf 'operator     nothing on 31337\n'
+  fi
+
+  command -v agent-browser >/dev/null 2>&1 \
+    && printf 'harness      agent-browser %s\n' "$(agent-browser --version 2>/dev/null | awk '{print $2}')" \
+    || { printf 'harness      agent-browser MISSING\n'; fail=1; }
+
+  local marker
+  marker="$(curl -fsS --max-time 3 -D - -o /dev/null "$REVIEW_ORIGIN/_om-review-health" 2>/dev/null | tr -d '\r' | grep -i '^x-om-chat-review-server:' || true)"
+  if [ -n "$marker" ]; then printf 'renderer     8098 up (%s)\n' "${marker#*: }"
+  else printf 'renderer     8098 UNREACHABLE — evidence cannot be published. Do not start it yourself.\n'; fi
+
+  [ "$fail" -eq 0 ] || die 'doctor failed. Do not drive this lane.'
+}
+
+# ---------------------------------------------------------------------------
+# up / down — run-owned lifecycle, tracked by pidfile and nothing else.
+# ---------------------------------------------------------------------------
+cmd_up() {
+  # Extra env for the lane daemon, explicit and opt-in. Some features only
+  # exist under a switch (the feed adapter's loopback admission and poll
+  # cadence, say), and a recipe that needs one is undrivable without this.
+  # Explicit rather than "forward every OM_* in the caller's shell": a stray
+  # variable in the operator's environment must never reach a lane silently.
+  LANE_ENV=()
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --port) LANE_PORT="${2:?--port needs a value}"; shift 2 ;;
+      --env)
+        case "${2:-}" in
+          OM_HOME=*|OM_BIND=*) die "refusing --env $2: the lane owns OM_HOME and OM_BIND" ;;
+          *=*) LANE_ENV+=("${2}") ;;
+          *) die "usage: --env KEY=VALUE" ;;
+        esac
+        shift 2 ;;
+      *) die "unknown flag $1" ;;
+    esac
+  done
+  assert_lane_port
+  assert_lane_home
+
+  lane_is_ours && { printf '%s\n' "$(lane_origin)"; return 0; }
+  port_busy "$LANE_PORT" && die "port $LANE_PORT is busy and not ours. Take another slot in $LANE_PORT_MIN-$LANE_PORT_MAX rather than stealing it."
+
+  mkdir -p "$RUN_STATE" "$(lane_home)"
+  # The daemon imports the dashboard bundle at module load; without it the whole
+  # boot fails, not just the SPA route.
+  [ -f "$REPO_ROOT/apps/dashboard/dist/assets/app.js" ] \
+    || bun run --cwd "$REPO_ROOT" scripts/ensure-dashboard-dist.ts >/dev/null 2>&1 \
+    || die 'could not write the dashboard dist stubs'
+
+  # `A && B & C` would background the whole `cd && nohup` as a subshell and
+  # record THAT pid, leaving `down` killing a wrapper while the daemon lives on.
+  # Background only the daemon, inside a synchronous subshell, and detach stdin
+  # so the daemon never holds the caller's pipe open.
+  (
+    cd "$REPO_ROOT" || exit 1
+    export OM_HOME="$(lane_home)" OM_BIND="127.0.0.1:$LANE_PORT"
+    for kv in ${LANE_ENV+"${LANE_ENV[@]}"}; do export "${kv?}"; done
+    nohup bun packages/cli/src/bootstrap.ts run >"$(logfile)" 2>&1 </dev/null &
+    echo $! >"$(pidfile)"
+    printf '%s\n' ${LANE_ENV+"${LANE_ENV[@]}"} >"$(envfile)"
+  )
+
+  local waited=0
+  until healthz >/dev/null 2>&1; do
+    kill -0 "$(cat "$(pidfile)")" 2>/dev/null || { note "lane died during boot; read $(logfile)"; rm -f "$(pidfile)"; exit 1; }
+    sleep 2; waited=$((waited + 2))
+    [ "$waited" -ge "$BOOT_TIMEOUT_S" ] && { note "lane did not answer /healthz in ${BOOT_TIMEOUT_S}s; read $(logfile)"; exit 1; }
+  done
+  printf '%s\n' "$(lane_origin)"
+}
+
+cmd_down() {
+  assert_lane_port
+  if lane_is_ours; then
+    kill "$(cat "$(pidfile)")" 2>/dev/null || true
+    sleep 1
+    kill -0 "$(cat "$(pidfile)")" 2>/dev/null && kill -9 "$(cat "$(pidfile)")" 2>/dev/null || true
+    rm -f "$(pidfile)"
+    # A kill is not a stop. The daemon re-execs on upgrade paths, and a child
+    # that reparented to PID 1 keeps the port while the pidfile reads clean.
+    if port_busy "$LANE_PORT"; then
+      note "killed the recorded pid but $LANE_PORT is still held — check \`lsof -nP -iTCP:$LANE_PORT -sTCP:LISTEN\`; a bun serving this repo with PPID 1 is your own residue"
+    else
+      note "lane $LANE_PORT stopped"
+    fi
+  else
+    note "no run-owned lane on $LANE_PORT"
+    port_busy "$LANE_PORT" && note "something else is listening there — check lsof before killing anything"
+  fi
+  return 0
+}
+
+cmd_url() {
+  assert_lane_port
+  local path="${1:-/}"
+  case "$path" in /*) : ;; *) path="/$path" ;; esac
+  printf '%s%s\n' "$(lane_origin)" "$path"
+}
+
+# ---------------------------------------------------------------------------
+# om — the CLI, bound to the lane's home and port. The one door: a bare `om`
+# in this repo would talk to the operator's 31337 daemon and write their home.
+# ---------------------------------------------------------------------------
+cmd_om() {
+  [ "${1:-}" = "--" ] || die 'usage: control-om om -- <args...>'
+  shift
+  assert_lane_port
+  assert_lane_home
+  # A lane root is NOT the machine default, so it names a launchd/systemd unit
+  # OF ITS OWN (runner/supervise/unit-name.ts). The product therefore does not
+  # refuse service lifecycle here -- it would happily install a second unit that
+  # outlives the run. The guard has to live at this door.
+  if [ "${1:-}" = "service" ]; then
+    case "${2:-}" in
+      install|uninstall|start|stop|restart)
+        die "refusing \`om service $2\` on a lane: this root names its own service unit, so it would $([ "$2" = uninstall ] && echo remove || echo create) machine-persistent state that outlives the run. Read-only \`om service status\` is allowed."
+        ;;
+    esac
+  fi
+  ( cd "$REPO_ROOT" && OM_HOME="$(lane_home)" OM_BIND="127.0.0.1:$LANE_PORT" \
+      exec bun packages/cli/src/bootstrap.ts "$@" )
+}
+
+cmd_cli() {
+  [ "${1:-}" = "--" ] || die 'usage: control-om cli -- <command...>'
+  shift
+  set +e
+  ( cd "$REPO_ROOT" && "$@" )
+  local code=$?
+  set -e
+  printf 'exit %d\n' "$code" >&2
+  return "$code"
+}
+
+cmd_browser() {
+  command -v agent-browser >/dev/null 2>&1 || die 'agent-browser not installed'
+  exec agent-browser "$@"
+}
+
+# ---------------------------------------------------------------------------
+# evidence publish — copy the artifact pair into the renderer's root.
+# ---------------------------------------------------------------------------
+cmd_evidence() {
+  [ "${1:-}" = "publish" ] || die 'usage: control-om evidence publish <run-id> <revision>'
+  local run="${2:?run-id required}" rev="${3:?revision required}"
+  local src="$ARTIFACTS/$run/$rev"
+  [ -d "$src" ] || die "no artifacts at $src"
+  [ -f "$src/evidence-manifest.json" ] || die "no evidence-manifest.json in $src — the renderer fills its template from that file and renders an empty gallery without it"
+
+  # The renderer reads capture.screenshots as a filename -> caption MAP. An
+  # array of objects publishes HTTP 200 with zero frames: looks published,
+  # reviews as empty.
+  OM_MANIFEST="$src/evidence-manifest.json" OM_SRCDIR="$src" bun -e '
+    const m = JSON.parse(await Bun.file(process.env.OM_MANIFEST).text());
+    const shots = m?.capture?.screenshots;
+    const bad = [];
+    for (const key of ["runId","revision","goal","capturedAt","repository","branch","candidateCommit","diffSha256"]) {
+      if (!m[key]) bad.push(`missing ${key}`);
+    }
+    if (!shots || Array.isArray(shots) || typeof shots !== "object") {
+      bad.push("capture.screenshots must be a filename -> caption object, not an array");
+    } else if (Object.keys(shots).length === 0) {
+      bad.push("capture.screenshots is empty");
+    } else {
+      for (const file of Object.keys(shots)) {
+        if (!(await Bun.file(`${process.env.OM_SRCDIR}/${file}`).exists())) {
+          bad.push(`manifest names ${file} but it is not in the artifact directory`);
+        }
+      }
+    }
+    if (bad.length) { console.error(bad.join("\n")); process.exit(1); }
+  ' || die 'manifest rejected — fix it before publishing'
+
+  curl -fsS --max-time 5 -o /dev/null "$REVIEW_ORIGIN/_om-review-health" \
+    || die "the review renderer is not answering on 8098. Report awaiting_review_renderer; never start it yourself and never fall back to another port."
+
+  local dest="$REVIEW_ROOT/$run/$rev"
+  mkdir -p "$dest"
+  cp -R "$src/." "$dest/"
+
+  # Publishing is not proof of rendering. Confirm the gallery carries frames
+  # before handing the URL over.
+  local gallery; gallery="$(curl -fsS --max-time 10 "$REVIEW_ORIGIN/$run/$rev/" 2>/dev/null || true)"
+  case "$gallery" in
+    *"<img"*) : ;;
+    "") die "gallery did not render at $REVIEW_ORIGIN/$run/$rev/" ;;
+    *) die "gallery rendered with no <img> frames — check capture.screenshots in the manifest" ;;
+  esac
+
+  printf 'MacBook review URL: %s/%s/%s/\n' "$REVIEW_ORIGIN" "$run" "$rev"
+}
+
+case "${1:-}" in
+  doctor)   shift; cmd_doctor "$@" ;;
+  up)       shift; cmd_up "$@" ;;
+  down)     shift; cmd_down "$@" ;;
+  url)      shift; cmd_url "$@" ;;
+  om)       shift; cmd_om "$@" ;;
+  cli)      shift; cmd_cli "$@" ;;
+  browser)  shift; cmd_browser "$@" ;;
+  evidence) shift; cmd_evidence "$@" ;;
+  *) die 'usage: control-om {doctor|up|down|url|om|cli|browser|evidence}' ;;
+esac

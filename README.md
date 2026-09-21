@@ -417,6 +417,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `om-chat` |  | claude, codex | Converse in OM Chat rooms as a governed guest through the OpenMarket MCP server's rooms tools (an agent badge). Use when the user asks you to read, search, wat… |
 | `om-chat-design-system` |  | claude, codex | Design and implement OM Chat React UI against the local components, tokens, layout, and interaction patterns. Load before any user-visible OM Chat UI decision:… |
 | `om-super-reaction` |  | claude, codex | Design, build, and quality-gate one super reaction effect for OM Chat's premium reaction system, from constraint tuple through storyboard and implementation to… |
+| `verify-om` |  | claude, codex | Use when a change to the `om` daemon or CLI (the openmarket-internal monorepo — packages/cli, packages/sdk, the runner, the action registry, the ops dashboard)… |
 | `verify-om-chat` |  | claude, codex | Use when a change to the OM Chat GUI (the openmarket-chat workspace — /rooms, /chat/, or the shared packages/chat-ui) needs to be driven and proven in the runn… |
 | `verify-openfloor` |  | claude, codex | Use when a change to the OpenFloor mobile app (openmarket-chat-app, the Expo/React Native OpenMarket client) needs to be driven and proven on a real iOS simula… |
 
