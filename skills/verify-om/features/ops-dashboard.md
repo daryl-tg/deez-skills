@@ -1,5 +1,7 @@
 # The ops dashboard
 
+*Verified: 2026-09-21, tree `b46838460` (v0.390.1) — nav, /alerts, /strategies and strategy-detail driven after rebuilding the bundle. The populated strategy-detail page stays `verified-unreachable` on a guest lane.*
+
 The daemon serves a React SPA at `/`. It is the read-leaning window onto daemon
 state: a header pill with tick freshness and fire count, a left nav, and one
 page per concern — Overview, Watches, News, Strategies, Channels, Venues,

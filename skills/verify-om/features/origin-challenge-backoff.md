@@ -1,5 +1,7 @@
 # Origin challenge backoff
 
+*Verified: entry path and hold arming 2026-09-21, tree `b46838460` (v0.390.1). The probe, the doubling and recovery were last driven 2026-09-19 at tree `15db727ba` (v0.353.1); the machinery has zero diff since, so they were not re-run. Re-drive them if `shared/origin-limiter.ts`, `shared/public-document.ts`, `runner/subscriptions/manager.ts` or `adapters/feed.ts` move.*
+
 When a site puts the daemon's IP under a Cloudflare challenge, every source on
 that host goes quiet together after the first challenged answer, one probe goes
 out per window, and the watch says so in one row: `the source is challenging

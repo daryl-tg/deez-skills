@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Verified: 2026-09-21, tree `b46838460` (v0.390.1) — create/list/show/edit/pause/resume/remove driven with a label that diverges from its slug.*
+
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
 exists, reads one in detail, edits it, pauses and resumes it, and removes it.

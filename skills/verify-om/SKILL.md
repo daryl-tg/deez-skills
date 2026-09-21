@@ -434,10 +434,16 @@ number that means nothing (measured: 100, against a real range of 78 from a
 different base). `git diff <old-commit>..HEAD -- <paths>` still answers
 correctly, because git diffs trees whether or not they share history.
 
-So: record the commit a pass verified, diff against it next time, and check
-`git merge-base --is-ancestor <old> HEAD` before quoting any commit count.
+So: diff against the commit stamped on the entry, and check
+`git merge-base --is-ancestor <stamped> HEAD` before quoting any commit count.
 Finding a commit with a similar diff elsewhere in the graph is not the same
 commit — check the whole tree before treating one as a stand-in.
+
+**The baseline lives in the map, not in your head.** Each `features/*.md` opens
+with a `*Verified: <date>, tree `<commit>` (<version>)*` line. That is what makes
+a pass repeatable from a different session, a different worktree or a different
+branch, none of which can see what this conversation knew. Re-stamp an entry in
+the same edit that re-proves it, and name what you did not drive.
 
 ## Keeping this current
 

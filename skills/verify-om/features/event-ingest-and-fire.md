@@ -1,5 +1,7 @@
 # Event ingest and fire
 
+*Verified: 2026-09-21, tree `b46838460` (v0.390.1) — full chain driven (door, stream, journal, dashboard row).*
+
 A user points a producer at a watch's inbound door and the daemon takes it from
 there: the event is accepted, committed, appended to the watch's journal, and
 fired. The fire shows up on the live event stream, in the journal on disk, and

@@ -63,11 +63,36 @@ out of reach. Before writing a recipe, place it on the right side of that line:
 | The dashboard and its RPC families | Registry publish/install, room posting |
 | Market data reads (`coins`, `exchanges`, `points`) | Venue execution, wallet, orders |
 
+## Every entry carries its own provenance
+
+Directly under the H1, before the prose, each entry has a one-line
+`*Verified: <date>, tree `<commit>` (<version>) — what was driven*`. That line is
+the entry's baseline, and it is the ONLY place the baseline lives — a pass that
+leaves it stale has destroyed the next pass's ability to diff.
+
+It exists because this map is shared by every worktree and rewritten by whichever
+session happens to run a pass. Conversational memory of "we checked at commit X"
+dies with the session; a stamp in the file survives into the next one, on any
+branch, in any tree. Update the stamp in the same edit that re-proves the entry,
+and say what you did NOT drive, so a later reader knows which half is old.
+
+`git merge-base --is-ancestor <stamped-commit> HEAD` first: this repo's history
+gets rewritten, and a stamped commit that is no longer an ancestor makes commit
+counts meaningless. The tree-to-tree diff still answers correctly.
+
+## What this map does NOT cover
+
+Six entries against 87 top-level `om` commands. The map grows only when someone
+runs `create-verification-skill` or `maintain-verification-skill` — ordinary
+feature work in a worktree adds nothing to it automatically. Treat an absent
+surface as unmapped, never as verified-clean, and add an entry when you build
+something the map should have been able to prove.
+
 ## Feature entry contract
 
-An H1 title, one paragraph of user-visible behavior, then exactly four H2s in
-order: `Sub-features`, `How to get to it (user POV)`, `Driving it with
-control-om`, `Gotchas`.
+An H1 title, the `*Verified:*` line, one paragraph of user-visible behavior, then
+exactly four H2s in order: `Sub-features`, `How to get to it (user POV)`,
+`Driving it with control-om`, `Gotchas`.
 
 Keep implementation detail out. Name only user paths, stable handles, required
 state, commands, and observable proof.
