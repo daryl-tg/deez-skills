@@ -70,8 +70,13 @@ Directly under the H1, before the prose, each entry has a one-line
 the entry's baseline, and it is the ONLY place the baseline lives — a pass that
 leaves it stale has destroyed the next pass's ability to diff.
 
-It exists because this map is shared by every worktree and rewritten by whichever
-session happens to run a pass. Conversational memory of "we checked at commit X"
+It exists because this map lives in the skills hub rather than in the repo it
+verifies — the operator's standing preference, recorded in SKILL.md under
+"This layout diverges from upstream on purpose". Upstream pstack keeps the map
+project-local and committed, where `git log` on the file is its own verification
+record; a hub map floats free of the repo's history, so the stamp is the only
+thing tying an entry to a tree. It is shared by every worktree and rewritten by
+whichever session happens to run a pass. Conversational memory of "we checked at commit X"
 dies with the session; a stamp in the file survives into the next one, on any
 branch, in any tree. Update the stamp in the same edit that re-proves the entry,
 and say what you did NOT drive, so a later reader knows which half is old.

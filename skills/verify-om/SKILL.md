@@ -87,6 +87,36 @@ One thing to know when driving two trees at once: the lane port is assigned, not
 per-tree, so the second `up` on the same port refuses rather than stealing the
 first. Give it `--port` from the `18097`–`18197` range.
 
+## This layout diverges from upstream on purpose
+
+`create-verification-skill` and `maintain-verification-skill` are pstack skills,
+and pstack's model is `project-local`: it says to generate `skills/verify-<app>/`
+as something "the repo owns", to write the wrapper "into the repo it drives, not
+into this hub, so it versions with the app", and its maintain pass opens by
+looking for "the project-local skill ... usually `skills/verify-*/`".
+
+This skill does the opposite: the map and `bin/control-om` both live in the hub,
+and nothing lands in `openmarket-internal`. **That is the operator's standing
+preference** — `~/.claude/CLAUDE.md` says "a verification skill belongs in the
+hub via `bin/adopt`" — and it is not a mistake to correct. A maintenance pass
+that reads upstream's "project-local" wording and relocates this skill into the
+repo is undoing a deliberate decision.
+
+Two facts about this particular repo happen to point the same way. It is the
+Apache-2.0 public export with a boundary gate and a license audit, so a personal
+driving tool in it is one `git push` from being published. And it has dozens of
+worktrees on dozens of branches: a committed file is branch-scoped and vanishes
+the moment you check out a branch from before it landed, while a hub file on
+PATH is present in every tree unconditionally.
+
+**What the divergence costs, and how it is paid.** Upstream gets provenance for
+free: a map committed beside the code has `git log` as its verification record,
+moves with the branch, and shows a stale entry as an old commit. A hub map floats
+free of the repo's history and has none of that — which is why every entry in
+`features/` opens with a `*Verified: <date>, tree `<commit>` (<version>)*` line.
+That stamp is the compensating control for this layout, not decoration; a pass
+that stops maintaining it gives up the last thing tying the map to a tree.
+
 ## Launch
 
 ```bash
