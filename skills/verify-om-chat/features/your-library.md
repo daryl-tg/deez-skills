@@ -67,7 +67,7 @@ agent-browser open "$(./control-om-chat url \
   'tools/visual/shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server')"
 ```
 
-`?scope=server` selects the server tab at boot (`shell-fixture.tsx:212`). A
+`?scope=server` selects the server tab at boot (`shell-fixture.tsx:215`). A
 five-observation proof, each step verified live on lane 18116:
 
 ```bash
@@ -98,10 +98,10 @@ across the collapse. A proof that asserts on the route will see nothing happen
 and call it broken; assert on `data-library-presentation`.
 
 Other seeding routes confirmed present in the fixture: `?docs=500` (a
-1337-doc corpus, `shell-fixture.tsx:266`), `?list=flat` (**sticky** — it
-writes `localStorage["om.chat.libraryList"]` at `:120` with no clearing
+1337-doc corpus, `shell-fixture.tsx:269`), `?list=flat` (**sticky** — it
+writes `localStorage["om.chat.libraryList"]` at `:123` with no clearing
 branch, so it survives until you clear storage by hand), `?note=long|wrapped`,
-and `?libraryState=error` (`:4059`).
+and `?libraryState=error` (`:4078`).
 
 ## Gotchas
 

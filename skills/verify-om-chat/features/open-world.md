@@ -49,27 +49,34 @@ agent-browser eval '(()=>document.querySelector(".world-status")?.textContent.tr
 agent-browser eval '(()=>document.querySelector(".world-chat-connection")?.textContent.trim())()'
 #   "Chat: reconnecting"
 agent-browser eval '(()=>document.querySelector(".world-conversation")?.textContent.trim())()'
-#   "ExpandHideNo #world channel"
+#   "HideNo #world channel"
 ```
 
 **Do not reach for `.world-status-area` as the cheap second observation any
-more.** The element still exists (`WorldView.tsx:739`) but it is filled through
+more.** The element still exists (`WorldView.tsx:772`) but it is filled through
 a **ref**, imperatively, from the running renderer — so with the solo harness
 offline it stays **empty**, and an assertion on `#west-bank-street` now fails
 against a perfectly healthy rig. Use `.world-status` for liveness instead.
 
 **`.world-chat` and `.world-chat-empty` are gone.** The string *"Create a
 #world channel to talk here"* appears nowhere in the source; only an orphaned
-`.world-chat-empty` rule survives in `world.css:203`, which is why a grep for
+`.world-chat-empty` rule survives in `world.css:208`, which is why a grep for
 the class still finds something. The unbound state now reads **"No #world
-channel"** inside `.world-conversation`, alongside its own **Expand** and
-**Hide** controls, and the chat is an overlay (`.world-chat-overlay`) with a
+channel"** inside `.world-conversation`, beside a **Hide** control — `#960`
+removed its Expand button as redundant, so a recipe that clicks Expand now
+finds nothing — and the chat is an overlay (`.world-chat-overlay`) with a
 separate connection line (`.world-chat-connection`).
 
 New in the same rebuild, all present in the solo harness: a `.world-minimap`,
 two `.world-view-control` buttons named **"Follow player"** and **"Enter
-fullscreen"**, and four `.world-look` swatches — **Blue, Green, Amber,
-Violet**.
+fullscreen"**, and five `.world-look` swatches — **Blue, Green, Amber,
+Violet, Hooded** (the fifth arrived with `#970`'s outfits; count five, not
+four).
+
+`#970` and `#974` also added nameplates — `.world-nameplate` with a role-derived
+title and `data-kind` marking agents — but they draw over *occupants*, and the
+solo harness has none, so it renders zero nameplates. That is the harness, as
+below: proving them needs the relay and a second occupant.
 
 ## Gotchas
 

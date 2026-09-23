@@ -29,8 +29,16 @@ tree and run it from the copy:
 
 ```bash
 cp /Users/dboon/github/openmarket-chat/control-om-chat <worktree>/
-cd <worktree> && OM_CHAT_LANE_PORT=<port> ./control-om-chat doctor
+cd <worktree> && bun install
+OM_CHAT_LANE_PORT=<port> ./control-om-chat doctor
 ```
+
+A fresh worktree has no `node_modules`, so install first. Expect `bun install`
+to end with **"Failed to install 1 package"** — `@orangecharts/orange-v2-pb-common`
+404s from the private registry. It is not on the fixture's import path: a
+`main@41a57adc` worktree installed that way still rendered all sixteen seeded
+rows with no module errors. Doctor will also report `dist bundle absent`; that
+only matters for daemon and desktop lanes, not the fixture.
 
 That matters more than it sounds: the primary checkout is frequently parked on
 somebody else's feature branch, so "run the wrapper" and "drive `main`" are not
@@ -62,6 +70,12 @@ being written, and the actual feature is one 843-line file under
 What did **not** move: `tools/visual/` is untouched, so every fixture and every
 `shell-fixture.tsx:NNNN` citation still resolves exactly where it says.
 `mocks/world-solo/` likewise.
+
+**The `/chat/` host has its own shell fixture, and it is real, not a shim:**
+`apps/cloud/tools/visual/shell-fixture.tsx`. It stubs far less than the root
+one — about 2,600 lines against 4,400 at `41a57adc` — so a surface that works under `/rooms/` can still crash or sit behind an
+`INERT`-held dialog under `/chat/`. Every citation in this map names the root
+fixture unless it says otherwise.
 
 Two more consequences of that commit:
 
@@ -150,6 +164,38 @@ instead, read `.control-om-chat/lane-<port>.log` — that log carries the React
 and vite module errors the browser will otherwise swallow.
 
 Teardown is [Cleanup](#cleanup).
+
+### The /chat/ host
+
+`control-om-chat` drives `/rooms/` only — it has no cloud mode. A
+`packages/chat-ui` change lands in both hosts at once, so proving it means
+driving `/chat/` too, and until the wrapper grows that mode you start the cloud
+host by hand.
+
+**Do not use `apps/cloud`'s `dev` script.** It is `vite --port 8097
+--strictPort`: the operator's reserved port. Run vite yourself on an agent
+port instead, and record the pid so teardown can find it:
+
+```bash
+cd <tree>/apps/cloud
+lsof -iTCP:<port> -sTCP:LISTEN >/dev/null && echo BUSY   # preflight
+nohup bunx vite --port <port> --strictPort --host 127.0.0.1 \
+  > ../../.cloud-lane-<port>.log 2>&1 &
+echo $! > ../../.cloud-lane-<port>.pid
+# -> http://127.0.0.1:<port>/chat/
+agent-browser open "http://127.0.0.1:<port>/chat/tools/visual/shell-fixture.html?view=topic&topic=cpi-print-aug&alerts=quiet"
+```
+
+The base is `/chat/`, not `/rooms/`, and `control-om-chat url` will not build
+this URL for you. Use a separate `AGENT_BROWSER_SESSION` per host so one host's
+storage (`message=cozy`, rail layouts) cannot leak into the other's frames.
+Give `agent-browser screenshot` an **absolute** path when you run two sessions:
+a relative path resolves against the directory that *session was launched
+from*, not your shell's cwd, so the second host's frame fails with `No such
+file or directory` while the first one's saves fine.
+Stop it with `kill "$(cat .cloud-lane-<port>.pid)"`: `control-om-chat down` does
+not know it exists. Proven on `41a57adc` with the search-and-filters thread
+recipe, which passed step for step on both hosts.
 
 ## Doctor
 

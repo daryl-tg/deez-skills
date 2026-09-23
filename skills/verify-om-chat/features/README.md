@@ -160,13 +160,13 @@ same shape as `message=cozy`), `note=long|wrapped` (bench doc variants),
 Four more that a `params.get(` sweep finds and no feature file mentioned, all
 pre-dating the recent churn:
 
-- **`switcher=open`** (`shell-fixture.tsx:2903`) seeds the quick-switcher
+- **`switcher=open`** (`shell-fixture.tsx:2922`) seeds the quick-switcher
   palette, and it really does mount — see
   [channel-and-topic-navigation.md](channel-and-topic-navigation.md), whose
   "nothing to drive here" note this parameter contradicts.
-- **`reply=1`** (`:2333`) seeds a reply target, the entry at `seq === 103`.
-- **`tape=lists`** (`:1305`) selects a mosaic-tape variant.
-- **`perms=noupload`** (`:2802`) makes `canUploadServerWide` answer false on
+- **`reply=1`** (`:2329`) seeds a reply target, the entry at `seq === 103`.
+- **`tape=lists`** (`:1308`) selects a mosaic-tape variant.
+- **`perms=noupload`** (`:2821`) makes `canUploadServerWide` answer false on
   the **shell** fixture. Note this is a different parameter from the
   `?perms=owner` documented for `settings-fixture.html` in
   [settings-and-appearance.md](settings-and-appearance.md) — same spelling,

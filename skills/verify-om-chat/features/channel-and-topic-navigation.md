@@ -33,7 +33,7 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   settings**, Mute channel, Hide to-dos, Convert to alerts…, Copy channel
   link — fourteen items. Notification settings is the newest, added by
   `58aaefa9` with a submenu of its own, and it sits between Mark as read and
-  Mute channel (`ChannelHeaderMenus.tsx:114`).
+  Mute channel (`ChannelHeaderMenus.tsx:149`).
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
   (`packages/chat-ui/src/components/RightPanels.tsx:179`): a collapse/expand toggle plus one
@@ -44,9 +44,9 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   against what `rightSlotTabsFor` offers, and `alerts` is excluded even when
   offered. **To-dos can never appear here**, and not because this room lacks
   one: the personal doors come from `session.rightRailTabs?.(room)`
-  (`ChannelToolbar.tsx:235`), which the fixture never stubs, so it resolves
+  (`ChannelToolbar.tsx:229`), which the fixture never stubs, so it resolves
   through the `INERT` proxy — and `INERT[Symbol.iterator]` is an empty
-  generator (`shell-fixture.tsx:2443`, the trap itself at `:2445`), so
+  generator (`shell-fixture.tsx:2439`, the trap itself at `:2441`), so
   spreading it yields nothing for every room. Four is the ceiling in this lane, not a seeding accident.
   `"Show or hide side panel"` no longer exists anywhere in `src/`, and the old
   in-panel `tablist` is not merely hidden: every live render site passes
@@ -193,7 +193,7 @@ the navigation retargeted the *write* path, not only the read pane.
 
   **The gate has moved twice and now explains itself.** `#731` lifted it out of
   `Shell.tsx` into `ConversationRightRegion`; it is now back in `Shell.tsx`
-  (`:4109-4118`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
+  (`:4112-4122`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
   More useful than the address is the condition it gained:
 
   ```
@@ -213,7 +213,7 @@ the navigation retargeted the *write* path, not only the read pane.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
   opens nothing — confirmed live. But that is a fact about the *control*, not
   about the surface: **`?switcher=open` mounts the quick-switcher**
-  (`shell-fixture.tsx:2903` seeds `palette`), and it comes up with real
+  (`shell-fixture.tsx:2922` seeds `palette`), and it comes up with real
   content — a `div.quick-switcher` carrying `role="combobox"`, an input
   placeheld `Search messages, or jump anywhere...`, and the empty state
   *"Nowhere recent yet. Type to search, or start with @, #, * or ."* with its

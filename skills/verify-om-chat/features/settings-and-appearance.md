@@ -20,7 +20,7 @@ interaction end to end.
   **Nineteen is fixture truth, not app truth, since `c40dbc5d`.** That commit
   added two conditional rows to the Agents group, **OM Settings** (id `om`)
   and **Persona** (id `persona`), rendered only when the caller supplies the
-  matching `omPage` / `personaPage` props. `Shell.tsx:4448-4449` passes both
+  matching `omPage` / `personaPage` props. `Shell.tsx:4452-4453` passes both
   unconditionally, so the **running app shows twenty-one**;
   `settings-fixture.tsx` passes neither, so this lane shows nineteen —
   measured, not inferred. Count nineteen here and you have confirmed the

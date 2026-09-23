@@ -17,36 +17,46 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   reads **"Agents, not running"**, while the desktop rail reads
   **"Agents, needs your om running"** — and if any agent is armed the count
   wins outright and away is masked entirely, giving **"Agents, N armed"**
-  (`Shell.tsx:3051-3706`). So an `--exact` match on the bare name misses three
+  (`Shell.tsx:3054-3709`). So an `--exact` match on the bare name misses three
   different ways, and matching the mobile string on desktop misses too. Away
   is a whole-app state, a different thing from the daemon not running.
 
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3706`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3709`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3051-3056`). Two states is the old shape; matching on it during a
+  (`Shell.tsx:3054-3059`). Two states is the old shape; matching on it during a
   flaky connect misses silently.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
   these two doors: the answer is that **Agents cannot be unpinned**.
   `REQUIRED_RAIL_FEATURE_IDS = ["rail-agents"]` (`rail-layout.ts:24`) holds it
-  in place while the rest became optional. `RAIL_FEATURE_IDS` is now
-  `rail-agents`, `rail-library`, `rail-news`, `rail-alerts`
-  (`rail-layout.ts:17-22`) — **Browse channels is no longer among them.**
-  `38d0c72d`'s T145 retired it from the catalog because it already has a
-  permanent dock door, and a stored pin for it is purged on the next write.
-  Driven here, the "Browse features" popover offers exactly **Library** and
-  **Alerts**. A missing Agents door is a regression, never a layout
-  preference; a missing Browse-channels *tile* is the intended state.
+  in place while the rest became optional. `RAIL_FEATURE_IDS` is
+  `rail-agents`, `rail-library`, `rail-news`, `rail-alerts`,
+  `rail-browse-channels` (`rail-layout.ts:17-23`).
+
+  **Browse channels has been retired and restored within a week — do not trust
+  either memory of it.** `38d0c72d`'s T145 retired it from the catalog; `#940`'s
+  F64 reversed that on request, making it *"pinnable and unpinned by default,
+  like Library"*. Driven at `41a57adc`, the "Browse features" popover offers
+  **Library**, **Alerts** and **Browse channels**. Unpinned is its default, so
+  an absent Browse tile on the rail is correct; an absent catalog *entry* is
+  not. A missing Agents door is a regression, never a layout preference.
+
+  `#940`'s T103 also extended folders to zone 1: feature tiles can now be
+  grouped exactly like spaces, because `RailLayout.features` holds the same
+  `RailNode` union (`item` or `group`) as `spaces`. The seeding recipe below
+  works for both — put the `group` node in `features` instead. Proven at
+  `41a57adc`: a `features` group of `rail-library` and `rail-alerts` named
+  "Tools" renders as one collapsed `[data-rail-group-id="fg1"]` in zone 1.
 - **Collapsible space groups** in the rail, new in `38d0c72d` (T102). Space
   tiles can be collected into a folder: a collapsed group renders one tile with
   a 2x2 preview and a single aggregated mention badge, expands in place, and
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:3773-3797`).
+  (`Shell.tsx:3776-3800`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -65,7 +75,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   ```
 
   The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
-  **`u1`** (`shell-fixture.tsx:1037` maps the `kyle` handle to `u1`; every
+  **`u1`** (`shell-fixture.tsx:1040` maps the `kyle` handle to `u1`; every
   other handle becomes `u-<handle>`). Write it under the wrong id and nothing
   happens, silently. Proven end to end on lane 18118: after the reload one
   `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
@@ -78,7 +88,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:480`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:488`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -139,7 +149,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   pointer that server apps live in server settings.
 - **A second door, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings
-  (`UserSettings.tsx:258-290`), supplied by `Shell.tsx:4448-4449`. They reach
+  (`UserSettings.tsx:270-302`), supplied by `Shell.tsx:4452-4453`. They reach
   the same two surfaces without touching the rail or the Agent Center, and
   they are why the live settings nav is twenty-one entries while the settings
   fixture shows nineteen — that fixture passes neither prop, so **this route
