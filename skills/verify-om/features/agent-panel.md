@@ -17,6 +17,7 @@ the new Connections page.
 - `send` posts a message and streams a reply.
 - `full-conversation` hands off to the whole thread.
 - `connections` is where a missing credential is fixed.
+- `full-page` is the two-pane `/agent` workspace the panel hands off to.
 
 ## How to get to it (user POV)
 
@@ -55,11 +56,20 @@ Preconditions:
   `/connections` snapshot. Together they are the evidence that the unmet
   prerequisite is a credential and not a broken surface.
 
+- **The panel is not the whole surface.** `/agent` is a real route holding a
+  two-pane workspace (a conversation history list beside the chat), reached
+  either by `Open full conversation` or by the sidebar brand link whose
+  accessible name is `OpenMarket, chat with your agent`. It is NOT a nav item,
+  so a driver walking the nav will never find it. Not driven here beyond the
+  panel's refusal.
+
 ## Gotchas
 
 - **A real conversation is out of reach on a guest lane.** The concrete unmet
   prerequisite is an LLM credential (`om init`, or `OPENMARKET_LLM_KEY` in the
-  daemon's environment). Report the panel as `verified-unreachable` past the
+  daemon's environment). The daemon side is `resolveLlmConfig()` returning null
+  → RPC error `agent_not_configured` (`runner/http/rpc/model.ts`), which the UI
+  renders as the alert below. Report the panel as `verified-unreachable` past the
   send, never as broken — the refusal is the feature working.
 - The alert's text is invisible to `snapshot`: the paragraph node renders with no
   accessible name. Read it from the DOM or you will report an empty alert.

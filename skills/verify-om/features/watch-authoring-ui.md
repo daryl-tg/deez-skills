@@ -1,6 +1,6 @@
-# Watch authoring in the dashboard
+# Watch authoring and management in the dashboard
 
-*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — a feed watch authored end to end against a loopback stub and confirmed from the CLI. The seven non-feed source kinds were opened but not completed.*
+*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — a feed watch authored end to end against a loopback stub, confirmed from the CLI, and its detail page driven. The seven non-feed source kinds were opened but not completed; the detail page's edit and remove flows were seen, not exercised.*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the
@@ -15,6 +15,8 @@ lands **paused**.
 - `review-step` shows what will be created before anything is written.
 - `create` writes the watch and returns to the list.
 - `lands-paused` leaves the new watch disabled until the user resumes it.
+- `detail-page` opens one watch at `/alerts/<id-or-slug>` to manage it.
+- `batch-actions` pause, resume, mute, unmute or remove several at once.
 
 ## How to get to it (user POV)
 
@@ -55,6 +57,19 @@ Preconditions:
 - **Proof.** Keep the review-step and post-create snapshots, the `watch list`
   output, and the stub log lines that follow the resume.
 
+- **Open one watch.** Clicking a row's `link "<label>"` goes to
+  `/alerts/<id-or-slug>`. Its `heading` at level 1 is the watch's own LABEL (so
+  it is dynamic — do not assert a fixed string), beside buttons `Fetch now`,
+  `Pause` and `Edit watch`, and a tab group `Setup` / `History` / `Delivery` /
+  `Settings`. The Setup tab holds `Choose how you hear about updates` with
+  `Set up delivery`, and `Sources and schedules` with `Add source or schedule`
+  plus one `heading` per source and an `Edit source` button. Driven at
+  `/alerts/ui-authored-feed`.
+- **Batch actions** live on the list: selecting rows via the per-row checkboxes
+  enables icon buttons whose accessible names are `Pause`, `Resume`, `Mute`,
+  `Unmute` and `Remove selected watches`. Not exercised here — a remove is
+  destructive and the lane's watches were still under test.
+
 ## Gotchas
 
 - **It lands paused.** A driver who creates a watch and waits for a fire will
@@ -69,6 +84,19 @@ Preconditions:
   and `Search` route through a model, so they are `verified-unreachable` without
   an LLM credential; `Market data`, `X account`, `Website`, `Another watch` and
   `Schedule only` are unproven here, not known-broken.
+- **The UI and the CLI are one code path, not two.** Every
+  `POST /rpc/v1/watch/<verb>` route dispatches through the same
+  `actions/watch/*` registry objects the CLI and MCP use
+  (`runner/http/rpc/watch-management.ts`: "calls the same action as the TUI").
+  So the spec shape, slug/label split and pause/resume/remove semantics are
+  already covered by [watch lifecycle](./watch-lifecycle-cli.md) and need no
+  re-proving here. What is genuinely UI-only, and still unmapped, is the RPC
+  envelope itself and three staging flows with no CLI equivalent:
+  `arm-prepare`/`arm-confirm`, `edit-prepare`, and
+  `source-prepare`/`source-confirm`.
+- The dashboard's create always forces `enabled: false` and notifications off,
+  which is why an authored watch lands paused. That is a caller-side default on
+  the shared schema, not a different create.
 - A loopback feed address is refused unless the LANE carries
   `OM_FEED_ALLOW_LOOPBACK=1`. Unlike `om watch page-add`, the UI creates through
   the daemon, so the switch is needed on `up` only — not on a CLI call.

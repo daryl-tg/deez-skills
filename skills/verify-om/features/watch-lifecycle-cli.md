@@ -67,7 +67,7 @@ Preconditions:
   change is stored, not just echoed.
 - **Pause and resume.** Run `control-om om -- watch pause lane-lifecycle`. It
   prints `Paused event watch <id> (<slug>)` — **the parenthesised name is the
-  SLUG, not the label** (`cmd/watch-engine-verbs.ts:3285-3297`). Use a label
+  SLUG, not the label** (`renderPaused`/`renderResumed` in `cmd/watch-engine-verbs.ts`). Use a label
   that differs from its slug or the distinction stays invisible: label
   `Lane Lifecycle Probe` prints
   `Paused event watch lane-lifecycle-probe (lane-lifecycle-probe)`. **Assert the
@@ -93,7 +93,7 @@ Preconditions:
   `warning: N step(s) on another watch read ...` line when any of those apply,
   and a shared watch whose unfollow has not landed prints
   `Unfollow pending for <id> (<slug>): <note>` INSTEAD of the Removed line
-  (`cmd/watch-engine-verbs.ts:3305-3385`). `watch list` is back to `No watches found.` and
+  (`removalDisclosure`/`renderRemoved` in `cmd/watch-engine-verbs.ts`). `watch list` is back to `No watches found.` and
   `.control-om/home-<port>/accounts/guest/watches/` is empty — but the journal
   is not gone, which is the point of the trailing clause.
 - **Proof.** Keep the create/edit/show JSON, the `watch list` text before and

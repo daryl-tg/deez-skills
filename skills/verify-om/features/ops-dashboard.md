@@ -56,8 +56,13 @@ Preconditions:
   `region "Watch activity"` with a `See all` link; and the onboarding block now
   reads `Welcome to OpenMarket` / `Dismiss welcome` / `Create your first watch`
   with a `Create a watch` link and `More setup options ▸`. The old
-  `Pair a notification channel` step with its `copy` and `Discord` buttons is
-  not the default first step any more. heading `Welcome to OpenMarket`, button
+  `Pair a notification channel` step is gone: the channel step is renamed
+  `Choose where updates arrive` and is now OPTIONAL, the only required step
+  being `Create your first watch`. No step is terminal any more, so **the `copy`
+  and `Discord` buttons no longer render anywhere in onboarding** — the channel
+  step offers a plain `Manage channels` link instead. The block is also
+  state-dependent: it disappears once the home has a watch, so capture it on a
+  genuinely fresh lane or not at all. heading `Welcome to OpenMarket`, button
   `Dismiss welcome`, heading `Pair a notification channel`, buttons `copy`,
   `Discord`, `More setup options ▸`.
 - **Navigate by name.** Run
@@ -85,8 +90,11 @@ Preconditions:
   `/strategies`. On a guest lane there are no strategies to click, so drive it
   directly: `agent-browser open "$(control-om url /strategies/does-not-exist)"`
   renders the shell with `main` holding only a `Back to Strategies` link, and
-  the H1 falls back to `OpenMarket` because the page-name map has no entry for
-  the parameterised path. The populated page (signal state, fills, chart,
+  the H1 fallback moved in v0.400.0 — source gives `Strategy details` for
+  `/strategies/<id>` and `Watch details` for the new `/alerts/<id>` — and driven
+  at v0.400.0 the 404 branch rendered little beyond the shell, inconsistently
+  between two reads. Do not pin a heading here; assert the `Back to Strategies`
+  link, which is stable. The populated page (signal state, fills, chart,
   transitions timeline, per-strategy digest) is `verified-unreachable` from a
   guest lane: it needs a strategy, which needs a signal and a paired venue.
   Report it that way rather than as empty.
@@ -122,7 +130,10 @@ Preconditions:
   (`cd apps/dashboard && bun run dev`) that proxies `/rpc/*`, `/healthz` and
   `/events/v1` to `127.0.0.1:31337` — the **operator's** daemon, by default. It
   is not a lane and this skill does not drive it.
-- `apps/dashboard/src/strategy-plane-absent.ts` and its server-side siblings
+- The strategy OSS-export swap was renamed in v0.400.0: the empty variant is now
+  plain `apps/dashboard/src/strategy-plane.ts` and the real one
+  `strategy-plane-full.tsx`, so the old `strategy-plane-absent.ts` no longer
+  exists under that name. It and its server-side siblings
   (`openapi-strategy-absent.ts`, `rpc/registry-strategy-absent.ts`) are a
   BUILD-TIME swap for the separate Apache-2.0 OSS export, performed by
   `release/export-manifest.ts`, mirroring the existing `rooms-gui`/`-absent`

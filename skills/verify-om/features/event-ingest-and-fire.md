@@ -57,8 +57,11 @@ Preconditions:
   `watch_appended`, then `watch_fired` with `fired_at` and `"confidence":1`.
   The fired payload leads with `"kind":"listener"`. These names lost their
   `event_` prefix in v0.35 — grep for `^event: watch_` and nothing else. The
-  stream also carries unrelated siblings now (`tick_completed` since v0.400.0),
-  so a bare `grep '^event:'` returns more than this feature's three.
+  stream also carries unrelated siblings — `tick_completed` was observed on a
+  v0.400.0 lane and predates that release — so a bare `grep '^event:'` returns
+  more than this feature's three. No NEW sibling landed in the v0.390.1→v0.400.0
+  range; `watch_fired` only gained an optional `card_eligible` on its
+  `condition` branch, which the inbound `listener` flow never takes.
 - **Confirm the stored side effect.** Run
   `control-om om -- event-journal get lane-probe --file events.md --format json`.
   The content holds `<!-- event-watch-event-id:<id> -->`, the pushed text as the

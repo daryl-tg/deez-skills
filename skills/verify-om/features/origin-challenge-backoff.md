@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: entry path and hold arming 2026-09-23, tree `9a49752c3` (v0.400.0) — hold armed at exactly +15:00 with the log line and cooldown unchanged. The probe, the doubling and recovery were last driven 2026-09-19 at tree `15db727ba` (v0.353.1). Re-drive the full ladder when the HOLD MACHINERY changes, not merely when these files are touched: `shared/origin-limiter.ts` (constants), `shared/public-document.ts` (the predicate), and the cooldown/reopen paths of `runner/subscriptions/manager.ts` and `adapters/feed.ts`. Both of the latter two changed by v0.400.0 without touching those paths, and the short drive confirmed the ladder intact.*
+*Verified: entry path, hold arming and the status row 2026-09-23, tree `9a49752c3` (v0.400.0). The probe, the doubling and recovery were last driven 2026-09-19 at tree `15db727ba` (v0.353.1). Re-drive the full ladder when the HOLD MACHINERY changes — `shared/origin-limiter.ts` (constants), `shared/public-document.ts` (the predicate), or the cooldown/reopen paths of `runner/subscriptions/manager.ts` and `adapters/feed.ts` — and re-drive the STATUS ROW whenever `runner/watching/status-sentence.ts` changes, which is what moved this pass.*
 
 When a site puts the daemon's IP under a Cloudflare challenge, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -31,6 +31,10 @@ with no reconnect counted. None of it needs an account.
 - Watch a feed on a site behind Cloudflare, or a page on it. The status line and
   `om watch show` say a source is challenging this machine, and when it will be
   tried again, once a challenge lands.
+- `om watch page-add` on a URL this home already watches returns
+  `status: "adopted"` and the existing watch id, not `feed_created`. A lane home
+  reused between runs will therefore not produce the create result the step
+  above quotes.
 - `om watch run now <watch>` inside the window sends nothing, but it is refused
   in GENERIC backoff words, not the challenge words: `the daemon is reconnecting
   this watch's source (parked or backing off after a failure); it polls again on
@@ -91,13 +95,25 @@ Steps:
    shows the stream's `connection_state` as `reconnecting` (that is the key's
    name), `reconnect_count` 0, and a `cooldown` object carrying `until` (epoch
    ms) and `error` (the challenge sentence);
-   `control-om om -- watch show <slug>` carries `the source is challenging this
-   machine · next try <time>` INSIDE a longer source row — the full cell reads
-   `source feed <host>: <title>: unreachable since <t> · <host> is challenging
-   this machine · next try <t> · om watch run now <slug>`, and the times render
-   in LOCAL time while the lane log and `/healthz` carry UTC. Match the
-   substring, not the whole cell. The same sentence also appears in
-   `om watch list`.
+   `control-om om -- watch show <slug>` and `om watch list` both carry the
+   challenge sentence inside a longer cell. Driven at v0.400.0:
+   `source feed 127.0.0.1: unreachable since Sep 23 12:45 · 127.0.0.1 is
+   challenging this machine · next try Sep 23 13:00 · Firecrawl can read it for
+   you · om setup firecrawl`, with `watch show` additionally splitting it into
+   `FAULT` and `FIX` rows. Times render LOCAL while the lane log and `/healthz`
+   carry UTC. Match a substring, never the whole cell, and note three things
+   that moved in `da6121d24`:
+
+   - **The host is not always named.** The subject is `place(host)`
+     (`shared/watch-error-words.ts`): the hostname when the row knows it,
+     the literal words `the source` when it does not. Both forms are current —
+     grep `is challenging this machine`, not the host.
+   - **A Firecrawl offer is appended on a home holding no key**:
+     `· Firecrawl can read it for you`. No loopback filter applies, so it fires
+     for `127.0.0.1` on a plain guest lane.
+   - **The offered fix changed.** The cooldown branch now returns
+     `om setup firecrawl` where it used to return `om watch run now <slug>`. A
+     recipe asserting the old fix string fails.
 4. Proof of the probe: at `until` (15 min after the challenge, plus jitter)
    exactly one more `challenge GET /rss`, then silence again.
 5. Flip the mode file back to `ok` before the next `until`. Proof of recovery:
