@@ -11,7 +11,11 @@ instead. This is one predicate, driven.
 2. **Pick the wake mechanism.** An event worth watching, a run finishing, a ref
    advancing, gets watched with a long fallback heartbeat behind it. Nothing to
    watch gets a fixed interval sized to when the answer could have changed. Use
-   `/loop` in dynamic mode and let each wake report what moved.
+   `/loop` in dynamic mode. A wake reports only a change no earlier wake
+   reported: a commit, a verdict, the predicate moving, a blocker added or
+   cleared, a call only the operator can make. Name those and nothing else, never
+   a repeated table or an unchanged blocker. A wake that found nothing new ends
+   with no reply text. Step 5's row is written either way.
 3. **One change per iteration**, the smallest the evidence justifies. Verify it
    against the predicate, keep it if it advanced, discard it if it did not, per
    **principle-sequence-verifiable-units**. Anything that "might help" gets

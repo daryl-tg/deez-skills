@@ -194,3 +194,8 @@ and what changes for them before any implementation detail, then what the next
 engineer inherits.
 
 Never fabricate a link, a citation, or a transcript reference.
+
+Every claim carries its evidence or its label in the same sentence. The label
+is measured, inferred, or guess. A prediction or a cause you have not observed is a guess.
+A check you could run yourself is not something to hand the operator, per
+**principle-never-block-on-reversible-work**.
