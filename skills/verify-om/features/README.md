@@ -87,7 +87,7 @@ counts meaningless. The tree-to-tree diff still answers correctly.
 
 ## What this map does NOT cover
 
-Six entries against 87 top-level `om` commands. The map grows only when someone
+Eight entries against 87 top-level `om` commands. The map grows only when someone
 runs `create-verification-skill` or `maintain-verification-skill` — ordinary
 feature work in a worktree adds nothing to it automatically. Treat an absent
 surface as unmapped, never as verified-clean, and add an entry when you build
@@ -108,7 +108,12 @@ state, commands, and observable proof.
   provable with no credentials. Start here.
 - [Daemon lifecycle and health](./daemon-lifecycle-and-health.md)
 - [Watch lifecycle from the CLI](./watch-lifecycle-cli.md)
-- [The ops dashboard](./ops-dashboard.md)
+- [The ops dashboard](./ops-dashboard.md) — the shell and the observation
+  surfaces, redesigned in v0.400.0
+- [Watch authoring in the dashboard](./watch-authoring-ui.md) — new in v0.400.0:
+  the UI now creates watches, not just shows them
+- [The dashboard agent panel](./agent-panel.md) — new in v0.400.0; reachable on a
+  guest lane only as far as its refusal
 - [Market data reads](./market-data-reads.md)
 - [Origin challenge backoff](./origin-challenge-backoff.md) — a Cloudflare
   challenge holds every source on the host, provable with a loopback stub.

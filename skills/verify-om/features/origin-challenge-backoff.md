@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: entry path and hold arming 2026-09-21, tree `b46838460` (v0.390.1). The probe, the doubling and recovery were last driven 2026-09-19 at tree `15db727ba` (v0.353.1); the machinery has zero diff since, so they were not re-run. Re-drive them if `shared/origin-limiter.ts`, `shared/public-document.ts`, `runner/subscriptions/manager.ts` or `adapters/feed.ts` move.*
+*Verified: entry path and hold arming 2026-09-23, tree `9a49752c3` (v0.400.0) — hold armed at exactly +15:00 with the log line and cooldown unchanged. The probe, the doubling and recovery were last driven 2026-09-19 at tree `15db727ba` (v0.353.1). Re-drive the full ladder when the HOLD MACHINERY changes, not merely when these files are touched: `shared/origin-limiter.ts` (constants), `shared/public-document.ts` (the predicate), and the cooldown/reopen paths of `runner/subscriptions/manager.ts` and `adapters/feed.ts`. Both of the latter two changed by v0.400.0 without touching those paths, and the short drive confirmed the ladder intact.*
 
 When a site puts the daemon's IP under a Cloudflare challenge, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -23,6 +23,8 @@ with no reconnect counted. None of it needs an account.
   finds nothing.
 - `recover` reopens the stream on a clean probe, logs `reopened after the
   window`, and clears the row.
+- `escalate` (v0.400.0, credentialed homes only) retries a refused fetch through
+  an address that is not this machine's, instead of going quiet.
 
 ## How to get to it (user POV)
 
@@ -113,6 +115,20 @@ Steps:
    exactly like a failed recovery.
 
 ## Gotchas
+
+- **A credentialed home no longer just goes quiet.** v0.400.0 added an
+  *escalation* path: when an origin refuses this machine — a challenge, or the
+  window it opened — the feed adapter can refetch the same URL through a
+  third-party transport (`shared/escalating-fetcher.ts`, wired in
+  `runner/subscriptions/adapters/feed.ts`, resolved by
+  `runner/firecrawl/registry.ts`). The daemon registers that transport at boot
+  and at each reconcile from a stored Firecrawl credential; **a home holding no
+  key registers `null`, which is "the direct fetcher exactly as it was"**
+  (`runner/index.ts` `refreshFirecrawlEscalation`). So everything this entry
+  documents is the NO-CREDENTIAL behaviour, and it was re-confirmed intact at
+  v0.400.0. What escalation does on a credentialed home is
+  `verified-unreachable` from a guest lane; the unmet prerequisite is a
+  Firecrawl key (`om setup firecrawl`).
 
 - A page watch needs a model credential even with `--diff-only`, so a guest
   lane proves the feed and extract paths; the page path is on its unit tests.

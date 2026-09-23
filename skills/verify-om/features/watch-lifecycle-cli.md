@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-09-21, tree `b46838460` (v0.390.1) — create/list/show/edit/pause/resume/remove driven with a label that diverges from its slug.*
+*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — create/pause/resume/remove driven with a diverging label; strings unchanged.*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
@@ -130,6 +130,10 @@ Preconditions:
   watch named, `--group <folder>` beside the notify flags bulk-sets delivery for
   every watch in that folder. The single-id form this file drives is unaffected,
   but a typo that drops the id no longer errors — it may edit a whole folder.
+- **The CLI is no longer the only front end.** Since v0.400.0 the dashboard
+  creates and pauses watches through the same store — see
+  [watch authoring](./watch-authoring-ui.md). A watch this file's recipe did not
+  create may have been authored there, and a UI-created one lands paused.
 - Three verbs landed since this file was written and are not covered here:
   `om watch combine <group-or-ids...> --name <name>` (one head watch reading
   several others, which changes what `pause`/`resume`/`remove` do to the set),

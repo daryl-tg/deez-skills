@@ -1,6 +1,6 @@
 # Event ingest and fire
 
-*Verified: 2026-09-21, tree `b46838460` (v0.390.1) — full chain driven (door, stream, journal, dashboard row).*
+*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — full chain driven (door, stream, journal) and the list cross-checked; the dashboard row now lives in a list, see the ops-dashboard entry.*
 
 A user points a producer at a watch's inbound door and the daemon takes it from
 there: the event is accepted, committed, appended to the watch's journal, and
@@ -56,7 +56,9 @@ Preconditions:
   `event_id`: `watch_committed` (with `"outcome":"update"` and the title),
   `watch_appended`, then `watch_fired` with `fired_at` and `"confidence":1`.
   The fired payload leads with `"kind":"listener"`. These names lost their
-  `event_` prefix in v0.35 — grep for `^event: watch_` and nothing else.
+  `event_` prefix in v0.35 — grep for `^event: watch_` and nothing else. The
+  stream also carries unrelated siblings now (`tick_completed` since v0.400.0),
+  so a bare `grep '^event:'` returns more than this feature's three.
 - **Confirm the stored side effect.** Run
   `control-om om -- event-journal get lane-probe --file events.md --format json`.
   The content holds `<!-- event-watch-event-id:<id> -->`, the pushed text as the

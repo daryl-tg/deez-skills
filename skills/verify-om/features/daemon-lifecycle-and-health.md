@@ -1,6 +1,6 @@
 # Daemon lifecycle and health
 
-*Verified: 2026-09-21, tree `b46838460` (v0.390.1) — health, doctor, service status, logs and the wrapper guard driven.*
+*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — health, doctor, service status, logs and the wrapper guard driven.*
 
 The daemon is the product's spine: it boots, serves its HTTP doors, ticks, and
 reports what it is doing. A user starts it (`om run` in the foreground, or
@@ -49,8 +49,10 @@ Preconditions:
   why", not "stalled".
 - **Self-diagnosis.** Run `control-om om -- doctor`. On a fresh lane the
   expected shape is 14 checks: `binary: warn` (dev checkout),
-  `version/home/network/api_key/auth/account/schema/daemon/follows: ok`, and
-  `contracts/stream/llm/agent_wiring: warn`. The `daemon` check must name the
+  `version/home/network/api_key/auth/account/schema/daemon/follows: ok`, and `llm/agent_wiring: warn`.
+  `contracts` and `stream` are environment-dependent, not guest-dependent: they
+  warn when the registry is unreachable and read `ok` when it answers, so do not
+  treat either value as a finding. The `daemon` check must name the
   lane's pid — that is the check proving the CLI and the daemon agree on which
   home they are in. Four further checks are CONDITIONAL and absent from that
   baseline: `daemon_version`, which appears only when the running daemon and the

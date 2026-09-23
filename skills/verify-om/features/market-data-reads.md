@@ -1,6 +1,6 @@
 # Market data reads
 
-*Verified: 2026-09-21, tree `b46838460` (v0.390.1) — enum and a live points series driven.*
+*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — a live points series driven; envelope, timestamp shape and id keys unchanged.*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,

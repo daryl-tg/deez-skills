@@ -1,9 +1,12 @@
 # The ops dashboard
 
-*Verified: 2026-09-21, tree `b46838460` (v0.390.1) — nav, /alerts, /strategies and strategy-detail driven after rebuilding the bundle. The populated strategy-detail page stays `verified-unreachable` on a guest lane.*
+*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — nav, Overview, the rebuilt Watches list, /news, /strategies, /channels, /venues, /receipts and /connections driven. The dashboard was REDESIGNED in this range; see the two new sibling entries for the surfaces it grew.*
 
-The daemon serves a React SPA at `/`. It is the read-leaning window onto daemon
-state: a header pill with tick freshness and fire count, a left nav, and one
+The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
+onto daemon state; since v0.400.0 it also authors watches and embeds an agent
+chat, each documented in its own entry ([watch authoring](./watch-authoring-ui.md),
+[the agent panel](./agent-panel.md)). What remains here is the shell and the
+observation surfaces: a header pill with tick freshness and fire count, a left nav, and one
 page per concern — Overview, Watches, News, Strategies, Channels, Venues,
 Receipts, plus a link out to OM Chat. A fresh install sees an onboarding
 checklist on Overview instead of an empty dashboard.
@@ -40,9 +43,21 @@ Preconditions:
 - **Open the root.** Run `agent-browser open "$(control-om url /)"` then
   `agent-browser snapshot -i -c`. A fresh lane shows heading `Overview`
   (level 1 and level 2), the nav links `Overview`, `Alerts`, `News`,
-  `Strategies`, `Channels`, `Venues`, `Receipts`, `OM Chat` — note `Watches`,
-  renamed from `Alerts` since v0.329 — a `restart` button, and the onboarding
-  block: heading `Welcome to OpenMarket`, button
+  `Strategies`, `Channels`, `Connections`, `Venues`, `Receipts`,
+  `OM Chat (opens in a new tab)` — note `Watches`, renamed from `Alerts`, and
+  `Connections`, added in v0.400.0 — inside a `navigation "Main navigation"`
+  landmark. Beside them a `Switch to light mode` theme toggle and an
+  `Ask your agent` button.
+
+  The Overview page itself was redesigned in v0.400.0 and no longer matches its
+  old description. Its H1 is the headline `Your market, in view.`, NOT
+  `Overview`; the level-2 page heading is gone; the restart control is
+  `Restart daemon` inside a `region "Workspace"`; there is a
+  `region "Watch activity"` with a `See all` link; and the onboarding block now
+  reads `Welcome to OpenMarket` / `Dismiss welcome` / `Create your first watch`
+  with a `Create a watch` link and `More setup options ▸`. The old
+  `Pair a notification channel` step with its `copy` and `Discord` buttons is
+  not the default first step any more. heading `Welcome to OpenMarket`, button
   `Dismiss welcome`, heading `Pair a notification channel`, buttons `copy`,
   `Discord`, `More setup options ▸`.
 - **Navigate by name.** Run
@@ -50,14 +65,21 @@ Preconditions:
   `agent-browser get url` → `http://127.0.0.1:18101/alerts`. The label was
   renamed and the route was not, so drive by the label and assert the path. The
   route is a real path, not a hash, so the URL is assertable evidence on its own.
-- **Read a table.** Run `agent-browser snapshot -c` on `/alerts`. The table's
-  column headers are `LABEL`, `SOURCES`, `GOAL`, `STATUS`, `LAST FIRED`,
-  `ACTIONS` (`KIND` and `RULE` were replaced by `SOURCES` and `GOAL` since
-  v0.329), and a watch created on this lane appears as a row whose SOURCES cell
-  is a count and whose STATUS reads `working` once it has fired. The old KIND
-  column's information did not move to another column — the metric-alert vs
-  event-watch distinction is now a `title` tooltip on the SOURCES cell, so it
-  is not in an accessibility snapshot at all.
+- **Read the list — there is no table any more.** v0.400.0 replaced the
+  `/alerts` table with a selectable list, so every column assertion older than
+  that is dead: there are no `columnheader` nodes at all. Run
+  `agent-browser snapshot -c` on `/alerts` and assert the `region "Watches"`,
+  which holds a `checkbox "Select visible watches"`, a `StaticText "N watch(es)"`,
+  the line `Open a watch to manage its sources and steps`, and one `listitem`
+  per watch carrying `checkbox "Select <label>"`, `link "<label>"`, the source
+  count and goal as loose `StaticText`, a `time`, the status word, and a single
+  action button reading `Pause` or `Resume` **according to the watch's state** —
+  which makes that button the cleanest assertion on the page.
+- **The page gained controls above the list**: a `Create watch` button (see
+  [watch authoring](./watch-authoring-ui.md)), a
+  `navigation "Filter watches by status"` holding `All watches N` / `Enabled N` /
+  `Paused N` / `Needs attention N`, a `searchbox "Search watches"`, and a
+  `combobox "Folder"` defaulting to `All folders`.
 - **The strategy detail route.** `/strategies/<id-or-slug>` is a real route
   (`apps/dashboard/src/app.tsx:58`), reached by clicking a slug on
   `/strategies`. On a guest lane there are no strategies to click, so drive it
@@ -68,7 +90,8 @@ Preconditions:
   transitions timeline, per-strategy digest) is `verified-unreachable` from a
   guest lane: it needs a strategy, which needs a signal and a paired venue.
   Report it that way rather than as empty.
-- **Walk the rest.** `/news` (headings `Daily brief`, `Recent fires`),
+- **Walk the rest.** `/news` (headings `Daily brief`, `Recent fires`, and since
+  v0.400.0 a `Watches` section with `WATCH` / `GOAL` columns),
   `/strategies` (heading `Strategy digest`, columns `SLUG`, `SIGNAL (KIND)`),
   `/channels`, `/venues`, `/receipts` (columns `TIME`, `ALERT`, `VENUE`). Each
   renders its heading and its empty state on a fresh lane.
