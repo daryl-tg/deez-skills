@@ -64,14 +64,21 @@ Preconditions:
   `control-om om -- watch edit lane-lifecycle --classifier-mode accept_all --format json`.
   The result carries an `edited` block naming exactly what changed, and
   `updated_at` moves, and the STATUS cell changes. **Assert that it changed, not
-  what it changed to.** The destination varies by source kind and by release: an
-  INBOUND watch lands on `working` with `LAST FIRE` still `never` (driven twice
-  at v0.408.1), while a source-reading kind can sit at `not read yet` until its
-  first read — which is what a source read of `status-sentence.ts` predicts, and
-  what this file saw at v0.353. Both are correct for their shape; an earlier
-  version of this file claimed `working` was only reachable after a fire, which
-  is not true for an inbound watch. Re-read with `watch show` to confirm the change is stored, not just
-  echoed.
+  what it changed to** — the destination is not a contract.
+
+  Worked out the hard way. The same recipe on the same kind of guest lane landed
+  on `not read yet` on 2026-09-19 and 09-21, and on `working` (with `LAST FIRE`
+  still `never`) twice on 09-24. The code did not change: `not_read_yet` is
+  gated on `syncing !== null && notReadYetHere(...)`
+  (`actions/watch/list.ts`), and that line is byte-identical across every tree
+  involved. `syncing` is non-null only while an account watch-sync is actually
+  in flight, so the word is a transient sync indicator, not a lifecycle state —
+  which is why the same command yields different cells on different days and why
+  an earlier version of this file was wrong twice over: first claiming `working`
+  only follows a fire, then explaining the difference as source kind. Neither
+  held. Assert the change; grep `om init` while it is unset.
+
+  Re-read with `watch show` to confirm the change is stored, not just echoed.
 - **Pause and resume.** Run `control-om om -- watch pause lane-lifecycle`. It
   prints `Paused event watch <id> (<slug>)` — **the parenthesised name is the
   SLUG, not the label** (`renderPaused`/`renderResumed` in `cmd/watch-engine-verbs.ts`). Use a label
