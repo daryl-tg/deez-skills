@@ -18,7 +18,7 @@ Sibling skills own neighbouring ground. `verify-om-chat` owns the `/rooms` and
 GUI. This skill owns everything the open-core repo itself ships.
 
 Everything here goes through `control-om`, at
-`/Users/dboon/github/openmarket-internal/control-om`.
+`~/github/deez-skills/skills/verify-om/bin/control-om` (linked onto PATH as `control-om`; it drives whichever checkout you stand in).
 
 ## The one fact that makes this safe
 
