@@ -1,6 +1,6 @@
 # The dashboard agent panel
 
-*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — the panel, its controls and its guest-lane refusal driven; /connections driven. A real conversation is `verified-unreachable` on a guest lane: it needs an LLM credential.*
+*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — the panel, its controls and its guest-lane refusal driven. A real conversation stays `verified-unreachable`: it needs an LLM credential.*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as
@@ -75,6 +75,11 @@ Preconditions:
   accessible name. Read it from the DOM or you will report an empty alert.
 - `Send message` is disabled until the textbox has content, so a
   fill-then-click sequence is required; clicking first looks like a dead button.
+- **Fill it with `agent-browser fill @<ref>`, not with an `eval` that sets
+  `value`.** The composer is a controlled React input: a DOM-level value write
+  leaves the button disabled and the send silently does nothing, which reads as
+  a broken surface. Driven both ways — the ref form works, the eval form does
+  not.
 - The panel is global, not per page — it appears in snapshots of every route,
   including the watch-authoring dialogs, where it is noise.
 - `Remove page context` changes what the agent is told about. If a run ever does

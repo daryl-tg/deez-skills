@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — nav, Overview, the rebuilt Watches list, /news, /strategies, /channels, /venues, /receipts and /connections driven. The dashboard was REDESIGNED in this range; see the two new sibling entries for the surfaces it grew.*
+*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — nav, Overview, the Watches list, /news, /connections driven. This range was internal loading/perf work with no text or structural change.*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent

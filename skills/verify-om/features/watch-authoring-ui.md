@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — a feed watch authored end to end against a loopback stub, confirmed from the CLI, and its detail page driven. The seven non-feed source kinds were opened but not completed; the detail page's edit and remove flows were seen, not exercised.*
+*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — the detail page driven on an inbound watch. The wizard and its end-to-end create were driven 2026-09-23 at tree `9a49752c3` (v0.400.0) and its files are unchanged since.*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the
@@ -59,8 +59,8 @@ Preconditions:
 
 - **Open one watch.** Clicking a row's `link "<label>"` goes to
   `/alerts/<id-or-slug>`. Its `heading` at level 1 is the watch's own LABEL (so
-  it is dynamic — do not assert a fixed string), beside buttons `Fetch now`,
-  `Pause` and `Edit watch`, and a tab group `Setup` / `History` / `Delivery` /
+  it is dynamic — do not assert a fixed string), beside `Pause` and
+  `Edit watch`, and a tab group `Setup` / `History` / `Delivery` /
   `Settings`. The Setup tab holds `Choose how you hear about updates` with
   `Set up delivery`, and `Sources and schedules` with `Add source or schedule`
   plus one `heading` per source and an `Edit source` button. Driven at
@@ -84,6 +84,11 @@ Preconditions:
   and `Search` route through a model, so they are `verified-unreachable` without
   an LLM credential; `Market data`, `X account`, `Website`, `Another watch` and
   `Schedule only` are unproven here, not known-broken.
+- **`Fetch now` is source-kind dependent.** The button is gated on
+  `spec.sources.some(s => s.kind === "listener")` (`pages/watch-detail.tsx`), so
+  it renders only for a watch with a feed/listener source. An inbound-only watch
+  has no manual-fetch action at all. Driven both ways — present on a feed watch,
+  absent on an inbound one. Do not assert it unconditionally.
 - **The UI and the CLI are one code path, not two.** Every
   `POST /rpc/v1/watch/<verb>` route dispatches through the same
   `actions/watch/*` registry objects the CLI and MCP use

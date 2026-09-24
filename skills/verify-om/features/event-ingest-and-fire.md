@@ -1,6 +1,6 @@
 # Event ingest and fire
 
-*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — full chain driven (door, stream, journal) and the list cross-checked; the dashboard row now lives in a list, see the ops-dashboard entry.*
+*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — full chain driven (door, stream, journal). The dashboard cross-check now points at the ops-dashboard entry rather than re-describing a table that no longer exists.*
 
 A user points a producer at a watch's inbound door and the daemon takes it from
 there: the event is accepted, committed, appended to the watch's journal, and
@@ -57,9 +57,12 @@ Preconditions:
   `watch_appended`, then `watch_fired` with `fired_at` and `"confidence":1`.
   The fired payload leads with `"kind":"listener"`. These names lost their
   `event_` prefix in v0.35 — grep for `^event: watch_` and nothing else. The
-  stream also carries unrelated siblings — `tick_completed` was observed on a
-  v0.400.0 lane and predates that release — so a bare `grep '^event:'` returns
-  more than this feature's three. No NEW sibling landed in the v0.390.1→v0.400.0
+  stream also carries unrelated siblings — `tick_completed` (predates v0.400.0)
+  and `watch_inventory_changed` (new in v0.408.1, a reconcile-pass diagnostic
+  carrying `{watches, armed, alerts, changed_at}`) — so a bare
+  `grep '^event:'` returns more than this feature's three, and the second of
+  those DOES start with `watch_`. Match `^event: watch_(committed|appended|fired)$`
+  if you need it exact. No NEW sibling landed in the v0.390.1→v0.400.0
   range; `watch_fired` only gained an optional `card_eligible` on its
   `condition` branch, which the inbound `listener` flow never takes.
 - **Confirm the stored side effect.** Run
@@ -67,10 +70,18 @@ Preconditions:
   The content holds `<!-- event-watch-event-id:<id> -->`, the pushed text as the
   summary, and `outcome: update` / `verdict: new story`.
 - **Confirm the other surface.** Open `$(control-om url /alerts)` and snapshot
-  (the nav item is labelled **Watches**; the route is still `/alerts`). The
-  table row reads `lane-probe`, `1`, `lane-probe`, `working`, and a LAST FIRED
-  cell matching the stream's `fired_at` to the second — the columns are LABEL,
-  SOURCES, GOAL, STATUS, LAST FIRED, ACTIONS. There is no KIND cell any more.
+  (the nav item is labelled **Watches**; the route is still `/alerts`).
+  **There is no table** — v0.400.0 replaced it with a selectable list, so assert
+  the `listitem` for your watch inside `region "Watches"`: a
+  `checkbox "Select <label>"`, a `link "<label>"`, the source count and goal as
+  loose `StaticText`, a `time`, the status word, and a `Pause` or `Resume`
+  button. [The ops dashboard](./ops-dashboard.md) owns that shape; do not
+  re-describe it here.
+  **The fire time is not second-precision on this surface.** The row renders
+  relative words (`Just now`, `N min ago`), with the exact instant only in the
+  `time` element's `datetime` attribute and the row's `title`. For correlating
+  against the stream's `fired_at` to the second, use the detail page at
+  `/alerts/<id-or-slug>` or the journal, not this row.
 - **Proof.** Keep `events.sse` and the two JSON results in the artifact
   directory, capture the pair
   (`agent-browser snapshot -c` to `alerts.aria.txt`, `agent-browser screenshot

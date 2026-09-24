@@ -1,6 +1,6 @@
 # Market data reads
 
-*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — a live points series driven; envelope, timestamp shape and id keys unchanged.*
+*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — a live points series driven; envelope, timestamp shape and id keys unchanged.*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,
@@ -77,4 +77,7 @@ Preconditions:
 - These calls leave the machine. A failing `points` on an otherwise healthy lane
   is usually the network or the upstream API, not the change under test — check
   `control-om om -- doctor` before filing it.
-- `om usage` reports the quota these reads consume. A long drive can exhaust it.
+- `om usage` reports the quota these reads consume. Since v0.408.1 it also has
+  an `om usage llm` subcommand (`--since`, `--by provider|watch|model|day|hour`)
+  reading a LOCAL token/cost ledger — a different question entirely, and not the
+  Data API quota. Bare `om usage` is unchanged. A long drive can exhaust it.

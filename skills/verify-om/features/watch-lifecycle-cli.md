@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-09-23, tree `9a49752c3` (v0.400.0) — create/pause/resume/remove driven with a diverging label; strings unchanged.*
+*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — create/pause/resume/remove driven with a diverging label; both no-model STATUS branches observed in one pass.*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
@@ -49,8 +49,10 @@ Preconditions:
   coexist, chosen by DAEMON TIMING rather than by version —
   `steps judging paused · no model to run the AI filter on · om init` before the
   daemon's first judge attempt, and
-  `steps the AI filter has no model to run on · om init` (plus `· N items
-  waiting` once rows are held) after an attempt has actually failed. A drive can
+  `steps the AI filter has no model to run on · om init` (plus `· N item(s)
+  waiting` once rows are held) after an attempt has actually failed. Both were
+  observed in a single pass at v0.408.1 — the first on a just-created inbound
+  watch, the second on a feed watch whose source had already been read. A drive can
   land on either without any code changing, and an older build says
   `source judging paused · the classifier is unavailable · om init`. Assert the
   TRANSITION instead — the cell changes once `--classifier-mode accept_all`
@@ -61,10 +63,15 @@ Preconditions:
 - **Edit.** Run
   `control-om om -- watch edit lane-lifecycle --classifier-mode accept_all --format json`.
   The result carries an `edited` block naming exactly what changed, and
-  `updated_at` moves. `watch list` now reads `not read yet` — the clean
-  before/after pair for this transition, and NOT `working`, which this watch
-  only reaches after its first fire. Re-read with `watch show` to confirm the
-  change is stored, not just echoed.
+  `updated_at` moves, and the STATUS cell changes. **Assert that it changed, not
+  what it changed to.** The destination varies by source kind and by release: an
+  INBOUND watch lands on `working` with `LAST FIRE` still `never` (driven twice
+  at v0.408.1), while a source-reading kind can sit at `not read yet` until its
+  first read — which is what a source read of `status-sentence.ts` predicts, and
+  what this file saw at v0.353. Both are correct for their shape; an earlier
+  version of this file claimed `working` was only reachable after a fire, which
+  is not true for an inbound watch. Re-read with `watch show` to confirm the change is stored, not just
+  echoed.
 - **Pause and resume.** Run `control-om om -- watch pause lane-lifecycle`. It
   prints `Paused event watch <id> (<slug>)` — **the parenthesised name is the
   SLUG, not the label** (`renderPaused`/`renderResumed` in `cmd/watch-engine-verbs.ts`). Use a label

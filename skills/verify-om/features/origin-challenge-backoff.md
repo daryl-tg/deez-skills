@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: entry path, hold arming and the status row 2026-09-23, tree `9a49752c3` (v0.400.0). The probe, the doubling and recovery were last driven 2026-09-19 at tree `15db727ba` (v0.353.1). Re-drive the full ladder when the HOLD MACHINERY changes — `shared/origin-limiter.ts` (constants), `shared/public-document.ts` (the predicate), or the cooldown/reopen paths of `runner/subscriptions/manager.ts` and `adapters/feed.ts` — and re-drive the STATUS ROW whenever `runner/watching/status-sentence.ts` changes, which is what moved this pass.*
+*Verified: entry path, hold arming and the status row 2026-09-24, tree `8d0403322` (v0.408.1) — hold armed at exactly +15:00 and the row byte-identical to the prior pass. The probe, the doubling and recovery were last driven 2026-09-19 at tree `15db727ba` (v0.353.1). Re-drive the full ladder when the HOLD MACHINERY changes — `shared/origin-limiter.ts` (constants), `shared/public-document.ts` (the predicate), or the cooldown/reopen paths of `runner/subscriptions/manager.ts` and `adapters/feed.ts` — and re-drive the STATUS ROW whenever `runner/watching/status-sentence.ts` changes. Both triggers fired this pass and both proved inert; the status-sentence change is gated on `coverage.backend === PAGE_BACKEND`, unreachable from a feed source.*
 
 When a site puts the daemon's IP under a Cloudflare challenge, every source on
 that host goes quiet together after the first challenged answer, one probe goes
