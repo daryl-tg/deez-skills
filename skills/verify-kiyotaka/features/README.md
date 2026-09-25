@@ -23,6 +23,11 @@ before driving, then use the matching feature file as the recipe.
 - `doctor` run twice on a freshly-`up`ed lane, with the second run believed. Its
   first transform probe compiles the module graph cold and has exceeded the
   budget, printing `the tree does not compile` about a healthy tree.
+- BOTH first-load overlays cleared, in order: the once-per-device ink tutorial
+  (`find testid ink-tutorial-close click`) and then the signup modal, which
+  raises as soon as the tutorial stops suppressing it. They share the
+  `.dialog-style.dialog-overlay` shell, so probing only the signup modal's testid
+  on a fresh device reports `No element found` and reads as a stuck modal.
 - Guest signup modal dismissed
   (`find testid guest-signup-modal-close-btn click`) — dismiss it immediately
   before each capture, never once up front. Do **not** drive it by the name
@@ -103,6 +108,18 @@ order: `Sub-features`, `How to get to it (user POV)`,
 
 Keep implementation detail out. Name only user paths, stable handles, required
 state, commands, and observable proof.
+
+## Which dialog am I on?
+
+`search-v2` now resolves TRUE for guests (`GUEST_DEFAULT_FLAGS`), so the guest
+lane exercises the V2 symbol dialog and `sym-scope` is a guest proof rather than
+an internal-role one. This flag has flipped twice; read it off the DOM at the
+start of any symbol run rather than trusting either lane:
+
+```bash
+./control-kiyotaka browser eval \
+  "JSON.stringify({v2:document.querySelectorAll('[data-testid^=search-v2-category-]').length,legacy:document.querySelectorAll('[data-testid^=intent-filter-class-]').length})"
+```
 
 ## Features
 
