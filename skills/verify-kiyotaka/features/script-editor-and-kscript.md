@@ -19,8 +19,8 @@ buffer and no tab — Run is a silent no-op. Do not photograph it.
 
 ## How to get to it (user POV)
 
-- Click the `</>` button in the ticker bar, or open Super Search and pick the
-  `Script Editor` row.
+- Click the `</>` button in the ticker bar, or open Super Search (its own
+  ticker-bar button) and pick the `Indicator Editor` row.
 
 ## Driving it with control-kiyotaka
 
@@ -42,18 +42,30 @@ Preconditions:
   ./control-kiyotaka browser eval "(()=>{const d=document.querySelector('#tc-container-0').__vueParentComponent.setupState.dialogStore;return JSON.stringify({auth:d.isAuthenticationDialogOpen,feature:d.guestLoginFeatureId})})()"
   ```
 
-  **Super Search is the ungated route, and the only way a guest opens the editor.**
-  Its row snapshots as a `generic`, not an option or a button, so click it by ref
-  from the snapshot rather than `find role option`:
+  **Super Search is the ungated route, and the ticker bar now has a button for
+  it.** `tb-super-search-btn` opens it with no guest gate — proven live,
+  `isSuperSearchOpen` true with `isAuthenticationDialogOpen` false — which is
+  simpler than setting the store flag by hand. **The row reads `Indicator
+  Editor`, not `Script Editor`**; nothing renders the old string, so a recipe
+  matching it finds nothing.
 
   ```bash
-  ./control-kiyotaka browser eval "document.querySelector('#tc-container-0').__vueParentComponent.setupState.dialogStore.isSuperSearchOpen = true"
-  ./control-kiyotaka browser find placeholder "Search the platform" fill "editor"
-  ./control-kiyotaka browser snapshot -i -c   # -> generic "Script Editor" [ref=eN]
-  ./control-kiyotaka browser click "@eN"
+  ./control-kiyotaka browser find testid tb-super-search-btn click
+  ./control-kiyotaka browser find testid super-search-input fill "editor"
+  ./control-kiyotaka browser find text "Indicator Editor" click
   ```
 
-  The `Script Editor` row needs a query — but Super Search is not empty before one:
+  **Drive the input by its testid, and give the overlay time.** The overlay
+  mounts lazily: for the first seconds `isSuperSearchOpen` is already `true`
+  while the overlay is absent from the DOM entirely — no `super-search-overlay`,
+  no input, so `find placeholder "Search the platform"` fails and an inputs
+  census does not list it. That reads as a dead button. It is not; poll for
+  `[data-testid=super-search-overlay]` before typing. Once mounted the input does
+  carry the `Search the platform` placeholder, but `super-search-input` is the
+  handle that does not depend on the timing. The overlay also carries
+  `super-search-bubble-{indicators,tools,settings,shortcuts}-btn`.
+
+  The `Indicator Editor` row needs a query — but Super Search is not empty before one:
   it opens on suggested "who to follow" rows, so rows on screen are not proof your
   query landed. Match the row you want, never the row count. Give the overlay a
   beat, too: right after `isSuperSearchOpen = true` the input exists and is
@@ -66,8 +78,14 @@ Preconditions:
   `role=complementary` region named `Editor` is present from first paint and
   proves nothing. The open/closed bit is the attribute:
 
+  **The drawer's accessible name is now `Indicator Editor`, not `Editor`.** A
+  probe keyed on `'Editor'` matches nothing and returns `undefined` for `inert`,
+  which reads as the drawer never rendering. The desktop boot now carries five
+  complementary drawers — `Indicator Editor`, `Objects`, `Journal`, `News`,
+  `Trade`:
+
   ```bash
-  ./control-kiyotaka browser eval "(()=>{const a=[...document.querySelectorAll('[role=complementary]')].find(e=>e.getAttribute('aria-label')==='Editor');return JSON.stringify({exists:!!a,inert:a?.hasAttribute('inert')})})()"
+  ./control-kiyotaka browser eval "(()=>{const a=[...document.querySelectorAll('[role=complementary]')].find(e=>e.getAttribute('aria-label')==='Indicator Editor');return JSON.stringify({exists:!!a,inert:a?.hasAttribute('inert')})})()"
   ```
 
   A closed drawer reads `{exists:true, inert:true}` with empty text — that is the
@@ -77,8 +95,14 @@ Preconditions:
   `innerText.length` stays `0`, `children` sits at `2` and `kscript-run-btn` does
   not exist; the content appears around t+25s and settles by t+30s. Nothing marks
   the gap — no chunk error, no spinner — so a verifier who budgets ten or fifteen
-  seconds reads an open-but-blank drawer and reports the editor as broken. Poll
-  `kscript-run-btn` for at least 45s before concluding anything.
+  seconds reads an open-but-blank drawer and reports the editor as broken.
+  `[data-testid=editor-workspace-skeleton]` is the marker for that state: while it
+  is present the workspace chunk has not resolved, and `EditorDrawer` gates
+  `KScriptWorkspace` on both its own (very large) chunk import and
+  `awaitDeferredLocaleGate()`. One pass measured ~25s; a later pass on a newer
+  tree still had the skeleton up past 105s with no console error, so treat the
+  wait as unbounded on a dev lane and assert on the skeleton clearing rather than
+  on a deadline.
   **Do not wait on `.cm-editor` at all on the guest lane: it stays `0` forever**,
   because a guest has no writable buffer to mount. It is not a timing signal and
   not a failure.
@@ -103,6 +127,17 @@ Preconditions:
   (`kscript-run-target-frontend-btn` / `kscript-run-target-backend-btn`);
   strategies are Cloud-locked and TypeScript Indicators Browser-locked. Read the
   chip before deciding which log to chase.
+- **Only strategies are run-target locked now.** A TypeScript Indicator tab
+  defaults to Browser but can pick Cloud, so `runTargetLocked` is true for
+  strategies alone — do not report a TypeScript tab offering Cloud as a bug.
+- **The blank template is TypeScript.** `kscript-template-blank-btn` now reads
+  `Blank indicator`; the legacy kScript blank is a separate
+  `kscript-template-blank-legacy-btn` ("Blank kScript (legacy)").
+- **Kata is a second wall inside the drawer.** The activity bar carries a Kata
+  entry for non-guests whose click runs `handleGuestAccess(FeatureId.KATA)` — a
+  different feature id from `SCRIPT_EDITOR`, so an authed-but-ungranted account
+  can open the editor and still be walled here. It is desktop-only and
+  signed-in-only, and it is also toggleable from Super Search.
 - **Mount a script.** A kScript indicator is registry key `TECHNICAL_SCRIPT` with
   `ovType` in params, so a mounted script asserts exactly like an indicator:
   `./control-kiyotaka browser eval "(()=>JSON.stringify(window.tc[0].metadata.map(m=>m.settings?.ovType ?? m.type)))()"`.

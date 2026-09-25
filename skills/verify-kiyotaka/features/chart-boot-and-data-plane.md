@@ -114,6 +114,23 @@ Preconditions:
   ```bash
   ./control-kiyotaka browser press Escape
   ```
+- **The signup modal is no longer the first overlay a guest meets.** A once-per-
+  device `InkTutorialDialog` ("Draw by holding") arms shortly after first paint
+  and sits in the SAME `.dialog-style.dialog-overlay` shell, so it blocks clicks
+  identically — but it answers to a different testid, and probing the signup
+  modal's returns `No element found by testid 'guest-signup-modal-close-btn'`,
+  which reads as an undismissable modal. Clear it by its own handle, and expect
+  the signup modal to raise the moment you do, because the tutorial was
+  suppressing it:
+
+  ```bash
+  ./control-kiyotaka browser find testid ink-tutorial-close click
+  ./control-kiyotaka browser find testid guest-signup-modal-close-btn click
+  ```
+
+  Its card testids are `ink-tutorial`, `ink-tutorial-close` and
+  `ink-tutorial-card-<tool>`. Two overlays in a row is the normal first boot, so
+  re-read the overlay count after each dismissal rather than shooting.
 - **The signup modal is time-gated, so an early screenshot is not proof it is
   gone.** It arms only after the first chart paint plus ~8s of visible time, then
   waits for ~2s idle. Poll past that window before deciding the coast is clear.
@@ -123,8 +140,10 @@ Preconditions:
   surface — not a bar. `control-kiyotaka browser open` lands in a fresh tab, which
   resets the latch and brings the modal back, which is why it can reappear
   mid-session after a reopen. `GuestSignupPromptBar` (non-blocking, different
-  testids) is only reachable on a later local day, so a frame comparison across
-  drives can be comparing two different surfaces.
+  testids) is the only surface a MOBILE guest gets, and it arrives on the first
+  eligible tick rather than a later day; on desktop it still needs a later local
+  day, so a frame comparison across drives can be comparing two different
+  surfaces.
 - **The modal waits for you to get out of the way, then pops.** Its gate suppresses
   firing while any `.dialog-style` / `.q-dialog` is open, so it deliberately holds
   until the driver closes whatever it opened and then raises over the next step.

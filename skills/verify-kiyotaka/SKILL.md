@@ -39,8 +39,12 @@ The guest lane draws real candles with the backend down, because candles ride
 the v2 gateway websocket directly from the worker, not the `/api` proxy. Do not
 start the operator's stack to prove something the guest lane already proves.
 
-Guest costs you: a `Guest Mode` badge, an indicator cap (`Indicators 2/3`),
-Replay reading `Market Replay is a Plus feature`, and no persistence.
+Guest costs you: a `Guest Mode` badge, an indicator cap (the ticker reads a bare
+`2/3` — the `Indicators` prefix is gone), Replay reading `Market Replay is a Plus
+feature`, and no persistence.
+
+Guest does NOT cost you the V2 symbol dialog any more: `search-v2` resolves true
+for guests, so the guest lane drives V2 and its scope surfaces.
 
 ## Launch
 

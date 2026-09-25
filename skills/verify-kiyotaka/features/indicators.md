@@ -34,8 +34,17 @@ Preconditions:
   has two modes and the default is `indicator-control-bar-wrun-registry-btn`
   ("Indicators"), which lists `REGISTRY` packages and the `PORTED FROM KSCRIPT` set.
   Native/official indicators — TPO, volume, open interest, RSI — live behind
-  `indicator-control-bar-legacy-btn` ("kScript LEGACY"), which opens **two**
-  control rows, not one. Source is a tab pair — `tab "Official"` (selected) and
+  `indicator-control-bar-legacy-btn` ("kScript (legacy) library"), which opens
+  **two** control rows, not one. **It is a disclosure fold, not a mode switch**:
+  it carries `aria-expanded`, so a recipe that clicks it unconditionally will
+  collapse it again and land in the registry view while believing it is in the
+  legacy one. Read the attribute, and only click when it says `false`:
+
+  ```bash
+  ./control-kiyotaka browser eval \
+    "document.querySelector('[data-testid=indicator-control-bar-legacy-btn]').getAttribute('aria-expanded')"
+  ```
+ Source is a tab pair — `tab "Official"` (selected) and
   `tab "Community"` — and the categories below it are seven buttons: `All`,
   `Technical`, `Volatility`, `Statistics`, `Quant Validation`, `Volume
   Footprints`, `Market Analysis`. `Quant Validation` and `Volume Footprints` are
@@ -56,8 +65,32 @@ Preconditions:
   indicators"`. `Discover` renders no rows at all on a guest boot, so a verifier
   who stops there reads an empty dialog as a dead catalog. Take `Browse all
   indicators` — that is the view whose header reads `OFFICIAL INDICATORS <n>` and
-  the only one that tells you whether the catalog is seeded.
-- **Add without the UI**, when the proof is about the overlay rather than the
+  the only one that tells you whether the catalog is seeded. Drive the tabs by
+  testid rather than that button's text: `indicator-tab-discover-btn`,
+  `indicator-tab-all-btn`, and the source pair `indicator-source-tab-official` /
+  `indicator-source-tab-community` (a guest sees only those two; `My Scripts` and
+  `Marketplace` render for signed-in and flag-enabled sessions). The unseeded
+  banner has its own handle, `indicator-catalog-unseeded-notice`, which is a
+  cleaner assertion than the banner text. `indicator-browse-all-btn` renders only
+  in the empty state, so do not depend on it being there.
+- **The engine bypass did not mount anything on the 2026-09-25 tree, and that
+  currently leaves `ind-add`, `ind-legend` and `ind-limit` with no guest route.**
+  `chartStore.addIndicator('ORDERBOOK_DEPTH',{},0)` returned without throwing and
+  added nothing: `metadata` unchanged, the ticker counter pinned, and — unlike the
+  documented failure — **no** `no indicatorControl registered` line in the
+  console. Reproduced on a fresh agent-browser daemon, on a lane whose doctor was
+  green and whose candles arrived in 5s, with the registry warmed by opening and
+  closing the dialog first, for both `ORDERBOOK_DEPTH` and `TRADING_TOTAL_VOLUME`
+  — two of the three `ALWAYS_LOAD_TYPES`, so it is the add path rather than one
+  control. An `await`ed call never settled. Since every dialog add is guest-walled
+  (below), a guest has no way to mount an overlay at all while this holds. Check
+  it before planning a run that depends on those three sub-features, and if it
+  still fails, report them unreachable rather than inventing a route.
+
+  The recipe below is kept because it is the intended technique, not because it
+  was observed working on that tree.
+
+  **Add without the UI**, when the proof is about the overlay rather than the
   dialog — but only with a key whose CONTROL IS ALREADY LOADED:
   `./control-kiyotaka browser eval "document.querySelector('#tc-container-0').__vueParentComponent.setupState.chartStore.addIndicator('ORDERBOOK_DEPTH',{},0)"`.
   Registry keys are the `INDICATOR_TYPES` ids from
@@ -125,7 +158,7 @@ Preconditions:
   `chartStore.addIndicator` does not enforce**. A programmatic fourth add mounts
   regardless: the counter stayed pinned at `Indicators 3/3` while `metadata` grew
   to six entries. The gate runs only when the caller passes `opts.recordUndo` or
-  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1239`), and a
+  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1246`), and a
   bare `addIndicator(KEY,{},0)` passes neither. Re-reading `metadata` after a
   programmatic add therefore proves nothing about the cap, and reads as the cap
   being broken when it is not. Use eval adds to REACH three slots, then assert the
