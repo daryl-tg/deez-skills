@@ -62,6 +62,9 @@ example, button "Open om conversations", button "New session".
 - **On mobile, "New session" sits behind the drawer.** Click "Open om conversations" first.
 - **`view=room` shows a store-5xx alert strip** over the first topic card. Add `alerts=quiet`.
 - **A `draft=` query shows a character counter** above the composer.
+- **Some surfaces focus a control on mount and draw a clay focus ring** until
+  the first tap. `view=library&lens=todos` focuses its back button. Give the
+  clip a 0.2s lead-in and enter it at frame 6 or later, as for DM views.
 - **DM views settle by frame 2 without reporting an animation.** Frames 0 and 1 lack the reaction chips and the "Request accepted" strip, so start a DM clip's cut at frame 3 or later.
 - **Palettes `graphite`, `warm` and `slate` are nearly indistinguishable at phone width.** Only `theme=light` reads as a change.
 
