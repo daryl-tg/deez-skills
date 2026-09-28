@@ -244,4 +244,47 @@ describe("scene.ts determinism on real pages", () => {
       expect({ as, px }).toEqual({ as, px: [0, 255, 0] });
     }
   });
+
+  test("boot layout that converges over real and virtual frames is settled before frame 0", () => {
+    const { report, framesDir } = renderScene("measure", {
+      entry: "scene-measure.html", viewport: { width: 200, height: 60, dpr: 2 }, duration: 0.5,
+    });
+    const box = regionHashes(framesDir, "280:100:0:0");
+    expect(box.length).toBe(15);
+    expect(new Set(box).size).toBe(1);
+    // Settled width 103 CSS px from x=10: device px 20..225 are white, 226 is not.
+    expect(pixel(join(framesDir, "frame-00000.png"), 0, 225, 60)).toEqual([255, 255, 255]);
+    expect(pixel(join(framesDir, "frame-00000.png"), 0, 226, 60)).toEqual([0, 0, 0]);
+    // The spinning element never counts as unsettled layout.
+    expect(report.warnings).toEqual([]);
+  });
+
+  test("boot waits for in-flight requests and re-lays out from a steady state before frame 0", () => {
+    const { report, framesDir } = renderScene("pin", {
+      entry: "scene-pin.html", viewport: { width: 100, height: 100, dpr: 1 }, duration: 0.3,
+      routes: [{ path: "/api/rows", body: "10", contentType: "application/json", delayMs: 300 }],
+    });
+    const all = regionHashes(framesDir, "100:100:0:0");
+    expect(all.length).toBe(9);
+    expect(new Set(all).size).toBe(1);
+    // Pinned after the rows arrived: the green end marker fills the bottom.
+    expect(pixel(join(framesDir, "frame-00000.png"), 0, 50, 95)).toEqual([0, 255, 0]);
+    expect(report.warnings).toEqual([]);
+  });
+
+  test("a transition started by boot churn is finished before frame 0; an entrance animation still plays", () => {
+    const { framesDir } = renderScene("boot-transition", {
+      entry: "scene-boot-transition.html", viewport: { width: 200, height: 60, dpr: 1 }, duration: 0.5,
+      removeClasses: ["reduced-motion"],
+    });
+    const box = regionHashes(framesDir, "160:60:0:0");
+    expect(box.length).toBe(15);
+    expect(new Set(box).size).toBe(1);
+    // Width 140 from x=10: x=149 white, x=150 black, at frame 0.
+    expect(pixel(join(framesDir, "frame-00000.png"), 0, 149, 30)).toEqual([255, 255, 255]);
+    expect(pixel(join(framesDir, "frame-00000.png"), 0, 150, 30)).toEqual([0, 0, 0]);
+    // The entrance fade runs 0 -> 1 over 300ms: invisible at frame 0, full by frame 12.
+    expect(pixel(join(framesDir, "frame-00000.png"), 0, 180, 20)[1]).toBeLessThanOrEqual(3);
+    expect(pixel(join(framesDir, "frame-00012.png"), 0, 180, 20)[1]).toBeGreaterThanOrEqual(252);
+  });
 });

@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 200px; height: 60px; overflow: hidden; background: #000; }
+      #box { position: absolute; left: 10px; top: 10px; width: 100px; height: 40px; background: #fff; }
+      #spin { position: absolute; left: 150px; top: 10px; width: 20px; height: 20px; background: #00f; animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <div id="box"></div>
+    <div id="spin"></div>
+    <script>
+      // A boot-time measure loop, like a component that sizes itself from a
+      // ResizeObserver and commits in rAF: each round needs a real rendering
+      // frame (the observer) and a virtual one (rAF). Three rounds, one CSS
+      // px each, then it is stable at 103px.
+      const box = document.getElementById("box");
+      let rounds = 0;
+      new ResizeObserver(() => {
+        if (rounds >= 3) return;
+        requestAnimationFrame(() => {
+          if (rounds >= 3) return;
+          rounds++;
+          box.style.width = 100 + rounds + "px";
+        });
+      }).observe(box);
+    </script>
+  </body>
+</html>

@@ -59,7 +59,11 @@ binds a port); requests to any other origin are aborted. Boot awaits waitFor and
 the first trigger's target, then loads every declared @font-face (again after
 each trigger). A trigger is a real mouse tap at the element's centre, then the
 pointer leaves the page, so no focus ring or hover appears; a covered target is
-an error. Text carets are hidden. --frames-dir also writes frame-NNNNN.png.
+an error. Text carets are hidden. Before frame 0, boot steps virtual and real
+frames until no request is in flight and layout stops moving (transitions that
+boot churn started are finished; keyframe entrances still play), nudges the
+viewport height by 1px and back, and settles again; a settle still moving after
+3s adds a warning. --frames-dir also writes frame-NNNNN.png.
 The report lists each trigger's animations and any finite animation that
 started with no trigger (timer-driven; give it fixture control).
 Exit 0 on a finished render; 2 on any usage, environment or render error.
@@ -162,7 +166,16 @@ function installPageLib() {
       a.currentTime = Math.max(0, t - b) * 1000;
     }
   }
-  w.__pv = { adopt, pose, untriggered };
+  // A transition needs a style change after first style, so one alive during
+  // boot is churn (a late class, a font swap after reduced-motion went away),
+  // and whether it exists at all depends on boot timing. Land it at its end.
+  // Keyframe animations are left alone: an entrance is content.
+  function finishTransitions() {
+    for (const a of document.getAnimations()) {
+      if ((a as any).transitionProperty !== undefined && !infinite(a)) a.finish();
+    }
+  }
+  w.__pv = { adopt, pose, untriggered, finishTransitions };
 }
 
 async function render(scene: Scene, out: string, framesDir?: string) {
@@ -178,6 +191,11 @@ async function render(scene: Scene, out: string, framesDir?: string) {
   const browser = await chromium.launch({ args: ["--disable-gpu"] });
   try {
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: dpr });
+    // Requests the page is still waiting on; layout is not settled while any are.
+    let inflight = 0;
+    page.on("request", () => inflight++);
+    page.on("requestfinished", () => inflight--);
+    page.on("requestfailed", () => inflight--);
     await page.clock.install({ time: 0 });
     await page.clock.pauseAt(0);
     await page.route("**/*", async (route) => {
@@ -246,7 +264,55 @@ async function render(scene: Scene, out: string, framesDir?: string) {
     await strip(scene.removeClasses ?? []);
     await settleFonts("before frame 0");
     await page.evaluate(installPageLib);
-    await page.evaluate(() => (window as any).__pv.adopt("baseline", 0, 0));
+
+    // Layout settle. Boot-time measuring (ResizeObserver on real frames,
+    // committed in rAF on virtual ones) otherwise lands wherever real time
+    // left it, one to two device px apart between renders. Alternate a
+    // virtual step with real frames until no request is in flight and every
+    // box stays put. Animations are held at 0 meanwhile, so a spinner's
+    // transform never reads as movement.
+    const signature = () =>
+      page.evaluate(() => {
+        const pv = (window as any).__pv;
+        pv.finishTransitions();
+        pv.adopt("baseline", 0, 0);
+        pv.pose(0, 0);
+        let sig = `${scrollX},${scrollY}`;
+        for (const el of Array.from(document.body.querySelectorAll("*"))) {
+          const r = el.getBoundingClientRect();
+          sig += `|${Math.round(r.x * 64)},${Math.round(r.y * 64)},${Math.round(r.width * 64)},${Math.round(r.height * 64)}`;
+        }
+        return sig;
+      });
+    const settle = async (when: string) => {
+      let last = await signature();
+      let steady = 0;
+      const deadline = Date.now() + 3_000;
+      for (let i = 0; steady < 3; i++) {
+        if (i >= 200 || Date.now() > deadline) {
+          warnings.push(`layout still moving after 3s of settle ${when}`);
+          return;
+        }
+        await page.clock.runFor(16);
+        await page.waitForTimeout(32); // Node-side: two real rendering frames
+        const sig = await signature();
+        steady = sig === last && inflight === 0 ? steady + 1 : 0;
+        last = sig;
+      }
+    };
+    await settle("at boot");
+    // A product can settle into one of several stable layouts, chosen by the
+    // order boot events happened to arrive in (a tape pins its scroll at a
+    // resize, then keeps the fractional remainder it had). A 1px viewport
+    // nudge makes it re-lay out from a steady state, the same way every time.
+    await page.setViewportSize({ width, height: height + 1 });
+    await settle("after the viewport nudge");
+    await page.setViewportSize({ width, height });
+    await settle("before frame 0");
+    await page.evaluate(() => {
+      (window as any).__pv.finishTransitions();
+      (window as any).__pv.adopt("baseline", 0, 0);
+    });
 
     if (framesDir) mkdirSync(framesDir, { recursive: true });
     const ff = spawn("ffmpeg", [
