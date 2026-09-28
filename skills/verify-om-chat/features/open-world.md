@@ -14,6 +14,18 @@ fixture cannot reach.
   here" empty state.
 - Transport connect / retry, and the offline banner when it cannot reach the
   relay.
+- A resizable channel column beside the world (`#948`): a handle
+  `[data-world-channel-resize]` (`WorldChatPane.tsx:343-374`) that drags,
+  moves with the arrow keys, and resets on Home or double-click. Width is
+  76–280px and persists to `localStorage` key `om.chat.world.channelWidth`
+  (`channelWidth.ts`). It is present in `mocks/world-solo/index.html?worldprobe=1`
+  (measured at `f7d7c987`).
+- A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
+  font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
+  home session (`Shell.tsx:4490`). Reach it through
+  `shell-fixture.html?view=settings&settingsPage=appearance`, not
+  `settings-fixture.html`; see
+  [settings-and-appearance.md](settings-and-appearance.md).
 
 ## How to get to it (user POV)
 
@@ -32,7 +44,7 @@ has its own harness:
 ```bash
 export AGENT_BROWSER_SESSION=verify-world
 agent-browser set viewport 1440 900
-agent-browser open "$(./control-om-chat url \
+agent-browser open "$(control-om-chat url \
   'mocks/world-solo/index.html?worldprobe=1')"
 ```
 

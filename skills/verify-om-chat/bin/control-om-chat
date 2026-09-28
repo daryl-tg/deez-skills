@@ -1,0 +1,295 @@
+#!/usr/bin/env bash
+# control-om-chat — the deterministic verification lane for the OM Chat GUI.
+#
+# Lives in the hub (skills/verify-om-chat/bin/), linked onto PATH as
+# `control-om-chat`. It is not committed to the app repo and never was: it used to
+# sit untracked in one checkout, so a worktree did not have it and a copy had to
+# be dropped into each tree before a lane could start. Now one copy drives
+# whichever checkout or worktree you are standing in.
+#
+# Thin by construction: it binds the repo's preconditions (assigned ports, the
+# stale bundle trap, the device-owned review renderer) and delegates driving to
+# agent-browser rather than reimplementing it.
+#
+#   doctor                        is this instance worth driving?
+#   up [--port N]                 start the run-owned fixture lane (background)
+#   down                          stop only what `up` started
+#   url [path]                    print the lane URL for a fixture/app path
+#   browser <verb> [args...]      delegate to agent-browser
+#   cli -- <command...>           run a repo command, capture stdout/stderr/exit
+#   evidence publish <run> <rev>  copy artifacts to the review renderer root
+#
+# The full reserved-port table is `## Reserved ports` in ~/.claude/CLAUDE.md.
+# 8097 is the operator's dev server, 8098 the device-owned review renderer,
+# 31337 the om daemon, 31417 the operator's source dev daemon. This script binds
+# none of them.
+set -euo pipefail
+
+# The repo comes from WHERE YOU ARE STANDING, not from where this script lives,
+# so one copy drives whichever worktree you are in. OM_CHAT_REPO_ROOT overrides
+# for the rare call from outside a checkout.
+if [ -n "${OM_CHAT_REPO_ROOT:-}" ]; then
+  REPO_ROOT="$OM_CHAT_REPO_ROOT"
+else
+  REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+fi
+[ -n "$REPO_ROOT" ] || {
+  printf 'control-om-chat: not inside a git worktree. cd into the OM Chat checkout (~/gitlab/openmarket-chat) or one of its worktrees, or set OM_CHAT_REPO_ROOT.\n' >&2
+  exit 1
+}
+
+# Driving the wrong repo is worse than not running. Two checks, because a path
+# alone cannot catch the failure that matters: the deprecated GitHub checkout
+# still exists, still has the fixture, and still builds.
+[ -f "$REPO_ROOT/tools/visual/shell-fixture.html" ] && [ -d "$REPO_ROOT/packages/chat-ui" ] || {
+  printf 'control-om-chat: %s is not an OM Chat workspace (no tools/visual/shell-fixture.html or packages/chat-ui).\n' "$REPO_ROOT" >&2
+  exit 1
+}
+EXPECTED_REMOTE="gitlab.com/openmarketxyz/frontend/openmarket-chat"
+ORIGIN="$(git -C "$REPO_ROOT" remote get-url origin 2>/dev/null || true)"
+case "$ORIGIN" in
+  *"$EXPECTED_REMOTE"*) : ;;
+  *) printf 'control-om-chat: %s has origin %s, not %s. The GitHub openmarket-chat checkouts are deprecated history; never drive, build, or branch from them.\n' "$REPO_ROOT" "${ORIGIN:-<none>}" "$EXPECTED_REMOTE" >&2
+     exit 1 ;;
+esac
+
+# Assigned, never chosen. 18097-18197 is the agent-owned test-server range and
+# is deliberately NOT tunnelled to the MacBook: a lane URL is never a review URL.
+LANE_PORT="${OM_CHAT_LANE_PORT:-18097}"
+LANE_PORT_MIN=18097
+LANE_PORT_MAX=18197
+
+REVIEW_ORIGIN="http://127.0.0.1:8098"
+REVIEW_ROOT="${OM_CHAT_REVIEW_ROOT:-$HOME/.local/state/om-chat-feature}"
+ARTIFACTS="${ARTIFACTS:-$REPO_ROOT/artifacts}"
+RUN_STATE="${OM_CHAT_LANE_STATE:-$REPO_ROOT/.control-om-chat}"
+
+die() { printf 'control-om-chat: %s\n' "$*" >&2; exit 1; }
+note() { printf 'control-om-chat: %s\n' "$*" >&2; }
+
+lane_origin() { printf 'http://127.0.0.1:%s' "$LANE_PORT"; }
+pidfile() { printf '%s/lane-%s.pid' "$RUN_STATE" "$LANE_PORT"; }
+logfile() { printf '%s/lane-%s.log' "$RUN_STATE" "$LANE_PORT"; }
+
+assert_lane_port() {
+  [ "$LANE_PORT" -ge "$LANE_PORT_MIN" ] 2>/dev/null && [ "$LANE_PORT" -le "$LANE_PORT_MAX" ] \
+    || die "lane port $LANE_PORT is outside the agent range $LANE_PORT_MIN-$LANE_PORT_MAX. Take an assigned port, never a merely-free one."
+}
+
+port_busy() { nc -z 127.0.0.1 "$1" >/dev/null 2>&1; }
+
+lane_is_ours() { [ -f "$(pidfile)" ] && kill -0 "$(cat "$(pidfile)")" 2>/dev/null; }
+
+# ---------------------------------------------------------------------------
+# doctor — read-only. Never starts, stops, or mutates anything.
+# ---------------------------------------------------------------------------
+cmd_doctor() {
+  local fail=0
+  assert_lane_port
+
+  printf 'repo         %s\n' "$REPO_ROOT"
+  printf 'origin       %s\n' "$ORIGIN"
+  printf 'head         %s\n' "$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+
+  # @cli/* resolves from ../openmarket-internal, then ../openmarket. A worktree
+  # anywhere else typechecks and builds nothing that imports the daemon.
+  if [ -e "$REPO_ROOT/../openmarket-internal/packages/cli/src" ] || [ -e "$REPO_ROOT/../openmarket/packages/cli/src" ]; then
+    printf 'sibling      openmarket-internal resolves\n'
+  else
+    printf 'sibling      NO ../openmarket-internal — @cli/* will not resolve. Put worktrees at ~/gitlab/openmarket-chat-<slug>.\n'; fail=1
+  fi
+
+  # Lane state and artifacts live inside the checkout. One line in the common
+  # git dir's info/exclude covers every worktree; without it they show as
+  # untracked. Report the fix rather than editing a repo this script does not own.
+  local excl; excl="$(git -C "$REPO_ROOT" rev-parse --git-common-dir 2>/dev/null)/info/exclude"
+  case "$excl" in /*) : ;; *) excl="$REPO_ROOT/$excl" ;; esac
+  if grep -qx '.control-om-chat/' "$excl" 2>/dev/null && grep -qx 'artifacts/' "$excl" 2>/dev/null; then
+    printf 'exclude      .control-om-chat/ and artifacts/ excluded\n'
+  else
+    printf 'NOTE         lane state would show as untracked. Add once: printf %%s\\n .control-om-chat/ artifacts/ >> %s\n' "$excl"
+  fi
+
+  printf 'lane port    %s' "$LANE_PORT"
+  if lane_is_ours; then printf ' (run-owned, up)\n'
+  elif port_busy "$LANE_PORT"; then printf ' (BUSY, not ours — pick another 18097-18197 port)\n'; fail=1
+  else printf ' (free)\n'; fi
+
+  if port_busy "$LANE_PORT"; then
+    local served
+    served="$(curl -fsS --max-time 3 "$(lane_origin)/rooms/tools/visual/shell-fixture.html" 2>/dev/null | head -c 400 || true)"
+    case "$served" in
+      *"OM Chat visual fixture"*|*'<div id="root">'*) printf 'lane serves  shell fixture ok\n' ;;
+      "") printf 'lane serves  NO RESPONSE at %s/rooms/\n' "$(lane_origin)"; fail=1 ;;
+      *) printf 'lane serves  UNEXPECTED body — something else owns this port\n'; fail=1 ;;
+    esac
+  fi
+
+  # The false-pass killer: dist/ is gitignored, so it never updates from a merge
+  # and nothing says it is stale. Only the daemon and desktop lanes read dist/;
+  # the fixture lane is served from source and is unaffected.
+  local digest
+  digest="$(cd "$REPO_ROOT" && bun -e '
+    const { buildInputsDigest, readStamp } = await import("./tools/build-inputs-digest.ts");
+    const { existsSync, readFileSync } = await import("node:fs");
+    if (!existsSync("dist/index.html")) { console.log("absent"); process.exit(0); }
+    const stamp = readStamp(readFileSync("dist/index.html", "utf8"));
+    const actual = buildInputsDigest(process.cwd());
+    console.log(!stamp ? "unstamped" : stamp.digest === actual ? `fresh (${stamp.revision})` : `STALE (built from ${stamp.revision})`);
+  ' 2>/dev/null || echo unknown)"
+  printf 'dist bundle  %s\n' "$digest"
+  case "$digest" in
+    STALE*|absent|unstamped) printf 'NOTE         dist/ is not this tree. The fixture lane is unaffected; run `bun run build` before any daemon or desktop lane.\n' ;;
+  esac
+
+  command -v agent-browser >/dev/null 2>&1 \
+    && printf 'harness      agent-browser present\n' \
+    || { printf 'harness      agent-browser MISSING\n'; fail=1; }
+
+  # The renderer is device-owned. Probe it; never start, restart, or replace it.
+  local marker
+  marker="$(curl -fsS --max-time 3 -D - -o /dev/null "$REVIEW_ORIGIN/_om-review-health" 2>/dev/null | tr -d '\r' | grep -i '^x-om-chat-review-server:' || true)"
+  if [ -n "$marker" ]; then printf 'renderer     8098 up (%s)\n' "${marker#*: }"
+  else printf 'renderer     8098 UNREACHABLE — evidence cannot be published. Do not start it yourself.\n'; fi
+
+  [ "$fail" -eq 0 ] || die 'doctor failed. Do not drive this instance.'
+  printf 'doctor       ok\n'
+}
+
+# ---------------------------------------------------------------------------
+# up / down — run-owned lifecycle. Stop only what this run started.
+# ---------------------------------------------------------------------------
+cmd_up() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --port) LANE_PORT="${2:?--port needs a value}"; shift 2 ;;
+      *) die "usage: control-om-chat up [--port N]" ;;
+    esac
+  done
+  assert_lane_port
+
+  if lane_is_ours; then note "lane already up"; printf '%s/rooms/\n' "$(lane_origin)"; return 0; fi
+  port_busy "$LANE_PORT" && die "port $LANE_PORT is busy and not run-owned. Allocate another 18097-18197 port; never kill a listener this run did not start."
+
+  mkdir -p "$RUN_STATE"
+  # Bind 127.0.0.1 explicitly: a [::1]-only server is invisible through the
+  # MacBook's IPv4 loopback forwards. --strictPort so a taken port fails loudly
+  # instead of drifting onto a neighbour's lane.
+  ( cd "$REPO_ROOT" && exec bun x vite --port "$LANE_PORT" --strictPort --host 127.0.0.1 ) \
+    >"$(logfile)" 2>&1 &
+  echo $! > "$(pidfile)"
+
+  local waited=0
+  until curl -fsS --max-time 2 -o /dev/null "$(lane_origin)/rooms/tools/visual/shell-fixture.html" 2>/dev/null; do
+    waited=$((waited + 1))
+    [ "$waited" -gt 120 ] && { tail -20 "$(logfile)" >&2; cmd_down; die "lane did not come up within 60s"; }
+    kill -0 "$(cat "$(pidfile)")" 2>/dev/null || { tail -20 "$(logfile)" >&2; rm -f "$(pidfile)"; die "vite exited during startup"; }
+    sleep 0.5
+  done
+  note "lane up (pid $(cat "$(pidfile)")), log $(logfile)"
+  printf '%s/rooms/\n' "$(lane_origin)"
+}
+
+cmd_down() {
+  local pf; pf="$(pidfile)"
+  [ -f "$pf" ] || { note "no run-owned lane on $LANE_PORT; nothing to stop"; return 0; }
+  local pid; pid="$(cat "$pf")"
+  if kill -0 "$pid" 2>/dev/null; then
+    # By pid, never by process name: a name match would kill the operator's
+    # 8097 dev server and every other session's lane.
+    kill "$pid" 2>/dev/null || true
+    local waited=0
+    while kill -0 "$pid" 2>/dev/null && [ "$waited" -lt 20 ]; do sleep 0.25; waited=$((waited + 1)); done
+    kill -9 "$pid" 2>/dev/null || true
+    note "stopped lane pid $pid on $LANE_PORT"
+  fi
+  rm -f "$pf"
+}
+
+cmd_url() {
+  local path="${1:-tools/visual/shell-fixture.html}"
+  printf '%s/rooms/%s\n' "$(lane_origin)" "${path#/}"
+}
+
+cmd_browser() {
+  command -v agent-browser >/dev/null 2>&1 || die 'agent-browser not installed'
+  exec agent-browser "$@"
+}
+
+cmd_cli() {
+  [ "${1:-}" = "--" ] || die 'usage: control-om-chat cli -- <command...>'
+  shift
+  local errfile; errfile="$(mktemp)"
+  set +e
+  ( cd "$REPO_ROOT" && "$@" ) 2>"$errfile"
+  local code=$?
+  set -e
+  [ -s "$errfile" ] && cat "$errfile" >&2
+  rm -f "$errfile"
+  printf 'exit %d\n' "$code" >&2
+  return "$code"
+}
+
+# ---------------------------------------------------------------------------
+# evidence publish — copy the artifact pair into the renderer's root.
+# ---------------------------------------------------------------------------
+cmd_evidence() {
+  [ "${1:-}" = "publish" ] || die 'usage: control-om-chat evidence publish <run-id> <revision>'
+  local run="${2:?run-id required}" rev="${3:?revision required}"
+  local src="$ARTIFACTS/$run/$rev"
+  [ -d "$src" ] || die "no artifacts at $src"
+  [ -f "$src/evidence-manifest.json" ] || die "no evidence-manifest.json in $src — the renderer fills its template from that file and renders an empty gallery without it"
+
+  # The renderer reads capture.screenshots as a filename -> caption MAP. An
+  # array of objects publishes HTTP 200 with zero frames: looks published,
+  # reviews as empty.
+  OM_MANIFEST="$src/evidence-manifest.json" OM_SRCDIR="$src" bun -e '
+    const m = JSON.parse(await Bun.file(process.env.OM_MANIFEST).text());
+    const shots = m?.capture?.screenshots;
+    const bad = [];
+    for (const key of ["runId","revision","goal","capturedAt","repository","branch","candidateCommit","diffSha256"]) {
+      if (!m[key]) bad.push(`missing ${key}`);
+    }
+    if (!shots || Array.isArray(shots) || typeof shots !== "object") {
+      bad.push("capture.screenshots must be a filename -> caption object, not an array");
+    } else if (Object.keys(shots).length === 0) {
+      bad.push("capture.screenshots is empty");
+    } else {
+      for (const file of Object.keys(shots)) {
+        if (!(await Bun.file(`${process.env.OM_SRCDIR}/${file}`).exists())) {
+          bad.push(`manifest names ${file} but it is not in the artifact directory`);
+        }
+      }
+    }
+    if (bad.length) { console.error(bad.join("\n")); process.exit(1); }
+  ' || die 'manifest rejected — fix it before publishing'
+
+  curl -fsS --max-time 5 -o /dev/null "$REVIEW_ORIGIN/_om-review-health" \
+    || die "the review renderer is not answering on 8098. Report awaiting_review_renderer; never start it yourself and never fall back to another port."
+
+  local dest="$REVIEW_ROOT/$run/$rev"
+  mkdir -p "$dest"
+  cp -R "$src/." "$dest/"
+
+  # Publishing is not proof of rendering. Confirm the gallery actually carries
+  # frames before handing the URL over.
+  local gallery; gallery="$(curl -fsS --max-time 10 "$REVIEW_ORIGIN/$run/$rev/" 2>/dev/null || true)"
+  case "$gallery" in
+    *"<img"*) : ;;
+    "") die "gallery did not render at $REVIEW_ORIGIN/$run/$rev/" ;;
+    *) die "gallery rendered with no <img> frames — check capture.screenshots in the manifest" ;;
+  esac
+
+  printf 'MacBook review URL: %s/%s/%s/\n' "$REVIEW_ORIGIN" "$run" "$rev"
+}
+
+case "${1:-}" in
+  doctor)   shift; cmd_doctor "$@" ;;
+  up)       shift; cmd_up "$@" ;;
+  down)     shift; cmd_down "$@" ;;
+  url)      shift; cmd_url "$@" ;;
+  browser)  shift; cmd_browser "$@" ;;
+  cli)      shift; cmd_cli "$@" ;;
+  evidence) shift; cmd_evidence "$@" ;;
+  *) die 'usage: control-om-chat {doctor|up|down|url|browser|cli|evidence}' ;;
+esac

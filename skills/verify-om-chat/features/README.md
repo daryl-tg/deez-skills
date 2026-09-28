@@ -22,10 +22,10 @@ Each file has the same four sections, in order:
 Every snippet in these files opens its harness through the wrapper:
 
 ```bash
-cd /Users/dboon/github/openmarket-chat
-export OM_CHAT_LANE_PORT=<your assigned 18097-18197 port>   # ./control-om-chat doctor
-./control-om-chat up
-agent-browser open "$(./control-om-chat url '<path>?<query>')"
+cd /Users/dboon/gitlab/openmarket-chat
+export OM_CHAT_LANE_PORT=<your assigned 18097-18197 port>   # control-om-chat doctor
+control-om-chat up
+agent-browser open "$(control-om-chat url '<path>?<query>')"
 ```
 
 `control-om-chat url` builds the origin from `OM_CHAT_LANE_PORT`, so nothing
@@ -94,6 +94,23 @@ content and no error:
 None of the four is referenced by any Playwright spec or any other file in the
 repo, which is why they were mistaken for dead code. They are not dead; they
 are undocumented, and each is a cheap proof for a surface with no feature file.
+
+Four more came with the GitLab tree or were never indexed. Each was opened on
+the lane at `f7d7c987` and rendered real content:
+
+- `remote-home-fixture.html?state=snapshot|older|recovering|approval|live|empty|unsupported`
+  — the away remote-control pane (`RemoteHome`), scripted with no relay or
+  daemon. `approval` shows **Approve** / **Deny**, `live` shows **Stop** and
+  **Add context**, and `unsupported` reads "Conversation history is not
+  supported by this device". See [om-and-agents.md](om-and-agents.md).
+- `agent-presentation-fixture.html?state=collapsed|expanded|live|failed` — the
+  shared tool-activity disclosure both agent panes render. The toggle is
+  "Expand tool activity" or "Collapse tool activity" by state.
+- `agent-usage-fixture.html` — the token-usage summary; its recipe is
+  [agent-token-usage.md](agent-token-usage.md).
+- `dropdown-fixture.html` — every `MenuSelect` trigger shape and state, one
+  board per `data-testid` (`board-shapes`, `dd-solid`, `dd-outline`, ...),
+  read by `tools/visual/dropdown.visual.ts`.
 
 Genuinely **not** driveable: `person-presence-fixture.html` and
 `reaction-scene-fixture.tsx` are opened only by their Playwright visual specs,

@@ -13,7 +13,10 @@ deterministic fixture responses, to **both** fixtures —
 Enter in the combobox really runs a search: the panel opens and
 `document.documentElement.dataset.fixtureSearchRequest` records
 `<room>:<topic>:<query>`. The recipe below was re-driven end to end on both
-hosts at `41a57adc`.
+hosts at GitHub `41a57adc`, which reached this repo through the sync commit
+`8b0ff076`. The search sources and both fixtures are byte-identical to that
+tree. At `f7d7c987` the `/rooms/` panel was re-checked (`?panel=search`
+reads `1 results`); the `/chat/` host was not re-driven.
 
 ## Sub-features
 
@@ -43,7 +46,7 @@ word and the results appear in a panel down the right.
 The grammar drives entirely by role and name:
 
 ```bash
-agent-browser open "$(./control-om-chat url \
+agent-browser open "$(control-om-chat url \
   'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
 
 agent-browser find role combobox click --name "Search #ops"

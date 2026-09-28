@@ -8,13 +8,17 @@
 
 ## How to get to it (user POV)
 
-Your voice → Open card → Outline, history, links and sharing → History → older revision → Restore this version → Restore. On phone, History opens as a separate rail screen; Back to note returns to the editor.
+Agents → Voice → Manage voice cards → History → older revision → Restore this version → Restore. The card opens with its "Outline, history, links and sharing" rail already on the History tab. On phone, History opens as a separate rail screen; Back to note returns to the editor.
 
 ## Driving it with control-om-chat
 
-Use the run-owned wrapper lane and `tools/visual/shell-fixture.html?view=agents&panel=persona`. Add `restore=fail-once` for the error/retry journey. Set the viewport to 1440×900 or 390×844. Wait for Open card navigation before finding the history button. Drive controls by the accessible names above; revision row ages vary, so inspect the snapshot before selecting r3.
+Use the run-owned wrapper lane and `tools/visual/shell-fixture.html?view=agent&panel=voice`. Add `restore=fail-once` for the error/retry journey. Set the viewport to 1440×900 or 390×844. Click `Manage voice cards`, then `History` with `--exact` (the page also carries "Activity See away history").
+
+Do **not** use `?view=agents&panel=persona`. The fixture mocks persona only when the query or hash names a persona section at page load (`shell-fixture.tsx:186-204`), and that URL reaches `#/agents/voice` after load. The panel then reads "Your voice could not be loaded" with a Retry button and no card controls. Drive controls by the accessible names above; revision row ages vary, so inspect the snapshot before selecting r3.
 
 The fixture's real checkpoint store records `document.documentElement.dataset.fixtureRestoreCalls`, `fixtureRestoreRequest`, `fixtureRestoreHead`, and `fixtureRestoreToast`. Restoring r3 from r4 should create r5, refresh history to r5/r4/r3, and remove the lowercase bullet from the actual editor. First failure leaves the editor unchanged and retry succeeds.
+
+Measured at `f7d7c987` with `restore=fail-once`. The first Restore left calls `1`, request `persona-card:3`, no head, and toast "The fixture restore service is unavailable. Try again.", with r4 still current. The retry left calls `2`, head `5`, toast "Reverted to r3 (as r5)", and rows r5 CURRENT / r4 / r3. At 390×844 the same path shows `Back to note` above the History heading.
 
 ## Gotchas
 

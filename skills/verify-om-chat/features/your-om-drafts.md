@@ -14,7 +14,7 @@ Open Your om and choose a recent conversation. Type without sending, choose anot
 
 ## Driving it with control-om-chat
 
-Use the assigned lane and run `control-om-chat doctor`. Through an isolated daemon origin proxying that lane, open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. This modifier is available in the `daryl/your-om-session-drafts` candidate and later revisions that contain it.
+Use the assigned lane and run `control-om-chat doctor`. Through an isolated daemon origin proxying that lane, open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The modifier is on `main` (`shell-fixture.tsx:2363`, seeding `Research A` and `Research B` at `:2379-2380`). Opened directly on the lane without that daemon origin, the page shows only "om isn't running" (measured at `f7d7c987`).
 
 The fixture seeds `Research A` and `Research B` buttons and real Composer/AgentThread components. Type distinct text in the `Message ✦ om` textbox, switch via those buttons, and assert the textarea's exact value after each switch. Open `New session`, assert its visible textbox is empty, type new text, press Enter, and verify `New research` contains that exact text. Return to A and B to verify their drafts survived. Repeat session selection through mobile `Open om conversations` at 390px.
 

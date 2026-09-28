@@ -3,7 +3,7 @@
   One agent per repo. Copy, substitute, drop in ~/Library/LaunchAgents/, load.
 
     SKILL   verify-om-chat
-    REPO    /Users/dboon/github/openmarket-chat
+    REPO    /Users/dboon/gitlab/openmarket-chat
     HOUR    stagger these. Never two repos on the same hour: they compete for
             the simulator lane and the review renderer.
 
