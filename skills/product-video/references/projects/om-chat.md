@@ -48,6 +48,23 @@ Other fixtures give close-ups of a single surface:
 Trigger controls by accessible role and name, as the visual tests do. For
 example, button "Open om conversations", button "New session".
 
+## What the shell fixture cannot show (measured 2026-09-28)
+
+| Wanted | Why not | Nearest click-driven substitute |
+|---|---|---|
+| An agent replying, or a typing indicator | No reply is ever scheduled. `dmTyping` renders nothing, because the composer reads `session.ephemeral.typistsFor`, which the fixture never defines | `draft=<text>` plus button "Send message" appends the user's own bubble |
+| A reaction count ticking in a room | The room's `toggleReaction` only records the click. Chips are off-screen on mobile | `view=dm`, button "👍 1, not reacted": 1→2 with its animation |
+| Opening a library doc | `openLibrary` ignores `docId` | `view=library&lens=todos`, button "Open 2", then "Mark “<todo>” complete" (a check-off celebration) |
+| A busy Agents surface | One agent only. Its sub-panels open on "cannot reach OM" states | `agent-center-fixture.html?state=busy` (seeded asks, live sessions, three agents). It needs its own `fixture-build.ts` run |
+
+## Gotchas
+
+- **On mobile, "New session" sits behind the drawer.** Click "Open om conversations" first.
+- **`view=room` shows a store-5xx alert strip** over the first topic card. Add `alerts=quiet`.
+- **A `draft=` query shows a character counter** above the composer.
+- **DM views settle by frame 2 without reporting an animation.** Frames 0 and 1 lack the reaction chips and the "Request accepted" strip, so start a DM clip's cut at frame 3 or later.
+- **Palettes `graphite`, `warm` and `slate` are nearly indistinguishable at phone width.** Only `theme=light` reads as a change.
+
 ## Brand
 
 - **Tokens:** `packages/chat-ui/src/shared/tokens.css`. High-contrast variants
