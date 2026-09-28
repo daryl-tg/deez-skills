@@ -45,14 +45,17 @@ Preconditions:
   **Super Search is the ungated route, and the ticker bar now has a button for
   it.** `tb-super-search-btn` opens it with no guest gate — proven live,
   `isSuperSearchOpen` true with `isAuthenticationDialogOpen` false — which is
-  simpler than setting the store flag by hand. **The row reads `Indicator
-  Editor`, not `Script Editor`**; nothing renders the old string, so a recipe
-  matching it finds nothing.
+  simpler than setting the store flag by hand. **The row's label oscillates the
+  same way** (`superSearch.panels.editor` has been `Script Editor` and `Indicator Editor`
+  within two weeks), so match either rather than pinning one: fill the query,
+  then click whichever of the two the overlay actually rendered.
 
   ```bash
   ./control-kiyotaka browser find testid tb-super-search-btn click
   ./control-kiyotaka browser find testid super-search-input fill "editor"
-  ./control-kiyotaka browser find text "Indicator Editor" click
+  ./control-kiyotaka browser eval "(()=>{const o=document.querySelector('[data-testid=super-search-overlay]');return /Indicator Editor/.test(o.innerText)?'Indicator Editor':'Script Editor'})()"
+  # then click whichever string that returned
+  ./control-kiyotaka browser find text "<that string>" click
   ```
 
   **Drive the input by its testid, and give the overlay time.** The overlay
@@ -78,14 +81,18 @@ Preconditions:
   `role=complementary` region named `Editor` is present from first paint and
   proves nothing. The open/closed bit is the attribute:
 
-  **The drawer's accessible name is now `Indicator Editor`, not `Editor`.** A
-  probe keyed on `'Editor'` matches nothing and returns `undefined` for `inert`,
-  which reads as the drawer never rendering. The desktop boot now carries five
-  complementary drawers — `Indicator Editor`, `Objects`, `Journal`, `News`,
-  `Trade`:
+  **Do not key the probe on the drawer's exact name — it oscillates.** The label
+  is `navbar.tickerBarEditor.openEditor`, which has been `Editor`, then
+  `Indicator Editor`, then `Editor` again inside two weeks; an equality check
+  matches nothing and returns `undefined` for `inert`, which reads as the drawer
+  never rendering. Match the substring instead, which survives both spellings.
+  The drawer carries no testid of its own (`DockDrawer.vue` renders
+  `role="complementary"` with a bound `aria-label` and class `dock-drawer`), so
+  this regex is the stable handle. The desktop boot carries five complementary
+  drawers — the editor plus `Objects`, `Journal`, `News`, `Trade`:
 
   ```bash
-  ./control-kiyotaka browser eval "(()=>{const a=[...document.querySelectorAll('[role=complementary]')].find(e=>e.getAttribute('aria-label')==='Indicator Editor');return JSON.stringify({exists:!!a,inert:a?.hasAttribute('inert')})})()"
+  ./control-kiyotaka browser eval "(()=>{const a=[...document.querySelectorAll('[role=complementary]')].find(e=>/Editor/.test(e.getAttribute('aria-label')||''));return JSON.stringify({label:a?.getAttribute('aria-label'),exists:!!a,inert:a?.hasAttribute('inert')})})()"
   ```
 
   A closed drawer reads `{exists:true, inert:true}` with empty text — that is the
@@ -130,9 +137,14 @@ Preconditions:
 - **Only strategies are run-target locked now.** A TypeScript Indicator tab
   defaults to Browser but can pick Cloud, so `runTargetLocked` is true for
   strategies alone — do not report a TypeScript tab offering Cloud as a bug.
-- **The blank template is TypeScript.** `kscript-template-blank-btn` now reads
-  `Blank indicator`; the legacy kScript blank is a separate
-  `kscript-template-blank-legacy-btn` ("Blank kScript (legacy)").
+- **Which blank-template button exists depends on a flag that now defaults OFF.**
+  The WRUN/Indicator lane (`isWrunRegistrySectionEnabled()`) is lit only by a
+  build flag or a resolved `wrun-registry` flag, and a guest never fetches it —
+  so the default lane renders `kscript-template-blank-legacy-btn`, while
+  `kscript-template-blank-btn` appears only for an internal role or opted cohort.
+  Both currently render the same visible text, so match the testid, not the
+  label. Every "TypeScript is primary / kScript is legacy" claim below is the
+  lane-ON experience, not the default one.
 - **Kata is a second wall inside the drawer.** The activity bar carries a Kata
   entry for non-guests whose click runs `handleGuestAccess(FeatureId.KATA)` — a
   different feature id from `SCRIPT_EDITOR`, so an authed-but-ungranted account
