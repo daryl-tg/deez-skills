@@ -152,7 +152,7 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:3483-3484`), with a comment naming the lock
+  (`tools/visual/shell-fixture.tsx:3503-3504`), with a comment naming the lock
   it was removing. Measured again on `9902d149`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
@@ -194,6 +194,19 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   comes from dragging or pasting out of the Library with its metadata, and
   nothing in the fixture seeds `referenceBindings`, so that half is unreached
   here for the same reason the staged previews are.
+- **HTTPS share links bind to chips too, and this half *is* seeded.** `#965`
+  and the shareable-links work make a recognised link —
+  `https://openmarket.xyz/chat/room/<room>`, `/topic/<id>`, `/msg/<seq>` or
+  `/doc/<id>` (`share-links.ts`, `parseShareLink`) — paint as a pill, and the
+  fixture wires the resolver (`bindComposerUrisFor`), so a channel link
+  resolves. Typing `see https://openmarket.xyz/chat/room/ops please` at
+  `daf5dfcb` painted one `.composer-backdrop` run,
+  `composer-token composer-token-channel composer-token-painted` with
+  `data-pill="true"`, holding a hidden `.composer-token-wire` (the exact URL)
+  and a visible `.composer-token-label` reading `#ops`; `textarea.value` kept
+  the full URL, which is what sends. A link with a query string or credentials
+  is refused by design and stays plain text — use a bare route when you mean
+  to prove the chip.
 - **A local send is not a wire send.** Enter appends a row to the seeded tape
   and clears the box, which is enough to prove the composer's write path. It
   says nothing about the relay, about a second identity seeing the message, or

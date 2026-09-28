@@ -33,11 +33,12 @@ cd <worktree> && bun install
 OM_CHAT_LANE_PORT=<port> ./control-om-chat doctor
 ```
 
-A fresh worktree has no `node_modules`, so install first. Expect `bun install`
-to end with **"Failed to install 1 package"** — `@orangecharts/orange-v2-pb-common`
-404s from the private registry. It is not on the fixture's import path: a
-`main@41a57adc` worktree installed that way still rendered all sixteen seeded
-rows with no module errors. Doctor will also report `dist bundle absent`; that
+A fresh worktree has no `node_modules`, so install first. `bun install` **may**
+end with **"Failed to install 1 package"** — `@orangecharts/orange-v2-pb-common`
+(an `apps/cloud` dependency) 404s from the private registry on some runs and
+resolves on others, depending on registry and cache state. Either way it is
+not on the fixture's import path: a `main@41a57adc` worktree that hit the 404
+still rendered all sixteen seeded rows with no module errors. Doctor will also report `dist bundle absent`; that
 only matters for daemon and desktop lanes, not the fixture.
 
 That matters more than it sounds: the primary checkout is frequently parked on

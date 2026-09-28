@@ -17,16 +17,16 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   reads **"Agents, not running"**, while the desktop rail reads
   **"Agents, needs your om running"** — and if any agent is armed the count
   wins outright and away is masked entirely, giving **"Agents, N armed"**
-  (`Shell.tsx:3054-3709`). So an `--exact` match on the bare name misses three
+  (`Shell.tsx:3053-3708`). So an `--exact` match on the bare name misses three
   different ways, and matching the mobile string on desktop misses too. Away
   is a whole-app state, a different thing from the daemon not running.
 
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3709`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3708`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3054-3059`). Two states is the old shape; matching on it during a
+  (`Shell.tsx:3053-3058`). Two states is the old shape; matching on it during a
   flaky connect misses silently.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -56,7 +56,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:3776-3800`).
+  (`Shell.tsx:3775-3799`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -75,7 +75,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   ```
 
   The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
-  **`u1`** (`shell-fixture.tsx:1040` maps the `kyle` handle to `u1`; every
+  **`u1`** (`shell-fixture.tsx:1049` maps the `kyle` handle to `u1`; every
   other handle becomes `u-<handle>`). Write it under the wrong id and nothing
   happens, silently. Proven end to end on lane 18118: after the reload one
   `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
@@ -88,7 +88,7 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:488`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:461`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -106,55 +106,59 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   pages" nav, no tablist and no "Voice & away" button anywhere on
   `?view=agents`.
 
-  What `#830` put in its place is the Agent Center's own context rail — an
-  `aside` named **"Agent roster"** holding a `nav` named **"Roster sections"**
-  with three buttons, **Roster**, **Waiting on you** and **In progress**
-  (`AgentCenterPane.tsx:576-620`), plus a separate `button` named **"Persona"**
-  (`:651`). Driven in this lane the nav reads exactly those three names and the
-  Persona button is present. But read the trap in the Gotchas before clicking
-  it: it navigates correctly and still lands on a failure, because the fixture
-  decided about mocking before you clicked.
+  **Since `#978` persona lives inside Agents, not beside it.** The Agent
+  Center's context rail is an `aside` named **"Agent roster"**
+  (`AgentCenterPane.tsx:745`) holding, top to bottom:
 
-  What survives churn is the routing. `?view=agent&panel=voice|away|activity`
-  each land directly, and `#830` renamed what they render: the surface heading
-  is now **"Persona"**, and beneath it `voice` reads "Voice" / "Current",
+  - a `nav` named **"Roster sections"** (`:759`) — **Roster**, **Waiting on
+    you, N**, **In progress, N** (the counts ride the accessible names);
+  - a group named **"Persona sections"** — **Voice**, **Away coverage, off**
+    (state in the name again), **Activity**;
+  - a `nav` named **"Agents"** — **Open your om**, then one row per helper
+    badge when any are seeded.
+
+  The standalone **"Persona" button** that `#830` added is **gone**; the three
+  persona rows replaced it. Every roster section and every badge now has its
+  own route too: `#/agents/voice|away|activity`, and `#/agents/badge/<id>` for
+  a helper's own page with its full ledger (`BadgeDetail`). Read the trap in
+  the Gotchas before clicking any of it from a `?view=agents` load.
+
+  Routing is still what survives churn, but the hash moved: persona is now
+  **`#/agents/<section>`**, plural, where it was `#/agent/<section>`. The
+  heading is **"Persona"**, and beneath it `voice` reads "Voice" / "Current",
   `away` reads "Research om is covering you", and `activity` reads "Away
-  activity" — all three measured on the mocked route. The older "Voice & away",
-  "Away coverage" and "Activity" headings are gone.
+  activity" — measured on the mocked routes at `daf5dfcb`. The older "Voice &
+  away" heading stays gone.
 
   **"Your voice" is the exception, and it is a diagnostic.** It survives in
-  `PersonaPanel.tsx` as the heading of exactly two states — loading (`:903`)
-  and load-failed (`:916`). It never appears over a loaded profile. So an `h1`
+  `PersonaPanel.tsx` as the heading of exactly two states — loading (`:895`)
+  and load-failed (`:908`). It never appears over a loaded profile. So an `h1`
   reading "Your voice" is not a stale heading to write down; it is the panel
   telling you the profile did not load, and on this lane that almost always
   means the route problem below.
 
-  **The tabs no longer move with the chrome — that split is gone.** Until
-  `38d0c72d` desktop suppressed the panel's own tabs and rendered them in the
-  rail as `.om-session-persona-nav`. F18 deleted that nav: the class appears
-  nowhere in `packages/chat-ui/src/` now, and `VoiceAwayPanel` passes
-  `navigation="inline"` unconditionally (`PersonaPanel.tsx:171`). Direct
-  persona routes got their own inline header, tabs and **Back** control
-  instead.
-
-  Driven at 1440x900 on `?view=agent&panel=voice`: `.persona-hub-tabs` is
-  **present** on desktop, `.om-session-persona-nav` is absent, a Back button
-  is there, and the tabs read **Voice / Away coverage / Activity**
-  (`PersonaPanel.tsx:114`). Note "Away coverage" survives as a *tab* label
-  even though it is no longer a heading — matching it proves the tab strip,
-  not the panel you landed on.
+  **Where the three persona tabs render has now moved three times** — the
+  panel's own strip, then the om session rail (`.om-session-persona-nav`,
+  deleted by `38d0c72d`), then the panel's strip again, and since `#978` the
+  Agents sidebar's "Persona sections" group. Driven at 1440x900 on
+  `?view=agent&panel=voice`: `.persona-hub-tabs` is **absent** and
+  `.om-session-persona-nav` is absent; the only persona controls are the
+  sidebar rows. `.persona-hub-tabs` still exists in source
+  (`PersonaPanel.tsx:123`) behind `navigation = "inline"` (`:84`), but no route
+  in this lane renders it. Match the sidebar group by name, not either class.
+  "Away coverage" survives as a *row* label after ceasing to be a heading, so
+  matching it proves the sidebar, not the panel you landed on.
 - The consent queue: agents asking for access, with Allow / No, and the
   review pair Accept / Reject.
 - Entry points out: "Message", "Agent settings", "How agents work", and the
   pointer that server apps live in server settings.
-- **A second door, through Settings.** `c40dbc5d` added **OM Settings** and
-  **Persona** rows to the Agents group of user settings
-  (`UserSettings.tsx:270-302`), supplied by `Shell.tsx:4452-4453`. They reach
-  the same two surfaces without touching the rail or the Agent Center, and
-  they are why the live settings nav is twenty-one entries while the settings
-  fixture shows nineteen — that fixture passes neither prop, so **this route
-  is not drivable there either**
-  ([settings-and-appearance.md](settings-and-appearance.md)).
+- **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
+  **Persona** rows to the Agents group of user settings; `#978` then **retired
+  the Persona row** ("now that Agents is its home"), so only **OM Settings**
+  remains (`UserSettings.tsx:282-298`), supplied by `Shell.tsx:4451`. That is
+  why the live settings nav is **twenty** entries while the settings fixture
+  shows nineteen — the fixture does not pass `omPage`, so **this route is not
+  drivable there** ([settings-and-appearance.md](settings-and-appearance.md)).
 
 ## How to get to it (user POV)
 
@@ -171,11 +175,15 @@ Two harnesses, and they reach different halves.
 |---|---|
 | `shell-fixture.html?view=agent` | Your om — **only** the not-running empty state |
 | `shell-fixture.html?view=agents` | The Agent Center roster — the first of two Agent pages |
-| `shell-fixture.html?view=agent&panel=voice` | Persona → "Voice" / "Current", mocked and loaded |
-| `shell-fixture.html?view=agent&panel=away` | Persona → "Research om is covering you" |
-| `shell-fixture.html?view=agent&panel=activity` | Persona → "Away activity" |
-| `shell-fixture.html?view=agents&panel=persona` | **Legacy.** Redirects to `#/agent/voice` unmocked — see Gotchas |
+| `shell-fixture.html?view=agent&panel=voice` | Agents → `#/agents/voice`, "Voice" / "Current", mocked and loaded |
+| `shell-fixture.html?view=agent&panel=away` | Agents → `#/agents/away`, "Research om is covering you" |
+| `shell-fixture.html?view=agent&panel=activity` | Agents → `#/agents/activity`, "Away activity" |
+| `shell-fixture.html#/agents/voice` | The same Voice page from the bare hash — mocked, loads |
+| `shell-fixture.html#/agents/away` | **Not** the seeded coverage: reads "Away coverage unavailable". Use `?view=agent&panel=away` |
+| `shell-fixture.html?view=agents&panel=persona` | **Legacy.** Lands on `#/agents/voice` unmocked — see Gotchas |
+| `shell-fixture.html#/agent/voice` | **Legacy** singular hash. Same unmocked failure |
 | `agent-center-fixture.html` | The Agent Center standalone, with a seeded consent queue |
+| `agent-center-fixture.html#/agents/badge/agcr_claude` | A helper's own page (`BadgeDetail`) — also `agcr_backtest`, `agcr_research` |
 | `agent-center-fixture.html?state=desk-off` | The same, still assembling ("assembling the roster…") |
 
 Handles that resolve today, in the shell at `?view=agents`:
@@ -187,8 +195,8 @@ agent-browser find role button click --name "How agents work"
 agent-browser find role button click --name "Agent settings"
 agent-browser find role button click --name "+ Wire an agent"
 
-# There is no persona control on this page any more (#830 removed the nav).
-# Reach the three surfaces by route instead — see the table above.
+# Persona rows sit in the sidebar's "Persona sections" group (#978), but
+# clicking them from a ?view=agents load fails — see Gotchas. Use the routes.
 ```
 
 And in the standalone `agent-center-fixture.html`, which is where the
@@ -207,7 +215,7 @@ Its header *looks* like `WAITING ON YOU · 4`, and that is the cheap
 observation that the queue seeded at all — but read it carefully. The DOM text
 is sentence case, `Waiting on you · 4` (`AgentCenterWork.tsx:393`); the
 capitals come from `text-transform: uppercase` on `.ac-section-h`
-(`agent-center.css:209`). `innerText` applies the transform and hands you the
+(`agent-center.css:231`). `innerText` applies the transform and hands you the
 shouted version, while `textContent` and the accessibility tree hand you the
 real one. Match the sentence-case string, or a screenshot, never the caps.
 
@@ -226,35 +234,36 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
   `verified-unreachable` from this lane; the unmet prerequisite is a running
   daemon, which means the daemon-served rig, not the fixture.
 - **Persona is unreachable from a `view=agents` page load — by any control,
-  not just the old query.** `#807` moved the fixture's persona gate to
-  `view === "agent"` (singular) with `panel` one of `voice`, `away` or `activity`;
-  `panel === "persona"` appears nowhere in the fixture now. The old route still
-  *looks* like it works, because the product's legacy-route handling redirects
-  `#/agents?panel=persona` to `#/agent/voice` — but the fixture evaluates its
-  persona gate once, synchronously, from the original query, so the redirect
-  arrives after the mock was already skipped. You land on the panel with the
-  real un-mocked client and it reads *"Your voice could not be loaded. Try
-  again in a moment."*
+  not just the old query.** The fixture decides whether to mock persona
+  **once, at page load** (`shell-fixture.tsx:192-204`): it mocks when the query
+  is `view=agent&panel=voice|away|activity` *or* the hash is already
+  `#/agents/voice|away|activity`. Anything that only *arrives* at those hashes
+  after load finds the real, un-mocked client and reads *"Your voice could not
+  be loaded. Try again in a moment."*
 
-  The decisive point is that this is a property of the **page load**, not of
-  the spelling. `#830`'s "Persona" button is a real, correct control, and
-  clicking it from `?view=agents` still lands you in the failure: driven here
-  it moved the hash to `#/agent/voice` and rendered "Your voice could not be
-  loaded", because the fixture had already skipped its mock when the page
-  loaded under `view=agents`. Nothing you click your way to from that page can
-  escape it.
+  That rules out every in-page path. Driven at `daf5dfcb` from a `?view=agents`
+  load, the sidebar's **Voice** row moves the hash to `#/agents/voice` and
+  fails. So does the legacy `?view=agents&panel=persona`, and so does the old
+  singular hash `#/agent/voice`: both are rewritten to `#/agents/voice` after
+  load, too late for the mock. (The fixture's own comment says nothing in it
+  redirects an old hash; something does, observably — believe the drive.)
 
-  That failure is the route, not the lane, and not the button. Driven side by
-  side: `?view=agents` → Persona button lands on `#/agent/voice` with the load
-  failure, while `?view=agent&panel=voice` lands on the same hash and renders a
+  That failure is the route, not the lane, and not the control. Driven side by
+  side: the Voice row lands on `#/agents/voice` with the load failure, while
+  opening `#/agents/voice` directly lands on the same hash and renders a
   **LOADED PROFILE**. Same hash, opposite outcome. If you see Retry or an `h1`
   of "Your voice", fix the URL you opened — do not click, and do not conclude
   anything about the product.
 - **`agent-center-fixture.html` is a real harness, despite where it sits.**
-  It opens standalone and renders the consent queue with content. Its
-  vocabulary is only `state=desk-off`, `theme` and `zoom` — no `?view=`, no
-  `?panel=`, none of the shell fixture's grammar. Do not carry shell-fixture
-  query habits over to it.
+  It opens standalone and renders the consent queue with content. Its query
+  vocabulary is `state=desk-off`, `theme` and `zoom` — no `?view=`, no
+  `?panel=` — but since `#978` it also routes **hashes**:
+  `#/agents/badge/agcr_claude`, `agcr_backtest` or `agcr_research` opens that
+  helper's `BadgeDetail` page (rename, "Live now · on desk", the ledger), with
+  the three helpers listed in the sidebar's "Agents" nav. It is the only lane
+  here that seeds helper badges; the shell fixture's roster holds om's card
+  alone, so badge pages are unreachable there. `tools/visual/agent-center.visual.ts`
+  is the maintained recipe.
 - **Two "Agents" strings, different things.** The rail door is `"Agents"`; the
   user-settings page is `"Agent Settings"`; the Agent Center's own link out is
   `"Agent settings"` in sentence case. An `--exact` match on the wrong one

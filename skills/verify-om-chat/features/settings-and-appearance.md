@@ -17,16 +17,14 @@ interaction end to end.
   the count in every state, and a nav that comes back eighteen is a real
   regression rather than a seeding difference.
 
-  **Nineteen is fixture truth, not app truth, since `c40dbc5d`.** That commit
-  added two conditional rows to the Agents group, **OM Settings** (id `om`)
-  and **Persona** (id `persona`), rendered only when the caller supplies the
-  matching `omPage` / `personaPage` props. `Shell.tsx:4452-4453` passes both
-  unconditionally, so the **running app shows twenty-one**;
-  `settings-fixture.tsx` passes neither, so this lane shows nineteen —
-  measured, not inferred. Count nineteen here and you have confirmed the
-  fixture, not the product. Those two rows are also a second way into OM
-  settings and the persona editor that bypasses the rail entirely
-  ([om-and-agents.md](om-and-agents.md)).
+  **Nineteen is fixture truth, not app truth.** The Agents group gains an
+  **OM Settings** row (id `om`) only when the caller supplies `omPage`.
+  `Shell.tsx:4451` always does, so the **running app shows twenty**;
+  `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
+  inferred. Count nineteen here and you have confirmed the fixture, not the
+  product. (It was twenty-one until `#978` retired the matching **Persona**
+  row, "now that Agents is its home" — persona is reached through Agents now,
+  see [om-and-agents.md](om-and-agents.md).)
 - Appearance: theme (dark / light / sync with OS), palette (Graphite, Slate,
   Moss, Warm, Brass), accent (Clay, Blue, Iris, Plum, White), and per-context
   message density. Density is three nested `radiogroup`s, not tabs: **Chat

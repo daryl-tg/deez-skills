@@ -53,7 +53,7 @@ agent-browser eval '(()=>document.querySelector(".world-conversation")?.textCont
 ```
 
 **Do not reach for `.world-status-area` as the cheap second observation any
-more.** The element still exists (`WorldView.tsx:772`) but it is filled through
+more.** The element still exists (`WorldView.tsx:789`) but it is filled through
 a **ref**, imperatively, from the running renderer — so with the solo harness
 offline it stays **empty**, and an assertion on `#west-bank-street` now fails
 against a perfectly healthy rig. Use `.world-status` for liveness instead.
@@ -85,6 +85,15 @@ below: proving them needs the relay and a second occupant.
   not a regression — it proves rendering, layout, and the bound-channel empty
   state, and nothing about movement sync, presence, or the wire. Anything about
   two occupants seeing each other needs a real relay.
+- **Emotes are unreachable here, twice over.** `#981` added book, greet and
+  sit on a wheel you open by **holding `E`** (a menu named "Emotes";
+  releasing picks the highlighted one — `WorldEmoteWheel.tsx`). The wheel only
+  arms when `status.state === "connected"` and the player is human
+  (`WorldView.tsx`), and the solo harness is always offline, so it never
+  opens. Even on a connected rig, `agent-browser` has no hold-a-key command —
+  `press` is down-and-up — so drive it with a dispatched `keydown` carrying
+  `code: "KeyE"`, and do not read a closed wheel off a synthetic event as a
+  broken feature.
 - **Two canvases, not one.** Assert `>= 1` or exactly 2; a `querySelector`
   written as if there were a single canvas will still pass while testing the
   wrong layer.
