@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 200px; height: 80px; overflow: hidden; background: #000; }
+      input { position: absolute; left: 10px; top: 10px; width: 180px; height: 60px; font-size: 40px;
+        background: #fff; color: #000; border: 0; outline: 0; caret-color: #f00; }
+    </style>
+  </head>
+  <body>
+    <!-- An autofocused field: its caret blinks on the wall clock unless the harness hides it. -->
+    <input autofocus aria-label="Message" />
+    <script>document.querySelector("input").focus();</script>
+  </body>
+</html>

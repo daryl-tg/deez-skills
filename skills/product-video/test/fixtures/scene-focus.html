@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 200px; height: 200px; overflow: hidden; background: #000; }
+      button { position: absolute; left: 50px; top: 150px; width: 100px; height: 30px; background: #444; color: #fff; border: 0; }
+      #panel { position: absolute; left: 20px; top: 20px; width: 160px; height: 100px; background: #0a0; display: none; }
+      #panel.open { display: block; }
+      /* Conspicuous rings: a keyboard-style focus ring after a tap is the bug. */
+      :focus-visible { outline: 4px solid #f00 !important; outline-offset: 2px; }
+      /* A pointer left resting after the tap would hover; layout moving under it
+         changes hover on a wall-clock timer, so the tap must not leave it there. */
+      button:hover { background: #f0f; }
+    </style>
+  </head>
+  <body>
+    <div id="panel" tabindex="-1"></div>
+    <button type="button">Open panel</button>
+    <script>
+      // Like many apps, the click moves focus into what it opened.
+      document.querySelector("button").addEventListener("click", () => {
+        const p = document.getElementById("panel");
+        p.classList.add("open");
+        p.focus();
+      });
+    </script>
+  </body>
+</html>

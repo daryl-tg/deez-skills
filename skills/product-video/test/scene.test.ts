@@ -157,3 +157,91 @@ describe("scene.ts", () => {
     expect(scene_(bad, "--out", join(dir, "x.mp4")).code).toBe(2);
   });
 });
+
+// Renders a scene with --frames-dir and returns the report plus the frame dir.
+function renderScene(name: string, overrides: Record<string, unknown>) {
+  const json = join(dir, `${name}.json`);
+  writeFileSync(json, JSON.stringify({
+    root: join(import.meta.dir, "fixtures"), viewport: { width: 200, height: 200, dpr: 1 }, fps: FPS, ...overrides,
+  }));
+  const framesDir = join(dir, `${name}-frames`);
+  const r = scene_(json, "--out", join(dir, `${name}.mp4`), "--frames-dir", framesDir, "--json");
+  if (r.code !== 0) throw new Error(`${name} exited ${r.code}: ${r.stderr}`);
+  return { report: JSON.parse(r.stdout), framesDir };
+}
+
+// Per-frame md5 of a region of the lossless PNG frames.
+function regionHashes(framesDir: string, crop: string): string[] {
+  const r = sh(["ffmpeg", "-v", "error", "-i", join(framesDir, "frame-%05d.png"), "-vf", `crop=${crop}`, "-f", "framemd5", "-"]);
+  if (r.code !== 0) throw new Error(r.stderr);
+  return r.stdout.split("\n").filter((l) => l && !l.startsWith("#")).map((l) => l.split(",").pop()!.trim());
+}
+
+describe("scene.ts determinism on real pages", () => {
+  test("an autofocused input's caret never shows, so it cannot blink between frames", () => {
+    const { framesDir } = renderScene("caret", { entry: "scene-caret.html", viewport: { width: 200, height: 80, dpr: 1 }, duration: 2 });
+    const hashes = regionHashes(framesDir, "180:60:10:10");
+    expect(hashes.length).toBe(60);
+    expect(new Set(hashes).size).toBe(1);
+    // No red caret pixel anywhere in the field.
+    const raw = Bun.spawnSync(["ffmpeg", "-v", "error", "-i", join(framesDir, "frame-%05d.png"),
+      "-vf", "crop=180:60:10:10", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]).stdout;
+    let red = 0;
+    for (let i = 0; i < raw.length; i += 3) if (raw[i] > 150 && raw[i + 1] < 100 && raw[i + 2] < 100) red++;
+    expect(red).toBe(0);
+  });
+
+  test("a trigger is a real tap: its effect lands, no keyboard focus ring is drawn, and no pointer is left hovering", () => {
+    const { report, framesDir } = renderScene("focus", {
+      entry: "scene-focus.html", duration: 1,
+      triggers: [{ t: 0.3, click: { role: "button", name: "Open panel" } }],
+    });
+    expect(report.triggers).toEqual([{ t: 0.3, name: "Open panel", born: 0 }]);
+    const raw = Bun.spawnSync(["ffmpeg", "-v", "error", "-i", join(framesDir, "frame-%05d.png"),
+      "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]).stdout;
+    const frameBytes = 200 * 200 * 3;
+    expect(raw.length).toBe(30 * frameBytes);
+    let red = 0;
+    for (let i = 0; i < raw.length; i += 3) if (raw[i] > 200 && raw[i + 1] < 60 && raw[i + 2] < 60) red++;
+    expect(red).toBe(0);
+    let magenta = 0;
+    for (let i = 0; i < raw.length; i += 3) if (raw[i] > 200 && raw[i + 1] < 60 && raw[i + 2] > 200) magenta++;
+    expect(magenta).toBe(0);
+    // The panel opened: its green fill at (100,70) in the last frame, black before the tap.
+    const at = (f: number) => raw.subarray(f * frameBytes + (70 * 200 + 100) * 3, f * frameBytes + (70 * 200 + 100) * 3 + 3);
+    expect([...at(0)]).toEqual([0, 0, 0]);
+    expect(at(29)[1]).toBeGreaterThan(150);
+  });
+
+  test("web fonts that load slowly are in place at frame 0 and at a trigger's first frame", () => {
+    const slow = (path: string) => ({ path, file: "KaTeX_Script-Regular.woff2", contentType: "font/woff2", delayMs: 300 });
+    const { framesDir } = renderScene("font", {
+      entry: "scene-font.html", viewport: { width: 300, height: 200, dpr: 1 }, duration: 1.5,
+      routes: [slow("/slow-a.woff2"), slow("/slow-b.woff2")],
+      triggers: [{ t: 0.5, click: { role: "button", name: "Show" } }],
+    });
+    const a = regionHashes(framesDir, "290:50:10:0");
+    const b = regionHashes(framesDir, "290:50:10:50");
+    const fallback = regionHashes(framesDir, "290:50:10:100");
+    expect(a.length).toBe(45);
+    // The web font really rendered: "Hello" in it differs from "Hello" in the fallback.
+    expect(a[44]).not.toBe(fallback[44]);
+    expect(new Set(a).size).toBe(1);
+    // From the tap on (frame 15), "World" is already in its web font.
+    expect(new Set(b.slice(15)).size).toBe(1);
+    expect(b[15]).not.toBe(b[0]);
+    // JS that ran at the tap saw the face loaded, so its layout decision is the settled one.
+    expect(pixel(join(framesDir, "frame-00044.png"), 0, 20, 155)).toEqual([0, 255, 0]);
+  });
+
+  test("waitFor holds frame 0 until a lazy surface mounts, by selector or by role and name", () => {
+    for (const [as, waitFor] of [["div", { selector: "#late" }], ["button", { role: "button", name: "Ready" }]] as const) {
+      const { framesDir } = renderScene(`late-${as}`, {
+        entry: "scene-late.html", query: `as=${as}`, viewport: { width: 100, height: 100, dpr: 1 }, duration: 0.2, waitFor,
+      });
+      const [png] = [join(framesDir, "frame-00000.png")];
+      const px = pixel(png, 0, 5, 5);
+      expect({ as, px }).toEqual({ as, px: [0, 255, 0] });
+    }
+  });
+});

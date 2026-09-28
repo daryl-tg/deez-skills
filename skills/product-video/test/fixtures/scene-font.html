@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- KaTeX_Script-Regular.woff2 is from KaTeX (MIT, https://github.com/KaTeX/KaTeX), used only to test font loading. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      /* Both faces arrive late (the scene delays them); only #a uses one at load. */
+      @font-face { font-family: SlowA; src: url(/slow-a.woff2) format("woff2"); font-display: swap; }
+      @font-face { font-family: SlowB; src: url(/slow-b.woff2) format("woff2"); font-display: swap; }
+      html, body { margin: 0; width: 300px; height: 200px; overflow: hidden; background: #fff; }
+      div { position: absolute; left: 10px; font-size: 40px; line-height: 50px; color: #000; white-space: nowrap; }
+      #a { top: 0; font-family: SlowA, monospace; }
+      #b { top: 50px; font-family: SlowB, monospace; display: none; }
+      #b.on { display: block; }
+      /* The fallback face, to prove the web font really rendered. */
+      #c { top: 100px; font-family: monospace; }
+      /* Painted by the click from what JS measured: green only if SlowB was loaded by then. */
+      #bar { top: 150px; width: 40px; height: 10px; background: #888; }
+      button { position: absolute; left: 10px; top: 165px; }
+    </style>
+  </head>
+  <body>
+    <div id="a">Hello</div>
+    <div id="b">World</div>
+    <div id="c">Hello</div>
+    <div id="bar"></div>
+    <button type="button">Show</button>
+    <script>
+      document.querySelector("button").addEventListener("click", () => {
+        document.getElementById("b").classList.add("on");
+        // A layout decision taken in JS at click time, like a component measuring on mount.
+        document.getElementById("bar").style.background = document.fonts.check("40px SlowB") ? "#0f0" : "#f00";
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 100px; height: 100px; overflow: hidden; background: #000; }
+      #late, button { position: absolute; left: 0; top: 0; width: 100px; height: 100px; border: 0; background: #0f0; }
+    </style>
+  </head>
+  <body>
+    <script>
+      // A lazy surface: mounts on a timer, after boot's fixed settle.
+      const sel = new URLSearchParams(location.search).get("as");
+      setTimeout(() => {
+        const el = document.createElement(sel === "button" ? "button" : "div");
+        if (sel === "button") el.textContent = "Ready"; else el.id = "late";
+        document.body.appendChild(el);
+      }, 900);
+    </script>
+  </body>
+</html>

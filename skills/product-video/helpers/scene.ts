@@ -38,6 +38,8 @@ scene.json (fields marked ? are optional):
     "path": "/healthz",
     "status"?: 200,            default 200
     "body"?: "{}",             default ""
+    "file"?: "font.woff2",     serve this file (relative to root) as the body instead
+    "delayMs"?: 300,           answer after this many real milliseconds (a slow network)
     "contentType"?: "application/json"   default "text/plain"
   }],
   "triggers"?: [{              run in t order
@@ -46,12 +48,18 @@ scene.json (fields marked ? are optional):
       "role": "button",        ARIA role
       "name": "Open menu"      exact accessible name; must match exactly one element
     }
-  }]
+  }],
+  "waitFor"?: { "selector": "#ready" }  or  { "role": "region", "name": "Inbox" }
+                               awaited before frame 0, so a scene with no
+                               trigger can wait for a lazy surface
 }
 
 The page is served from http://127.0.0.1:18099 through page.route (nothing
-binds a port); requests to any other origin are aborted. The first trigger's
-target is awaited during boot. --frames-dir also writes frame-NNNNN.png.
+binds a port); requests to any other origin are aborted. Boot awaits waitFor and
+the first trigger's target, then loads every declared @font-face (again after
+each trigger). A trigger is a real mouse tap at the element's centre, then the
+pointer leaves the page, so no focus ring or hover appears; a covered target is
+an error. Text carets are hidden. --frames-dir also writes frame-NNNNN.png.
 The report lists each trigger's animations and any finite animation that
 started with no trigger (timer-driven; give it fixture control).
 Exit 0 on a finished render; 2 on any usage, environment or render error.
@@ -69,7 +77,7 @@ const TYPES: Record<string, string> = {
 class UsageError extends Error {}
 
 interface Trigger { t: number; click: { role: string; name: string } }
-interface Route { path: string; status?: number; body?: string; contentType?: string }
+interface Route { path: string; status?: number; body?: string; file?: string; contentType?: string; delayMs?: number }
 interface Scene {
   root: string;
   entry: string;
@@ -80,6 +88,7 @@ interface Scene {
   removeClasses?: string[];
   routes?: Route[];
   triggers?: Trigger[];
+  waitFor?: { selector?: string; role?: string; name?: string };
 }
 
 function readScene(path: string): Scene {
@@ -96,6 +105,10 @@ function readScene(path: string): Scene {
   const v = s.viewport;
   if (!v || !num(v.width) || !num(v.height) || !num(v.dpr)) throw new UsageError("viewport needs positive width, height, dpr");
   if (!num(s.fps) || !num(s.duration)) throw new UsageError("fps and duration must be positive numbers");
+  const w = s.waitFor;
+  if (w && !(typeof w.selector === "string" && w.selector) && !(w.role && w.name)) {
+    throw new UsageError(`waitFor needs "selector", or "role" and "name": ${JSON.stringify(w)}`);
+  }
   s.triggers = [...(s.triggers ?? [])].sort((a, b) => a.t - b.t);
   for (const t of s.triggers) {
     if (typeof t.t !== "number" || t.t < 0 || !t.click?.role || !t.click?.name) {
@@ -172,7 +185,11 @@ async function render(scene: Scene, out: string, framesDir?: string) {
       if (url.origin !== ORIGIN) return route.abort();
       const stub = routes.get(url.pathname);
       if (stub) {
-        return route.fulfill({ status: stub.status ?? 200, body: stub.body ?? "", contentType: stub.contentType ?? "text/plain" });
+        // Real time, not virtual: it models a slow network, which the paused clock must not stall.
+        if (stub.delayMs) await Bun.sleep(stub.delayMs);
+        const body = stub.file ? await readFile(resolve(root, stub.file)) : stub.body ?? "";
+        const type = stub.contentType ?? (stub.file ? TYPES[extname(stub.file)] : undefined) ?? "text/plain";
+        return route.fulfill({ status: stub.status ?? 200, body, contentType: type });
       }
       let p = decodeURIComponent(url.pathname);
       if (p.endsWith("/")) p += "index.html";
@@ -189,24 +206,45 @@ async function render(scene: Scene, out: string, framesDir?: string) {
     const query = scene.query ? `?${scene.query.replace(/^\?/, "")}` : "";
     await page.goto(`${ORIGIN}/${scene.entry.replace(/^\//, "")}${query}`, { waitUntil: "load" });
     const target = (t: Trigger) => page.getByRole(t.click.role as any, { name: t.click.name, exact: true });
+    // A caret blinks on the wall clock, which the virtual clock does not own.
+    await page.addStyleTag({ content: "*, *::before, *::after { caret-color: transparent !important; }" });
 
     // Boot. Wait in real time first, so the virtual time spent booting stays
-    // fixed; step virtual time only for apps that need timers to mount.
-    const first = scene.triggers![0];
-    if (first) {
-      const loc = target(first);
-      await loc.first().waitFor({ state: "attached", timeout: 15_000 }).catch(() => {});
+    // fixed; step virtual time only for surfaces that need timers to mount.
+    const w = scene.waitFor;
+    const awaited = [
+      ...(w ? [{ loc: w.selector ? page.locator(w.selector) : page.getByRole(w.role as any, { name: w.name, exact: true }), what: `waitFor ${JSON.stringify(w)}` }] : []),
+      ...(scene.triggers![0] ? [{ loc: target(scene.triggers![0]), what: `first trigger target ${JSON.stringify(scene.triggers![0].click)}` }] : []),
+    ];
+    for (const { loc, what } of awaited) {
+      await loc.first().waitFor({ state: "attached", timeout: 5_000 }).catch(() => {});
       for (let i = 0; i < 400 && !(await loc.count()); i++) await page.clock.runFor(25);
-      if (!(await loc.count())) throw new UsageError(`trigger target never appeared: ${first.click.role} "${first.click.name}"`);
+      if (!(await loc.count())) throw new UsageError(`${what} never appeared`);
     }
-    const strip = (classes: string[]) =>
-      page.evaluate(async (classes) => {
-        for (const c of classes) for (const el of Array.from(document.querySelectorAll("." + CSS.escape(c)))) el.classList.remove(c);
+
+    // Load every declared face, not just those in use: a surface a trigger
+    // mounts later would otherwise measure text before its font arrives, and
+    // lay out one of two ways. Real-time wait; fonts never depend on timers.
+    const warnings: string[] = [];
+    const settleFonts = async (when: string) => {
+      const done = page.evaluate(async () => {
+        await Promise.all(
+          Array.from(document.fonts).filter((f) => f.status !== "loaded").map((f) => f.load().catch(() => {})),
+        );
         await document.fonts.ready;
+        return true;
+      });
+      if (!(await Promise.race([done, Bun.sleep(15_000).then(() => false)]))) warnings.push(`fonts still loading 15s ${when}`);
+    };
+    const strip = (classes: string[]) =>
+      page.evaluate((classes) => {
+        for (const c of classes) for (const el of Array.from(document.querySelectorAll("." + CSS.escape(c)))) el.classList.remove(c);
       }, classes);
     await strip(scene.removeClasses ?? []);
+    await settleFonts("at boot");
     await page.clock.runFor(250);
     await strip(scene.removeClasses ?? []);
+    await settleFonts("before frame 0");
     await page.evaluate(installPageLib);
     await page.evaluate(() => (window as any).__pv.adopt("baseline", 0, 0));
 
@@ -243,9 +281,27 @@ async function render(scene: Scene, out: string, framesDir?: string) {
         if ((await loc.count()) !== 1) {
           throw new UsageError(`trigger at t=${T}: ${await loc.count()} elements match ${trig.click.role} "${trig.click.name}"`);
         }
-        let born = await loc.evaluate((el: HTMLElement, T: number) => {
+        // A real tap through CDP input, not el.click(): a synthetic click
+        // leaves the page in keyboard modality, so any focus the app moves
+        // draws a focus-visible ring no finger ever would. CDP input does
+        // not wait on actionability, so it works under the paused clock.
+        const hit = await loc.evaluate((el: HTMLElement) => {
+          el.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
+          const r = el.getBoundingClientRect();
+          const x = r.left + r.width / 2;
+          const y = r.top + r.height / 2;
+          const top = document.elementFromPoint(x, y);
+          return { x, y, covered: !top || !(el === top || el.contains(top)) };
+        });
+        if (hit.covered) throw new UsageError(`trigger at t=${T}: ${trig.click.role} "${trig.click.name}" is covered at its centre`);
+        await page.mouse.move(hit.x, hit.y);
+        await page.mouse.down();
+        await page.mouse.up();
+        // Lift the finger. A resting pointer hovers whatever layout slides under
+        // it, and Chrome applies that on a wall-clock timer.
+        await page.mouse.move(-1, -1);
+        let born = await page.evaluate((T: number) => {
           const pv = (window as any).__pv;
-          el.click();
           const now = pv.adopt("trigger", T, -1);
           // React commits discrete clicks in a microtask; claim what that spawns too.
           return Promise.resolve().then(() => now + pv.adopt("trigger", T, -1));
@@ -256,10 +312,11 @@ async function render(scene: Scene, out: string, framesDir?: string) {
           clockMs += 16;
           born += await page.evaluate((T) => (window as any).__pv.adopt("trigger", T, -1), T);
         }
+        await settleFonts(`after the trigger at t=${T}`);
         fired.push({ t: T, name: trig.click.name, born });
       }
       await page.evaluate(([t, n]) => (window as any).__pv.pose(t, n), [t, n]);
-      const png = await page.screenshot({ type: "png", caret: "initial" });
+      const png = await page.screenshot({ type: "png", caret: "hide" });
       if (framesDir) writeFileSync(join(framesDir, `frame-${String(n).padStart(5, "0")}.png`), png);
       if (!ff.stdin!.write(png)) await new Promise((r) => ff.stdin!.once("drain", r));
     }
@@ -269,7 +326,7 @@ async function render(scene: Scene, out: string, framesDir?: string) {
     const untriggered = await page.evaluate(() => (window as any).__pv.untriggered);
     return {
       out, frames, fps: scene.fps, width: width * dpr, height: height * dpr,
-      wallSeconds: (Date.now() - started) / 1000, triggers: fired, untriggered, misses,
+      wallSeconds: (Date.now() - started) / 1000, triggers: fired, untriggered, misses, warnings,
     };
   } finally {
     await browser.close();
@@ -297,6 +354,7 @@ async function main() {
         ...report.triggers.map((t) => `  trigger t=${t.t} "${t.name}": ${t.born} animations`),
         ...report.untriggered.map((u: any) => `  UNTRIGGERED ${u.animation} on ${u.target} first seen t=${u.t.toFixed(3)} (frame ${u.frame}); timer-driven, give it fixture control`),
         ...(report.misses.length ? [`  404s: ${[...new Set(report.misses)].join(", ")}`] : []),
+        ...report.warnings.map((w) => `  WARNING ${w}`),
       ];
       console.log(lines.join("\n"));
     }
