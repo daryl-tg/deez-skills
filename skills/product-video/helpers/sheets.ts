@@ -4,12 +4,14 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { ffmpeg, main, parse, probeVideo, requireFile, UsageError } from "./lib/ffmpeg.ts";
 
-const usage = "bun helpers/sheets.ts <video> --out <dir> [--strip <t>...] [--json]";
+const usage = "bun helpers/sheets.ts <video> --out <dir> [--strip <t> [<t>...]]... [--json]";
 const description = `
 Writes review sheets into --out and prints their paths:
   contact.png      fps=2, 270px wide tiles, 6 across, as many rows as needed
   phone.png        fps=1, 360px wide tiles, 5 across
-  strip-<t>.png    per --strip: 12 consecutive frames from the frame at t seconds, 320px, 12x1
+  strip-<t>.png    per strip time: 12 consecutive frames from the frame at t seconds, 320px, 12x1
+--strip takes one or more times in seconds, and may repeat: "--strip 2 5.9" and
+"--strip 2 --strip 5.9" are the same. Any other extra argument is a usage error.
 Exit 0 on success; 2 on usage or decode errors.
 `;
 
@@ -30,6 +32,7 @@ main(usage, description, () => {
     strip: { type: "string", multiple: true },
     json: { type: "boolean" },
   });
+  if (positionals.length > 1) throw new UsageError(`unexpected argument(s): ${positionals.slice(1).join(" ")}`);
   const video = requireFile(positionals[0], "<video>");
   if (!values.out) throw new UsageError("missing --out <dir>");
   const strips = (values.strip ?? []).map((t) => {

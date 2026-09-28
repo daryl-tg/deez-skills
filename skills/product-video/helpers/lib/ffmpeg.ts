@@ -68,11 +68,16 @@ export function probeVideo(path: string): VideoInfo {
 
 export function parse<T extends NonNullable<ParseArgsConfig["options"]>>(options: T) {
   // parseArgs reads "-14" as a flag, but the interfaces take `--i -14`; bind negative numbers to their option.
+  // A multiple option also takes a run of numbers after one flag (`--strip 2 5.9`), which parseArgs would drop.
   const args: string[] = [];
   const argv = Bun.argv.slice(2);
+  const numeric = (a: string | undefined) => /^-?(\d+\.?\d*|\.\d+)$/.test(a ?? "");
   for (let k = 0; k < argv.length; k++) {
     const name = argv[k].startsWith("--") && !argv[k].includes("=") ? argv[k].slice(2) : "";
-    if (options[name]?.type === "string" && /^-\.?\d/.test(argv[k + 1] ?? "")) args.push(`${argv[k]}=${argv[++k]}`);
+    const opt = options[name];
+    if (opt?.type !== "string") args.push(argv[k]);
+    else if (opt.multiple && numeric(argv[k + 1])) while (numeric(argv[k + 1])) args.push(`--${name}=${argv[++k]}`);
+    else if (/^-\.?\d/.test(argv[k + 1] ?? "")) args.push(`${argv[k]}=${argv[++k]}`);
     else args.push(argv[k]);
   }
   try {

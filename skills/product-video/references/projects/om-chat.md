@@ -69,8 +69,14 @@ example, button "Open om conversations", button "New session".
 
 - **Tokens:** `packages/chat-ui/src/shared/tokens.css`. High-contrast variants
   are in `high-contrast.css`.
-- **Font:** Spoqa Han Sans Neo (`src/fonts/spoqa-han-sans-neo.css`). Titles use
-  the same face.
+- **Font:** Spoqa Han Sans Neo. `src/fonts/spoqa-han-sans-neo.css` only
+  `@import`s it. The woff2 files are in
+  `packages/chat-ui/src/fonts/spoqa-han-sans-neo/`. Titles use the same face.
+- **The om mark:** there is no SVG file. The path is inlined as `MascotMark` in
+  `packages/chat-ui/src/components/Mascot.tsx` ("Logo 100px.svg"), with colors
+  in `lib/mascot-grid.ts`. Extract it verbatim into the composition's assets.
+- **Motion curve:** DESIGN-SYSTEM.md §6 defines the ease-out used for title
+  reveals.
 - **Rules:** `DESIGN-SYSTEM.md` §0 decides title cards and overlays too:
   - no colored borders
   - hierarchy by fill, spacing, size and weight

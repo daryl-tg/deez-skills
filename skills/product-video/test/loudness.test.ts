@@ -74,6 +74,45 @@ describe("loudness", () => {
     expect(r.stdout).toMatch(/output\s+-1[34]\.\d+ LUFS\s+-\d+\.\d+ dBTP/);
   });
 
+// An already-mastered bed with a few sharp transients, as AAC overshoot leaves
+// it: about -14.2 LUFS, -1.2 dBTP. The 0.2 dB it needs would push peaks past
+// -1.5, so no single linear gain fits until the transients are limited.
+function mastered(name: string): string {
+  const out = join(dir, name);
+  const bed = "0.65*(0.7+0.3*sin(2*PI*0.5*t))*(sin(2*PI*220*t)+0.6*sin(2*PI*330*t)+0.3*sin(2*PI*440*t))/1.9";
+  ff(["-f", "lavfi", "-i", `aevalsrc='if(lt(mod(t\\,2)\\,0.003)\\,0.87*sin(2*PI*2000*t)\\,${bed})':s=48000:d=6`, out]);
+  return out;
+}
+
+  test("transients over the peak target are limited so one linear gain fits", () => {
+    const input = mastered("mastered.wav");
+    const before = measure(input);
+    expect(Math.abs(before.i - -14.2)).toBeLessThanOrEqual(0.2);
+    expect(Math.abs(before.tp - -1.2)).toBeLessThanOrEqual(0.2);
+    const out = join(dir, "mastered-out.wav");
+    const r = run(input, out, "--json");
+    expect(r.code).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report).toMatchObject({ pass: true, normalization: "linear", limited: true });
+    expect(report.limiter.peakReductionDb).toBeGreaterThan(0);
+    const m = measure(out);
+    expect(Math.abs(m.i - -14)).toBeLessThanOrEqual(0.5);
+    expect(m.tp).toBeLessThanOrEqual(-1.5 + 0.1);
+    expect(m.rate).toBe(48000);
+  });
+
+  test("--no-limit skips the limiter, so the same bed falls back to dynamic", () => {
+    const r = run(mastered("mastered-nl.wav"), join(dir, "mastered-nl-out.wav"), "--no-limit", "--json");
+    expect(r.code).toBe(1);
+    expect(JSON.parse(r.stdout)).toMatchObject({ pass: false, normalization: "dynamic", limited: false });
+  });
+
+  test("a bed with headroom is not limited", () => {
+    const r = run(tone("headroom.wav", 0.05), join(dir, "headroom-out.wav"), "--json");
+    expect(r.code).toBe(0);
+    expect(JSON.parse(r.stdout)).toMatchObject({ limited: false, normalization: "linear" });
+  });
+
   test("dynamic normalization is a finding even when the output lands on target", () => {
     // A steady tone has a loudness range of exactly 0, which makes loudnorm
     // refuse linear gain and reshape the dynamics instead.

@@ -77,6 +77,29 @@ describe("sheets", () => {
     expect(Math.abs(tile(0) - frame(24))).toBeGreaterThan(2.5);
   });
 
+  test("several times after one --strip each get a strip", () => {
+    const out = join(dir, "multi");
+    const r = run(video, "--out", out, "--strip", "1", "2.5", "3.9", "--json");
+    expect(r.code).toBe(0);
+    expect(JSON.parse(r.stdout).strips).toEqual([join(out, "strip-1.png"), join(out, "strip-2.5.png"), join(out, "strip-3.9.png")]);
+    for (const t of ["1", "2.5", "3.9"]) expect(existsSync(join(out, `strip-${t}.png`))).toBe(true);
+  });
+
+  test("repeated and grouped --strip mix, before or after the video", () => {
+    const out = join(dir, "mixed");
+    const r = run("--strip", "0.5", "1", "--out", out, video, "--strip", "2", "--json");
+    expect(r.code).toBe(0);
+    expect(JSON.parse(r.stdout).strips).toEqual([join(out, "strip-0.5.png"), join(out, "strip-1.png"), join(out, "strip-2.png")]);
+  });
+
+  test("a stray positional is a usage error, not silently ignored", () => {
+    const out = join(dir, "stray");
+    const r = run(video, "--out", out, "extra.mp4", "--strip", "1");
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("extra.mp4");
+    expect(existsSync(join(out, "contact.png"))).toBe(false);
+  });
+
   test("an unreadable video is an environment error and writes nothing", () => {
     const bogus = join(dir, "bogus.mp4");
     Bun.write(bogus, "not a video");

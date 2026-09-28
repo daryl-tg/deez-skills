@@ -118,6 +118,17 @@ on, `npx hyperframes@0.8.82`, because the plugin updates daily.
   A bed that starts at full amplitude leaves an AAC peak at about 13ms. HF's
   true-peak guard then turns the whole mix down by about 6 dB. Mix with
   `/hyperframes-audio`. Never source music through `/media-use`.
+- **Assets live inside the project.** Lint rejects `../` asset paths
+  (`invalid_parent_traversal_in_asset_path`). Symlink clips and the bed into
+  `compose/assets/`, for example `assets/clips` pointing at `$RUN/clips/final`.
+  HF's frame cache keys on path, mtime and size, so a re-rendered clip is picked
+  up with no edit.
+- **Give full-frame cards an explicit size.** A root-level `.clip` is pinned
+  top-left and shrink-wrapped, so a title card clips off the top unless it is
+  sized to the whole frame.
+- **Push held shots.** A slow linear push of at most 2 to 3% across a held shot
+  keeps every half-second window above the `dead-beats.ts` threshold without
+  reading as a camera move. That includes a closing title's hold.
 - Put `data-no-timeline` on the composition root. It only skips a 45-second
   wait for timeline registration, and is harmless beside a registered timeline.
 
@@ -142,16 +153,21 @@ later version fails, compose with ffmpeg instead: concatenate clips with hard
 cuts on grid times, burn titles in from `scene.ts`-rendered HTML title cards,
 and mux `bed.wav`.
 
-**Master.** HF's mix does not land on the loudness target (-14.9 LUFS
-measured). Extract the audio, normalize it and remux, copying the video
-untouched:
+**Master.** HF's AAC mix does not land on the loudness target. It measured
+-14.9 LUFS on a raw bed, and -14.19 LUFS / -1.23 dBTP on a bed that `finish`
+had already mastered, because AAC overshoots true peak. Extract the audio,
+normalize it with a true-peak target of -2.0 so the final AAC encode lands at or
+under -1.5, and remux, copying the video untouched:
 
 ```bash
 ffmpeg -v error -i "$RUN/out/r<N>-mix.mp4" -vn -c:a pcm_s16le "$RUN/out/r<N>-mix.wav"
-bun helpers/loudness.ts "$RUN/out/r<N>-mix.wav" "$RUN/out/r<N>-master.wav"
+bun helpers/loudness.ts "$RUN/out/r<N>-mix.wav" "$RUN/out/r<N>-master.wav" --tp -2.0
 ffmpeg -v error -i "$RUN/out/r<N>-mix.mp4" -i "$RUN/out/r<N>-master.wav" \
   -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 256k -shortest "$RUN/out/r<N>.mp4"
 ```
+
+Then measure the final file's audio. The loudness check in `review.md` applies
+to `r<N>.mp4`, not to the intermediate WAV.
 
 `r<N>.mp4` is the revision the checks and the judge see. Run the determinism
 check on two full passes, render plus master.
