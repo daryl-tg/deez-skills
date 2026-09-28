@@ -64,7 +64,12 @@ The judge returns the three worst problems with timestamps and, from round two,
 the preferred revision with a reason. Fix those three, re-render only the
 affected clips, and run the checks again. Stop after round three once the
 checklist is all yes and the judge prefers the new revision. Keep every round's
-verdict in `$RUN/review/log.md`.
+verdict in `$RUN/review/log.md`, with your disposition for each problem:
+accepted, declined with the reason, or left for the operator.
+
+Judges disagree with each other on subjective pacing. One round asks for a
+shorter hook and the next asks for a longer one. Once the stop rule holds, carry
+the remaining suggestions to the operator as open choices instead of looping.
 
 ## Publish
 

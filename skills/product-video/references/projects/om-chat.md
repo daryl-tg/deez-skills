@@ -98,7 +98,9 @@ Publish through the review renderer on 8098, without writing into the repo:
 2. From inside `~/gitlab/openmarket-chat`, run
    `ARTIFACTS="$RUN/evidence" control-om-chat evidence publish <run-id> <rev>`.
 3. The operator opens `http://127.0.0.1:8098/<run-id>/<rev>/` through the
-   tunnel. The MP4 is at `.../<rev>/<file>.mp4` beside the gallery.
+   tunnel. The MP4 is at `.../<rev>/<file>.mp4` beside the gallery. The
+   renderer serves it as `application/octet-stream`, so a browser downloads it
+   rather than playing it inline. Say so in the hand-off.
 
 The renderer is device-owned. Never start, restart or replace it, and never
 write a revision `index.html`.
