@@ -101,28 +101,60 @@ Clip rules:
 
 ## 5. Compose
 
-A HyperFrames project in `$RUN/compose/`:
-- Each clip is a `<video class="clip">` on its own track.
-- Titles and overlays follow `/hyperframes-animation` and `style_guide.md`.
-- `bed.wav` is placed as `<audio>`. Mix with `/hyperframes-audio`. Never source
-  music through `/media-use`.
+A HyperFrames project in `$RUN/compose/`. Pin the version the skill was proven
+on, `npx hyperframes@0.8.82`, because the plugin updates daily.
+
+- **Clips.** Each clip is `<video class="clip" muted playsinline>` on its own
+  track, with no `crossorigin` and no timed wrapper around it. Composition frame
+  n shows clip frame n minus the clip's start frame, frame-exact.
+- **Titles and overlays** follow `/hyperframes-animation` and `style_guide.md`.
+  Copy `gsap.min.js` into `assets/`, because a CDN script is a network fetch at
+  render time. Give every named font an `@font-face` pointing at a local woff2
+  copied from the project repo. Without one, lint reports
+  `font_family_without_font_face` and the render falls back to a system face.
+- **Music.** `bed.wav` goes in as `<audio id="bed">`. Fade it in over at least
+  50ms and out at the end, both through its `data-automation` volume lane, for
+  example `{"t":0,"v":0},{"t":0.05,"v":1}`. Never fade with a GSAP volume tween.
+  A bed that starts at full amplitude leaves an AAC peak at about 13ms. HF's
+  true-peak guard then turns the whole mix down by about 6 dB. Mix with
+  `/hyperframes-audio`. Never source music through `/media-use`.
+- Put `data-no-timeline` on the composition root. It only skips a 45-second
+  wait for timeline registration, and is harmless beside a registered timeline.
 
 Render deterministically:
 
 ```bash
 HYPERFRAMES_NO_TELEMETRY=1 DO_NOT_TRACK=1 \
-  npx hyperframes render "$RUN/compose" -o "$RUN/out/r<N>.mp4" --fps 30 -w 1 --no-browser-gpu
+  npx hyperframes@0.8.82 render "$RUN/compose" -o "$RUN/out/r<N>-mix.mp4" --fps 30 -w 1 --no-browser-gpu
 ```
 
-Put `data-no-timeline` on the composition root. Without it the render waits
-45 seconds per session and can fail with `Attempted to use detached Frame`.
-Expect about 60 seconds of lint before each render.
+A composition render takes about 15 seconds, lint included.
+
+HF also writes outside the project: `~/.hyperframes/`,
+`~/.cache/hyperframes/`, and a frame cache in
+`$TMPDIR/hyperframes-extract-cache-<uid>`. Leave them unless the operator asks
+for cleanup.
 
 **The composition must pass `determinism.ts` on two renders before the run
-relies on it.** If HyperFrames cannot hold identical frames with clip inputs,
-compose with ffmpeg instead: concatenate clips with `xfade` transitions on grid
-times, burn titles in from `scene.ts`-rendered HTML title cards, and mux
-`bed.wav`.
+relies on it.** HF 0.8.82 passed with clip inputs, a title card and a bed
+(every stream identical, clip frames at SSIM 0.9985 against the source). If a
+later version fails, compose with ffmpeg instead: concatenate clips with hard
+cuts on grid times, burn titles in from `scene.ts`-rendered HTML title cards,
+and mux `bed.wav`.
+
+**Master.** HF's mix does not land on the loudness target (-14.9 LUFS
+measured). Extract the audio, normalize it and remux, copying the video
+untouched:
+
+```bash
+ffmpeg -v error -i "$RUN/out/r<N>-mix.mp4" -vn -c:a pcm_s16le "$RUN/out/r<N>-mix.wav"
+bun helpers/loudness.ts "$RUN/out/r<N>-mix.wav" "$RUN/out/r<N>-master.wav"
+ffmpeg -v error -i "$RUN/out/r<N>-mix.mp4" -i "$RUN/out/r<N>-master.wav" \
+  -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 256k -shortest "$RUN/out/r<N>.mp4"
+```
+
+`r<N>.mp4` is the revision the checks and the judge see. Run the determinism
+check on two full passes, render plus master.
 
 **Formats.** Render 9:16 first. For 16:9, re-render the scenes at 960×540 DPR 2
 with the same `scene.json` beats. Never crop a 9:16 render.

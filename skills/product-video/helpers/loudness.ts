@@ -9,8 +9,11 @@ gain from those measurements, at the input's sample rate. The LRA target is
 widened to the measured range if needed so loudnorm stays linear.
 Defaults: --i -14 LUFS, --tp -1.5 dBTP, --lra 11 LU.
 Prints measured input and output integrated loudness and true peak.
-Exit 0 if the output lands within 0.5 LU of --i with true peak at most --tp +0.1;
-1 if not; 2 on usage or decode errors.
+Exit 0 if loudnorm applied one linear gain and the output lands within 0.5 LU
+of --i with true peak at most --tp +0.1. Exit 1 if it missed target, or if
+loudnorm fell back to dynamic mode (it reshaped the dynamics, which a mastered
+bed must not have), even when the output is on target. Exit 2 on usage or
+decode errors.
 `;
 
 type Stats = Record<string, string>;
@@ -59,14 +62,22 @@ main(usage, description, () => {
 
   const inStats = { i: Number(measured.input_i), tp: Number(measured.input_tp), lra: Number(measured.input_lra) };
   const outStats = { i: Number(applied.output_i), tp: Number(applied.output_tp), lra: Number(applied.output_lra) };
-  const pass = Math.abs(outStats.i - target.i) <= 0.5 && outStats.tp <= target.tp + 0.1;
+  const normalization = applied.normalization_type;
+  const misses = [
+    // Dynamic mode rides the gain over time; a mastered bed must come out with its dynamics intact.
+    normalization !== "linear" && `loudnorm fell back to ${normalization} normalization, not one linear gain`,
+    Math.abs(outStats.i - target.i) > 0.5 && `output ${outStats.i} LUFS is more than 0.5 LU from ${target.i}`,
+    outStats.tp > target.tp + 0.1 && `output true peak ${outStats.tp} dBTP exceeds ${target.tp}`,
+  ].filter((m): m is string => !!m);
+  const pass = misses.length === 0;
+  const reason = pass ? null : misses.join("; ");
   const row = (label: string, s: { i: number; tp: number }) => `${label}  ${s.i.toFixed(2)} LUFS  ${s.tp.toFixed(2)} dBTP`;
   return {
     code: pass ? 0 : 1,
     asJson: !!values.json,
-    json: { pass, target, lra, normalization: applied.normalization_type, input: inStats, output: outStats, path: output },
+    json: { pass, reason, target, lra, normalization, input: inStats, output: outStats, path: output },
     human: [
-      `${pass ? "on target" : "missed target"} (${target.i} LUFS, ${target.tp} dBTP, ${applied.normalization_type})`,
+      pass ? `on target (${target.i} LUFS, ${target.tp} dBTP, linear)` : `failed: ${reason}`,
       row("input ", inStats),
       row("output", outStats),
       output,

@@ -74,6 +74,24 @@ describe("loudness", () => {
     expect(r.stdout).toMatch(/output\s+-1[34]\.\d+ LUFS\s+-\d+\.\d+ dBTP/);
   });
 
+  test("dynamic normalization is a finding even when the output lands on target", () => {
+    // A steady tone has a loudness range of exactly 0, which makes loudnorm
+    // refuse linear gain and reshape the dynamics instead.
+    const steady = join(dir, "steady.wav");
+    ff(["-f", "lavfi", "-i", "aevalsrc='0.03*sin(2*PI*440*t)+0.02*sin(2*PI*660*t)':s=48000:d=6", steady]);
+    const out = join(dir, "steady-out.wav");
+    const r = run(steady, out, "--json");
+    expect(r.code).toBe(1);
+    const report = JSON.parse(r.stdout);
+    expect(report).toMatchObject({ pass: false, normalization: "dynamic" });
+    expect(report.reason).toContain("dynamic");
+    expect(Math.abs(measure(out).i - -14)).toBeLessThanOrEqual(0.5);
+    const human = run(steady, join(dir, "steady-human.wav"));
+    expect(human.code).toBe(1);
+    expect(human.stdout).toContain("dynamic");
+    expect(human.stdout).toContain("not one linear gain");
+  });
+
   test("a signal that cannot reach target is a finding", () => {
     // Full-scale 5ms clicks over near silence: any gain that reaches -14 LUFS
     // would clip, so loudnorm limits and lands well short.

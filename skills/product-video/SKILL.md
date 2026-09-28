@@ -40,8 +40,10 @@ detail is in `references/pipeline.md`.
 3. **Music.** `music.py generate`, then `beats.py`, then `music.py finish`. The
    finished WAV is an asset. Never regenerate it at render time.
 4. **Scenes.** One `scene.json` per beat, rendered to a clip by `scene.ts`.
-5. **Compose.** A HyperFrames composition takes the clips as `<video>`, plus
-   titles and the finished music. Render with the deterministic flags.
+5. **Compose and master.** A HyperFrames composition takes the clips as
+   `<video>`, plus titles and the finished music. Render with the deterministic
+   flags, then master the audio to the loudness target and remux, copying the
+   video untouched.
 6. **Checks.** Run every check in `references/review.md`. A failing check goes
    back to stage 4 or 5.
 7. **Judge.** A fresh-context subagent compares this revision against the last
