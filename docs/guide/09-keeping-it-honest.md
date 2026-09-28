@@ -116,7 +116,7 @@ exist and be executable in that repo. Without them every pass fails at the first
 
 ```bash
 skills/maintain-verification-skill/scripts/scheduled-run.sh \
-  ~/github/openmarket-chat verify-om-chat
+  ~/gitlab/openmarket-chat verify-om-chat
 ```
 
 It checks those preconditions and **skips quietly** when they are unmet, takes a

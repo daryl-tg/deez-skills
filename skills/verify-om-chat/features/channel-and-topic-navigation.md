@@ -63,12 +63,12 @@ says it will post into the topic rather than the channel. You click **Back to
 ## Driving it with control-om-chat
 
 ```bash
-cd /Users/dboon/github/openmarket-chat
+cd /Users/dboon/gitlab/openmarket-chat
 export OM_CHAT_LANE_PORT=<your assigned 18097-18197 port>
-./control-om-chat up
+control-om-chat up
 export AGENT_BROWSER_SESSION=verify-nav
 agent-browser set viewport 1440 900
-agent-browser open "$(./control-om-chat url \
+agent-browser open "$(control-om-chat url \
   'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
 ```
 
@@ -193,7 +193,7 @@ the navigation retargeted the *write* path, not only the read pane.
 
   **The gate has moved twice and now explains itself.** `#731` lifted it out of
   `Shell.tsx` into `ConversationRightRegion`; it is now back in `Shell.tsx`
-  (`:4111-4121`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
+  (`:4149-4162`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
   More useful than the address is the condition it gained:
 
   ```

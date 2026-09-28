@@ -28,7 +28,7 @@ back returns you to the list where you left it.
 ```bash
 export AGENT_BROWSER_SESSION=verify-mobile
 agent-browser set viewport 390 844
-agent-browser open "$(./control-om-chat url \
+agent-browser open "$(control-om-chat url \
   'tools/visual/shell-fixture.html?view=home&alerts=quiet')"
 ```
 
@@ -102,7 +102,9 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
     `Back to conversation` control that is *not* gated on `useIsMobile()`, so it
     appears at phone width too — no takeover, no detail marker, still inside the
     om root card with the tab bar mounted.
-  - Opening **Recents** renders a control with the same accessible name that
+  - Opening the session list (the button named **"Open om conversations"**,
+    title "Chats", `AgentPane.tsx:285-287`) renders a control with the same
+    accessible name that
     behaves the opposite way: it **is** gated on `useIsMobile()` and **does**
     render as a `[data-mobile-takeover]` dialog, the name belonging to a close
     icon rather than to visible text (`AgentSessionRail.tsx` via

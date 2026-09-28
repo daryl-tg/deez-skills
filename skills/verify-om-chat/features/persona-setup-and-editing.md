@@ -11,15 +11,15 @@
 
 ## How to get to it (user POV)
 
-Open Your om, then Voice & away. Voice is the first tab. With no card, choose Set up my voice now, Import a card, or Create manually. A saved setup or imported card needs Use this card before selection. An existing card offers Edit voice, Advanced document, History and Export card. Away and Activity are future destinations; this phase does not arm an agent.
+Open Agents, then **Voice** in the sidebar's **Persona** group (a `nav` named "Persona sections"). Voice is the first row. With no card, choose Set up my voice now, Import a card, or Create manually. A saved setup or imported card needs Use this card before selection. An existing card offers **Edit**, Advanced document, History and Export card (measured at `f7d7c987` with `personaState=ready`; the button text is plain "Edit", `PersonaPanel.tsx:1137-1151`). Away coverage and Activity are the other two Persona rows; this surface does not arm an agent.
 
 ## Driving it with control-om-chat
 
-Use the owned wrapper lane and `tools/visual/shell-fixture.html?view=agent&panel=voice&personaState=empty` for first use, or `personaState=ready` for a selected card. The canonical route is `#/agent/voice`; Away and Activity append their names instead. The legacy `view=agents&panel=persona` entry redirects into Your om.
+Use the owned wrapper lane and `tools/visual/shell-fixture.html?view=agent&panel=voice&personaState=empty` for first use, or `personaState=ready` for a selected card. The canonical route is `#/agents/voice`, plural (`routing.ts:189-191`); `#/agents/away` and `#/agents/activity` follow the same shape. `#/agent/voice` is a legacy alias rewritten to it. The legacy `view=agents&panel=persona` entry also lands on `#/agents/voice`, but after load, so the fixture never mocks persona and the panel reads "Your voice could not be loaded" (see the Gotchas in [om-and-agents.md](om-and-agents.md)). Use `?view=agent&panel=voice`.
 
 For actual daemon API integration, use `backend=real&backendOrigin=<owned-synthetic-api-origin>` on the same Shell fixture. Supply a run-owned API server and synthetic HOME. The fixture only forwards library API requests to that origin. Never point setup or restore at the operator's real HOME for a verification run.
 
-Edit voice opens Voice name, About me, Voice rule 1 and Example for voice rule 1 fields. Use Add voice rule, Add boundary, Add example, Save voice and Cancel. Try saved voice is distinct from unsaved text. Import a card opens a Voice card files input accepting SKILL.md plus card.json and optional README.md, or one folded Markdown file. File upload reaches a preview, then Save card, then separate Use this card. Export card defaults Include private evidence and examples to unchecked.
+Edit opens Voice name, About me, Voice rule 1 and Example for voice rule 1 fields. Use Add voice rule, Add boundary, Add example, Save voice and Cancel. Try saved voice is distinct from unsaved text. Import a card opens a Voice card files input accepting SKILL.md plus card.json and optional README.md, or one folded Markdown file. File upload reaches a preview, then Save card, then separate Use this card. Export card defaults Include private evidence and examples to unchecked.
 
 History must open the selected card with the History rail already visible. In the ready fixture, choose r3, Restore this version, then Restore. Assert fixtureRestoreHead=5, fixtureRestoreCalls=1, and changed editor text; rows alone do not prove restore. See home-history-restore.md for failure/retry.
 

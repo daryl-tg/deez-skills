@@ -14,36 +14,46 @@ you saw into evidence someone else can open.
 invalidated, what the operator must approve. This skill owns the *mechanics*.
 When they disagree, policy wins.
 
-Everything here goes through `control-om-chat`, at
-`/Users/dboon/github/openmarket-chat/control-om-chat`.
-
-It sits in the repo it drives, but it does **not** version with it: the file is
-untracked, excluded via `.git/info/exclude`, and present on no branch. Two
-consequences worth knowing before you plan a run. A `git worktree` of the repo
-does not have it, so a lane you start from a worktree fails with
-`no such file or directory`. And because the script resolves its own repo from
-`dirname "$BASH_SOURCE"`, calling it by absolute path serves the **primary
-checkout** whatever your cwd is — so you cannot point it at a worktree by
-invoking it from there. To drive a specific tree, copy the script into that
-tree and run it from the copy:
+Everything here goes through `control-om-chat`, which lives in this skill at
+`skills/verify-om-chat/bin/control-om-chat` and is linked onto PATH as
+`control-om-chat`. It is not in the app repo. It drives **whichever checkout or
+worktree you are standing in**, so there is nothing to copy into a worktree:
 
 ```bash
-cp /Users/dboon/github/openmarket-chat/control-om-chat <worktree>/
-cd <worktree> && bun install
-OM_CHAT_LANE_PORT=<port> ./control-om-chat doctor
+cd ~/gitlab/openmarket-chat-<slug> && bun install --frozen-lockfile
+OM_CHAT_LANE_PORT=<port> control-om-chat doctor
 ```
+
+It refuses three things before doing anything: a directory that is not a git
+worktree, a tree without `tools/visual/shell-fixture.html` and
+`packages/chat-ui`, and an origin other than
+`gitlab.com/openmarketxyz/frontend/openmarket-chat`. That last check is the one
+that matters. The deprecated `~/github/openmarket-chat` checkout and its
+`openmarket-chat-<slug>` worktrees still exist, still hold the fixture, and still
+build, so only the remote tells them apart. They are history. Never drive,
+build, or branch from them.
+
+Worktrees go at `~/gitlab/openmarket-chat-<slug>`, beside the checkout. The
+workspace resolves `@cli/*` from `../openmarket-internal`, which
+`~/gitlab/openmarket-internal` provides as a symlink, so a worktree anywhere
+else cannot typecheck anything that imports the daemon. Doctor checks this and
+fails without it.
+
+Lane state (`.control-om-chat/`) and `artifacts/` are written inside the tree.
+Doctor prints a NOTE with the one `info/exclude` line that keeps them out of
+`git status` for every worktree at once, when that line is missing.
 
 A fresh worktree has no `node_modules`, so install first. `bun install` **may**
 end with **"Failed to install 1 package"** — `@orangecharts/orange-v2-pb-common`
 (an `apps/cloud` dependency) 404s from the private registry on some runs and
 resolves on others, depending on registry and cache state. Either way it is
-not on the fixture's import path: a `main@41a57adc` worktree that hit the 404
+not on the fixture's import path: a GitHub-era `main@41a57adc` worktree that hit the 404
 still rendered all sixteen seeded rows with no module errors. Doctor will also report `dist bundle absent`; that
 only matters for daemon and desktop lanes, not the fixture.
 
-That matters more than it sounds: the primary checkout is frequently parked on
-somebody else's feature branch, so "run the wrapper" and "drive `main`" are not
-the same thing.
+Standing in the primary checkout drives whatever branch it is parked on, and
+that is frequently somebody else's feature branch. "Run the wrapper" and "drive
+`main`" are not the same thing, so drive from the worktree you mean.
 
 ## Where the source lives (changed in `f190644c`)
 
@@ -74,7 +84,7 @@ What did **not** move: `tools/visual/` is untouched, so every fixture and every
 
 **The `/chat/` host has its own shell fixture, and it is real, not a shim:**
 `apps/cloud/tools/visual/shell-fixture.tsx`. It stubs far less than the root
-one — about 2,600 lines against 4,400 at `41a57adc` — so a surface that works under `/rooms/` can still crash or sit behind an
+one — about 2,600 lines against 4,400 at `f7d7c987` — so a surface that works under `/rooms/` can still crash or sit behind an
 `INERT`-held dialog under `/chat/`. Every citation in this map names the root
 fixture unless it says otherwise.
 
@@ -143,11 +153,11 @@ presence, or reconnection. Everything else is the fixture lane.
 ## Launch
 
 ```bash
-cd /Users/dboon/github/openmarket-chat
+cd /Users/dboon/gitlab/openmarket-chat
 
 # Ports are ASSIGNED, never discovered. 18097-18197 is the agent range.
 # 18097 is the conventional first slot; take the next free one if it is taken.
-OM_CHAT_LANE_PORT=18099 ./control-om-chat up
+OM_CHAT_LANE_PORT=18099 control-om-chat up
 # -> http://127.0.0.1:18099/rooms/
 ```
 
@@ -195,15 +205,15 @@ a relative path resolves against the directory that *session was launched
 from*, not your shell's cwd, so the second host's frame fails with `No such
 file or directory` while the first one's saves fine.
 Stop it with `kill "$(cat .cloud-lane-<port>.pid)"`: `control-om-chat down` does
-not know it exists. Proven on `41a57adc` with the search-and-filters thread
-recipe, which passed step for step on both hosts.
+not know it exists. Proven on GitHub `41a57adc` (imported here by `8b0ff076`) with the
+search-and-filters thread recipe, which passed step for step on both hosts.
 
 ## Doctor
 
 One read-only command, before you drive anything:
 
 ```bash
-OM_CHAT_LANE_PORT=18099 ./control-om-chat doctor
+OM_CHAT_LANE_PORT=18099 control-om-chat doctor
 ```
 
 It reports the repo HEAD, whether the lane port is free or already yours,
@@ -226,7 +236,7 @@ browser:
 ```bash
 export AGENT_BROWSER_SESSION=verify-<your-run-id>
 agent-browser set viewport 1440 900       # `viewport` is a `set` subcommand
-agent-browser open "$(OM_CHAT_LANE_PORT=18099 ./control-om-chat url \
+agent-browser open "$(OM_CHAT_LANE_PORT=18099 control-om-chat url \
   'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
 agent-browser snapshot -i -c
 ```
@@ -249,7 +259,7 @@ Read `features/` for the routes and handles of each surface, and run
 For a repo command whose exit code matters:
 
 ```bash
-./control-om-chat cli -- bun run typecheck
+control-om-chat cli -- bun run typecheck
 ```
 
 ## Evidence
@@ -270,7 +280,7 @@ Three observations make a claim stand up, and OM Chat gives all three cheaply:
 Write frames into `artifacts/<run-id>/<revision>/` in the repo, then publish:
 
 ```bash
-./control-om-chat evidence publish <run-id> <revision>
+control-om-chat evidence publish <run-id> <revision>
 # -> MacBook review URL: http://127.0.0.1:8098/<run-id>/<revision>/
 ```
 
@@ -299,7 +309,7 @@ console warning it saw is a manifest nobody can trust twice.
 
 ```bash
 agent-browser close                                  # your session only
-OM_CHAT_LANE_PORT=18099 ./control-om-chat down       # by pidfile, never by name
+OM_CHAT_LANE_PORT=18099 control-om-chat down       # by pidfile, never by name
 ```
 
 `down` kills the recorded pid and nothing else. **Never** match on process name:

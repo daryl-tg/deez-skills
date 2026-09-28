@@ -63,7 +63,7 @@ The panel half is the fixture-complete one. Start there:
 ```bash
 export AGENT_BROWSER_SESSION=verify-library
 agent-browser set viewport 1440 900
-agent-browser open "$(./control-om-chat url \
+agent-browser open "$(control-om-chat url \
   'tools/visual/shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server')"
 ```
 

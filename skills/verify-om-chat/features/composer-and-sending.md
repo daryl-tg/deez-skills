@@ -178,7 +178,7 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   `.ui-lightbox[role="dialog"]` under `document.body` — which pages across every
   staged image *and* video, so one click can arrow into the neighbouring file.
   Nothing here stages one: no parameter does it (all seventy-odd `params.get`
-  keys enumerated — 72 on `9902d149`) and the fixture's pending-attachment arrays start empty, fed
+  keys enumerated — 73 on `f7d7c987`) and the fixture's pending-attachment arrays start empty, fed
   only by `session.acceptFile` behind the real file input. The unmet
   prerequisite is a staged file. Whether the harness can drive that hidden
   `<input type="file">` directly is untested — treat this as unreached rather
@@ -200,7 +200,7 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   `/doc/<id>` (`share-links.ts`, `parseShareLink`) — paint as a pill, and the
   fixture wires the resolver (`bindComposerUrisFor`), so a channel link
   resolves. Typing `see https://openmarket.xyz/chat/room/ops please` at
-  `daf5dfcb` painted one `.composer-backdrop` run,
+  `f7d7c987` painted one `.composer-backdrop` run,
   `composer-token composer-token-channel composer-token-painted` with
   `data-pill="true"`, holding a hidden `.composer-token-wire` (the exact URL)
   and a visible `.composer-token-label` reading `#ops`; `textarea.value` kept

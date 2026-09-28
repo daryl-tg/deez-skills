@@ -28,7 +28,7 @@ add a friend, start a DM, or browse public channels.
 ```bash
 export AGENT_BROWSER_SESSION=verify-dm
 agent-browser set viewport 1440 900
-agent-browser open "$(./control-om-chat url \
+agent-browser open "$(control-om-chat url \
   'tools/visual/shell-fixture.html?view=home&alerts=quiet')"
 ```
 
@@ -69,11 +69,25 @@ agent-browser find role button click --name "More"
 agent-browser find role menuitem click --name "Edit Message"
 agent-browser find role textbox fill --name "Edit message" "replacement text"
 agent-browser find role button click --name "save"
-agent-browser eval 'document.documentElement.dataset.fixtureDmEdit'
+agent-browser eval 'document.documentElement.dataset.fixtureMermaidEdit'
 ```
 
-The last command returns `saved:c1:m2` for the default `ana` fixture. `c1` is
-the stable conversation id carried through the edit; `m2` is the message id.
+The last command returns the literal `dm-saved` (`shell-fixture.tsx:3419`); a
+channel edit writes `channel-saved` to the same key (`:3396`). There is no
+`fixtureDmEdit` key, and the value carries no conversation or message id.
+Measured at `f7d7c987`. `More` only appears while the row is hovered, so mark
+the row first, then hover it:
+
+```bash
+agent-browser eval '(()=>{const r=[...document.querySelectorAll("[data-message-row]")]
+  .find(e=>/yep, watching the next print/.test(e.textContent));
+  r.setAttribute("data-probe","1"); r.scrollIntoView({block:"center"}); return "ok"})()'
+agent-browser hover '[data-probe]'
+```
+
+Wrap the lookup in an IIFE. A bare top-level `const` persists in the page, so
+a second eval on the same load throws `Identifier ... has already been
+declared`.
 
 On the Connections surface the chips are `button`, not `tab`: `"Connections"`,
 `"Requests"`, `"Blocked"` — three, and only three, in this lane. The product
@@ -82,7 +96,7 @@ Following) and a `role="tablist"` "Request type" switch, but both render only
 once `tab === "connections"` or a real request filter is active, and the
 fixture's tab normalisation (below) never gets there. Measured live: three
 `.cx-chip`, zero `.cx-chip.is-mini`, no tablist. There is **no Friends chip** — `#697` cut the surface
-down to three (`FriendsPane.tsx:104-106`). Opening Requests adds two more chips
+down to three (`FriendsPane.tsx:105-109`). Opening Requests adds two more chips
 beside them, `"Incoming"` and `"Sent"`.
 
 `#697` renamed the friend vocabulary to follow vocabulary throughout, and the

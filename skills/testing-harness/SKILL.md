@@ -66,9 +66,9 @@ The two surfaces:
 | `cloud` | `https://openmarket.xyz/chat/#/`   | parity baseline — what the **deployed** `/chat/` has |
 | `local` | `http://127.0.0.1:31417/rooms#/`   | candidate — the daemon serving your branch |
 
-Changes land in `openmarket-chat` first and are synced to
-the deployed `/chat/` afterwards, so **cloud is "before" and local is
-"after"**. Both proxy to the same production rooms backend
+Changes land in `openmarket-chat` first and reach the deployed `/chat/` only
+when they land on `main`, which publishes it, so **cloud is "before" and local
+is "after"**. Both proxy to the same production rooms backend
 (`ROOM_CHAT_API_URL`, `ROOMS_WS_URL` in `packages/cli/src/constants.ts`), so the
 account, rooms, and messages are identical on both sides. The only variable is
 the GUI build — which is what makes a pixel diff between them meaningful.
@@ -228,7 +228,7 @@ its own isolated home.
 **Only `openmarket-internal` is live.** The `openmarket` and `openmarket-main`
 checkouts of the same remote are stale, and `tools/link-rooms-client.ts` defaults
 to exactly those two. Always relink with
-`OM_REPO=~/Documents/GitLab/openmarket-internal bun run rooms-client:link`.
+`OM_REPO=~/github/openmarket-internal bun run rooms-client:link`.
 
 **Cloud login detours through the chart app.** `openmarket.xyz/chat/` bounces a
 logged-out visitor to `/chart/`, login happens there, and the redirect back is
@@ -270,5 +270,5 @@ probe, a journey, or a regression leg posts, reacts to, or deletes.
 | `OM_CHAT_STATE` | `~/.claude/state/testing-harness` | profiles, baselines, runs |
 | `OM_CHAT_CREDS` | the Obsidian `Local/creds.md` | credential file |
 | `OM_CHAT_REPORTS` | the Obsidian `UI Updates/` | where `--parity-check` writes |
-| `OM_CHAT_REPO` | `~/Documents/GitLab/openmarket-chat` | GUI checkout stamped into reports |
-| `OM_REPO` | `~/Documents/GitLab/openmarket-internal` | daemon checkout stamped into reports |
+| `OM_CHAT_REPO` | `~/gitlab/openmarket-chat` | GUI checkout stamped into reports |
+| `OM_REPO` | `~/github/openmarket-internal` | daemon checkout stamped into reports |

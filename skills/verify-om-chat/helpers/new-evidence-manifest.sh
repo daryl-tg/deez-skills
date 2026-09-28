@@ -75,4 +75,4 @@ cat > "$out" <<JSON
 JSON
 
 printf 'wrote %s\n' "$out"
-printf 'Fill every TODO, then: ./control-om-chat evidence publish %s %s\n' "$run" "$rev"
+printf 'Fill every TODO, then: control-om-chat evidence publish %s %s\n' "$run" "$rev"

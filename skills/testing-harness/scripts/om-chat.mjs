@@ -55,10 +55,10 @@ const REPORT_DIR =
 const LOCAL_PORT = process.env.OM_CHAT_LOCAL_PORT ?? "31417";
 
 const REPOS = {
-  chat: process.env.OM_CHAT_REPO ?? join(HOME, "Documents", "GitLab", "openmarket-chat"),
+  chat: process.env.OM_CHAT_REPO ?? join(HOME, "gitlab", "openmarket-chat"),
   // Only openmarket-internal is live; the openmarket and openmarket-main
   // checkouts of the same remote are stale and must never be read here.
-  internal: process.env.OM_REPO ?? join(HOME, "Documents", "GitLab", "openmarket-internal"),
+  internal: process.env.OM_REPO ?? join(HOME, "github", "openmarket-internal"),
 };
 
 const TARGETS = {
@@ -598,7 +598,8 @@ async function cmdDoctor() {
   if (local.stub) {
     problems.push(
       "local /rooms is the placeholder shell: the dev proxy is off and no bundle is installed. " +
-        "Either export OM_ROOMS_GUI_DEV_URL=http://127.0.0.1:8097 on a SOURCE run, or point " +
+        "Either export OM_ROOMS_GUI_DEV_URL=http://127.0.0.1:<your lane's vite port> on a SOURCE run " +
+        "(never 8097, the operator's dev server), or point " +
         "OM_ROOMS_GUI_DIR at openmarket-chat/dist.",
     );
   }

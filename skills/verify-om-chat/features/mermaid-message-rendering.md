@@ -21,8 +21,8 @@ Use the whole-shell fixture with `mermaid=1`:
 
 ```bash
 export OM_CHAT_LANE_PORT=<assigned-port>
-./control-om-chat up
-agent-browser open "$(./control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&mermaid=1')"
+control-om-chat up
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&mermaid=1')"
 agent-browser wait --fn 'document.querySelector(".doc-mermaid svg") !== null'
 agent-browser snapshot -i -c
 ```

@@ -19,10 +19,12 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4451` always does, so the **running app shows twenty**;
+  `Shell.tsx:4492` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
-  product. (It was twenty-one until `#978` retired the matching **Persona**
+  product. To count twenty without a daemon, open Settings through the shell:
+  `shell-fixture.html?view=settings&settingsPage=appearance` (measured at
+  `f7d7c987`). (It was twenty-one until `#978` retired the matching **Persona**
   row, "now that Agents is its home" — persona is reached through Agents now,
   see [om-and-agents.md](om-and-agents.md).)
 - Appearance: theme (dark / light / sync with OS), palette (Graphite, Slate,
@@ -58,7 +60,7 @@ vocabulary. `?view=` does nothing here.
 ```bash
 export AGENT_BROWSER_SESSION=verify-settings
 agent-browser set viewport 1440 900
-agent-browser open "$(./control-om-chat url \
+agent-browser open "$(control-om-chat url \
   'tools/visual/settings-fixture.html?host=user&page=appearance')"
 ```
 
@@ -139,6 +141,22 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
   only the account-wide radiogroups ("Which to-dos appear in chat or topics",
   "Whether to-do status updates appear in chat"). Proving that sub-feature
   needs a fixture change, not a different query.
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4490` passes
+  `appearanceExtras` only when `session.mode === "home"`, and today that is the
+  **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
+  (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
+  passes no extras, so the group is absent there. It is present at
+  `shell-fixture.html?view=settings&settingsPage=appearance` (measured at
+  `f7d7c987`). The heading is uppercased by CSS, so match it by id or
+  `textContent`, not `innerText`.
+- **`&mode=away` does not show away Agent Settings.** On
+  `?host=user&page=agent-access&mode=away` the page renders only the daemon
+  notice, *"Agent grants live on your OM daemon, so this page cannot show them
+  from here."* (`front-desk-shared.tsx:94`). The **"Phone reach"** dial in
+  source (`AgentAccessPage.tsx:400`) did not render in either mode of this
+  fixture (measured at `f7d7c987`). Its away branch reads
+  `session.remoteControl()`, which this fixture does not stub; that is the
+  likely unmet prerequisite (inferred, not driven).
 - `?perms=` gates what server and channel settings render. A missing control
   may be a correct permission outcome rather than a regression — check the
   route you opened before reporting one.
