@@ -1,0 +1,45 @@
+<!doctype html>
+<html class="reduced-motion">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 200px; height: 200px; overflow: hidden; background: #000; }
+      .reduced-motion * { animation: none !important; transition: none !important; }
+      div { position: absolute; width: 40px; height: 40px; }
+      /* Green once the harness strips reduced-motion; red if frame 0 still has it. */
+      #marker { left: 0; top: 0; width: 20px; height: 20px; background: #0f0; }
+      html.reduced-motion #marker { background: #f00; }
+      /* Triggered: a 400ms linear fade, so t - birth maps straight to opacity. */
+      #box { left: 40px; top: 40px; width: 60px; height: 60px; background: #fff; opacity: 0; transition: opacity 400ms linear; }
+      #box.on { opacity: 1; }
+      #spinner { left: 130px; top: 130px; background: #00f; animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      /* Untriggered: a timer starts this, not a click. */
+      #toast { left: 130px; top: 40px; background: #ff0; opacity: 0; }
+      #toast.show { animation: toast-pop 300ms linear forwards; }
+      @keyframes toast-pop { from { opacity: 0; } to { opacity: 1; } }
+      /* Filled from a stubbed route chosen by the query string. */
+      #swatch { left: 0; top: 130px; background: #000; }
+      button { position: absolute; left: 70px; top: 170px; }
+    </style>
+  </head>
+  <body>
+    <div id="marker"></div>
+    <div id="box"></div>
+    <div id="spinner"></div>
+    <div id="toast"></div>
+    <div id="swatch"></div>
+    <button type="button">Fade in</button>
+    <script>
+      document.querySelector("button").addEventListener("click", () => {
+        document.getElementById("box").classList.add("on");
+      });
+      setTimeout(() => document.getElementById("toast").classList.add("show"), 1800);
+      const swatch = new URLSearchParams(location.search).get("swatch");
+      fetch("/api/" + swatch)
+        .then((r) => r.json())
+        .then((j) => { document.getElementById("swatch").style.background = j.color; })
+        .catch(() => {});
+    </script>
+  </body>
+</html>
