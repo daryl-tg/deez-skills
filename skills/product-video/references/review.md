@@ -52,7 +52,13 @@ sheet or strip it was read from:
 - Every UI state shown is a real product state. Nothing is redrawn. Tell the
   judge the UI is captured from the product, so it does not flag the product's
   own animations as invented effects.
-- Cuts land on beats (checked against `beats.json` times).
+
+**Timing is not the judge's call.** A judge reading a 2 fps contact sheet
+misplaces cuts by up to a second and reports it with confidence. Measure every
+cut yourself: extract the frames either side of each expected cut with
+`select=eq(n\,N)` and confirm the change lands on the grid frame. Record the
+measured cut list in the check report, and treat any timing claim from a judge
+as a hypothesis to measure, never a finding.
 
 The judge returns the three worst problems with timestamps and, from round two,
 the preferred revision with a reason. Fix those three, re-render only the
