@@ -45,8 +45,13 @@ sheet or strip it was read from:
 - Nothing slides linearly where the project's motion eases or springs.
 - No shot is centered text on a gradient, corner labels, frame borders or
   generic particles.
-- Colors and type match the project tokens.
-- Every UI state shown is a real product state. Nothing is redrawn.
+- Our own titles and overlays use only the project tokens, and the project's
+  accent appears in them only where the brief puts it. The product's own UI
+  keeps its real colors, accent buttons included. Never ask the maker to crop
+  or recolor the product to satisfy an overlay rule.
+- Every UI state shown is a real product state. Nothing is redrawn. Tell the
+  judge the UI is captured from the product, so it does not flag the product's
+  own animations as invented effects.
 - Cuts land on beats (checked against `beats.json` times).
 
 The judge returns the three worst problems with timestamps and, from round two,
