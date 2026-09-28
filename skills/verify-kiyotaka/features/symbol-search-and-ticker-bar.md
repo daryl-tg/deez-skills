@@ -106,8 +106,10 @@ Preconditions:
   a11y tree: the grid groups (1, 2, 3, 4, 5, 6, 8, 9, 12, 16), the custom N×N
   matrix and the SYNC toggles all snapshot as unnamed `generic` nodes. Drive them
   by `data-testid` instead — `tb-layout-entry-2H-btn`, `tb-layout-entry-3x3-btn`,
-  `tb-layout-matrix-cell-<col>-<row>-btn`, `tb-layout-sync-symbol-btn` (the full
-  set is built in `src/composables/chart/useMonitorPicker.ts`). The matrix key is
+  `tb-layout-matrix-cell-<col>-<row>-btn`, and three sync toggles —
+  `tb-layout-sync-symbol-btn`, `tb-layout-sync-interval-btn`,
+  `tb-layout-sync-crosshair-btn` (the full set is built in
+  `src/composables/chart/useMonitorPicker.ts`). The matrix key is
   `${col}-${row}`, zero-indexed and **column-first**: the first row of cells reads
   `0-0`, `1-0`, `2-0`, `3-0`:
 
@@ -116,47 +118,57 @@ Preconditions:
   ```
 
   **As a guest the grid never applies** — see Gotchas.
-- **There is no `Panels` button at a desktop viewport.** The bar now runs a
-  responsive fold ladder (`src/composables/chart/useTickerBarFit.ts`): the
-  right-hand cluster renders directly in the bar, and `TBPanelsMenu` is a `⋯`
-  overflow button that renders **only** `v-if="hasFolded"`. At `1440 900` nothing
-  folds, so `tb-panels-trigger-btn` does not exist and neither does any
-  `tb-panels-*` handle. Driven live at that viewport the complete `tb-*` set was:
+- **Two independent fold mechanisms decide what is in the bar, and the Panels
+  button is permanent again.** `TBPanelsMenu` renders unconditionally
+  (`TickerBar.vue`), so `tb-panels-trigger-btn` is always present — the earlier
+  `v-if="hasFolded"` rule is gone. What lives beside it is decided by:
 
+  1. **Pin-fold**, independent of viewport: only `TOOLBAR_DEFAULT_PINS` —
+     `heatmap`, `news`, `editor` — sit directly in the bar by default. `replay`,
+     `hlView`, `calls`, `goLive`, `watchlist`, `objects`, `journal` start folded
+     into the Panels menu (`src/store/toolbar-panels.ts`, `isInBar()`).
+  2. **Width-fold**, the ladder in `src/composables/chart/useTickerBarFit.ts`,
+     which sheds further rungs as the bar narrows.
+
+  So `tb-objects-toggle-btn`, `tb-journal-toggle-btn` and `tb-replay-toggle-btn`
+  are NOT bar buttons on a default boot — they are `tb-panels-row-objects`,
+  `tb-panels-row-journal`, `tb-panels-row-replay` inside the menu until pinned.
+  Open the menu first rather than concluding a toggle is missing:
+
+  ```bash
+  ./control-kiyotaka browser find testid tb-panels-trigger-btn click
+  ./control-kiyotaka browser eval \
+    "JSON.stringify([...document.querySelectorAll('[data-testid^=tb-panels-row-]')].map(e=>e.dataset.testid))"
   ```
-  tb-super-search-btn      tb-symbol-info-btn        tb-interval-pinned-1m-btn
-  tb-interval-pinned-1h-btn  tb-interval-chevron-btn  tb-chart-type-trigger-btn
-  tb-layout-trigger-btn    tb-indicators-btn         tb-heatmap-trigger-btn
-  tb-objects-toggle-btn    tb-journal-toggle-btn     tb-topic-feed-toggle-btn
-  tb-tweet-caller-trigger-btn  tb-replay-toggle-btn  tb-replay-locked
-  tb-editor-toggle-btn     tb-terminal-toggle-btn
-  ```
 
-  So `tb-objects-toggle-btn` and `tb-journal-toggle-btn` are the direct handles,
-  not the unfindable ones a folded layout once made them. To exercise `tb-more`
-  at all you must first shrink the viewport until the ladder sheds a rung; only
-  then do `tb-panels-trigger-btn` / `tb-panels-menu` / `tb-panels-row-<id>`
-  appear, and the menu now carries three sections (Chart / Tools / Panels)
-  covering everything folded, not panels alone. `ToolbarPanelId` has grown to
-  fourteen ids (`src/constants/toolbar-panels.constants.ts`), including `news`,
-  `trade`, `marketStats`, `splits`, `chartType`, `replay`, `editor` and
-  `terminal`.
+  `ToolbarPanelId` is fifteen ids (`src/constants/toolbar-panels.constants.ts`):
+  `marketStats, splits, replay, chartType, goLive, hlView, calls, heatmap, trade,
+  watchlist, objects, journal, news, editor, terminal`.
 
-  A pin still persists to user settings plus a localStorage mirror and survives a
+  A pin persists to user settings plus a localStorage mirror and survives a
   reload even for a guest, so a recipe that pins must unpin.
 
-  **Three of the right-cluster buttons are stand-ins before they warm.**
-  `hlView`, `calls` and `heatmap` mount as `TBPanelStandIn`
-  (`tb-panel-standin-<id>-btn`) until their real host arms on a paced warm phase;
-  a click that early arms the host and replays itself, so an immediate assertion
-  after the first click can read as a no-op.
+  **Three of the panels are stand-ins before they warm.** `hlView`, `calls` and
+  `heatmap` mount as `TBPanelStandIn` (`tb-panel-standin-<id>-btn`) until their
+  real host arms; a click that early arms the host and replays itself, so an
+  immediate assertion after the first click can read as a no-op.
+
+  **This section describes `origin/main` and was verified from source, not
+  driven** — see the freshness note in the README. A lane serving an older
+  checkout shows the previous shape, in which there is no Panels button at all
+  and Objects/Journal/Replay are direct bar buttons. `doctor`'s `freshness` line
+  tells you which one you are looking at.
 - **New in the bar, and guest-reachable:** `tb-super-search-btn` opens Super
   Search with no guest gate (proven live: `isSuperSearchOpen` went true with
   `isAuthenticationDialogOpen` false). `tb-topic-feed-toggle-btn` (News) is
   guest-WALLED through `handleGuestAccess(FeatureId.NEWS)`. `TBLayersButton`
-  (`tb-layers-btn` plus a `tb-layers-*` panel) renders only when
-  `VITE_NEWS_FIRE_LANE_ENABLED` is on or the role is internal, so it is absent on
-  a default local lane — do not record it missing as drift.
+  (`tb-layers-btn` plus a `tb-layers-*` panel) renders only when `layersEnabled()`
+  passes, which is now a COMPOSED gate — the news-fire lane AND a runtime `layers`
+  flag, with an anonymous-reader carve-out — so it is absent on a default local
+  lane; do not record it missing as drift.
+  `TBWatchlistToggle` (`tb-watchlist-toggle-btn`) is guest-WALLED through
+  `handleGuestAccess(FeatureId.WATCHLIST)` and is not default-pinned, so on a
+  default boot it is `tb-panels-row-watchlist` inside the menu.
 - **Proof.** For each change: the accessible name of the control after the change,
   the engine read showing bars reloaded, and a screenshot. Restore the original
   symbol, interval and plot type afterwards.
@@ -188,8 +200,11 @@ Preconditions:
   `promptGuestLogin(FeatureId.MULTI_CHART)` in `src/store/dialog.ts`. Only the
   picker opening is provable on the guest lane; report the grid itself as
   unreachable rather than photographing a click that did nothing.
-  Two details a recipe trips on. The free multichart limit is **1**, so every entry
-  above one chart already renders `locked` before the click. And the 1x1 matrix
+  Two details a recipe trips on. The free multichart limit is **1 for a guest**,
+  so every entry above one chart already renders `locked` before the click — but
+  that is no longer absolute: under `free-tier-v2` a signed-in free account can
+  reach 16, and the flag reads off for guests only because a guest never fetches
+  it. And the 1x1 matrix
   cell (`tb-layout-matrix-cell-0-0-btn`) is the one allowed cell: from the default
   single-chart guest boot it raises **nothing at all** — no wall, no dialog,
   `guestLoginFeatureId` stays `null` — because the layout it selects is the one
@@ -219,6 +234,8 @@ Preconditions:
   The live v2 category ids are `all`, `crypto`, `stocks`, `forex`, `commodities`,
   `indices`, `predictions`, `cme`, `hip4`, `economics` and `options` — eleven, not
   the seven a label-based reading suggests, and `cme` is no longer legacy-only.
+  `options` is conditional on the option-chain entry being enabled, so a strip of
+  ten is not drift.
   The strip's own testid `search-v2-category-strip` appears **twice** in the DOM,
   so match a specific category id rather than the strip. V2 also carries a views
   rail — `search-v2-view-{all,hyperliquid,cme,tokenized,predictions}-btn` — which

@@ -104,6 +104,13 @@ means the endpoint SERVES, not that the catalog is SEEDED.** An unseeded local
 mongo answers `200` with zero official rows, which reads in the dialog as a
 search that found nothing. `features/indicators.md` carries the tell.
 
+**The `freshness` line is the one to read first.** Every other line can be green
+on a checkout that is hundreds of commits behind `origin/main`, and the lane then
+serves code nobody runs — a pass drove a tree 324 commits stale and had to label
+which findings came from which tree. `freshness` prints the distance and says
+`BEHIND` past fifty. A regenerated wrapper will not have this line; it is
+`git rev-list --count HEAD..origin/main` in `cmd_doctor`.
+
 **Run `doctor` twice on a lane you just brought up, and believe the second.**
 Its probes are HTTP calls with timeouts, and the first transform after `up`
 compiles the whole module graph behind `worker.ts` — measured over 25s, against

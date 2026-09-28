@@ -7,6 +7,11 @@ before driving, then use the matching feature file as the recipe.
 
 - Launch the lane on its **assigned** port (`18097`–`18197`), bound to
   `127.0.0.1`: `./control-kiyotaka up`. Never pick a free port, never `8080`.
+  `doctor` reporting `lane FOREIGN` means another checkout holds the default
+  port — a neighbouring worktree's live lane, not residue. Do not reclaim it:
+  take another slot with `KIYO_LANE_PORT`, and set `KIYO_SESSION` too so your
+  browser commands cannot drive the neighbour's tab.
+  Every later command in the run needs the same two variables exported.
 - `./control-kiyotaka doctor` exits zero. The `chart-schema` line must read `ok`.
 - Viewport set to `1440 900` before any layout assertion.
 - Candles present: `window.tc[0].metadata[0].rawData.length > 50`. Budget two
@@ -20,6 +25,14 @@ before driving, then use the matching feature file as the recipe.
   `OFFICIAL INDICATORS 0` plus a banner naming
   `node scripts/seed-official-catalog.mjs` means `ind-catalog` is unreachable, and
   that is an operator-stack blocker, not drift.
+- `doctor`'s `freshness` line read before anything else. A clean tree on `main`
+  says nothing about whether it is CURRENT: a checkout hundreds of commits behind
+  `origin/main` serves stale code while every other doctor line reads green, and
+  a whole pass can then describe an app nobody is running. This has happened —
+  one pass drove a tree 324 commits behind, so its live evidence and its
+  source findings were about different code. When the line says BEHIND, either
+  bring the checkout forward first (the operator's call, not yours) or label
+  every finding with which tree it came from.
 - `doctor` run twice on a freshly-`up`ed lane, with the second run believed. Its
   first transform probe compiles the module graph cold and has exceeded the
   budget, printing `the tree does not compile` about a healthy tree.

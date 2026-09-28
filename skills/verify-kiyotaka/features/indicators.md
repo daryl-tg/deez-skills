@@ -82,7 +82,13 @@ Preconditions:
   green and whose candles arrived in 5s, with the registry warmed by opening and
   closing the dialog first, for both `ORDERBOOK_DEPTH` and `TRADING_TOTAL_VOLUME`
   — two of the three `ALWAYS_LOAD_TYPES`, so it is the add path rather than one
-  control. An `await`ed call never settled. Since every dialog add is guest-walled
+  control. A later pass instrumented the promise and found it DOES settle,
+  resolving to `undefined` after tens of seconds: this is one of the dozen silent
+  early-returns in `addIndicator`, not a hang. The single-instance guard is ruled
+  out — the failure reproduces for a key that is not already in `tc.metadata`.
+  Before blaming it, read `tc.metadata` first: a key that IS already mounted
+  returns early through that guard with a toast and no console line, which looks
+  identical. Since every dialog add is guest-walled
   (below), a guest has no way to mount an overlay at all while this holds. Check
   it before planning a run that depends on those three sub-features, and if it
   still fails, report them unreachable rather than inventing a route.
