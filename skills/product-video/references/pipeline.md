@@ -139,7 +139,11 @@ HYPERFRAMES_NO_TELEMETRY=1 DO_NOT_TRACK=1 \
   npx hyperframes@0.8.82 render "$RUN/compose" -o "$RUN/out/r<N>-mix.mp4" --fps 30 -w 1 --no-browser-gpu
 ```
 
-A composition render takes about 15 seconds, lint included.
+A 24-second 1080×1920 composition renders in about 45 seconds, lint included.
+
+HF warns about sparse keyframes on long `scene.ts` clips, because they are encoded
+with a long GOP. Frame placement stays exact (SSIM 1.000 against the source),
+so the warning is safe to ignore.
 
 HF also writes outside the project: `~/.hyperframes/`,
 `~/.cache/hyperframes/`, and a frame cache in

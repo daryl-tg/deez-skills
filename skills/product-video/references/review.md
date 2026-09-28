@@ -12,7 +12,7 @@ Run all of them on every revision `r<N>` in `$RUN/out/`.
 |---|---|---|
 | Determinism | render twice, `bun helpers/determinism.ts a.mp4 b.mp4` | exit 0 |
 | Motion | `bun helpers/dead-beats.ts r<N>.mp4 $RUN/music/beats.json` | exit 0, no dead beat |
-| Loudness | `bun helpers/loudness.ts` on the final mix | -14 ±0.5 LUFS, true peak ≤ -1.5 dBTP |
+| Loudness | measure `r<N>.mp4`'s own audio (ebur128, or `loudness.ts` with a scratch output) | -14 ±0.5 LUFS, true peak ≤ -1.5 dBTP |
 | Loop seam | `bun helpers/loop-seam.ts r<N>.mp4` | exit 0, only when the brief asks for a loop |
 | Sheets | `bun helpers/sheets.ts r<N>.mp4 --out $RUN/review/r<N> --strip <t> --strip <t>` | contact, phone and one strip per fast action exist |
 
