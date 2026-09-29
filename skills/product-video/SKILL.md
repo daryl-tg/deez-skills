@@ -24,7 +24,9 @@ judge pass.
    **principle-planning-docs-live-outside-the-repo**.
 4. HyperFrames skills come from the `hyperframes@hyperframes` Claude plugin, or
    `npx hyperframes skills update` on Codex. Load `/hyperframes-core` before
-   writing composition HTML.
+   writing composition HTML. Use HyperFrames for composition only. Never run
+   its `/product-launch-video` or `/hyperframes` creation workflows: they
+   capture a website as screenshots and would replace this pipeline.
 
 ## Stages
 
