@@ -287,4 +287,50 @@ describe("scene.ts determinism on real pages", () => {
     expect(pixel(join(framesDir, "frame-00000.png"), 0, 180, 20)[1]).toBeLessThanOrEqual(3);
     expect(pixel(join(framesDir, "frame-00012.png"), 0, 180, 20)[1]).toBeGreaterThanOrEqual(252);
   });
+
+  const press = (name: string, trigger: Record<string, unknown>) => renderScene(name, {
+    entry: "scene-press.html", viewport: { width: 200, height: 120, dpr: 1 }, duration: 1,
+    triggers: [{ t: 0.5, ...trigger }],
+  });
+
+  test("a key press sends from the focused field, and the row it adds enters from birth", () => {
+    const { report, framesDir } = press("press", { press: { key: "Enter" } });
+    expect(report.triggers).toEqual([{ t: 0.5, key: "Enter", born: 1 }]);
+    const at = (f: number, x: number) => pixel(join(framesDir, `frame-${String(f).padStart(5, "0")}.png`), 0, x, 20);
+    expect(at(14, 40)).toEqual([0, 0, 0]); // before t=0.5: no row
+    expect(at(15, 40)).toEqual([0, 0, 0]); // born at 0.5, opacity 0
+    expect(Math.abs(at(21, 40)[0] - 170)).toBeLessThanOrEqual(3); // 200 of 300ms
+    expect(at(29, 40)).toEqual([255, 255, 255]);
+    expect(at(29, 150)).toEqual([0, 0, 0]); // the other field sent nothing
+  });
+
+  test("a press with a target focuses it first, by role and name or by selector", () => {
+    for (const [name, target] of [["press-role", { role: "textbox", name: "Reply" }], ["press-sel", { selector: "#reply" }]] as const) {
+      const { report, framesDir } = press(name, { press: { key: "Enter", ...target } });
+      expect(report.triggers[0]).toMatchObject({ t: 0.5, key: "Enter", born: 1 });
+      const last = join(framesDir, "frame-00029.png");
+      expect({ name, reply: pixel(last, 0, 150, 20), draft: pixel(last, 0, 40, 20) })
+        .toEqual({ name, reply: [0, 255, 0], draft: [0, 0, 0] });
+    }
+  });
+
+  test("a trigger needs exactly one of click or press, with known fields and a real key", () => {
+    const bad = (name: string, trigger: Record<string, unknown>) => {
+      const json = join(dir, `${name}.json`);
+      writeFileSync(json, JSON.stringify({
+        root: join(import.meta.dir, "fixtures"), entry: "scene-press.html", viewport: { width: 200, height: 120, dpr: 1 },
+        fps: FPS, duration: 1, triggers: [{ t: 0.5, ...trigger }],
+      }));
+      return scene_(json, "--out", join(dir, `${name}.mp4`));
+    };
+    for (const [name, trigger] of [
+      ["both", { click: { role: "textbox", name: "Reply" }, press: { key: "Enter" } }],
+      ["neither", {}],
+      ["unknown-field", { press: { key: "Enter", repeat: 2 } }],
+      ["unknown-key", { press: { key: "Entr" } }],
+    ] as const) {
+      const r = bad(name, trigger);
+      expect({ name, code: r.code }).toEqual({ name, code: 2 });
+    }
+  });
 });

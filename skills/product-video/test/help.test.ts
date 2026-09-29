@@ -31,7 +31,8 @@ describe("--help", () => {
   test("scene.ts documents every scene.json field", () => {
     const { stdout } = run("scene.ts", "--help");
     for (const field of ["root", "entry", "query", "viewport", "width", "height", "dpr", "fps", "duration",
-      "removeClasses", "routes", "path", "status", "body", "contentType", "triggers", "click", "role", "name", "waitFor", "selector", "file", "delayMs"]) {
+      "removeClasses", "routes", "path", "status", "body", "contentType", "triggers", "click", "role", "name", "waitFor", "selector", "file", "delayMs",
+      "press", "key"]) {
       expect(stdout).toMatch(new RegExp(`"${field}"`));
     }
   });

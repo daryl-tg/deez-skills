@@ -42,11 +42,19 @@ scene.json (fields marked ? are optional):
     "delayMs"?: 300,           answer after this many real milliseconds (a slow network)
     "contentType"?: "application/json"   default "text/plain"
   }],
-  "triggers"?: [{              run in t order
-    "t": 1.0,                  composition second of the click
+  "triggers"?: [{              run in t order; each has exactly one of click or press
+    "t": 1.0,                  composition second of the trigger
     "click": {
       "role": "button",        ARIA role
       "name": "Open menu"      exact accessible name; must match exactly one element
+    }
+  }, {
+    "t": 2.2,
+    "press": {                 a key press, e.g. Enter to send on a desktop composer
+      "key": "Enter",          Playwright key name ("Enter", "Shift+Enter", "a")
+      "role"?: "textbox",      optional target, focused first with element.focus()
+      "name"?: "Message",      (not tapped, so the caret and pointer handlers stay
+      "selector"?: "#draft"     put); "selector" or "role" and "name"
     }
   }],
   "waitFor"?: { "selector": "#ready" }  or  { "role": "region", "name": "Inbox" }
@@ -57,7 +65,7 @@ scene.json (fields marked ? are optional):
 The page is served from http://127.0.0.1:18099 through page.route (nothing
 binds a port); requests to any other origin are aborted. Boot awaits waitFor and
 the first trigger's target, then loads every declared @font-face (again after
-each trigger). A trigger is a real mouse tap at the element's centre, then the
+each trigger). A click is a real mouse tap at the element's centre, then the
 pointer leaves the page, so no focus ring or hover appears; a covered target is
 an error. Text carets are hidden. Before frame 0, boot steps virtual and real
 frames until no request is in flight and layout stops moving (transitions that
@@ -80,7 +88,8 @@ const TYPES: Record<string, string> = {
 
 class UsageError extends Error {}
 
-interface Trigger { t: number; click: { role: string; name: string } }
+interface Press { key: string; role?: string; name?: string; selector?: string }
+interface Trigger { t: number; click?: { role: string; name: string }; press?: Press }
 interface Route { path: string; status?: number; body?: string; file?: string; contentType?: string; delayMs?: number }
 interface Scene {
   root: string;
@@ -114,9 +123,23 @@ function readScene(path: string): Scene {
     throw new UsageError(`waitFor needs "selector", or "role" and "name": ${JSON.stringify(w)}`);
   }
   s.triggers = [...(s.triggers ?? [])].sort((a, b) => a.t - b.t);
+  const str = (v: unknown) => typeof v === "string" && v.length > 0;
+  const only = (o: object, allowed: string[]) => Object.keys(o).every((k) => allowed.includes(k));
   for (const t of s.triggers) {
-    if (typeof t.t !== "number" || t.t < 0 || !t.click?.role || !t.click?.name) {
-      throw new UsageError(`bad trigger: ${JSON.stringify(t)}`);
+    const bad = (why: string) => new UsageError(`bad trigger (${why}): ${JSON.stringify(t)}`);
+    if (!only(t, ["t", "click", "press"])) throw bad("unknown field");
+    if (typeof t.t !== "number" || t.t < 0) throw bad("t must be a number >= 0");
+    if (!t.click === !t.press) throw bad("needs exactly one of click or press");
+    if (t.click && (!only(t.click, ["role", "name"]) || !str(t.click.role) || !str(t.click.name))) {
+      throw bad('click needs exactly "role" and "name"');
+    }
+    const p = t.press;
+    if (p) {
+      if (!only(p, ["key", "role", "name", "selector"]) || !str(p.key)) throw bad('press needs "key", plus an optional target');
+      const byRole = p.role !== undefined || p.name !== undefined;
+      if (byRole && (!str(p.role) || !str(p.name))) throw bad('a press target needs both "role" and "name"');
+      if (byRole && p.selector !== undefined) throw bad('a press target is "selector" or "role" and "name", not both');
+      if (p.selector !== undefined && !str(p.selector)) throw bad('"selector" must be a non-empty string');
     }
   }
   return s;
@@ -223,7 +246,13 @@ async function render(scene: Scene, out: string, framesDir?: string) {
 
     const query = scene.query ? `?${scene.query.replace(/^\?/, "")}` : "";
     await page.goto(`${ORIGIN}/${scene.entry.replace(/^\//, "")}${query}`, { waitUntil: "load" });
-    const target = (t: Trigger) => page.getByRole(t.click.role as any, { name: t.click.name, exact: true });
+    // The element a trigger acts on: a click's target, or a press's optional one.
+    const target = (t: Trigger) => {
+      const by = t.click ?? t.press!;
+      if (t.press?.selector) return page.locator(t.press.selector);
+      return by.role ? page.getByRole(by.role as any, { name: by.name, exact: true }) : undefined;
+    };
+    const describeTarget = (t: Trigger) => t.press?.selector ?? `${(t.click ?? t.press)!.role} "${(t.click ?? t.press)!.name}"`;
     // A caret blinks on the wall clock, which the virtual clock does not own.
     await page.addStyleTag({ content: "*, *::before, *::after { caret-color: transparent !important; }" });
 
@@ -232,7 +261,9 @@ async function render(scene: Scene, out: string, framesDir?: string) {
     const w = scene.waitFor;
     const awaited = [
       ...(w ? [{ loc: w.selector ? page.locator(w.selector) : page.getByRole(w.role as any, { name: w.name, exact: true }), what: `waitFor ${JSON.stringify(w)}` }] : []),
-      ...(scene.triggers![0] ? [{ loc: target(scene.triggers![0]), what: `first trigger target ${JSON.stringify(scene.triggers![0].click)}` }] : []),
+      ...(scene.triggers![0] && target(scene.triggers![0])
+        ? [{ loc: target(scene.triggers![0])!, what: `first trigger target ${describeTarget(scene.triggers![0])}` }]
+        : []),
     ];
     for (const { loc, what } of awaited) {
       await loc.first().waitFor({ state: "attached", timeout: 5_000 }).catch(() => {});
@@ -327,7 +358,7 @@ async function render(scene: Scene, out: string, framesDir?: string) {
     const ffDone = new Promise<number>((r) => ff.on("close", (code) => r(code ?? 1)));
     ff.on("error", () => {});
 
-    const fired: { t: number; name: string; born: number }[] = [];
+    const fired: ({ t: number; born: number } & ({ name: string } | { key: string }))[] = [];
     let next = 0;
     let clockMs = 0; // virtual ms since composition t=0
     for (let n = 0; n < frames; n++) {
@@ -344,28 +375,37 @@ async function render(scene: Scene, out: string, framesDir?: string) {
         const T = trig.t;
         await page.evaluate(([T, n]) => (window as any).__pv.pose(T, n), [T, n]);
         const loc = target(trig);
-        if ((await loc.count()) !== 1) {
-          throw new UsageError(`trigger at t=${T}: ${await loc.count()} elements match ${trig.click.role} "${trig.click.name}"`);
+        if (loc && (await loc.count()) !== 1) {
+          throw new UsageError(`trigger at t=${T}: ${await loc.count()} elements match ${describeTarget(trig)}`);
         }
-        // A real tap through CDP input, not el.click(): a synthetic click
-        // leaves the page in keyboard modality, so any focus the app moves
-        // draws a focus-visible ring no finger ever would. CDP input does
-        // not wait on actionability, so it works under the paused clock.
-        const hit = await loc.evaluate((el: HTMLElement) => {
-          el.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
-          const r = el.getBoundingClientRect();
-          const x = r.left + r.width / 2;
-          const y = r.top + r.height / 2;
-          const top = document.elementFromPoint(x, y);
-          return { x, y, covered: !top || !(el === top || el.contains(top)) };
-        });
-        if (hit.covered) throw new UsageError(`trigger at t=${T}: ${trig.click.role} "${trig.click.name}" is covered at its centre`);
-        await page.mouse.move(hit.x, hit.y);
-        await page.mouse.down();
-        await page.mouse.up();
-        // Lift the finger. A resting pointer hovers whatever layout slides under
-        // it, and Chrome applies that on a wall-clock timer.
-        await page.mouse.move(-1, -1);
+        if (trig.click) {
+          // A real tap through CDP input, not el.click(): a synthetic click
+          // leaves the page in keyboard modality, so any focus the app moves
+          // draws a focus-visible ring no finger ever would. CDP input does
+          // not wait on actionability, so it works under the paused clock.
+          const hit = await loc!.evaluate((el: HTMLElement) => {
+            el.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
+            const r = el.getBoundingClientRect();
+            const x = r.left + r.width / 2;
+            const y = r.top + r.height / 2;
+            const top = document.elementFromPoint(x, y);
+            return { x, y, covered: !top || !(el === top || el.contains(top)) };
+          });
+          if (hit.covered) throw new UsageError(`trigger at t=${T}: ${describeTarget(trig)} is covered at its centre`);
+          await page.mouse.move(hit.x, hit.y);
+          await page.mouse.down();
+          await page.mouse.up();
+          // Lift the finger. A resting pointer hovers whatever layout slides under
+          // it, and Chrome applies that on a wall-clock timer.
+          await page.mouse.move(-1, -1);
+        } else {
+          // Focus with element.focus(), not a tap: a tap would move the caret
+          // inside a draft and fire pointer handlers the scene did not ask for.
+          if (loc) await loc.evaluate((el: HTMLElement) => el.focus());
+          await page.keyboard.press(trig.press!.key).catch((e: Error) => {
+            throw new UsageError(`trigger at t=${T}: ${e.message.split("\n")[0]}`);
+          });
+        }
         let born = await page.evaluate((T: number) => {
           const pv = (window as any).__pv;
           const now = pv.adopt("trigger", T, -1);
@@ -379,7 +419,7 @@ async function render(scene: Scene, out: string, framesDir?: string) {
           born += await page.evaluate((T) => (window as any).__pv.adopt("trigger", T, -1), T);
         }
         await settleFonts(`after the trigger at t=${T}`);
-        fired.push({ t: T, name: trig.click.name, born });
+        fired.push(trig.click ? { t: T, name: trig.click.name, born } : { t: T, key: trig.press!.key, born });
       }
       await page.evaluate(([t, n]) => (window as any).__pv.pose(t, n), [t, n]);
       const png = await page.screenshot({ type: "png", caret: "hide" });
@@ -417,7 +457,7 @@ async function main() {
     } else {
       const lines = [
         `${report.out}: ${report.frames} frames, ${report.width}x${report.height} @ ${report.fps}fps in ${report.wallSeconds}s`,
-        ...report.triggers.map((t) => `  trigger t=${t.t} "${t.name}": ${t.born} animations`),
+        ...report.triggers.map((t) => `  trigger t=${t.t} ${"key" in t ? `press ${t.key}` : `"${t.name}"`}: ${t.born} animations`),
         ...report.untriggered.map((u: any) => `  UNTRIGGERED ${u.animation} on ${u.target} first seen t=${u.t.toFixed(3)} (frame ${u.frame}); timer-driven, give it fixture control`),
         ...(report.misses.length ? [`  404s: ${[...new Set(report.misses)].join(", ")}`] : []),
         ...report.warnings.map((w) => `  WARNING ${w}`),
