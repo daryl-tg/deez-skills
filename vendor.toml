@@ -119,6 +119,15 @@ source   = "gcx agent skills"
 path     = "skills/gcx"
 runtimes = ["claude", "codex"]
 
+# HeyGen HyperFrames (Apache-2.0), cited by product-video for composition. Claude
+# gets it from the `hyperframes@hyperframes` plugin (installed 2026-09-28, 0.8.81),
+# which its plugin manager updates daily; Codex gets the same skills from
+# `npx hyperframes skills update`. The hub keeps no copy.
+[vendor.hyperframes]
+source   = "claude-plugin:hyperframes@hyperframes"
+path     = "skills/hyperframes"
+runtimes = ["claude", "codex"]
+
 # Vue-stack skills from antfu/skills, present in ~/.agents/skills and confirmed
 # by ~/.agents/.skill-lock.json. Recorded so a fresh seat is reproducible and so
 # doctor does not read them as orphans. Not linked into either runtime today.

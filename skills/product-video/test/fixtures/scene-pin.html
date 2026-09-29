@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 100px; height: 100px; overflow: hidden; background: #000; }
+      #scroller { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+      .row { height: 30px; background: #333; border-bottom: 2px solid #000; }
+      #end { height: 20px; background: #0f0; }
+    </style>
+  </head>
+  <body>
+    <div id="scroller"><div id="list"><div class="row"></div></div><div id="end"></div></div>
+    <script>
+      // Pins to the bottom when its own box resizes, as chat tapes do. It does
+      // not watch its rows, so rows that arrive later leave it wherever boot
+      // left it: the final layout depends on arrival order, not on the scene.
+      const scroller = document.getElementById("scroller");
+      new ResizeObserver(() => { scroller.scrollTop = scroller.scrollHeight; }).observe(scroller);
+      fetch("/api/rows").then((r) => r.json()).then((n) => {
+        const list = document.getElementById("list");
+        for (let i = 0; i < n; i++) list.appendChild(Object.assign(document.createElement("div"), { className: "row" }));
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 200px; height: 120px; overflow: hidden; background: #000; }
+      textarea { position: absolute; left: 0; width: 95px; height: 30px; top: 90px; border: 0; background: #222; color: #fff; }
+      #draft { left: 0; }
+      #reply { left: 105px; }
+      .list { position: absolute; top: 0; width: 95px; height: 80px; }
+      #list-draft { left: 0; }
+      #list-reply { left: 105px; }
+      /* A sent message enters over 300ms: a pop would skip straight to 1. */
+      .msg { height: 40px; background: #fff; animation: msg-in 300ms linear both; }
+      #list-reply .msg { background: #0f0; }
+      @keyframes msg-in { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+  </head>
+  <body>
+    <div class="list" id="list-draft"></div>
+    <div class="list" id="list-reply"></div>
+    <textarea id="draft" aria-label="Draft" autofocus>hello</textarea>
+    <textarea id="reply" aria-label="Reply">hi back</textarea>
+    <script>
+      // Enter sends, like a desktop composer with no send button.
+      for (const [id, list] of [["draft", "list-draft"], ["reply", "list-reply"]]) {
+        document.getElementById(id).addEventListener("keydown", (e) => {
+          if (e.key !== "Enter" || e.shiftKey) return;
+          e.preventDefault();
+          document.getElementById(list).appendChild(Object.assign(document.createElement("div"), { className: "msg" }));
+        });
+      }
+      document.getElementById("draft").focus();
+    </script>
+  </body>
+</html>

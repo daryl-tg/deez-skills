@@ -1,0 +1,25 @@
+<!doctype html>
+<html class="reduced-motion">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 200px; height: 60px; overflow: hidden; background: #000; }
+      .reduced-motion * { transition: none !important; animation: none !important; }
+      #box { position: absolute; left: 10px; top: 10px; width: 100px; height: 40px; background: #fff; transition: width 400ms linear; }
+      #box.wide { width: 140px; }
+      /* An entrance animation is content: it still plays from frame 0. */
+      #enter { position: absolute; left: 170px; top: 10px; width: 20px; height: 20px; background: #0f0; animation: enter 300ms linear both; }
+      @keyframes enter { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+  </head>
+  <body>
+    <div id="box"></div>
+    <div id="enter"></div>
+    <script>
+      // Boot churn: a style change that lands after reduced-motion is gone
+      // starts a transition. Whether it does depends on boot timing, so it is
+      // never content.
+      setTimeout(() => document.getElementById("box").classList.add("wide"), 300);
+    </script>
+  </body>
+</html>
