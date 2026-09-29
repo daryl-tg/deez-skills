@@ -59,7 +59,13 @@ example, button "Open om conversations", button "New session".
 
 ## Gotchas
 
-- **On mobile, "New session" sits behind the drawer.** Click "Open om conversations" first.
+These apply to the mobile shell unless marked **desktop**.
+
+- **On mobile, "New session" sits behind the drawer.** Click "Open om conversations" first. **Desktop:** it is directly in the sidebar.
+- **Desktop: the server rail's DM group fades in over frames 1–6 on every shell mount.** Enter every desktop shell clip at frame 6 or later.
+- **Desktop: the DM composer has no "Send message" button.** Enter sends, so use a `press` trigger.
+- **Desktop agent-center:** "Waiting on you" and "In progress" are sidebar nav buttons. The Todos lens draws no focus ring.
+- **Measuring settle at 1920×1080:** use SSIM between consecutive frames. signalstats YDIF gave false spikes.
 - **`view=room` shows a store-5xx alert strip** over the first topic card. Add `alerts=quiet`.
 - **A `draft=` query shows a character counter** above the composer.
 - **Some surfaces focus a control on mount and draw a clay focus ring** until
