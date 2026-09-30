@@ -191,8 +191,10 @@ Fill text is **positional**, `find <locator> <value> fill "<text>"`. There is no
 which reads downstream as a search that legitimately found nothing:
 
 ```bash
-./control-kiyotaka browser find placeholder "Search by symbol or name" fill "ETHUSDT"
+./control-kiyotaka browser find testid symbol-selection-search-input fill "ETHUSDT"
 ```
+
+That field's placeholder has moved twice; the testid has not.
 
 Re-snapshot after anything that changes the page — refs go stale immediately.
 `features/` carries the handles per surface. Run `agent-browser skills get core`

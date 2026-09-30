@@ -38,14 +38,16 @@ Preconditions:
   LEGACY dialog (see Gotchas), whose category buttons are `button "All"`,
   `Equities`, `CME`, `Crypto`, `Forex`, `Commodities`, `Macro`, `Predict`, beside
   `Formula — combine symbols with ÷ − + ×` and `View options`.
-- **Drive the search field by placeholder, never by accessible name.** The field
-  carries no `aria-label`, so its computed accessible name is the **current
-  symbol** — it snapshots as `textbox "BTCUSDT"`, then `textbox "BTCUSDT Clear"`
+- **Drive the search field by its testid, `symbol-selection-search-input`.** The
+  placeholder is not stable — it now reads `Search, or type a ratio like SPY/GLD`,
+  so the long-documented `find placeholder "Search by symbol or name"` fails
+  outright. The field also carries no `aria-label`, so its computed accessible
+  name is the **current symbol** — it snapshots as `textbox "BTCUSDT"`, then `textbox "BTCUSDT Clear"`
   once it has content, and it changes every time the symbol does. Nothing about
   it is a stable handle. The placeholder is:
 
   ```bash
-  ./control-kiyotaka browser find placeholder "Search by symbol or name" fill "ETHUSDT"
+  ./control-kiyotaka browser find testid symbol-selection-search-input fill "ETHUSDT"
   ```
 
   `Search symbols...` never appears on this dialog. Three different keys carry
@@ -66,7 +68,11 @@ Preconditions:
   `asset-row-ethereum|eth-btn` took the chart to ETHUSDT with no rail click.
 
   **The result rows themselves do not need refs.** The asset column carries
-  `asset-row-<name>|<ticker>-btn` (`asset-row-ethereum|eth-btn`) and its symbol
+  `asset-row-<asset.id>-btn`, where the id is usually
+  `<name>|<ticker>` lowercased (`asset-row-ethereum|eth-btn`) but NOT always —
+  predictions use `pred:<rawSymbol>`, economics `fred:<symbol>` or
+  `econ:<exchange>:<symbol>`, and a single-asset path falls back to the bare coin.
+  Read the testid off the DOM rather than composing it and its symbol
   rows carry `symbol-row-<EXCHANGE>|<SYMBOL>-btn`
   (`symbol-row-BINANCE|WBETHUSDT-btn`), both stable across re-renders. Only the
   venue rail is ref-driven, so re-snapshot before that click alone rather than
@@ -87,7 +93,7 @@ Preconditions:
   the peek. **Click them by testid, not by their text.** Every entry carries
   `tb-chart-type-option-<value>-btn` — `candle`, `hollowCandle`, `heikinAshi`,
   `ohlcBar`, `volumeCandle`, `columns`, `highLow`, `spline`, `markerLine`,
-  `stepLine`, `hlcArea`, `area`, `baseline`, `footprint`, `tpo` (sixteen, well
+  `stepLine`, `hlcArea`, `area`, `baseline`, `footprint`, `tpo` (fifteen, well
   past the eight the a11y names suggest). A `find text "Line" click --exact`
   returns `No element found by text` against a menu that is plainly open, and the
   popover closes under a slow drive, so pair them: hover
@@ -106,9 +112,9 @@ Preconditions:
   a11y tree: the grid groups (1, 2, 3, 4, 5, 6, 8, 9, 12, 16), the custom N×N
   matrix and the SYNC toggles all snapshot as unnamed `generic` nodes. Drive them
   by `data-testid` instead — `tb-layout-entry-2H-btn`, `tb-layout-entry-3x3-btn`,
-  `tb-layout-matrix-cell-<col>-<row>-btn`, and three sync toggles —
+  `tb-layout-matrix-cell-<col>-<row>-btn`, and four sync toggles —
   `tb-layout-sync-symbol-btn`, `tb-layout-sync-interval-btn`,
-  `tb-layout-sync-crosshair-btn` (the full set is built in
+  `tb-layout-sync-crosshair-btn`, `tb-layout-sync-time-btn` (the full set is built in
   `src/composables/chart/useMonitorPicker.ts`). The matrix key is
   `${col}-${row}`, zero-indexed and **column-first**: the first row of cells reads
   `0-0`, `1-0`, `2-0`, `3-0`:
@@ -124,14 +130,16 @@ Preconditions:
   `v-if="hasFolded"` rule is gone. What lives beside it is decided by:
 
   1. **Pin-fold**, independent of viewport: only `TOOLBAR_DEFAULT_PINS` —
-     `heatmap`, `news`, `editor` — sit directly in the bar by default. `replay`,
-     `hlView`, `calls`, `goLive`, `watchlist`, `objects`, `journal` start folded
-     into the Panels menu (`src/store/toolbar-panels.ts`, `isInBar()`).
+     `heatmap`, `news`, `editor`, `watchlist` — sit directly in the bar by
+     default. `replay`, `hlView`, `calls`, `goLive`, `objects`, `journal` start
+     folded into the Panels menu (`src/store/toolbar-panels.ts`, `isInBar()`).
+     Pins persist as DEPARTURES from that default set, so a pin map stored before
+     watchlist joined picks the new default up automatically.
   2. **Width-fold**, the ladder in `src/composables/chart/useTickerBarFit.ts`,
      which sheds further rungs as the bar narrows.
 
   So `tb-objects-toggle-btn`, `tb-journal-toggle-btn` and `tb-replay-toggle-btn`
-  are NOT bar buttons on a default boot — they are `tb-panels-row-objects`,
+  are NOT bar buttons on a default boot, while `tb-watchlist-toggle-btn` is — they are `tb-panels-row-objects`,
   `tb-panels-row-journal`, `tb-panels-row-replay` inside the menu until pinned.
   Open the menu first rather than concluding a toggle is missing:
 
@@ -153,11 +161,14 @@ Preconditions:
   real host arms; a click that early arms the host and replays itself, so an
   immediate assertion after the first click can read as a no-op.
 
-  **This section describes `origin/main` and was verified from source, not
-  driven** — see the freshness note in the README. A lane serving an older
-  checkout shows the previous shape, in which there is no Panels button at all
-  and Objects/Journal/Replay are direct bar buttons. `doctor`'s `freshness` line
-  tells you which one you are looking at.
+  **Driven and confirmed**: a guest boot at `1440 900` carried
+  `tb-panels-trigger-btn`, and the menu held `tb-panels-menu` plus rows for
+  `replay, heatmap, hlView, calls, watchlist, objects, journal, news, editor`,
+  each with its `tb-panels-pin-<id>-btn`, alongside `tb-panels-customize-btn`.
+  `goLive` was absent, as it is for any guest. Note the menu lists PINNED entries
+  too — it is the full catalog, not only what was folded — so a row's presence
+  says nothing about whether that panel is also in the bar.
+  A blocked row carries `tb-panels-reason-<id>` explaining why.
 - **New in the bar, and guest-reachable:** `tb-super-search-btn` opens Super
   Search with no guest gate (proven live: `isSuperSearchOpen` went true with
   `isAuthenticationDialogOpen` false). `tb-topic-feed-toggle-btn` (News) is
@@ -167,8 +178,10 @@ Preconditions:
   flag, with an anonymous-reader carve-out — so it is absent on a default local
   lane; do not record it missing as drift.
   `TBWatchlistToggle` (`tb-watchlist-toggle-btn`) is guest-WALLED through
-  `handleGuestAccess(FeatureId.WATCHLIST)` and is not default-pinned, so on a
-  default boot it is `tb-panels-row-watchlist` inside the menu.
+  `handleGuestAccess(FeatureId.WATCHLIST)` but IS default-pinned, so it sits in
+  the bar on a default boot. The Objects row is walled through
+  `FeatureId.TERMINAL`, not an objects id — so a guest is walled there too, and
+  `guestLoginFeatureId` reads `terminal`, which looks like the wrong surface.
 - **Proof.** For each change: the accessible name of the control after the change,
   the engine read showing bars reloaded, and a screenshot. Restore the original
   symbol, interval and plot type afterwards.
@@ -234,8 +247,10 @@ Preconditions:
   The live v2 category ids are `all`, `crypto`, `stocks`, `forex`, `commodities`,
   `indices`, `predictions`, `cme`, `hip4`, `economics` and `options` — eleven, not
   the seven a label-based reading suggests, and `cme` is no longer legacy-only.
-  `options` is conditional on the option-chain entry being enabled, so a strip of
-  ten is not drift.
+  `options` rides the `option-chain` flag, which is NOT in `GUEST_DEFAULT_FLAGS`,
+  so a guest sees ten and that is not drift — confirmed live. v2 itself also
+  narrows: the dialog falls back to legacy when opened from a comparison chart,
+  in pair mode, from the screener, or on mobile, even with the flag on.
   The strip's own testid `search-v2-category-strip` appears **twice** in the DOM,
   so match a specific category id rather than the strip. V2 also carries a views
   rail — `search-v2-view-{all,hyperliquid,cme,tokenized,predictions}-btn` — which
