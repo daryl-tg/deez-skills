@@ -30,35 +30,29 @@ Preconditions:
   `textbox "Search official indicators"` and
   `textbox "Add a package by exact name (@scope/name)"`. It is a `.dialog-style`
   overlay, **not** a `.q-dialog`.
-- **The dialog opens on the marketplace view, not the native one.** Its control bar
-  has two modes and the default is `indicator-control-bar-wrun-registry-btn`
-  ("Indicators"), which lists `REGISTRY` packages and the `PORTED FROM KSCRIPT` set.
-  Native/official indicators — TPO, volume, open interest, RSI — live behind
-  `indicator-control-bar-legacy-btn` ("kScript (legacy) library"), which opens
-  **two** control rows, not one. **It is a disclosure fold, not a mode switch**:
-  it carries `aria-expanded`, so a recipe that clicks it unconditionally will
-  collapse it again and land in the registry view while believing it is in the
-  legacy one. Read the attribute, and only click when it says `false`:
+- **A guest opens straight onto the kScript catalog, and the view switcher is
+  gone.** `indicator-control-bar-legacy-btn` and
+  `indicator-control-bar-wrun-registry-btn` no longer exist. The two-tab strip
+  that replaced them (`indicator-control-bar-tab-indicators-btn` /
+  `indicator-control-bar-tab-kscript-btn`, `role=tab` with `aria-selected`)
+  renders only when `isWrunRegistrySectionEnabled()` passes — the `wrun-registry`
+  flag, which a guest never fetches — so on the guest lane there is no strip at
+  all. Driven live, the control bar held exactly
+  `indicator-control-bar-favorites-btn`, `indicator-control-bar-sort-btn` and
+  `indicator-control-bar-build-btn`, and the catalog tabs were already on screen:
 
-  ```bash
-  ./control-kiyotaka browser eval \
-    "document.querySelector('[data-testid=indicator-control-bar-legacy-btn]').getAttribute('aria-expanded')"
   ```
- Source is a tab pair — `tab "Official"` (selected) and
-  `tab "Community"` — and the categories below it are seven buttons: `All`,
-  `Technical`, `Volatility`, `Statistics`, `Quant Validation`, `Volume
-  Footprints`, `Market Analysis`. `Quant Validation` and `Volume Footprints` are
-  each ONE label; matching `Quant` or `Volume` alone finds nothing:
-
-  ```bash
-  ./control-kiyotaka browser find testid indicator-control-bar-legacy-btn click
+  indicator-source-tab-official   indicator-source-tab-community
+  indicator-tab-discover-btn      indicator-tab-all-btn
   ```
 
-  Searching the default view for a native indicator returns
-  `No registry packages found` / `No matches in the ported set`, which reads as the
-  indicator being missing rather than as the wrong view. The control bar also
-  carries `indicator-control-bar-favorites-btn` and
-  `indicator-control-bar-build-btn`.
+  So skip the view switch entirely on a guest. If you DO need the Indicators
+  (registry) side, that needs the flag or an internal role, not a click.
+
+  Below the source pair sit seven category buttons: `All`, `Technical`,
+  `Volatility`, `Statistics`, `Quant Validation`, `Volume Footprints`,
+  `Market Analysis`. `Quant Validation` and `Volume Footprints` are each ONE
+  label — matching `Quant` or `Volume` alone finds nothing.
 - **The legacy view lands on `Discover`, which lists nothing, and the official
   catalog is one more click down.** Under the category row sits a second tab pair,
   `tab "Discover"` (selected) and `tab "All"`, beside `button "Browse all
@@ -88,7 +82,25 @@ Preconditions:
   out — the failure reproduces for a key that is not already in `tc.metadata`.
   Before blaming it, read `tc.metadata` first: a key that IS already mounted
   returns early through that guard with a toast and no console line, which looks
-  identical. Since every dialog add is guest-walled
+  identical.
+
+  **There are a dozen silent returns, so identify WHICH one rather than retrying.**
+  Time the call first — under ~100ms means a synchronous gate fired, and tens of
+  seconds means it got past the awaits (control load, coin lookup,
+  `initializeOverlay`) and bailed late. Then run the cheap probes, with
+  `cs = document.querySelector('#tc-container-0').__vueParentComponent.setupState.chartStore`:
+
+  ```js
+  !!window.tc?.[0]                       // engine present
+  !!cs.mergedAllCharts[0]                // workspace present
+  cs.mergedAllCharts[0].metadata.interval // must be truthy
+  cs.paneBudget                          // a non-null maxIndicators refuses slot-taking adds
+  ```
+
+  All three passing plus a slow call points at `initializeOverlay` returning no
+  usable template. A registry miss is NOT this: it throws, logs, and toasts. The
+  pane-budget refusal toasts but logs nothing, and it applies to bare eval adds
+  regardless of `opts`. Since every dialog add is guest-walled
   (below), a guest has no way to mount an overlay at all while this holds. Check
   it before planning a run that depends on those three sub-features, and if it
   still fails, report them unreachable rather than inventing a route.
@@ -164,7 +176,7 @@ Preconditions:
   `chartStore.addIndicator` does not enforce**. A programmatic fourth add mounts
   regardless: the counter stayed pinned at `Indicators 3/3` while `metadata` grew
   to six entries. The gate runs only when the caller passes `opts.recordUndo` or
-  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1246`), and a
+  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1375`, the flag computed at `:1370`), and a
   bare `addIndicator(KEY,{},0)` passes neither. Re-reading `metadata` after a
   programmatic add therefore proves nothing about the cap, and reads as the cap
   being broken when it is not. Use eval adds to REACH three slots, then assert the

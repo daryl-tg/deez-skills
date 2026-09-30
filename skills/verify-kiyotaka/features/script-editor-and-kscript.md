@@ -53,8 +53,8 @@ Preconditions:
   ```bash
   ./control-kiyotaka browser find testid tb-super-search-btn click
   ./control-kiyotaka browser find testid super-search-input fill "editor"
-  ./control-kiyotaka browser eval "(()=>{const o=document.querySelector('[data-testid=super-search-overlay]');return /Indicator Editor/.test(o.innerText)?'Indicator Editor':'Script Editor'})()"
-  # then click whichever string that returned
+  # read the row's current wording rather than guessing which spelling shipped
+  ./control-kiyotaka browser eval "(()=>{const o=document.querySelector('[data-testid=super-search-overlay]');return (o.innerText.match(/[A-Za-z ]*Editor/)||[''])[0].trim()})()"
   ./control-kiyotaka browser find text "<that string>" click
   ```
 
@@ -132,8 +132,9 @@ Preconditions:
   `effectiveRunTarget` defaults to Browser for open code and Cloud for protected or
   private code, but the user can flip it
   (`kscript-run-target-frontend-btn` / `kscript-run-target-backend-btn`);
-  strategies are Cloud-locked and TypeScript Indicators Browser-locked. Read the
-  chip before deciding which log to chase.
+  `runTargetLocked` is `isStrategyScript && !isTypeScriptTab`, so only a
+  non-TypeScript strategy is locked. Read the chip before deciding which log to
+  chase.
 - **Only strategies are run-target locked now.** A TypeScript Indicator tab
   defaults to Browser but can pick Cloud, so `runTargetLocked` is true for
   strategies alone — do not report a TypeScript tab offering Cloud as a bug.
@@ -144,7 +145,13 @@ Preconditions:
   `kscript-template-blank-btn` appears only for an internal role or opted cohort.
   Both currently render the same visible text, so match the testid, not the
   label. Every "TypeScript is primary / kScript is legacy" claim below is the
-  lane-ON experience, not the default one.
+  lane-ON experience, not the default one — including the legacy notice (whose
+  copy is now "Indicators are now written in TypeScript." and which renders only
+  with the lane on) and the `New kScript (legacy)` sidebar entry. With the lane
+  OFF the primary button is `script-explorer-new-btn` and it opens a kScript
+  draft, not a TypeScript starter. The lane-ON surfaces also include a kScript
+  view (`activity-bar-view-kscript-btn`) and an authoring freeze that can hide
+  the new-kScript action entirely.
 - **Kata is a second wall inside the drawer.** The activity bar carries a Kata
   entry for non-guests whose click runs `handleGuestAccess(FeatureId.KATA)` — a
   different feature id from `SCRIPT_EDITOR`, so an authed-but-ungranted account

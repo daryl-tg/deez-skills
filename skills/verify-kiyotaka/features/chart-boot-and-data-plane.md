@@ -14,8 +14,10 @@ map depends on this one working, so verify it first and never assume it.
 ## How to get to it (user POV)
 
 - Open `http://127.0.0.1:<lane>/chart/`. Nothing to click; the chart restores the
-  last symbol (a guest with no stored state lands on `BINANCE.F BTCUSDT PERP` at
-  `1h`). Read `chartStore.activeInterval` rather than assuming an interval — a
+  last symbol. The guest default moved to `COINBASE BTC-USD` at `1h`
+  (`DEFAULT_REGULAR_METADATA`), so a lane that still opens on
+  `BINANCE.F BTCUSDT` is either serving an older checkout or restoring a stored
+  guest workspace — read the symbol, never assert a specific one. Read `chartStore.activeInterval` rather than assuming an interval — a
   recipe that hardcodes one silently proves the wrong timeframe.
 
 ## Driving it with control-kiyotaka
@@ -34,7 +36,10 @@ Preconditions:
   lands in 10-20s.
 - **Read the engine.** Run
   `./control-kiyotaka browser eval "(()=>{const t=window.tc[0];return JSON.stringify({bars:t.metadata[0].rawData.length,overlays:t.metadata.length})})()"`.
-  A healthy guest boot returns ~250 bars. **Assert the bar count, not the overlay
+  A healthy guest boot returns ~250 bars. Expect roughly TWO metadata rows now
+  (candles plus a CVD pane): the orderbook heatmap left the default guest
+  workspace, so an older note about restoring heatmap+CVD describes a workspace
+  that is no longer the default. **Assert the bar count, not the overlay
   count**: the same lane returned 4 overlays on one boot and 3 on the next, because
   the restore of the guest's own heatmap/CVD overlays can fail independently of the
   candles (it raises `Error initializing overlay` in the console). `metadata.length`
@@ -114,6 +119,10 @@ Preconditions:
   ```bash
   ./control-kiyotaka browser press Escape
   ```
+- **The ink tutorial's dismissal is permanent by any route.** X, Escape, the
+  backdrop and a swipe all write the seen flag, so a second run on the same
+  browser profile meets only the signup modal — a recipe that expects two
+  overlays every time is wrong after the first run.
 - **The signup modal is no longer the first overlay a guest meets.** A once-per-
   device `InkTutorialDialog` ("Draw by holding") arms shortly after first paint
   and sits in the SAME `.dialog-style.dialog-overlay` shell, so it blocks clicks
