@@ -1,0 +1,34 @@
+{
+  "brand": "OpenMarket",
+  "approved_on": "2026-10-01",
+  "mascot": {
+    "file": "mascot.svg",
+    "source_repository": "kiyotaka-frontend",
+    "source_path": "src/assets/openmarket/openmarket-mascot.svg",
+    "usage": "OpenMarket brand asset; not a general stock-art license",
+    "sha256": "9f8914842d88110790263fbb9626afea6e2fd5505323b1baf5bb7d7edb16038a"
+  },
+  "motif": {
+    "file": "double-blink.wav",
+    "provenance": "Original deterministic NumPy synthesis for the approved OpenMarket film; no sampled or downloaded audio. User-approved louder revision, 2026-10-01.",
+    "sample_rate_hz": 48000,
+    "channels": 2,
+    "pcm_bits": 24,
+    "duration_s": 0.7,
+    "peak_offsets_s": [
+      0.2,
+      0.45
+    ],
+    "peak_dbfs": -12.0,
+    "tone_hz": 784,
+    "tone_duration_s": 0.096021,
+    "attack_s": 0.018,
+    "interval_s": 0.25,
+    "sha256": "5fc35ae32b4d1acb5043f70b6d9ddaa64ab4d3793906aa62eff0476d958e2b16"
+  },
+  "animation": {
+    "minimum_eye_scale_y": 0.05,
+    "close_sigma_s": 0.035,
+    "open_sigma_s": 0.055
+  }
+}

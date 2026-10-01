@@ -19,6 +19,10 @@ royalty-free music around 120 BPM with its commercial-use license.
 Read supplied context before asking questions. Infer product facts from maps,
 documentation and source; ask only for missing preferences. If given a journey,
 propose 8–12 UI states yourself. Do not ask the user to design the sequence.
+For OpenMarket films, load [the brand preset](references/brands/openmarket.md)
+for the approved mascot, closing card and double-blink sound. Other brands keep
+this generic workflow and use their own assets. Existing storyboard approval
+and later corrections carry forward; ask again only for material scope changes.
 
 ## Understand the product
 
@@ -51,7 +55,10 @@ Report factual gaps and missing fixture support before substituting a recreation
 
 Dribbble-level UI motion: one shape, never cut. A persistent outer shell morphs
 in size, radius and color while its content swaps with a short blur. The shell
-is cinematic framing; its controls remain faithful to the product.
+is cinematic framing; its controls remain faithful to the product. Preserve
+recognizable screen context: demonstrate a feature inside its real dialog or
+page, including navigation to the full view, rather than extracting controls
+into unrelated cards.
 
 Use a light warm-gray canvas, black and white components, optionally one accent.
 Use the product font when recognizable, otherwise Geist, and consistent icon
@@ -104,7 +111,7 @@ The cursor is an intentional user, with visible targets and credible input:
   `seek(t)`, independently of playback history. No fresh randomness per frame.
 - Transform the cursor, target and hit coordinates consistently with the camera.
   During a zoom, clicks still land on the same control and drags stay attached.
-  Match cursor position and velocity at the loop boundary.
+  For a loop, match cursor position and velocity at its boundary.
 
 Do not compress believable input or reading time just to hit a duration target.
 
@@ -129,11 +136,18 @@ introduce a new screen. Group actions into readable phrases:
 - Reveal the feature through its real interaction.
 - Show the consequence in context.
 - Reach a recognizable outcome.
-- Return continuously to the opening composition.
+- Finish with the approved ending: a continuous loop or a resolved closing card.
 
 Derive the sequence from the journey. Never force a fixed button → loader →
 player → slider → toggle sequence. Maintain selected entities, values, filters,
 documents, chart data and other persistent choices throughout.
+
+Record `ending: loop | brand-card` in the storyboard. Default to `loop` unless
+the brief or brand preset specifies a closing card. A brand card can fill the
+frame with the logo and destination after the product outcome, then settle.
+It does not return to the opening; leave room for the musical resolution and
+brand motif. Continued feature exploration can shorten the card's hold without
+cutting off its final sound or blink.
 
 If the journey cannot fit legibly into 28 beats, propose a smaller scope or a
 longer musical phrase before coding. Never solve overcrowding with tiny text,
@@ -156,8 +170,8 @@ Before writing animation code, show:
 3. A complete beat grid: beat number, timestamp, visible state, input action,
    visible consequence and transition, including camera moves and cursor timing.
 4. Product prerequisites, missing fixture support and unresolved factual gaps.
-5. The opening-to-ending loop strategy, including how the completed outcome
-   remains true.
+5. The ending mode and its transition, including how the completed outcome
+   remains true and when any musical resolution or brand motif lands.
 6. Estimated duration and any exception to the under-20-second preference.
 
 Bundle missing creative preferences and storyboard approval in one request.
@@ -195,7 +209,7 @@ and [references/music.md](references/music.md) when choosing or analyzing audio.
    Use the measured beat grid for final timing.
 7. Render with Playwright using deterministic seeks, never video recording.
    Capture four temporal subframes per output frame, blend each group with
-   ffmpeg `tmix`, and output at 60 fps. Sample periodically across the loop seam.
+   ffmpeg `tmix`, and output at 60 fps. Wrap loop samples; clamp closing-card samples.
 8. Before the full render, capture one frame per beat and settled frames for
    dense states. Inspect readability, spacing, cursor alignment, continuity and
    timing. Fix those storyboard frames before full production.
@@ -205,16 +219,17 @@ and [references/music.md](references/music.md) when choosing or analyzing audio.
 Follow [references/review.md](references/review.md). Verify repeated and
 random-order seeks, input consequences, pointer-attached drags, non-overlapping
 content, meaningful beats, delivery-size readability, audio transient alignment,
-continuous loop position and velocity, and evidence for every product claim.
+the chosen ending contract, and evidence for every product claim.
 Do not call a rendered fixture proof that a live backend action succeeded.
 Report missing verification plainly.
 
-Never put `will-change` on text or elements the camera scales. Match opening and
-closing shell, content, camera and cursor trajectory. Make `seek(duration)`
-identical to `seek(0)`; encode frames on `[0, duration)` with no duplicate endpoint
-that causes a pause. Wrap motion-blur samples and audio across the same periodic
-boundary. Do not add latency for drama, invent confirmations, bypass a visible
-prerequisite or show incompatible states together.
+Never put `will-change` on text or elements the camera scales. For loops, match
+opening and closing shell, content, camera and cursor trajectory, with
+`seek(duration) === seek(0)` and periodic audio and blur samples. For closing
+cards, retain the final composition and let sound tails finish; do not wrap to
+the opening. Encode frame centers on `[0, duration)` without an extra endpoint.
+Do not add latency for drama, invent confirmations, bypass a visible prerequisite
+or show incompatible states together.
 
 When running under Clanker, publish the passing render and evidence for its
 visual approval gate, using the supported local review surface if the project
