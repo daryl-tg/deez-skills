@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: entry path, hold arming and the status row 2026-09-24, tree `8d0403322` (v0.408.1) — hold armed at exactly +15:00 and the row byte-identical to the prior pass. The probe, the doubling and recovery were last driven 2026-09-19 at tree `15db727ba` (v0.353.1). Re-drive the full ladder when the HOLD MACHINERY changes — `shared/origin-limiter.ts` (constants), `shared/public-document.ts` (the predicate), or the cooldown/reopen paths of `runner/subscriptions/manager.ts` and `adapters/feed.ts` — and re-drive the STATUS ROW whenever `runner/watching/status-sentence.ts` changes. Both triggers fired this pass and both proved inert; the status-sentence change is gated on `coverage.backend === PAGE_BACKEND`, unreachable from a feed source.*
+*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — healthy feed request, Cloudflare-style challenge, 15-minute hold, watch status row, one clean scheduled probe and recovery observed; `/healthz` settled to `open`, `reconnect_count: 0`, `cooldown: null`. A second challenge and window doubling were last driven 2026-09-19 at tree `15db727ba`; they were not re-driven in this pass.*
 
 When a site puts the daemon's IP under a Cloudflare challenge, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -58,7 +58,7 @@ Preconditions:
   pages at `/article/<id>`, and flips on the `mode` file to `403` with
   `cf-mitigated: challenge` and a "Just a moment..." body. The predicate is a
   403 **or 503** carrying `cf-mitigated: challenge`
-  (`shared/public-document.ts:135-141`); the header is what decides, so a stub
+  (`shared/public-document.ts:142`); the header is what decides, so a stub
   that returns a bare 403 proves nothing. Log every request with a timestamp:
   that log is the proof of silence.
 - The lane booted with `OM_FEED_ALLOW_LOOPBACK=1` (feed polls, page polls and

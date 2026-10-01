@@ -1,6 +1,6 @@
 # Market data reads
 
-*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — a live points series driven; envelope, timestamp shape and id keys unchanged.*
+*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — live enum, coins, exchanges, points, metric list and market resolution reads succeeded. Metric series/screen and chart symbol lookup remain unverified.*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,
@@ -13,8 +13,10 @@ lane's machine-minted key is enough for them.
 - `data-enum` lists the API's enum domains and their live values.
 - `data-inventory` lists coins, exchanges, markets, symbols and tenors.
 - `data-points` fetches a historical series for one type/exchange/symbol.
-- `data-metric` computes scalar metrics over the same data.
-- `data-resolve` turns a phrase into order-ready venue/symbol fields.
+- `data-metric` lists and computes scalar metrics and per-bar metric history;
+  `metric screen` evaluates a metric across a symbol set.
+- `data-resolve` turns a phrase into order-ready venue/symbol fields;
+  chart symbol lookup is a separate directory read.
 
 ## How to get to it (user POV)
 
@@ -67,6 +69,9 @@ Preconditions:
 - The symbol flag is `--raw-symbol` (exchange-native) or `--normalized-symbol`
   or `--coin`. `--symbol` does not exist and fails as `unknown option`.
 - `--lookback` is required. Omitting it fails before any request goes out.
+- `metric list`, `metric get`, `metric series`, and `metric screen` are separate
+  read paths. `resolve` binds order-ready instruments; it is not the chart
+  symbol-directory lookup.
 - `normalize.quote` USD-normalization is only applied to a whitelist of data
   types; funding rates and other dimensionless types return raw. A "wrong"
   normalized number may be the documented behavior — see `AGENTS.md`

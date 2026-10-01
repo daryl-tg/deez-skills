@@ -1,23 +1,24 @@
 # Event ingest and fire
 
-*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — full chain driven (door, stream, journal). The dashboard cross-check now points at the ops-dashboard entry rather than re-describing a table that no longer exists.*
+*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — CLI push and HTTP ingest returned event ids; SSE carried commit/append/fire for the HTTP id, journal stored both, and Watches showed the live watch. Rejection, pause, dedupe, and budget responses remain unverified.*
 
 A user points a producer at a watch's inbound door and the daemon takes it from
 there: the event is accepted, committed, appended to the watch's journal, and
 fired. The fire shows up on the live event stream, in the journal on disk, and
-as a row in the dashboard's Alerts table. This is the whole pipeline, and none
+as a watch row in the dashboard's selectable Watches list. This is the whole pipeline, and none
 of it needs an account.
 
 ## Sub-features
 
 - `ingest-cli` pushes an event through `om event push`.
-- `ingest-http` pushes the same event through `POST /ingest/v1/<watch>` with a
-  minted bearer token.
+- `ingest-http` pushes JSON or plain text through `POST /ingest/v1/<watch>` with
+  a minted bearer token (header preferred; `?token=` is supported).
 - `fire-stream` emits `watch_committed`, `watch_appended` and `watch_fired` on
   `/events/v1`.
 - `fire-journal` writes the event, its verdict and its id into the watch's
   `events.md`.
-- `fire-dashboard` shows the watch as `armed` with a LAST FIRED time.
+- `fire-dashboard` shows the watch in the selectable Watches list with its
+  status and last-update time; the exact instant is in the row's `time` value.
 
 ## How to get to it (user POV)
 
@@ -52,6 +53,9 @@ Preconditions:
 - **Push over the door.** Run
   `curl -s -w '\nhttp %{http_code}\n' -X POST "$(control-om url /ingest/v1/lane-probe)" -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"text":"<run-id>: pushed over the ingest door","kind":"filing"}'`.
   Expect `202` and `{"accepted":true,"event_id":"<id>","deduped":false}`.
+  Plain text is also accepted with `Content-Type: text/plain`; it becomes the
+  event's `text` field. A duplicate returns `200` with `deduped:true`; rejected
+  events return `202` with `accepted:false`, and paused watches return `409`.
 - **Read the stream.** `events.sse` carries three events for that same
   `event_id`: `watch_committed` (with `"outcome":"update"` and the title),
   `watch_appended`, then `watch_fired` with `fired_at` and `"confidence":1`.
@@ -90,8 +94,8 @@ Preconditions:
 
 The CLI push is the same pipeline without the HTTP door:
 `control-om om -- event push lane-probe --text "..." --kind filing --format json`
-returns `{"accepted":true,"delivery":"daemon"}`. Use it when the door is not
-what is under test; use the door when it is.
+returns `watch_id`, `event_id`, `accepted`, `deduped`, `delivery` and `notes`.
+Use it when the door is not what is under test; use the door when it is.
 
 ## Gotchas
 

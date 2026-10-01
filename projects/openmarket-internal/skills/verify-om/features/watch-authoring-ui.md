@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — the detail page driven on an inbound watch. The wizard and its end-to-end create were driven 2026-09-23 at tree `9a49752c3` (v0.400.0) and its files are unchanged since.*
+*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — RSS picker, form, review, create, paused CLI row and feed detail page driven on a guest lane. Other seven kinds and batch actions remain unverified.*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the

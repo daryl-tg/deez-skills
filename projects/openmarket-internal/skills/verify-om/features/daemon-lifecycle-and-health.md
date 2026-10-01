@@ -1,6 +1,6 @@
 # Daemon lifecycle and health
 
-*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — health, doctor (14 checks), service status, logs and the wrapper guard driven; the service-unit safety claim re-confirmed from source at this tree.*
+*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — health, 14-check guest doctor, status, service status, logs and wrapper refusal driven. Service-unit mutation remains wrapper-guarded.*
 
 The daemon is the product's spine: it boots, serves its HTTP doors, ticks, and
 reports what it is doing. A user starts it (`om run` in the foreground, or

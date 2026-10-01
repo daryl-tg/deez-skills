@@ -1,15 +1,15 @@
 # The ops dashboard
 
-*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — nav, Overview, the Watches list, /news, /connections driven. This range was internal loading/perf work with no text or structural change.*
+*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — Overview, Watches, News, Strategies, Channels, Connections, Venues and Receipts opened on a guest lane; screenshots and accessibility snapshots captured. Populated strategy and receipt rows remain unverified.*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
 chat, each documented in its own entry ([watch authoring](./watch-authoring-ui.md),
 [the agent panel](./agent-panel.md)). What remains here is the shell and the
-observation surfaces: a header pill with tick freshness and fire count, a left nav, and one
-page per concern — Overview, Watches, News, Strategies, Channels, Venues,
-Receipts, plus a link out to OM Chat. A fresh install sees an onboarding
-checklist on Overview instead of an empty dashboard.
+observation surfaces: a daemon status pill, a left nav, and one page per concern
+— Overview, Watches, News, Strategies, Channels, Connections, Venues and
+Receipts, plus a link out to OM Chat. Overview shows watch counts and fires; a
+fresh install also sees an onboarding checklist.
 
 ## Sub-features
 
@@ -17,13 +17,14 @@ checklist on Overview instead of an empty dashboard.
   The nav LABEL and the route can disagree: `Watches` lives at `/alerts`.
 - `dash-overview` shows daemon health and, on a fresh home, the onboarding
   wizard.
-- `dash-watches` lists metric alerts and event watches in one table with status
-  and last-fired, under the nav label `Watches` at `/alerts`.
+- `dash-watches` lists metric alerts and event watches in one selectable list with
+  status and last-update time, under the nav label `Watches` at `/alerts`.
 - `dash-tables` renders News, Strategies, Channels, Venues and Receipts from
   their own RPC families.
 - `dash-strategy-detail` opens one strategy at `/strategies/<id-or-slug>` from a
   slug link on `/strategies` (added since v0.329).
-- `dash-header` shows tick freshness and today's fire count.
+- `dash-header` reports daemon/check status and when it was last checked. The
+  Overview's `Watch fires` metric shows fires since the daemon started.
 - `dash-restart` restarts the daemon it is pointed at.
 
 ## How to get to it (user POV)
@@ -41,8 +42,8 @@ Preconditions:
   and `agent-browser set viewport 1440 900`.
 
 - **Open the root.** Run `agent-browser open "$(control-om url /)"` then
-  `agent-browser snapshot -i -c`. A fresh lane shows heading `Overview`
-  (level 1 and level 2), the nav links `Overview`, `Alerts`, `News`,
+  `agent-browser snapshot -i -c`. A fresh lane shows heading `Your market, in
+  view.` and the nav links `Overview`, `Watches`, `News`,
   `Strategies`, `Channels`, `Connections`, `Venues`, `Receipts`,
   `OM Chat (opens in a new tab)` — note `Watches`, renamed from `Alerts`, and
   `Connections`, added in v0.400.0 — inside a `navigation "Main navigation"`
@@ -62,9 +63,9 @@ Preconditions:
   and `Discord` buttons no longer render anywhere in onboarding** — the channel
   step offers a plain `Manage channels` link instead. The block is also
   state-dependent: it disappears once the home has a watch, so capture it on a
-  genuinely fresh lane or not at all. heading `Welcome to OpenMarket`, button
-  `Dismiss welcome`, heading `Pair a notification channel`, buttons `copy`,
-  `Discord`, `More setup options ▸`.
+  genuinely fresh lane or not at all. On the fresh guest lane, the onboarding
+  block showed `Welcome to OpenMarket`, `Dismiss welcome`, `Create your first
+  watch`, and `More setup options ▸`.
 - **Navigate by name.** Run
   `agent-browser find role link click --name "Watches"`, then
   `agent-browser get url` → `http://127.0.0.1:18101/alerts`. The label was
@@ -98,11 +99,11 @@ Preconditions:
   transitions timeline, per-strategy digest) is `verified-unreachable` from a
   guest lane: it needs a strategy, which needs a signal and a paired venue.
   Report it that way rather than as empty.
-- **Walk the rest.** `/news` (headings `Daily brief`, `Recent fires`, and since
-  v0.400.0 a `Watches` section with `WATCH` / `GOAL` columns),
-  `/strategies` (heading `Strategy digest`, columns `SLUG`, `SIGNAL (KIND)`),
-  `/channels`, `/venues`, `/receipts` (columns `TIME`, `ALERT`, `VENUE`). Each
-  renders its heading and its empty state on a fresh lane.
+- **Walk the rest.** `/news` (headings `Daily brief`, `Recent fires`, and
+  `Watches`), `/strategies` (heading `Strategy digest`), `/channels`, `/venues`,
+  and `/receipts`. Each renders its heading and guest-lane empty state. When
+  populated, Receipts also shows `OID`, `Notional`, and `Status` alongside
+  `Time`, `Alert`, and `Venue`.
 - **Prove a cross-surface change.** Create or fire something through the CLI,
   then reload the page and assert the row. The dashboard polls every 3s, so a
   reload is not required, but a reload makes the evidence unambiguous.
@@ -115,11 +116,9 @@ Preconditions:
 
 - **Do not click `restart` unless restarting the lane is the point.** It
   restarts whatever daemon the page is pointed at.
-- The header pill tracks TICK AGE, not health. A lane that just ticked reads
-  `live · tick 22s ago`; the same idle lane a minute later reads
-  `stale · tick 1m ago`. Both are normal — an idle lane has nothing to evaluate,
-  so it does not tick on the interval. `/healthz` `last_tick_at` says the same
-  thing without the colour.
+- The header pill reports daemon/check state (the fresh lane read `Live · Last
+  checked 39s ago`). Fire count is the Overview's separate `Watch fires`
+  metric, not part of the pill.
 - The SPA is bundled into the daemon at module load from
   `apps/dashboard/dist/assets/app.js`. Editing `apps/dashboard/src` changes
   nothing a lane serves until `bun run build:dashboard` runs — and

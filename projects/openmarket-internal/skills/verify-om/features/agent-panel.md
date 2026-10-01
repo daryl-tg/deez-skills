@@ -1,6 +1,6 @@
 # The dashboard agent panel
 
-*Verified: 2026-09-24, tree `8d0403322` (v0.408.1) — the panel, its controls and its guest-lane refusal driven. A real conversation stays `verified-unreachable`: it needs an LLM credential.*
+*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — opened the panel from Connections, sent a message, read the guest refusal, followed Connections, and opened the two-pane `/agent` workspace. A real conversation stays `verified-unreachable`: it needs an LLM credential.*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as
@@ -51,7 +51,8 @@ Preconditions:
   `agent-browser eval '(()=>{const a=document.querySelector("[role=alert]");return a?a.innerText:"no alert"})()'`.
 - **Follow the route it offers.** `link "Check connections"` leads to
   `/connections`: `heading "Connections"` with sections `AI model` and
-  `Coding agents` and five `Connect` buttons, three of them disabled.
+  `Coding agents`. The integration rows and disabled `Connect` buttons depend
+  on which clients are detected and wired on this machine.
 - **Proof.** Keep the panel snapshot, the alert text read through `eval`, and the
   `/connections` snapshot. Together they are the evidence that the unmet
   prerequisite is a credential and not a broken surface.
@@ -60,8 +61,8 @@ Preconditions:
   two-pane workspace (a conversation history list beside the chat), reached
   either by `Open full conversation` or by the sidebar brand link whose
   accessible name is `OpenMarket, chat with your agent`. It is NOT a nav item,
-  so a driver walking the nav will never find it. Not driven here beyond the
-  panel's refusal.
+  so a driver walking the nav will never find it. Open `/agent` directly or use
+  `Open full conversation` to inspect the history rail and chat workspace.
 
 ## Gotchas
 

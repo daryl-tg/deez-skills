@@ -1,6 +1,6 @@
 # Firecrawl recovery before whitelist
 
-*Verified: 2026-10-01, tree `fe82b2ef1` (v0.425.0) — squash delivery and 366 focused checks; real CLI/daemon/dashboard scenes captured 2026-09-30 at `780c0254c` plus approved diff `1d541c27baeebc5d0ce1f1562e61ece97c3af11ee650840c872aa2dd5bd5db87`. The delivery follow-up moved an unchanged query to remove eager loading. Live provider and interactive agent delivery not driven.*
+*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — guest lane showed the no-key challenge status and `om setup firecrawl` fix. Configured fixture recovery, repeated refusal and restart persistence were last driven at tree `fe82b2ef1`; they were not re-driven here. Live provider and interactive agent delivery remain unverified.*
 
 A configured Firecrawl connection recovers the first blocked read of a source automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
 
