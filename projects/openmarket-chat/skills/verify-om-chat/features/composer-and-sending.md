@@ -223,3 +223,7 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   tree, and it is right to. When it exits with a digest mismatch, rebuild —
   do not set `OM_ROOMS_GUI_DIR` to get past it unless you are deliberately
   bisecting a pinned bundle.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** sent a local fixture message and confirmed the row appeared and composer cleared; at 390px the empty Send message control was disabled. **Limitations:** This fixture proves local rendering only. Wire delivery, draft restoration across lanes, attachments, and recovery were not exercised.

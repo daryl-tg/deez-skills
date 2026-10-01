@@ -301,3 +301,7 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 - On a phone both `agent` and `agents` classify to the single **om** root tab
   (see [mobile-shell-navigation.md](mobile-shell-navigation.md)); there is no
   sixth root and no takeover.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened Agent Center with its seeded four-item waiting queue and RemoteHome live with Stop/Add context; Your om standalone showed its not-running state. **Limitations:** Consent decisions, all persona/roster states, and connected daemon behavior were not exercised.

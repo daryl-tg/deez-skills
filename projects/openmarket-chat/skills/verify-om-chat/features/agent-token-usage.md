@@ -40,3 +40,7 @@ This fixture proves rendering with seeded usage. It cannot prove provider
 metering, daemon transport, or history persistence. Copy, retry, file-to-doc,
 and prompt editing are outside its wired journey. The full shell's default
 agent fixture shows the daemon-off state instead of this transcript.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** the standalone agent-usage fixture rendered 12.3k tokens in the answer; remote-home live showed the shared 1k-token presentation. **Limitations:** Expansion, all formatting thresholds, missing-usage states, and real provider accounting were not exercised.

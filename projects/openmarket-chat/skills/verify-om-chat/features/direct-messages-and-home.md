@@ -175,3 +175,7 @@ seeded presence state — a good second observation alongside the route.
   everywhere else — see [composer-and-sending.md](composer-and-sending.md).
 - Presence in the fixture is seeded, not live. Anything about presence
   *changing* (reachability, going away, reconnect) needs the daemon-pair lane.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened Home and checked unread/recent/waiting sections, opened Connections, opened ana DM, then used mobile Chats to see seeded DM rows. **Limitations:** Requests/Blocked, group-member actions, presence changes, and DM editing were not exercised in this pass.

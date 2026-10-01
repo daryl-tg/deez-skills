@@ -23,3 +23,7 @@ Measured at `f7d7c987` with `restore=fail-once`. The first Restore left calls `1
 ## Gotchas
 
 The transport is synthetic; this proves mounted Shell/checkpoint/editor behavior, not a real relay write or the daemon's learning hold. Verify the hold separately in daemon tests. The theme comes from the fixture `theme` query, not media emulation. A screenshot of revision rows alone does not prove restore: assert the actual editor content and new head. Restore must not be tested against the operator's live HOME without task authorization.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened Persona/kyle History, selected r3, observed the configured first restore failure, then retried and verified r5 became current with the r3 restore toast. **Limitations:** The fixture uses a synthetic checkpoint store; real HOME writes and learning holds remain unverified.

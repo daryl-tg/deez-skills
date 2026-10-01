@@ -74,6 +74,12 @@ that mock with `ready` (the default), `empty`, `setup`, `invalid`, `hold` or
 scene at a real daemon while everything else stays synthetic. See
 [om-and-agents.md](om-and-agents.md).
 
+Since product commit `f8b68bf7`, `tools/visual/agent-draft-share-fixture.html`
+is another standalone harness. It mounts the real `AgentDraftDock` with one
+loaded, unsent channel draft; editing it reveals **Share with agent**, and the
+fixture records the shared revision locally. It does not post the message or
+prove daemon delivery. See [agent-draft-sharing.md](agent-draft-sharing.md).
+
 Four more in `tools/visual/` **are** driveable harnesses, and this file used to
 imply they were not. Opened by hand on the lane, each comes up with real
 content and no error:
@@ -249,4 +255,5 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [open-world.md](open-world.md)
 - [your-library.md](your-library.md)
 - [agent-token-usage.md](agent-token-usage.md)
+- [agent-draft-sharing.md](agent-draft-sharing.md)
 - [message-editing.md](message-editing.md)

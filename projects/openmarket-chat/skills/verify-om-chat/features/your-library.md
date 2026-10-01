@@ -138,3 +138,7 @@ and `?libraryState=error` (`:4098`).
   (`data-home-library-save-state`) has ten values, `idle` through
   `conflict` and `local-error`. `#860` made `local-error` a clickable manual
   flush. Treat the chip as its own proof surface; do not assert it in passing.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** filtered the server Library panel, verified the clear control and count, expanded to full presentation, then opened Archive and confirmed its empty state plus Refresh. **Limitations:** Document editing/sharing and populated archive/restore behavior were not exercised; the fixture has no archive service methods.

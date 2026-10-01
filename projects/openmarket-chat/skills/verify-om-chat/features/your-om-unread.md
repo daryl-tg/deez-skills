@@ -29,3 +29,7 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 - Row actions have existing nested-interactive accessibility debt. Preserve explicit unread labeling and record scoped axe findings honestly.
 
 - The shell fixture forces the reduced-motion class on the root. Remove that fixture class only for normal-motion verification, then test OS reduced motion separately. Sample the actual CSS animation or record a video; a screenshot cannot prove heartbeat timing.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** attempted the documented Your om fixture route with omSessions=daemon; it rendered “om isn’t running” and no session rail. **Limitations:** A healthy daemon-served origin and isolated session store are required to prove unread receipts; these were unavailable.

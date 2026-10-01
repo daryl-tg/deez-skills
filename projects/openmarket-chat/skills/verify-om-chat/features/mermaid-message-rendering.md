@@ -43,3 +43,7 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 - Assert visible label text, multiple line positions, and positive SVG bounds. The DOM-only Mermaid harness can return an empty SVG successfully. An SVG count alone does not prove rendering.
 - The shell fixture must set `dockedDocCollapsed: false`; its truthy fallback otherwise hides every docked document.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** rendered the seeded channel diagram, checked visible SVG labels, opened the accessible PNG preview region, and captured both states. **Limitations:** DM parity, refused/invalid diagrams, viewBox bounds, and library editor preview were not exercised.

@@ -130,3 +130,7 @@ partial-window warning remains visible.
   (`SearchPanel.tsx:1287`, `:1295`). That is the product string, not a fixture
   artefact; caption a screenshot around it rather than quietly "fixing" it in
   the caption.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** submitted funding in the live root fixture, saw 2 results, and verified the fixture request marker was ops:channel:funding. **Limitations:** Filter operand completion, topic/DM scope, error states, and the cloud host were not exercised.

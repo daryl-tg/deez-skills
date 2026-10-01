@@ -25,7 +25,7 @@ History must open the selected card with the History rail already visible. In th
 
 Capture at 1440x1000 and 390x844. With an actual API response cached, go offline, navigate Away then Voice, and verify edits/export are disabled while the current owner's card remains visible. Restore network before ending the run.
 
-## Switching profiles
+### Switching profiles
 
 Use `personaState=profiles` for deterministic multi-profile rendering, or the actual API rig for persisted selection. Add sample profiles creates Brief, Warm, Skeptical, Sarcastic and Show Me without loading one. Existing three-sample homes add only the two missing cards. Choose Profile to load, then Load profile. Assert both Loaded profile text and the API selectedDocId. Repeat in the same mounted panel, then Use default voice and assert a null selection and cleared derived digest. Changing the picker alone must not change the loaded card or its preview. Profile to load is a custom menu button, not a native select. Open it by accessible name and pick the named menu item; Arrow keys, Enter and Escape must work.
 
@@ -37,7 +37,7 @@ Samples start fixed. Confirm Learning paused for this profile and the separate g
 
 At desktop width, measure both Learning text and controls. A parent grid with `minmax(0, 1fr) auto` can collapse text to zero width when the new controls contain prose. Check computed widths and readable text, not only horizontal overflow. Capture the fixed-profile explanation at desktop and phone widths. Offline cached profile controls must be disabled.
 
-## Proposed changes review
+### Proposed changes review
 
 Use `tools/visual/persona-panel-fixture.html?state=pending-long` for a synthetic 96-line proposal with six separated change hunks. Add `theme=light` for the light palette. The fixture uses the actual `.persona-scroll` viewport and stateful Accept / Not now responses; it does not contact the armed daemon.
 
@@ -56,3 +56,7 @@ The report can legitimately contain text:null for no selected card. Treat it as 
 There is no cross-fork drift report: `sync-shared.ts` was deleted in `f190644c` and the persona UI is one shared implementation under `packages/chat-ui/src/`. A persona change is in `/rooms` and `/chat/` at once, so drive both hosts rather than looking for a twin to reconcile.
 
 The actual API rig must include a synthetic HOME mirror-health entry and directory to prove managed voice skill publication. Missing mirror state should produce an unavailable load and preserve the previous selection; a 200 report by itself is not proof that the voice skill exists. Never configure that rig against the operator’s real mirror.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened the proposed voice-card fixture and the shared Voice view; Manage voice cards exposed History and the revision restore journey. **Limitations:** Full setup, import/export, profile selection, learning, offline recovery, and production host parity were not exercised.

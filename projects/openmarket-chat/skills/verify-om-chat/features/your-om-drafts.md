@@ -27,3 +27,7 @@ Capture paired screenshots and accessibility snapshots. During the new-session l
 - Private `om:` drafts deliberately do not persist across reload. Test session switches within one app instance; public room/DM/topic draft persistence follows a separate contract.
 - New-session preparation changes the active session before sending. Its draft owner must remain stable through that async transition.
 - Read both draft storage identity and conversation transition identity when diagnosing carry. Fixing only one leaves either shared storage or a textbox that never swaps.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** attempted the documented source fixture route with omSessions=drafts; it rendered “om isn’t running” and no composer/session rail. **Limitations:** A healthy daemon-served origin is required to pass the presence gate and prove session-scoped drafts; this prerequisite was unavailable.

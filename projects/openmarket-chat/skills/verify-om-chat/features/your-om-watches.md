@@ -7,6 +7,8 @@
 - Whole-watch pause/resume, refreshed persisted state, and daemon refusal messages.
 - Structured attention cards: Clear past error, Retire schedule, Attach feed, and Resume watch; technical details expand in place. Attachment and retirement have a confirmation dialog.
 - Read-only details for owned scheduler children, including lifecycle, authority, cadence, and next command.
+- Recent fires: newest-first execution rows with delivery status, plus loading,
+  empty, and error states. Notices do not appear in this execution history.
 
 ## How to get to it (user POV)
 
@@ -16,7 +18,10 @@ Open Your om, then Watches in the conversation sidebar. On mobile, open om conve
 
 Run `control-om-chat doctor` against the assigned lane first. Use a run-owned daemon origin that reverse-proxies the candidate Vite lane, with an isolated `OM_HOME` containing QA watches. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet` on that daemon origin. The Shell fixture seeds conversation data; watch reads and mutations must reach the production daemon routes.
 
-Drive accessible names: `Watches`, `Refresh`, `Show details for <label>`, `Close <label> details`, and one toggle per watch whose name alternates between `Pause <label>` and `Resume <label>` (`OmWatchesSurface.tsx:521`). Wait for `[data-om-watch-id]` rows after navigation and the changed switch label after mutation. Verify persistence through `POST /rpc/v1/watch/overview` with `{}`. The pinned `@openmarket/rooms-client` 0.101.0 posts every watch verb to `/rpc/v1/watch/<verb>` (`src/daemon-watches.ts:411`); there is no `event-watch` path. Capture expanded and collapsed desktop navigation, then mobile `Open om conversations` → `Watches`; verify the sheet closes and no horizontal overflow appears. Save snapshots, screenshots, console/errors, and a scoped accessibility result for `.om-watches-surface`.
+Wait for `[data-testid="om-recent-fires"]` and verify a fire row's status
+alongside the watch list. The section has independent loading/error/empty states.
+
+Drive accessible names: `Watches`, `Refresh`, `Show details for <label>`, `Close <label> details`, and one toggle per watch whose name alternates between `Pause <label>` and `Resume <label>` (`OmWatchesSurface.tsx:521`). Wait for `[data-om-watch-id]` rows after navigation and the changed switch label after mutation. Verify persistence through `POST /rpc/v1/watch/overview` with `{}`. The pinned `@openmarket/rooms-client` 0.103.0 posts every watch verb to `/rpc/v1/watch/<verb>` (`src/daemon-watches.ts:411`); there is no `event-watch` path. Capture expanded and collapsed desktop navigation, then mobile `Open om conversations` → `Watches`; verify the sheet closes and no horizontal overflow appears. Save snapshots, screenshots, console/errors, and a scoped accessibility result for `.om-watches-surface`.
 
 ## Gotchas
 
@@ -28,3 +33,7 @@ Drive accessible names: `Watches`, `Refresh`, `Show details for <label>`, `Close
 - Changing desktop/mobile layout can remount the conversation pane; reopen Watches through the relevant navigation and wait for rows before capturing.
 - The shell fixture may log existing duplicate-root and invalid-child warnings. Preserve the actual console output; do not describe it as clean.
 - Use a `group` role for labeled action containers and retain the Shell's single main landmark.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened RemoteHome live and confirmed that away mode has no Watches destination; the daemon-seeded Your om route rendered “om isn’t running”. **Limitations:** A healthy daemon with isolated QA watch data is required for rows, recent fires, actions, and persistence; it was unavailable.

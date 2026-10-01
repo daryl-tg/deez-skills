@@ -33,7 +33,9 @@ interaction end to end.
   layout** (Bubbles / Streamlined / Custom), and under Custom, **Server channel
   layout** and **Direct message layout** (Bubbles / Streamlined each). A fourth
   radiogroup, **Message display** (Cozy / Compact), sits alongside them.
-- High-contrast mode and its interaction with every palette.
+- High-contrast mode and its interaction with every palette. The system
+  contrast preset follows `prefers-contrast: more` independently of the
+  explicit high-contrast switch (`packages/chat-ui/src/lib/appearance.ts`).
 - Server settings: Overview, Roles, Members, Moderation, Invites, Integrations,
   Work Ledger, Library, Recovery, Import Vault, Danger. There is **no Access
   page on the server host** — Access is a channel page.
@@ -160,3 +162,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 - `?perms=` gates what server and channel settings render. A missing control
   may be a correct permission outcome rather than a regression — check the
   route you opened before reporting one.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** changed Appearance to Light, Moss, and high contrast and verified html data attributes updated immediately. **Limitations:** Other settings hosts/pages, system contrast preference, advanced density controls, and dismissal paths were not exercised.

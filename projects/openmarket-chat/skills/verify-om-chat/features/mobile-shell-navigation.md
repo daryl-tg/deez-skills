@@ -116,3 +116,7 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
 - Chromium at a narrow viewport is not iOS WKWebView or Android WebView. A
   green matrix here is a `web-bundle` claim only; native certification is
   still open (`docs/mobile-native-release-checklist.md`).
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** at 390x844 visited Home, Chats, Spaces, Library, and om roots and returned from a room detail to Spaces. **Limitations:** Other supported widths, touch-size measurement, browser/native Back, and tape/draft restoration were not exercised.

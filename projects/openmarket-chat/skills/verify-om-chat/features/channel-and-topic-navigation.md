@@ -224,3 +224,7 @@ the navigation retargeted the *write* path, not only the read pane.
   `#/room/ops` and mounts no canvas — the shell fixture never stubs the world
   session port. Drive that surface from its own harness instead
   ([open-world.md](open-world.md)).
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened the CPI topic, checked canonical hash, heading and retargeted composer, returned to #ops, then opened All 6 topics. **Limitations:** The remaining channel-header mechanisms, topic expansion, and dock actions were not exercised.

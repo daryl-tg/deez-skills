@@ -10,6 +10,9 @@ fixture cannot reach.
 - The **Open World** entry row in the sidebar, above the channel sections.
 - The world canvas: avatar rendering, click-to-walk, camera follow.
 - Presence: other occupants and their bubbles.
+- Agent activity visualization: agent avatars can read, write, or search with
+  the shared book controller. `tools/openscape-preview/activity.html` exercises
+  scripted renderer states; authenticated activity still needs live observations.
 - The bound channel for a location, and its "Create a #world channel to talk
   here" empty state.
 - Transport connect / retry, and the offline banner when it cannot reach the
@@ -51,7 +54,7 @@ agent-browser open "$(control-om-chat url \
 That mounts `WorldView` directly over a stub session port. **`#946` rebuilt
 this surface** — the OpenScape 3D town and channel-chat alpha, then `#947`,
 `#948` and `#953` on top — so the observations below replace the older ones.
-Measured on lane 18120 at `ea0ee262`:
+Re-driven on the source fixture at product commit `f8b68bf7`:
 
 ```bash
 agent-browser eval '(()=>document.querySelectorAll("canvas").length)()'
@@ -85,6 +88,13 @@ fullscreen"**, and five `.world-look` swatches — **Blue, Green, Amber,
 Violet, Hooded** (the fifth arrived with `#970`'s outfits; count five, not
 four).
 
+The shared renderer's scripted Agent activity study is a second local harness:
+run `bun x vite --config tools/openscape-preview/vite.config.ts --port <assigned-free-port> --strictPort --host 127.0.0.1`, then open
+`http://127.0.0.1:<assigned-free-port>/rooms/tools/openscape-preview/activity.html`.
+Select a scenario and inspect `window.__activityPreview.sample()` or seek with
+the Timeline. This preview uses scripted observations; it does not prove that
+live agent cues arrive over the world transport.
+
 `#970` and `#974` also added nameplates — `.world-nameplate` with a role-derived
 title and `data-kind` marking agents — but they draw over *occupants*, and the
 solo harness has none, so it renders zero nameplates. That is the harness, as
@@ -97,8 +107,8 @@ below: proving them needs the relay and a second occupant.
   not a regression — it proves rendering, layout, and the bound-channel empty
   state, and nothing about movement sync, presence, or the wire. Anything about
   two occupants seeing each other needs a real relay.
-- **Emotes are unreachable here, twice over.** `#981` added book, greet and
-  sit on a wheel you open by **holding `E`** (a menu named "Emotes";
+- **Emotes are unreachable here, twice over.** The wheel offers Read, Write,
+  Search, Greet, Sit and Stop, and opens by **holding `E`** (a menu named "Emotes";
   releasing picks the highlighted one — `WorldEmoteWheel.tsx`). The wheel only
   arms when `status.state === "connected"` and the player is human
   (`WorldView.tsx`), and the solo harness is always offline, so it never
@@ -120,3 +130,7 @@ below: proving them needs the relay and a second occupant.
 - This file is the exception to the map's "three fixture entry points" table.
   If you are verifying a change that touches both the world and ordinary chat,
   you need two harnesses and two sets of frames.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** the solo world settled at two canvases with offline/reconnecting/no-channel copy; the activity preview rendered Quick write with its live timeline state. **Limitations:** World movement, occupants, live agent cues, emote interaction, and relay transport were not exercised.

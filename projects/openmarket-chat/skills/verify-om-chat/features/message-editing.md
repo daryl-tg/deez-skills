@@ -56,3 +56,7 @@ On agent-browser 0.33.2, click does not document a --button option. Do not treat
 In the recorded DM journey, reopening the message menu after a save selected an incoming row. Fresh fixture navigations between cases avoided this fixture interaction; they did not prove persistence across reload. The fixture also logged a React invalid textarea value warning. Record it.
 
 Full server persistence and other clients receiving the edit require the local auth/relay stack and daemon-pair lane. The fixture cannot prove those outcomes.
+
+### Verification record
+
+**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened a channel message editor with a real pointer hover, saved changed text, and confirmed the row updated and editor closed. **Limitations:** DM menus, unchanged/reverted saves, cancel/keyboard behavior, and relay persistence were not exercised.
