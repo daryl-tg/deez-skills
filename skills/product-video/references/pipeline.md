@@ -156,7 +156,7 @@ the current contract; inspect `--help` before running it.
   Do not use it as the final renderer.
 - `music.py` is optional generation/finishing tooling. Its `finish` changes
   tempo to the requested BPM; for this workflow preserve the chosen track's
-  measured tempo and perform only the approved trim, loop and mastering.
+  measured tempo and perform the approved trim, ending-specific mix and mastering.
 
 There is no required HyperFrames workflow, generated-music provider, multi-clip
 composition or fixed number of judging rounds. The entry skill and approved

@@ -71,8 +71,8 @@ Previous setup pinned ACE-Step repo commit
 license verification.
 
 The helper's `finish` time-stretches to the requested BPM. Preserve measured
-tempo for this film and use suitable trimming, periodic mixing and mastering
-instead. A seed does not guarantee generated audio reproducibility: freeze the
+tempo for this film and use trimming, mixing for the chosen ending mode and
+mastering instead. A seed does not guarantee generated audio reproducibility: freeze the
 selected source and finished mix as assets before rendering.
 
 An existing `<bed>.provenance.json` may contain provider, repo/model-card commits,
