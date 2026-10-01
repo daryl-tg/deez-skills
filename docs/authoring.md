@@ -16,6 +16,18 @@ bin/adopt ~/some/path/my-skill --category workflow
 `adopt` copies, registers, and leaves the original untouched. It does not link
 anything — see `docs/migration.md`.
 
+Project verification skills use the repository's name as their storage owner:
+
+```sh
+bin/new verify-example --category workflow --project example-app
+bin/adopt ~/some/path/verify-example --category workflow --project example-app
+```
+
+Both use `projects/example-app/skills/verify-example/` and register
+`project = "example-app"`. Installed names stay stable. Follow
+[the project verification contract](./project-verification.md) for provenance
+and automatic publication of map Markdown only.
+
 ## Rules the doctor enforces
 
 - The frontmatter `name:` must equal the install name. Codex resolves its
@@ -27,7 +39,8 @@ anything — see `docs/migration.md`.
   number would. What matters is the aggregate: `bin/doctor` reports the metadata
   cost per runtime, because that is what a runtime truncates on.
 - Every folder under `skills/` needs a registry entry, and every entry needs a
-  folder.
+  folder. This also applies to `projects/<repository>/skills/`; compatibility
+  symlinks resolving to registered sources are allowed.
 - The README index must be current. Run `bin/index` after any registry change.
 
 ## Categories and profiles

@@ -58,6 +58,22 @@ class IndexTest(unittest.TestCase):
         self.make_skill("humanize", "Does a | b.")
         self.assertIn("a \\| b", index.render(self.load(HUMANIZE), self.repo))
 
+    def test_project_index_links_the_skill_and_feature_map(self):
+        folder = self.repo / "projects/example-app/skills/verify-example"
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text(
+            "---\nname: verify-example\ndescription: Verify example.\n---\n")
+        reg = self.load('''
+[skills.verify-example]
+category = "core"
+runtimes = ["claude", "codex"]
+project = "example-app"
+''')
+        rendered = index.render(reg, self.repo)
+        self.assertIn("### Project verification maps", rendered)
+        self.assertIn("[verify-example](./projects/example-app/skills/verify-example/SKILL.md)", rendered)
+        self.assertIn("[Feature map](./projects/example-app/skills/verify-example/features/README.md)", rendered)
+
     def test_write_preserves_content_above_the_marker(self):
         readme = self.repo / "README.md"
         readme.write_text(f"# deez-skills\n\nHand-written intro.\n\n{index.MARKER}\nOLD\n")

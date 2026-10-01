@@ -160,7 +160,7 @@ when you want one directly.
 | [`automate-me`](./skills/automate-me/SKILL.md) | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for… |
 | [`blast-radius`](./skills/blast-radius/SKILL.md) | Find what a small-looking change could break beyond its diff, proving each safety claim with running code rather than … |
 | [`codex-first`](./skills/codex-first/SKILL.md) | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:revie… |
-| [`create-verification-skill`](./skills/create-verification-skill/SKILL.md) | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behav… |
+| [`create-verification-skill`](./skills/create-verification-skill/SKILL.md) | Generate a project-owned verification skill, feature map, and control wrapper in the deez-skills hub so an agent can drive… |
 | [`design`](./skills/design/SKILL.md) | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implemen… |
 | [`figure-it-out`](./skills/figure-it-out/SKILL.md) | Design an auditable playbook when no bundled one fits: a large migration, an ambitious multi-part change, or work revi… |
 | [`herdr-codex-orchestration`](./skills/herdr-codex-orchestration/SKILL.md) | Run independent Codex implementation, review, and verification loops through Herdr with isolated worktrees. Covers are… |
@@ -286,6 +286,11 @@ Playbooks are plain markdown inside the router, not registry entries, so twenty-
 of them cost nothing at session start and can still be read by absolute path
 from either runtime.
 
+Verification skills live under `projects/<repository>/skills/verify-<app>/`.
+Clanker, creation, and maintenance automatically publish only their proven map
+Markdown. See [project storage and persistence](./docs/project-verification.md)
+and the generated project map index below.
+
 ## the tooling
 
 ```bash
@@ -293,10 +298,12 @@ bin/doctor      drift, dangling citations and playbooks, unknown roles, untracke
                 Codex gates, layer violations, budget
 bin/link        preview the install. --apply to make it so
 bin/new         scaffold and register a skill
-bin/adopt       pull an existing skill in from elsewhere
+bin/adopt       pull an existing skill in from elsewhere; --project for a project skill
 bin/index       regenerate the table below
 bin/check-plan  check a multi-phase plan against the skeleton its playbook publishes
-bin/sync        commit and push. rebases first, never force-pushes
+bin/sync        commit and push all hub changes; never use for map-only persistence
+bin/deez sync-feature-maps <project> <skill> <files...>
+                commit and push only selected feature-map Markdown
 bin/test        the suite
 ```
 
@@ -331,12 +338,12 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `clanker-mode` |  | claude | — |
 | `code-reviewer` |  | claude | — |
 | `codex-first` |  | claude, codex | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:review) as the primary path, raw codex exec as… |
-| `create-verification-skill` |  | claude, codex | Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, … |
+| `create-verification-skill` |  | claude, codex | Generate a project-owned verification skill, feature map, and control wrapper in the deez-skills hub so an agent can drive the real app and prove behavior. Use… |
 | `design` |  | claude, codex | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implement against the sketch, and scrap it when f… |
 | `executor` |  | claude | — |
 | `explore` |  | claude | — |
 | `herdr-codex-orchestration` |  | claude, codex | Run independent Codex implementation, review, and verification loops through Herdr with isolated worktrees. Covers arena mode (N candidates, one judge) and swa… |
-| `maintain-verification-skill` |  | claude, codex | Periodic pass keeping a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at mo… |
+| `maintain-verification-skill` |  | claude, codex | Periodic pass keeping a project-owned verification skill, feature map, and tracked control wrapper in the deez-skills hub honest: parallel source readers per f… |
 | `principle-announce-the-linked-review` | principle | claude, codex | Apply at the end of any delivered change. Announce as a title line, a body in the operator's /adhd voice, and the PR or MR link — nothing else — then read the … |
 | `principle-attack-the-premise` | principle | claude, codex | Apply when two or more fixes that share one premise have failed the same gate. Write the premise down, take a census of which actors hold the imbalance, then q… |
 | `principle-bind-assigned-ports` | principle | claude, codex | Apply whenever starting a server, choosing a port, or handing back a URL. Ports are assigned, never chosen. Bind 127.0.0.1 explicitly. Anything the operator op… |
@@ -408,6 +415,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `kiyotaka-user-docs` |  | claude, codex | Carry a kiyotaka-frontend user-facing change into its docs in the same cycle. Use when shipping a retail-visible feature or setting, when asked to "document X"… |
 | `migrating-types-to-orange-shared` |  | claude | Use when centralising duplicated, hand-copied, or drift-guarded types/constants from kiyotaka-frontend (or another consumer repo) into an @orangecharts package… |
 | `port-designer-ui` |  | claude, codex | Use when porting a component, dialog, page, landing-page redesign, or other visual treatment from Kiyotaka_Mar25_V9 into a Kiyotaka Vue repository, especially … |
+| `verify-kiyotaka` |  | claude, codex | Use when a change to the OpenMarket chart frontend (kiyotaka-frontend) needs to be driven and proven in the running app — starting a dev-server lane, exercisin… |
 
 ### OM Chat feature delivery
 
@@ -473,4 +481,13 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `writing-docs` |  | claude, codex | Pick the document's audience and mode first, then apply the matching standard: STE for agent-facing docs, developer style for human-facing ones. Use for docs, … |
 | `writing-instructions` |  | claude, codex | Agent-facing instruction edits: skills, AGENTS.md, guidelines, or prompt docs. Not prose style. |
 | `writing-simplified-technical-english` |  | claude, codex | Rewrite an agent-facing document in ASD-STE100 when it is too long, gets truncated, or reads as dense prose: SKILL.md, AGENTS.md, CLAUDE.md, subagent definitio… |
+
+### Project verification maps
+
+| Project | Skill | Map |
+| --- | --- | --- |
+| `kiyotaka-frontend` | [verify-kiyotaka](./projects/kiyotaka-frontend/skills/verify-kiyotaka/SKILL.md) | [Feature map](./projects/kiyotaka-frontend/skills/verify-kiyotaka/features/README.md) |
+| `openmarket-chat` | [verify-om-chat](./projects/openmarket-chat/skills/verify-om-chat/SKILL.md) | [Feature map](./projects/openmarket-chat/skills/verify-om-chat/features/README.md) |
+| `openmarket-chat-app` | [verify-openfloor](./projects/openmarket-chat-app/skills/verify-openfloor/SKILL.md) | [Feature map](./projects/openmarket-chat-app/skills/verify-openfloor/features/README.md) |
+| `openmarket-internal` | [verify-om](./projects/openmarket-internal/skills/verify-om/SKILL.md) | [Feature map](./projects/openmarket-internal/skills/verify-om/features/README.md) |
 

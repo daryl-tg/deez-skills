@@ -103,6 +103,21 @@ its repo's row.
 OM Chat stops at `ready_for_review`. OM Mobile carries through to a squash-merge
 through the MR. Neither ever merges locally.
 
+## Project verification maps
+
+Read [the project verification contract](../../docs/project-verification.md)
+before choosing a verification skill. Its canonical home is
+`~/github/deez-skills/projects/<repository>/skills/verify-<app>/`; repository
+ownership comes from the registry or origin remote, never a worktree name.
+Create that directory through **create-verification-skill** when the project
+has no verification skill. **maintain-verification-skill** updates the same map.
+
+After live verification, add missing entries, update existing recipes and
+provenance, and keep `features/README.md` current. Before handing off,
+automatically commit and push only the changed map Markdown through
+`bin/deez sync-feature-maps`, per that contract. This map-only authorization
+does not authorize a product push or publication of skill/config changes.
+
 ## Delegation
 
 **This skill runs the same on Claude Code and on Codex.** Same playbooks, same

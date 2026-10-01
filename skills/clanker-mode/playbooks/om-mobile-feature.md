@@ -35,13 +35,12 @@ desktop or web change is `playbooks/om-chat-feature.md`.
 7. **Publish and wait for approval.**
 8. Run `playbooks/om-mobile-completion.md`.
 
-**Before handing off: did you drive a surface the map does not cover?** If the
-terminal gate exercised anything with no feature file, write one now, following
-the four-H2 contract in `features/README.md`. You have the handles in front of
-you and you know what proved it works. A maintenance pass can recover that later
-from source, but it costs a full live sweep to learn what you already know right
-now. Per **principle-encode-lessons-in-structure**: capture it where it is
-cheap.
+**Before handing off:** follow the project verification contract in
+`docs/project-verification.md` at the hub root. Add any live-driven unmapped
+surface to its project skill's `features/`, update the README and verification
+provenance, and automatically commit and push only the changed map Markdown
+with `bin/deez sync-feature-maps`. Per **principle-encode-lessons-in-structure**,
+capture the recipe while its handles and proof are still in front of you.
 
 
 **Reply:** what changed, the gate results, the iOS evidence URL, the Android

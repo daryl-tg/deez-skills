@@ -65,6 +65,30 @@ class DoctorTest(unittest.TestCase):
         self.make_skill("stray")
         self.assertIn("unregistered", self.codes(self.check(self.load())))
 
+    def test_project_folder_without_a_registry_entry_fails(self):
+        folder = self.repo / "projects/example-app/skills/verify-example"
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text(
+            "---\nname: verify-example\ndescription: Drive example.\n---\n")
+        findings = self.check(self.load())
+        self.assertIn("unregistered", self.codes(findings))
+        self.assertIn("projects/example-app/skills/verify-example", findings[0].detail)
+
+    def test_project_skill_and_legacy_compatibility_link_are_clean(self):
+        folder = self.repo / "projects/example-app/skills/verify-example"
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text(
+            "---\nname: verify-example\ndescription: Drive example.\n---\n")
+        (self.repo / "skills/verify-example").symlink_to(folder)
+        (self.skills_root / "verify-example").symlink_to(folder)
+        reg = self.load('''
+[skills.verify-example]
+category = "core"
+runtimes = ["claude"]
+project = "example-app"
+''')
+        self.assertEqual(self.check(reg), [])
+
     def test_frontmatter_name_mismatch_fails(self):
         folder = self.make_skill("alpha")
         (folder / "SKILL.md").write_text("---\nname: WRONG\ndescription: d\n---\n")

@@ -72,7 +72,7 @@ leaves it stale has destroyed the next pass's ability to diff.
 
 It exists because this map lives in the skills hub rather than in the repo it
 verifies — the operator's standing preference, recorded in SKILL.md under
-"This layout diverges from upstream on purpose". Upstream pstack keeps the map
+"Project ownership and verification provenance". Upstream pstack keeps the map
 project-local and committed, where `git log` on the file is its own verification
 record; a hub map floats free of the repo's history, so the stamp is the only
 thing tying an entry to a tree. It is shared by every worktree and rewritten by
@@ -87,11 +87,11 @@ counts meaningless. The tree-to-tree diff still answers correctly.
 
 ## What this map does NOT cover
 
-Eight entries against 87 top-level `om` commands. The map grows only when someone
-runs `create-verification-skill` or `maintain-verification-skill` — ordinary
-feature work in a worktree adds nothing to it automatically. Treat an absent
-surface as unmapped, never as verified-clean, and add an entry when you build
-something the map should have been able to prove.
+The map grows through `create-verification-skill`, `maintain-verification-skill`,
+and Clanker work that proves a previously unmapped surface live. Add its recipe,
+provenance, and index link, then automatically publish only the changed map
+Markdown under the hub's project verification contract. An absent surface is
+unmapped, never verified-clean.
 
 ## Feature entry contract
 
@@ -117,6 +117,7 @@ state, commands, and observable proof.
 - [Market data reads](./market-data-reads.md)
 - [Origin challenge backoff](./origin-challenge-backoff.md) — a Cloudflare
   challenge holds every source on the host, provable with a loopback stub.
+- [Firecrawl recovery before whitelist](./firecrawl-first-block.md) — first refusal recovery, repeated-refusal whitelist guidance, and no-key setup.
 
 Not yet mapped, and worth adding when a change touches them: the MCP
 surface (`om mcp serve --stdio`), charts (`om chart`), the `om chat` TUI,

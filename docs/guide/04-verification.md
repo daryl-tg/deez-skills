@@ -52,13 +52,16 @@ tunnelled, so they look like working links and are not.
 
 ## The feature map
 
-`skills/verify-<app>/features/` — one file per user-facing feature, four fixed
+`projects/<repository>/skills/verify-<app>/features/` — one file per user-facing feature, four fixed
 sections: sub-features, how a user reaches it, how to drive it, gotchas.
 
 This is the durable part. It is the repo's maintained verification source, and
 `maintain-verification-skill` is the pass that keeps it honest: parallel readers
-per feature from source, then one live session exercising every feature, then at
-most one PR of proven corrections.
+per feature from source, then one live session exercising every feature, then
+automatic publication of only proven map Markdown. Non-map corrections use
+their ordinary review path. Clanker also captures surfaces it proves live. The
+[project verification contract](../project-verification.md) defines ownership,
+provenance, and map-only commits and pushes.
 
 A map that has drifted from the app is worse than no map, because it produces
 confident wrong verification. When to run that pass, and why not on a daily

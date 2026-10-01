@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # control-om — the deterministic verification lane for the `om` daemon + CLI.
 #
-# Lives in the repo it drives but is deliberately UNTRACKED (.git/info/exclude):
-# this repo is the Apache-2.0 public export and faces the boundary and license
-# gates, so a personal driving tool never lands on a branch. Thin by
+# Lives in the hub at projects/openmarket-internal/skills/verify-om/bin/ and is
+# linked onto PATH. The product repo is the Apache-2.0 public export with
+# boundary and license gates, so this personal tool stays in the hub. Thin by
 # construction: it binds this repo's preconditions (assigned ports, an isolated
 # OM_HOME, the device-owned review renderer) and delegates driving to the `om`
 # CLI and agent-browser rather than reimplementing either.

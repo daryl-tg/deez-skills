@@ -4,7 +4,7 @@ import sys
 import time
 from pathlib import Path
 
-from deezlib import __version__, apply, frontmatter, linkplan, registry, runtimes
+from deezlib import __version__, apply, featuremaps, frontmatter, linkplan, registry, runtimes
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -14,6 +14,15 @@ def build_parser():
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("version", help="Print the deez version.")
     subparsers.add_parser("python-path", help="Print the interpreter running deez.")
+    skill_path_parser = subparsers.add_parser("skill-path", help="Resolve a registered skill.")
+    skill_path_parser.add_argument("name")
+    maps_parser = subparsers.add_parser(
+        "sync-feature-maps", help="Commit and push only selected project map Markdown."
+    )
+    maps_parser.add_argument("project")
+    maps_parser.add_argument("skill")
+    maps_parser.add_argument("files", nargs="+")
+    maps_parser.add_argument("--repo", help="Isolated hub worktree to publish from.")
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -30,6 +39,7 @@ def build_parser():
     new_parser.add_argument("name")
     new_parser.add_argument("--category", required=True)
     new_parser.add_argument("--runtimes", default="claude,codex")
+    new_parser.add_argument("--project", help="Owning repository for a project skill.")
 
     plan_parser = subparsers.add_parser(
         "check-plan", help="Check a multi-phase plan against the skeleton."
@@ -41,6 +51,7 @@ def build_parser():
     adopt_parser.add_argument("--name", default=None)
     adopt_parser.add_argument("--category", required=True)
     adopt_parser.add_argument("--runtimes", default="claude,codex")
+    adopt_parser.add_argument("--project", help="Owning repository for a project skill.")
     return parser
 
 
@@ -51,6 +62,31 @@ def cmd_version(_args):
 
 def cmd_python_path(_args):
     print(sys.executable)
+    return 0
+
+
+def cmd_skill_path(args):
+    reg = registry.load(REPO_ROOT / "registry.toml")
+    entry = next((e for e in reg.entries if e.kind == "skill" and e.name == args.name), None)
+    if entry is None:
+        raise registry.RegistryError(f"no registered skill named {args.name!r}")
+    print((REPO_ROOT / registry.source_dir(entry, entry.runtimes[0])).resolve())
+    return 0
+
+
+def cmd_sync_feature_maps(args):
+    import subprocess
+
+    repo = Path(args.repo).expanduser().resolve() if args.repo else REPO_ROOT
+    if repo != REPO_ROOT:
+        origins = [subprocess.run(
+            ["git", "remote", "get-url", "origin"], cwd=folder,
+            capture_output=True, text=True,
+        ) for folder in (REPO_ROOT, repo)]
+        if any(result.returncode for result in origins) or origins[0].stdout != origins[1].stdout:
+            raise featuremaps.FeatureMapError("isolated worktree must use the hub's origin")
+    reg = registry.load(repo / "registry.toml")
+    print(featuremaps.publish(repo, reg, args.project, args.skill, args.files))
     return 0
 
 
@@ -120,7 +156,8 @@ def cmd_index(args):
     return 0
 
 
-def _register(name, category, runtimes_csv):
+def _register(name, category, runtimes_csv, project=None):
+    registry.skill_source(name, project)
     reg_path = REPO_ROOT / "registry.toml"
     reg = registry.load(reg_path)
     if category not in reg.categories:
@@ -136,6 +173,8 @@ def _register(name, category, runtimes_csv):
 
     rendered = ", ".join(f'"{r}"' for r in runtime_list)
     block = f'\n[skills.{name}]\ncategory = "{category}"\nruntimes = [{rendered}]\n'
+    if project is not None:
+        block += f'project = "{project}"\n'
     with reg_path.open("a", encoding="utf-8") as handle:
         handle.write(block)
     return registry.load(reg_path)
@@ -148,11 +187,12 @@ def _reindex(reg):
 
 
 def cmd_new(args):
-    folder = REPO_ROOT / "skills" / args.name
+    relative = registry.skill_source(args.name, args.project)
+    folder = REPO_ROOT / relative
     if folder.exists():
         print(f"deez: {folder} already exists", file=sys.stderr)
         return 2
-    reg = _register(args.name, args.category, args.runtimes)
+    reg = _register(args.name, args.category, args.runtimes, args.project)
     template = (REPO_ROOT / "templates" / "SKILL.md").read_text(encoding="utf-8")
     title = args.name.replace("-", " ").title()
     folder.mkdir(parents=True)
@@ -161,7 +201,7 @@ def cmd_new(args):
         encoding="utf-8",
     )
     _reindex(reg)
-    print(f"created skills/{args.name} and registered it")
+    print(f"created {relative} and registered it")
     return 0
 
 
@@ -173,14 +213,16 @@ def cmd_adopt(args):
         print(f"deez: {source} has no SKILL.md", file=sys.stderr)
         return 2
     name = args.name or frontmatter.parse(source / "SKILL.md")["name"]
-    target = REPO_ROOT / "skills" / name
+    relative = registry.skill_source(name, args.project)
+    target = REPO_ROOT / relative
     if target.exists():
         print(f"deez: {target} already exists", file=sys.stderr)
         return 2
-    reg = _register(name, args.category, args.runtimes)
+    reg = _register(name, args.category, args.runtimes, args.project)
+    target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, target, symlinks=True)
     _reindex(reg)
-    print(f"copied {source} -> skills/{name} and registered it")
+    print(f"copied {source} -> {relative} and registered it")
     print("the original is untouched; linking happens during migration")
     return 0
 
@@ -209,6 +251,8 @@ def cmd_check_plan(args):
 COMMANDS = {
     "version": cmd_version,
     "python-path": cmd_python_path,
+    "skill-path": cmd_skill_path,
+    "sync-feature-maps": cmd_sync_feature_maps,
     "link": cmd_link,
     "doctor": cmd_doctor,
     "index": cmd_index,
@@ -226,6 +270,7 @@ def main(argv):
         registry.RegistryError,
         apply.ApplyError,
         frontmatter.FrontmatterError,
+        featuremaps.FeatureMapError,
     ) as exc:
         print(f"deez: {exc}", file=sys.stderr)
         return 2

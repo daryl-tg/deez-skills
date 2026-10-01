@@ -15,7 +15,7 @@ invalidated, what the operator must approve. This skill owns the *mechanics*.
 When they disagree, policy wins.
 
 Everything here goes through `control-om-chat`, which lives in this skill at
-`skills/verify-om-chat/bin/control-om-chat` and is linked onto PATH as
+`projects/openmarket-chat/skills/verify-om-chat/bin/control-om-chat` and is linked onto PATH as
 `control-om-chat`. It is not in the app repo. It drives **whichever checkout or
 worktree you are standing in**, so there is nothing to copy into a worktree:
 

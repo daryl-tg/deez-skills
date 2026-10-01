@@ -94,17 +94,21 @@ def _registered_folders(reg):
 
 def _check_unregistered(reg, repo_root):
     findings = []
+    repo_root = Path(repo_root)
     registered = _registered_folders(reg)
-    for kind_dir in ("skills", "commands", "agents"):
-        base = Path(repo_root) / kind_dir
+    registered_targets = {(repo_root / folder).resolve() for folder in registered}
+    bases = [repo_root / kind for kind in ("skills", "commands", "agents")]
+    bases.extend(sorted((repo_root / "projects").glob("*/skills")))
+    for base in bases:
         if not base.is_dir():
             continue
         for child in sorted(base.iterdir()):
             if not child.is_dir() or child.name.startswith("."):
                 continue
-            if f"{kind_dir}/{child.name}" not in registered:
+            relative = child.relative_to(repo_root).as_posix()
+            if relative not in registered and child.resolve() not in registered_targets:
                 findings.append(
-                    _fail("unregistered", f"{kind_dir}/{child.name} has no registry entry")
+                    _fail("unregistered", f"{relative} has no registry entry")
                 )
     return findings
 

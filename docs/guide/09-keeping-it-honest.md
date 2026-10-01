@@ -108,8 +108,9 @@ If you do schedule it:
 ### Setting up a schedule
 
 Two prerequisites, and the schedule is useless without both. The repo needs a
-verification skill **with a feature map**, and its `control-<app>` wrapper must
-exist and be executable in that repo. Without them every pass fails at the first
+registered project verification skill **with a feature map**, and its
+`control-<app>` wrapper must be executable in the project skill's `bin/`, in its
+documented product checkout, or on PATH. Without them every pass fails at the first
 `doctor` call, which is a broken job rather than a finding.
 
 `scripts/scheduled-run.sh` handles one repo per invocation:

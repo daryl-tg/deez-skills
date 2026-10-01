@@ -393,7 +393,7 @@ main checkout, exactly like every other skill:
 
 ```
 ~/.claude/skills/verify-kiyotaka
-  -> /Users/dboon/Github/deez-skills/skills/verify-kiyotaka
+  -> /Users/dboon/Github/deez-skills/projects/kiyotaka-frontend/skills/verify-kiyotaka
 ```
 
 **The one way that goes dark, and it is not breakage:** a tracked directory only
@@ -419,24 +419,8 @@ the way any documentation does. `maintain-verification-skill` is the upkeep pass
 run it when a mapped handle stops resolving, when a new user-facing surface
 lands, or when a gotcha above turns out to be fixed.
 
-**Every maintain pass ends pushed.** A correction proven live and left sitting in
-a dirty working tree is a correction the next session on another machine will not
-have, so it will rediscover the same drift the hard way. Land it:
-
-```bash
-cd /Users/dboon/Github/deez-skills-verify-kiyotaka   # or the main checkout, once landed
-git add skills/verify-kiyotaka
-git commit -m "skills(verify-kiyotaka): <what the live pass proved>"
-git push
-```
-
-From the main checkout instead, branch off `origin/main` first
-(`git checkout -b skills/verify-kiyotaka-<what-changed> origin/main`).
-
-Branch off `origin/main`, stage **only** `skills/verify-kiyotaka`, and leave any
-unrelated modified skill in the tree alone — the hub usually has another skill
-mid-edit, and sweeping it into this commit is how someone else's WIP gets
-published. If a branch switch is blocked by those files, stash exactly them by
-path and restore them afterwards.
-
-A pass that found nothing worth shipping pushes nothing: say `clean` and stop.
+After proving a map correction, automatically commit and push only its changed
+`features/*.md` files under
+[the project verification contract](../../../../docs/project-verification.md).
+Keep `SKILL.md`, helpers, wrappers, and unrelated edits out of that automatic
+commit. No map changes means nothing to publish.

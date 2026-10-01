@@ -54,9 +54,12 @@ only what it cannot observe. Then it produces three things:
 
 | Artifact | Where | What it is |
 |---|---|---|
-| `control-<app>` | **in that repo**, committed | The wrapper: `doctor`, `browser`, `cli`, `evidence publish` |
-| `skills/verify-<app>/` | in the hub | Launch, doctor, drive, evidence, cleanup |
-| `features/` | in the hub, beside it | One file per user-facing feature. The durable part |
+| `bin/control-<app>` | inside the hub's project skill | The wrapper: `doctor`, `browser`, `cli`, `evidence publish` |
+| `projects/<repository>/skills/verify-<app>/` | in the hub | Launch, doctor, drive, evidence, cleanup |
+| `features/` | inside that project skill | One file per user-facing feature. Automatically committed and pushed after proof |
+
+Existing operator-only wrappers retain their documented exceptions. See the
+[project verification contract](../project-verification.md).
 
 The generator then **runs its own instructions once** — launch, doctor, drive
 one feature, capture, clean up — and confirms the evidence survived cleanup. A
@@ -95,15 +98,17 @@ inside your normal work anyway. The full `maintain-verification-skill` pass
 drives every mapped feature live, so it is triggered by change, not by the
 calendar.
 
-## Step 6 — Optional, and not on day one
+## Step 6 — Check map persistence
 
 ```bash
-bin/hook-install         # fires bin/sync when you edit a skill
+bin/deez sync-feature-maps <repository> <verify-skill> <feature>.md README.md
 ```
 
-Leave this until the hub has settled. If another skills repo already installs
-its own sync hook, remove that one in the same change: two hooks race over
-edits made through the same symlinks and commit to different repos.
+Clanker, creation, and maintenance call this after proving changed map entries.
+Only explicitly named map Markdown is committed and pushed. Skill code,
+wrappers, and registry changes stay in their ordinary delivery path. The broad
+`bin/hook-install` hook is not needed for this workflow because it stages every
+pending hub change.
 
 ## What you have now
 

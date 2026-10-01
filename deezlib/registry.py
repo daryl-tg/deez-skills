@@ -1,3 +1,4 @@
+import re
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -62,6 +63,7 @@ class Entry:
     runtimes: tuple = ()
     install_as: dict = field(default_factory=dict)
     variant: dict = field(default_factory=dict)
+    project: str | None = None
 
 
 @dataclass(frozen=True)
@@ -87,8 +89,17 @@ def _suffix(kind):
     return ".md" if kind in FILE_KINDS else ""
 
 
+def skill_source(name, project=None):
+    if project is not None:
+        if not isinstance(project, str) or not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", project):
+            raise RegistryError("project must be a lowercase repository name, not a path")
+        return f"projects/{project}/skills/{name}"
+    return f"skills/{name}"
+
+
 def source_dir(entry, runtime):
-    default = f"{KIND_DIRS[entry.kind]}/{entry.name}{_suffix(entry.kind)}"
+    default = (skill_source(entry.name, entry.project) if entry.kind == "skill"
+               else f"{KIND_DIRS[entry.kind]}/{entry.name}{_suffix(entry.kind)}")
     return entry.variant.get(runtime, default)
 
 
@@ -101,6 +112,15 @@ def _parse_entries(data, categories):
     entries = []
     for table, kind in KIND_TABLES.items():
         for name, body in (data.get(table) or {}).items():
+            project = body.get("project")
+            if project is not None:
+                if kind != "skill":
+                    raise RegistryError(f"{table}.{name}: only skills can belong to a project")
+                skill_source(name, project)
+                if body.get("variant"):
+                    raise RegistryError(
+                        f"{table}.{name}: project skills must use their canonical source, without variants"
+                    )
             category = body.get("category")
             if category not in categories:
                 raise RegistryError(f"{table}.{name}: unknown category {category!r}")
@@ -140,6 +160,7 @@ def _parse_entries(data, categories):
                     runtimes=runtimes,
                     install_as=dict(body.get("install_as") or {}),
                     variant=dict(body.get("variant") or {}),
+                    project=project,
                 )
             )
     return tuple(entries)

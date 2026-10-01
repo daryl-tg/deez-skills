@@ -18,7 +18,7 @@ Sibling skills own neighbouring ground. `verify-om-chat` owns the `/rooms` and
 GUI. This skill owns everything the open-core repo itself ships.
 
 Everything here goes through `control-om`, at
-`~/github/deez-skills/skills/verify-om/bin/control-om` (linked onto PATH as `control-om`; it drives whichever checkout you stand in).
+`~/github/deez-skills/projects/openmarket-internal/skills/verify-om/bin/control-om` (linked onto PATH as `control-om`; it drives whichever checkout you stand in).
 
 ## The one fact that makes this safe
 
@@ -87,35 +87,18 @@ One thing to know when driving two trees at once: the lane port is assigned, not
 per-tree, so the second `up` on the same port refuses rather than stealing the
 first. Give it `--port` from the `18097`–`18197` range.
 
-## This layout diverges from upstream on purpose
+## Project ownership and verification provenance
 
-`create-verification-skill` and `maintain-verification-skill` are pstack skills,
-and pstack's model is `project-local`: it says to generate `skills/verify-<app>/`
-as something "the repo owns", to write the wrapper "into the repo it drives, not
-into this hub, so it versions with the app", and its maintain pass opens by
-looking for "the project-local skill ... usually `skills/verify-*/`".
+This skill and its map live in the skills hub under
+`projects/openmarket-internal/skills/verify-om/`, shared by every product worktree.
+Follow [the project verification contract](../../../../docs/project-verification.md)
+for storage and map-only automatic commits and pushes. Nothing here belongs in
+`openmarket-internal`, whose public export has a boundary gate and license audit.
 
-This skill does the opposite: the map and `bin/control-om` both live in the hub,
-and nothing lands in `openmarket-internal`. **That is the operator's standing
-preference** — `~/.claude/CLAUDE.md` says "a verification skill belongs in the
-hub via `bin/adopt`" — and it is not a mistake to correct. A maintenance pass
-that reads upstream's "project-local" wording and relocates this skill into the
-repo is undoing a deliberate decision.
-
-Two facts about this particular repo happen to point the same way. It is the
-Apache-2.0 public export with a boundary gate and a license audit, so a personal
-driving tool in it is one `git push` from being published. And it has dozens of
-worktrees on dozens of branches: a committed file is branch-scoped and vanishes
-the moment you check out a branch from before it landed, while a hub file on
-PATH is present in every tree unconditionally.
-
-**What the divergence costs, and how it is paid.** Upstream gets provenance for
-free: a map committed beside the code has `git log` as its verification record,
-moves with the branch, and shows a stale entry as an old commit. A hub map floats
-free of the repo's history and has none of that — which is why every entry in
-`features/` opens with a `*Verified: <date>, tree `<commit>` (<version>)*` line.
-That stamp is the compensating control for this layout, not decoration; a pass
-that stops maintaining it gives up the last thing tying the map to a tree.
+A map versioned separately from product code needs its own product baseline.
+Every feature entry carries a `Verified` date, product commit or tree, what was
+driven, and any limitations. Update that provenance whenever the entry is
+re-proved; a hub commit alone cannot identify which product tree was exercised.
 
 ## Launch
 

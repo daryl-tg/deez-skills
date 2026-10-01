@@ -51,6 +51,18 @@ def render(reg, repo_root):
         for entry in sorted(by_category[category], key=lambda e: e.name):
             lines.append(_row(entry, repo_root))
         lines.append("")
+    projects = sorted((e for e in reg.entries if e.kind == "skill" and e.project),
+                      key=lambda e: (e.project, e.name))
+    if projects:
+        lines += ["### Project verification maps", "",
+                  "| Project | Skill | Map |", "| --- | --- | --- |"]
+        for entry in projects:
+            source = registry.source_dir(entry, entry.runtimes[0])
+            lines.append(
+                f"| `{entry.project}` | [{entry.name}](./{source}/SKILL.md) | "
+                f"[Feature map](./{source}/features/README.md) |"
+            )
+        lines.append("")
     return "\n".join(lines)
 
 

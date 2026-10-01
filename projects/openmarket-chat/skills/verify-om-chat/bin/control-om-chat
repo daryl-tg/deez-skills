@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # control-om-chat — the deterministic verification lane for the OM Chat GUI.
 #
-# Lives in the hub (skills/verify-om-chat/bin/), linked onto PATH as
+# Lives in the hub (projects/openmarket-chat/skills/verify-om-chat/bin/), linked onto PATH as
 # `control-om-chat`. It is not committed to the app repo and never was: it used to
 # sit untracked in one checkout, so a worktree did not have it and a copy had to
 # be dropped into each tree before a lane could start. Now one copy drives

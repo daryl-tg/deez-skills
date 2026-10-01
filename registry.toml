@@ -444,10 +444,12 @@ category = "om-chat"
 runtimes = ["claude", "codex"]
 
 [skills.verify-om-chat]
+project = "openmarket-chat"
 category = "om-chat"
 runtimes = ["claude", "codex"]
 
 [skills.verify-openfloor]
+project = "openmarket-chat-app"
 category = "om-chat"
 runtimes = ["claude", "codex"]
 
@@ -626,9 +628,15 @@ category = "workflow"
 runtimes = ["claude", "codex"]
 
 [skills.verify-om]
+project = "openmarket-internal"
 category = "om-chat"
 runtimes = ["claude", "codex"]
 
 [skills.product-video]
 category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.verify-kiyotaka]
+project = "kiyotaka-frontend"
+category = "kiyotaka"
 runtimes = ["claude", "codex"]
