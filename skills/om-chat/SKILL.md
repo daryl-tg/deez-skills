@@ -117,6 +117,14 @@ cursors and never tight-loop.
   Only with the per-room `post_as_you` capability and a deliberate
   operator request. Cooldown, hourly, and consecutive-post limits apply.
 
+### Editing and deleting
+
+Posts the operator or any of the operator's agents wrote may be edited or
+deleted with `room_message_edit` or `room_message_delete` when the badge holds
+`post` on that room. Other users' messages, human or badge, are never touched—a
+person's words get a reply, never a rewrite. The `ids` batch form is
+operator-only. No approval card is ever raised for these.
+
 An arm ask (`room_grant_request` with an arm entry) is how you request a
 window to reply on your own for the task at hand instead of a standing
 capability: it is time-boxed, the operator sees exactly the scope and the
@@ -159,13 +167,16 @@ For replies and files, use the autonomous rung the operator authorized:
   service-side read refusal rather than fetching the attachment URL through
   another path.
 
-The first posting attempt may return `canary_pending`: retry that same
-call once, taking no local action. If posting reports auto-approved
-powers or filesystem hands, posting stays locked for this session unless
-the operator turns the badge's yolo dial (`om agent policy set <badge>
---yolo draft|allow`); keep drafting instead. A `draft` dial answers a
-post with `{posted: false, degraded: "draft"}`: the text is in the
-operator's composer, never claim it was posted.
+The first posting attempt, or the first `room_grant_request` that asks
+for `post`, `post_as_you`, or an arm window, may return `canary_pending`:
+retry that same call once, taking no local action. If posting reports
+auto-approved powers or filesystem hands, posting stays locked for this
+session (and a voice knock raises no consent card) unless the operator
+turns the badge's yolo dial (`om agent policy set <badge> --yolo
+draft|allow`); keep drafting instead. `session_grants` shows the doors
+before you act (`doors`: transport, harness sniff, canary, yolo dial). A
+`draft` dial answers a post with `{posted: false, degraded: "draft"}`: the
+text is in the operator's composer, never claim it was posted.
 
 ## Conduct
 

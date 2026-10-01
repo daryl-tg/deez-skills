@@ -62,6 +62,45 @@ class ScaffoldTest(unittest.TestCase):
         result = self.run_deez("new", "example-skill", "--category", "nonsense")
         self.assertNotEqual(result.returncode, 0)
 
+    def test_project_new_registers_and_links_the_canonical_folder(self):
+        registry_path = self.work / "registry.toml"
+        registry_path.write_text(registry_path.read_text().split("[skills.", 1)[0])
+        result = self.run_deez("new", "verify-example", "--category", "workflow",
+                               "--project", "example-app")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        source = self.work / "projects/example-app/skills/verify-example"
+        self.assertTrue((source / "SKILL.md").is_file())
+        self.assertFalse((self.work / "skills/verify-example").exists())
+        result = self.run_deez("link", "--apply")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for runtime in ("claude", "codex"):
+            installed = Path(self.tmp.name) / runtime / "skills/verify-example"
+            self.assertEqual(installed.resolve(), source)
+
+    def test_project_adopt_preserves_the_map_and_original(self):
+        source = Path(self.tmp.name) / "outside/verify-example"
+        (source / "features").mkdir(parents=True)
+        (source / "SKILL.md").write_text(
+            "---\nname: verify-example\ndescription: Drive example.\n---\n")
+        (source / "features/search.md").write_text("Search proof recipe\n")
+        result = self.run_deez("adopt", str(source), "--category", "workflow",
+                               "--project", "example-app")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        target = self.work / "projects/example-app/skills/verify-example"
+        self.assertEqual((target / "features/search.md").read_text(), "Search proof recipe\n")
+        self.assertEqual((source / "features/search.md").read_text(), "Search proof recipe\n")
+        result = self.run_deez("doctor")
+        self.assertNotIn("unregistered", result.stdout)
+        self.assertNotIn("readme-stale", result.stdout)
+
+    def test_invalid_project_leaves_registry_and_sources_unchanged(self):
+        before = (self.work / "registry.toml").read_text()
+        result = self.run_deez("new", "verify-example", "--category", "workflow",
+                               "--project", "../outside")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual((self.work / "registry.toml").read_text(), before)
+        self.assertFalse((self.work / "skills/verify-example").exists())
+
     def test_adopt_copies_a_directory_without_touching_the_original(self):
         source = Path(self.tmp.name) / "outside" / "borrowed"
         source.mkdir(parents=True)

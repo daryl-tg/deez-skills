@@ -582,6 +582,10 @@ runtimes = ["claude", "codex"]
 category = "kiyotaka"
 runtimes = ["claude", "codex"]
 
+[skills.verify-kiyotaka]
+category = "kiyotaka"
+runtimes = ["claude", "codex"]
+
 [skills.prompt-ready]
 category = "workflow"
 runtimes = ["claude"]

@@ -34,6 +34,33 @@ order. Extend a host adapter for a capability difference. Do not widen that
 test's app-local renderer exceptions, and do not restore a parity manifest or
 copy-based sync tooling — both were deleted on purpose.
 
+## Where the code lives
+
+The source of truth is GitLab `openmarketxyz/frontend/openmarket-chat`, checked
+out at `~/gitlab/openmarket-chat`. Review requests are MRs through **glab**.
+Confirm `git remote get-url origin` names that remote before editing: it is
+the only thing that tells the live checkout from the deprecated one.
+
+- **Worktrees go at `~/gitlab/openmarket-chat-<slug>`,** beside the checkout.
+  `tsconfig.json` resolves `@cli/*` from `../openmarket-internal`, then
+  `../openmarket`, and `~/gitlab/openmarket-internal` is a symlink to
+  `~/github/openmarket-internal`. A worktree anywhere else, including under
+  `~/.local/state/om-chat-feature*/`, cannot typecheck anything that imports the
+  daemon. Evidence still lives under `~/.local/state/om-chat-feature/`; only the
+  worktrees moved.
+- **Point every rig at its tree explicitly.** The daemon's `scripts/dev.ts`
+  falls back to `../openmarket-chat` from `openmarket-internal`, which is the
+  deprecated checkout. A lane that serves a worktree sets
+  `OM_DEV_<PROFILE>_CHAT_REPO`, or `OM_DEV_CHAT_REPO` in its own environment,
+  to that worktree. A shell value beats the profile key, which beats the base
+  key in `.env.local`.
+- **Deprecated, never used.** `~/github/openmarket-chat` and every
+  `~/github/openmarket-chat-<slug>` worktree are GitHub-era history: never build,
+  branch, edit, or drive from them. `openmarket-chat-cloud` is not used at all.
+  Its chart renders nothing and it publishes no image.
+- `openmarket-internal`, home of the daemon and `packages/rooms-client`, is
+  still GitHub, so `gh` is still correct there.
+
 ## Retired, and dead if you see it cited
 
 `tools/parity-manifest.json`, `tools/sync-shared.ts`, the shared-style coverage
@@ -53,6 +80,15 @@ bun --tsconfig-override ./tsconfig.json tools/test-fast.ts
 bun run verify:cloud
 ```
 
+The full install needs `NPM_READ_TOKEN` and `ORANGECHARTS_NPM_READ_TOKEN` in the
+ignored `.env`. A daemon-only install skips the cloud host:
+`bun install --frozen-lockfile --filter '!@openmarket/chat-cloud'`. Both repos
+run Bun 1.3.14.
+
+`bun --tsconfig-override` always prints `Internal error: directory mismatch ...
+tsconfig.json`. It is harmless, and the deprecated checkout prints it too. Read
+the exit code, never that line.
+
 Canonical UI tests live in the root `test/`. Tests of a host's own wire paths,
 authentication, routing, artifact shape and unavailable capabilities stay with
 that host (`apps/cloud/test/`). Select the consuming host's tsconfig for any
@@ -68,11 +104,16 @@ the root `package.json`, `apps/cloud/package.json`, and
 
 ## Shipping
 
-Merging to main ships nothing. The `openmarket` release workflow clones this
-repo's main and embeds the built bundle into the `om` binaries, so main must
-stay releasable. Cloud image build and deployment still live in the GitLab
-`openmarket-chat-cloud` repository; migrating that release path is a separate,
-separately-reviewed change. Source and verification have already moved here.
+**Landing on `main` ships the hosted app.** A push or merge to the protected
+`main` publishes the `/chat/` images automatically once `cloud:contract` passes,
+per the repo's `docs/CLOUD_RELEASE.md`. So main must stay releasable, and a
+merge is a production release, not a bookkeeping step. The image builds from
+`apps/cloud` and the chart is `charts/openmarket-chat`.
+
+`/rooms` ships separately. `openmarket-internal`'s
+`.github/workflows/release-self-hosted.yml` embeds this repo's `main` into the
+`om` binaries at a tagged release, taking its GUI source from the repo variable
+`ROOMS_GUI_SOURCE`. Developers never touch that variable.
 
 ## Services and ports
 
@@ -81,7 +122,8 @@ spawn an operator stdio server. `openmarket-chat` stays a session-local stdio
 child and is run-owned cleanup input.
 
 `8097` is the operator's local dev server: never bind, target, reuse, or stop
-it. Agent-only test servers take an allocated `18097`–`18197` port, recorded in
+it. `31417` is the operator's source dev daemon, the `scripts/dev.ts` default,
+and it is not tunnelled: never bind it from a lane either. Agent-only test servers take an allocated `18097`–`18197` port, recorded in
 the run ledger, and are stopped only when run-owned. See
 **principle-bind-assigned-ports** for the full table.
 

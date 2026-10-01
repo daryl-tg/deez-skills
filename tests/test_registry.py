@@ -145,6 +145,28 @@ variant = { codex = "skills/graphify-codex" }
         self.assertEqual(registry.source_dir(entry, "codex"), "skills/graphify-codex")
         self.assertEqual(registry.source_dir(entry, "claude"), "skills/graphify")
 
+    def test_project_skill_keeps_its_install_name_on_both_runtimes(self):
+        reg = self.load('''
+[skills.verify-example]
+category = "core"
+runtimes = ["claude", "codex"]
+project = "example-app"
+''')
+        entry = reg.entries[0]
+        for runtime in ("claude", "codex"):
+            self.assertEqual(registry.source_dir(entry, runtime),
+                             "projects/example-app/skills/verify-example")
+            self.assertEqual(registry.install_filename(entry, runtime), "verify-example")
+
+    def test_project_cannot_escape_the_projects_directory(self):
+        with self.assertRaises(registry.RegistryError):
+            self.load('''
+[skills.verify-example]
+category = "core"
+runtimes = ["claude"]
+project = "../../outside"
+''')
+
     def test_entries_for_filters_by_profile_and_runtime(self):
         reg = self.load("""
 [skills.alpha]

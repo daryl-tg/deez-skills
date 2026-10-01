@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # control-<app> — the deterministic verification lane for <app>.
 #
-# Committed to the repo it drives, never to the skills hub, so it versions with
-# the app. Thin by construction: it binds this repo's preconditions and
-# delegates driving to agent-browser rather than reimplementing it.
+# Canonical under projects/<repository>/skills/verify-<app>/bin/ in the
+# deez-skills hub, so it versions with the project-owned verification skill.
+# Thin by construction: it binds the product repo's preconditions and delegates
+# driving to agent-browser rather than reimplementing it.
 #
 #   doctor                        is this instance worth driving?
 #   browser <verb> [args...]      delegate to agent-browser

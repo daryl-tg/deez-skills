@@ -100,7 +100,7 @@ That is it. Everything else the router reaches for when a step needs it.
 | [bug fix](./skills/clanker-mode/playbooks/bug-fix.md) | reproduce a defect, root-cause it, fix it with runtime evidence |
 | [feature](./skills/clanker-mode/playbooks/feature.md) | new or changed behavior, built from a named data shape |
 | [refactoring](./skills/clanker-mode/playbooks/refactoring.md) | a behavior-preserving change to structure. characterize first |
-| [om-chat-feature](./skills/clanker-mode/playbooks/om-chat-feature.md) | an OM Chat change. desktop proven first, then the cloud twin |
+| [om-chat-feature](./skills/clanker-mode/playbooks/om-chat-feature.md) | an OM Chat change. one workspace, both hosts gated and proven on their own surfaces |
 | [om-chat-completion](./skills/clanker-mode/playbooks/om-chat-completion.md) | the terminal phase for OM Chat. stops at ready_for_review |
 | [om-mobile-feature](./skills/clanker-mode/playbooks/om-mobile-feature.md) | an OpenFloor mobile change. device verification once, at the end |
 | [om-mobile-completion](./skills/clanker-mode/playbooks/om-mobile-completion.md) | the terminal phase for mobile. lands by squash-merge through the MR |
@@ -239,7 +239,7 @@ adapted from pstack.
 | `feature-branch-isolation` | Apply before starting any change. Work happens on daryl/<kebab-words> in its own worktree, never on main, never in the… |
 | `promote-to-the-main-worktree` | Apply after rebasing a finished feature. Check the branch out in the main worktree so the local dev stack runs it and … |
 | `announce-the-linked-review` | Apply at the end of any delivered change. Announce with the PR or MR link, then read the announcement back to confirm … |
-| `desktop-before-cloud` | Apply to any change spanning the desktop app and its cloud twin. The desktop change lands and is proven first; the clo… |
+| `prove-every-host` | Apply when a change touches shared UI consumed by more than one host. It reaches every host at once, so each host gets its own gate and evidence. |
 
 **Delegation**
 
@@ -408,6 +408,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `kiyotaka-user-docs` |  | claude, codex | Carry a kiyotaka-frontend user-facing change into its docs in the same cycle. Use when shipping a retail-visible feature or setting, when asked to "document X"… |
 | `migrating-types-to-orange-shared` |  | claude | Use when centralising duplicated, hand-copied, or drift-guarded types/constants from kiyotaka-frontend (or another consumer repo) into an @orangecharts package… |
 | `port-designer-ui` |  | claude, codex | Use when porting a component, dialog, page, landing-page redesign, or other visual treatment from Kiyotaka_Mar25_V9 into a Kiyotaka Vue repository, especially … |
+| `verify-kiyotaka` |  | claude, codex | Use when a change to the OpenMarket chart frontend (kiyotaka-frontend) needs to be driven and proven in the running app — starting a dev-server lane, exercisin… |
 
 ### OM Chat feature delivery
 
