@@ -10,7 +10,8 @@ the lead.
 3. **Name the data shape first**, and choose its organizing structure before any
    logic: a state machine over scattered booleans, a table or registry over
    branching, a typed model over repeated shape assumptions.
-   For React work, apply **vercel-react-best-practices**. For motion,
+   For React work, apply **vercel-react-best-practices**. A product motion film
+   or feature demo follows `playbooks/product-video.md`. For component motion,
    **animate** or **animate-expo**. Both are vendored and self-updating, so read
    them rather than recalling them.
 4. **Throughput checkpoint**, four todo items. One that does not apply keeps its

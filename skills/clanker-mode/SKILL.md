@@ -30,12 +30,14 @@ unread.
   **principle-minimize-reader-load** for component boundaries. Its 70 rules are
   ordered by impact: waterfalls and bundle size first, re-render tuning much
   later. Do not start at memoisation.
-- **Any video: launch film, product reel, demo or marketing clip** →
-  **product-video**, through `playbooks/product-video.md`. UI shots are the
-  product's own fixtures rendered on a virtual clock. Never a screen recording,
-  a Playwright video or a video model.
-- **Any motion or interaction feel** → **animate** on web, **animate-expo** on
-  Expo. The craft bar behind both is **emil-design-eng**, and **apple-design**
+- **Product motion films, feature demos, UI launch films and product reels** →
+  **product-video**, through `playbooks/product-video.md`. Read the project's
+  verification map first, then propose real states and a beat grid for approval.
+  Use one continuous shell, a human cursor, purposeful zooms and transitions,
+  and deterministic `seek(t)` rendering. Prefer under 20 seconds; raise longer
+  cuts at storyboard approval with a reason and shorter option.
+- **Motion in shipped components and interaction feel** → **animate** on web,
+  **animate-expo** on Expo. The craft bar behind both is **emil-design-eng**, and **apple-design**
   for gesture and material work. Auditing a codebase's motion is
   **improve-animations**, and **find-animation-opportunities** for what should
   move and does not. Both return a roadmap, which is
@@ -178,7 +180,7 @@ before any task-specific todos. A step you skip stays in the list with
 | `playbooks/perf-issue.md` | A slowness with a number on it, fixed against a baseline |
 | `playbooks/forensics.md` | A live process or a dropped trace, read to a cited diagnosis |
 | `playbooks/visual-parity.md` | Pixel-exact equivalence, decided by image diff |
-| `playbooks/product-video.md` | A launch video, product reel or marketing clip made from the product's real UI |
+| `playbooks/product-video.md` | A continuous product motion film or feature demo derived from the project's verification map |
 | `playbooks/multi-phase-plan.md` | Work spanning phases. The plan is the deliverable |
 | `playbooks/agentic-loop.md` | A multi-goal plan run as one bounded loop |
 | `playbooks/autonomous-run.md` | One predicate, driven unattended until it holds |

@@ -454,7 +454,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `maintain-agents-md` |  | claude, codex | AGENTS.md maintenance and repository agent instructions. |
 | `mr-markdown` |  | claude | — |
 | `pi-development` |  | claude, codex | Pi asset development: extensions, skills, prompts, themes, packages, providers, models, TUI, or SDK integrations. |
-| `product-video` |  | claude, codex | Use when asked for a launch video, product reel or marketing clip that must show a product's real UI, rendered from its own components rather than screenshots … |
+| `product-video` |  | claude, codex | Turn a product journey or feature into a continuous UI motion film with faithful product states, a human cursor, musical timing and deterministic rendering. Us… |
 | `prompt-ready` |  | claude | Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persist… |
 | `recall` |  | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap. |
 | `reviewer` |  | claude, codex | Code, diff, PR, or MR review; dead-code checks, behavior drift, or REVIEW.txt notes. |

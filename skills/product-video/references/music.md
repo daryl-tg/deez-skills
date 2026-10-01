@@ -1,65 +1,67 @@
-# Music
+# Music and sound
 
-## Providers, in order
+## Choose and verify an asset
 
-1. **ACE-Step 1.5**: local, free, commercial use of outputs permitted. Installed
-   by `setup-audio.sh --music` at repo commit
-   `ca1e85fe9430179831e6bc6be790c332190a3866`.
-2. **Google Lyria RealTime**: needs `GEMINI_API_KEY`. Whether its free tier
-   permits commercial output is unverified. Ask the operator before publishing
-   a Lyria bed.
-3. **MusicGen**: drafts only. Its weights are CC-BY-NC. It is HyperFrames'
-   local fallback, so never let HyperFrames source music.
+Accept the user's royalty-free track or select one around 120 BPM to match the
+creative brief. Save the audio locally. Royalty-free does not by itself establish
+commercial-use permission.
 
-## License record
+Record the track title, creator, source URL, license URL or supplied license
+document, retrieval date, file hash, commercial-use rights, attribution terms,
+and permission to trim, loop, synchronize and publish the excerpt. Keep the
+license evidence beside the asset. Check UI sound effects too. If rights are
+unclear, report the gap before delivering a published mix; do not imply a
+license was verified.
 
-The Hugging Face model card for `ACE-Step/Ace-Step1.5`, at commit
-`19671f406d603126926c1b7e2adc169acbcade22`, says:
+Read the actual license for the chosen asset. Do not assume a provider's current
+catalog or an old model card covers this file.
 
-> **💰 Commercial-Ready:** Unlike many models trained on ambiguous datasets,
-> ACE-Step v1.5 is designed for creators. You can strictly use the generated
-> music for **commercial purposes**.
+## Measure timing
 
-Code and weights are MIT. The permission lives in the model card, not the
-LICENSE file, so cite the pinned commit. The upstream README asks users to
-disclose AI involvement and to confirm outputs are original. Never prompt for a
-named artist or a protected style.
+Use numpy to analyze the waveform or onset-strength envelope and estimate tempo
+and onsets. A beat detector can assist, but listen to establish the downbeat phase
+and check half-time or double-time estimates. If listening is unavailable, state
+that gap instead of claiming the phase was heard.
 
-## What generation actually produces
+Record measured BPM, beat and downbeat timestamps, excerpt start, and uncertainty.
+For a stable tempo, fit beat time against beat index rather than using a median
+of quantized intervals. Use the measured grid for the final choreography.
+A varying-tempo track needs its actual beat timestamps.
 
-- **Only about 80% of a take is music.** A 20-second request ends at 15 to 16
-  seconds and then goes silent. `generate` requests `ceil(seconds / 0.8) + 4`
-  seconds.
-- **A fixed seed does not reproduce a take.** The finished bed is an asset.
-  Keep it, and never regenerate at render time.
-- **Takes drift a little off the requested tempo.** A 120 BPM request measured
-  117.98 by regression. `beats.py` fits tempo by regression over beat times,
-  because a median interval is quantized to beat_this's 20ms frames. It accepts
-  a take within ±3% of the request and exits 1 otherwise, for example on
-  half-time, double-time or a misread. Move to the next take. `finish`
-  time-stretches an accepted take onto the requested tempo with `atempo` before
-  trimming, and records the ratio in provenance.
-- **Takes are band-limited** to about 10 kHz and peak above -1.5 dBTP.
-  `finish` runs a 4x-oversampled peak limiter before the two-pass loudnorm.
-  Without the limiter, loudnorm falls back to dynamic mode and misses -14 LUFS.
-- **beat_this can place a beat in the silent tail.** `finish` ends the music at
-  the last audible sample before counting bars, so a loop never carries silence.
-- **No take loops as generated.** `finish` trims to whole bars from the first
-  downbeat and crossfades at a bar boundary.
+Start the excerpt on a verified downbeat. Seven 4/4 bars are 28 beats, taking
+`28 × 60 / measured_BPM` seconds at a stable tempo. Do not assume 120 BPM or
+change playback speed just to hit 14 or 20 seconds. If the phrase reaches
+20 seconds or longer, follow the duration discussion in `SKILL.md`.
 
-A warm take takes about 2 minutes on an M4 Mac mini. A cold start adds about a
-minute of model load.
+Measure each UI sound's transient peak and leading silence with numpy. To place
+the peak at action time `a`, offset a file with peak time `p` to `a - p`.
+Check the transient in the finished mix against the visible input or response.
 
-## Provenance
+Create a periodic excerpt that preserves the beat phase at the seam. Wrap sounds
+and crossfade only where musically appropriate; check the final waveform and
+listen for clicks, missing tails or a beat that doubles at the boundary.
+Video blur sampling and audio use the same period.
 
-Every finished bed has `<bed>.provenance.json` with:
-- provider
-- repo commit
-- model card commit
-- prompt
-- seed
-- source take sha256
-- BPM
-- trim points
+## Existing audio tooling
 
-Cite it in the publish captions.
+`helpers/setup-audio.sh` installs analysis tools. Use `--music` only when local
+generation is actually wanted; do not download a model just to analyze a supplied
+track. `helpers/beats.py` emits measured `bpm_detected`, beats, downbeats and
+a phase-fitted `grid` for tracks near its requested BPM. The acceptance tolerance
+is an estimate check, not a reason to reject a deliberately selected tempo.
+
+`helpers/music.py` supports ACE-Step generation. Generation is optional and
+requires verifying the chosen provider, model and output terms for this run.
+Previous setup pinned ACE-Step repo commit
+`ca1e85fe9430179831e6bc6be790c332190a3866` and model-card commit
+`19671f406d603126926c1b7e2adc169acbcade22`; those are lookup leads, not fresh
+license verification.
+
+The helper's `finish` time-stretches to the requested BPM. Preserve measured
+tempo for this film and use suitable trimming, periodic mixing and mastering
+instead. A seed does not guarantee generated audio reproducibility: freeze the
+selected source and finished mix as assets before rendering.
+
+An existing `<bed>.provenance.json` may contain provider, repo/model-card commits,
+prompt, seed, source hash, BPM and trim points. Add asset-specific license
+evidence and the final measured grid. Never regenerate audio at render time.

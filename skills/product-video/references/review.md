@@ -1,93 +1,65 @@
-# Review
+# Film verification
 
-The checks run first because they are cheap and objective. The judge runs only
-on a revision that passes them. The operator sees only a revision the judge
-passed.
+Verify the composition and beat previews before encoding. Then inspect the final
+film at delivery size and collect the evidence below. A rendered fixture supports
+a claim about represented UI behavior; only live verification proves a backend
+action succeeded.
 
 ## Checks
 
-Run all of them on every revision `r<N>` in `$RUN/out/`.
+| Claim | Evidence |
+|---|---|
+| Seeking is deterministic | Compare lossless frames for repeated timestamps and a seeded random-order schedule against direct seeks, including fresh page loads. Check all visible layers. Two sequential renders alone are insufficient. |
+| Input causes the right response | Annotated frames or strips before input, at press/release or keyboard confirmation, and after the consequence; cite the map, source or live verification for the response. |
+| Cursor feels human and targets correctly | Inspect curved approach paths, acceleration/deceleration, target settling, press duration and typing cadence. Confirm every hit area through camera moves. |
+| Drags follow the cursor | Compare the handle and controlled value with pointer coordinates throughout contact; inspect release position, velocity and bounds. |
+| Content never overlaps | Strips at outgoing/incoming envelope boundaries and the densest morphs; inspect labels and essential values at output size. |
+| Beats are meaningful | Review every measured beat against the approved grid. A readable inspection or continued gesture counts; decorative pixel movement alone does not. |
+| Zooms and transitions help | Confirm each move directs attention to the action or consequence, preserves orientation and readable text, and gives dense states time to settle. |
+| Audio aligns | Measured effect transient peaks against action timestamps, downbeat listening check and final beat grid; include leading-silence offsets. Report a listening gap plainly. |
+| Loop position and velocity match | Exact state comparison at 0 and duration plus derivatives or finite differences on either side for shell, camera, content and cursor. Inspect periodically sampled seam strips and audio continuity. |
+| Completed actions stay true | Trace persistent entity IDs, values, selections and data through the final outcome and cinematic return. No reset that visually undoes the action. |
+| Delivery matches the plan | Probe for 1440×1440 and 60 fps by default, approved duration, four samples per frame and no duplicate endpoint. Flag an unapproved move to 20 seconds or more. |
+| Product claims have evidence | Each state has its source or guide and provenance: documented, freshly live verified or cinematic framing. List missing fixtures or verification. |
+| Audio can be used commercially | Source and license record for music and UI sounds, attribution requirements, excerpt/modification permission and saved provenance. |
 
-| Check | Command | Pass |
-|---|---|---|
-| Determinism | render twice, `bun helpers/determinism.ts a.mp4 b.mp4` | exit 0 |
-| Motion | `bun helpers/dead-beats.ts r<N>.mp4 $RUN/music/beats.json` | exit 0, no dead beat |
-| Loudness | measure `r<N>.mp4`'s own audio (ebur128, or `loudness.ts` with a scratch output) | -14 ±0.5 LUFS, true peak ≤ -1.5 dBTP |
-| Loop seam | `bun helpers/loop-seam.ts r<N>.mp4` | exit 0, only when the brief asks for a loop |
-| Sheets | `bun helpers/sheets.ts r<N>.mp4 --out $RUN/review/r<N> --strip <t> --strip <t>` | contact, phone and one strip per fast action exist |
+Inspect essential states at the actual intended display size, including a compact
+view if delivery is on a phone. Text must be understandable without pausing.
 
-A failing check is a finding, not a flake. Localize a determinism failure with a
-lossless render. One differing frame changes every later frame hash in the GOP.
+Existing checks such as `helpers/determinism.ts`, `sheets.ts`,
+`loop-seam.ts` and `loudness.ts` can supply supporting evidence. Their limits
+are in `pipeline.md`. First/last encoded frames are one frame interval apart;
+do not add a duplicate endpoint just to raise a seam similarity score.
 
-## Judge
+If mastering, a useful default is -14 ±0.5 LUFS and true peak ≤ -1.5 dBTP,
+unless the delivery brief specifies another target. Measure the final muxed file,
+because encoding can change true peaks. This audio target does not replace the
+transient and seam checks.
 
-A fresh-context subagent judges, never the agent that built the revision, per
-**principle-delegate-implementation-review-stays-here**. Hand it only these
-things:
-- the brief
-- `style_guide.md`
-- the sheets for this revision and the previous one
-- the check report
+## Review and stop condition
 
-It never gets the build history.
+Correct failed checks, then repeat the affected checks. Re-render the whole film
+only when the change affects it. An independent visual review can help with
+dense choreography; give the reviewer the approved storyboard, evidence-backed
+state list, beat grid, frames and check report. Every finding should cite a
+timestamp or frame. Measure timing findings directly.
 
-Round one scores the revision against the checklist alone. Every later round is
-**pairwise**: this revision against the last one, with the order randomized and
-the order recorded. Pairwise judging tracks human preference far better than
-absolute scores. Models judging their own model family lean lenient, so every
-verdict must cite a timestamp and a frame.
+Stop production when the required checks pass and the approved journey is
+readable, faithful and continuous. Do not force arbitrary review rounds or
+pixel movement to prolong an otherwise passing film.
 
-The checklist asks for a yes or no on each item, each with a timestamp and the
-sheet or strip it was read from:
-- The first two seconds show the product and carry the hook.
-- Text is readable at phone width (`phone.png`).
-- No text overlaps during a swap (strips).
-- Nothing slides linearly where the project's motion eases or springs.
-- No shot is centered text on a gradient, corner labels, frame borders or
-  generic particles.
-- Our own titles and overlays use only the project tokens, and the project's
-  accent appears in them only where the brief puts it. The product's own UI
-  keeps its real colors, accent buttons included. Never ask the maker to crop
-  or recolor the product to satisfy an overlay rule.
-- Every UI state shown is a real product state. Nothing is redrawn. Tell the
-  judge the UI is captured from the product, so it does not flag the product's
-  own animations as invented effects.
+## Delivery
 
-**Timing is not the judge's call.** A judge reading a 2 fps contact sheet
-misplaces cuts by up to a second and reports it with confidence. Measure every
-cut yourself: extract the frames either side of each expected cut with
-`select=eq(n\,N)` and confirm the change lands on the grid frame. Record the
-measured cut list in the check report, and treat any timing claim from a judge
-as a hypothesis to measure, never a finding.
+Provide the MP4, local HTML composition and assets, measured beat grid, audio
+license/provenance, beat previews and check report. State fixture coverage and
+missing live verification plainly.
 
-The judge returns the three worst problems with timestamps and, from round two,
-the preferred revision with a reason. Fix those three, re-render only the
-affected clips, and run the checks again. Stop after round three once the
-checklist is all yes and the judge prefers the new revision. Keep every round's
-verdict in `$RUN/review/log.md`, with your disposition for each problem:
-accepted, declined with the reason, or left for the operator.
+Under Clanker, publish evidence with the project's existing verification
+renderer and wait for its visual sign-off. Check that the gallery actually
+contains the expected frames and that the film is retrievable; a status code
+alone does not prove the evidence is visible. If no renderer is configured,
+provide local artifacts using the supported review surface.
 
-Judges disagree with each other on subjective pacing. One round asks for a
-shorter hook and the next asks for a longer one. Once the stop rule holds, carry
-the remaining suggestions to the operator as open choices instead of looping.
-
-## Publish
-
-Publish the passing revision through the project's evidence renderer (the
-project file says how). The gallery holds:
-- `contact.png`
-- `phone.png`
-- the strips
-- a poster frame
-
-The MP4 sits beside them in the same revision directory. The captions state:
-- the check results
-- the judge's final verdict
-- the music provenance
-
-Verify the gallery by content: fetch it and count images, then fetch the MP4
-URL and confirm a 200 with a video content type. A gallery that renders empty
-still returns 200.
-
-Then stop for the operator's sign-off. Passing the checks and the judge makes a
-revision eligible for review. It is not approval.
+Do not update a feature map's live-verification provenance from fixture footage.
+A newly live-verified recipe follows the hub's project verification contract and
+its map-only publisher.

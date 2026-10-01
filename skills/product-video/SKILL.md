@@ -1,99 +1,224 @@
 ---
 name: product-video
-description: Use when asked for a launch video, product reel or marketing clip that must show a product's real UI, rendered from its own components rather than screenshots or generated footage.
+description: Turn a product journey or feature into a continuous UI motion film with faithful product states, a human cursor, musical timing and deterministic rendering. Use for product reels, feature demos and UI launch films.
 ---
 
-# Product Video
+# Product Motion Film
 
-A marketing video where every UI shot is the product itself. The project's real
-components are mounted from its visual fixtures and rendered frame by frame on a
-virtual clock. Titles, music and transitions are composed around those clips.
-The video reaches the operator only after objective checks and an independent
-judge pass.
+Act as a product motion designer and creative engineer. Turn a supplied product
+journey or feature into a polished, continuous UI motion film. Understand the
+product before designing the choreography.
 
-## Before starting
+## Inputs
 
-1. Read `references/pipeline.md` in full, then `references/projects/<project>.md`.
-   If the project has no file, write one first from the template in
-   `pipeline.md` and stop for the operator to confirm it.
-2. Run `bash helpers/setup-scene.sh` and `bash helpers/setup-audio.sh --music`.
-   Both are idempotent.
-3. Create the run workspace `~/.local/state/product-video/runs/<run-id>/`.
-   Renders, clips, music and builds live there. The brief, storyboard and style
-   guide are text and live in the task's dev-notes folder, per
-   **principle-planning-docs-live-outside-the-repo**.
-4. HyperFrames skills come from the `hyperframes@hyperframes` Claude plugin, or
-   `npx hyperframes skills update` on Codex. Load `/hyperframes-core` before
-   writing composition HTML. Use HyperFrames for composition only. Never run
-   its `/product-launch-video` or `/hyperframes` creation workflows: they
-   capture a website as screenshots and would replace this pipeline.
+Accept a product repository or reference, the journey or outcome to demonstrate,
+a feature map or verification skill if available, and any required states or
+interactions. Creative inputs are pure black and white or one accent color, and
+royalty-free music around 120 BPM with its commercial-use license.
 
-## Stages
+Read supplied context before asking questions. Infer product facts from maps,
+documentation and source; ask only for missing preferences. If given a journey,
+propose 8–12 UI states yourself. Do not ask the user to design the sequence.
 
-Copy these eight stages into your todo list, verbatim and in order, before any
-other work. A stage you skip stays in the list as `skip: <reason>`. Each stage's
-detail is in `references/pipeline.md`.
+## Understand the product
 
-1. **References.** Study 3 to 5 launch films and write `style_guide.md`.
-2. **Brief and storyboard.** One beat per 2 to 4 seconds, each beat naming the
-   fixture state it shows. Render one still per beat with `scene.ts` and ask the
-   operator to approve the storyboard. This is the run's only mid-course
-   question.
-3. **Music.** `music.py generate`, then `beats.py`, then `music.py finish`. The
-   finished WAV is an asset. Never regenerate it at render time.
-4. **Scenes.** One `scene.json` per beat, rendered to a clip by `scene.ts`.
-5. **Compose and master.** A HyperFrames composition takes the clips as
-   `<video>`, plus titles and the finished music. Render with the deterministic
-   flags, then master the audio to the loudness target and remux, copying the
-   video untouched.
-6. **Checks.** Run every check in `references/review.md`. A failing check goes
-   back to stage 4 or 5.
-7. **Judge.** A fresh-context subagent compares this revision against the last
-   one, per `references/review.md`. Fix and repeat, at least three rounds.
-8. **Approval.** Publish through the project's evidence renderer and stop for
-   sign-off, per **principle-visual-approval-gates-delivery**.
+When Clanker is available, resolve the project's verification skill and read its
+`features/README.md` and matching guides. The hub's
+`docs/project-verification.md` defines their canonical project folders. Otherwise
+use the supplied map, product documentation and implementation. Existing
+`references/projects/<project>.md` files are fixture leads; check them against
+the current source and map.
 
-## Hard rules
+Trace one complete journey:
+entry point → user action → system response → next action → final outcome.
 
-- **UI shots come only from `scene.ts`.** Never use Playwright `recordVideo` or
-  `video: 'on'`, a screen recorder, `hyperframes capture <url>`, redrawn UI, or
-  a video model. They capture on the wall clock, or show UI that is not the
-  product.
-- **Remove every class the project file lists under `removeClasses`.** Visual
-  fixtures often force `reduced-motion`, which turns every animation off and
-  renders a still video. `dead-beats.ts` catches a video that stopped moving.
-- **9:16 is 360×640 CSS pixels at DPR 3. 16:9 is 960×540 at DPR 2.** A wide CSS
-  viewport renders the desktop layout squeezed. DPR 1 renders a small video.
-- **Published music comes from ACE-Step 1.5 only.** HyperFrames' local music
-  fallback is MusicGen, whose weights are CC-BY-NC. Never let HyperFrames
-  resolve background music. Pass it the finished asset. `references/music.md`
-  has the license record.
-- **Evidence is files, never a claim of having watched the video.** The
-  evidence is check output, contact sheets, frame strips and the judge's
-  verdict.
-- **Scenes are `scene.json`.** Never create `*.spec.*` or `*.test.*` files in
-  the product repository, and never edit its source.
-- **No servers.** `scene.ts` serves pages through `page.route`. Run a HyperFrames
-  preview only if the operator asks for one. Before binding it on `127.0.0.1`,
-  preflight the forwarded slot `4178`. If `4178` is busy, ask which forwarded
-  slot to use, per **principle-bind-assigned-ports**.
-- **Set `HYPERFRAMES_NO_TELEMETRY=1 DO_NOT_TRACK=1` on every `hyperframes` command.**
+For each proposed state, identify:
 
-## Helpers
+- The real component or screen and how the user reaches it.
+- The click, drag, hover or keyboard action and its visible consequence.
+- Required data, permissions, account state and feature flags.
+- The choices that persist into subsequent states.
+- Supporting source or guide, and whether the behavior is documented, freshly
+  verified or a proposed cinematic treatment.
 
-Paths are relative to this skill's directory, which is `~/.claude/skills/product-video`
-on Claude and `~/.codex/skills/product-video` on Codex. Every helper takes
-`--help`. The TypeScript helpers run with `bun`, the Python helpers with the
-toolchain venv from `setup-audio.sh`.
+Read the implementation when guides are incomplete or contradictory. Preserve
+actual labels, control types and interaction semantics. Do not invent a slider,
+toggle, toast, loading state or confirmation for an attractive transition.
+Every state must advance the chosen outcome or explain an important feature.
+Report factual gaps and missing fixture support before substituting a recreation.
 
-| Helper | Job |
-|---|---|
-| `fixture-build.ts` | Build a project fixture outside the repo |
-| `scene.ts` | Render a `scene.json` to a clip on a virtual clock |
-| `music.py` | Generate takes with ACE-Step, then trim, loop and normalize one |
-| `beats.py` | Beat grid at the requested BPM, phase-fitted to detected downbeats |
-| `determinism.ts` | Two renders, identical frames or the first difference |
-| `sheets.ts` | Contact sheet, phone-width grid, frame strips |
-| `dead-beats.ts` | Beat windows where nothing moves |
-| `loop-seam.ts` | First-to-last frame similarity for loops |
-| `loudness.ts` | Two-pass loudnorm to -14 LUFS / -1.5 dBTP |
+## Visual direction
+
+Dribbble-level UI motion: one shape, never cut. A persistent outer shell morphs
+in size, radius and color while its content swaps with a short blur. The shell
+is cinematic framing; its controls remain faithful to the product.
+
+Use a light warm-gray canvas, black and white components, optionally one accent.
+Use the product font when recognizable, otherwise Geist, and consistent icon
+strokes. Styling must preserve legibility and meaningful product distinctions.
+
+Use restrained springs with at most a tiny overshoot. Direct manipulation
+follows the pointer without spring lag. Keep essential values sharp while the
+viewer inspects them; outgoing text clears before incoming text becomes readable.
+
+Use purposeful zooms, continuous camera moves and transitions when they improve
+engagement or explain cause and effect. Zoom toward the active control before a
+precise action, reveal the result, then pull back when context matters. Anchor
+the reframe to the selected entity or control so viewers can follow it. Each
+active state should fill the frame without losing necessary context. Keep text
+readable during moves; a settled inspection beat is useful. Avoid repetitive
+zoom pumping, disorienting pans and motion added just to fill time.
+
+Use real visual relationships for transitions: a row expands into its detail;
+a compact control widens into its associated panel; an existing selection marker
+stretches between actual tabs; a result contracts toward its originating entry.
+A progress track may carry into another genuine linear control. These are
+options, not required components. Engagement never requires a hard cut.
+
+Banned: bouncy easing, particle bursts, glows, gradients on UI chrome, mismatched
+icons, unreadable dashboards, overlapping text, dead time, generic template
+styling and fabricated product behavior.
+
+## Human cursor and input
+
+The cursor is an intentional user, with visible targets and credible input:
+
+- Move along gentle curved paths with acceleration and deceleration. Vary travel
+  time with distance and precision; roughly 180–500 ms is a useful starting
+  range, not a fixed rule. Slow into small targets, with a short arrival settle
+  when needed. Do not teleport, cruise at constant speed or add random jitter.
+- Aim inside the actual enabled hit area, usually near its center. Avoid paths
+  that hide the label or imply an unrelated hover. A tiny corrective movement
+  can feel natural; repeated overshoots and decorative wobble do not.
+- Show a plausible press and release, often 60–120 ms apart, and the product's
+  actual pressed, focus or hover response when it has one. Arrival, input and
+  consequence must be visibly connected. Do not manufacture hover behavior.
+- For drags, approach the handle, press, move with purposeful speed variation,
+  then release. The controlled value follows cursor position exactly within
+  real bounds. Preserve release position and velocity for any subsequent spring.
+- Show typing at a readable, slightly varied cadence with brief word pauses,
+  then the real keyboard confirmation when required. Do not add typos,
+  backspaces or waiting just to simulate a human.
+- Precompute paths, timing variation and key events from a fixed seed or authored
+  schedule. Every cursor pose, button state and typed character comes from
+  `seek(t)`, independently of playback history. No fresh randomness per frame.
+- Transform the cursor, target and hit coordinates consistently with the camera.
+  During a zoom, clicks still land on the same control and drags stay attached.
+  Match cursor position and velocity at the loop boundary.
+
+Do not compress believable input or reading time just to hit a duration target.
+
+## Choreography and duration
+
+Default to 120 BPM, 4/4, seven bars: 28 beats over 14 seconds. Final timing uses
+the selected track's measured tempo. Seven bars take `28 × 60 / BPM` seconds;
+do not assume a track is exactly 120 BPM.
+
+Prefer a finished edit **under 20 seconds** whenever the journey remains clear.
+This is a guideline, not a hard cap. If it needs 20 seconds or more, raise it
+with the user at storyboard approval: give the estimated duration, why it needs
+that time, and a shorter scope or musical phrase as an alternative. The user
+can approve the longer cut. If measured music or later revisions push the
+approved cut past the guideline, flag the change before full production.
+
+Something meaningful happens on every beat: an action, response, data reveal,
+cursor movement, drag continuation or transition completion. A beat need not
+introduce a new screen. Group actions into readable phrases:
+
+- Establish the entry point and user intent.
+- Reveal the feature through its real interaction.
+- Show the consequence in context.
+- Reach a recognizable outcome.
+- Return continuously to the opening composition.
+
+Derive the sequence from the journey. Never force a fixed button → loader →
+player → slider → toggle sequence. Maintain selected entities, values, filters,
+documents, chart data and other persistent choices throughout.
+
+If the journey cannot fit legibly into 28 beats, propose a smaller scope or a
+longer musical phrase before coding. Never solve overcrowding with tiny text,
+impossible input speeds or an artificially sped-up soundtrack. A visual loop
+must not imply a completed action was undone. Reframe cinematically toward the
+opening composition when the real workflow does not reset.
+
+## Storyboard approval
+
+When music is supplied or already chosen, read
+[references/music.md](references/music.md), check its commercial-use license,
+measure BPM and onsets, and validate the downbeat phase before preparing the
+storyboard. This analysis is preparation, not animation code. Use its measured
+grid and duration for approval; report any unresolved license or listening gap.
+
+Before writing animation code, show:
+
+1. The journey in one sentence.
+2. The proposed 8–12 UI states, with their product evidence and persistent data.
+3. A complete beat grid: beat number, timestamp, visible state, input action,
+   visible consequence and transition, including camera moves and cursor timing.
+4. Product prerequisites, missing fixture support and unresolved factual gaps.
+5. The opening-to-ending loop strategy, including how the completed outcome
+   remains true.
+6. Estimated duration and any exception to the under-20-second preference.
+
+Bundle missing creative preferences and storyboard approval in one request.
+Use a provisional 120 BPM grid only if music is still unselected, clearly marked
+as provisional. Resolve factual gaps from available evidence; if a gap prevents
+a faithful state, explain it and propose supported scope. Write no animation
+code before approval. A material change to the approved journey or duration
+returns to that approval gate.
+
+## Build
+
+Read [references/pipeline.md](references/pipeline.md) after storyboard approval,
+and [references/music.md](references/music.md) when choosing or analyzing audio.
+
+1. Create one HTML composition entry, square 1440×1440. Bundle assets and fonts
+   locally. Prefer actual product components and deterministic fixtures; report
+   missing support before any recreation. Keep briefs in the task's dev-notes
+   folder and renders in `~/.local/state/product-video/runs/<run-id>/`.
+2. Reconstruct every frame-visible value inside `seek(t)`: geometry, color,
+   content, chart or document data, cursor, camera and effects. No CSS
+   transitions, wall-clock timers or state carried between frames. Seeking
+   out of order must produce identical output.
+3. Use closed-form spring responses. Repeated target changes are the initial
+   value plus one spring response per target delta. For a real sliding selection
+   indicator, animate leading and trailing edges with different springs; use
+   this for a genuine toggle knob when appropriate. Do not invent controls.
+4. Compute dragged values directly from the cursor. On release initialize any
+   spring from release position and velocity. Respect real bounds; elastic
+   decoration must not imply invalid values.
+5. Give outgoing and incoming content separate timing envelopes. Keep outgoing
+   text clear of incoming text and essential values sharp while inspected.
+6. Analyze the selected music with numpy for tempo and onset timing. Listen to
+   validate downbeat phase, start on a downbeat, verify commercial-use rights,
+   and align UI sounds by measured transient peaks, including leading silence.
+   Use the measured beat grid for final timing.
+7. Render with Playwright using deterministic seeks, never video recording.
+   Capture four temporal subframes per output frame, blend each group with
+   ffmpeg `tmix`, and output at 60 fps. Sample periodically across the loop seam.
+8. Before the full render, capture one frame per beat and settled frames for
+   dense states. Inspect readability, spacing, cursor alignment, continuity and
+   timing. Fix those storyboard frames before full production.
+
+## Verification and delivery
+
+Follow [references/review.md](references/review.md). Verify repeated and
+random-order seeks, input consequences, pointer-attached drags, non-overlapping
+content, meaningful beats, delivery-size readability, audio transient alignment,
+continuous loop position and velocity, and evidence for every product claim.
+Do not call a rendered fixture proof that a live backend action succeeded.
+Report missing verification plainly.
+
+Never put `will-change` on text or elements the camera scales. Match opening and
+closing shell, content, camera and cursor trajectory. Make `seek(duration)`
+identical to `seek(0)`; encode frames on `[0, duration)` with no duplicate endpoint
+that causes a pause. Wrap motion-blur samples and audio across the same periodic
+boundary. Do not add latency for drama, invent confirmations, bypass a visible
+prerequisite or show incompatible states together.
+
+When running under Clanker, publish the passing render and evidence for its
+visual approval gate, using the supported local review surface if the project
+has no configured renderer. Deliver the film, composition, measured beat grid, audio
+license record and verification findings. Start by reading the supplied journey
+and map, proposing product-specific states and beats, and requesting the
+missing creative inputs and storyboard approval together.

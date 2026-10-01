@@ -1,44 +1,55 @@
-### Product video
+### Product motion film
 
-**You own the film and its two approval gates.** For a launch video, product
-reel, demo or marketing clip that shows a product's real UI. The **product-video**
-skill holds the method. This playbook holds the order and who does what.
+**You own the journey, storyboard and evidence.** For a product reel, feature
+demo or UI launch film, load **product-video**. It defines the continuous shell,
+human cursor, purposeful zooms and transitions, musical timing and deterministic
+rendering. Prefer edits under 20 seconds; raise a longer cut at storyboard
+approval with its reason and a shorter option. This is a guideline, not a cap.
 
-1. **Load product-video** and read its `references/pipeline.md` and the
-   project file under `references/projects/`. If the repo has no project file,
-   write one from the pipeline's template and stop for the operator to confirm
-   it. Its eight stages go into your todo list verbatim, below these steps.
-2. **Plan outside the repo.** The brief, style guide and judge log are text in
-   the task's dev-notes folder, per **principle-planning-docs-live-outside-the-repo**.
-   Renders, clips and music live in the run workspace the skill names.
-3. **Storyboard gate.** Render one still per beat, publish them through the
-   project's evidence renderer, and ask the operator to approve the beats. This
-   is the only mid-run question, so bundle every open choice into it: formats
-   (9:16, 16:9, 1:1), CTA, title wording, beats to swap.
-4. **Delegate production to the executor role:** music, scenes, compose and
-   master. Every handoff cites the skill by absolute path and names the scene,
-   check and file limits. Review each clip and render yourself, per
-   **principle-delegate-implementation-review-stays-here**. Inspect frames, never
-   the self-report.
-5. **Run the checks and measure the cuts yourself.** Determinism,
-   dead-beats, loudness of the muxed file, and every cut frame. A failing check
-   goes back to production, never to the judge.
-6. **Judge with a fresh-context subagent,** pairwise from round two, order
-   randomized and recorded, at least three rounds. Log a disposition for every
-   problem it names: accepted, declined with the reason, or left for the
-   operator. Judges misread timing and swing on pacing. Once the skill's stop
-   rule holds, stop.
-7. **Fix the skill, not just the video.** A harness or pipeline bug found while
-   filming is fixed in the skill, test-first, in its own commit, per
-   **principle-failing-test-first** and **principle-encode-lessons-in-structure**.
-   A product defect the camera exposes is reported to the operator, never
-   papered over in the scene.
-8. **Approval gate.** Publish the passing revision with its sheets and MP4, and
-   stop for sign-off, per **principle-visual-approval-gates-delivery**. Deliver
-   the files where the operator asks.
-9. **Other formats** re-render the same beats at the new viewport, and each gets
-   its own checks and the operator's look. Never crop one format into another.
+1. **Understand the product first.** Resolve its project verification skill
+   using `docs/project-verification.md` at the hub root. Read the feature index,
+   matching guides, documentation and implementation. Trace entry → action →
+   response → next action → outcome. Separate documented behavior, live proof
+   and cinematic treatment. Check any existing fixture notes against source.
+2. **Measure chosen audio, then propose one coherent journey.** Read the skill's
+   `references/music.md` for supplied or selected music; check the license,
+   measure BPM and onsets, and validate downbeat phase before storyboard timing.
+   A provisional 120 BPM grid is only for audio still unselected.
+   Derive 8–12 real UI states and the complete
+   beat grid. Include prerequisites, persistent choices, cursor actions, camera
+   moves, visible consequences and the loop strategy. The default is seven bars
+   at about 120 BPM; use measured tempo for final timing. Plan outside the repo,
+   per **principle-planning-docs-live-outside-the-repo**.
+3. **Storyboard gate.** Show the plan before animation code. Bundle missing
+   creative preferences, any longer-duration proposal and approval in one
+   request. Resolve factual gaps from the map and source; report missing fixture
+   support before substituting a recreation. A material journey or duration
+   change returns to this gate.
+4. **Delegate the approved build to the executor role.** Name the composition,
+   asset and output paths and cite the skill by absolute path. Require a single
+   1440×1440 HTML composition with every visible value reconstructed by
+   `seek(t)`, locally bundled assets, licensed audio and a measured beat grid.
+   The cursor, drags and camera must follow the same coordinate transforms.
+   Review the build yourself, per
+   **principle-delegate-implementation-review-stays-here**.
+5. **Inspect beat frames before the full render.** Include settled frames for
+   dense states and strips for fast actions. Fix readability, spacing, pointer
+   alignment and continuity first. Render through Playwright seek calls at
+   four temporal subframes per 60 fps output frame, blended with ffmpeg `tmix`.
+6. **Verify and review.** Follow the skill's `references/review.md`. Check
+   random-order seeks, real interaction consequences, audio peaks, delivery-size
+   readability and loop position and velocity. Fixture renders show supported
+   UI states; they do not establish live backend success. New live verification
+   recipes follow the project map contract; cinematic fixtures alone do not
+   qualify a feature as live verified.
+7. **Fix discovered defects at their source.** A harness bug belongs in the
+   skill, per **principle-encode-lessons-in-structure**; report product defects
+   instead of disguising them in the film. Keep fixes scoped to the task.
+8. **Visual approval gate.** Publish the passing film and evidence through the
+   project's renderer, or provide local artifacts on the supported review
+   surface if no renderer is configured. Then stop for sign-off, per
+   **principle-visual-approval-gates-delivery**. Deliver the approved files where
+   the user asks. Other requested formats get their own layout and checks.
 
-**Reply:** the film paths, the checks with numbers, the judge's final verdict
-and open suggestions, product defects the filming exposed, and skill changes
-made.
+**Reply:** film and composition paths, duration and measured BPM, checks and
+verification gaps, audio license, product defects and any skill fixes.
