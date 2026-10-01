@@ -37,10 +37,23 @@ Measure each UI sound's transient peak and leading silence with numpy. To place
 the peak at action time `a`, offset a file with peak time `p` to `a - p`.
 Check the transient in the finished mix against the visible input or response.
 
-Create a periodic excerpt that preserves the beat phase at the seam. Wrap sounds
+For `ending: loop`, create a periodic excerpt that preserves beat phase. Wrap sounds
 and crossfade only where musically appropriate; check the final waveform and
 listen for clicks, missing tails or a beat that doubles at the boundary.
 Video blur sampling and audio use the same period.
+
+For `ending: brand-card`, resolve the phrase instead of fading a continuing loop.
+Use a suitable cadence or home-chord accent from the selected track, optionally
+preceded by a brief breath, then release the rhythm and let the tail decay under
+the logo and URL. Preserve tempo and source provenance. Leave space for a brand
+motif after the resolution, with its whole release audible before the file ends.
+
+Reuse a supplied or approved motif from the brand preset. Preserve its relative
+peak timing and start from its documented gain; do not normalize a short effect
+as though it were the music bed. Adjust the bed or cue if it is masked. Check the
+motif in the final encoded mix at normal playback level, not just as a solo stem.
+Measure final muxed true peak too: AAC encoding can introduce peaks absent from
+the PCM master. Apply headroom or limiting as needed, then remeasure.
 
 ## Existing audio tooling
 

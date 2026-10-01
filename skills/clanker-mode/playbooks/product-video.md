@@ -17,14 +17,16 @@ approval with its reason and a shorter option. This is a guideline, not a cap.
    A provisional 120 BPM grid is only for audio still unselected.
    Derive 8–12 real UI states and the complete
    beat grid. Include prerequisites, persistent choices, cursor actions, camera
-   moves, visible consequences and the loop strategy. The default is seven bars
+   moves, visible consequences and ending mode (`loop` or `brand-card`). Load
+   the product-video OpenMarket preset when that is the requested brand; do not
+   infer branding from a historical repository name. The default is seven bars
    at about 120 BPM; use measured tempo for final timing. Plan outside the repo,
    per **principle-planning-docs-live-outside-the-repo**.
 3. **Storyboard gate.** Show the plan before animation code. Bundle missing
    creative preferences, any longer-duration proposal and approval in one
    request. Resolve factual gaps from the map and source; report missing fixture
    support before substituting a recreation. A material journey or duration
-   change returns to this gate.
+   change returns to this gate. Carry existing approvals into follow-up revisions.
 4. **Delegate the approved build to the executor role.** Name the composition,
    asset and output paths and cite the skill by absolute path. Require a single
    1440×1440 HTML composition with every visible value reconstructed by
@@ -38,7 +40,7 @@ approval with its reason and a shorter option. This is a guideline, not a cap.
    four temporal subframes per 60 fps output frame, blended with ffmpeg `tmix`.
 6. **Verify and review.** Follow the skill's `references/review.md`. Check
    random-order seeks, real interaction consequences, audio peaks, delivery-size
-   readability and loop position and velocity. Fixture renders show supported
+   readability and the chosen ending contract. Fixture renders show supported
    UI states; they do not establish live backend success. New live verification
    recipes follow the project map contract; cinematic fixtures alone do not
    qualify a feature as live verified.
