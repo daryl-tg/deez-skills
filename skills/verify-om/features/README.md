@@ -87,7 +87,7 @@ counts meaningless. The tree-to-tree diff still answers correctly.
 
 ## What this map does NOT cover
 
-Nine entries against 87 top-level `om` commands. The map grows only when someone
+Eight entries against 87 top-level `om` commands. The map grows only when someone
 runs `create-verification-skill` or `maintain-verification-skill` — ordinary
 feature work in a worktree adds nothing to it automatically. Treat an absent
 surface as unmapped, never as verified-clean, and add an entry when you build
@@ -117,7 +117,6 @@ state, commands, and observable proof.
 - [Market data reads](./market-data-reads.md)
 - [Origin challenge backoff](./origin-challenge-backoff.md) — a Cloudflare
   challenge holds every source on the host, provable with a loopback stub.
-- [Firecrawl recovery before whitelist](./firecrawl-first-block.md) — first refusal recovery, repeated-refusal whitelist guidance, and no-key setup.
 
 Not yet mapped, and worth adding when a change touches them: the MCP
 surface (`om mcp serve --stdio`), charts (`om chart`), the `om chat` TUI,

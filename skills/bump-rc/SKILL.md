@@ -5,11 +5,9 @@ description: Release a new @openmarket/rooms-client version — pick the bump fr
 
 # bump-rc — release rooms-client and repin its consumers
 
-`@openmarket/rooms-client` lives in `~/github/openmarket-internal` (GitHub) and
-is consumed by the `openmarket-chat` workspace at `~/gitlab/openmarket-chat`
-(GitLab), which pins it **exactly, in three places that must agree**. The
-`~/github/openmarket-chat` checkout is deprecated; repinning there changes
-nothing that ships.
+`@openmarket/rooms-client` lives in `~/github/openmarket-internal` and is
+consumed by the `openmarket-chat` workspace, which pins it **exactly, in three
+places that must agree**:
 
 | File | Field | Why it is there |
 |---|---|---|
@@ -51,7 +49,7 @@ grep '"version"' packages/rooms-client/package.json
 Also read all three current pins, so step 6 has a before/after:
 
 ```bash
-cd ~/gitlab/openmarket-chat
+cd ~/github/openmarket-chat
 grep -n '"@openmarket/rooms-client"' \
   package.json apps/cloud/package.json packages/chat-ui/package.json
 ```
@@ -131,7 +129,7 @@ shared package's peer range is edited by hand, because `bun add` writes a
 dependency, not a peer:
 
 ```bash
-cd ~/gitlab/openmarket-chat
+cd ~/github/openmarket-chat
 bun add @openmarket/rooms-client@0.X.0 --exact
 bun add --cwd=apps/cloud @openmarket/rooms-client@0.X.0 --exact
 
@@ -167,7 +165,7 @@ Three traps, all real:
 ### 7. Verify and report
 
 ```bash
-cd ~/gitlab/openmarket-chat
+cd ~/github/openmarket-chat
 grep -n '"@openmarket/rooms-client"' \
   package.json apps/cloud/package.json packages/chat-ui/package.json
 bun run typecheck                        # /rooms host

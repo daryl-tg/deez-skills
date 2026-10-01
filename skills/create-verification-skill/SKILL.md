@@ -1,6 +1,6 @@
 ---
 name: create-verification-skill
-description: "Generate a project-owned verification skill, feature map, and control wrapper in the deez-skills hub so an agent can drive the real app and prove behavior. Use for /create-verification-skill, \"make a control skill for this repo\", or when a project has no scripted way to prove UI, CLI, or service behavior."
+description: "Generate a project-local verification skill and its control wrapper so an agent can drive the real app and prove behavior. Use for /create-verification-skill, \"make a control skill for this repo\", or when a project has no scripted way to prove UI, CLI, or service behavior."
 disable-model-invocation: true
 ---
 
@@ -8,20 +8,9 @@ disable-model-invocation: true
 
 Every project needs a scripted way to drive the real app and prove behavior:
 launch it, exercise a feature the way a user would, capture evidence. This
-generates the canonical skill, feature map, and wrapper under
-`~/github/deez-skills/projects/<repository>/skills/verify-<app>/`, while keeping
-the installed name `verify-<app>` stable. Follow the layout, ownership, and
-persistence contract in
-[`../../docs/project-verification.md`](../../docs/project-verification.md).
-Write for the next agent, not a human. It will be read cold, mid-task, by an
-agent that has never seen the app.
-
-## 0. Resolve the project owner
-
-For a known installed skill, use its registry project ownership first. Otherwise
-derive `<repository>` from the origin remote repository basename, stripping
-`.git`. Never use a feature-worktree directory name. Choose an existing registry
-category; do not create a category for this skill.
+generates that as `skills/verify-<app>/` plus a `control-<app>` wrapper the repo
+owns. Write for the next agent, not a human. It will be read cold, mid-task, by
+an agent that has never seen the app.
 
 ## 1. Interview the repo, not the user
 
@@ -49,22 +38,10 @@ handed back as a review URL. Never bind, target, or stop `8097`, `8098`, or
 If the checkout does not build or start, fix that first or report it precisely.
 A skill written against a broken base teaches wrong steps.
 
-## 2. Scaffold in the hub
+## 2. Generate the control wrapper
 
-From the deez-skills root, run:
-
-```sh
-bin/new verify-<app> --category <existing-category> --project <repository>
-```
-
-Generate the skill and feature map in the created project directory. Keep the
-registry key and installed symlink name as `verify-<app>`; the project namespace
-is canonical storage, not part of the installed name.
-
-## 3. Generate the control wrapper
-
-Write `bin/control-<app>` inside the canonical verification skill directory and
-make it executable. Model it on `references/control-wrapper.sh`. Four verbs:
+Write `control-<app>` into the repo it drives, not into this hub, so it versions
+with the app. Model it on `references/control-wrapper.sh`. Four verbs:
 
 - `doctor` — read-only. Is this instance worth driving? Right build, right port,
   serving the working tree, dependencies answering.
@@ -73,16 +50,11 @@ make it executable. Model it on `references/control-wrapper.sh`. Four verbs:
 - `evidence publish <run-id> <revision>` — pushes the artifact pair to the
   review renderer. Never authors a revision `index.html`.
 
-Existing product-specific wrappers may have documented ownership exceptions.
-In particular, never reconstruct or replace OpenFloor's operator-only untracked
-wrapper.
+## 3. Generate the skill
 
-## 4. Generate the skill
-
-Write `SKILL.md` in the canonical verification skill directory with frontmatter
-(`name: verify-<app>`, and a description naming the app, the surface, and when
-to reach for it) and these sections, each grounded in what the interview found.
-No placeholders.
+Write `skills/verify-<app>/SKILL.md` with frontmatter (`name: verify-<app>`, and
+a description naming the app, the surface, and when to reach for it) and these
+sections, each grounded in what the interview found. No placeholders.
 
 **Launch** the exact command plus how to tell it is ready, and teardown.
 **Doctor** the one read-only check. **Drive** the `control-<app>` recipe with
@@ -97,25 +69,18 @@ state, not just the final screen. Verify side effects alongside what is visible.
 When the safe path is a dry run, verify what it actually skips by observing,
 since some dry runs still touch the network.
 
-## 5. Seed the feature map
+## 4. Seed the feature map
 
-Create `features/README.md` inside the canonical verification skill plus one file
-per user-facing feature, top three to five to start. Follow
+Create `skills/verify-<app>/features/README.md` plus one file per user-facing
+feature, top three to five to start. Follow
 [`references/feature-map-example/`](references/feature-map-example/). Four H2s
 in order: `Sub-features`, `How to get to it (user POV)`,
 `Driving it with control-<app>`, `Gotchas`.
 
-Every feature entry records its last verified date, the product commit or tree
-that was driven, the verification scope, and any limitations. Keep the README
-index aligned with every sibling feature file, including entries Clanker adds.
+The map is the repo's maintained verification source. A proof that drives one
+convenient entry point is incomplete when the map lists others.
 
-The project-owned map in the hub is the maintained verification source. A proof
-that drives one convenient entry point is incomplete when the map lists others.
-
-## 6. Register, install, and prove it
-
-Confirm the scaffold is registered, then run `bin/link --apply` from the hub so
-the stable `verify-<app>` name resolves to the project-owned skill.
+## 5. Prove it before handing it over
 
 Run its own instructions end to end once: launch, doctor, drive one mapped
 feature, capture evidence, clean up. Then confirm the evidence still exists at
@@ -125,23 +90,7 @@ strand processes and ports.
 
 A generated skill that was never executed is a draft, not a deliverable.
 
-Persist the canonical skill, feature map, wrapper, registry entry, and generated
-index exactly as required by the shared project-verification contract. Once the
-map is proved and its index is current, automatically publish only its changed
-`features/*.md` files with:
-
-```sh
-bin/deez sync-feature-maps <project> <verify-skill> <map-file.md>...
-```
-
-Pass filenames relative to `features/`, including `README.md` when it changed.
-If no map file changed, publish nothing. Never use bare `bin/sync`, and never
-include `SKILL.md`, wrappers, registry/config files, raw evidence, or product
-repository changes. Handle every non-map source edit through its ordinary
-review and delivery path; standing authorization to publish feature maps does
-not authorize a product push.
-
-## 7. Point at the maintenance loop
+## 6. Point at the maintenance loop
 
 Name `maintain-verification-skill` as the upkeep pass. Suggest a cadence only if
 asked.
