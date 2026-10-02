@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — RSS picker, form, review, create, paused CLI row and feed detail page driven on a guest lane. Other seven kinds and batch actions remain unverified.*
+*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — RSS picker, form, review, create, paused feed detail and its Setup/History/Delivery/Settings navigation driven on a guest lane. Other seven kinds and batch actions remain unverified.*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the
@@ -13,7 +13,7 @@ lands **paused**.
 - `kind-picker` offers eight source kinds in one dialog.
 - `source-form` collects the fields for the chosen kind.
 - `review-step` shows what will be created before anything is written.
-- `create` writes the watch and returns to the list.
+- `create` writes the watch and navigates directly to its detail page.
 - `lands-paused` leaves the new watch disabled until the user resumes it.
 - `detail-page` opens one watch at `/alerts/<id-or-slug>` to manage it.
 - `batch-actions` pause, resume, mute, unmute or remove several at once.
@@ -31,7 +31,7 @@ Preconditions:
   stub is the cheapest one, and the lane must carry the loopback switch:
   `control-om up --env OM_FEED_ALLOW_LOOPBACK=1 --env OM_FEED_POLL_INTERVAL_MS=60000`,
   then `mkdir -p /tmp/origin-stub && cd /tmp/origin-stub && echo ok > mode &&
-  bun ~/.claude/skills/verify-om/helpers/origin-challenge-stub.ts &`.
+  bun ~/.codex/skills/verify-om/helpers/origin-challenge-stub.ts &`.
 - A browser session of your own (`AGENT_BROWSER_SESSION`), viewport 1440x900.
 
 - **Open the picker.** `agent-browser find role button click --name "Create watch"`
@@ -46,7 +46,8 @@ Preconditions:
 - **Fill and review.** Fill the two textboxes, press `Review`, and assert
   `dialog "Review your watch"` with a `heading "RSS or Atom feed"` naming the
   kind, plus `Back` / `Create watch`.
-- **Create.** Press `Create watch`. The dialog closes and the list re-renders.
+- **Create.** Press `Create watch`. The dialog closes and the new watch's
+  detail page opens. Return to `/alerts` to find it in the list.
 - **Confirm on the other surface.** `control-om om -- watch list` shows the new
   watch under its slug with status `paused` — the UI and the CLI are writing the
   same store. Driven: a watch named `UI authored feed` appeared as
@@ -66,8 +67,9 @@ Preconditions:
   plus one `heading` per source and an `Edit source` button. Driven at
   `/alerts/ui-authored-feed`.
 - **Batch actions** live on the list: selecting rows via the per-row checkboxes
-  enables icon buttons whose accessible names are `Pause`, `Resume`, `Mute`,
-  `Unmute` and `Remove selected watches`. Not exercised here — a remove is
+  enables controls named `Pause selected watches`, `Resume selected watches`,
+  `Mute notifications`, `Unmute notifications` and `Remove selected watches`.
+  Not exercised here — a remove is
   destructive and the lane's watches were still under test.
 
 ## Gotchas

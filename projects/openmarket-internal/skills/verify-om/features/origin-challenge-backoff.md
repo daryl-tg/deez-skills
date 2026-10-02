@@ -1,8 +1,8 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — healthy feed request, Cloudflare-style challenge, 15-minute hold, watch status row, one clean scheduled probe and recovery observed; `/healthz` settled to `open`, `reconnect_count: 0`, `cooldown: null`. A second challenge and window doubling were last driven 2026-09-19 at tree `15db727ba`; they were not re-driven in this pass.*
+*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — healthy feed, Cloudflare-style challenge, hold/status row, no-key Firecrawl offer, one clean 15-minute probe and recovery driven. `/healthz` settled to `open`, `reconnect_count: 0`, `cooldown: null`. A second challenge and window doubling were last driven 2026-09-19 at tree `15db727ba`; they were not re-driven today.*
 
-When a site puts the daemon's IP under a Cloudflare challenge, every source on
+When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes
 out per window, and the watch says so in one row: `the source is challenging
 this machine · next try <time>`. When the site answers again, the stream reopens
@@ -51,16 +51,16 @@ Preconditions:
 
   ```bash
   mkdir -p /tmp/origin-stub && cd /tmp/origin-stub && echo ok > mode
-  bun ~/.claude/skills/verify-om/helpers/origin-challenge-stub.ts &
+  bun ~/.codex/skills/verify-om/helpers/origin-challenge-stub.ts &
   ```
 
   It answers a small RSS feed at `/rss` with one new item per minute, article
   pages at `/article/<id>`, and flips on the `mode` file to `403` with
-  `cf-mitigated: challenge` and a "Just a moment..." body. The predicate is a
-  403 **or 503** carrying `cf-mitigated: challenge`
-  (`shared/public-document.ts:142`); the header is what decides, so a stub
-  that returns a bare 403 proves nothing. Log every request with a timestamp:
-  that log is the proof of silence.
+  `cf-mitigated: challenge` and a "Just a moment..." body. Challenge detection
+  also recognizes AWS WAF 202 challenges and 405 captchas, plus challenge
+  markers in an HTTP 200 page body (`shared/public-document.ts`,
+  `shared/page-normalize.ts`). A bare 403 proves nothing. Log every request
+  with a timestamp: that log is the proof of silence.
 - The lane booted with `OM_FEED_ALLOW_LOOPBACK=1` (feed polls, page polls and
   extract fetches may reach `127.0.0.0/8`) and, to shorten the wait,
   `OM_FEED_POLL_INTERVAL_MS=60000`:

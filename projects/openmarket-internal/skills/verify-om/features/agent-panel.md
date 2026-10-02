@@ -1,6 +1,6 @@
 # The dashboard agent panel
 
-*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — opened the panel from Connections, sent a message, read the guest refusal, followed Connections, and opened the two-pane `/agent` workspace. A real conversation stays `verified-unreachable`: it needs an LLM credential.*
+*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — opened the panel from Connections, sent a message, read the guest refusal, followed Connections, and opened the two-pane `/agent` workspace. A real conversation stays `verified-unreachable`: it needs an LLM credential.*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as
@@ -68,10 +68,11 @@ Preconditions:
 
 - **A real conversation is out of reach on a guest lane.** The concrete unmet
   prerequisite is an LLM credential (`om init`, or `OPENMARKET_LLM_KEY` in the
-  daemon's environment). The daemon side is `resolveLlmConfig()` returning null
-  → RPC error `agent_not_configured` (`runner/http/rpc/model.ts`), which the UI
-  renders as the alert below. Report the panel as `verified-unreachable` past the
-  send, never as broken — the refusal is the feature working.
+  daemon's environment). The chat turn returns `missing_llm_key` with the
+  message below (`packages/cli/src/agent/runtime.ts`); `agent_not_configured`
+  belongs to the separate model-selection RPC. Report the panel as
+  `verified-unreachable` past the send, never as broken — the refusal is the
+  feature working.
 - The alert's text is invisible to `snapshot`: the paragraph node renders with no
   accessible name. Read it from the DOM or you will report an empty alert.
 - `Send message` is disabled until the textbox has content, so a

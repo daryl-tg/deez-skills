@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — Overview, Watches, News, Strategies, Channels, Connections, Venues and Receipts opened on a guest lane; screenshots and accessibility snapshots captured. Populated strategy and receipt rows remain unverified.*
+*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — all eight dashboard routes opened on a guest lane; empty-home onboarding captured collapsed and expanded, and screenshots/accessibility snapshots captured. Non-empty strategy and receipt rows remain unverified.*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
@@ -59,9 +59,11 @@ Preconditions:
   with a `Create a watch` link and `More setup options ▸`. The old
   `Pair a notification channel` step is gone: the channel step is renamed
   `Choose where updates arrive` and is now OPTIONAL, the only required step
-  being `Create your first watch`. No step is terminal any more, so **the `copy`
-  and `Discord` buttons no longer render anywhere in onboarding** — the channel
-  step offers a plain `Manage channels` link instead. The block is also
+  being `Create your first watch`. The collapsed view also has `More setup
+  options ▸`; expanding it reveals optional `Connect a coding agent` and
+  `Connect a trading venue` steps. The channel step offers a plain `Manage
+  channels` link. A `copy` button still appears when a terminal or agent setup
+  step is active; do not claim it is absent everywhere. The block is also
   state-dependent: it disappears once the home has a watch, so capture it on a
   genuinely fresh lane or not at all. On the fresh guest lane, the onboarding
   block showed `Welcome to OpenMarket`, `Dismiss welcome`, `Create your first

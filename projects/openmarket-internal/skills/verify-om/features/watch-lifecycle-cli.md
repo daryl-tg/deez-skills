@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — create/edit/show/pause/resume/remove driven; JSON confirmed enabled-state transitions and removal preserved the journal. Group and multi-watch forms remain unverified.*
+*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — create/edit/show/pause/resume/remove driven; JSON confirmed enabled-state transitions and removal preserved the journal. Group, multi-watch and newer combine/preview/tune forms remain unverified.*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what

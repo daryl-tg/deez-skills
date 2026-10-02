@@ -1,12 +1,12 @@
 # Firecrawl recovery before whitelist
 
-*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — guest lane showed the no-key challenge status and `om setup firecrawl` fix. Configured fixture recovery, repeated refusal and restart persistence were last driven at tree `fe82b2ef1`; they were not re-driven here. Live provider and interactive agent delivery remain unverified.*
+*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — guest lane showed the no-key challenge status and `om setup firecrawl` fix. Configured fixture recovery, repeated refusal and restart persistence were last driven at tree `fe82b2ef1`; they were not re-driven here. Live provider and interactive agent delivery remain unverified.*
 
-A configured Firecrawl connection recovers the first blocked read of a source automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
+A configured Firecrawl connection retries the first eligible blocked read of a source automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
 
 ## Sub-features
 
-- A blocked feed can be created after one automatic recovery, without a whitelist prompt.
+- An eligible blocked feed can be created after one automatic recovery, without a whitelist prompt.
 - Repeated refusal makes the site eligible for the existing whitelist offer; paid fetch count stays at one.
 - Restarting the daemon preserves the retry history and the site's refusal status.
 - A missing key offers `om setup firecrawl`; a configured key after repeated refusal offers `om setup firecrawl --allow <host>`.
@@ -38,6 +38,7 @@ The 2026-09-30 rig and preload are preserved in `/Users/dboon/Documents/dev-note
 ## Gotchas
 
 - This pass proves real product policy, persistence, parsing and user surfaces against simulated HTTP responses. It does not prove the external Firecrawl service or delivery of an interactive agent card; the guest lane has no LLM credential. Regression tests cover the offer/drain path.
+- Automatic recovery requires a configured client and an eligible refusal. It does not retry without a key, for `js_shell` refusals, or after an offer was declined.
 - Bun ignores Node's `NODE_OPTIONS=--require` for this preload. The proved rig uses a run-local Bun wrapper that injects `--preload` only for the product bootstrap. Normal build and test commands use the real Bun binary.
 - The CLI probes locally. Both the CLI and daemon need the loopback switch and fixture key during the configured phase.
 - Use `--no-overview` with `accept_all` on a guest lane: classification alone does not disable model-generated overview text.

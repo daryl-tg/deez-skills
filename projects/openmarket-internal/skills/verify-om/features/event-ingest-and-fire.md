@@ -1,6 +1,6 @@
 # Event ingest and fire
 
-*Verified: 2026-10-01, tree `30000def2` (v0.425.0) — CLI push and HTTP ingest returned event ids; SSE carried commit/append/fire for the HTTP id, journal stored both, and Watches showed the live watch. Rejection, pause, dedupe, and budget responses remain unverified.*
+*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — CLI push and HTTP ingest returned event ids; SSE carried commit/append/fire for the HTTP id, the journal stored it, and Watches showed the row. Rejection, pause, dedupe, budget responses and daemonless fallback remain unverified.*
 
 A user points a producer at a watch's inbound door and the daemon takes it from
 there: the event is accepted, committed, appended to the watch's journal, and
@@ -11,6 +11,9 @@ of it needs an account.
 ## Sub-features
 
 - `ingest-cli` pushes an event through `om event push`.
+- `ingest-offline` uses the daemon when reachable and falls back to the local
+  store when it is down; if the daemon appears live but its endpoint is
+  unreachable, the command refuses rather than risking a split write.
 - `ingest-http` pushes JSON or plain text through `POST /ingest/v1/<watch>` with
   a minted bearer token (header preferred; `?token=` is supported).
 - `fire-stream` emits `watch_committed`, `watch_appended` and `watch_fired` on
