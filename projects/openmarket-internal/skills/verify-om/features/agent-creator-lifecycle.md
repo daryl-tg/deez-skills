@@ -1,6 +1,6 @@
 # Agent creator lifecycle and private-state isolation
 
-*Verified: 2026-10-02, daemon `6d5700ee09e8dc184a2da1b6d53f3514c0420782` — 956-test integration gate, compiled recipient recovery after normal GUI rollback, release-local skill read and single reply delivery. Revoked-mention refusal/restart deduplication was proved on preceding `9cb0f2660`; populated package isolation and same-key revocation reconciliation retain their earlier exact scopes.*
+*Verified: 2026-10-02, final source `158bc6c156b798731107440b62561ce7902bcdc2` — 66 free regression tests, typecheck and lint; native Codex 249 and Claude 255 coding lifecycles on `1bedf936ea456229bfc819db2bda5ca2e48c632f`; accurate compatibility notice 259 on `365d9963856ace29ee49479ffc4d502378ef455c`. Recipient recovery remains scoped to `6d5700ee09e8dc184a2da1b6d53f3514c0420782`, revoked refusal/restart deduplication to `9cb0f2660`, and populated package isolation to its original receipt. Required paid evaluations and registry delivery remain open.*
 
 The local daemon owns agent release, installation and account state. Shared text packages have immutable digests; each recipient uses its own credential, notes and private memory. A channel invocation must use the selected release and either deliver a bounded reply or explain why it cannot run.
 
@@ -34,7 +34,7 @@ export OM_LANE_PORT='<assigned lane port>'
 control-om doctor
 control-om up --compiled --env OM_DEV=1 --env OM_ROOMS_GUI_DIR='<candidate GUI>/dist'
 control-om url /rooms/
-control-om cli -- packages/cli/dist/om '<read-only command>'
+control-om om -- status --format json
 ```
 
 Keep the owned lane process anchored for this tool host's lifetime. Read authenticated RPC responses through the lane's normal owner browser; do not reconstruct operator cookies. DB inspection is read-only and reports IDs/counts/digests, not secrets or private memory contents. Never print whole coding-run correlation or manifests: host and lease tokens are nested there. Read only explicitly selected safe diagnostic fields.
@@ -45,11 +45,20 @@ For revocation, preserve the first operation result, inspect the authenticated l
 
 ## Gotchas
 
-- Final daemon v23 passed 956 integration tests, 4,648 assertions across 46 files, whole-workspace typecheck, lint and compilation. Earlier v21 export-scan timeout remains a failed receipt; no bound was raised to pass the repaired scan.
+- Earlier daemon v23 passed 956 integration tests, 4,648 assertions across 46 files, whole-workspace typecheck, lint and compilation. Earlier v21 export-scan timeout remains a failed receipt; no bound was raised to pass the repaired scan.
 - Whole-workspace typecheck needed an 8 GB Node heap on this host; the earlier 4 GB OOM is not a successful check.
 - Catalog retry budget bounds cumulative sleep within one operation, not all network wall time. A slow request can still outlast it.
 - The repaired revoked watcher keeps execution disabled but admits an unambiguous authorized owner mention solely for a refusal. Sources 229/231 each delivered one clear notice without a run; restart did not duplicate notices. Normal D3→D1 review/apply rollback preserved the recipient credential and private namespace. Final source 233 then completed with one delivered effect, reply 234.
-- Exact supported Claude 2.1.278 and Codex 0.153.4 were installed only in the private test lane and match existing qualification digests; both report signed in/coding-ready. Global newer versions stay unverified. Never edit a binary hash or attestation to manufacture qualification. Fresh Claude task 235 stopped safely after upstream HTTP 400 made usage unverifiable; its failed coding attempt is not a completed lifecycle.
+- Exact qualified Claude 2.1.278 / ACP 0.76.0 with claude-opus-4-6 and Codex 0.153.4 / ACP 1.11.0 with gpt-6-astra each completed a fresh coding lifecycle on daemon 1bedf936e, sources 255 and 249. Each made a clean README-only commit, passed the actual sandbox 12-test/build commands, delivered Result/History/chat, and reached completed without host completion. Global newer runtimes stay unverified; never edit hashes or attestations to manufacture qualification. Opus 5.5 rejects this qualified Claude client version even through normal native headers, so readiness of the executable does not promise every selectable model works.
 - Native coding receipts from older versions, synthetic conformance fixtures, chat invocation and model-driven file implementation are separate claims.
 - The SDK archive is unpublished; local package consumption does not prove clean registry install. Publication/pin/lock promotion remains a separate delivery step.
 - Test catalog publication and channel posting were authorized in `local_longan_storage`. Product push, registry publication, release and merge retain their per-instance delivery boundary.
+
+- `control-om om -- ...` binds the CLI to the owned lane home and port. `control-om cli -- ...` is a generic repository-command runner and does not set OM_HOME; never use it for account/model mutations without explicit isolation. An initial test command changed the operator model accidentally; that incident remains disclosed and restoration awaits the prior value.
+- A delivered room reply may precede the durable completed transition. Claude 255 spent 201 seconds in final receipt/proof/worktree verification after its last effect, then completed normally. Do not restart an active supervisor just because that bounded verification is quiet.
+- Actual native checks exited zero while Bun printed directory/parent-access diagnostics. Report the warning and actual exit code separately.
+- Final main 2395 daemon integration passed 1,087 tests/5,320 assertions on 59b4f03f1. Later narrow classifier wording changes have their own focused and typecheck receipts; cite exact source scopes. The first live compatibility notice 257 remains a failed receipt. Fresh source 259 on compiled daemon 365d99638 classified model_client_unsupported and delivered exactly one accurate rendered explanation with a clean worktree; no unsupported model was silently substituted.
+
+- Final source checks passed 66 free tests/507 assertions, CLI typecheck, lint and diff checks. Its 36 live-only dry skips do not prove model execution. Orders tier 3 and compose tier 3 remain failed: some rows passed on earlier runs, but the final repaired fixtures need fresh full paid verification after the pinned ChatGPT lane quota is restored. Aggregate usage allowance does not prove a specific model lane has capacity.
+- The compose fixture now reads every source user goal when identifying a subject watch, while retaining label/group matches and excluding unrelated request-only text. Journal preservation assertions were retained; no bounds or safety gates were relaxed.
+- Final source secret scan remains red on 75 exact unchanged-main findings, zero feature-added. The exact SDK archive passed across 275 files. Do not relabel unchanged-main findings harmless or treat local archive tests as registry delivery.
