@@ -141,4 +141,4 @@ and `?libraryState=error` (`:4098`).
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** filtered the server Library panel, verified the clear control and count, expanded to full presentation, then opened Archive and confirmed its empty state plus Refresh. **Limitations:** Document editing/sharing and populated archive/restore behavior were not exercised; the fixture has no archive service methods.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened the docked Library panel, filtered to `a` and verified two matches plus Clear search; opened Archive and confirmed its heading and Refresh control with no rows or empty-state text. **Limitations:** document editing/sharing and populated archive/restore were not exercised; fixture archive methods are unavailable, so the empty ready-state copy cannot be reached.

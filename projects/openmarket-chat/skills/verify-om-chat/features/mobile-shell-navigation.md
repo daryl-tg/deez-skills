@@ -119,4 +119,4 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** at 390x844 visited Home, Chats, Spaces, Library, and om roots and returned from a room detail to Spaces. **Limitations:** Other supported widths, touch-size measurement, browser/native Back, and tape/draft restoration were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** at 390×844, verified the mobile navigation on Home, opened a room detail, and confirmed `Back to Spaces`. **Limitations:** other supported widths, other tab stacks, scroll restoration, touch dimensions, and native WebViews were not exercised.

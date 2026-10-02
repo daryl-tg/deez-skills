@@ -36,4 +36,4 @@ Drive accessible names: `Watches`, `Refresh`, `Show details for <label>`, `Close
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened RemoteHome live and confirmed that away mode has no Watches destination; the daemon-seeded Your om route rendered “om isn’t running”. **Limitations:** A healthy daemon with isolated QA watch data is required for rows, recent fires, actions, and persistence; it was unavailable.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** attempted both `view=agent&alerts=quiet` and the daemon-seeded Your om route; each displayed `om isn’t running`, so Watches and recent fires were not reachable. **Limitations:** a healthy daemon with isolated QA watch data is required for rows, recent fires, actions, and persistence; no daemon was available.

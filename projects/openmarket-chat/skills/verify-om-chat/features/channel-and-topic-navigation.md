@@ -227,4 +227,4 @@ the navigation retargeted the *write* path, not only the read pane.
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened the CPI topic, checked canonical hash, heading and retargeted composer, returned to #ops, then opened All 6 topics. **Limitations:** The remaining channel-header mechanisms, topic expansion, and dock actions were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened `CPI print — Aug`, verified the topic URL, breadcrumb, and retargeted composer, returned to `#ops`, then opened the all-topics list. **Limitations:** long-list scrolling and right-panel dock behavior were not exercised.

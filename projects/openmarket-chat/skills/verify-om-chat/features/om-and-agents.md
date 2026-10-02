@@ -304,4 +304,4 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened Agent Center with its seeded four-item waiting queue and RemoteHome live with Stop/Add context; Your om standalone showed its not-running state. **Limitations:** Consent decisions, all persona/roster states, and connected daemon behavior were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened Agent Center and saw its roster/navigation, then drove the scripted live remote-home transcript through its completed summary and `Add context` control. **Limitations:** agent authorization, daemon-backed actions, and a second identity were not exercised.

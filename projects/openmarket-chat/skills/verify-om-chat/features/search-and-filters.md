@@ -12,11 +12,13 @@ deterministic fixture responses, to **both** fixtures —
 `apps/cloud/tools/visual/shell-fixture.tsx` for `/chat/`. With it, pressing
 Enter in the combobox really runs a search: the panel opens and
 `document.documentElement.dataset.fixtureSearchRequest` records
-`<room>:<topic>:<query>`. The recipe below was re-driven end to end on both
-hosts at GitHub `41a57adc`, which reached this repo through the sync commit
-`8b0ff076`. The search sources and both fixtures are byte-identical to that
-tree. At `f7d7c987` the `/rooms/` panel was re-checked (`?panel=search`
-reads `1 results`); the `/chat/` host was not re-driven.
+`<room>:<topic>:<query>`. The earlier dual-host proof was run at GitHub
+`41a57adc`, which reached this repo through sync commit `8b0ff076`. Since then,
+the `/rooms/` fixture has changed; current `/rooms/` and `/chat/` fixture files
+are not byte-identical. Source confirms both still implement `?search=live` with
+deterministic fixture responses, but only `/rooms/` was re-driven in this pass.
+Do not infer byte parity or current live behavior on `/chat/` from the older
+proof.
 
 ## Sub-features
 
@@ -133,4 +135,4 @@ partial-window warning remains visible.
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** submitted funding in the live root fixture, saw 2 results, and verified the fixture request marker was ops:channel:funding. **Limitations:** Filter operand completion, topic/DM scope, error states, and the cloud host were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** ran live search for `funding`, observed two matching results, and verified `fixtureSearchRequest` was `ops:channel:funding`. **Limitations:** cloud-host live search, filter operand selection, topic/DM retargeting, and production search ranking were not exercised.

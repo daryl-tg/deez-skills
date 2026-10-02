@@ -226,4 +226,4 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** sent a local fixture message and confirmed the row appeared and composer cleared; at 390px the empty Send message control was disabled. **Limitations:** This fixture proves local rendering only. Wire delivery, draft restoration across lanes, attachments, and recovery were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** sent a local fixture message and confirmed it appeared in the tape and the composer cleared. **Limitations:** this fixture send does not prove daemon or relay delivery; attachment, draft recovery, and mobile keyboard behavior were not exercised.

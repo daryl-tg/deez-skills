@@ -178,4 +178,4 @@ seeded presence state — a good second observation alongside the route.
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened Home and checked unread/recent/waiting sections, opened Connections, opened ana DM, then used mobile Chats to see seeded DM rows. **Limitations:** Requests/Blocked, group-member actions, presence changes, and DM editing were not exercised in this pass.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened Home and its DMs/connections view, then opened the seeded ana DM and confirmed its destination-specific composer. **Limitations:** connection requests, blocked users, unread acknowledgement, and remote DM delivery were not exercised.

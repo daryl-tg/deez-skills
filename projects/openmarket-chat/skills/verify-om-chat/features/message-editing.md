@@ -59,4 +59,4 @@ Full server persistence and other clients receiving the edit require the local a
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened a channel message editor with a real pointer hover, saved changed text, and confirmed the row updated and editor closed. **Limitations:** DM menus, unchanged/reverted saves, cancel/keyboard behavior, and relay persistence were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** scrolled an outgoing channel message into view, used real pointer hover and the exact Edit button, saved changed text, and confirmed the row updated. **Limitations:** unchanged saves, keyboard cancel/newline, DM editing, and live transport were not exercised.

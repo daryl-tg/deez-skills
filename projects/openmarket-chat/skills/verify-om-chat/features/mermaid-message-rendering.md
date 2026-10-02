@@ -46,4 +46,4 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** rendered the seeded channel diagram, checked visible SVG labels, opened the accessible PNG preview region, and captured both states. **Limitations:** DM parity, refused/invalid diagrams, viewBox bounds, and library editor preview were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** waited for the seeded channel diagram, checked its visible labels, opened the named PNG preview region, and captured both states. **Limitations:** DM parity, refused/invalid diagrams, viewBox bounds, and library editor preview were not exercised.

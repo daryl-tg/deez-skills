@@ -37,18 +37,29 @@ row. You click it and the pane becomes a place rather than a list of messages �
 your avatar standing in a room, other people's avatars where they are, and a
 channel for talking to whoever is nearby.
 
-## Driving it with control-om-chat
+## Driving it with a standalone source Vite lane
 
-**Not through the shell fixture.** `?view=` has no `world` value, and the shell
-fixture never stubs the world session port, so the sidebar row is inert there —
-clicking it leaves the route on `#/room/ops` and mounts nothing. The surface
-has its own harness:
+**Not through the shell fixture or the wrapper lane.** `?view=` has no `world`
+value, and the shell fixture never stubs the world session port, so the sidebar
+row is inert there — clicking it leaves the route on `#/room/ops` and mounts
+nothing. The solo harness must run in its own root Vite process: the wrapper lane
+produced a React invalid-hook error in `WorldCanvas` during this pass, while a
+fresh standalone Vite process rendered the harness successfully.
+
+From the product repo root, use a free assigned port in the 18097–18197
+range. Preflight it before starting Vite; the example below uses 18102:
+
+```bash
+world_port=18102
+bun x vite --port "$world_port" --strictPort --host 127.0.0.1
+```
+
+Then open the standalone fixture in the browser:
 
 ```bash
 export AGENT_BROWSER_SESSION=verify-world
 agent-browser set viewport 1440 900
-agent-browser open "$(control-om-chat url \
-  'mocks/world-solo/index.html?worldprobe=1')"
+agent-browser open "http://127.0.0.1:${world_port}/rooms/mocks/world-solo/index.html?worldprobe=1"
 ```
 
 That mounts `WorldView` directly over a stub session port. **`#946` rebuilt
@@ -133,4 +144,4 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** the solo world settled at two canvases with offline/reconnecting/no-channel copy; the activity preview rendered Quick write with its live timeline state. **Limitations:** World movement, occupants, live agent cues, emote interaction, and relay transport were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** the solo world rendered two canvases with offline/reconnecting/no-channel copy from a standalone root Vite process; the OpenScape activity preview rendered Quick write and its live timeline sample. **Limitations:** World movement, occupants, live agent cues, emote interaction, and relay transport were not exercised. The control-wrapper lane produced a React invalid-hook error for this harness; the documented standalone Vite lane passed.

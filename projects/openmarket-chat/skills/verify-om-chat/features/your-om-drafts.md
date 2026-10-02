@@ -30,4 +30,4 @@ Capture paired screenshots and accessibility snapshots. During the new-session l
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** attempted the documented source fixture route with omSessions=drafts; it rendered “om isn’t running” and no composer/session rail. **Limitations:** A healthy daemon-served origin is required to pass the presence gate and prove session-scoped drafts; this prerequisite was unavailable.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** attempted the documented `view=agent&alerts=quiet&omSessions=drafts` route; it displayed `om isn’t running` without a composer or session rail. **Limitations:** a healthy daemon-served origin is required to pass the presence gate and prove session-scoped drafts; no daemon was available.

@@ -59,4 +59,4 @@ The actual API rig must include a synthetic HOME mirror-health entry and directo
 
 ### Verification record
 
-**Last verified:** 2026-10-01. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened the proposed voice-card fixture and the shared Voice view; Manage voice cards exposed History and the revision restore journey. **Limitations:** Full setup, import/export, profile selection, learning, offline recovery, and production host parity were not exercised.
+**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened the ready Voice surface, expanded Manage voice cards, opened History, selected r3, and restored it as r5. **Limitations:** setup/import, profile switching, proposal review, and persisted daemon-backed edits were not exercised.
