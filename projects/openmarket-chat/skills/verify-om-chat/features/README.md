@@ -257,3 +257,5 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [agent-token-usage.md](agent-token-usage.md)
 - [agent-draft-sharing.md](agent-draft-sharing.md)
 - [message-editing.md](message-editing.md)
+
+- [agent-creator.md](agent-creator.md) — local agent creation, import, sharing and lifecycle verification.
