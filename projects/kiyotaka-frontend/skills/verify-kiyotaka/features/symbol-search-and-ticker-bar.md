@@ -3,7 +3,9 @@
 The ticker bar is the chart's primary control strip: the symbol picker, a variant
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
-must show the chart actually reloaded — not just that a menu opened.
+must show the chart actually reloaded — not just that a menu opened. This entry
+was re-verified on 2026-10-02 against product tree `a7899f6e07`; guest coverage
+exercised V2 search, an ETH venue switch, interval change, and Heikin Ashi.
 
 ## Sub-features
 
@@ -94,10 +96,9 @@ Preconditions:
   `tb-chart-type-option-<value>-btn` — `candle`, `hollowCandle`, `heikinAshi`,
   `ohlcBar`, `volumeCandle`, `columns`, `highLow`, `spline`, `markerLine`,
   `stepLine`, `hlcArea`, `area`, `baseline`, `footprint`, `tpo` (fifteen, well
-  past the eight the a11y names suggest). A `find text "Line" click --exact`
-  returns `No element found by text` against a menu that is plainly open, and the
-  popover closes under a slow drive, so pair them: hover
-  `tb-chart-type-trigger-btn`, then click the option testid.
+  past the eight the a11y names suggest). Use the stable option testid rather than
+  text matching; the entries are generic nodes and a text click can race the
+  popover closing. Pair the hover with the option testid.
 
   ```bash
   ./control-kiyotaka browser find testid tb-chart-type-trigger-btn hover

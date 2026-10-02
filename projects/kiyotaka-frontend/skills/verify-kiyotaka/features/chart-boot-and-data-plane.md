@@ -2,7 +2,9 @@
 
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
-map depends on this one working, so verify it first and never assume it.
+map depends on this one working, so verify it first and never assume it. This
+entry was re-verified on 2026-10-02 against product tree `a7899f6e07`; coverage
+was guest boot, candles, live ticker values, worker diagnostics, and a screenshot.
 
 ## Sub-features
 
@@ -36,14 +38,11 @@ Preconditions:
   lands in 10-20s.
 - **Read the engine.** Run
   `./control-kiyotaka browser eval "(()=>{const t=window.tc[0];return JSON.stringify({bars:t.metadata[0].rawData.length,overlays:t.metadata.length})})()"`.
-  A healthy guest boot returns ~250 bars. Expect roughly TWO metadata rows now
-  (candles plus a CVD pane): the orderbook heatmap left the default guest
-  workspace, so an older note about restoring heatmap+CVD describes a workspace
-  that is no longer the default. **Assert the bar count, not the overlay
-  count**: the same lane returned 4 overlays on one boot and 3 on the next, because
-  the restore of the guest's own heatmap/CVD overlays can fail independently of the
-  candles (it raises `Error initializing overlay` in the console). `metadata.length`
-  is not a stable proof; `metadata[0].rawData.length` is.
+  A healthy guest boot returns ~250 bars. The current fresh guest starter has a
+  VWAP overlay and no default CVD or orderbook heatmap; prediction-market
+  workspaces have different defaults. **Assert the bar count, not the overlay
+  count**: `metadata.length` is workspace state and is not a stable proof,
+  while `metadata[0].rawData.length` is.
 - **Confirm the worker is alive.** Run
   `./control-kiyotaka browser console` and assert **zero** matches for
   `Error initializing worker`, `[worker] failed to load worker-impl`,

@@ -3,6 +3,11 @@
 The maintained source for verifying user-facing chart behavior. Read this index
 before driving, then use the matching feature file as the recipe.
 
+Maintenance pass: 2026-10-02 on product tree `a7899f6e07` (guest lane,
+`18097`). Chart boot, indicators, symbol/ticker controls, and the guest script
+editor route were source-reviewed and driven. Authenticated workspaces, saved
+layouts, protected scripts, and WRUN marketplace paths remain outside this pass.
+
 ## Baseline preconditions
 
 - Launch the lane on its **assigned** port (`18097`–`18197`), bound to

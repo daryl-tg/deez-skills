@@ -3,7 +3,10 @@
 A user adds an indicator from the Indicators dialog; it mounts as an overlay with
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
-interest) or kScript-backed.
+interest) or kScript-backed. This entry was re-verified on 2026-10-02 against
+product tree `a7899f6e07`; guest coverage opened the V2 dialog, confirmed seeded
+official rows, added RSI, and observed the guest sign-in/slot surfaces. Protected
+and WRUN catalog paths remain unverified on the guest lane.
 
 ## Sub-features
 
@@ -30,36 +33,31 @@ Preconditions:
   `textbox "Search official indicators"` and
   `textbox "Add a package by exact name (@scope/name)"`. It is a `.dialog-style`
   overlay, **not** a `.q-dialog`.
-- **A guest opens straight onto the kScript catalog, and the view switcher is
-  gone.** `indicator-control-bar-legacy-btn` and
-  `indicator-control-bar-wrun-registry-btn` no longer exist. The two-tab strip
-  that replaced them (`indicator-control-bar-tab-indicators-btn` /
-  `indicator-control-bar-tab-kscript-btn`, `role=tab` with `aria-selected`)
-  renders only when `isWrunRegistrySectionEnabled()` passes — the `wrun-registry`
-  flag, which a guest never fetches — so on the guest lane there is no strip at
-  all. Driven live, the control bar held exactly
-  `indicator-control-bar-favorites-btn`, `indicator-control-bar-sort-btn` and
-  `indicator-control-bar-build-btn`, and the catalog tabs were already on screen:
+- **The dialog has explicit source and result modes.** Current source tabs include
+  `indicator-source-tab-official` and `indicator-source-tab-community`, with
+  optional registry, personal, and marketplace lanes depending on auth and flags.
+  The result tabs are `indicator-tab-discover-btn` and `indicator-tab-all-btn`; do
+  not assume a guest always opens directly in a kScript catalog or that the
+  source strip is absent. The legacy control-bar handles are not the current
+  route. Driven live, the guest dialog held these stable controls:
 
   ```
   indicator-source-tab-official   indicator-source-tab-community
   indicator-tab-discover-btn      indicator-tab-all-btn
   ```
 
-  So skip the view switch entirely on a guest. If you DO need the Indicators
-  (registry) side, that needs the flag or an internal role, not a click.
+  Read which modes render before driving a gated lane; signed-in and flag-enabled
+  sessions can add registry, personal, or marketplace sources.
 
   Below the source pair sit seven category buttons: `All`, `Technical`,
   `Volatility`, `Statistics`, `Quant Validation`, `Volume Footprints`,
   `Market Analysis`. `Quant Validation` and `Volume Footprints` are each ONE
   label — matching `Quant` or `Volume` alone finds nothing.
-- **The legacy view lands on `Discover`, which lists nothing, and the official
-  catalog is one more click down.** Under the category row sits a second tab pair,
-  `tab "Discover"` (selected) and `tab "All"`, beside `button "Browse all
-  indicators"`. `Discover` renders no rows at all on a guest boot, so a verifier
-  who stops there reads an empty dialog as a dead catalog. Take `Browse all
-  indicators` — that is the view whose header reads `OFFICIAL INDICATORS <n>` and
-  the only one that tells you whether the catalog is seeded. Drive the tabs by
+- **Discover and All are distinct result states.** Under the category row sits a
+  second tab pair,
+  `tab "Discover"` and `tab "All"`, beside `button "Browse all indicators"` when
+  the empty state offers it. The current guest lane exposed seeded official rows
+  after selecting All. Drive the tabs by
   testid rather than that button's text: `indicator-tab-discover-btn`,
   `indicator-tab-all-btn`, and the source pair `indicator-source-tab-official` /
   `indicator-source-tab-community` (a guest sees only those two; `My Scripts` and
@@ -67,81 +65,11 @@ Preconditions:
   banner has its own handle, `indicator-catalog-unseeded-notice`, which is a
   cleaner assertion than the banner text. `indicator-browse-all-btn` renders only
   in the empty state, so do not depend on it being there.
-- **The engine bypass did not mount anything on the 2026-09-25 tree, and that
-  currently leaves `ind-add`, `ind-legend` and `ind-limit` with no guest route.**
-  `chartStore.addIndicator('ORDERBOOK_DEPTH',{},0)` returned without throwing and
-  added nothing: `metadata` unchanged, the ticker counter pinned, and — unlike the
-  documented failure — **no** `no indicatorControl registered` line in the
-  console. Reproduced on a fresh agent-browser daemon, on a lane whose doctor was
-  green and whose candles arrived in 5s, with the registry warmed by opening and
-  closing the dialog first, for both `ORDERBOOK_DEPTH` and `TRADING_TOTAL_VOLUME`
-  — two of the three `ALWAYS_LOAD_TYPES`, so it is the add path rather than one
-  control. A later pass instrumented the promise and found it DOES settle,
-  resolving to `undefined` after tens of seconds: this is one of the dozen silent
-  early-returns in `addIndicator`, not a hang. The single-instance guard is ruled
-  out — the failure reproduces for a key that is not already in `tc.metadata`.
-  Before blaming it, read `tc.metadata` first: a key that IS already mounted
-  returns early through that guard with a toast and no console line, which looks
-  identical.
-
-  **There are a dozen silent returns, so identify WHICH one rather than retrying.**
-  Time the call first — under ~100ms means a synchronous gate fired, and tens of
-  seconds means it got past the awaits (control load, coin lookup,
-  `initializeOverlay`) and bailed late. Then run the cheap probes, with
-  `cs = document.querySelector('#tc-container-0').__vueParentComponent.setupState.chartStore`:
-
-  ```js
-  !!window.tc?.[0]                       // engine present
-  !!cs.mergedAllCharts[0]                // workspace present
-  cs.mergedAllCharts[0].metadata.interval // must be truthy
-  cs.paneBudget                          // a non-null maxIndicators refuses slot-taking adds
-  ```
-
-  All three passing plus a slow call points at `initializeOverlay` returning no
-  usable template. A registry miss is NOT this: it throws, logs, and toasts. The
-  pane-budget refusal toasts but logs nothing, and it applies to bare eval adds
-  regardless of `opts`. Since every dialog add is guest-walled
-  (below), a guest has no way to mount an overlay at all while this holds. Check
-  it before planning a run that depends on those three sub-features, and if it
-  still fails, report them unreachable rather than inventing a route.
-
-  The recipe below is kept because it is the intended technique, not because it
-  was observed working on that tree.
-
-  **Add without the UI**, when the proof is about the overlay rather than the
-  dialog — but only with a key whose CONTROL IS ALREADY LOADED:
-  `./control-kiyotaka browser eval "document.querySelector('#tc-container-0').__vueParentComponent.setupState.chartStore.addIndicator('ORDERBOOK_DEPTH',{},0)"`.
-  Registry keys are the `INDICATOR_TYPES` ids from
-  `@orangecharts/chart-schema/indicator-types` — every type registered by
-  `indicatorRegistry.set(...)` under `src/indicators/controls/*/index.ts`, and
-  enumerable without importing anything as `KNOWN_INDICATOR_TYPES`.
-  `src/constants/indicator-names.ts` is the cross-language search-alias map, not
-  the registry. A kScript indicator is `TECHNICAL_SCRIPT` with `ovType` in params.
-
-  **Controls load lazily, so warm the registry before an eval add.**
-  `src/indicators/indicator-registry.ts` imports each of the ~84 controls on
-  demand; a fresh boot holds only `ALWAYS_LOAD_TYPES` (`TRADING_TOTAL_VOLUME`,
-  `TRADING_TOTAL_LIQUIDITY`, `ORDERBOOK_DEPTH`) plus whatever the workspace
-  restored. Opening the Indicators dialog schedules `loadAllControls()` at idle
-  with a 2000ms timeout, so **open it once, wait ~3s, close it, then eval-add**.
-  `addIndicator` does `await loadControl(type)` itself, so a miss on a KNOWN type
-  is the control module failing to import (the path settles `module-load`), not a
-  missing recipe step — which is what happened on the run that wrote this note.
-  It throws
-
-  ```
-  addIndicator: no indicatorControl registered for type='TIME_PRICE_OPPORTUNITY'
-  ```
-
-  into the console and mounts nothing, while `addIndicator` itself returns
-  normally — so the drive looks like a silent no-op, not an error. Read the console
-  before concluding the indicator is broken. Only three keys are guaranteed:
-  `ALWAYS_LOAD_TYPES` is `TRADING_TOTAL_VOLUME`, `TRADING_TOTAL_LIQUIDITY` and
-  `ORDERBOOK_DEPTH` (`src/indicators/indicator-registry.ts`). `ORDERBOOK_HEATMAP`,
-  `CUMULATIVE_VOLUME_DELTA` and `PM_SIGNAL` have also been seen registered on a
-  guest boot, but only because that workspace restored them — a different venue or
-  a cleared workspace drops them. For anything else, add it through the dialog,
-  which is the user path the proof should be using anyway.
+- **Add through the dialog and assert the engine.** The current seeded guest lane
+  added RSI through its official row and increased `window.tc[0].metadata` from
+  two to three entries. A direct `chartStore.addIndicator` call is not equivalent
+  to a user add: admission depends on caller options, duplicate-family checks, and
+  pane budgets, so use the dialog path for user-facing proofs.
 - **Confirm it mounted.** Run
   `./control-kiyotaka browser eval "(()=>JSON.stringify(window.tc[0].metadata.map(m=>m.settings?.ovType ?? m.overlayType ?? m.type)))()"`.
   Keep the `overlayType` rung: on an overlay row `type` is the SIDE
@@ -165,12 +93,10 @@ Preconditions:
   Whether that is the engine or the bypassed add path is unresolved — so prove any
   legend claim on a dialog-added overlay, and do not report a removal bug from a
   programmatic one.
-- **Guest cap.** The ticker bar reads `Indicators 2/3` once the guest workspace's
-  own two overlays have restored, rising to `3/3`. **Read it after the restore, not
-  after first paint** — the same boot reads `Indicators 0/3` for the first seconds
-  while `metadata` already holds three entries, so an early read invents a wrong
-  baseline and every later delta is off by two. The dialog carries the same count
-  as `button "2 / 3"` (testid
+- **Guest cap.** Read the live counter after workspace restoration, not during
+  first paint. The current fresh guest dialog exposes `button "1 / 3"`, and adding
+  RSI raised the engine metadata to three rows. The dialog carries the same count
+  as its chart-only counter (testid
   `indicator-search-bar-chart-only-btn`). Assert that text — and assert it through
   the DIALOG's Add button, because **the cap is a UI gate that
   `chartStore.addIndicator` does not enforce**. A programmatic fourth add mounts

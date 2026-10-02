@@ -4,7 +4,11 @@ The script editor is a drawer docked alongside the terminal, never a dockview
 tab, where a user writes kScript, runs it, and sees the result mount as an
 overlay through the frontend adapter. Public and own scripts run client-side in the browser; protected and
 marketplace (WRUN) scripts execute server-side and ride the same canonical
-pipeline back.
+pipeline back. Run targets depend on delivered source, visibility, and published
+builds: editable and delivered read-only scripts can run in the browser, while
+protected or unavailable builds use the cloud lane. This entry was re-verified
+on 2026-10-02 against product tree `a7899f6e07`; guest coverage opened the drawer
+through Super Search and confirmed the sign-in wall on new-script creation.
 
 ## Sub-features
 
@@ -13,9 +17,9 @@ pipeline back.
 - `ks-lint` the editor reports a syntax error rather than mounting (authed).
 - `ks-protected` a protected / WRUN script returns from the backend lane (authed).
 
-`ks-run` and `ks-lint` share one unmet precondition on the guest lane:
-`useJwtStore().isLoggedIn` is false, so there is no template picker, no writable
-buffer and no tab — Run is a silent no-op. Do not photograph it.
+Guests can open the drawer read-only, but creating a new script requires an
+account and raises the sign-in wall. Do not describe the guest Run button as a
+silent no-op without first identifying the current tab and source-delivery state.
 
 ## How to get to it (user POV)
 
