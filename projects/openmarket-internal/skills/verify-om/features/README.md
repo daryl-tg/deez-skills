@@ -122,3 +122,5 @@ state, commands, and observable proof.
 Not yet mapped, and worth adding when a change touches them: the MCP
 surface (`om mcp serve --stdio`), charts (`om chart`), the `om chat` TUI,
 packages and the registry, and the execution/venue verbs.
+
+- [agent-creator-lifecycle.md](agent-creator-lifecycle.md) — local agent creation, import, sharing and lifecycle verification.
