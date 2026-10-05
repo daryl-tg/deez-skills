@@ -165,4 +165,4 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** selected Light theme, Moss palette, and high contrast, then verified the root data attributes changed to `light`, `moss`, and `high`. **Limitations:** other settings sections, reload persistence, system contrast changes, and cloud-host behavior were not exercised.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the user Appearance page in the settings fixture and verified its default dark-theme selection and settings navigation. **Limitations:** Theme changes, other hosts/pages, system contrast preference, advanced density controls, and dismissal paths were not exercised.

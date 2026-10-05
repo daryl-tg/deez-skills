@@ -32,4 +32,4 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** attempted the documented `view=agent&alerts=quiet&omSessions=daemon` route; it displayed `om isn’t running` without a session rail. **Limitations:** a healthy daemon-served origin and isolated session store are required to prove unread receipts; no daemon was available.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened view=agent&alerts=quiet&omSessions=daemon on the run-owned source lane; it displayed “om isn’t running” with no session rail. **Limitations:** An isolated daemon with conversation registry, read receipts, history, and SSE is required; it was unavailable.

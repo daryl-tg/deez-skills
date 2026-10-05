@@ -14,7 +14,7 @@ Open Your om and choose a recent conversation. Type without sending, choose anot
 
 ## Driving it with control-om-chat
 
-Use the assigned lane and run `control-om-chat doctor`. Through an isolated daemon origin proxying that lane, open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The modifier is on `main` (`shell-fixture.tsx:2363`, seeding `Research A` and `Research B` at `:2379-2380`). Opened directly on the lane without that daemon origin, the page shows only "om isn't running" (measured at `f7d7c987`).
+Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts` through an isolated daemon origin proxying that lane. The fixture seeds Research A/B at `shell-fixture.tsx:2442-2460` and binds local session switching/creation at `:2741-2793`. These are local synthetic threads, but the running-om presence gate still applies: direct source-lane access shows only "om isn't running".
 
 The fixture seeds `Research A` and `Research B` buttons and real Composer/AgentThread components. Type distinct text in the `Message ✦ om` textbox, switch via those buttons, and assert the textarea's exact value after each switch. Open `New session`, assert its visible textbox is empty, type new text, press Enter, and verify `New research` contains that exact text. Return to A and B to verify their drafts survived. Repeat session selection through mobile `Open om conversations` at 390px.
 
@@ -30,4 +30,4 @@ Capture paired screenshots and accessibility snapshots. During the new-session l
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** attempted the documented `view=agent&alerts=quiet&omSessions=drafts` route; it displayed `om isn’t running` without a composer or session rail. **Limitations:** a healthy daemon-served origin is required to pass the presence gate and prove session-scoped drafts; no daemon was available.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened view=agent&alerts=quiet&omSessions=drafts directly on the run-owned source lane; it displayed “om isn’t running” with no composer or session rail. **Limitations:** An isolated daemon-served origin is required to pass presence and prove session-scoped drafts; it was unavailable.

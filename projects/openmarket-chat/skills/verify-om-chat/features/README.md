@@ -62,7 +62,7 @@ values each land a different journey:
 |---|---|
 | `persona-panel-fixture.html` | The voice card (`state=card` is the default), with **Export card**, **Import a card** and **Create manually** |
 | `persona-panel-fixture.html?state=awaiting` | "Make your messages sound like you" — nothing learned yet |
-| `persona-panel-fixture.html?state=proposed` | "Your first voice card", with an **Accept** button |
+| `persona-panel-fixture.html?state=proposed` | "Your first voice card", with a **Use this card** button |
 | `persona-panel-fixture.html?state=pending` | "Proposed changes", with **Review**, **Accept**, **Not now** and **Export card** |
 
 The shell reaches the same surface at `?view=agent&panel=voice` (or `away`, or
@@ -240,6 +240,7 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 ## Files
 
 - [channel-and-topic-navigation.md](channel-and-topic-navigation.md)
+- [topic-cleanup.md](topic-cleanup.md)
 - [mobile-shell-navigation.md](mobile-shell-navigation.md)
 - [composer-and-sending.md](composer-and-sending.md)
 - [direct-messages-and-home.md](direct-messages-and-home.md)
@@ -257,5 +258,3 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [agent-token-usage.md](agent-token-usage.md)
 - [agent-draft-sharing.md](agent-draft-sharing.md)
 - [message-editing.md](message-editing.md)
-
-- [agent-creator.md](agent-creator.md) — local creation/import/sharing, both qualified native coding lifecycles, and explicit remaining evaluation/delivery limits.

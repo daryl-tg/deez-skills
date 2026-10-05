@@ -179,10 +179,12 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   staged image *and* video, so one click can arrow into the neighbouring file.
   Nothing here stages one: no parameter does it (all seventy-odd `params.get`
   keys enumerated — 73 on `f7d7c987`) and the fixture's pending-attachment arrays start empty, fed
-  only by `session.acceptFile` behind the real file input. The unmet
-  prerequisite is a staged file. Whether the harness can drive that hidden
-  `<input type="file">` directly is untested — treat this as unreached rather
-  than unreachable until someone tries it.
+  only by `session.acceptFile` behind the real file input. The maintained
+  `tools/visual/mobile-conversation.visual.ts:667` path drives the hidden input
+  with `setInputFiles`, and the shell fixture accepts the file at
+  `tools/visual/shell-fixture.tsx:4101`. Preview/lightbox behavior still needs
+  preview-ready attachment metadata and is not established by that fixture
+  path.
 - **A reference pill is a backdrop token, not a DOM node in the textarea.**
   Typing an `om://doc/...` URI into the composer paints a run in
   `.composer-backdrop` carrying `data-pill="true"` and
@@ -226,4 +228,4 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** sent a local fixture message and confirmed it appeared in the tape and the composer cleared. **Limitations:** this fixture send does not prove daemon or relay delivery; attachment, draft recovery, and mobile keyboard behavior were not exercised.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** sent a local fixture message and verified the message-row count increased and the composer cleared; the channel and topic placeholder names followed navigation. **Limitations:** Wire delivery, attachment staging and preview, draft restoration across lanes, and recovery were not exercised.

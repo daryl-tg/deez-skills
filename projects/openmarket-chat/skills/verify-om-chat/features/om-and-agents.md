@@ -119,6 +119,11 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   pages" nav, no tablist and no "Voice & away" button anywhere on
   `?view=agents`.
 
+  On product HEAD `231c95f4`, **+ Wire an agent** opens Settings → Agent
+  Settings (the source fixture shows the install-OM notice). It is not a local
+  creator, import, or catalog flow; those flows are absent from this product
+  tree and are not covered here.
+
   **Since `#978` persona lives inside Agents, not beside it.** The Agent
   Center's context rail is an `aside` named **"Agent roster"**
   (`AgentCenterPane.tsx:745`) holding, top to bottom:
@@ -186,6 +191,12 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
   composer with no lane toggle and no target (`Composer.tsx:3831`, `:5163`),
   so the shell fixture's not-running om never shows it.
 
+  Relay-history tool rows now prefer non-empty `personText` (the result phrased
+  for the person) and fall back to `content` when it is missing or blank. Open
+  **Expand tool activity** in `remote-home-fixture.html?state=live` to inspect
+  the shared presentation (`tool-result-text.ts:4`, `remote-control.ts:1579,
+  1914`). That seed does not provide a `personText` comparison.
+
 ## How to get to it (user POV)
 
 Top of the rail there are two faces. **Your om** opens your own assistant —
@@ -200,6 +211,8 @@ Three harnesses, and they reach different parts.
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=agent` | Your om — **only** the not-running empty state |
+| `shell-fixture.html?view=agent&omSessions=drafts` | Local Research A/B draft seed; the running-om presence gate still shows not-running on the source lane |
+| `shell-fixture.html?view=agent&omSessions=daemon` | Real `OmSessionState` adapter for a daemon-served lane; it does not bypass presence or provide watch data |
 | `shell-fixture.html?view=agents` | The Agent Center roster — the first of two Agent pages |
 | `shell-fixture.html?view=agent&panel=voice` | Agents → `#/agents/voice`, "Voice" / "Current", mocked and loaded |
 | `shell-fixture.html?view=agent&panel=away` | Agents → `#/agents/away`, "Research om is covering you" |
@@ -248,18 +261,14 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ## Gotchas
 
-- **The fixture cannot show a running om.** `?view=agent` renders the empty
+- **No query parameter bypasses the running-om gate.** `?view=agent` renders the empty
   state — `h1` *"om isn't running"*, *"No recent daemon snapshot is available on
-  this device"*, and an `om serve` hint — and there is no parameter to change
-  that. The shell fixture reads over a hundred query parameters and **none** of
-  them seed a daemon snapshot, om session, watch or schedule. It is stronger
-  than a missing stub: the gate reads `presence.running`, which comes from a
-  real `fetchOmHealth()` network call with no fixture hook at all, so no
-  parameter *could* be added to the fixture alone to get past it. (Do not be
-  fooled by `?alerts=`, which seeds the unrelated room price-alert feed.) So the whole
-  `#653` surface (session sidebar, compose, watches, om settings) is
-  `verified-unreachable` from this lane; the unmet prerequisite is a running
-  daemon, which means the daemon-served rig, not the fixture.
+  this device"* on this lane. The fixture now has two distinct session modes:
+  `omSessions=drafts` seeds Research A/B locally, while `omSessions=daemon`
+  wires real session-list/history operations. Neither fakes `presence.running`,
+  which still comes from `fetchOmHealth()`. The shell fixture can seed adapter
+  behavior but cannot show a running om without a daemon-served origin. Watches
+  additionally need daemon watch RPCs and QA watch data.
 - **Persona is unreachable from a `view=agents` page load — by any control,
   not just the old query.** The fixture decides whether to mock persona
   **once, at page load** (`shell-fixture.tsx:192-204`): it mocks when the query
@@ -304,4 +313,4 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened Agent Center and saw its roster/navigation, then drove the scripted live remote-home transcript through its completed summary and `Add context` control. **Limitations:** agent authorization, daemon-backed actions, and a second identity were not exercised.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the seeded Agent Center shell and standalone queue; verified the canonical Voice page and the legacy persona route failure; RemoteHome live showed relay tool activity and no Watches destination; omSessions=drafts and omSessions=daemon both remained behind the not-running gate. **Limitations:** Daemon-backed session, unread, watch, remote-control, access, and live personText behavior require an isolated daemon and were not exercised.

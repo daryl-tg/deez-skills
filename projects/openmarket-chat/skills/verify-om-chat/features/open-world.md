@@ -13,8 +13,10 @@ fixture cannot reach.
 - Agent activity visualization: agent avatars can read, write, or search with
   the shared book controller. `tools/openscape-preview/activity.html` exercises
   scripted renderer states; authenticated activity still needs live observations.
-- The bound channel for a location, and its "Create a #world channel to talk
-  here" empty state.
+- The bound channel for a location, including the "No #world channel" state.
+- The unavailable-world refusal when there is no connected daemon: show
+  "Open World requires a connected daemon" and leave the canvas unmounted
+  (`WorldView.tsx:158,289-297,709-714`).
 - Transport connect / retry, and the offline banner when it cannot reach the
   relay.
 - A resizable channel column beside the world (`#948`): a handle
@@ -95,9 +97,8 @@ separate connection line (`.world-chat-connection`).
 
 New in the same rebuild, all present in the solo harness: a `.world-minimap`,
 two `.world-view-control` buttons named **"Follow player"** and **"Enter
-fullscreen"**, and five `.world-look` swatches — **Blue, Green, Amber,
-Violet, Hooded** (the fifth arrived with `#970`'s outfits; count five, not
-four).
+fullscreen"**, and five `.world-look` swatches — **Wayfarer, Ranger,
+Surveyor, Violet, Rust** (`characterModel.ts:9-51`).
 
 The shared renderer's scripted Agent activity study is a second local harness:
 run `bun x vite --config tools/openscape-preview/vite.config.ts --port <assigned-free-port> --strictPort --host 127.0.0.1`, then open
@@ -118,6 +119,9 @@ below: proving them needs the relay and a second occupant.
   not a regression — it proves rendering, layout, and the bound-channel empty
   state, and nothing about movement sync, presence, or the wire. Anything about
   two occupants seeing each other needs a real relay.
+- The solo route has a stub world endpoint, so it exercises offline/retry.
+  The distinct no-daemon-URL refusal hides the canvas and requires a connected
+  daemon; do not infer it from the offline banner.
 - **Emotes are unreachable here, twice over.** The wheel offers Read, Write,
   Search, Greet, Sit and Stop, and opens by **holding `E`** (a menu named "Emotes";
   releasing picks the highlighted one — `WorldEmoteWheel.tsx`). The wheel only
@@ -144,4 +148,4 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** the solo world rendered two canvases with offline/reconnecting/no-channel copy from a standalone root Vite process; the OpenScape activity preview rendered Quick write and its live timeline sample. **Limitations:** World movement, occupants, live agent cues, emote interaction, and relay transport were not exercised. The control-wrapper lane produced a React invalid-hook error for this harness; the documented standalone Vite lane passed.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** the worldprobe harness showed offline/reconnecting state, no bound world channel, and five look names; the Quick write activity preview exposed its live timeline sample. **Limitations:** World movement, occupants, no-daemon refusal, authenticated agent cues, emotes, and relay transport were not exercised.

@@ -135,4 +135,4 @@ partial-window warning remains visible.
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** ran live search for `funding`, observed two matching results, and verified `fixtureSearchRequest` was `ops:channel:funding`. **Limitations:** cloud-host live search, filter operand selection, topic/DM retargeting, and production search ranking were not exercised.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the channel search panel and verified its seeded one-result state and filter controls. **Limitations:** Filter operand completion, topic/DM scope, live search seam, errors, and the cloud host were not exercised.

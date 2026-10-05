@@ -14,8 +14,9 @@ topics. The most-driven surface in the app and the cheapest one to prove.
 - The topic view's breadcrumb and its **Back to #channel** return.
 - The composer retargeting to whatever is open.
 - The channel header, which is **four** separate mechanisms, not one list:
-  - a `tablist` named "Channel view" holding exactly two tabs, **Chat** and
-    **Topics 6**;
+  - a `tablist` named "Channel view" holding **Chat** and **Topics**. The
+    Topics tab carries the open-topic count in its accessible name when the
+    count is positive (for example, **Topics 6** in the seeded room);
   - a standalone Alerts beacon `button`, whose name carries its state
     (`Alerts: nothing firing`, `Alerts: 3 feeds are ringing`, and a third
     state for tuning, `Alerts: 2 feeds need an answer` —
@@ -26,14 +27,14 @@ topics. The most-driven surface in the app and the cheapest one to prove.
     `Search #ops`, and `Open search panel`
     ([search-and-filters.md](search-and-filters.md)).
   To-dos is none of those — it survives as a menu item behind "More channel
-  actions", spelled "Hide to-dos". **Pins and bookmarks are no longer menu
-  items**: `#740` gave them rail doors and dropped them from here. The menu
-  today is Join voice, Brief, Invite people, Invite agent, Your agents…, New
-  topic…, Summon your om, Channel settings, Mark as read, **Notification
-  settings**, Mute channel, Hide to-dos, Convert to alerts…, Copy channel
-  link — fourteen items. Notification settings is the newest, added by
-  `58aaefa9` with a submenu of its own, and it sits between Mark as read and
-  Mute channel (`ChannelHeaderMenus.tsx:149`).
+  actions", with a state-dependent **Show to-dos** / **Hide to-dos** name.
+  **Pins and bookmarks are no longer menu items**: `#740` gave them rail doors
+  and dropped them from here. Menu contents depend on session capabilities and
+  state; compact mode adds **Topic inbox** and compact actions, so the menu has
+  no fixed item count (`ChannelHeaderMenus.tsx:444-580`). **Notification
+  settings** has its own submenu (`ChannelHeaderMenus.tsx:149`). **Clean up
+  topics** is available only where a daemon can triage topics, so it is absent
+  from the source fixture. See [topic-cleanup.md](topic-cleanup.md).
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
   (`packages/chat-ui/src/components/RightPanels.tsx:179`): a collapse/expand toggle plus one
@@ -227,4 +228,4 @@ the navigation retargeted the *write* path, not only the read pane.
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened `CPI print — Aug`, verified the topic URL, breadcrumb, and retargeted composer, returned to `#ops`, then opened the all-topics list. **Limitations:** long-list scrolling and right-panel dock behavior were not exercised.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened #ops, entered the CPI topic, checked route, heading, and retargeted composer, returned, opened the topics list, and inspected the quiet-topic seed and conditional channel menu. **Limitations:** Long-list behavior, compact-menu variants, dock actions, and the daemon-only Clean up topics sheet were not exercised; see topic-cleanup.md.

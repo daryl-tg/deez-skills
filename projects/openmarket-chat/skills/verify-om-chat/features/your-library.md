@@ -141,4 +141,4 @@ and `?libraryState=error` (`:4098`).
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened the docked Library panel, filtered to `a` and verified two matches plus Clear search; opened Archive and confirmed its heading and Refresh control with no rows or empty-state text. **Limitations:** document editing/sharing and populated archive/restore were not exercised; fixture archive methods are unavailable, so the empty ready-state copy cannot be reached.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the server-scoped Library panel and the full-page Archive lens; the archive route was active with its container, Archived heading, and Refresh button, but no count, rows, or empty-state text appeared. **Limitations:** Document editing/sharing and populated archive/restore behavior were not exercised; the fixture lacks archivedDocs/restoreDoc service methods.

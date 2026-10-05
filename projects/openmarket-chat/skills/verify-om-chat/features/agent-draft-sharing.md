@@ -56,4 +56,4 @@ session methods.
 
 ### Verification record
 
-**Last verified:** 2026-10-02. **Product commit:** `f8b68bf762cfa347b7f588f6fc94eb78b631381b`. **Scope:** opened draft history, edited the loaded draft, shared revision 1, and confirmed the receipt plus matching revision/text markers while the composer stayed unsent. **Limitations:** the fixture callback is local; daemon persistence, agent receipt, and room posting were not exercised.
+**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the seeded loaded draft, edited it, shared revision 1, and saw the local receipt while the changed text remained unsent in the composer. **Limitations:** History navigation, daemon persistence, agent receipt, and room posting were not exercised; the fixture callback is local.
