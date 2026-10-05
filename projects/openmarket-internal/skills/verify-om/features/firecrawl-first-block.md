@@ -38,7 +38,7 @@ The 2026-09-30 rig and preload are preserved in `/Users/dboon/Documents/dev-note
 ## Gotchas
 
 - This pass proves real product policy, persistence, parsing and user surfaces against simulated HTTP responses. It does not prove the external Firecrawl service or delivery of an interactive agent card; the guest lane has no LLM credential. Regression tests cover the offer/drain path.
-- Automatic recovery requires a configured client and an eligible refusal. It does not retry without a key, for `js_shell` refusals, or after an offer was declined.
+- Automatic recovery requires a configured client and an eligible refusal. Script-shell failures are eligible; a refused vendor read moves the source to its 24-hour hold. No-key requests and declined offers do not retry automatically.
 - Bun ignores Node's `NODE_OPTIONS=--require` for this preload. The proved rig uses a run-local Bun wrapper that injects `--preload` only for the product bootstrap. Normal build and test commands use the real Bun binary.
 - The CLI probes locally. Both the CLI and daemon need the loopback switch and fixture key during the configured phase.
 - Use `--no-overview` with `accept_all` on a guest lane: classification alone does not disable model-generated overview text.

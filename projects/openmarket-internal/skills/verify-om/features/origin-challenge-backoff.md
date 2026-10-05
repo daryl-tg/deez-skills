@@ -23,8 +23,9 @@ with no reconnect counted. None of it needs an account.
   finds nothing.
 - `recover` reopens the stream on a clean probe, logs `reopened after the
   window`, and clears the row.
-- `escalate` (v0.400.0, credentialed homes only) retries a refused fetch through
-  an address that is not this machine's, instead of going quiet.
+- `escalate` (v0.400.0) can retry an eligible refused fetch through an allowed
+  third-party transport instead of going quiet; availability follows the
+  transport policy and does not require a credentialed home by definition.
 
 ## How to get to it (user POV)
 
@@ -132,19 +133,12 @@ Steps:
 
 ## Gotchas
 
-- **A credentialed home no longer just goes quiet.** v0.400.0 added an
-  *escalation* path: when an origin refuses this machine — a challenge, or the
-  window it opened — the feed adapter can refetch the same URL through a
-  third-party transport (`shared/escalating-fetcher.ts`, wired in
-  `runner/subscriptions/adapters/feed.ts`, resolved by
-  `runner/firecrawl/registry.ts`). The daemon registers that transport at boot
-  and at each reconcile from a stored Firecrawl credential; **a home holding no
-  key registers `null`, which is "the direct fetcher exactly as it was"**
-  (`runner/index.ts` `refreshFirecrawlEscalation`). So everything this entry
-  documents is the NO-CREDENTIAL behaviour, and it was re-confirmed intact at
-  v0.400.0. What escalation does on a credentialed home is
-  `verified-unreachable` from a guest lane; the unmet prerequisite is a
-  Firecrawl key (`om setup firecrawl`).
+- **Escalation follows transport policy.** v0.400.0 added an escalation path
+  when an origin refuses this machine. The feed adapter can refetch through a
+  third-party transport (`shared/escalating-fetcher.ts`), subject to the
+  transport's eligibility and policy checks. A guest lane without a configured
+  Firecrawl client proves only the direct-fetch cooldown path; configured
+  recovery is tracked separately in `firecrawl-first-block.md`.
 
 - A page watch needs a model credential even with `--diff-only`, so a guest
   lane proves the feed and extract paths; the page path is on its unit tests.
