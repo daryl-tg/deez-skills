@@ -34,8 +34,12 @@ unread.
   **product-video**, through `playbooks/product-video.md`. Read the project's
   verification map first, then propose real states and a beat grid for approval.
   Use one continuous shell, a human cursor, purposeful zooms and transitions,
-  and deterministic `seek(t)` rendering. Prefer under 20 seconds; raise longer
-  cuts at storyboard approval with a reason and shorter option.
+  and deterministic `seek(t)` rendering. Launches capture the feature's core
+  value and visual proof; walkthroughs teach its steps. Determine runtime from
+  the feature's communication needs and explain it in the storyboard.
+  Carry approved preferences across films through the skill's preset records.
+  Its `references/review.md` defines the video cadence: verify creation, skip
+  verification on feedback previews, ask readiness, then verify before final delivery.
 - **Motion in shipped components and interaction feel** → **animate** on web,
   **animate-expo** on Expo. The craft bar behind both is **emil-design-eng**, and **apple-design**
   for gesture and material work. Auditing a codebase's motion is

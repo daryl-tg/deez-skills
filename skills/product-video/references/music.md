@@ -28,10 +28,11 @@ For a stable tempo, fit beat time against beat index rather than using a median
 of quantized intervals. Use the measured grid for the final choreography.
 A varying-tempo track needs its actual beat timestamps.
 
-Start the excerpt on a verified downbeat. Seven 4/4 bars are 28 beats, taking
-`28 × 60 / measured_BPM` seconds at a stable tempo. Do not assume 120 BPM or
-change playback speed just to hit 14 or 20 seconds. If the phrase reaches
-20 seconds or longer, follow the duration discussion in `SKILL.md`.
+Start the excerpt on a verified downbeat. At a stable measured tempo, a phrase
+takes `beats × 60 / measured_BPM` seconds. Choose its length from the feature's
+approved story budget in `SKILL.md`; no bar count or runtime is prescribed.
+Do not assume the track is exactly 120 BPM or change its playback speed to fit
+an arbitrary duration. Allow the proof, reading holds and ending to resolve.
 
 Measure each UI sound's transient peak and leading silence with numpy. To place
 the peak at action time `a`, offset a file with peak time `p` to `a - p`.
