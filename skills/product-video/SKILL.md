@@ -6,8 +6,9 @@ description: Turn a product journey or feature into a continuous UI motion film 
 # Product Motion Film
 
 Act as a product motion designer and creative engineer. Turn a supplied product
-journey or feature into a polished, continuous UI motion film. Understand the
-product before designing the choreography.
+journey or feature into a polished, continuous UI motion film. For a launch,
+capture what the feature makes possible and why the viewer should care.
+Understand the product before designing the choreography.
 
 ## Inputs
 
@@ -17,12 +18,15 @@ interactions. Creative inputs are pure black and white or one accent color, and
 royalty-free music around 120 BPM with its commercial-use license.
 
 Read supplied context before asking questions. Infer product facts from maps,
-documentation and source; ask only for missing preferences. If given a journey,
-propose 8–12 UI states yourself. Do not ask the user to design the sequence.
-For OpenMarket films, load [the brand preset](references/brands/openmarket.md)
-for the approved mascot, closing card and double-blink sound. Other brands keep
-this generic workflow and use their own assets. Existing storyboard approval
-and later corrections carry forward; ask again only for material scope changes.
+documentation and source; ask only for missing preferences. Choose the states
+needed to tell the supplied journey. State count follows the story, not a quota.
+Do not ask the user to design the sequence.
+Load [preferences and continuity](references/preferences.md) and the applicable
+brand or series preset. For OpenMarket, use [its preset](references/brands/openmarket.md)
+for the approved mascot, closing card and double-blink sound. Carry reusable
+feedback into those records; keep one-film overrides in the run brief. Existing
+storyboard approval and later corrections carry forward. The final-readiness
+question is separate from storyboard approval.
 
 ## Understand the product
 
@@ -33,8 +37,10 @@ use the supplied map, product documentation and implementation. Existing
 `references/projects/<project>.md` files are fixture leads; check them against
 the current source and map.
 
-Trace one complete journey:
+Trace the real workflow for understanding and evidence:
 entry point → user action → system response → next action → final outcome.
+This research path is not automatically the film's sequence. Select what to
+show according to the film's purpose below.
 
 For each proposed state, identify:
 
@@ -51,14 +57,51 @@ toggle, toast, loading state or confirmation for an attractive transition.
 Every state must advance the chosen outcome or explain an important feature.
 Report factual gaps and missing fixture support before substituting a recreation.
 
+## Story before choreography
+
+Set `purpose: launch | walkthrough` from the request. Feature announcements,
+release reels and product launches use `launch`. An explicit tutorial or request
+to teach the steps uses `walkthrough`. Do not turn an announcement into onboarding.
+
+For a launch, write the feature's core in one sentence: who it is for, what new
+capability it gives them, and why that change matters. Name the distinguishing
+mechanism and the visible evidence supporting the claim. Avoid benefits or
+comparisons the product evidence does not establish.
+
+Build the film around the strongest reveal of that capability. Open on the
+feature's value, a meaningful contrast or the problem it resolves. Show the
+decisive proof and let the result register before the brand signature. Supporting
+moments earn their time by making the core claim understandable or credible.
+Feature lists and menu tours are not substitutes for this reveal.
+
+A launch can begin in a real prepared state with the relevant feature already
+open. Keep its product context recognizable. Leave unrelated setup, navigation,
+saving and housekeeping out of the film. Record omitted preparation in the
+storyboard; do not imply those steps never exist or that the shown click performs
+them. Any prerequisite or confirmation needed for an action actually shown
+remains truthful. Compression must preserve cause and effect.
+
+A walkthrough follows the required interaction sequence so the viewer can repeat
+it. A launch's primary question is what becomes possible; a walkthrough's is how
+to do it. For example, a launch for pinned chart values can start with a tooltip
+open, reveal that its reference survives a new hover, and hold the comparison.
+It need not teach symbol selection or toolbar navigation.
+
+For each story phrase, name the focal subject and what the viewer learns.
+Cursor, camera, UI response and copy direct attention to that subject; competing
+motion waits. Reserve a settled view of the payoff. Keep the same entity
+recognizable so viewers can see what changed. Editorial copy stays outside
+product controls and explains the benefit. Use step-by-step captions for a
+walkthrough. A camera pose or cursor approach does not require another scene.
+
 ## Visual direction
 
 Dribbble-level UI motion: one shape, never cut. A persistent outer shell morphs
 in size, radius and color while its content swaps with a short blur. The shell
 is cinematic framing; its controls remain faithful to the product. Preserve
 recognizable screen context: demonstrate a feature inside its real dialog or
-page, including navigation to the full view, rather than extracting controls
-into unrelated cards.
+page. Include navigation when it contributes to the story or is needed to teach
+the workflow. Keep controls in their product context rather than unrelated cards.
 
 Use a light warm-gray canvas, black and white components, optionally one accent.
 Use the product font when recognizable, otherwise Geist, and consistent icon
@@ -117,42 +160,45 @@ Do not compress believable input or reading time just to hit a duration target.
 
 ## Choreography and duration
 
-Default to 120 BPM, 4/4, seven bars: 28 beats over 14 seconds. Final timing uses
-the selected track's measured tempo. Seven bars take `28 × 60 / BPM` seconds;
-do not assume a track is exactly 120 BPM.
+Determine the runtime from the feature's communication needs. There is no
+default duration, bar count or blanket short-film cap. Assess what this audience
+already understands, the new concepts or relationships it must see, the density
+of the proof, necessary input time and settled reading time. Menu count, code
+complexity and total feature count do not determine length.
 
-Prefer a finished edit **under 20 seconds** whenever the journey remains clear.
-This is a guideline, not a hard cap. If it needs 20 seconds or more, raise it
-with the user at storyboard approval: give the estimated duration, why it needs
-that time, and a shorter scope or musical phrase as an alternative. The user
-can approve the longer cut. If measured music or later revisions push the
-approved cut past the guideline, flag the change before full production.
+Budget seconds for the opening, each essential proof moment, the settled payoff
+and the complete brand ending. Sum them into a recommended duration and explain
+what needs that time. Choose it yourself for storyboard review; do not ask the
+operator to supply a runtime when none is required. A simple feature can resolve
+quickly; a comparison or unfamiliar concept may need more explanation. Avoid
+fixed “simple/medium/complex” duration bands and filler added to reach a target.
 
-Something meaningful happens on every beat: an action, response, data reveal,
-cursor movement, drag continuation or transition completion. A beat need not
-introduce a new screen. Group actions into readable phrases:
+Then fit the accents and ending to the chosen music. At a stable measured tempo,
+`duration = beats × 60 / BPM`; choose the beat count to support the story.
+Music phrasing may refine the budget without crowding the proof or padding it.
+Respect an explicit user or placement limit. If the core cannot fit legibly,
+propose a tighter scope or a changed limit instead of speeding up the actions.
 
-- Establish the entry point and user intent.
-- Reveal the feature through its real interaction.
-- Show the consequence in context.
-- Reach a recognizable outcome.
-- Finish with the approved ending: a continuous loop or a resolved closing card.
+Use musical beats to pace the story phrases, with actions and consequences on
+useful accents. Mark inspection holds in the grid with what the viewer is
+reading or comparing. A hold can span several beats with a still camera and
+parked cursor. The payoff needs time after its last reframe or caption change;
+time spent moving toward it is not settled reading time.
 
-Derive the sequence from the journey. Never force a fixed button → loader →
-player → slider → toggle sequence. Maintain selected entities, values, filters,
+Derive the sequence from the feature's core and film purpose. Never force a fixed
+button → loader → player → slider → toggle sequence. Maintain selected entities, values, filters,
 documents, chart data and other persistent choices throughout.
 
 Record `ending: loop | brand-card` in the storyboard. Default to `loop` unless
 the brief or brand preset specifies a closing card. A brand card can fill the
 frame with the logo and destination after the product outcome, then settle.
 It does not return to the opening; leave room for the musical resolution and
-brand motif. Continued feature exploration can shorten the card's hold without
-cutting off its final sound or blink.
+brand motif. Place the card after the payoff and allow its full sound and blink
+to finish within the proposed duration.
 
-If the journey cannot fit legibly into 28 beats, propose a smaller scope or a
-longer musical phrase before coding. Never solve overcrowding with tiny text,
-impossible input speeds or an artificially sped-up soundtrack. A visual loop
-must not imply a completed action was undone. Reframe cinematically toward the
+Never solve overcrowding with tiny text, impossible input speeds or an
+artificially sped-up soundtrack. A visual loop must not imply a completed action
+was undone. Reframe cinematically toward the
 opening composition when the real workflow does not reset.
 
 ## Storyboard approval
@@ -165,26 +211,33 @@ grid and duration for approval; report any unresolved license or listening gap.
 
 Before writing animation code, show:
 
-1. The journey in one sentence.
-2. The proposed 8–12 UI states, with their product evidence and persistent data.
+1. The purpose, intended viewer, feature core and strongest visual proof.
+2. The necessary UI states, their evidence and persistent data, plus preparation
+   omitted from the film. Explain how the sequence serves the launch or walkthrough.
 3. A complete beat grid: beat number, timestamp, visible state, input action,
    visible consequence and transition, including camera moves and cursor timing.
+   Group beats into phrases with a focal subject, what the viewer learns and
+   explicit settled reading intervals, especially for the payoff.
 4. Product prerequisites, missing fixture support and unresolved factual gaps.
 5. The ending mode and its transition, including how the completed outcome
    remains true and when any musical resolution or brand motif lands.
-6. Estimated duration and any exception to the under-20-second preference.
+6. The recommended duration, time budget by phrase and why the feature needs it.
+   Include any explicit placement limit and how the story fits it.
 
 Bundle missing creative preferences and storyboard approval in one request.
 Use a provisional 120 BPM grid only if music is still unselected, clearly marked
 as provisional. Resolve factual gaps from available evidence; if a gap prevents
 a faithful state, explain it and propose supported scope. Write no animation
-code before approval. A material change to the approved journey or duration
-returns to that approval gate.
+code before approval. A material change to the approved story or duration that
+the user has not already requested returns to that approval gate.
 
 ## Build
 
 Read [references/pipeline.md](references/pipeline.md) after storyboard approval,
 and [references/music.md](references/music.md) when choosing or analyzing audio.
+The steps below create the first complete version. Subsequent feedback edits
+use the iteration stage in [references/review.md](references/review.md), with
+quick previews and no repeated verification.
 
 1. Create one HTML composition entry, square 1440×1440. Bundle assets and fonts
    locally. Prefer actual product components and deterministic fixtures; report
@@ -212,16 +265,19 @@ and [references/music.md](references/music.md) when choosing or analyzing audio.
    ffmpeg `tmix`, and output at 60 fps. Wrap loop samples; clamp closing-card samples.
 8. Before the full render, capture one frame per beat and settled frames for
    dense states. Inspect readability, spacing, cursor alignment, continuity and
-   timing. Fix those storyboard frames before full production.
+   timing. Preview the assembled sequence at normal speed, muted and at delivery
+   size. Check that the action and payoff are understandable without pausing.
+   Fix the pacing and storyboard frames before full production.
 
 ## Verification and delivery
 
-Follow [references/review.md](references/review.md). Verify repeated and
-random-order seeks, input consequences, pointer-attached drags, non-overlapping
-content, meaningful beats, delivery-size readability, audio transient alignment,
-the chosen ending contract, and evidence for every product claim.
-Do not call a rendered fixture proof that a live backend action succeeded.
-Report missing verification plainly.
+Follow the cadence and checks in [references/review.md](references/review.md):
+verify the first complete version, skip verification during feedback iterations,
+ask whether the user is ready to finalize, then verify the final candidate before
+delivery. An explicit “finalize it” answers that question; casual praise does not.
+Label intervening outputs as previews with verification deferred. This cadence
+applies to film revisions, including under Clanker. A rendered fixture does not
+prove a live backend action succeeded. Report missing verification plainly.
 
 Never put `will-change` on text or elements the camera scales. For loops, match
 opening and closing shell, content, camera and cursor trajectory, with
@@ -231,9 +287,7 @@ the opening. Encode frame centers on `[0, duration)` without an extra endpoint.
 Do not add latency for drama, invent confirmations, bypass a visible prerequisite
 or show incompatible states together.
 
-When running under Clanker, publish the passing render and evidence for its
-visual approval gate, using the supported local review surface if the project
-has no configured renderer. Deliver the film, composition, measured beat grid, audio
-license record and verification findings. Start by reading the supplied journey
-and map, proposing product-specific states and beats, and requesting the
-missing creative inputs and storyboard approval together.
+After the user's readiness confirmation and passing final checks, deliver the
+film, composition, measured beat grid, audio license record and verification
+findings. Under Clanker, use the project's renderer or supported local review
+surface. Follow the review reference if final repairs change the approved cut.

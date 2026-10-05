@@ -3,6 +3,10 @@
 Use after the storyboard gate in `SKILL.md`. Keep the brief and storyboard in
 the task's dev-notes folder. Builds, audio, previews and final films live in
 `~/.local/state/product-video/runs/<run-id>/`.
+Resolve defaults through [preferences.md](preferences.md) and use the snapshot
+saved in the run brief.
+Use the stage in [review.md](review.md) to choose creation, quick iteration or
+final verification. The full checks are not an every-edit pipeline.
 
 ## One composition
 
@@ -68,13 +72,11 @@ action or result. Keep readable inspection intervals around dense content.
 
 Read `music.md`. Analyze the selected asset, verify its license, listen to check
 downbeat phase, and use measured BPM and onsets. Record the final beat grid.
-For seven bars the duration is `28 × 60 / measured_BPM`; other approved phrases
-use `beats × 60 / measured_BPM`. Begin the excerpt on a verified downbeat.
-
-Prefer under 20 seconds. If the measured track makes the phrase 20 seconds or
-longer, report that duration and the reason, offer a shorter scope or phrase, and
-include the longer proposal in storyboard approval. If that approval already
-covers the measured duration, continue. Do not speed up the track to fit.
+Use the feature-based time budget approved in the storyboard. At stable tempo,
+duration is `beats × 60 / measured_BPM`; choose the musical phrase to support
+that budget. Begin the excerpt on a verified downbeat. There is no fixed number
+of bars or duration threshold to enforce. Preserve readable proof and the full
+ending; do not speed up the track to fit.
 
 Use numpy to measure UI sound transients. If an effect's peak is `p` seconds
 after its file begins and the target action is at `a`, place the sound at
@@ -84,18 +86,39 @@ the music excerpt at the video's periodic boundary. For closing cards, follow
 `music.md` for a resolved cadence and completed tails. Keep the original audio
 and finished mix as fixed assets; do not regenerate music while rendering.
 
-## Preview gate
+## Creation and final previews
 
-After the approved storyboard is implemented, capture one frame per measured
+At creation and final verification, capture one frame per measured
 beat plus settled frames for dense states. Add short strips around content swaps,
 clicks, drags and the selected ending. Inspect at delivery size for readable labels,
 spacing, overlap, pointer targeting, correct consequences, persistent data and
 camera continuity. Fix the preview frames before starting the full render.
 
+Preview the assembled timing at normal speed, muted and at delivery size. Check
+that the viewer can identify the feature's core and connect its proof to the
+payoff. For a walkthrough, also check that the necessary steps can be followed.
+Measure the payoff's settled interval after the last camera or caption change.
+If it cannot be understood without pausing, simplify the phrase or move time from
+setup to the result. A contact sheet alone cannot establish pacing. Return material
+journey or duration changes to the storyboard gate.
+
 A meaningful inspection beat can be steady. Do not add a meaningless push or
 cursor motion merely to make a pixel-change detector pass.
 
-## Frame production
+## Quick iteration previews
+
+During feedback iterations, preserve the approved timing and preset snapshot.
+Reuse fixtures, bundled assets, beat analysis and unchanged render outputs.
+Show the composition interactively or render a draft with lower resolution,
+frame rate or temporal sample count when that makes feedback faster. Label the
+draft's reduced quality; keep the action timing and audio cues representative.
+Render only the changed passage when it is enough to judge the requested edit.
+
+Do not regenerate contact sheets, audit the film, rerun verification helpers or
+produce a full-quality export for every tweak. Follow `review.md` for the user
+readiness question. The final candidate uses the full delivery settings below.
+
+## Delivery-quality frame production
 
 Render through Playwright by calling `seek(t)` and capturing still frames.
 Never use `recordVideo`, a screen recorder or sequential wall-clock playback.
@@ -131,8 +154,10 @@ applies. For either mode, record frame rounding and keep audio/video duration
 within one output frame.
 
 For revisions, rebuild only affected frames or audio. An audio-only revision can
-remux with video stream copy; compare video stream hashes to prove the visuals
-were preserved. Recheck final encoded loudness and transient timing after muxing.
+remux with video stream copy. At the creation and final verification stages,
+compare video stream hashes when claiming the visuals were preserved, and check
+encoded loudness and transient timing after muxing. Defer these checks during
+feedback iterations.
 
 ## Existing helpers
 

@@ -4,6 +4,11 @@ Use for OpenMarket films unless the user supplies a different direction. This
 captures the approved October 2026 options film; it does not prescribe its
 contracts, dates, duration or journey for other features.
 
+This is the reusable OpenMarket identity record. Follow
+[preferences and continuity](../preferences.md) when applying feedback to it.
+Keep one-film exceptions in the run brief. Reuse the approved mascot and blink
+assets across films; a new feature does not call for a newly generated signature.
+
 ## Identity and framing
 
 - Warm-gray canvas (`#F0EEEA`), black/white product chrome and the original
@@ -14,7 +19,9 @@ contracts, dates, duration or journey for other features.
   “OpenMarket” heading. Keep real product labels and branding in their context.
 - Show the feature in its actual dialog/page. For an options journey, the
   approved progression was symbol-selection options → calls/puts → Back → full
-  chain → scroll to the bottom → another contract. Use a new feature's own path.
+  chain → scroll to the bottom → another contract. That sequence records a prior
+  film; it does not make launches follow a walkthrough. Select each new film's
+  proof moments from its feature core and purpose.
 - When an exchange strip is appropriate, use the supported exchanges' actual
   icons from the product. Do not replace essential instrument/venue labels in
   the data with decorative icons or invent unsupported exchange coverage.
@@ -26,8 +33,9 @@ contracts, dates, duration or journey for other features.
 
 Default to `ending: brand-card`. Transition continuously to a full-page mascot
 and destination. For the chart product, show `openmarket.xyz/chart`; use the
-actual destination for other products. Let feature exploration determine the
-length. The approved film was 18 seconds, not a universal duration target.
+actual destination for other products. Place the signature after the feature's
+proof and readable payoff. The approved film was 18 seconds; new runtimes follow
+their own communication needs, not that historical duration.
 
 Resolve the music at the destination reveal, then perform exactly two mascot
 blinks with the bundled sound. Leave the eyes open between and after the blinks.
