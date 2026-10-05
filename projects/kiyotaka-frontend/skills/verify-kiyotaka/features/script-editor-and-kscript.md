@@ -7,8 +7,10 @@ marketplace (WRUN) scripts execute server-side and ride the same canonical
 pipeline back. Run targets depend on delivered source, visibility, and published
 builds: editable and delivered read-only scripts can run in the browser, while
 protected or unavailable builds use the cloud lane. This entry was re-verified
-on 2026-10-02 against product tree `a7899f6e07`; guest coverage opened the drawer
+on 2026-10-05 against product tree `40b1271aac`; guest coverage opened the drawer
 through Super Search and confirmed the sign-in wall on new-script creation.
+WRUN launch-box/ring, Pine conversion, Kata hand-offs, and AI provenance remain
+authenticated coverage obligations.
 
 ## Sub-features
 

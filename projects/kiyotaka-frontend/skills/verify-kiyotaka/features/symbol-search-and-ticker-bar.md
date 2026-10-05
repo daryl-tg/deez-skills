@@ -4,8 +4,10 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was re-verified on 2026-10-02 against product tree `a7899f6e07`; guest coverage
-exercised V2 search, an ETH venue switch, interval change, and Heikin Ashi.
+was re-verified on 2026-10-05 against product tree `40b1271aac`; guest coverage
+exercised V2 search, an ETH venue switch, interval change, and Heikin Ashi. The
+hover quick-search result list and memecoin/Pulse rows were not independently
+driven in this pass.
 
 ## Sub-features
 
@@ -27,6 +29,10 @@ exercised V2 search, an ETH venue switch, interval change, and Heikin Ashi.
 - Click a right-cluster button (Objects, Journal, Heatmap, Replay, News, Terminal,
   Editor) directly; at a narrow width the ones that no longer fit move into a
   `⋯` overflow menu.
+- Hover the visible symbol control to open `quick-search-dropdown`; its stable
+  input is `quick-search-input` and its full-dialog hand-off is
+  `quick-search-advanced-button`. V2 quick-search can expose memecoin/Pulse rows
+  under `quick-search-v2-memecoin-*` and a liquidity-floor refinement.
 
 ## Driving it with control-kiyotaka
 

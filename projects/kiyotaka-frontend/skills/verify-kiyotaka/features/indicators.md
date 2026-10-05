@@ -4,9 +4,10 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or kScript-backed. This entry was re-verified on 2026-10-02 against
-product tree `a7899f6e07`; guest coverage opened the V2 dialog, confirmed seeded
-official rows, added RSI, and observed the guest sign-in/slot surfaces. Protected
-and WRUN catalog paths remain unverified on the guest lane.
+product tree `40b1271aac`; guest coverage opened the V2 dialog, confirmed seeded
+official rows, added RSI, and observed the guest sign-in/slot surfaces. The
+top-level Indicators/kScript strip, Pine paste offer, and WRUN catalog paths
+remain flag- or auth-dependent and were not driven here.
 
 ## Sub-features
 
@@ -53,6 +54,10 @@ Preconditions:
   `Volatility`, `Statistics`, `Quant Validation`, `Volume Footprints`,
   `Market Analysis`. `Quant Validation` and `Volume Footprints` are each ONE
   label — matching `Quant` or `Volume` alone finds nothing.
+- **The top-level mode strip is conditional.** When `tabStripVisible` is true,
+  `indicator-control-bar-tab-indicators-btn` and
+  `indicator-control-bar-tab-kscript-btn` switch between registry Indicators and
+  kScript sources. Governed CME or a missing feature flag can hide the strip.
 - **Discover and All are distinct result states.** Under the category row sits a
   second tab pair,
   `tab "Discover"` and `tab "All"`, beside `button "Browse all indicators"` when
@@ -65,6 +70,9 @@ Preconditions:
   banner has its own handle, `indicator-catalog-unseeded-notice`, which is a
   cleaner assertion than the banner text. `indicator-browse-all-btn` renders only
   in the empty state, so do not depend on it being there.
+- **Pine paste is a separate user path.** A Pine snippet in the search can render
+  an `IndicatorPineOffer` above the list, and empty/searching states may offer
+  Kata or paste guidance. Verify that affordance separately from ordinary rows.
 - **Add through the dialog and assert the engine.** The current seeded guest lane
   added RSI through its official row and increased `window.tc[0].metadata` from
   two to three entries. A direct `chartStore.addIndicator` call is not equivalent

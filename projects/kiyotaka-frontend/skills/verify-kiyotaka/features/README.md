@@ -3,10 +3,11 @@
 The maintained source for verifying user-facing chart behavior. Read this index
 before driving, then use the matching feature file as the recipe.
 
-Maintenance pass: 2026-10-02 on product tree `a7899f6e07` (guest lane,
+Maintenance pass: 2026-10-05 on product tree `40b1271aac` (guest lane,
 `18097`). Chart boot, indicators, symbol/ticker controls, and the guest script
 editor route were source-reviewed and driven. Authenticated workspaces, saved
-layouts, protected scripts, and WRUN marketplace paths remain outside this pass.
+layouts, protected scripts, WRUN launch/Pine conversion, and memecoin result
+paths remain outside this pass.
 
 ## Baseline preconditions
 
