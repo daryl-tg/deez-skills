@@ -18,6 +18,8 @@ authenticated coverage obligations.
 - `ks-run` an own script compiles and mounts as an overlay (authed).
 - `ks-lint` the editor reports a syntax error rather than mounting (authed).
 - `ks-protected` a protected / WRUN script returns from the backend lane (authed).
+- `ks-wrun-launch` the WRUN launch box/ring and Pine conversion hand-offs create
+  the appropriate hosted or TypeScript draft (authed, entitlement-dependent).
 
 Guests can open the drawer read-only, but creating a new script requires an
 account and raises the sign-in wall. Do not describe the guest Run button as a
@@ -27,6 +29,8 @@ silent no-op without first identifying the current tab and source-delivery state
 
 - Click the `</>` button in the ticker bar, or open Super Search (its own
   ticker-bar button) and pick the `Indicator Editor` row.
+- In an authenticated WRUN-capable lane, use the launch box/ring or Pine paste
+  conversion affordance before asserting a hosted run or TypeScript draft.
 
 ## Driving it with control-kiyotaka
 
