@@ -123,4 +123,4 @@ Not yet mapped, and worth adding when a change touches them: the MCP
 surface (`om mcp serve --stdio`), charts (`om chart`), the `om chat` TUI,
 packages and the registry, and the execution/venue verbs.
 
-- [agent-creator-lifecycle.md](agent-creator-lifecycle.md) — local creation/import/sharing, both qualified native coding lifecycles, and explicit remaining evaluation/delivery limits.
+- [agent-creator-lifecycle.md](agent-creator-lifecycle.md) — local creator/import/sharing lifecycle, current-source native coding, exact adopted skills, revocation/rollback and explicit evaluation limits.
