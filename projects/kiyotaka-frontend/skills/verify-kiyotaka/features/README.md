@@ -3,11 +3,12 @@
 The maintained source for verifying user-facing chart behavior. Read this index
 before driving, then use the matching feature file as the recipe.
 
-Maintenance pass: 2026-10-05 on product tree `40b1271aac` (guest lane,
-`18097`). Chart boot, indicators, symbol/ticker controls, and the guest script
-editor route were source-reviewed and driven. Authenticated workspaces, saved
-layouts, protected scripts, WRUN launch/Pine conversion, and memecoin result
-paths remain outside this pass.
+Maintenance pass: 2026-10-06 on product tree `064254b1e7` (guest lane,
+`18097`). Chart boot, the Indicators dialog, symbol/ticker controls, and the
+guest script-editor wall were source-reviewed and driven. The ETHUSDT reload
+was attempted but remained at zero candles because the local backend was down;
+authenticated workspaces, saved layouts, protected scripts, WRUN launch/Pine
+conversion, and memecoin result rows remain outside this pass.
 
 ## Baseline preconditions
 

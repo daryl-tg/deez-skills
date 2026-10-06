@@ -3,7 +3,7 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was re-verified on 2026-10-05 against product tree `40b1271aac`; coverage
+entry was re-verified on 2026-10-06 against product tree `064254b1e7`; coverage
 was guest boot, candles, live ticker values, worker diagnostics, and a screenshot.
 
 ## Sub-features

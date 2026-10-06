@@ -4,15 +4,18 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was re-verified on 2026-10-05 against product tree `40b1271aac`; guest coverage
-exercised V2 search, an ETH venue switch, interval change, and Heikin Ashi. The
-hover quick-search result list and memecoin/Pulse rows were not independently
-driven in this pass.
+was re-verified on 2026-10-06 against product tree `064254b1e7`; guest coverage
+opened V2 search, attempted an ETHUSDT venue switch, changed interval, and
+selected Heikin Ashi. The ETHUSDT reload remained at zero candles because the
+backend was down. The hover quick-search result list and memecoin/Pulse rows
+were not independently driven in this pass.
 
 ## Sub-features
 
 - `sym-search` the symbol dialog opens, searches, and switches symbol.
 - `sym-scope` the scope chips filter results (`search-v2`).
+- `sym-memecoins` the gated memecoin lane, liquidity-floor refinement, and Pulse
+  rows load or report their explicit warning/empty state.
 - `tb-interval` quick buttons and the interval chevron change interval.
 - `tb-plot` the chart-type picker changes plot type.
 - `tb-layout` the layout picker changes the grid.

@@ -2,13 +2,13 @@
 
 The script editor is a drawer docked alongside the terminal, never a dockview
 tab, where a user writes kScript, runs it, and sees the result mount as an
-overlay through the frontend adapter. Public and own scripts run client-side in the browser; protected and
-marketplace (WRUN) scripts execute server-side and ride the same canonical
-pipeline back. Run targets depend on delivered source, visibility, and published
+overlay through the frontend adapter. Public and own scripts can run client-side in the browser; protected and
+marketplace (WRUN) scripts use the shared hosted-run path when their delivered
+source or published build requires it and return through the same pipeline. Run targets depend on delivered source, visibility, and published
 builds: editable and delivered read-only scripts can run in the browser, while
 protected or unavailable builds use the cloud lane. This entry was re-verified
-on 2026-10-05 against product tree `40b1271aac`; guest coverage opened the drawer
-through Super Search and confirmed the sign-in wall on new-script creation.
+on 2026-10-06 against product tree `064254b1e7`; guest coverage confirmed the
+editor-toggle verification wall and no writable editor mount.
 WRUN launch-box/ring, Pine conversion, Kata hand-offs, and AI provenance remain
 authenticated coverage obligations.
 
@@ -19,7 +19,8 @@ authenticated coverage obligations.
 - `ks-lint` the editor reports a syntax error rather than mounting (authed).
 - `ks-protected` a protected / WRUN script returns from the backend lane (authed).
 - `ks-wrun-launch` the WRUN launch box/ring and Pine conversion hand-offs create
-  the appropriate hosted or TypeScript draft (authed, entitlement-dependent).
+  the appropriate hosted or TypeScript draft, including retained conversion
+  failures and the shared hosted-run path (authed, entitlement-dependent).
 
 Guests can open the drawer read-only, but creating a new script requires an
 account and raises the sign-in wall. Do not describe the guest Run button as a
@@ -30,7 +31,9 @@ silent no-op without first identifying the current tab and source-delivery state
 - Click the `</>` button in the ticker bar, or open Super Search (its own
   ticker-bar button) and pick the `Indicator Editor` row.
 - In an authenticated WRUN-capable lane, use the launch box/ring or Pine paste
-  conversion affordance before asserting a hosted run or TypeScript draft.
+  conversion affordance before asserting a hosted run or TypeScript draft. Pine
+  conversion accepts up to 256 KB and can retain a failed conversion for review;
+  inspect run output for Browser/Cloud origin and AI/Kata/Pine provenance.
 
 ## Driving it with control-kiyotaka
 

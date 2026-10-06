@@ -3,9 +3,9 @@
 A user adds an indicator from the Indicators dialog; it mounts as an overlay with
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
-interest) or kScript-backed. This entry was re-verified on 2026-10-02 against
-product tree `40b1271aac`; guest coverage opened the V2 dialog, confirmed seeded
-official rows, added RSI, and observed the guest sign-in/slot surfaces. The
+interest) or kScript-backed. This entry was re-verified on 2026-10-06 against
+product tree `064254b1e7`; guest coverage opened the V2 dialog, selected All,
+searched RSI, and recorded the current empty official-catalog state. The
 top-level Indicators/kScript strip, Pine paste offer, and WRUN catalog paths
 remain flag- or auth-dependent and were not driven here.
 
@@ -14,7 +14,7 @@ remain flag- or auth-dependent and were not driven here.
 - `ind-dialog` the Indicators dialog opens and searches.
 - `ind-add` an indicator mounts as an overlay.
 - `ind-legend` the legend's settings / visibility / close controls work.
-- `ind-catalog` official indicators are listed (authed, DB-backed).
+- `ind-catalog` official indicators are listed when the catalog is seeded.
 - `ind-limit` the guest cap is enforced.
 
 ## How to get to it (user POV)
@@ -48,7 +48,9 @@ Preconditions:
   ```
 
   Read which modes render before driving a gated lane; signed-in and flag-enabled
-  sessions can add registry, personal, or marketplace sources.
+  sessions can add registry, personal, or marketplace sources. Registry mode uses
+  OpenMarket/Community/(Mine), while kScript mode uses Official/Community/(My
+  Scripts/Marketplace).
 
   Below the source pair sit seven category buttons: `All`, `Technical`,
   `Volatility`, `Statistics`, `Quant Validation`, `Volume Footprints`,
