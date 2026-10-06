@@ -228,4 +228,4 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** sent a local fixture message and verified the message-row count increased and the composer cleared; the channel and topic placeholder names followed navigation. **Limitations:** Wire delivery, attachment staging and preview, draft restoration across lanes, and recovery were not exercised.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** sent a local fixture message and confirmed it appeared while the composer cleared; the textbox name retargeted in a topic. **Limitations:** Wire delivery, attachment staging/preview, cross-lane draft recovery, and send recovery were not exercised.

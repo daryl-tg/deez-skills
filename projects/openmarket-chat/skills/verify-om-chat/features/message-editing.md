@@ -59,4 +59,4 @@ Full server persistence and other clients receiving the edit require the local a
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** hovered a seeded outgoing channel message, opened its exact Edit action, saved changed text, and verified the updated row and closed editor. **Limitations:** DM menus, unchanged/reverted saves, cancel/keyboard behavior, and relay persistence were not exercised.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** marked a seeded outgoing channel row, used a real pointer hover and exact Edit action, saved changed text, and verified the updated row and closed editor. **Limitations:** DM menus, unchanged/reverted saves, cancel/keyboard behavior, and relay persistence were not exercised.

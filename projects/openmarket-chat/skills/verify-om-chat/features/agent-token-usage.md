@@ -43,4 +43,4 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** the standalone fixture rendered 12.3k tokens; RemoteHome rendered a 1k-token count and its first expanded tool activity showed the shared row presentation. **Limitations:** Token expansion thresholds, missing/zero usage, provider accounting, and a personText comparison were not exercised.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the completed-turn fixture, observed 12.3k tokens, expanded tool activity, and captured the details. **Limitations:** Other token magnitudes, missing/invalid totals, and live daemon presentation were not exercised.

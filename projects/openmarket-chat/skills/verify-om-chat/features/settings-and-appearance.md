@@ -165,4 +165,4 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the user Appearance page in the settings fixture and verified its default dark-theme selection and settings navigation. **Limitations:** Theme changes, other hosts/pages, system contrast preference, advanced density controls, and dismissal paths were not exercised.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened user Appearance, switched from Dark to Light and confirmed selection, then restored Dark. **Limitations:** Other settings pages, server/channel permissions, high contrast, and persisted preference across reload were not exercised.

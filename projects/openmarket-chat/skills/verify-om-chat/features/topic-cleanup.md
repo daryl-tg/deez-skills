@@ -52,9 +52,4 @@ rows, and capture the **Resolving topics** count after starting a cleanup.
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** seeded quiet topics and opened More channel actions; Clean up topics was absent on the source lane. **Limitations:** The sheet and resolve job need an eligible daemon build and an isolated daemon with topic triage; they were unreachable in this pass.
-`231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** seeded
-`quiet=on`, opened **More channel actions**, and verified that **Clean up
-topics** is absent on the source lane. **Limitations:** verified-unreachable
-for the dialog and resolve job; the action requires an eligible daemon build
-and an isolated daemon with topic triage.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** seeded `quiet=on`, opened More channel actions, and verified that Clean up topics is absent from the source lane. **Limitations:** The sheet and resolve job need an eligible daemon build and an isolated daemon with topic triage; they were unreachable in this pass.

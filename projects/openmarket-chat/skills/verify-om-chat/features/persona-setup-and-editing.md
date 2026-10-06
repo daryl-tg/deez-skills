@@ -59,4 +59,4 @@ The actual API rig must include a synthetic HOME mirror-health entry and directo
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the canonical Voice view in ready state and the standalone proposed-card state; the proposed card action is Use this card. **Limitations:** Full setup, import/export, profile selection, learning, offline recovery, and production host parity were not exercised.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened canonical Voice in ready state and the standalone proposed card; the proposed action is “Use this card.” **Limitations:** Full setup, import/export, profile selection, learning, offline recovery, and host parity were not exercised.

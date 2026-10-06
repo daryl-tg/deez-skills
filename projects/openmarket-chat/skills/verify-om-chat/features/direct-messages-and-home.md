@@ -178,4 +178,4 @@ seeded presence state — a good second observation alongside the route.
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened Home, ana DM, and Connections; the 390x844 Chats root also showed the seeded conversation list. **Limitations:** Requests/Blocked, group-member actions, presence changes, DM editing, and mobile detail were not exercised in this feature pass.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened Home, ana DM, and Connections; at 390×844 drove Home → Chats → Spaces → #ops detail and observed Back to Spaces. **Limitations:** Requests/Blocked, group-member actions, presence changes, DM editing, and mobile back transition were not exercised in this map pass.

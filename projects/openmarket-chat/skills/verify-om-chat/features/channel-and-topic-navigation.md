@@ -228,4 +228,4 @@ the navigation retargeted the *write* path, not only the read pane.
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened #ops, entered the CPI topic, checked route, heading, and retargeted composer, returned, opened the topics list, and inspected the quiet-topic seed and conditional channel menu. **Limitations:** Long-list behavior, compact-menu variants, dock actions, and the daemon-only Clean up topics sheet were not exercised; see topic-cleanup.md.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened #ops, entered CPI print — Aug, verified topic route/heading/composer retarget, returned to #ops, opened the topic list, and inspected the quiet-topic channel menu. **Limitations:** Long-list behavior, compact-menu variants, dock actions, and daemon-only cleanup sheet were not exercised; see topic-cleanup.md.

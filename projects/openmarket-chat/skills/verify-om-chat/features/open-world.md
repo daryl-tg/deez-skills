@@ -148,4 +148,4 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** the worldprobe harness showed offline/reconnecting state, no bound world channel, and five look names; the Quick write activity preview exposed its live timeline sample. **Limitations:** World movement, occupants, no-daemon refusal, authenticated agent cues, emotes, and relay transport were not exercised.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** worldprobe showed offline/reconnecting state, no bound #world channel, and Wayfarer/Ranger/Surveyor/Violet/Rust; Quick write activity preview exposed its live timeline sample. **Limitations:** Movement, occupants, no-daemon refusal, authenticated agent cues, emotes, and relay transport were not exercised.

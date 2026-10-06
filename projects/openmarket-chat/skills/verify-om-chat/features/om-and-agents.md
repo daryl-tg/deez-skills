@@ -313,4 +313,4 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the seeded Agent Center shell and standalone queue; verified the canonical Voice page and the legacy persona route failure; RemoteHome live showed relay tool activity and no Watches destination; omSessions=drafts and omSessions=daemon both remained behind the not-running gate. **Limitations:** Daemon-backed session, unread, watch, remote-control, access, and live personText behavior require an isolated daemon and were not exercised.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened Agent Center and its busy standalone seed; + Wire an agent opened Settings → Agent Settings; Your om draft/daemon routes stayed at “om isn’t running”; RemoteHome loaded the scripted conversation and expanded tool activity. **Limitations:** Daemon-backed sessions, unread, watches, access, remote control, and live personText comparison require an isolated daemon and were not exercised.

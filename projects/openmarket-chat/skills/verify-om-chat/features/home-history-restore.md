@@ -26,4 +26,4 @@ The transport is synthetic; this proves mounted Shell/checkpoint/editor behavior
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened Persona/kyle History, selected r3, restored it, and verified r5 became current. **Limitations:** The configured first failure/retry was not separately observed; the fixture uses a synthetic checkpoint store, so real HOME writes and learning holds remain unverified.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened Persona/kyle History, selected r3, confirmed restore, and observed r5 become current. **Limitations:** The configured first failure/retry was not separately observed; the fixture uses a synthetic checkpoint store, so real HOME writes and learning holds remain unverified.

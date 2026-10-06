@@ -46,4 +46,4 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** rendered the seeded channel diagram and opened the accessible Mermaid PNG preview region. **Limitations:** DM parity, refused/invalid diagrams, viewBox bounds, and library editor preview were not exercised.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the seeded Mermaid message, activated “Open Mermaid diagram as PNG,” and observed the named PNG preview region. **Limitations:** DM parity, invalid diagrams, containment edge cases, and library source editing were not exercised.

@@ -36,4 +36,4 @@ Drive accessible names: `Watches`, `Refresh`, `Show details for <label>`, `Close
 
 ### Verification record
 
-**Last verified:** 2026-10-05. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the daemon-backed Your om route and confirmed “om isn’t running”; RemoteHome live had no Watches destination. **Limitations:** An isolated daemon with QA watch data and watch RPCs is required for rows, recent fires, actions, and persistence; it was unavailable.
+**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened the daemon-backed Your om route and confirmed “om isn’t running”; RemoteHome’s away pane had no Watches destination. **Limitations:** An isolated daemon with QA watch data and watch RPCs is required for rows, recent fires, actions, and persistence; it was unavailable.
