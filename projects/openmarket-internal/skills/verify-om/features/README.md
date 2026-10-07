@@ -112,6 +112,7 @@ state, commands, and observable proof.
   surfaces, redesigned in v0.400.0
 - [Watch authoring in the dashboard](./watch-authoring-ui.md) — new in v0.400.0:
   the UI now creates watches, not just shows them
+- [Calendar scheduling and polling windows](./calendar-and-polling-windows.md)
 - [The dashboard agent panel](./agent-panel.md) — new in v0.400.0; reachable on a
   guest lane only as far as its refusal
 - [Market data reads](./market-data-reads.md)

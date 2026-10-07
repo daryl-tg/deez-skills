@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — RSS picker, form, review, create, paused feed detail and its Setup/History/Delivery/Settings navigation driven on a guest lane. Other seven kinds and batch actions remain unverified.*
+*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — RSS picker, form, review, create, paused feed detail and Setup/History/Delivery/Settings driven. Other seven kinds and batch actions remain unverified.*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the

@@ -1,6 +1,6 @@
 # Market data reads
 
-*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — live enum, coins, exchanges, points, metric list and market resolution reads succeeded. Metric series/screen and chart symbol lookup remain unverified.*
+*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — live enum, coins, exchanges, points, metric list and BTC resolution succeeded. Metric series/screen and chart symbol lookup remain unverified.*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,

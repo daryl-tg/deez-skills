@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — all eight dashboard routes opened on a guest lane; empty-home onboarding captured collapsed and expanded, and screenshots/accessibility snapshots captured. Non-empty strategy and receipt rows remain unverified.*
+*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — all eight workspace navigation routes and strategy not-found detail opened; onboarding captured with screenshots and accessibility snapshots. Non-empty strategy and receipt rows remain unverified.*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
@@ -101,7 +101,7 @@ Preconditions:
   transitions timeline, per-strategy digest) is `verified-unreachable` from a
   guest lane: it needs a strategy, which needs a signal and a paired venue.
   Report it that way rather than as empty.
-- **Walk the rest.** `/news` (headings `Daily brief`, `Recent fires`, and
+- **Walk the other workspace routes.** `/news` (headings `Daily brief`, `Recent fires`, and
   `Watches`), `/strategies` (heading `Strategy digest`), `/channels`, `/venues`,
   and `/receipts`. Each renders its heading and guest-lane empty state. When
   populated, Receipts also shows `OID`, `Notional`, and `Status` alongside
@@ -121,6 +121,8 @@ Preconditions:
 - The header pill reports daemon/check state (the fresh lane read `Live · Last
   checked 39s ago`). Fire count is the Overview's separate `Watch fires`
   metric, not part of the pill.
+- The header can read `Needs attention` when strategy health reports unmanaged
+  exits; it is an additional status branch, not a generic watch status.
 - The SPA is bundled into the daemon at module load from
   `apps/dashboard/dist/assets/app.js`. Editing `apps/dashboard/src` changes
   nothing a lane serves until `bun run build:dashboard` runs — and

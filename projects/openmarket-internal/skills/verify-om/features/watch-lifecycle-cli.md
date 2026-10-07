@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — create/edit/show/pause/resume/remove driven; JSON confirmed enabled-state transitions and removal preserved the journal. Group, multi-watch and newer combine/preview/tune forms remain unverified.*
+*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — create/edit/show/pause/resume/remove driven; JSON confirmed enabled-state transitions and removal receipt; journal reread after removal. Group/multi-watch/combine/preview/tune remain unverified.*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
@@ -101,8 +101,9 @@ Preconditions:
   its receipt gains a `steps running` line, so a bare `--inbound` watch is the
   only shape whose resume output is this short.
 - **Remove.** Run `control-om om -- watch remove lane-lifecycle --yes`. It
-  prints `Removed event watch <id> (<slug>); journal preserved` — slug again,
-  not label. That plain form only holds for a fresh watch with no fires: removal
+  prints `Removed event watch <id> (<slug>): history deleted (N rows); journal files kept` — slug again,
+  not label. That plain form only holds when no extra removal disclosures are
+  needed: removal
   appends `destroyed ...`, `paid output gone: ...`, a chart-unbind line, or a
   `warning: N step(s) on another watch read ...` line when any of those apply,
   and a shared watch whose unfollow has not landed prints

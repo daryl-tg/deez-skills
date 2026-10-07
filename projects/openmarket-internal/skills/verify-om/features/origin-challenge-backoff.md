@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — healthy feed, Cloudflare-style challenge, hold/status row, no-key Firecrawl offer, one clean 15-minute probe and recovery driven. `/healthz` settled to `open`, `reconnect_count: 0`, `cooldown: null`. A second challenge and window doubling were last driven 2026-09-19 at tree `15db727ba`; they were not re-driven today.*
+*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — healthy feed, challenge, hold/status row, no-key offer, silent run-now, scheduled clean probe at cooldown end and feed recovery driven. A separate page-add probe also challenged the stub.*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes

@@ -1,6 +1,6 @@
 # Firecrawl recovery before whitelist
 
-*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — guest lane showed the no-key challenge status and `om setup firecrawl` fix. Configured fixture recovery, repeated refusal and restart persistence were last driven at tree `fe82b2ef1`; they were not re-driven here. Live provider and interactive agent delivery remain unverified.*
+*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — guest no-key blocked-feed path showed `page_origin_cooldown` and `om setup firecrawl`; configured vendor recovery remains last driven at tree `fe82b2ef1`.*
 
 A configured Firecrawl connection retries the first eligible blocked read of a source automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
 

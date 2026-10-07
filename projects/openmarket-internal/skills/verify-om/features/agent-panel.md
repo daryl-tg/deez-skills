@@ -1,6 +1,6 @@
 # The dashboard agent panel
 
-*Verified: 2026-10-02, tree `30000def2` (v0.425.0) — opened the panel from Connections, sent a message, read the guest refusal, followed Connections, and opened the two-pane `/agent` workspace. A real conversation stays `verified-unreachable`: it needs an LLM credential.*
+*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — opened panel, previewed/removed page context, sent a message and followed the Connections refusal; opened `/agent`. Real model response needs an LLM credential.*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as
@@ -37,8 +37,9 @@ Preconditions:
   `region "Messages"`, `textbox "Message your agent"`,
   `button "Send message"` (disabled while the box is empty),
   `button "Preview shared page context"`, `button "Remove page context"`, and a
-  `region "Suggested questions"` with `Explain watches` and
-  `Help me get started here`.
+  `region "Suggested questions"` with page-specific help (on Watches,
+  `Explain watches` and `Help me get started here`; the first prompt follows
+  the current page title).
 - **Assert the disabled send.** It enables only once the textbox has text; a
   driver that clicks it first silently does nothing.
 - **Send, and read the refusal.** Fill the textbox, press `Send message`. The
