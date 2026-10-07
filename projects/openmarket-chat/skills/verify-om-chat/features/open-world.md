@@ -148,4 +148,4 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** worldprobe showed offline/reconnecting state, no bound #world channel, and Wayfarer/Ranger/Surveyor/Violet/Rust; Quick write activity preview exposed its live timeline sample. **Limitations:** Movement, occupants, no-daemon refusal, authenticated agent cues, emotes, and relay transport were not exercised.
+**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.

@@ -52,4 +52,4 @@ rows, and capture the **Resolving topics** count after starting a cleanup.
 
 ### Verification record
 
-**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** seeded `quiet=on`, opened More channel actions, and verified that Clean up topics is absent from the source lane. **Limitations:** The sheet and resolve job need an eligible daemon build and an isolated daemon with topic triage; they were unreachable in this pass.
+**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.

@@ -32,4 +32,4 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened `view=agent&alerts=quiet&omSessions=daemon` on the source lane; it displayed “om isn’t running” with no session rail. **Limitations:** An isolated daemon with conversation registry, read receipts, history, and SSE is required; it was unavailable.
+**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.

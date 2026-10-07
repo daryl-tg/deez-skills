@@ -8,6 +8,13 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 
 ## Sub-features
 
+The Agent Center now also mounts a roster creation/import form and catalog
+section in `AgentCenterSurface.tsx`. These are available only when the daemon
+provides roster support and the viewer has explicit owner identity. The legacy
+**+ Wire an agent** control in `AgentCenterPane.tsx` continues to open Agent
+Settings; it does not launch roster creation. See [agent-creator.md](agent-creator.md)
+for the gated flows and their live-lane prerequisites.
+
 - The rail doors: `button` **"Your om"** and `button` **"Agents"**, joined by
   **"Browse features"** since `#846` added its feature-catalog tile — but both
   names move with state, and the two doors do not move the same way.
@@ -313,4 +320,4 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ### Verification record
 
-**Last verified:** 2026-10-06. **Product commit:** `231c95f49820399fc10e40e87facee6ba606c6b0`. **Scope:** opened Agent Center and its busy standalone seed; + Wire an agent opened Settings → Agent Settings; Your om draft/daemon routes stayed at “om isn’t running”; RemoteHome loaded the scripted conversation and expanded tool activity. **Limitations:** Daemon-backed sessions, unread, watches, access, remote control, and live personText comparison require an isolated daemon and were not exercised.
+**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.
