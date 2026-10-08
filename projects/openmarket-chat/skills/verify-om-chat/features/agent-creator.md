@@ -1,6 +1,6 @@
 # Agent creation, import and sharing
 
-*Verified 2026-10-08. Final GUI `2fc19842692e61b82e81c164a55de70199cf8fc4`, daemon delivery assembly `b1c53c9665f2d76219f72505b722e0a24249e280`, binary SHA256 `176119e6cb6cbfa00b240cd99518571a51685f68b754dcbf64cf9d9dca2e0277`. Native C6/X4/S2 executed on daemon `635441fb083971c1ff5143835521d5c8193e60c2`, binary `7e7f8ee1e25556d1cc75ad61e0d3f4f240dd0715331a52d4d33f8e71067af213`. Final viewing and restart reconciliation use the delivery assembly. Gallery [agent-creator-stress-20261007/r02](http://127.0.0.1:8098/agent-creator-stress-20261007/r02/) contains 21 root-reviewed frames with execution/viewing provenance. Clean registry installation and product delivery remain unqualified.*
+*Verified 2026-10-08. Final GUI `2fc19842692e61b82e81c164a55de70199cf8fc4`, daemon delivery assembly `b1c53c9665f2d76219f72505b722e0a24249e280`, binary SHA256 `176119e6cb6cbfa00b240cd99518571a51685f68b754dcbf64cf9d9dca2e0277`. Native C6/X4/S2 executed on daemon `635441fb083971c1ff5143835521d5c8193e60c2`, binary `7e7f8ee1e25556d1cc75ad61e0d3f4f240dd0715331a52d4d33f8e71067af213`. Final viewing and restart reconciliation use the delivery assembly. Gallery `agent-creator-stress-20261007/r02` (operator-local evidence) contains 21 root-reviewed frames with execution/viewing provenance. Clean registry installation and product delivery remain unqualified.*
 
 ## Sub-features
 
