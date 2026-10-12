@@ -34,6 +34,11 @@ Preconditions:
   `textbox "Search official indicators"` and
   `textbox "Add a package by exact name (@scope/name)"`. It is a `.dialog-style`
   overlay, **not** a `.q-dialog`.
+  **Drift, driven 2026-10-12 on tree `1570b59d69` (the desktop parity sweep's `ind-dialog`, `ind-catalog` and
+  `ind-search`, in the shell and in Chromium):** that tree renders the WRUN registry panel, `indicator-panel-v2`. Its
+  search field is `indicator-search-bar-input` (`indicator-dialog-skeleton-input` while it loads), not the textbox
+  named above; the official list sits under `OPENMARKET INDICATORS <n>` with each group's count in
+  `indicator-list-group-count`, and the Technical chip is `indicator-category-chip-technical`. Drive these testids.
 - **The dialog has explicit source and result modes.** Current source tabs include
   `indicator-source-tab-official` and `indicator-source-tab-community`, with
   optional registry, personal, and marketplace lanes depending on auth and flags.
@@ -119,6 +124,13 @@ Preconditions:
     ```
 
   Source-derived on `61d1e911cc`; not yet re-driven.
+
+  **Driven 2026-10-12 on tree `1570b59d69` (the desktop parity sweep's `ind-add`, same result in both hosts):**
+  `await chartStore.addIndicator('TRADING_TOTAL_VOLUME', {}, 0)`, with `chartStore` read from
+  `document.querySelector('#tc-container-0').__vueParentComponent.setupState`, mounted `TRADING_TOTAL_VOLUME` into
+  `window.tc[0].metadata` and then rejected with `TypeError: Cannot read properties of undefined (reading 'find')`. On
+  that tree the key does mount through this path, and the throw reaches the caller instead of being caught and
+  toasted. Read `metadata` for the mount and report the rejection as its own finding.
 - **Confirm it mounted.** Run
   `./control-kiyotaka browser eval "(()=>JSON.stringify(window.tc[0].metadata.map(m=>m.settings?.ovType ?? m.overlayType ?? m.type)))()"`.
   Keep the `overlayType` rung: on an overlay row `type` is the SIDE

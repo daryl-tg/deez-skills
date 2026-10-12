@@ -89,6 +89,12 @@ Preconditions:
   (`symbol-row-BINANCE|WBETHUSDT-btn`), both stable across re-renders. Only the
   venue rail is ref-driven, so re-snapshot before that click alone rather than
   before every one.
+
+  **Drift, driven 2026-10-12 on tree `1570b59d69` (the desktop parity sweep's `sym-results` and `sym-switch`, in the
+  shell and in Chromium):** searching `ETH` listed `asset-row-Ethereum|1-btn`, `asset-row-ETH|3-btn`,
+  `asset-row-Ether Continuous|1-btn` and `asset-row-Ether.fi|1-btn`. Each id kept the name's case and carried a number
+  after the bar; none had the lowercased `<name>|<ticker>` form composed above. Click by prefix,
+  `[data-testid^=asset-row-Ethereum]`, and fall back to the first `venue-row-` in the rail when the dialog stays open.
 - **Prove the switch reached the engine**, not just the label: poll the candle
   predicate again and read
   `./control-kiyotaka browser eval "(()=>JSON.stringify({title:document.title,bars:window.tc[0].metadata[0].rawData.length}))()"`.
