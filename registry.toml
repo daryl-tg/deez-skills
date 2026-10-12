@@ -662,3 +662,8 @@ runtimes = ["claude", "codex"]
 layer    = "workflow"
 category = "core"
 runtimes = ["claude", "codex"]
+
+[skills.verify-kiyotaka-desktop]
+category = "kiyotaka"
+runtimes = ["claude", "codex"]
+project = "kiyotaka-frontend"

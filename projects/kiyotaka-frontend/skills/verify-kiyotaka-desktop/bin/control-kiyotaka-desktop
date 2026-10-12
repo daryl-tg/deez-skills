@@ -1,0 +1,272 @@
+#!/usr/bin/env bash
+# control-kiyotaka-desktop — the verification lane for the OpenMarket desktop shell, the Electron app in
+# kiyotaka-frontend's desktop/ workspace package.
+#
+# Canonical under projects/kiyotaka-frontend/skills/verify-kiyotaka-desktop/bin/ in the deez-skills hub. It resolves
+# the product checkout from the caller's working directory (KIYO_DESKTOP_REPO overrides), and it drives only what
+# the checkout already ships: the web dev lane through vite, the shell through desktop/tools/verify/*.
+#
+#   doctor [--prod]                 read-only: is this checkout and lane worth driving?
+#   lane up [--testnet] | down | url  the web app from this checkout on 127.0.0.1:$KIYO_DESKTOP_LANE_PORT
+#   capture <png> [--prod] [--path <p>]  a plain launch of the shell, captured from the main process (Turnstile-safe)
+#   run <launch|handoff|parity|sign> <out dir> [args...]  the checkout's own lanes, pointed at the lane
+#   browser <verb> [args...]        delegate to agent-browser, for the browser half only (never the shell window)
+#   cli -- <command...>             run a command in the checkout, report its exit code
+#   evidence check <dir>            every PNG in the directory is non-empty and has its JSON report beside it
+set -euo pipefail
+
+# Assigned, never chosen: the agent range is 18097-18197, bound to 127.0.0.1 and deliberately not tunnelled.
+PORT="${KIYO_DESKTOP_LANE_PORT:-18144}"
+# The lane reads the main checkout's env file in the vite process only, through node --env-file. It is never copied
+# into a worktree and never printed.
+ENV_FILE="${KIYO_DESKTOP_ENV_FILE:-$HOME/gitlab/kiyotaka-frontend/.env.local}"
+BUNDLE_ID='xyz.openmarket.desktop'
+PROD_URL='https://openmarket.xyz/chart/'
+
+die() { printf 'control-kiyotaka-desktop: %s\n' "$*" >&2; exit 1; }
+
+repo_root() {
+  local root
+  if [ -n "${KIYO_DESKTOP_REPO:-}" ]; then root="$KIYO_DESKTOP_REPO"
+  else root="$(git rev-parse --show-toplevel 2>/dev/null)" || die 'run from a kiyotaka-frontend checkout or set KIYO_DESKTOP_REPO'
+  fi
+  [ -f "$root/desktop/package.json" ] && grep -q '"name": "@openmarket/desktop"' "$root/desktop/package.json" \
+    || die "$root has no desktop/ package (@openmarket/desktop); use the branch that carries the shell"
+  printf '%s' "$root"
+}
+
+REPO="$(repo_root)"
+DESKTOP="$REPO/desktop"
+STATE="$DESKTOP/.verify-userdata/control"
+PIDFILE="$STATE/lane-$PORT.pid"
+LOGFILE="$STATE/lane-$PORT.log"
+LANE_URL="http://127.0.0.1:$PORT/chart/"
+
+in_agent_range() { [ "$PORT" -ge 18097 ] && [ "$PORT" -le 18197 ]; }
+listener_pids() { lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true; }
+pid_cwd() { lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -1; }
+http_code() { curl -s -o /dev/null -w '%{http_code}' --max-time "${2:-10}" "$1" || true; }
+
+# Every OpenMarket bundle on disk. macOS routes openmarket:// to whichever one LaunchServices registered, so a
+# second copy steals the returns lane's URLs (unit 3) and the notify lane's identity checks.
+packaged_copies() {
+  {
+    mdfind "kMDItemCFBundleIdentifier == '$BUNDLE_ID'" 2>/dev/null || true
+    git -C "$REPO" worktree list --porcelain | sed -n 's/^worktree //p' | while read -r wt; do
+      ls -d "$wt"/desktop/dist-app/*/OpenMarket.app 2>/dev/null || true
+    done
+    ls -d /Applications/OpenMarket.app "$HOME/Applications/OpenMarket.app" "$HOME/gitlab/kiyotaka-desktop/dist-app"/*/*.app \
+      2>/dev/null || true
+  } | sed '/^$/d' | sort -u
+}
+
+cmd_doctor() {
+  local prod=0 fail=0
+  [ "${1:-}" = "--prod" ] && prod=1
+  printf 'checkout     %s\n' "$REPO"
+  printf 'tree         %s %s\n' "$(git -C "$REPO" rev-parse --short HEAD)" \
+    "$( [ -z "$(git -C "$REPO" status --porcelain)" ] && echo clean || echo dirty)"
+  local behind
+  behind="$(git -C "$REPO" rev-list --count HEAD..origin/main 2>/dev/null || echo '?')"
+  printf 'freshness    %s commits behind origin/main as last fetched%s\n' "$behind" \
+    "$( [ "$behind" != '?' ] && [ "$behind" -gt 50 ] && echo ' (BEHIND: label every finding with this tree)')"
+
+  local electron_app
+  electron_app="$(ls -d "$DESKTOP"/node_modules/electron/dist/Electron.app "$DESKTOP"/node_modules/electron/dist/electron.exe 2>/dev/null | head -1 || true)"
+  if [ -n "$electron_app" ]; then printf 'electron     %s\n' "$electron_app"
+  else printf 'electron     MISSING: cd desktop && pnpm exec install-electron\n'; fail=1; fi
+  [ -f "$DESKTOP/node_modules/playwright/package.json" ] && printf 'playwright   present\n' \
+    || { printf 'playwright   MISSING: pnpm install at the repo root\n'; fail=1; }
+
+  local copies count
+  copies="$(packaged_copies)"; count="$(printf '%s\n' "$copies" | sed '/^$/d' | wc -l | tr -d ' ')"
+  printf 'packaged     %s copies of %s\n' "$count" "$BUNDLE_ID"
+  [ -n "$copies" ] && printf '%s\n' "$copies" | sed 's/^/             /'
+  [ "$count" -gt 1 ] && printf 'NOTE         run returns or notify only with one copy on disk; capture and window are unaffected\n'
+
+  if [ "$prod" -eq 1 ]; then
+    local code; code="$(http_code "$PROD_URL")"
+    printf 'production   %s answered %s\n' "$PROD_URL" "$code"
+    [ "$code" = 200 ] || fail=1
+  else
+    in_agent_range || { printf 'lane         port %s is outside 18097-18197\n' "$PORT"; fail=1; }
+    local pids; pids="$(listener_pids)"
+    if [ -z "$pids" ]; then
+      printf 'lane         DOWN on %s: run lane up, or use --prod for the deployed chart\n' "$PORT"; fail=1
+    else
+      local pid cwd mine=0
+      for pid in $pids; do cwd="$(pid_cwd "$pid")"; [ "$cwd" = "$REPO" ] && mine=1; done
+      if [ "$mine" -eq 1 ]; then
+        printf 'lane         %s served from this checkout%s\n' "$LANE_URL" \
+          "$( [ -f "$PIDFILE" ] && echo ', run-owned' || echo ', no pidfile: not started by this wrapper')"
+      else
+        printf 'lane         FOREIGN on %s (cwd %s): pick another KIYO_DESKTOP_LANE_PORT\n' "$PORT" "$cwd"; fail=1
+      fi
+      local chart health
+      chart="$(http_code "$LANE_URL" 90)"
+      printf 'chart        /chart/ answered %s\n' "$chart"
+      [ "$chart" = 200 ] || fail=1
+      health="$(curl -s --max-time 20 "http://127.0.0.1:$PORT/api/v1/health/services" | grep -o '"status":"[a-z]*"' | head -1 || true)"
+      printf 'backend      health %s\n' "${health:-UNREACHABLE}"
+      [ "$health" = '"status":"ok"' ] || fail=1
+    fi
+  fi
+  [ "$fail" -eq 0 ] || die 'doctor failed. Do not drive this instance.'
+  printf 'doctor       ok\n'
+}
+
+cmd_lane() {
+  case "${1:-}" in
+    url) printf '%s\n' "$LANE_URL" ;;
+    up)
+      local testnet=0; [ "${2:-}" = "--testnet" ] && testnet=1
+      in_agent_range || die "port $PORT is outside the agent range 18097-18197"
+      [ -z "$(listener_pids)" ] || die "port $PORT is taken (cwd $(pid_cwd "$(listener_pids | head -1)")); set KIYO_DESKTOP_LANE_PORT to a free agent port"
+      [ -f "$ENV_FILE" ] || die "no env file at $ENV_FILE; without it the chart boots with no data (\"Retrying data request...\")"
+      mkdir -p "$STATE"
+      local extra=()
+      [ "$testnet" -eq 1 ] && extra=(VITE_HYPERLIQUID_NETWORK=testnet VITE_HYPERLIQUID_API_DOMAIN=https://api.hyperliquid-testnet.xyz)
+      # The redirect wraps the backgrounded group, so a caller reading this command through a pipe sees EOF.
+      # VITE_BACKEND_PROXY_ORIGIN is the Origin header the dev backend's CORS allowlist accepts; nothing binds 8080.
+      { cd "$REPO" && exec env VITE_PORT="$PORT" VITE_BACKEND_PROXY_ORIGIN=http://localhost:8080 ${extra[@]+"${extra[@]}"} \
+          nohup node --env-file="$ENV_FILE" node_modules/vite/bin/vite.js --config qa/verification/vite.config.ts \
+          --host 127.0.0.1 --port "$PORT" --strictPort; } >"$LOGFILE" 2>&1 </dev/null &
+      echo $! >"$PIDFILE"
+      local code
+      for _ in $(seq 1 90); do
+        code="$(http_code "$LANE_URL" 5)"; [ "$code" = 200 ] && break
+        kill -0 "$(cat "$PIDFILE")" 2>/dev/null || die "vite exited; see $LOGFILE"
+        sleep 2
+      done
+      [ "$code" = 200 ] || die "the lane did not answer in 180 s; see $LOGFILE"
+      printf 'lane up      %s (pid %s, log %s)%s\n' "$LANE_URL" "$(cat "$PIDFILE")" "$LOGFILE" \
+        "$( [ "$testnet" -eq 1 ] && echo ', Hyperliquid testnet')"
+      ;;
+    down)
+      local pid
+      if [ -f "$PIDFILE" ]; then
+        pid="$(cat "$PIDFILE")"; kill "$pid" 2>/dev/null || true; rm -f "$PIDFILE"
+        printf 'lane down    stopped pid %s\n' "$pid"
+      else
+        printf 'lane down    no run-owned lane on %s\n' "$PORT"
+      fi
+      sleep 2
+      # Sweep only a survivor this checkout owns, inside the agent range. Never by process name.
+      for pid in $(listener_pids); do
+        if in_agent_range && [ "$(pid_cwd "$pid")" = "$REPO" ]; then kill "$pid"; printf 'lane down    swept pid %s\n' "$pid"
+        else printf 'lane down    pid %s on %s is not ours; left running\n' "$pid" "$PORT"; fi
+      done
+      ;;
+    *) die 'usage: control-kiyotaka-desktop lane {up [--testnet]|down|url}' ;;
+  esac
+}
+
+# A plain launch through tools/verify/capture.js: no Playwright, no CDP, so Cloudflare Turnstile passes and a
+# registered service worker cannot stall the load. Passes only on a priced title, the chart's proof of live candles.
+cmd_capture() {
+  local out="" prod=0 path='' arg
+  while [ $# -gt 0 ]; do
+    arg="$1"; shift
+    case "$arg" in
+      --prod) prod=1 ;;
+      --path) path="${1:?--path needs a value, such as ?login=1}"; shift ;;
+      *) out="$arg" ;;
+    esac
+  done
+  [ -n "$out" ] || die 'usage: control-kiyotaka-desktop capture <png> [--prod] [--path <suffix>]'
+  case "$out" in /*) ;; *) out="$PWD/$out" ;; esac
+  mkdir -p "$(dirname "$out")"
+  local url="$PROD_URL"
+  if [ "$prod" -eq 0 ]; then
+    [ -n "$(listener_pids)" ] || die "no lane on $PORT; run lane up first, or pass --prod"
+    url="$LANE_URL"
+  fi
+  local profile="$STATE/capture-profile" report="${out%.png}.json"
+  rm -rf "$profile"
+  (cd "$DESKTOP" && pnpm run build >/dev/null) || die 'the shell does not build: pnpm --filter @openmarket/desktop build'
+  # OPENMARKET_DESKTOP_URL is honoured by an unpackaged launch only; empty loads production.
+  local target="${url}${path}"
+  [ "$prod" -eq 1 ] && [ -z "$path" ] && target=''
+  (cd "$DESKTOP" && CAPTURE_OUT="$out" CAPTURE_REPORT="$report" CAPTURE_SETTLE_MS="${CAPTURE_SETTLE_MS:-60000}" \
+    OPENMARKET_DESKTOP_URL="$target" pnpm exec electron -r ./tools/verify/capture.js . --user-data-dir="$profile" \
+    | grep -E '^(desktop|capture): ') || true
+  [ -s "$out" ] && [ -f "$report" ] || die "no capture written to $out"
+  node -e '
+    const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+    const want = process.argv[2], withPath = process.argv[3] !== "";
+    const checks = {
+      loaded: r.log.some((l) => l.startsWith("desktop: loaded ")),
+      noLoadFailure: r.failed === null,
+      onTarget: r.url.startsWith(want),
+      canvas: r.canvases > 0,
+    };
+    // "83,214.3 ▲ BTC - USD" once candles stream; "BTC - USD" alone is a chart with no data. A --path capture, such
+    // as the sign-in screen, is not a chart proof, so it carries no title check.
+    if (!withPath) checks.pricedTitle = /\d[\d,.]*\s*[▲▼]/.test(r.title);
+    console.log(JSON.stringify({ checks, url: r.url, title: r.title, canvases: r.canvases }));
+    process.exit(Object.values(checks).every(Boolean) ? 0 : 1);
+  ' "$report" "$url" "$path" || die "capture checks failed; open $out"
+  printf 'capture      %s\n' "$out"
+}
+
+cmd_run() {
+  local lane="${1:-}"; shift || true
+  local out="${1:-}"; [ -n "$out" ] || die 'usage: control-kiyotaka-desktop run <launch|handoff|parity|sign> <out dir> [args...]'
+  shift
+  case "$out" in /*) ;; *) out="$PWD/$out" ;; esac
+  # The returns and notify scenarios pack the app themselves; any other copy on disk takes their openmarket:// URLs.
+  if [ "$lane" = launch ] && printf ' %s ' "$*" | grep -qE ' (returns|notify) '; then
+    local others
+    others="$(packaged_copies | grep -v "^$DESKTOP/dist-app/" || true)"
+    [ -z "$others" ] || die "another OpenMarket bundle is on disk; keep exactly one packaged copy: $others"
+  fi
+  local url=''
+  [ -n "$(listener_pids)" ] && url="$LANE_URL"
+  case "$lane" in
+    launch) (cd "$DESKTOP" && OPENMARKET_DESKTOP_URL="$url" node tools/verify/launch.mjs "$out" "$@") ;;
+    handoff|parity)
+      [ -n "$url" ] || die "$lane needs a lane on $PORT: lane up (handoff needs lane up --testnet)"
+      (cd "$DESKTOP" && OPENMARKET_DESKTOP_URL="$url" node "tools/verify/$lane.mjs" "$out" "$@") ;;
+    sign)
+      [ -n "$url" ] || die 'sign needs a lane: lane up --testnet'
+      (cd "$REPO" && node qa/tests/e2e/desktop-sign.mjs --base "$url" --out "$out" "$@") ;;
+    *) die 'usage: control-kiyotaka-desktop run <launch|handoff|parity|sign> <out dir> [args...]' ;;
+  esac
+}
+
+cmd_browser() {
+  command -v agent-browser >/dev/null 2>&1 || die 'agent-browser not installed'
+  exec agent-browser "$@"
+}
+
+cmd_cli() {
+  [ "${1:-}" = "--" ] || die 'usage: control-kiyotaka-desktop cli -- <command...>'
+  shift
+  local code=0
+  (cd "$REPO" && "$@") || code=$?
+  printf 'exit %d\n' "$code" >&2
+  return "$code"
+}
+
+cmd_evidence() {
+  [ "${1:-}" = "check" ] || die 'usage: control-kiyotaka-desktop evidence check <dir>'
+  local dir="${2:?directory required}" bad=0 png
+  [ -d "$dir" ] || die "no directory $dir"
+  for png in "$dir"/*.png; do
+    [ -e "$png" ] || die "no PNG in $dir"
+    if [ ! -s "$png" ]; then printf 'EMPTY        %s\n' "$png"; bad=1; continue; fi
+    printf 'ok           %s %s\n' "$(basename "$png")" "$( [ -f "${png%.png}.json" ] && echo '+ report' || echo '(no report)')"
+  done
+  [ "$bad" -eq 0 ] || die 'evidence check failed'
+}
+
+case "${1:-}" in
+  doctor)   shift; cmd_doctor "$@" ;;
+  lane)     shift; cmd_lane "$@" ;;
+  capture)  shift; cmd_capture "$@" ;;
+  run)      shift; cmd_run "$@" ;;
+  browser)  shift; cmd_browser "$@" ;;
+  cli)      shift; cmd_cli "$@" ;;
+  evidence) shift; cmd_evidence "$@" ;;
+  *) die 'usage: control-kiyotaka-desktop {doctor|lane|capture|run|browser|cli|evidence}' ;;
+esac

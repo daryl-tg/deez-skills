@@ -428,6 +428,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `migrating-types-to-orange-shared` |  | claude | Use when centralising duplicated, hand-copied, or drift-guarded types/constants from kiyotaka-frontend (or another consumer repo) into an @orangecharts package… |
 | `port-designer-ui` |  | claude, codex | Use when porting a component, dialog, page, landing-page redesign, or other visual treatment from Kiyotaka_Mar25_V9 into a Kiyotaka Vue repository, especially … |
 | `verify-kiyotaka` |  | claude, codex | Use when a change to the OpenMarket chart frontend (kiyotaka-frontend) needs to be driven and proven in the running app — starting a dev-server lane, exercisin… |
+| `verify-kiyotaka-desktop` |  | claude, codex | Use to drive and prove the OpenMarket desktop shell (Electron, kiyotaka-frontend desktop/) - launch it, capture the chart Turnstile-safe, run its returns, wall… |
 
 ### OM Chat feature delivery
 
@@ -501,6 +502,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | Project | Skill | Map |
 | --- | --- | --- |
 | `kiyotaka-frontend` | [verify-kiyotaka](./projects/kiyotaka-frontend/skills/verify-kiyotaka/SKILL.md) | [Feature map](./projects/kiyotaka-frontend/skills/verify-kiyotaka/features/README.md) |
+| `kiyotaka-frontend` | [verify-kiyotaka-desktop](./projects/kiyotaka-frontend/skills/verify-kiyotaka-desktop/SKILL.md) | [Feature map](./projects/kiyotaka-frontend/skills/verify-kiyotaka-desktop/features/README.md) |
 | `openmarket-chat` | [verify-om-chat](./projects/openmarket-chat/skills/verify-om-chat/SKILL.md) | [Feature map](./projects/openmarket-chat/skills/verify-om-chat/features/README.md) |
 | `openmarket-chat-app` | [verify-openfloor](./projects/openmarket-chat-app/skills/verify-openfloor/SKILL.md) | [Feature map](./projects/openmarket-chat-app/skills/verify-openfloor/features/README.md) |
 | `openmarket-internal` | [verify-om](./projects/openmarket-internal/skills/verify-om/SKILL.md) | [Feature map](./projects/openmarket-internal/skills/verify-om/features/README.md) |
