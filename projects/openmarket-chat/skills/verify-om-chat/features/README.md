@@ -259,3 +259,18 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [agent-draft-sharing.md](agent-draft-sharing.md)
 - [message-editing.md](message-editing.md)
 - [agent-creator.md](agent-creator.md) — local creation/import/sharing, both qualified native coding lifecycles, revocation/rollback and explicit evaluation/delivery limits.
+
+## Surface inventory
+
+Source discovery: 2026-10-12, product tree `a0916a25d19bdd5d8890669b89617c2e253679a2`. This initial inventory records missing or partial outcome coverage; it is not a complete product census. No app was driven for this source audit. Existing guide verification records remain unchanged. Every row below needs live verification or reconciliation of its named gap; source inspection does not prove backend success.
+
+| User outcome | Product source path | Existing guide / sub-feature | Live verification | Remaining prerequisite or gap |
+|---|---|---|---|---|
+| Read poll rosters and closed-poll results | `tools/visual/poll-cache-fixture.html`; `tools/visual/poll-results-fixture.html` | unmapped outcome; message-editing.md only covers caption edits | live verification pending for the listed gap | No outcome-level drive recipe or fresh proof; fixture state cannot establish server vote persistence or multi-user delivery. |
+| Stage, send and review attachment-only or sealed files | `src/lib/attachments-seam.ts`; `src/lib/desktop-attachment-blobs.ts`; `tools/visual/compact-attachment-only-fixture.html` | [composer-and-sending.md](composer-and-sending.md) / Attachments (partial) | live verification pending for the listed gap | Existing composer recipe covers staged chips; attachment-only/sealed transport, permissions and cross-device delivery still need scoped proof. |
+| Use away / remote control and approvals | `tools/visual/away-panel-fixture.html`; `tools/visual/remote-home-fixture.html` | [om-and-agents.md](om-and-agents.md) / Remote control (away) | live verification pending for the listed gap | Guide has fixture routes; real relay/daemon history and approval delivery need their own proof. No fresh drive in this audit. |
+| Inspect agent tool activity and usage | `tools/visual/agent-presentation-fixture.html`; `tools/visual/agent-usage-fixture.html` | [agent-token-usage.md](agent-token-usage.md) / Sub-features; [om-and-agents.md](om-and-agents.md) | live verification pending for the listed gap | Existing guide covers expanding tool activity and usage. Missing-usage/error variants and backend accounting need explicit scope; no fresh drive in this audit. |
+| Browse public channels and handle an empty directory | `src/lib/routing.ts`; `tools/visual/shell-fixture.tsx` | [direct-messages-and-home.md](direct-messages-and-home.md) / Public channel browse; [channel-and-topic-navigation.md](channel-and-topic-navigation.md) (partial) | live verification pending for the listed gap | Directory empty/loading/error states are not separately proven by ordinary channel navigation; seeded fixtures do not prove real catalog contents. |
+| Import, export, file and trash library documents | `src/lib/doc-import.ts`; `src/lib/doc-export.ts`; `src/lib/doc-filing.ts`; `src/lib/doc-trash.ts` | [your-library.md](your-library.md) / Library document mutations (partial) | live verification pending for the listed gap | Reconcile import/export/trash, readonly access and document history with real persistence; opening the library is insufficient proof. |
+
+Inventory not yet reconciled here: all shared `packages/chat-ui` outcomes, desktop/native-only entry points, server/API registrations and Playwright-only fixtures. Reconcile those source registries before describing the inventory as complete.
