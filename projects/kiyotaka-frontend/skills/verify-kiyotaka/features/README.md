@@ -176,3 +176,4 @@ start of any symbol run rather than trusting either lane:
   `node scripts/seed-official-catalog.mjs`, not the authed lane)
 - [Symbol search and the ticker bar](./symbol-search-and-ticker-bar.md) — guest
 - [Script editor and kScript](./script-editor-and-kscript.md) — guest (authed for protected/wrun)
+- [Voice control](./voice-control.md) — guest with the `voice-control` flag override (seam only; the microphone path is unverified)
