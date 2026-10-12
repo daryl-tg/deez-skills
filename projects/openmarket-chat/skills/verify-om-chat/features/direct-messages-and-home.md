@@ -178,4 +178,4 @@ seeded presence state — a good second observation alongside the route.
 
 ### Verification record
 
-**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.
+**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened Home and observed the unread summary and waiting row, then opened ana’s DM and checked its online header and composer. **Limitations:** Connections filters, requests/blocked lists, presence changes, and DM editing were not exercised in this pass.

@@ -141,4 +141,4 @@ and `?libraryState=error` (`:4098`).
 
 ### Verification record
 
-**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.
+**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the server-scoped Library panel, filtered to rotation and observed one matching note, expanded to full view, then opened Archive and verified its heading and Refresh control. **Limitations:** Document mutations, populated archive/restore behavior, and daemon-backed shared data were not exercised; fixture archive rows are unavailable.

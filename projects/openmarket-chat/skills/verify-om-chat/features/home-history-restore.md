@@ -26,4 +26,4 @@ The transport is synthetic; this proves mounted Shell/checkpoint/editor behavior
 
 ### Verification record
 
-**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.
+**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened Voice history, previewed r3, observed the configured first restore failure, retried, and verified the new r5 head. **Limitations:** The fixture uses a synthetic checkpoint store; real HOME writes and learning holds remain unverified.

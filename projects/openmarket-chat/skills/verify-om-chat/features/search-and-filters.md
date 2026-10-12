@@ -30,6 +30,12 @@ proof.
 - Operand typeahead — choosing `from:` replaces the option list with the
   roster, and choosing a person composes the token (`from:@ana `).
 - The results panel: a result count and the hit rows.
+- The results-scope picker. On room searches it offers **This thread** when
+  inside a topic, **This channel**, **This server**, **Library**, and
+  **Everywhere**; on a DM it offers **This DM**, **All DMs**, and
+  **Everywhere** (`SearchPanel.tsx:74-101,2424-2484`).
+- Date filters from **More filters**: `before:`, `after:`, and `during:`
+  (`search-query.ts:3-38`).
 - The search-unavailable error state.
 - The two other header search affordances, "Open search in #ops" and
   "Open search panel".
@@ -39,7 +45,9 @@ proof.
 You are in `#ops` and you want the message where someone explained the dedupe
 window. You click the search box in the channel header. A menu drops down
 offering the ways to narrow — from a person, in a channel, mentioning someone,
-by attachment type. You pick **From a specific user**, the box fills in `from:`
+by attachment type. The results panel also lets you scope that search to this
+thread, channel, server, the Library, or everywhere. In a DM, choose this
+conversation or all DMs. You pick **From a specific user**, the box fills in `from:`
 and now lists your people; you pick `@ana` and it reads `from:@ana `. You add a
 word and the results appear in a panel down the right.
 
@@ -76,6 +84,12 @@ with the query `dedupe`, scoped to `#ops`:
 |---|---|
 | `shell-fixture.html?view=room&alerts=quiet&panel=search` | Results panel, one hit, heading `1 results` |
 | `shell-fixture.html?view=room&alerts=quiet&panel=search&searchState=error` | The same run, plus *"The search service is unavailable"* |
+
+Open **Search in: This channel** from that result panel to inspect the
+room-scope choices. The equivalent DM scope picker is available after opening
+search on `?view=dm&dm=ana&alerts=quiet`; it offers **This DM**, **All DMs**,
+and **Everywhere**. **More filters** includes `before:`, `after:`, and
+`during:` date operators.
 
 Scope retargeting is the cheap second observation, and it is the one worth
 capturing — it proves the search box followed the navigation, not just the
@@ -135,4 +149,4 @@ partial-window warning remains visible.
 
 ### Verification record
 
-**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.
+**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the seeded #ops search with one dedupe result; inspected room scopes (This channel, This server, Library, Everywhere) and DM scopes (This DM, All DMs, Everywhere). **Limitations:** Thread-specific retargeting, date-filter submission, live search requests, cloud-host behavior, and backend ranking were not exercised.

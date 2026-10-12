@@ -228,4 +228,4 @@ the navigation retargeted the *write* path, not only the read pane.
 
 ### Verification record
 
-**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.
+**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened #ops, selected CPI print — Aug from the topic tree, verified its heading and retargeted composer, returned with Back to #ops, and opened the Topics view. **Limitations:** Other channel-header mechanisms, compact menus, topic expansion variants, and daemon-only actions were not exercised.

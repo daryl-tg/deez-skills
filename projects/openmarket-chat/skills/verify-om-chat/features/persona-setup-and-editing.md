@@ -59,4 +59,4 @@ The actual API rig must include a synthetic HOME mirror-health entry and directo
 
 ### Verification record
 
-**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.
+**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened Voice in the empty persona state and entered Create manually; verified the populated editor fields and Save voice control. **Limitations:** The draft was not saved; setup/import/export, profile selection, learning, offline recovery, and production host parity were not exercised.

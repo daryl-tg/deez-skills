@@ -43,6 +43,10 @@ interaction end to end.
   the viewer's role. Overview carries the per-channel to-do widget placement
   control ("To-do widgets", gated by `canManageTodoDisplay`). The matching
   *per-viewer* override is not reachable from this fixture — see Gotchas.
+  Webhooks also offers **Convert webhooks to alerts**. Its review step lets the
+  owner select legacy webhooks; URLs and senders stay while deliveries become
+  alert cards in that channel's tape (`WebhooksPage.tsx:600`,
+  `ConvertWebhooksStepper.tsx:342,419`).
 - Settings search, the Esc-to-close rail behavior, and the open/close
   transition. Since `06ee56bd` the dialog also closes on **browser Back**:
   `SettingsShell.tsx:191` calls `useOverlayHistoryDismiss`
@@ -80,6 +84,12 @@ agent-browser open "$(control-om-chat url \
 | `settings-fixture.html?host=server&page=moderation&perms=owner` | Server moderation |
 | `settings-fixture.html?host=channel&page=access&perms=owner` | Channel access |
 | `settings-fixture.html?host=channel&page=overview&perms=owner` | Channel overview, incl. to-do widget placement |
+| `settings-fixture.html?host=channel&page=webhooks&perms=owner` | Webhooks, including the conversion review step |
+
+On the Webhooks route, choose **Convert webhooks to alerts** and check the
+selection review and channel-tape explanation. Cancel to leave the fixture
+unchanged. The source fixture proves the wizard's UI; an authenticated server
+is still required to prove conversion effects.
 
 The dialog is `dialog` named **"Settings"**; the section list is `navigation`
 named **"Settings navigation"**. Scope to them when a label is ambiguous.
@@ -165,4 +175,4 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 
 ### Verification record
 
-**Last verified:** 2026-10-07. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened this feature’s documented source-fixture entry route on the current product revision and checked its initial rendered state. **Limitations:** this pass rechecked route reachability only; detailed interactions remain as recorded above and daemon-backed behavior was not re-exercised.
+**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Changed Appearance from Dark to Light and restored Dark; opened owner Channel Webhooks and inspected the “Convert webhooks to alerts” review with two selected examples, then canceled. **Limitations:** Conversion effects, other settings pages, channel permissions beyond the fixture owner seed, persisted preferences, and per-viewer to-do overrides were not exercised.
