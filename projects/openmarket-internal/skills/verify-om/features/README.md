@@ -125,3 +125,17 @@ surface (`om mcp serve --stdio`), charts (`om chart`), the `om chat` TUI,
 packages and the registry, and the execution/venue verbs.
 
 - [agent-creator-lifecycle.md](agent-creator-lifecycle.md) — local creator/import/sharing lifecycle, current-source native coding, exact adopted skills, revocation/rollback and explicit evaluation limits.
+
+## Surface inventory
+
+Source discovery: 2026-10-12, product tree `49179fdaf1336bfec7e933832d0fa2753dd05196`. This initial inventory records missing or partial outcome coverage; it is not a complete product census. No app was driven for this source audit. Existing guide verification records remain unchanged. Every row below needs live verification or reconciliation of its named gap; source inspection does not prove backend success.
+
+| User outcome | Product source path | Existing guide / sub-feature | Live verification | Remaining prerequisite or gap |
+|---|---|---|---|---|
+| Access chart, market and watch workflows through local/hosted MCP | `packages/cli/src/cmd/mcp.ts`; `packages/cli/src/mcp/server.ts`; `packages/cli/src/hosted/server.ts` | unmapped | live verification pending for the listed gap | No MCP drive recipe or live proof in this map. Local and hosted auth/scope requirements must be checked separately. |
+| Manage chart workspaces, layouts, indicators and drawings | `packages/cli/src/cmd/chart.ts`; `packages/cli/src/actions/collab/` | unmapped | live verification pending for the listed gap | Requires a chart workspace and applicable permissions; no user-path drive recipe or fresh proof. |
+| Use om chat and room/agent interaction | `packages/cli/src/cmd/chat.ts`; `packages/cli/src/cmd/room/` | unmapped | live verification pending for the listed gap | Interactive harness and model/channel credentials may be required; no TUI live proof or drive recipe. |
+| Publish, install and manage packages through the registry | `packages/cli/src/cmd/packages.ts`; `packages/cli/src/cmd/publish.ts`; `packages/cli/src/actions/packages/` | [agent-creator-lifecycle.md](agent-creator-lifecycle.md) / Agent package sharing and installation (partial) | live verification pending for the listed gap | Agent/text-skill publish, adopt, install, update and revoke already have a guide; general om packages/om publish and non-agent package management remain without an outcome-level live recipe. |
+| Manage venue, wallet and execution workflows | `packages/cli/src/cmd/execute.ts`; `packages/cli/src/cmd/order.ts`; `packages/cli/src/cmd/buy.ts`; `packages/cli/src/cmd/polymarket.ts`; `packages/cli/src/cmd/hyperliquid.ts` | unmapped | live verification pending for the listed gap | Account and trading scopes plus a safe verification plan are required; no financial action was attempted or verified. |
+
+Inventory not yet reconciled here: the full action registry, runner HTTP routes, populated dashboard strategy/receipt workflows and all newer watch verbs. Existing guides cover daemon, watch, ingest, market, dashboard, calendar, origin-recovery and agent-creator outcomes; their sub-features and verification limits still need reconciliation against this product tree.
