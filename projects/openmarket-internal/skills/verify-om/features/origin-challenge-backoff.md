@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — healthy feed, challenge, hold/status row, no-key offer, silent run-now, scheduled clean probe at cooldown end and feed recovery driven. A separate page-add probe also challenged the stub.*
+*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — healthy feed, challenge, hold/status row, no-key offer, silent run-now, scheduled clean probe at cooldown end and feed recovery driven; one page-add probe also challenged the stub.*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes

@@ -1,12 +1,12 @@
 # Firecrawl recovery before whitelist
 
-*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — guest no-key blocked-feed path showed `page_origin_cooldown` and `om setup firecrawl`; configured vendor recovery remains last driven at tree `fe82b2ef1`.*
+*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — guest no-key challenge path returned `page_origin_cooldown` and `om setup firecrawl`; configured vendor retry, repeated refusal and restart persistence remain last driven at tree `fe82b2ef1`.*
 
-A configured Firecrawl connection retries the first eligible blocked read of a source automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
+A configured Firecrawl connection retries the first eligible direct-read failure or refusal automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
 
 ## Sub-features
 
-- An eligible blocked feed can be created after one automatic recovery, without a whitelist prompt.
+- An eligible direct read can recover after one automatic vendor retry, without a whitelist prompt.
 - Repeated refusal makes the site eligible for the existing whitelist offer; paid fetch count stays at one.
 - Restarting the daemon preserves the retry history and the site's refusal status.
 - A missing key offers `om setup firecrawl`; a configured key after repeated refusal offers `om setup firecrawl --allow <host>`.
@@ -16,7 +16,7 @@ A configured Firecrawl connection retries the first eligible blocked read of a s
 
 1. Connect Firecrawl with `om setup firecrawl`.
 2. Watch a public page or feed whose origin challenges this machine.
-3. The first blocked read retries automatically. If a later read is refused, the source status says `Firecrawl can read it if you allow it`.
+3. The first eligible direct-read failure retries automatically. If a later read is refused, the source status says `Firecrawl can read it if you allow it`.
 4. Allow that site with `om setup firecrawl --allow <host>` when continued reading is wanted.
 5. Without a key, the blocked read still points to `om setup firecrawl`.
 
@@ -38,7 +38,7 @@ The 2026-09-30 rig and preload are preserved in `/Users/dboon/Documents/dev-note
 ## Gotchas
 
 - This pass proves real product policy, persistence, parsing and user surfaces against simulated HTTP responses. It does not prove the external Firecrawl service or delivery of an interactive agent card; the guest lane has no LLM credential. Regression tests cover the offer/drain path.
-- Automatic recovery requires a configured client and an eligible refusal. Script-shell failures are eligible; a refused vendor read moves the source to its 24-hour hold. No-key requests and declined offers do not retry automatically.
+- Automatic recovery requires a configured client and an eligible direct-read failure or refusal. Script-shell failures are eligible; a refused vendor read moves the source to its 24-hour hold. No-key requests and declined offers do not retry automatically.
 - Bun ignores Node's `NODE_OPTIONS=--require` for this preload. The proved rig uses a run-local Bun wrapper that injects `--preload` only for the product bootstrap. Normal build and test commands use the real Bun binary.
 - The CLI probes locally. Both the CLI and daemon need the loopback switch and fixture key during the configured phase.
 - Use `--no-overview` with `accept_all` on a guest lane: classification alone does not disable model-generated overview text.

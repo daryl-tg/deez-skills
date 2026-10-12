@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — all eight workspace navigation routes and strategy not-found detail opened; onboarding captured with screenshots and accessibility snapshots. Non-empty strategy and receipt rows remain unverified.*
+*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — all eight workspace navigation routes, onboarding, and the fire watch row opened. Strategy detail returned `Loading…` after fresh-session retry; the recovered feed detail also kept a stale `broken` banner while its source row showed `working`. Both are recorded as product gaps. Non-empty strategy and receipt rows remain unverified.*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
@@ -123,6 +123,9 @@ Preconditions:
   metric, not part of the pill.
 - The header can read `Needs attention` when strategy health reports unmanaged
   exits; it is an additional status branch, not a generic watch status.
+- A plan-usage pill can appear beside daemon status when a signed-in plan nears
+  its hold threshold. A fresh guest lane has no plan pressure, so the pill stays
+  absent.
 - The SPA is bundled into the daemon at module load from
   `apps/dashboard/dist/assets/app.js`. Editing `apps/dashboard/src` changes
   nothing a lane serves until `bun run build:dashboard` runs — and

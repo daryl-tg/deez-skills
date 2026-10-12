@@ -1,6 +1,6 @@
 # Daemon lifecycle and health
 
-*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — read status, doctor, service status and logs; service install correctly refused by this ephemeral run lane.*
+*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — read full and lite health, status, doctor (14 guest checks), service status and logs; wrapper correctly refused service install. Contributed status planes were absent in this guest state.*
 
 The daemon is the product's spine: it boots, serves its HTTP doors, ticks, and
 reports what it is doing. A user starts it (`om run` in the foreground, or
@@ -10,8 +10,10 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
 ## Sub-features
 
 - `boot` brings the runner up on its bind address and prints its route summary.
-- `healthz` answers with version, auth posture, tick counters, lane rows and
-  loop states.
+- `healthz` returns the full runtime view, including version, auth, tick counters,
+  lanes, loops, stalls, subscriptions and contributed status fields.
+  `/healthz?lite=1` returns a small presence payload (`pid`, `version`,
+  `started_at`, `stalls`). Runtime-specific fields depend on active planes.
 - `status` renders the same state as a human rollup.
 - `doctor` self-diagnoses the install: binary, version, home, network, key,
   schema, daemon.
@@ -47,8 +49,8 @@ Preconditions:
   block: on a guest lane every library and gardener loop reads
   `INACTIVE (guest session)` or `INACTIVE (off (<setting>))`, which is "off, and
   why", not "stalled".
-- **Self-diagnosis.** Run `control-om om -- doctor`. On a fresh lane the
-  expected shape is 14 checks: `binary: warn` (dev checkout),
+- **Self-diagnosis.** Run `control-om om -- doctor`. On a fresh guest lane this drive returned 14 checks. Contributed checks can
+  append conditionally, so treat 14 as this baseline rather than a fixed schema: `binary: warn` (dev checkout),
   `version/home/network/api_key/auth/account/schema/daemon/follows: ok`, and `llm/agent_wiring: warn`.
   `contracts` and `stream` are environment-dependent, not guest-dependent: they
   warn when the registry is unreachable and read `ok` when it answers, so do not

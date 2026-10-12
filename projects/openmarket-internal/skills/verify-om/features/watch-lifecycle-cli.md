@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — create/edit/show/pause/resume/remove driven; JSON confirmed enabled-state transitions and removal receipt; journal reread after removal. Group/multi-watch/combine/preview/tune remain unverified.*
+*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — create/edit/show, HTTP ingest, CLI push/history, pause/resume/remove, token rotation and journal preservation driven. Group/multi-watch, combine/preview/tune, reclassify/amend/export/backfill remain unverified.*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
@@ -14,6 +14,11 @@ whole lifecycle is provable on a guest lane.
   `--every`, `--upstream`, `--stream-ref`).
 - `watch-list` shows one row per watch with status and last fire.
 - `watch-show` reads one watch: status per part, steps, sources, channel.
+- `watch-create` also accepts bands, multiple sources and inline steps; the
+  simple inbound recipe does not cover those combinations.
+- `event-tools` include `history`, `export`, `backfill`, `reclassify`,
+  `rotate-token` and `amend` for stored inbound-watch events. This pass drove
+  history and token rotation; the other forms remain unverified.
 - `watch-edit` changes goal, group, filters, classifier mode and caps.
 - `watch-pause` / `watch-resume` stop and restart a watch and its sources.
 - `watch-remove` deletes a watch and its sources.

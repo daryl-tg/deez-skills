@@ -1,6 +1,6 @@
 # Calendar scheduling and polling windows
 
-*Verified: 2026-10-07, tree `03bd55226` (v0.432.0) — empty guest calendar listed; feed polling policy and bounded window set/list/cancel/re-read. Occurrence actions and recurring/policy boundary branches remain unverified.*
+*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — empty guest calendar listed; feed polling policy and bounded window set/list/cancel/re-read. Occurrence actions and actual scheduled reads remain unverified.*
 
 `om calendar` lists and manages scheduled occurrences, while `om watch window`
 sets bounded read windows on sources with a polling policy. The calendar needs
@@ -54,9 +54,10 @@ Preconditions:
    `watch window cancel <watch> --source <source-id> --origin verify-window
    --format json`; list again and confirm the row remains with state `cancelled`.
 
-The 2026-10-07 guest-lane drive used the `maint-oct-07-origin` RSS source. It
-confirmed the stored policy and the scheduled-to-cancelled transition. It did
-not wait for the scheduled window to run.
+The 2026-10-12 guest-lane drive used the `oct12-feed` RSS source. It confirmed
+the stored policy and the scheduled-to-cancelled transition. It did not wait
+for the scheduled window to run. Occurrence review actions remain unverified
+because the guest calendar had no occurrences.
 
 ## Gotchas
 
