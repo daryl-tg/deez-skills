@@ -44,8 +44,12 @@ build never does.
 
 ## Launch
 
+The shell lives in the repo's main checkout, `/Users/dboon/gitlab/kiyotaka-frontend`, only once `daryl/desktop-shell`
+has landed on `main`. Before that, run from the feature worktree `/Users/dboon/gitlab/kiyotaka-frontend-desktop-shell`
+instead; any checkout that carries `desktop/` works.
+
 ```bash
-cd /Users/dboon/gitlab/kiyotaka-frontend-desktop-shell      # any checkout that carries desktop/
+cd /Users/dboon/gitlab/kiyotaka-frontend                    # or the pre-landing worktree named above
 CTL=~/github/deez-skills/projects/kiyotaka-frontend/skills/verify-kiyotaka-desktop/bin/control-kiyotaka-desktop
 export KIYO_DESKTOP_LANE_PORT=18144                         # assigned from 18097-18197; record it for the run
 lsof -nP -iTCP:$KIYO_DESKTOP_LANE_PORT -sTCP:LISTEN || echo free   # preflight: must print free
