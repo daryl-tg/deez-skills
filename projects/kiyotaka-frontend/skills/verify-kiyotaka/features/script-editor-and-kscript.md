@@ -7,7 +7,7 @@ marketplace (WRUN) scripts use the shared hosted-run path when their delivered
 source or published build requires it and return through the same pipeline. Run targets depend on delivered source, visibility, and published
 builds: editable and delivered read-only scripts can run in the browser, while
 protected or unavailable builds use the cloud lane. This entry was re-verified
-on 2026-10-06 against product tree `064254b1e7`; guest coverage confirmed the
+on 2026-10-12 against product tree `61d1e911cc`; guest coverage confirmed the
 editor-toggle verification wall and no writable editor mount.
 WRUN launch-box/ring, Pine conversion, Kata hand-offs, and AI provenance remain
 authenticated coverage obligations.
@@ -151,20 +151,28 @@ Preconditions:
 - **Only strategies are run-target locked now.** A TypeScript Indicator tab
   defaults to Browser but can pick Cloud, so `runTargetLocked` is true for
   strategies alone — do not report a TypeScript tab offering Cloud as a bug.
-- **Which blank-template button exists depends on a flag that now defaults OFF.**
-  The WRUN/Indicator lane (`isWrunRegistrySectionEnabled()`) is lit only by a
-  build flag or a resolved `wrun-registry` flag, and a guest never fetches it —
-  so the default lane renders `kscript-template-blank-legacy-btn`, while
-  `kscript-template-blank-btn` appears only for an internal role or opted cohort.
-  Both currently render the same visible text, so match the testid, not the
-  label. Every "TypeScript is primary / kScript is legacy" claim below is the
-  lane-ON experience, not the default one — including the legacy notice (whose
-  copy is now "Indicators are now written in TypeScript." and which renders only
-  with the lane on) and the `New kScript (legacy)` sidebar entry. With the lane
-  OFF the primary button is `script-explorer-new-btn` and it opens a kScript
-  draft, not a TypeScript starter. The lane-ON surfaces also include a kScript
+- **The WRUN/Indicator lane now defaults ON, reversing the previous rule.**
+  `isWrunRegistrySectionEnabled()` reads `wrun-registry`, which is `true` in BOTH
+  `GUEST_DEFAULT_FLAGS` and `ACCOUNT_DEFAULT_FLAGS`, so an unresolved or failed
+  flag fetch also reads ON. The default blank button is therefore
+  `kscript-template-blank-btn` (inside `IndicatorStarterList`), and
+  `script-explorer-new-btn` opens a TypeScript draft.
+  `kscript-template-blank-legacy-btn` and the `kscript-template-picker` region
+  render only with the lane OFF, which now takes a deliberate
+  `kiyo.flag-overrides` entry of `{"wrun-registry": false}`.
+  Match the testid, not the label. Every "TypeScript is primary" claim below is
+  now the DEFAULT experience rather than an opt-in — including the legacy notice, whose copy is
+  "Indicators are now written in TypeScript.", and the sidebar entry
+  `script-explorer-new-legacy-btn`, labelled "New kScript" — the old
+  "New kScript (legacy)" string and the "kScript is the legacy indicator language"
+  drawer copy are both gone from the locale. The lane-ON surfaces also include a kScript
   view (`activity-bar-view-kscript-btn`) and an authoring freeze that can hide
   the new-kScript action entirely.
+- **Escape no longer closes the drawer from anywhere.** The shared handler closes
+  only the drawer holding the focus origin, so an Escape sent from the chart or
+  body closes nothing — focus the drawer first.
+- **A one-time WRUN beta note can swallow the first click.** It teleports over the
+  app inside the drawer; dismiss it before asserting on editor controls.
 - **Kata is a second wall inside the drawer.** The activity bar carries a Kata
   entry for non-guests whose click runs `handleGuestAccess(FeatureId.KATA)` — a
   different feature id from `SCRIPT_EDITOR`, so an authed-but-ungranted account

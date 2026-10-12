@@ -59,7 +59,16 @@ Preconditions:
 - **The top-level mode strip is conditional.** When `tabStripVisible` is true,
   `indicator-control-bar-tab-indicators-btn` and
   `indicator-control-bar-tab-kscript-btn` switch between registry Indicators and
-  kScript sources. Governed CME or a missing feature flag can hide the strip.
+  kScript sources. Governed CME can hide the strip, but the flag no longer does:
+  `wrun-registry` became DEFAULT ON for guests and accounts on 2026-10-11, so the
+  strip renders without a fetch and the landing tab is the registry one unless the
+  browser remembered kScript. That changes the tab testids you will find —
+  registry mode renders `indicator-registry-tab-openmarket` / `-community` /
+  `-mine` (Mine is signed-in only), while `indicator-source-tab-official` /
+  `-community` belong to kScript mode. `indicator-control-bar-favorites-btn` and
+  `-sort-btn` are hidden on the landing Indicators tab, where the search
+  placeholder reads `Search indicators`. This flag has flipped twice; read the
+  strip rather than assuming either state.
 - **Discover and All are distinct result states.** Under the category row sits a
   second tab pair,
   `tab "Discover"` and `tab "All"`, beside `button "Browse all indicators"` when
@@ -80,6 +89,36 @@ Preconditions:
   two to three entries. A direct `chartStore.addIndicator` call is not equivalent
   to a user add: admission depends on caller options, duplicate-family checks, and
   pane budgets, so use the dialog path for user-facing proofs.
+
+  **If you do reach for the engine call, do not pick an `ALWAYS_LOAD_TYPES` key.**
+  That list means "preload this control when a hardcoded panel restores", not
+  "addable": `TRADING_TOTAL_LIQUIDITY`'s control returns
+  `{side:'offchart', template: []}` and `addIndicator` refuses on
+  `Array.isArray(template)`, while `TRADING_TOTAL_VOLUME` returns
+  `side:'external'`. Neither can mount through this path, and earlier passes of
+  this map spent four runs concluding the bypass was broken because they probed
+  exactly those two keys. Use a dialog-addable native key instead —
+  `AGGREGATED_FUNDING_RATE`, `AGGREGATED_OPEN_INTEREST`, `BITCOIN_DOMINANCE`.
+
+  Two rules make the next failure readable:
+
+  - **`undefined` is always a refusal.** A successful add returns the overlay id,
+    and anything thrown is caught, logged and toasted — so `undefined` is a
+    deliberate early return, never a silent success.
+  - **A missing toast proves nothing.** Toasts default to 1500ms and the long wait
+    happens BEFORE the refusal, so a separate snapshot misses them. Watch for
+    notifications while awaiting, in one eval:
+
+    ```js
+    (async()=>{const seen=new Set();
+      const iv=setInterval(()=>document.querySelectorAll('.q-notification')
+        .forEach(n=>seen.add(n.innerText.trim())),50);
+      const r=await chartStore.addIndicator('<KEY>',{},0);
+      await new Promise(x=>setTimeout(x,300)); clearInterval(iv);
+      return JSON.stringify({r,seen:[...seen]})})()
+    ```
+
+  Source-derived on `61d1e911cc`; not yet re-driven.
 - **Confirm it mounted.** Run
   `./control-kiyotaka browser eval "(()=>JSON.stringify(window.tc[0].metadata.map(m=>m.settings?.ovType ?? m.overlayType ?? m.type)))()"`.
   Keep the `overlayType` rung: on an overlay row `type` is the SIDE

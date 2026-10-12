@@ -3,12 +3,14 @@
 The maintained source for verifying user-facing chart behavior. Read this index
 before driving, then use the matching feature file as the recipe.
 
-Maintenance pass: 2026-10-06 on product tree `064254b1e7` (guest lane,
-`18097`). Chart boot, the Indicators dialog, symbol/ticker controls, and the
-guest script-editor wall were source-reviewed and driven. The ETHUSDT reload
-was attempted but remained at zero candles because the local backend was down;
-authenticated workspaces, saved layouts, protected scripts, WRUN launch/Pine
-conversion, and memecoin result rows remain outside this pass.
+Maintenance pass: 2026-10-12 on product tree `61d1e911cc` (= `origin/main`), lane
+`18097`, on a NO-JWT lane (see the baseline note below). Driven: chart boot
+(candles, overlay rows, interval, default market), the ticker bar's full pinned
+set, and the symbol dialog on BOTH lanes — legacy by default, v2 after the flag
+override. Source-reviewed but NOT driven this pass: the indicator dialog and add
+path, and the script editor; their entries carry their own earlier verification
+dates. Authenticated workspaces, saved layouts, protected scripts, and WRUN
+launch/Pine conversion remain outside this pass.
 
 ## Baseline preconditions
 
@@ -58,6 +60,31 @@ conversion, and memecoin result rows remain outside this pass.
   reads `0`. Do **not** count bare `[role=dialog]`: the signup modal and both
   app dialogs are `.dialog-style` overlays carrying no `role=dialog`, so that
   count stays `0` whether or not something is on top.
+- **Confirm the lane's flag state, not `jwtStore.isGuest`.** A lane started by
+  `control-kiyotaka up` can carry NO JWT at all: `jwtMetadata` stays absent,
+  `isGuest` AND `isLoggedIn` both read `false`, and the role is `null` — while the
+  UI still says `Guest Workspace`. Driven live for 30s+, it never resolved.
+  That matters because `GUEST_DEFAULT_FLAGS` merges only when `isGuest` is true, so
+  on a no-JWT lane every guest default silently fails open to OFF. The visible
+  symptom is the SYMBOL DIALOG: you get the legacy one (`intent-filter-class-*`)
+  where the map says you should get v2.
+
+  ```bash
+  ./control-kiyotaka browser eval \
+    "JSON.stringify({v2:document.querySelectorAll('[data-testid^=search-v2-category-]').length,legacy:document.querySelectorAll('[data-testid^=intent-filter-class-]').length})"
+  ```
+
+  If you need the guest-default behaviour, set the override and reload — proven
+  live to restore v2:
+
+  ```bash
+  ./control-kiyotaka browser eval \
+    "localStorage.setItem('kiyo.flag-overrides',JSON.stringify({'search-v2':true}))"
+  ./control-kiyotaka browser open "$(./control-kiyotaka url)"
+  ```
+
+  Record which state you drove. A real guest JWT and a no-JWT lane are different
+  lanes, and only the first is what `GUEST_DEFAULT_FLAGS` describes.
 - Never drive an instance this verification run did not start.
 
 ## Driving conventions

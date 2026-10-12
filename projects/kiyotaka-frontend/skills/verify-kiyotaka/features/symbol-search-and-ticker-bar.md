@@ -4,7 +4,7 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was re-verified on 2026-10-06 against product tree `064254b1e7`; guest coverage
+was re-verified on 2026-10-12 against product tree `61d1e911cc`; guest coverage
 opened V2 search, attempted an ETHUSDT venue switch, changed interval, and
 selected Heikin Ashi. The ETHUSDT reload remained at zero candles because the
 backend was down. The hover quick-search result list and memecoin/Pulse rows
@@ -50,9 +50,10 @@ Preconditions:
   `Equities`, `CME`, `Crypto`, `Forex`, `Commodities`, `Macro`, `Predict`, beside
   `Formula — combine symbols with ÷ − + ×` and `View options`.
 - **Drive the search field by its testid, `symbol-selection-search-input`.** The
-  placeholder is not stable — it now reads `Search, or type a ratio like SPY/GLD`,
-  so the long-documented `find placeholder "Search by symbol or name"` fails
-  outright. The field also carries no `aria-label`, so its computed accessible
+  placeholder is not stable and is CONDITIONAL on context: the ratio hint
+  (`Search, or type a ratio like SPY/GLD`) renders only on the main-chart path with
+  formulas available, while other contexts read `Search by symbol or name`,
+  `Search prediction markets`, or an options-parent string. Never match on it. The field also carries no `aria-label`, so its computed accessible
   name is the **current symbol** — it snapshots as `textbox "BTCUSDT"`, then `textbox "BTCUSDT Clear"`
   once it has content, and it changes every time the symbol does. Nothing about
   it is a stable handle. The placeholder is:
@@ -122,9 +123,9 @@ Preconditions:
   a11y tree: the grid groups (1, 2, 3, 4, 5, 6, 8, 9, 12, 16), the custom N×N
   matrix and the SYNC toggles all snapshot as unnamed `generic` nodes. Drive them
   by `data-testid` instead — `tb-layout-entry-2H-btn`, `tb-layout-entry-3x3-btn`,
-  `tb-layout-matrix-cell-<col>-<row>-btn`, and four sync toggles —
-  `tb-layout-sync-symbol-btn`, `tb-layout-sync-interval-btn`,
-  `tb-layout-sync-crosshair-btn`, `tb-layout-sync-time-btn` (the full set is built in
+  `tb-layout-matrix-cell-<col>-<row>-btn`, and up to five sync toggles —
+  `tb-layout-sync-{symbol,interval,crosshair,time,drawings}-btn`; `drawings`
+  renders only for a sub-workspace, so a default single-chart boot shows four (the full set is built in
   `src/composables/chart/useMonitorPicker.ts`). The matrix key is
   `${col}-${row}`, zero-indexed and **column-first**: the first row of cells reads
   `0-0`, `1-0`, `2-0`, `3-0`:
@@ -140,35 +141,44 @@ Preconditions:
   `v-if="hasFolded"` rule is gone. What lives beside it is decided by:
 
   1. **Pin-fold**, independent of viewport: only `TOOLBAR_DEFAULT_PINS` —
-     `heatmap`, `news`, `editor`, `watchlist` — sit directly in the bar by
-     default. `replay`, `hlView`, `calls`, `goLive`, `objects`, `journal` start
-     folded into the Panels menu (`src/store/toolbar-panels.ts`, `isInBar()`).
-     Pins persist as DEPARTURES from that default set, so a pin map stored before
-     watchlist joined picks the new default up automatically.
+     `heatmap`, `watchlist`, `orderbook`, `news`, `alerts`, `editor` — sit
+     directly in the bar by default. Everything else pinnable starts folded into
+     the Panels menu (`src/store/toolbar-panels.ts`, `isInBar()`). Pins persist as
+     DEPARTURES from that default set, so a stored map picks up new defaults.
   2. **Width-fold**, the ladder in `src/composables/chart/useTickerBarFit.ts`,
      which sheds further rungs as the bar narrows.
 
-  So `tb-objects-toggle-btn`, `tb-journal-toggle-btn` and `tb-replay-toggle-btn`
-  are NOT bar buttons on a default boot, while `tb-watchlist-toggle-btn` is — they are `tb-panels-row-objects`,
-  `tb-panels-row-journal`, `tb-panels-row-replay` inside the menu until pinned.
-  Open the menu first rather than concluding a toggle is missing:
+  Driven live at `1440 900`, the complete bar was:
 
-  ```bash
-  ./control-kiyotaka browser find testid tb-panels-trigger-btn click
-  ./control-kiyotaka browser eval \
-    "JSON.stringify([...document.querySelectorAll('[data-testid^=tb-panels-row-]')].map(e=>e.dataset.testid))"
+  ```
+  tb-super-search-btn    tb-symbol-info-btn       tb-interval-pinned-1m-btn
+  tb-interval-pinned-1h-btn  tb-interval-chevron-btn  tb-chart-type-trigger-btn
+  tb-layout-trigger-btn  tb-indicators-btn        tb-heatmap-trigger-btn
+  tb-watchlist-toggle-btn  tb-orderbook-toggle-btn  tb-news-toggle-btn
+  tb-alerts-toggle-btn   tb-editor-toggle-btn     tb-panels-trigger-btn
   ```
 
-  `ToolbarPanelId` is fifteen ids (`src/constants/toolbar-panels.constants.ts`):
-  `marketStats, splits, replay, chartType, goLive, hlView, calls, heatmap, trade,
-  watchlist, objects, journal, news, editor, terminal`.
+  **Three handles the map used to name are gone**: `tb-terminal-toggle-btn` (the
+  Terminal toggle was retired and Orderbook took its seat),
+  `tb-topic-feed-toggle-btn` (News is now `tb-news-toggle-btn`), and
+  `tb-tweet-caller-trigger-btn`. `tb-objects-toggle-btn`, `tb-journal-toggle-btn`
+  and `tb-replay-toggle-btn` exist only once pinned; by default they are
+  `tb-panels-row-{objects,journal,replay}`. Panel seats are generated by one
+  component, so the pattern is `tb-<id>-toggle-btn`.
+
+    `ToolbarPanelId` is now **29 ids** (`src/constants/toolbar-panels.constants.ts`),
+  most of them grid panels: `watchlist, scanner, markets, options, orderbook, tape,
+  footprint, tradeAndLiquidations, marketStatsPanel, volumeStats, liquidityStats,
+  optionsFlowTape, news, events, earnings, alerts, objects, journal` plus
+  `marketStats, splits, chartType, replay, heatmap, hlView, calls, goLive, editor,
+  chat, trade`. `terminal` is gone. `hlView` and `calls` are door-only: no row, no
+  seat, no pin — they mount headless and open from Super Search or a command.
 
   A pin persists to user settings plus a localStorage mirror and survives a
   reload even for a guest, so a recipe that pins must unpin.
 
-  **Three of the panels are stand-ins before they warm.** `hlView`, `calls` and
-  `heatmap` mount as `TBPanelStandIn` (`tb-panel-standin-<id>-btn`) until their
-  real host arms; a click that early arms the host and replays itself, so an
+  **Only heatmap has a stand-in now.** `tb-panel-standin-heatmap-btn` holds the
+  seat until its real host arms; a click that early arms the host and replays itself, so an
   immediate assertion after the first click can read as a no-op.
 
   **Driven and confirmed**: a guest boot at `1440 900` carried

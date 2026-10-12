@@ -3,8 +3,10 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was re-verified on 2026-10-06 against product tree `064254b1e7`; coverage
-was guest boot, candles, live ticker values, worker diagnostics, and a screenshot.
+entry was re-verified on 2026-10-12 against product tree `61d1e911cc`; coverage
+was boot to 250 candles, the two-row overlay set, interval, the default market,
+and a screenshot. The worker-death console grep and the live ticker values were
+NOT re-run this pass; their last live check was 2026-10-06.
 
 ## Sub-features
 
@@ -130,6 +132,12 @@ Preconditions:
   which reads as an undismissable modal. Clear it by its own handle, and expect
   the signup modal to raise the moment you do, because the tutorial was
   suppressing it:
+
+  `ink-tutorial-close` is DESKTOP ONLY (mobile uses a sheet), and there is also an
+  `ink-tutorial-got-it` button. The tutorial's card now carries
+  `role="dialog" aria-modal="true"` while the shell stays `.dialog-style`, so the
+  documented union still counts it — but a bare `[role=dialog]` count now rises
+  for the tutorial and still not for the signup modal.
 
   ```bash
   ./control-kiyotaka browser find testid ink-tutorial-close click
