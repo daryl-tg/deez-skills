@@ -35,8 +35,9 @@ noise twice over.
 
 ## 2. Ask what mining cannot see
 
-Use `AskUserQuestion` with concrete options rather than open prompts. Two
-structured rounds and one free-form question is enough. Intent that has not come
+Ask the operator with concrete options rather than open prompts, through the
+runtime's structured question tool where it has one and plain text where it does
+not. Two structured rounds and one free-form question is enough. Intent that has not come
 up yet will not be in the transcripts.
 
 ## 3. Draft
