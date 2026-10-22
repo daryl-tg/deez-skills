@@ -96,8 +96,8 @@ The `codex@openai-codex` plugin owns delegation for the repo the session is in: 
 - `/codex:rescue <spec>` — write-capable by default; Codex may run commands/tests. House mode is full-auto (workspace-write sandbox): pass the sandbox flags if the plugin exposes them; never sandbox-off unless the user names it
 - `--background` for anything non-trivial (most delegations); `--wait` only for quick jobs
 - `--model gpt-5.6-sol --effort high` — house defaults; pin them, don't rely on Codex defaults
-- `--resume <follow-up>` — continue the last rescue thread; cheaper than fresh runs, keeps context. After two failed resume rounds within the same attempt, stop resuming and have Claude complete the work directly.
-- `--fresh` — force a new thread when the last one is a dead end
+- Fix rounds and the next goal start fresh (`--fresh`) with consolidated scope, per **principle-delegate-implementation-review-stays-here**.
+- `--resume <follow-up>` — only for that principle's exception: the work needs state that lives in the last thread (uncommitted worktree changes, a running process). After two failed resume rounds within the same attempt, stop resuming and have Claude complete the work directly.
 
 **Manage jobs:** `/codex:status` (progress), `/codex:result` (final output + session id), `/codex:cancel` (kill a runaway).
 
@@ -159,8 +159,11 @@ for that.
 - parallel independent tasks OK: separate worktrees, separate `-o` files
 - outside a git repo add `--skip-git-repo-check`
 
-Follow-up fixes: `resume` has no `-C`, so run it from the target directory. It
-inherits the same config defaults, so it needs no mode flags either:
+Follow-up fixes go to a fresh `codex exec` with consolidated scope, per
+**principle-delegate-implementation-review-stays-here**. Resume only under that
+principle's exception (uncommitted worktree changes, a running process).
+`resume` has no `-C`, so run it from the target directory. It inherits the same
+config defaults, so it needs no mode flags either:
 
 ```bash
 (cd <worktree> && command codex exec resume --last \
