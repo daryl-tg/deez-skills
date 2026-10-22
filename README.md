@@ -159,6 +159,7 @@ when you want one directly.
 | skill | use it when |
 | --- | --- |
 | [`automate-me`](./skills/automate-me/SKILL.md) | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for… |
+| [`benchmark-checklist`](./skills/benchmark-checklist/SKILL.md) | Vet a perf measurement (limiter, tuning, limits, errors, repeatability, relevance, and whether the work happened) befo… |
 | [`blast-radius`](./skills/blast-radius/SKILL.md) | Find what a small-looking change could break beyond its diff, proving each safety claim with running code rather than … |
 | [`codex-first`](./skills/codex-first/SKILL.md) | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:revie… |
 | [`correct`](./skills/correct/SKILL.md) | Find the mistakes agents keep repeating in a repo and make each one impossible: architecture first, then types, a lint… |
@@ -207,6 +208,7 @@ adapted from pstack.
 | `subtract-before-you-add` | Apply when sequencing an addition, refactor, or rewrite. Remove dead weight, redundant validators, and stubs first, th… |
 | `foundational-thinking` | Apply before writing logic: choosing core types and data structures, sequencing scaffold before features, asking what … |
 | `redesign-from-first-principles` | Apply when integrating a new requirement into an existing design. Redesign as if the requirement had been foundational… |
+| `attack-the-premise` | Apply when two or more fixes that share one premise have failed the same gate. Write the premise down, take a census o… |
 | `outcome-oriented-execution` | Apply during planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture rathe… |
 | `exhaust-the-design-space` | Apply to a novel interaction or architectural decision with no precedent in the codebase. Build two or three competing… |
 | `experience-first` | Apply to product, UX, and feature-scope tradeoffs. Choose user delight over implementation convenience; ship fewer pol… |
@@ -230,12 +232,10 @@ adapted from pstack.
 | --- | --- |
 | `prove-on-the-real-surface` | Apply after any change, before declaring done. Verify in the running product on the surface the change touches. Tests … |
 | `explain-the-number` | Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or … |
-| `prove-every-host` | Apply when a change touches shared UI consumed by more than one application host. The change reaches every host at onc… |
 | `visual-approval-gates-delivery` | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. … |
 | `failing-test-first` | Apply before writing production code. Write the failing check first, at the fastest level that expresses the behavior,… |
 | `test-behavior-not-implementation` | Apply when writing, changing, or keeping a test. Call the code the way its users do and assert the observed result aga… |
 | `fix-root-causes` | Apply when debugging. Trace each symptom to its root cause and fix it there. Reproduce first, ask why until you reach … |
-| `attack-the-premise` | Apply when two or more fixes that share one premise have failed the same gate. Write the premise down, take a census o… |
 | `sequence-verifiable-units` | Apply to multi-step work and to how you stack commits. Break work into small units that each end in a check, verify ea… |
 | `finish-or-report` | Apply at the end of any run. Never deliver a partial silently. Either the whole thing is done, or say precisely what i… |
 
@@ -248,6 +248,7 @@ adapted from pstack.
 | `feature-branch-isolation` | Apply before starting any change. Work happens on daryl/<kebab-words> in its own worktree, never on main, never in the… |
 | `promote-to-the-main-worktree` | Apply after rebasing a finished feature. Check the branch out in the main worktree so the local dev stack runs it and … |
 | `announce-the-linked-review` | Apply at the end of any delivered change. Announce with the PR or MR link, then read the announcement back to confirm … |
+| `prove-every-host` | Apply when a change touches shared UI consumed by more than one application host. The change reaches every host at onc… |
 
 **Delegation**
 
