@@ -48,6 +48,8 @@ is the right tool and this one is not.
 
 A list of concerns with no verdicts is not a review.
 
+For each security finding, trace the input path from where it enters.
+
 ## Skepticism about automated findings
 
 Bots catch real bugs and also file non-issues. Assess each on merit and dismiss

@@ -31,6 +31,10 @@ to fit; do not add generated dates, hashes, or an alternate prefix.
 1. Create isolated worker worktrees and one integration branch/worktree.
 2. Give each worker exact ownership, acceptance criteria, allowed writes, and
    validation commands. Do not overlap files or revert another worker's work.
+   In a swarm, briefs name the exact SHAs to inspect, and the method for any
+   measurement. A worker lists every defect it can prove, not only the first.
+   Drop a result that lacks SHAs or method and respawn that worker once. A gap
+   in coverage is not a pass.
 3. Let workers commit coherent local changes. Integrate only through local
    rebase/cherry-pick; never use `git merge`.
 4. Run final UI evidence in one integration QA lane. Use `$agent-browser`, a
@@ -52,8 +56,8 @@ to fit; do not add generated dates, hashes, or an alternate prefix.
    keeping the post short: a plain short title of what changed, a blank line,
    one to three present-tense sentences of observable behavior one per line,
    then the labeled review-request links and nothing after them. Never paste
-   the review-request body or its `Summary:`/`Problem:`/`Solution:`/`How to
-   test:` structure into chat. Read it back. Do not announce an intermediate
+   the review-request body or its section headings (see opening-a-review in
+   clanker-mode) into chat. Read it back. Do not announce an intermediate
    worker result or close a todo.
 
 The terminal state is `ready_for_review`. Never fetch, pull, merge, push local

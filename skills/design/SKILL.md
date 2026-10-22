@@ -40,9 +40,24 @@ before choosing. A second flavour of the first shape does not count. Dispatch
 candidates through **herdr-codex-orchestration** in arena mode when the fork is
 genuinely open.
 
+Assume the next contributor is an agent that sees only the files it opened,
+copies the nearest example, and takes the shortest path that compiles. Prefer
+the design where a change that looks right from one file is right for the whole
+repo.
+
 Screen every candidate before comparing: shallow modules, information leakage,
-temporal decomposition, pass-through layers. Then compare on **interface depth**
-— prefer the design hiding more complexity behind a smaller surface.
+temporal decomposition, pass-through layers, and the four that agents trip on:
+
+- **Split ownership.** Two modules write the same state. Give it one owner.
+- **Two ways to do one task.** The agent copies whichever it finds first. Keep
+  one and delete the rest in the same change.
+- **Importable internals.** The shortest path that compiles becomes the
+  interface. Make an outside import fail the build.
+- **Hand-synced list.** Adding an item means editing every list. Derive them
+  from one, or fail the build when they disagree.
+
+Then compare on **interface depth** — prefer the design hiding more complexity
+behind a smaller surface.
 
 ## C. Agree — **mandatory**
 

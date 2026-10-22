@@ -35,6 +35,11 @@ it. "The commit message says X" is not "the author intended X".
 - **Likely** — several sources point the same way without saying it outright.
 - **Unknown** — say so. Do not fill the gap with a plausible story.
 
+- The operator's guess is a prompt for investigation, not a conclusion to
+  validate.
+- When sources disagree, surface both. Do not pick the tidier one.
+- Code is mechanics, not motivation. It shows what happens, never why.
+
 **Name the categories you could not search.** An answer built from git alone
 looks identical to a complete one unless you say which doors were shut.
 

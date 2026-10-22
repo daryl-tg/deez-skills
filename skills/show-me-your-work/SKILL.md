@@ -31,6 +31,10 @@ time	phase	decision	reason	evidence	result
   reconstructed afterwards is a story, not a record.
 - **Evidence is a pointer, not prose.** Prefer something a reviewer can rerun,
   per **principle-build-the-lever**.
+- **A resumed run writes a `start` row first** when it appends to an existing
+  log, so the gap and the restart are visible.
+- **Never edit or delete a row.** The audit adds a row that supersedes the
+  wrong one.
 - **Log the reversals too.** A hypothesis that failed and what it cost is the
   most useful row in the file.
 - **Commit it** when the run is large enough that the reasoning has to be

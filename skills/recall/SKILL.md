@@ -12,7 +12,9 @@ Rebuild what you knew about a topic, from the record rather than from memory.
 
 - **Prior sessions.** `~/.claude/projects/<slug>/` on Claude,
   `~/.codex/sessions` and `history.jsonl` on Codex. Both, since work crosses
-  runtimes.
+  runtimes. The Claude slug is the workspace path with each `/` and `.` turned
+  into `-`. The newest `.jsonl` there is the current session, and
+  `<session>/subagents/` holds its subagent transcripts.
 - **The task's dev-notes folder**, by absolute path. Specs and plans live there,
   outside any repo, so they survive the branch.
 - **The repository.** Branches matching the topic, their diffs against

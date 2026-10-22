@@ -84,7 +84,11 @@ Write `SKILL.md` in the canonical verification skill directory with frontmatter
 to reach for it) and these sections, each grounded in what the interview found.
 No placeholders.
 
-**Launch** the exact command plus how to tell it is ready, and teardown.
+**Launch** the exact command plus how to tell it is ready, and teardown. Ready
+means usable: from an empty data dir, launch reaches a state where a journey can
+run, migrations and seed data included. A journey whose precondition the seed
+lacks reports a failure. Never weaken the journey to fit the seed. A stand-in
+environment lists every setup step it did that the target will not.
 **Doctor** the one read-only check. **Drive** the `control-<app>` recipe with
 real handles from this repo, ARIA roles and accessible names over coordinates.
 **Evidence** what to capture and where it goes. **Cleanup** kill what you
