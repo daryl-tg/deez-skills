@@ -28,8 +28,12 @@ GitLab repository fails at the first call with nothing landed.
    running.
 5. **Push the feature branch only.** Never main. Never push unless the operator
    asked.
-6. **Open the PR or MR** with the standard body: what changed, why, and how it
-   was verified. **Never put the evidence URL in it.** That renderer lives on
+6. **Open the PR or MR** with the standard body. It is a one-minute briefing
+   that becomes the squash commit body, so keep it under about 40 lines. Use
+   these `##` headings in order: Why, What changed, Scope, Tradeoffs, Blast
+   Radius, Verification. Scope is always present. Tradeoffs appears only when
+   there are some. On Claude, `/mr-markdown` drafts the same set.
+   **Never put the evidence URL in it.** That renderer lives on
    the operator's loopback, so the link is dead for every other reader and
    reads as a broken promise of proof. Describe what was driven and what it
    showed; the URL belongs in the reply, per

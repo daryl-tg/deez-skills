@@ -26,7 +26,10 @@ drove the change and watched it work.
    **principle-one-commit-lands**. A rebase that altered the change invalidates
    the verdict, so verify again.
 6. **Land one at a time and re-verify the next.** Each landing moves trunk under
-   everything behind it. Never arm a queue to drain itself.
+   everything behind it. Never arm a queue to drain itself. After each land,
+   read it back with `gh pr view` or `glab mr view` and confirm the merged
+   state and the target branch before touching the next. A queued merge or a
+   requested auto-merge is not a merge.
 7. **Announce with the link** and read the announcement back, per
    **principle-announce-the-linked-review**. Then run the family's completion
    playbook once, and `playbooks/cleanup.md` for what the run created.

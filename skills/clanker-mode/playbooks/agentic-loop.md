@@ -20,9 +20,11 @@ validation step.
    playbook's to skip.
 2. **One branch per repository** for the whole run, not per goal.
 3. **Per goal:** delegate implementation to the **executor** role with a
-   self-contained handoff citing the playbook path and the principles by name. Resume the thread within
-   the run; go fresh at a phase boundary. Review the diff yourself. Run the
-   inner-loop verification.
+   self-contained handoff citing the playbook path and the principles by name.
+   Each goal and each fix round gets a fresh delegate with consolidated scope,
+   per **principle-delegate-implementation-review-stays-here**. Resume only
+   where that principle allows. Review the diff yourself. Run the inner-loop
+   verification.
 4. **Never deliver a goal.** No incremental push, review request, announcement,
    or promotion mid-loop. A partial candidate is not a deliverable.
 5. **When every goal is verified**, run the terminal gate once for the whole
