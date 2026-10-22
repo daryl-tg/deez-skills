@@ -22,6 +22,17 @@ blast-radius                      what else this change could break
 `why` answers motivation; the explore role answers mechanism; `teach` weaves
 both into one account at your pace.
 
+## Wording the prompt
+
+- Leave out your theory of the cause until the agent has restated the problem.
+  A theory in the first message becomes the answer.
+- Do not hand-list steps or skills. Name a playbook or principle only to
+  override one choice the router would make.
+- Start with "new task" when the subject changes, so `$clanker-mode` classifies
+  again instead of carrying the last route.
+- Before stepping away, pre-answer the points where it would stop. Then add "if
+  truly stuck after a few hours, stop and write up why".
+
 ## Before shipping
 
 ```
@@ -68,6 +79,13 @@ link and is not.
 **Opening the device lane to check progress.** One shot, at the end. A booted
 simulator is the scarcest resource on the machine and every extra session
 lengthens the queue.
+
+**Polishing an abstract plan adversarially.** Review rounds on a plan that
+never touched code mostly refine guesses. Build a thin slice and let it
+correct the plan.
+
+**Reporting success off a green build.** A build proves it compiles. Prove the
+behavior on the real surface before you say it works.
 
 **Trusting a delegate's summary.** Inspect the artifact. Agents report what they
 intended, not always what happened.
