@@ -29,7 +29,7 @@ Then check the runtimes themselves, because `doctor` proves the symlinks are
 right and cannot prove a runtime loaded them.
 
 In **Claude Code**, `$clanker-mode` should resolve. In **Codex**, ask it to list
-skills whose name starts with `principle-`. All thirty-four should appear — they
+skills whose name starts with `principle-`. All thirty-seven should appear — they
 install on both runtimes precisely so a handoff citing one resolves on either
 side.
 
