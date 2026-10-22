@@ -171,7 +171,8 @@ start of any symbol run rather than trusting either lane:
 
 ## Features
 
-- [Chart boot and the data plane](./chart-boot-and-data-plane.md) — guest
+- [Chart boot and the data plane](./chart-boot-and-data-plane.md) — guest (the
+  wake heal recipe needs the backend reachable for the wake's token refresh)
 - [Indicators](./indicators.md) — guest (the official catalog needs a SEEDED
   stack, not a login: `/scripts/query` is unauthenticated, so the blocker is
   `node scripts/seed-official-catalog.mjs`, not the authed lane)

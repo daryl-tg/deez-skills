@@ -15,6 +15,8 @@ NOT re-run this pass; their last live check was 2026-10-06.
 - `boot-candles` candles reach the engine and draw.
 - `boot-live` the live edge updates (price, 24h volume, open interest, funding).
 - `boot-worker` the worker is alive, so websockets can open at all.
+- `wake-heal` after a hidden or sleeping stretch, the wake backfills every blank
+  slot the outage left, including slots before lone bars a trickling feed drew.
 
 ## How to get to it (user POV)
 
@@ -70,6 +72,41 @@ Preconditions:
   must read `0`.
   Then **open the PNG**: it must show drawn candlesticks, not a dialog. The
   engine read is the side effect; the frame is the only proof pixels arrived.
+
+## Driving the wake heal
+
+Last driven 2026-10-22: base `b153a7751a` against the fix branch
+`daryl/wake-heal-interior-hole` (`5287b9a644`, not yet on `main`), guest
+COINBASE BTC-USD 1m, in headless Chromium and in the desktop shell. NOT driven: a
+real OS sleep with macOS dark wakes; the trigger below is synthesized.
+
+- **Hide the page by overriding visibility.** The app reads
+  `document.visibilityState`; define it as a getter and dispatch
+  `visibilitychange`. More than 60 s hidden makes the visible return a wake
+  (`HIDDEN_GAP_RECOVERY_THRESHOLD_MS`).
+- **Silence the feed** with `window.__kiyoDropLiveSeriesFrames('.*')` (dev builds;
+  `null` restores). Keep it on through the visible flip and restore ~3 s later, so
+  the drained hidden batch is dropped like a sleeping device's.
+- **Synthesize the lone-bar damage.** While hidden, write the live bridge's
+  footprint through the engine: NaN rows (`[ts, NaN, NaN, NaN, NaN]`, flag `1` in
+  `syntheticFlags`) from the last real bar, then one real bar one slot behind
+  now, via `tc[0].updateData('main', rows, { shouldResetRange: false, isPrepend:
+  false, syntheticFlags })`. Make the hole longer than the 2-bar lookback
+  (`WAKE_RESYNC_MAIN_LOOKBACK_BARS`), or both builds heal it: hide ~6.5 min.
+- **Read the verdict from the engine and the ring.** After the wake, count NaN
+  closes in `tc[0].metadata[0].rawData` between the last real bar and the lone
+  bar. With `window.__enableKiyoLazyLoadDebug()` on, `__dumpKiyoLazyLoadDebug()`
+  returns an ARRAY of `{event, details}`: `lifecycle-wake-emit` carries
+  `outageStartedAt`, and `wake-resync-pass` carries `mainStartMs` and `lastBarMs`.
+  Measured: base kept 2-4 blank slots (heal from `lastBar - 2 bars`); the fix
+  left 0 (heal from the outage start).
+- **Frame it.** Wheel over the plot until the engine viewport
+  (`metadata[0].viewport.endTs - startTs`) spans ~30 bars, re-read before each
+  shot; a fixed wheel count over- or under-shoots. Dismiss `Got it` first.
+- The script is kept with the run's notes
+  (`dev-notes/desktop-chart-sleep-wake-gap/lone-bar-repro.mjs`, and
+  `desktop-repro.mjs` for the shell, which must pick the window whose URL holds
+  `/chart/`: the title bar's `data:` view loads first).
 
 ## Gotchas
 
@@ -182,3 +219,19 @@ Preconditions:
   firing while any `.dialog-style` / `.q-dialog` is open, so it deliberately holds
   until the driver closes whatever it opened and then raises over the next step.
   That is the common way a mid-run capture photographs the modal.
+- **A hidden page applies no live ticks.** The worker holds the batch and drains
+  it on the visible flip, so the tail stays frozen while hidden and jumps on
+  return. Toggling the feed while hidden can never draw lone bars; synthesize the
+  damage instead (see Driving the wake heal).
+- **A fresh worktree has no `.env.local`.** It is gitignored and lives only in the
+  main checkout, so a lane started from a new worktree boots with no gateway URLs
+  and reads "Retrying data request..." forever. Copy it in before `up`.
+- **A wake stalls at the token refresh when the backend is unreachable.** Every
+  wake refreshes first; with `VITE_BACKEND_PROXY_TARGET` down (Tailscale off on
+  this machine) the refresh 502s and retries, the ring stops at `wake-received`,
+  and no heal ever runs. Check
+  `curl -X POST http://127.0.0.1:<lane>/api/v1/auth-v2/refresh-token` returns
+  200 before any wake recipe.
+- **`control-kiyotaka` may be absent.** It is git-excluded tooling and a fresh
+  clone or worktree lacks it; start the lane with
+  `pnpm exec vite --host 127.0.0.1 --port <lane> --strictPort` and record the pid.
