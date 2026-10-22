@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — RSS picker, form, review, create, paused detail, and Setup/History/Delivery/Settings driven. Other seven kinds and batch actions remain unverified.*
+*Verified: the detail page and list driven 2026-10-22, tree `7e22214fb` (v0.434.0); the create wizard was last driven 2026-09-23 at tree `9a49752c3` (v0.400.0) and its files are unchanged since.*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the

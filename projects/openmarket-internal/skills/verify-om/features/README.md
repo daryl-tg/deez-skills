@@ -115,10 +115,12 @@ state, commands, and observable proof.
 - [Calendar scheduling and polling windows](./calendar-and-polling-windows.md)
 - [The dashboard agent panel](./agent-panel.md) — new in v0.400.0; reachable on a
   guest lane only as far as its refusal
+- [Paper trading accounts](./paper-accounts.md) — new 2026-10-22
 - [Market data reads](./market-data-reads.md)
 - [Origin challenge backoff](./origin-challenge-backoff.md) — a Cloudflare
   challenge holds every source on the host, provable with a loopback stub.
 - [Firecrawl recovery before whitelist](./firecrawl-first-block.md) — first refusal recovery, repeated-refusal whitelist guidance, and no-key setup.
+- [Agent creator lifecycle](./agent-creator-lifecycle.md) — **provenance unresolved**: this loop could not locate its mechanism in this repo's source. See the banner on the guide before relying on it.
 
 Not yet mapped, and worth adding when a change touches them: the MCP
 surface (`om mcp serve --stdio`), charts (`om chart`), the `om chat` TUI,
@@ -128,14 +130,62 @@ packages and the registry, and the execution/venue verbs.
 
 ## Surface inventory
 
-Source discovery: 2026-10-12, product tree `49179fdaf1336bfec7e933832d0fa2753dd05196`. This initial inventory records missing or partial outcome coverage; it is not a complete product census. No app was driven for this source audit. Existing guide verification records remain unchanged. Every row below needs live verification or reconciliation of its named gap; source inspection does not prove backend success.
+Source discovery: 2026-10-22, product tree `7e22214fb` (v0.434.0). Census at
+that tree: **91 top-level `om` commands** and **797 registered actions across 21
+categories** (rooms 190, watch 74, chart 46, system 31, market-data 17, packages
+16, execution 13, hyperliquid 12, paper 11, research 10, news 9, wallet 8,
+polymarket 8, strategy 7, polymarket-account 6, calendar 6, wrun 5, payments 4,
+memory 4, state 2, transient 1), plus 9 dashboard routes and ~29 runner RPC
+families. Twelve guides exist. This table is the gap between those two numbers.
 
-| User outcome | Product source path | Existing guide / sub-feature | Live verification | Remaining prerequisite or gap |
+Rows marked `live verification pending` are source-supported and undriven;
+source inspection is not proof. Keep them across passes until driven, mapped, or
+removed with source evidence.
+
+| User outcome | Product source path | Guide / sub-feature | Live verification | Prerequisite or gap |
 |---|---|---|---|---|
-| Access chart, market and watch workflows through local/hosted MCP | `packages/cli/src/cmd/mcp.ts`; `packages/cli/src/mcp/server.ts`; `packages/cli/src/hosted/server.ts` | unmapped | live verification pending for the listed gap | No MCP drive recipe or live proof in this map. Local and hosted auth/scope requirements must be checked separately. |
-| Manage chart workspaces, layouts, indicators and drawings | `packages/cli/src/cmd/chart.ts`; `packages/cli/src/actions/collab/` | unmapped | live verification pending for the listed gap | Requires a chart workspace and applicable permissions; no user-path drive recipe or fresh proof. |
-| Use om chat and room/agent interaction | `packages/cli/src/cmd/chat.ts`; `packages/cli/src/cmd/room/` | unmapped | live verification pending for the listed gap | Interactive harness and model/channel credentials may be required; no TUI live proof or drive recipe. |
-| Publish, install and manage packages through the registry | `packages/cli/src/cmd/packages.ts`; `packages/cli/src/cmd/publish.ts`; `packages/cli/src/actions/packages/` | [agent-creator-lifecycle.md](agent-creator-lifecycle.md) / Agent package sharing and installation (partial) | live verification pending for the listed gap | Agent/text-skill publish, adopt, install, update and revoke already have a guide; general om packages/om publish and non-agent package management remain without an outcome-level live recipe. |
-| Manage venue, wallet and execution workflows | `packages/cli/src/cmd/execute.ts`; `packages/cli/src/cmd/order.ts`; `packages/cli/src/cmd/buy.ts`; `packages/cli/src/cmd/polymarket.ts`; `packages/cli/src/cmd/hyperliquid.ts` | unmapped | live verification pending for the listed gap | Account and trading scopes plus a safe verification plan are required; no financial action was attempted or verified. |
+| Open a local paper-trading account and read its book | `actions/paper/*.ts`; `runner/http/rpc/paper.ts` | [paper-accounts.md](paper-accounts.md) | 2026-10-22, tree `7e22214fb` | Open/close/log/reset undriven. |
+| Review a scheduled calendar occurrence | `actions/calendar/*`; `runner/calendar/blocks.ts` | [calendar-and-polling-windows.md](calendar-and-polling-windows.md) | 2026-10-22, tree `7e22214fb` | None — guest-drivable via the inbound door. |
+| Recover a challenged origin through a paid reader | `runner/firecrawl/*` | [firecrawl-first-block.md](firecrawl-first-block.md) | step 7 only; configured path pending | Needs `OM_FIRECRAWL_API_KEY` **and** a redirect of `api.firecrawl.dev/v2/scrape` to a fixture, together. |
+| Create, publish, adopt and revoke an agent/text skill | not located in this repo | [agent-creator-lifecycle.md](agent-creator-lifecycle.md) | unknown provenance | Mechanism absent from `openmarket-internal` source; needs `openmarket-chat` confirmation. See the guide's banner. |
+| Compose a watch (or a set) from a natural-language ask | `actions/watch/watch-compose.ts`; `actions/watch/kit.ts` | unmapped | live verification pending | Needs an LLM credential; the single largest `om watch` entry point. |
+| Share, follow, fork, install a watch; room shares and knocks | `actions/watch/{share,follow,fork,install,share-room,knocks,relay-door}.ts` | unmapped | live verification pending | Registry + account credential; a follower needs a second home. |
+| Attach and arm steps (ai / tool / money) on a watch | `actions/watch/{action-add,action-remove,tools,run-now}.ts` | unmapped | live verification pending | Money steps are capital-gated; ai steps need a model credential. |
+| Grow an existing watch with more sources | `actions/watch/{source-add,page-add,search-add,model-add,source-copy}.ts` | unmapped | live verification pending | Page/search/model sources need a model credential; a feed source does not. |
+| Repair or retry a watch broken for any non-origin reason | `actions/watch/{repair,retry,lane-retry}.ts` | unmapped | live verification pending | Needs a watch in a genuinely broken state to repair. |
+| Read the wider journal surface: search, stats, chapters | `actions/watch/{journal-search,journal-stats,chapters,journal-list}.ts` | unmapped | live verification pending | Needs accumulated journal history. |
+| See and reclassify rows the judge never reached | `actions/watch/unjudged-rows.ts`; `actions/watch/reclassify.ts` | unmapped | live verification pending | `watch unjudged` is new this range; needs a daily-cap state to observe. |
+| Rewrite a fired row's recorded verdict | `actions/watch/synthesize.ts` | unmapped | live verification pending | Destructive projection rewrite; no guide at all. |
+| Move a watch between devices, mute a remote copy, restore one | `actions/watch/{move-here,move-readiness,mute,restore,adopt-here}.ts` | unmapped | live verification pending | Needs a second device/home for the interesting cases. |
+| Read money-step execution history and digests | `actions/watch/{execute-history,execute-digest,execute-paper-reset}.ts` | unmapped | live verification pending | Needs executed money steps; distinct from the event journal. |
+| Session and device identity: sign-in state, rename/revoke devices, account email | `actions/auth/{status,relogin}.ts`; `actions/devices/*`; `actions/account/email.ts` | unmapped | live verification pending | Account credential; revoke is destructive. |
+| Mint and revoke API keys | `actions/keys/{create,revoke}.ts` | unmapped | live verification pending | Account credential; security-tiered, revoke is permanent. |
+| Pair and manage a notification channel | `actions/system/{channel-add,channel-home}.ts`; `runner/http/rpc/channel.ts` | unmapped (dashboard shell only) | live verification pending | Needs a real Telegram/Discord/Slack credential. |
+| Read the daemon's own notification history | `actions/system/{notis-list,notis-get}.ts` | unmapped | live verification pending | Needs delivered notices to read. |
+| Inspect resolved config and the active key's claims | `actions/system/{config-show,config-key-info}.ts` | unmapped | live verification pending | Guest-drivable in principle; simply undriven. |
+| Upgrade the binary, migrate and restart | `actions/system/upgrade.ts` | unmapped | live verification pending | Risk tier 5, confirm-carded; must never run against a lane. |
+| Read the subscription plan and pricing | `actions/system/upgrade-show.ts` | unmapped | live verification pending | Account/billing state; note the filename does not match the outcome. |
+| Watch roster triage: what needs attention, one-click repair | `actions/system/{watching,watching-resolve-attention}.ts` | unmapped | live verification pending | Needs watches in attention-needing states. |
+| Drive chart workspaces, indicators and drawings | `actions/collab/chart-*.ts`, `drawing-*.ts`, `indicator-*.ts` | unmapped | live verification pending | Needs a human's GUI chart tab open on a live collab session; a headless lane has nothing to submit to. |
+| Backtest a strategy over historical bars | `actions/research/backtest*.ts` | unmapped | live verification pending | Condition-source backtests are guest-key drivable; fixed-view/ai-step kinds need accepted event-watch rows first. |
+| Browse paid news feeds and read Fast-alerts billing | `actions/news/{feeds,billing,brief,voice}.ts`; `runner/http/rpc/news.ts` | unmapped (dashboard shell only) | live verification pending | Catalog browsing may be guest-ok; billing and follow need an account and a funded vendor relationship. |
+| Agent memory: save, search and forget durable notes | `actions/memory/*.ts`; `cmd/memory.ts` | unmapped | live verification pending | `memory_save`/`forget` are agent-tool-only — they need a live `om chat` turn, not the bare CLI. |
+| Author and compile a custom WASM indicator | `actions/wrun/{create,author,build,source-set,list}.ts` | unmapped | live verification pending | No credential needed, but `wrun_build` compiles and installs deps — needs outbound package-manager access and a harness that tolerates a real build. |
+| Arm and tune a live managed-strategy wallet | `actions/managed/{arm-disarm,bind-address,set-size,set-drawdown,set-flatten,status}.ts` | unmapped | live verification pending | Capital-reaching: funded venue wallet plus an explicit arm gate. Out of reach for a guest lane. |
+| Place and manage real venue orders; wallet and execution | `cmd/{order,execute,buy,hyperliquid,polymarket}.ts`; `actions/{execution,hyperliquid,wallet,polymarket}/` | unmapped | live verification pending | Real money. Needs a funded account and a safe plan; nothing attempted. |
+| Reach the capability layer over MCP (local and hosted) | `cmd/mcp.ts`; `mcp/server.ts`; `mcp/http.ts` | unmapped | live verification pending | No stdio/JSON-RPC drive recipe in this map; hosted needs auth/scope. |
+| Publish, install and manage registry packages | `cmd/{packages,publish,install}.ts`; `actions/packages/*` | partially via agent-creator (itself unverified) | live verification pending | Registry credential; `package_delete` is irreversible. |
+| Approve an arming or model edit from the dashboard | `runner/http/rpc/{watch-arm-review,watch-edit-review}.ts` | unmapped | live verification pending | Needs a watch with a money/ai step awaiting approval. |
+| Sealed secrets bridge | `runner/http/rpc/secrets.ts` | unmapped | live verification pending | Security-sensitive; GUI never holds keys. |
+| Social chat: rooms, DMs, topics, docs, moderation | `actions/rooms/*` (190); `cmd/room.ts` | **out of scope here** | n/a | Owned by `verify-om-chat` per this repo's boundary rules; this repo holds only the protocol surface and daemon-side actions. Recorded so the gap is not mistaken for an omission. |
+| Standalone `/paper` dashboard route | `apps/dashboard/src/paper-plane.tsx` | **non-outcome** | n/a | Mounts only when `strategyRoutes === null` (the OSS export). Unreachable in any lane `control-om` drives; reach Paper via the `/strategies` tab. |
 
-Inventory not yet reconciled here: the full action registry, runner HTTP routes, populated dashboard strategy/receipt workflows and all newer watch verbs. Existing guides cover daemon, watch, ingest, market, dashboard, calendar, origin-recovery and agent-creator outcomes; their sub-features and verification limits still need reconciliation against this product tree.
+### Known product gaps (reported, not map drift)
+
+- The "paper book" link on a strategy detail page points at `/paper?account=<id>`,
+  a route this build does not mount; driven at `7e22214fb` it renders the shell
+  with an empty `main` — no content, no 404.
+- `AGENTS.md`'s capital-line section documents a `strategy_*` verb family
+  (`strategy_create`, `strategy_resume`, `strategy_edit`, `strategy_remove`,
+  `strategy_paper_reset`) that no longer exists in source; the live category is
+  entirely `managed_*`.

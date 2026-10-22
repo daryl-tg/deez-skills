@@ -1,6 +1,6 @@
 # Firecrawl recovery before whitelist
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — guest no-key challenge path returned `page_origin_cooldown` and `om setup firecrawl`; configured vendor retry, repeated refusal and restart persistence remain last driven at tree `fe82b2ef1`.*
+*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — guest no-key challenge path returned `origin_cooldown` and `om setup firecrawl`; configured vendor retry, repeated refusal and restart persistence remain last driven at tree `fe82b2ef1`.*
 
 A configured Firecrawl connection retries the first eligible direct-read failure or refusal automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
 
@@ -34,6 +34,27 @@ Use a fresh, run-owned guest lane. The proved rig uses assigned ports 18121 (dae
 8. Publish through `control-om evidence publish <run-id> <revision>` and stop the owned lane and fixtures. The review URL uses the device renderer on 8098.
 
 The 2026-09-30 rig and preload are preserved in `/Users/dboon/Documents/dev-notes/firecrawl-first-block/rig/`; its proof is `firecrawl-first-block-20260930/r2`, archived under `delivery-evidence-archive/` in the same notes directory after the task worktree was removed. Recreate the rig under the next run's assigned ports rather than treating these running servers as shared infrastructure.
+
+## Guest-lane reachability (source-established 2026-10-22, tree `7e22214fb`)
+
+Only the no-key path is drivable with nothing configured. `resolveFirecrawlEscalation()`
+returns `null` when no key resolves (`runner/firecrawl/escalation.ts`), and
+`FirecrawlEscalation.admits()` returns `false` unconditionally while the client
+is `null` — synchronously, before any network call. So automatic retry, the
+repeated-refusal whitelist offer and restart persistence can never fire without
+a key; a bare guest lane can prove only the blocked path and the
+`om setup firecrawl` offer.
+
+**The prerequisite for the configured path is cheaper than an account, and it is
+two things at once**: `OM_FIRECRAWL_API_KEY` set to any non-empty string (env
+wins over the vault, `runner/firecrawl/credentials.ts`) AND an outbound redirect
+of `https://api.firecrawl.dev/v2/scrape` to a fixture. The key alone gets a real
+401 from the live vendor (`runner/firecrawl/client.ts` posts it as a literal
+bearer), which looks like "no key" for the wrong reason. Both together, or
+neither.
+
+This guide has had no live pass from this maintenance loop. Its configured-path
+steps stay `live verification pending` on that pair.
 
 ## Gotchas
 

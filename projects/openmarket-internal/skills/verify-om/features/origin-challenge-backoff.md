@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — healthy feed, challenge, hold/status row, no-key offer, silent run-now, scheduled clean probe at cooldown end and feed recovery driven; one page-add probe also challenged the stub.*
+*Verified: last driven 2026-09-24, tree `8d0403322` (v0.408.1) — entry path and hold arming; the probe, doubling and recovery last driven 2026-09-19 at tree `15db727ba` (v0.353.1). NOT re-driven on 2026-10-22 at tree `7e22214fb`, because both declared triggers were checked and neither fired: the hold machinery (`shared/origin-limiter.ts`, `shared/public-document.ts`, and the cooldown/reopen paths of `runner/subscriptions/manager.ts` and `adapters/feed.ts`) is byte-identical, and `runner/watching/status-sentence.ts`'s only change is an unrelated `no_data_key` row that does not touch `coverageWhy`/`coverageFix`/`cooldownFix`.*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes

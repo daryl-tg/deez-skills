@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — create/edit/show, HTTP ingest, CLI push/history, pause/resume/remove, token rotation and journal preservation driven. Group/multi-watch, combine/preview/tune, reclassify/amend/export/backfill remain unverified.*
+*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — create/pause/resume/remove driven with a diverging label; the remove line's new wording captured.*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
@@ -123,8 +123,8 @@ Preconditions:
 
 - `om alert` does not exist. Both alerting kinds are `om watch` now; the
   dashboard's nav item is labelled Watches, at the unchanged route `/alerts`.
-- `--classifier-mode` is **not** on `watch create`; it is on `watch edit` and
-  `watch backfill`. Passing it to create fails with `unknown option`.
+- `--classifier-mode` is **not** on `watch create`; it is on `watch edit`,
+  `watch backfill` and `watch source add`. Passing it to create fails with `unknown option`.
 - `om watch <sentence>` (the composing form) calls a model and asks for
   confirmation. On a guest lane it cannot run — use `watch create`.
 - A watch whose source errored lists the part, the why and the fix in one STATUS

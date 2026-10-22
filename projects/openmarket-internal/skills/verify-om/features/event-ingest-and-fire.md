@@ -1,6 +1,6 @@
 # Event ingest and fire
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — HTTP ingest and CLI push; SSE commit/append/fire correlated by event id; history and journal reread, dashboard row, pause/resume/remove with journal preserved. Rejection and budget branches remain unverified.*
+*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — full chain driven (door, stream, journal); no new sibling event this range.*
 
 A user points a producer at a watch's inbound door and the daemon takes it from
 there: the event is accepted, committed, appended to the watch's journal, and

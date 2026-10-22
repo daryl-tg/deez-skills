@@ -1,6 +1,6 @@
 # Daemon lifecycle and health
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — read full and lite health, status, doctor (14 guest checks), service status and logs; wrapper correctly refused service install. Contributed status planes were absent in this guest state.*
+*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — health, doctor, service status, logs and the wrapper guard driven; the service-unit safety claim re-confirmed from source at this tree.*
 
 The daemon is the product's spine: it boots, serves its HTTP doors, ticks, and
 reports what it is doing. A user starts it (`om run` in the foreground, or
@@ -38,7 +38,7 @@ Preconditions:
   own stdout — the route summary, the watches dir, every `[boot]` line — is in
   `.control-om/lane-<port>.log`.
 - **Health door.** Run `curl -fsS "$(control-om url /healthz)"`. Assert
-  `version`, `auth` (`guest` on a fresh lane), `pid`, `started_at`,
+  `version`, `auth`, `pid`, `started_at`,
   `alerts_evaluated_total`, `alerts_fired_total`, `last_error: null`,
   `exits_unmanaged: []`. The `om_home` it reports is the ACCOUNT dir, not the
   root you passed: `<lane root>/accounts/guest`. Assert that it sits under the
@@ -65,6 +65,18 @@ Preconditions:
   unreadable or malformed files under `<home>/schedules/` (a fresh lane has no
   such directory, so it stays silent). Count 14 on a quiet guest lane and treat any of the three
   showing up as a fact about the run, not a broken baseline.
+- **Give the lane a minute before you judge it.** On a fresh lane the daemon's
+  guest mint can FAIL at boot and recover by itself. Driven at v0.434.0: at t+0
+  the lane log carried `ERROR [boot] no API key and guest mint failed; reads
+  retry minting per tick`, `/healthz` read `auth: "none"`, and
+  `om doctor` returned **`ok: false`** with `api_key: fail`; by t+99s `/healthz`
+  read `auth: "guest"` and doctor was `ok: true` with `api_key: ok`. Assert
+  `auth` and the doctor verdict only after the first ticks, and treat a single
+  boot-time mint failure as the retry working, not a broken lane.
+- **The CLI and the daemon hold separate credentials.** In that same window
+  `om coins` returned live market data while the daemon reported
+  `api_key: fail` — the CLI resolves its own key. So a failing `api_key` check
+  says nothing about whether CLI reads work, and vice versa.
 - **Logs.** Run `control-om om -- logs --limit 40`. It reads `runner.log` from
   `<lane root>/accounts/guest/`. The flag has always been `--limit`
   (`cmd/logs.ts:24`); `--lines`, which an earlier version of this file told you

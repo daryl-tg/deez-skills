@@ -1,10 +1,13 @@
 # Calendar scheduling and polling windows
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — empty guest calendar listed; feed polling policy and bounded window set/list/cancel/re-read. Occurrence actions and actual scheduled reads remain unverified.*
+*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — the occurrence lifecycle driven end to end on a guest lane: a `calendar_candidate` admitted through the inbound door, then listed, shown, selected and revised to `cancelled`. Polling windows (`om watch window set/list/cancel`) were last driven 2026-10-12 at tree `03bd55226` (v0.432.0) and their files are unchanged since.*
 
 `om calendar` lists and manages scheduled occurrences, while `om watch window`
 sets bounded read windows on sources with a polling policy. The calendar needs
-occurrences before its selection and review actions have anything to operate on.
+occurrences before its selection and review actions have anything to operate on
+— and the way to get one on a guest lane is the same inbound door
+[event ingest](./event-ingest-and-fire.md) already proves, which is what makes
+this whole guide drivable without an account.
 
 ## Sub-features
 
@@ -26,8 +29,48 @@ occurrences before its selection and review actions have anything to operate on.
 
 Preconditions:
 
-- A lane the run started. A guest lane can list an empty calendar and configure
-  source polling windows without an LLM credential.
+- A lane the run started. **No account and no LLM credential are needed.** The
+  `calendar` command group is wrapped in `requireAuth`, but that is a no-op
+  today — a guest credential mints silently on first use, and the real gate
+  (`requireNonGuest`) is never applied here. The only real prerequisite is that
+  an occurrence exists.
+
+### Admit an occurrence, then review it
+
+A `calendar_candidate` block rides the ordinary inbound push door
+(`runner/calendar/blocks.ts`), so one watch and one push is the whole setup:
+
+```bash
+control-om om -- watch create calendar-probe --inbound --format json
+control-om om -- event push calendar-probe \
+  --kind calendar_candidate --text "calendar probe" \
+  --calendar-candidates '[{"provider":"verify-om","provider_event_id":"verify-1",
+    "provider_occurrence_id":"verify-1-occ","title":"Verify calendar candidate",
+    "kind":"macro.release","scheduled_at_ms":<future-epoch-ms>,
+    "evidence_url":"https://example.com/verify"}]' \
+  --format json
+```
+
+`--text` is required whatever the kind, and `evidence_url` must be https.
+
+- **List.** `control-om om -- calendar list --format json` returns the
+  occurrence with `status: "scheduled"`, `event_status: "candidate"`,
+  `revision: 1`.
+- **Use the MINTED id, not yours.** The occurrence comes back under a minted
+  `occurrence_id` like `cocc_86eecc95569e678dcae86ddb`; the
+  `provider_occurrence_id` you supplied is kept as a field but is NOT the
+  handle. Every later verb takes the minted id, and passing your own silently
+  finds nothing.
+- **Show.** `calendar show <cocc_id> --format json` returns the occurrence plus
+  its event, carrying `provider`, `provider_occurrence_id`, `scheduled_at`,
+  `evidence_url` and `attributes`.
+- **Select.** `calendar select <watch> <cocc_id> --reason "verify" --format json`
+  returns `{"ok":true,"decision":"selected","change_seq":2}`.
+- **Revise.** `calendar revise <cocc_id> --status cancelled --evidence-url
+  https://example.com/verify --format json` returns `changed: true` and
+  `revision: 3`; a follow-up `calendar list` shows `status: "cancelled"`.
+- **Proof.** Keep the push result, the two `calendar list` payloads either side
+  of the revise, and the select receipt. The minted occurrence id ties them.
 - The selected watch source must support polling. `watch window set` refuses a
   source without a polling block.
 

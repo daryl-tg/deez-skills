@@ -1,6 +1,6 @@
 # The dashboard agent panel
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — opened the panel, previewed and removed page context, sent a message and saw the guest LLM refusal, then opened `/agent`; real model replies need an LLM credential.*
+*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — the panel, its controls and its guest-lane refusal driven. A real conversation stays pending: it needs an LLM credential.*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as

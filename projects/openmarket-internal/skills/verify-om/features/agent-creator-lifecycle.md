@@ -1,5 +1,21 @@
 # Agent creator lifecycle and private-state isolation
 
+> **Provenance unresolved (2026-10-22, maintenance pass against tree `7e22214fb`).**
+> This guide carries no `*Verified:*` stamp in this set's format, and a
+> read-only source audit of `openmarket-internal` found **no implementation for
+> any mechanism it names** — zero matches across `packages/cli/src` and every
+> repo `.md` for Agent Center, shadow install, task-vault, work_stage /
+> work_commit, Run Topic, ACP, and the rest. Two readings fit and this pass
+> cannot separate them: the feature may live entirely in the private
+> `openmarket-chat` GUI (whose commit its own closeout cites), which a
+> daemon-side reader cannot see; or the guide's provenance may be unsound. Its
+> prose also diverges from this set's house style.
+>
+> Nothing here has been driven by this loop. Treat every claim as unverified
+> until someone with `openmarket-chat` access confirms the feature exists and
+> where its daemon-side surface is. Do not delete it on this evidence — absence
+> from one repo is not absence.
+
 *Closeout verified 2026-10-12. GUI `194281a1dbe02b29ca6542170a704d1726884a09`, daemon `a3a81a5f5192a3786c46e0dc3e7e911c2cb86f7c`, binary `5085976c818d929c64fc9fec15efefc5f7a537d3cd7be3b6f221044dd378f8bb`. Native C6/X4/S2 executed on daemon `635441fb083971c1ff5143835521d5c8193e60c2`, binary `7e7f8ee1e25556d1cc75ad61e0d3f4f240dd0715331a52d4d33f8e71067af213`; current viewing and restart readback are distinct. Root-reviewed gallery `agent-creator-stress-20261007/r03` is operator-local evidence. Private registry installation is qualified. Review requests: https://gitlab.com/openmarketxyz/frontend/openmarket-chat/-/merge_requests/75 and https://github.com/openmarket-xyz/openmarket-internal/pull/1948. Local gates passed, but three daemon workflows received no runner or steps because GitHub Actions is blocked by account billing or spending limits. Ready for review, not merge-ready; no main merge, deployment or release.*
 
 The daemon owns release, installation and account state. Shared text packages have immutable digests. Recipients use their own credentials, notes and private memory. An invocation completes its task or clearly explains why it cannot run. Supported local text-agent/Agent Skills creation and sharing are distinct from arbitrary third-party runtime admission.

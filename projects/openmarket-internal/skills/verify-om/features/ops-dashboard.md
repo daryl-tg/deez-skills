@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — all eight workspace navigation routes, onboarding, and the fire watch row opened. Strategy detail returned `Loading…` after fresh-session retry; the recovered feed detail also kept a stale `broken` banner while its source row showed `working`. Both are recorded as product gaps. Non-empty strategy and receipt rows remain unverified.*
+*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — shell, nav, Overview, the Watches list and the new Strategies/Paper tab switcher driven; `/paper` confirmed unmounted in a lane build.*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
@@ -146,6 +146,16 @@ Preconditions:
   pattern. No lane `control-om` drives ever uses them: Strategies stays an
   unconditional nav item and route pair. Do not read those filenames as a
   runtime toggle.
+- **`/paper` is not a route in any lane build, and a link points at it anyway.**
+  The standalone Paper page, its nav entry and its route live in
+  `apps/dashboard/src/paper-plane.tsx` and mount only when
+  `strategyRoutes === null` — the OSS export, where the strategy plane is
+  swapped for its empty twin. This build imports `strategy-plane-full`, so the
+  condition is never true. Driven: `/paper?account=<id>` renders the shell with
+  an EMPTY `main` — no content, no 404 message. The "paper book" link on a
+  strategy detail page points there unconditionally
+  (`pages/strategy-detail.tsx`), so it dead-ends on a blank page. Reported to
+  the operator as a product gap; reach Paper through the `/strategies` tab.
 - Nav items are `link` role, not `button`. `find role button --name "Watches"`
   finds nothing — and neither does `find role link --name "Alerts"`, which is
   the failure a stale recipe hits first.
