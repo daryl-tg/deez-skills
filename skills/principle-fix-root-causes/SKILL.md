@@ -1,6 +1,6 @@
 ---
 name: principle-fix-root-causes
-description: "Apply when debugging. Trace each symptom to its root cause and fix it there. Reproduce first, ask why until you reach it, resist guards that silence a crash."
+description: "Apply when debugging. Trace each symptom to its root cause and fix it there. Reproduce first, ask why until you reach it, a guard is a fix only for a state that is legitimate."
 disable-model-invocation: true
 ---
 
@@ -16,13 +16,18 @@ reduce total debugging time.
 - **Reproduce first.** If you cannot reproduce it, you cannot verify the fix.
 - **Ask why until you hit the cause.** The first plausible explanation is rarely
   the last one.
-- **Resist the guard.** Adding a null check to silence a crash is a symptom fix.
+- **Test the guard for legitimacy.** A guard is a fix only when the state it
+  handles is legitimate. If the system may be in that state, the code that broke
+  on it is the root cause, and handling the state there is the fix. Otherwise
+  the guard hides the bug, like a retry, a swallowed error, or a clamped value.
 - **If a workaround needs a paragraph to justify it, the code is wrong.** Fix
   the code, not the comment.
 - **Check for the pattern, not the instance.** Grep for the same shape and fix
   all of them.
 - **When stuck, instrument.** Add logging and read what the code actually does.
-  Do not guess.
+  Do not guess. If the deciding fact took a deep dig to find, propose the
+  cheap, always-on signal (a log line, metric, or doctor check) that would have
+  shown it at first look.
 
 **Restart bugs: suspect state before code.** Code does not change between runs;
 state does. When something fails after a restart, suspect stale persistent

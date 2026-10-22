@@ -19,10 +19,13 @@ runtime failure the compiler could have stopped.
   non-empty list is a head plus a rest. A valid range is a start plus a
   duration, not two timestamps you must keep ordered.
 - **Brand semantic primitives.** `UserId` and `OrderId` are both strings and must
-  not be interchangeable. Validate once at creation, trust the type after.
+  not be interchangeable. A brand comes from a verifying type guard (`input is AgentId`),
+  never `as`.
 - **External data is untyped until parsed.** Payloads, JSON, CLI args, config,
   env vars, database rows. A parse function at every boundary — see
-  **principle-boundary-discipline**.
+  **principle-boundary-discipline**. Annotate a schema with the type it proves
+  (`const userSchema: z.ZodType<User>`) so the compiler rejects a validator that
+  proves less than the type.
 - **Do not lie to the compiler.** A cast it cannot verify is a runtime crash
   waiting. Prove the fact or accept that the cast is a hazard.
 - **Exhaustive matching is the compiler's job.** Adding a variant must fail the

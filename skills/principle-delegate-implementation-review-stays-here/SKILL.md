@@ -24,8 +24,11 @@ verification, git mutations.
 - **The delegate does not inherit your context.** Every handoff is
   self-contained: cite the playbook by absolute path and the principles by name,
   because those exist on the delegate's runtime too.
-- **Fire a fresh delegate rather than chaining an interrupt.** Interrupt-chained
-  resumes silently drop directives. Resume within one feature's lifecycle; go
-  fresh at a phase boundary with consolidated scope.
+- **New work goes to a fresh delegate.** Fix rounds, retries, and the next goal
+  get consolidated scope: the original brief, every later directive, the prior
+  delegate's report, and its branch and commits. Interrupt-chained resumes
+  silently drop directives. Resume only when the work needs state that lives in
+  that delegate and is costly to move: a live checkout, uncommitted changes, a
+  running process.
 - You can spawn a delegate even though you are one. "The task is small" is not a
   reason to skip the review separation.

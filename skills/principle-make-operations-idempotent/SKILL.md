@@ -14,13 +14,15 @@ happens if this runs twice, and what happens if the previous run died halfway?
 retries are normal. If partial state changes the next run's outcome, every
 restart becomes a debugging session.
 
-- **Convergent startup.** Scan for existing state, clean stale artifacts, adopt
-  live sessions rather than assuming a clean slate.
-- **Content-based cleanup.** Compare by content equivalence, not creation order.
-- **Self-healing locks.** Detect a stale lock by whether its owner is alive, not
-  by its age.
-- **Idempotent scheduling.** Failed work respawns cleanly; fresh input is
-  regenerated each cycle.
+- **Derive each step from the state that exists**, not from what the previous
+  run meant to do. Intent died with the run.
+- **Apply only the difference** between the state found and the state wanted.
+  Never assume a clean slate.
+- **Judge staleness by evidence that stays true wherever the previous run could
+  have stopped.** Whether a lock owner is alive holds at every crash point. A
+  lock's age does not.
+- **Write to a temp path and rename into place**, so a crash leaves the old
+  file or the new one, never half of either.
 
 **Three tests:**
 
