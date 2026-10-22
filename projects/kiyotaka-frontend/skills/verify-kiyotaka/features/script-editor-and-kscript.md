@@ -6,8 +6,8 @@ overlay through the frontend adapter. Public and own scripts can run client-side
 marketplace (WRUN) scripts use the shared hosted-run path when their delivered
 source or published build requires it and return through the same pipeline. Run targets depend on delivered source, visibility, and published
 builds: editable and delivered read-only scripts can run in the browser, while
-protected or unavailable builds use the cloud lane. This entry was re-verified
-on 2026-10-12 against product tree `61d1e911cc`; guest coverage confirmed the
+protected or unavailable builds use the cloud lane. This entry was SOURCE-corrected on 2026-10-22 against `fcc8e53b12` and NOT driven; last live
+check 2026-10-12 on `61d1e911cc`; guest coverage confirmed the
 editor-toggle verification wall and no writable editor mount.
 WRUN launch-box/ring, Pine conversion, Kata hand-offs, and AI provenance remain
 authenticated coverage obligations.
@@ -151,28 +151,30 @@ Preconditions:
 - **Only strategies are run-target locked now.** A TypeScript Indicator tab
   defaults to Browser but can pick Cloud, so `runTargetLocked` is true for
   strategies alone — do not report a TypeScript tab offering Cloud as a bug.
-- **The WRUN/Indicator lane now defaults ON, reversing the previous rule.**
-  `isWrunRegistrySectionEnabled()` reads `wrun-registry`, which is `true` in BOTH
-  `GUEST_DEFAULT_FLAGS` and `ACCOUNT_DEFAULT_FLAGS`, so an unresolved or failed
-  flag fetch also reads ON. The default blank button is therefore
-  `kscript-template-blank-btn` (inside `IndicatorStarterList`), and
-  `script-explorer-new-btn` opens a TypeScript draft.
-  `kscript-template-blank-legacy-btn` and the `kscript-template-picker` region
-  render only with the lane OFF, which now takes a deliberate
-  `kiyo.flag-overrides` entry of `{"wrun-registry": false}`.
-  Match the testid, not the label. Every "TypeScript is primary" claim below is
-  now the DEFAULT experience rather than an opt-in — including the legacy notice, whose copy is
-  "Indicators are now written in TypeScript.", and the sidebar entry
-  `script-explorer-new-legacy-btn`, labelled "New kScript" — the old
-  "New kScript (legacy)" string and the "kScript is the legacy indicator language"
-  drawer copy are both gone from the locale. The lane-ON surfaces also include a kScript
-  view (`activity-bar-view-kscript-btn`) and an authoring freeze that can hide
-  the new-kScript action entirely.
-- **Escape no longer closes the drawer from anywhere.** The shared handler closes
-  only the drawer holding the focus origin, so an Escape sent from the chart or
-  body closes nothing — focus the drawer first.
-- **A one-time WRUN beta note can swallow the first click.** It teleports over the
-  app inside the drawer; dismiss it before asserting on editor controls.
+- **The WRUN/Indicator lane gate was DELETED, not merely flipped.**
+  `isWrunRegistrySectionEnabled()` no longer exists; the lane is unconditional and
+  ignores `kiyo.flag-overrides`. So the blank template is always
+  `kscript-template-blank-btn`, `kscript-template-blank-legacy-btn` is gone from
+  source entirely, and "TypeScript is primary" is simply how the editor works.
+  The picker region is now titled `New indicator`, not `Start with a template`.
+  `script-explorer-new-legacy-btn` still exists in markup but can never render:
+  `isKscriptAuthoringFrozen()` is hard-coded true, so kScript authoring is frozen
+  for everyone and frozen tabs show `kscript-frozen-bar` (with `-copy` and
+  `-port`).
+- **A no-JWT lane raises a VERIFY prompt, not the sign-in wall.**
+  `handleGuestAccess` gates on `isGuest() || !isEmailVerified()`, and on a lane
+  with no `jwtMetadata` the second term fires: `isAuthenticationDialogOpen` stays
+  false and `guestLoginFeatureId` is never set. Asserting either after clicking
+  `tb-editor-toggle-btn` will fail even though the drawer correctly stays inert —
+  check the verify prompt instead. Kata's activity-bar entry is also VISIBLE on a
+  no-JWT lane (it hides only for a real guest) while still being walled.
+- **The drawer no longer goes blank for ~25s.** `EditorDrawer` uses
+  `lazyWithRetry` with `EditorWorkspaceSkeleton` as the loading component, so
+  `editor-workspace-skeleton` paints from the first frame of an open, and a failed
+  chunk shows an inline "Couldn't load this." with Try again rather than a
+  skeleton that never clears. The old "empty with nothing marking the gap"
+  gotcha is obsolete. The workspace chunk still loads on open or button intent,
+  so a first open is slower than a warm one.
 - **Kata is a second wall inside the drawer.** The activity bar carries a Kata
   entry for non-guests whose click runs `handleGuestAccess(FeatureId.KATA)` — a
   different feature id from `SCRIPT_EDITOR`, so an authed-but-ungranted account

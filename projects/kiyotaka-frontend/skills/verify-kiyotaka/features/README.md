@@ -3,14 +3,14 @@
 The maintained source for verifying user-facing chart behavior. Read this index
 before driving, then use the matching feature file as the recipe.
 
-Maintenance pass: 2026-10-12 on product tree `61d1e911cc` (= `origin/main`), lane
-`18097`, on a NO-JWT lane (see the baseline note below). Driven: chart boot
-(candles, overlay rows, interval, default market), the ticker bar's full pinned
-set, and the symbol dialog on BOTH lanes — legacy by default, v2 after the flag
-override. Source-reviewed but NOT driven this pass: the indicator dialog and add
-path, and the script editor; their entries carry their own earlier verification
-dates. Authenticated workspaces, saved layouts, protected scripts, and WRUN
-launch/Pine conversion remain outside this pass.
+Maintenance pass: 2026-10-22 — SOURCE ONLY, nothing driven. The lane could not
+start on product tree `fcc8e53b12`: `pnpm` refused the install under its
+`minimumReleaseAge` supply-chain policy (`electron@44.9.3` was inside the 1440-
+minute cooldown), and both offered fixes mutate the product lockfile or relax the
+policy. Every entry below was re-read against `fcc8e53b12` and corrected where
+source contradicted it, but NO claim in this pass carries live proof; the last
+driven state for each entry is named in its own header. Re-drive before trusting
+any recipe here.
 
 ## Baseline preconditions
 
@@ -60,31 +60,32 @@ launch/Pine conversion remain outside this pass.
   reads `0`. Do **not** count bare `[role=dialog]`: the signup modal and both
   app dialogs are `.dialog-style` overlays carrying no `role=dialog`, so that
   count stays `0` whether or not something is on top.
-- **Confirm the lane's flag state, not `jwtStore.isGuest`.** A lane started by
-  `control-kiyotaka up` can carry NO JWT at all: `jwtMetadata` stays absent,
-  `isGuest` AND `isLoggedIn` both read `false`, and the role is `null` — while the
-  UI still says `Guest Workspace`. Driven live for 30s+, it never resolved.
-  That matters because `GUEST_DEFAULT_FLAGS` merges only when `isGuest` is true, so
-  on a no-JWT lane every guest default silently fails open to OFF. The visible
-  symptom is the SYMBOL DIALOG: you get the legacy one (`intent-filter-class-*`)
-  where the map says you should get v2.
+- **`jwtStore.isGuest` is not a guest check.** A lane started by
+  `control-kiyotaka up` can carry NO JWT at all: `jwtMetadata` stays absent, so
+  `isGuest` AND `isLoggedIn` both read `false` and the role is `null`, while the
+  UI still says `Guest Workspace`. Record which state you drove.
 
-  ```bash
-  ./control-kiyotaka browser eval \
-    "JSON.stringify({v2:document.querySelectorAll('[data-testid^=search-v2-category-]').length,legacy:document.querySelectorAll('[data-testid^=intent-filter-class-]').length})"
-  ```
+  **The flag-override recipe a previous pass recorded here is DEAD.**
+  `GUEST_DEFAULT_FLAGS` is now `{}` — `search-v2`, `option-chain`, `pulse`,
+  `wrun-registry`, `free-tier-v2`, `voice-control` and the rest were all
+  graduated out of the flag system during October 2026. Setting
+  `kiyo.flag-overrides` for any of them does nothing. Delete that step from any
+  recipe that still carries it.
 
-  If you need the guest-default behaviour, set the override and reload — proven
-  live to restore v2:
+  What replaced them is a **signed-in check**, not a flag: most graduated gates
+  read `isSignedInSession()`, which needs a real JWT `id` and a non-guest role.
+  So a no-JWT lane and a real guest both fail them, and the practical split is
+  now signed-in versus not:
 
-  ```bash
-  ./control-kiyotaka browser eval \
-    "localStorage.setItem('kiyo.flag-overrides',JSON.stringify({'search-v2':true}))"
-  ./control-kiyotaka browser open "$(./control-kiyotaka url)"
-  ```
+  - The V2 symbol dialog is **structural**, not flag-gated: V2 renders whenever
+    the dialog is opened from a main chart on desktop and is not pair/screener/
+    comparison mode. Guests get V2 there. The legacy `intent-filter-class-*`
+    dialog appears only in those excluded contexts.
+  - Surfaces that now need a signed-in session include the `memecoins` and
+    `options` category tabs, Events/Earnings panels, the Pulse lane, the 4x4
+    free-tier grids, and voice control.
 
-  Record which state you drove. A real guest JWT and a no-JWT lane are different
-  lanes, and only the first is what `GUEST_DEFAULT_FLAGS` describes.
+  Source-verified on `fcc8e53b12`; not driven.
 - Never drive an instance this verification run did not start.
 
 ## Driving conventions

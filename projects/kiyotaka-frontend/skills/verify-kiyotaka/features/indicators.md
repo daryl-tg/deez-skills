@@ -3,8 +3,8 @@
 A user adds an indicator from the Indicators dialog; it mounts as an overlay with
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
-interest) or kScript-backed. This entry was re-verified on 2026-10-06 against
-product tree `064254b1e7`; guest coverage opened the V2 dialog, selected All,
+interest) or kScript-backed. This entry was SOURCE-corrected on 2026-10-22 against tree `fcc8e53b12` and NOT
+driven; its last live check was 2026-10-06 on `064254b1e7`; guest coverage opened the V2 dialog, selected All,
 searched RSI, and recorded the current empty official-catalog state. The
 top-level Indicators/kScript strip, Pine paste offer, and WRUN catalog paths
 remain flag- or auth-dependent and were not driven here.
@@ -39,53 +39,29 @@ Preconditions:
   search field is `indicator-search-bar-input` (`indicator-dialog-skeleton-input` while it loads), not the textbox
   named above; the official list sits under `OPENMARKET INDICATORS <n>` with each group's count in
   `indicator-list-group-count`, and the Technical chip is `indicator-category-chip-technical`. Drive these testids.
-- **The dialog has explicit source and result modes.** Current source tabs include
-  `indicator-source-tab-official` and `indicator-source-tab-community`, with
-  optional registry, personal, and marketplace lanes depending on auth and flags.
-  The result tabs are `indicator-tab-discover-btn` and `indicator-tab-all-btn`; do
-  not assume a guest always opens directly in a kScript catalog or that the
-  source strip is absent. The legacy control-bar handles are not the current
-  route. Driven live, the guest dialog held these stable controls:
+- **The dialog was rebuilt as a "store", and every tab handle this entry used is
+  gone.** `indicator-control-bar-tab-indicators-btn`, `-tab-kscript-btn`,
+  `-favorites-btn`, `-sort-btn`, `indicator-source-tab-official`/`-community`,
+  `indicator-registry-tab-*`, `indicator-tab-discover-btn`/`-all-btn` and
+  `indicator-browse-all-btn` have ZERO matches in source. The strip is now
+  `indicator-store-tabs` with
+  `indicator-store-tab-{popular,trending,new,following,paid,mine}`, and it hides
+  itself when a viewer qualifies for fewer than two tabs. The empty state is
+  `indicator-empty-state` / `-action-btn`.
 
-  ```
-  indicator-source-tab-official   indicator-source-tab-community
-  indicator-tab-discover-btn      indicator-tab-all-btn
-  ```
+  Handles that survived: `indicator-panel-v2` (root), `indicator-search-bar-input`
+  (plus a skeleton twin `indicator-dialog-skeleton-input`),
+  `indicator-search-bar-chart-only-btn`, `indicator-list-card-upgrade-btn`, and
+  `indicator-catalog-unseeded-notice` — the last now gated on
+  `import.meta.env.DEV` alone, so it is a dev-build banner rather than a
+  catalog-state signal. Row adds are
+  `official-indicator-add-official-indicator-<slug>-btn`, and the detail panel
+  carries `indicator-detail-add-btn` / `-apply-btn`.
 
-  Read which modes render before driving a gated lane; signed-in and flag-enabled
-  sessions can add registry, personal, or marketplace sources. Registry mode uses
-  OpenMarket/Community/(Mine), while kScript mode uses Official/Community/(My
-  Scripts/Marketplace).
+  **`wrun-registry` is no longer a flag at all** — the lane is unconditional and
+  `kiyo.flag-overrides` cannot turn it off. Drop any "read the strip, it flipped
+  twice" caveat.
 
-  Below the source pair sit seven category buttons: `All`, `Technical`,
-  `Volatility`, `Statistics`, `Quant Validation`, `Volume Footprints`,
-  `Market Analysis`. `Quant Validation` and `Volume Footprints` are each ONE
-  label — matching `Quant` or `Volume` alone finds nothing.
-- **The top-level mode strip is conditional.** When `tabStripVisible` is true,
-  `indicator-control-bar-tab-indicators-btn` and
-  `indicator-control-bar-tab-kscript-btn` switch between registry Indicators and
-  kScript sources. Governed CME can hide the strip, but the flag no longer does:
-  `wrun-registry` became DEFAULT ON for guests and accounts on 2026-10-11, so the
-  strip renders without a fetch and the landing tab is the registry one unless the
-  browser remembered kScript. That changes the tab testids you will find —
-  registry mode renders `indicator-registry-tab-openmarket` / `-community` /
-  `-mine` (Mine is signed-in only), while `indicator-source-tab-official` /
-  `-community` belong to kScript mode. `indicator-control-bar-favorites-btn` and
-  `-sort-btn` are hidden on the landing Indicators tab, where the search
-  placeholder reads `Search indicators`. This flag has flipped twice; read the
-  strip rather than assuming either state.
-- **Discover and All are distinct result states.** Under the category row sits a
-  second tab pair,
-  `tab "Discover"` and `tab "All"`, beside `button "Browse all indicators"` when
-  the empty state offers it. The current guest lane exposed seeded official rows
-  after selecting All. Drive the tabs by
-  testid rather than that button's text: `indicator-tab-discover-btn`,
-  `indicator-tab-all-btn`, and the source pair `indicator-source-tab-official` /
-  `indicator-source-tab-community` (a guest sees only those two; `My Scripts` and
-  `Marketplace` render for signed-in and flag-enabled sessions). The unseeded
-  banner has its own handle, `indicator-catalog-unseeded-notice`, which is a
-  cleaner assertion than the banner text. `indicator-browse-all-btn` renders only
-  in the empty state, so do not depend on it being there.
 - **Pine paste is a separate user path.** A Pine snippet in the search can render
   an `IndicatorPineOffer` above the list, and empty/searching states may offer
   Kata or paste guidance. Verify that affordance separately from ordinary rows.
@@ -95,7 +71,33 @@ Preconditions:
   to a user add: admission depends on caller options, duplicate-family checks, and
   pane budgets, so use the dialog path for user-facing proofs.
 
-  **If you do reach for the engine call, do not pick an `ALWAYS_LOAD_TYPES` key.**
+  **Use `BITCOIN_DOMINANCE` for a programmatic add.** It is exchange-independent
+  (reads CRYPTOCAP `BTC.D`), needs no venue resolution, sets
+  `onlySingleInstance = false`, is not row-capped, and returns a single real
+  template — so it clears the gate that the old probe keys could never clear. On
+  a COINBASE BTC-USD 1h lane no gate between entry and mount applies: the mode is
+  `FULL`, a bare call skips the slot gate, and `addIndicator` awaits
+  `loadControl` itself, so no dialog warm-up is needed. Pre-check, then add:
+
+  ```js
+  // expect COINBASE / 1h / budget null / tc true
+  (()=>{const m=chartStore.mergedAllCharts[0].metadata;return JSON.stringify({ex:m.exchange,iv:m.interval,budget:chartStore.paneBudget?.maxIndicators,tc:!!window.tc?.[0]})})()
+  ```
+
+  ```js
+  (async()=>{const seen=new Set();
+   const iv=setInterval(()=>document.querySelectorAll('.q-notification').forEach(n=>seen.add(n.innerText.trim())),50);
+   let r,err; try{ r=await chartStore.addIndicator('BITCOIN_DOMINANCE',{},0);}catch(e){err=String(e)}
+   await new Promise(x=>setTimeout(x,300)); clearInterval(iv);
+   return JSON.stringify({r,err,seen:[...seen],
+     mounted:window.tc[0].metadata.some(m=>m.settings?.ovType==='BITCOIN_DOMINANCE')})})()
+  ```
+
+  Success is a string id starting `BITCOIN_DOMINANCE` with `mounted:true`.
+  Source-derived on `fcc8e53b12`; **not yet driven** — settling `ind-add`,
+  `ind-legend` and `ind-limit` with this key is the next pass's first job.
+
+  **Do not pick an `ALWAYS_LOAD_TYPES` key.**
   That list means "preload this control when a hardcoded panel restores", not
   "addable": `TRADING_TOTAL_LIQUIDITY`'s control returns
   `{side:'offchart', template: []}` and `addIndicator` refuses on
@@ -108,8 +110,9 @@ Preconditions:
   Two rules make the next failure readable:
 
   - **`undefined` is always a refusal.** A successful add returns the overlay id,
-    and anything thrown is caught, logged and toasted — so `undefined` is a
-    deliberate early return, never a silent success.
+    and anything thrown is caught, logged, toasted AND rethrown — so a throw
+    reaches your caller as a rejection, and `undefined` is a deliberate early
+    return, never a silent success.
   - **A missing toast proves nothing.** Toasts default to 1500ms and the long wait
     happens BEFORE the refusal, so a separate snapshot misses them. Watch for
     notifications while awaiting, in one eval:
@@ -163,7 +166,7 @@ Preconditions:
   `chartStore.addIndicator` does not enforce**. A programmatic fourth add mounts
   regardless: the counter stayed pinned at `Indicators 3/3` while `metadata` grew
   to six entries. The gate runs only when the caller passes `opts.recordUndo` or
-  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1375`, the flag computed at `:1370`), and a
+  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1928`, the flag computed at `:1852`), and a
   bare `addIndicator(KEY,{},0)` passes neither. Re-reading `metadata` after a
   programmatic add therefore proves nothing about the cap, and reads as the cap
   being broken when it is not. Use eval adds to REACH three slots, then assert the

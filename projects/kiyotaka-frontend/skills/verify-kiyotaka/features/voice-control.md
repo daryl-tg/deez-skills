@@ -12,6 +12,23 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**SOURCE-corrected 2026-10-22 against `fcc8e53b12`, NOT driven — and this
+entry's preconditions are now wrong.** The `voice-control` flag GRADUATED on
+2026-10-19: `voiceControlEnabled()` is now just `isSignedInSession()`. Setting
+`kiyo.flag-overrides` for it does nothing, and a guest or no-JWT lane gets no
+mic, no chip, no keybinding, and no `window.__voiceControl` seam at all (the seam
+installs only when the footer mic or chart chip mounts). Every recipe below needs
+a SIGNED-IN desktop session. Two further corrections: the push-to-talk key is
+`Alt+Shift+V`, not `⌥ Space` (changed 2026-10-13, the day after this entry was
+written), and the Super Search entry is a toggle labelled "Hold to talk (Voice
+control key)", not a launcher.
+
+Handles the entry omits but which exist: `voice-control-chip-transcript`,
+`-chip-live`, `-chip-readback`, `voice-control-chip-option-<n>`,
+`voice-control-mic-dot`, `voice-key-mode-menu` / `voice-key-mode-<mode>`, and
+`voice-control-trade-heard` on the order-confirm dialog. A fake-microphone lane
+already exists at `qa/voice-control/audio-lane.mjs`.
+
 ## Sub-features
 
 - `vc-mic` the footer mic button renders while the flag is on.
@@ -31,13 +48,12 @@ panels.
 Preconditions:
 
 - Baseline from [chart boot](./chart-boot-and-data-plane.md), overlays cleared.
-- The flag is runtime and not on for a guest. Force it and reload:
-
-  ```bash
-  ./control-kiyotaka browser eval \
-    "localStorage.setItem('kiyo.flag-overrides',JSON.stringify({'search-v2':true,'voice-control':true}))"
-  ./control-kiyotaka browser open "$(./control-kiyotaka url)"
-  ```
+- **A SIGNED-IN desktop session.** There is no flag to force any more:
+  `voiceControlEnabled()` is `isSignedInSession()`, so the override below —
+  which earlier versions of this entry prescribed — does nothing. A guest or
+  no-JWT lane has no mic, no chip, no keybinding, and no `window.__voiceControl`
+  seam to call, because the seam installs only when the footer mic or chart chip
+  mounts. Sign in before attempting anything in this entry.
 
 - Proof the feature mounted: `JSON.stringify({seam:!!window.__voiceControl,mic:!!document.querySelector('[data-testid=voice-control-mic-btn]')})`
   reads both `true`. Driven live: mic at x 185, y 868, 28×28 in a 1440×900 viewport.

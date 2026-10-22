@@ -3,7 +3,8 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was re-verified on 2026-10-12 against product tree `61d1e911cc`; coverage
+entry was SOURCE-corrected on 2026-10-22 against `fcc8e53b12` and NOT driven;
+its last live check was 2026-10-12 on `61d1e911cc`; coverage
 was boot to 250 candles, the two-row overlay set, interval, the default market,
 and a screenshot. The worker-death console grep and the live ticker values were
 NOT re-run this pass; their last live check was 2026-10-06.
@@ -124,6 +125,23 @@ Preconditions:
   backdrop and a swipe all write the seen flag, so a second run on the same
   browser profile meets only the signup modal — a recipe that expects two
   overlays every time is wrong after the first run.
+- **OI and FUNDING do not render on the default market.** The guest default is
+  COINBASE BTC-USD, which is SPOT, and `isOiSupported`/`isFrSupported` are
+  futures-only — so the live edge carries price, change and `24H VOLUME` only. A
+  recipe that asserts `OPEN INTEREST` or `FUNDING / COUNTDOWN` on a default boot
+  fails on a healthy lane. Switch to a perp (e.g. BINANCE.F BTCUSDT) to prove
+  those two. At narrow widths the cells fold into `tb-ms-price-trigger`.
+- **The signup modal now waits 15s after the last blocking surface.** A
+  `GUEST_PROMPT_SURFACE_GAP_MS` of 15000 was added, so it does NOT raise the
+  moment you dismiss the ink tutorial — allow 15s of no pointer or key input
+  before concluding it is gone. The gate also treats the indicator and layouts
+  dialogs as blocking.
+- **The ink tutorial has input-sensitive gates.** It needs ~4s of no press or key
+  and ~1.5s of no pointer movement, retries on a long interval, and never opens in
+  a screenshot-render context — so a driver that clicks continuously can delay it
+  indefinitely. Poll for `ink-tutorial` rather than assuming a fixed delay. Its
+  "once per device" scope is localStorage for guests but per-account when signed
+  in. `ink-tutorial-close` resolves on mobile too (the sheet reuses the testid).
 - **The signup modal is no longer the first overlay a guest meets.** A once-per-
   device `InkTutorialDialog` ("Draw by holding") arms shortly after first paint
   and sits in the SAME `.dialog-style.dialog-overlay` shell, so it blocks clicks
