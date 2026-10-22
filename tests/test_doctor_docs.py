@@ -142,6 +142,10 @@ class CountClaimTest(DocsFixture):
         self.write("docs/history.md", "<!-- deez:counts-ok -->\nok\n59 skills.\n")
         self.assertEqual(self.claims(), ["count-claim"])
 
+    def test_an_inline_opt_out_does_not_cover_the_next_line(self):
+        self.write("README.md", "Three skills fire alone. <!-- deez:counts-ok -->\nAnd 99 principles here.\n")
+        self.assertEqual(self.claims(), ["count-claim"])
+
     def test_a_comparison_table_quoting_other_counts_passes(self):
         self.write("docs/architecture.md", "| | pstack | hub |\n|---|---|---|\n| Skills | 45 | 33 |\n")
         self.assertEqual(self.claims(), [])
@@ -280,6 +284,13 @@ class FileFrontmatterTest(unittest.TestCase):
             if f.code in ("name-mismatch", "invalid-name")
         )
 
+    def detail(self, code):
+        path = self.repo / "registry.toml"
+        path.write_text(BASE + FILES)
+        roots = {"claude": {"skill": self.repo / "nowhere"}}
+        return next(f.detail for f in doctor.check(registry.load(path), self.repo, roots, "full")
+                    if f.code == code)
+
     def test_matching_names_pass(self):
         self.assertEqual(self.codes(), [])
 
@@ -290,6 +301,7 @@ class FileFrontmatterTest(unittest.TestCase):
     def test_an_agent_without_a_name_fails(self):
         self.agent("description: D.")
         self.assertEqual(self.codes(), ["name-mismatch"])
+        self.assertIn("missing name:", self.detail("name-mismatch"))
 
     def test_a_command_name_that_is_not_the_stem_fails(self):
         self.command("name: go\ndescription: D.")

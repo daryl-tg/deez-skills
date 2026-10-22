@@ -189,7 +189,7 @@ restate them, which is what stops the same rule drifting across five files. Each
 one is invisible until something routes to it, so they cost nothing at session
 start.
 
-Nine are extracted from rules my own skills already asserted. The rest are
+About half come from rules my own skills already asserted. The rest are
 adapted from pstack.
 
 <details>

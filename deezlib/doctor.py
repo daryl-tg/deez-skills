@@ -519,6 +519,12 @@ def _check_file_frontmatter(entry, repo_root):
     findings = []
     if name is None and entry.kind == "command":
         name = path.stem
+    elif name is None:
+        findings.append(
+            _fail("name-mismatch",
+                  f"{relative}: missing name:. An agent needs one equal to "
+                  f"its file stem {path.stem!r}")
+        )
     elif name != path.stem:
         findings.append(
             _fail("name-mismatch",
@@ -662,9 +668,12 @@ def check_count_claims(reg, repo_root):
 
     Some numbers are not claims about the whole set: a subset ("three skills
     fire on their own") or history ("adopted 59 skills"). Mark those with
-    `<!-- deez:counts-ok -->` on the same line or the line directly above. The
-    marker is invisible when rendered and exempts that one line, so a stale
-    count elsewhere in the paragraph still fails.
+    `<!-- deez:counts-ok -->` at the end of the line, or alone on the line
+    directly above. The marker is invisible when rendered and exempts that one
+    line, so a stale count elsewhere in the paragraph still fails.
+
+    Table cells rarely match: `| Skills | 45 |` puts no number directly before
+    the noun. A row that does write `45 skills` needs the marker too.
     """
     counts = _tree_counts(reg, repo_root)
     head = _readme_head(repo_root)
@@ -677,7 +686,7 @@ def check_count_claims(reg, repo_root):
     for relative, text in docs:
         lines = text.split("\n")
         for n, line in _prose_lines(text):
-            if _COUNTS_OK in line or (n > 1 and _COUNTS_OK in lines[n - 2]):
+            if _COUNTS_OK in line or (n > 1 and lines[n - 2].strip() == _COUNTS_OK):
                 continue
             for match in _COUNT_CLAIM.finditer(line):
                 claimed, noun = _number(match.group(1)), match.group(2).lower()
