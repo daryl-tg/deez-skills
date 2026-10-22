@@ -17,10 +17,11 @@ Clean up a feature branch **after the user has merged it**. Repo-agnostic. Delet
 ## Pre-flight (read-only — show to the user)
 
 - `<MAIN>` must be clean: `git -C <MAIN> status --short`. If dirty, **STOP**.
-- Classify the branch as merged by its PR/MR state, not by ancestry. A squash-merged branch is never an ancestor of `<DEF>`, so `git log <branch> --not <DEF>` lists its commits even after it landed. Resolve the forge from `git -C <MAIN> remote get-url origin`, then:
+- Classify the branch as merged by its PR/MR state first, with ancestry as the fallback. A squash-merged branch is never an ancestor of `<DEF>`, so `git log <branch> --not <DEF>` lists its commits even after it landed. Resolve the forge from `git -C <MAIN> remote get-url origin`, then:
   - GitHub: `gh pr list --head <branch> --state merged --json number,headRefOid`
   - GitLab: `glab mr list --source-branch <branch> --merged -F json` (compare its `sha`)
 - **Merged by PR/MR** means a merged entry whose head commit equals `git -C <MAIN> rev-parse <branch>`. A local tip that moved past the merged head carries unmerged work, so treat it as unmerged.
+- A forge error (unauthenticated, CLI not installed, no remote match) counts as no merged PR/MR. It never counts as merged.
 - No merged PR/MR: fall back to `git -C <MAIN> log --oneline <branch> --not <DEF>`. Empty means merged by ancestry. If it is NOT empty, **WARN** the user the branch appears unmerged and ask them to confirm they really want it deleted — but still use the safe `-d` delete, which will refuse if git disagrees.
 
 ## Green light
