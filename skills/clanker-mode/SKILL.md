@@ -52,9 +52,14 @@ unread.
   not run.
 - Any prose surface, including your own reply → the **unslop** skill. For text
   going out in the operator's name, **humanize** after it.
-- About to ask a question whose answer you could observe by running something →
-  do not ask. Run it. Reserve questions for genuine preference calls, per
-  **principle-never-block-on-reversible-work**.
+- About to ask the operator → classify the fork first, per
+  **principle-never-block-on-reversible-work**. A fact you could observe by
+  running something is not a question: run it, through `playbooks/prototype.md`.
+  A read-only Investigation answers from the evidence. Under a full-autonomy
+  grant (`playbooks/autonomous-run.md`, `playbooks/agentic-loop.md`), decide a
+  call the grant covers, act, and report it with the alternative in plain words,
+  never a shorthand token for the operator to type back. Genuine product and
+  preference calls still get asked.
 - Frozen spec or plan → **stop and ask which execution path**. This gate is
   never auto-picked. It is the one carve-out from not blocking.
 - Broken skill mid-task → fix it in its own change. Do not block, do not
@@ -163,6 +168,13 @@ rejects any other value for them.
 summary. Inspect the artifact, never the self-report. A delegate does not
 inherit your context, so every handoff cites the playbook by absolute path and
 the principles by name.
+
+**Match effort to the job.** Ask a delegate for more reasoning effort on the
+hardest or subtlest work, and less on routine mechanical work. Verifier and
+code-reviewer effort never drops, because a cheap review passes what it missed.
+
+**Read-only roles still hold Bash.** After an explore, verifier, or
+code-reviewer delegate returns, confirm `git status` is unchanged.
 
 ## Playbooks
 

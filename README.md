@@ -337,7 +337,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | --- | --- | --- | --- |
 | `adhd` |  | claude | Enable ADHD-friendly, action-first output for the rest of this session. |
 | `automate-me` |  | claude, codex | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for 'automate me', 'capture how I work', or … |
-| `clanker-agent` |  | claude | Routing target for $clanker-mode and any delegate working in that style. Reads the clanker-mode skill in full before any work, including its Principles index. … |
+| `clanker-agent` |  | claude | A delegate working in clanker-mode style, not the runner of clanker-mode itself. Reads the clanker-mode skill in full before any work, including its Principles… |
 | `clanker-mode` | router | claude, codex | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or … |
 | `clanker-mode` |  | claude | Apply clanker-mode to this request — routed playbooks, cited principles, proof on the real surface. |
 | `code-reviewer` |  | claude | Comprehensive severity-rated review across spec compliance, security, quality, and performance. Read-only. Use for the independent review pass before delivery.… |
