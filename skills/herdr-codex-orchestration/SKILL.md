@@ -46,8 +46,10 @@ to fit; do not add generated dates, hashes, or an alternate prefix.
    The full reserved-port table is `## Reserved ports` in `~/.claude/CLAUDE.md`; take an assigned port, never a merely-free one.
 5. Use shared `openmarket` HTTP MCP on `31338`; per-session `openmarket-chat`
    stdio children are worker-owned and released at exit.
-6. For shared OM Chat behavior, assemble desktop first, refresh sync metadata,
-   then sync and verify cloud. Do not promote an intermediate worker result.
+6. For shared OM Chat behavior (`packages/chat-ui`), the change is in both
+   hosts at once. Run both hosts' gates and prove each host on its own surface,
+   per **principle-prove-every-host**. Do not promote an intermediate worker
+   result.
 7. After all accepted slices are assembled and verified, invoke
    `$delivery-contract` once to consolidate the integration branch and move it
    into the designated primary worktree, push that feature branch only, and

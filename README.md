@@ -100,7 +100,7 @@ That is it. Everything else the router reaches for when a step needs it.
 | [bug fix](./skills/clanker-mode/playbooks/bug-fix.md) | reproduce a defect, root-cause it, fix it with runtime evidence |
 | [feature](./skills/clanker-mode/playbooks/feature.md) | new or changed behavior, built from a named data shape |
 | [refactoring](./skills/clanker-mode/playbooks/refactoring.md) | a behavior-preserving change to structure. characterize first |
-| [om-chat-feature](./skills/clanker-mode/playbooks/om-chat-feature.md) | an OM Chat change. desktop proven first, then the cloud twin |
+| [om-chat-feature](./skills/clanker-mode/playbooks/om-chat-feature.md) | an OM Chat change. a `packages/chat-ui` change hits both hosts, so run both gates and prove each |
 | [om-chat-completion](./skills/clanker-mode/playbooks/om-chat-completion.md) | the terminal phase for OM Chat. stops at ready_for_review |
 | [om-mobile-feature](./skills/clanker-mode/playbooks/om-mobile-feature.md) | an OpenFloor mobile change. device verification once, at the end |
 | [om-mobile-completion](./skills/clanker-mode/playbooks/om-mobile-completion.md) | the terminal phase for mobile. lands by squash-merge through the MR |
@@ -131,7 +131,7 @@ bug fix:        $clanker-mode the composer drops the draft when you switch rooms
                 repro first, then fix and prove it on the real surface.
 
 feature:        $clanker-mode add a pinned-message row to the transcript header.
-                desktop first, cloud after it is approved.
+                it is shared UI, so prove it on /rooms and on /chat/.
 
 mobile:         $clanker-mode port the reaction picker to OpenFloor. the web
                 logic is the reference, the design is not.
