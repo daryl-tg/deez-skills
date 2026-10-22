@@ -21,7 +21,9 @@ needs context gets the context or gets cut.
 ## Gather what changed
 
 **This turn is read-only.** Do not change code, start an app or a job, or post
-anything. Visuals come only from what you already have.
+anything. Visuals come only from what you already have. That holds for a
+catch-up the operator invoked. A run that shapes its wake reports as ketchup
+borrows the shape only, and keeps working.
 
 Collect your own work since that message, delegate reports, and messages from
 anyone else in the chat. Check the current state of each PR, CI run, or agent

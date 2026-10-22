@@ -38,16 +38,20 @@ again, then the property fails on it.
 
 Only the verification: models, harnesses, property files, and the skill itself,
 in its canonical hub directory per
-[the project verification contract](../../docs/project-verification.md). Never
-product code unless the operator asks. When a property fails on the current
+[the project verification contract](../../docs/project-verification.md). A
+harness the skill records in the product repo is in scope too, edited through
+that repo's own change and review. Never other product code unless the operator
+asks. When a property fails on the current
 code, report it. Never weaken the property or the model to make it pass.
 
 ## Pass
 
-1. **Find the checks.** Look in the registry for skills carrying the project's
-   `project` field, under `projects/<repository>/skills/`, and read each for a
-   verifier it runs against named code. Several, read them all or the one the
-   operator named. None, stop and point at **create-formal-verification-skill**.
+1. **Find the checks.** Resolve `<repository>` as
+   **create-formal-verification-skill** does. Look in the registry for skills
+   carrying that `project` field, under `projects/<repository>/skills/`, and
+   read each for a verifier it runs against named code. Several, read them all
+   or the one the operator named. None, stop and point at
+   **create-formal-verification-skill**.
    For each check, collect the property, the covered code, the bounds and
    assumptions, the command, and the sync commit. With no sync commit recorded,
    use the last commit that changed the verification files, and say so.

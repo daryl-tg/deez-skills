@@ -23,7 +23,7 @@ counts once it has happened twice.
 
 ## Fix each class at the highest level that works
 
-The order comes from **principle-encode-lessons-in-structure**. Text is the
+The order builds on **principle-encode-lessons-in-structure**. Text is the
 weakest guard because nothing fails when an agent skips it.
 
 1. **Architecture.** Give each piece of state one owner and each task one

@@ -24,8 +24,8 @@ is pinned to the implementation. Both are the same defect.
 
 **The contract decides, not the shape of the assertion.** A no-call assertion is
 valid when no-call is the promise: checking out an empty cart must not charge the
-card. It is empty when the code simply never ran, so also run the non-empty case
-in the same test. Self-referential expectations are always wrong:
+card. The same assertion is empty when the code simply never ran, so also run
+the non-empty case in the same test. Self-referential expectations are always wrong:
 `expect(f(a)).toBe(f(a))`, `expect(parsed.url).toBe(buildUrl(...))`. A constant
 pin fails on a legitimate edit: `expect(LIMITS.maxTools).toBe(8)`.
 
