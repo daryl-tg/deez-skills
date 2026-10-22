@@ -1,0 +1,7 @@
+interface:
+  display_name: "Benchmark Checklist"
+  short_description: "Vet a perf measurement before you report it"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

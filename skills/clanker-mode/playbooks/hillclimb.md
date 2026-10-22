@@ -18,6 +18,8 @@ never claim a win from reading code. The data decides, per
 2. **Build the harness, prove it discriminates, then freeze it**, per
    **principle-build-the-lever**. One repeatable command emits the metric,
    sampled past the noise, a median of several runs and not a single one.
+   Vet it with **benchmark-checklist** before it is frozen, and have it print
+   error and work counts beside the metric so every keep-or-revert checks them.
    Changing it later invalidates every earlier number. Record the baseline and a
    green regression gate before any change.
 3. **Open the decision log** with **show-me-your-work**. One row per attempt.

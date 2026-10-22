@@ -640,3 +640,13 @@ runtimes = ["claude", "codex"]
 project = "kiyotaka-frontend"
 category = "kiyotaka"
 runtimes = ["claude", "codex"]
+
+[skills.principle-explain-the-number]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.benchmark-checklist]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]

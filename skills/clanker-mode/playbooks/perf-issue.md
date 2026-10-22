@@ -6,6 +6,8 @@ ties to a measurement. Reading source is not measuring.
 1. **Capture a baseline.** Drive the surface through the repo's `verify-<app>`
    skill and save the trace or the timing. A repo with no way to drive it gets
    one first, via **create-verification-skill**. No baseline, no perf claim.
+   Vet the baseline with **benchmark-checklist** before you plan from it, and
+   explain it per **principle-explain-the-number**.
 2. **Ground the hypotheses in the code** with the **explore** role over the hot
    subsystem, and the **why** skill when the cost arrived in a regression. Never
    claim a ceiling you have not run.
@@ -52,7 +54,8 @@ ties to a measurement. Reading source is not measuring.
    at a time, each verified before the next, per
    **principle-sequence-verifiable-units**.
 5. **Capture the post-fix trace on the same surface** and compare the artifacts
-   rather than your memory of them. Inconclusive is not a pass. Wrong surface is
+   rather than your memory of them. Vet it with **benchmark-checklist** the same
+   way, since a delta is only as good as both of its numbers. Inconclusive is not a pass. Wrong surface is
    not a pass. Say so and go again.
 6. **Cite the measurement in the review.** Baseline, post-fix, delta, artifact
    path, in the body itself.

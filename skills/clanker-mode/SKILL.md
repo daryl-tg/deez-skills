@@ -21,6 +21,9 @@ unread.
   every import returning `undefined` is not a check.
 - Any claim that something works → **principle-prove-on-the-real-surface**.
   Inconclusive is not a pass.
+- About to report or act on a measured number, a speedup, regression, or eval
+  result → **principle-explain-the-number**, and **benchmark-checklist** for a
+  performance number.
 - Before promoting, reviewing, or announcing →
   **principle-visual-approval-gates-delivery**.
 - Any server, port, or URL → **principle-bind-assigned-ports**.
@@ -83,7 +86,7 @@ behind it means you skipped reading it.
 `separate-before-serializing-shared-state`
 
 **Verification.** What counts as done.
-`prove-on-the-real-surface` · `visual-approval-gates-delivery` ·
+`prove-on-the-real-surface` · `explain-the-number` · `visual-approval-gates-delivery` ·
 `failing-test-first` · `test-behavior-not-implementation` · `fix-root-causes` ·
 `sequence-verifiable-units` · `finish-or-report`
 

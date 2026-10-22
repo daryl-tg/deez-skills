@@ -1,0 +1,7 @@
+interface:
+  display_name: "Explain the Number"
+  short_description: "Apply before you trust or report a measured number"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

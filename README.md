@@ -5,13 +5,13 @@ and Codex on every machine. Skills live here once and are symlinked into both
 runtimes, so there is no second copy to drift.
 
 The architecture is [pstack](https://github.com/cursor/plugins/tree/main/pstack),
-adapted for two runtimes instead of one. Thirty-six principles, twenty-five
+adapted for two runtimes instead of one. Thirty-seven principles, twenty-five
 playbooks, one router.
 
 ```mermaid
 flowchart TB
   subgraph hub["one repo, one source of truth"]
-    reg["registry.toml<br/>106 skills, 6 agents,<br/>a layer each"]
+    reg["registry.toml<br/>108 skills, 6 agents,<br/>a layer each"]
     ven["vendor.toml<br/>23 third-party entries,<br/>recorded, never copied"]
     lnk["bin/link<br/>symlinks, never copies"]
     doc["bin/doctor<br/>gates, citations, roles,<br/>playbook links, doc drift, budget"]
@@ -26,7 +26,7 @@ flowchart TB
   subgraph work["what one request runs"]
     router["$clanker-mode<br/>the router. same on both runtimes"]
     pb["1 of 25 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
-    prin["36 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
+    prin["37 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
     role["5 roles<br/>explore, executor, test-engineer,<br/>code-reviewer, verifier"]
     craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, show-me"]
     ship["opening-a-review, then landing<br/>evidence approved before anything ships"]
@@ -184,7 +184,7 @@ when you want one directly.
 
 ## principles
 
-Thirty-six rules, one per skill. Playbooks **cite** them by name and never
+Thirty-seven rules, one per skill. Playbooks **cite** them by name and never
 restate them, which is what stops the same rule drifting across five files. Each
 one is invisible until something routes to it, so they cost nothing at session
 start.
@@ -193,7 +193,7 @@ About half come from rules my own skills already asserted. The rest are
 adapted from pstack.
 
 <details>
-<summary>all thirty-six principles</summary>
+<summary>all thirty-seven principles</summary>
 
 **Core**
 
@@ -225,6 +225,7 @@ adapted from pstack.
 | principle | apply when |
 | --- | --- |
 | `prove-on-the-real-surface` | Apply after any change, before declaring done. Verify in the running product on the surface the change touches. Tests … |
+| `explain-the-number` | Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or … |
 | `prove-every-host` | Apply when a change touches shared UI consumed by more than one application host. The change reaches every host at onc… |
 | `visual-approval-gates-delivery` | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. … |
 | `failing-test-first` | Apply before writing production code. Write the failing check first, at the fastest level that expresses the behavior,… |
@@ -357,6 +358,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-encode-lessons-in-structure` | principle | claude, codex | Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a check, a type, a lint, or a sc… |
 | `principle-exhaust-the-design-space` | principle | claude, codex | Apply to a novel interaction or architectural decision with no precedent in the codebase. Build two or three competing sketches and compare before committing. |
 | `principle-experience-first` | principle | claude, codex | Apply to product, UX, and feature-scope tradeoffs. Choose user delight over implementation convenience; ship fewer polished things over more rough ones. |
+| `principle-explain-the-number` | principle | claude, codex | Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and … |
 | `principle-failing-test-first` | principle | claude, codex | Apply before writing production code. Write the failing check first, at the fastest level that expresses the behavior, and watch it fail for the right reason. |
 | `principle-feature-branch-isolation` | principle | claude, codex | Apply before starting any change. Work happens on daryl/<kebab-words> in its own worktree, never on main, never in the primary worktree. |
 | `principle-finish-or-report` | principle | claude, codex | Apply at the end of any run. Never deliver a partial silently. Either the whole thing is done, or say precisely what is left and why. |
@@ -439,6 +441,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | --- | --- | --- | --- |
 | `adhd` |  | claude, codex | Shape output for a reader with ADHD: lead with the next action, number multi-step work, restate state across turns, suppress tangents, give specific time estim… |
 | `ancient-shell-style` |  | claude, codex | Lint, format, test, review, document, and harden maintained Bash and shell scripts with ShellCheck, shfmt, shdoc, and test-runner.bash. Use for Bash, sh, shell… |
+| `benchmark-checklist` |  | claude, codex | Vet a perf measurement (limiter, tuning, limits, errors, repeatability, relevance, and whether the work happened) before you report or act on it. Use when you … |
 | `blast-radius` |  | claude, codex | Find what a small-looking change could break beyond its diff, proving each safety claim with running code rather than assertion. Use before shipping a change t… |
 | `bump-rc` |  | claude | Release a new @openmarket/rooms-client version — pick the bump from what actually changed, run the repo's release script, then repin all three places the OM Ch… |
 | `chrome-devtools` |  | claude, codex | Browser automation through the Chrome DevTools Protocol with the bundled chrome-devtools script. |

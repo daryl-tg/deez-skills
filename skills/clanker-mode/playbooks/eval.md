@@ -38,6 +38,8 @@ measured behaves differently, so candidates run blind.
 6. **Grade the chain from the artifact, not the self-report.** What the code
    looks like, which files the run actually opened where the runtime records it.
    Citing a principle is not reading it, and reading it is not applying it.
+   Explain the result per **principle-explain-the-number**: did every run do
+   the task, and does the gap hold across trials and models.
 7. **Read every candidate output yourself,** end to end, then compare with the
    judge. Disagreement means the rubric is ambiguous or the judge is biased. Say
    which, and fix the rubric before believing the result.
