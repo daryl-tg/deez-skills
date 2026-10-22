@@ -15,6 +15,10 @@ Principles index below in full.** Name each principle that shaped a decision and
 the choice it changed. A citation with no decision behind it means the leaf went
 unread.
 
+- A non-trivial task → before the todo list, play back in your own words the
+  operator's goal and the problem they are solving. It is a statement, not a
+  question. A wrong playback costs one line to correct. A wrong build costs the
+  run.
 - Any code change → **principle-failing-test-first**, at the fastest level that
   expresses the behavior. Any test you write, change, or decide to keep →
   **principle-test-behavior-not-implementation**. A check that would pass with
