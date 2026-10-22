@@ -76,7 +76,7 @@ It reads the request, picks a playbook, and copies that playbook's steps into a
 todo list **verbatim** before doing anything else. A step it decides to skip
 stays in the list with a reason, so you can see what it chose not to do.
 
-**2. Three skills fire without it**, because a read-only question should not
+**2. Three skills fire without it**, because a read-only question should not <!-- deez:counts-ok -->
 need ceremony:
 
 ```
@@ -335,17 +335,17 @@ description is not what makes a runtime truncate its catalogue; the total is.
 
 | Name | Layer | Runtimes | Description |
 | --- | --- | --- | --- |
-| `adhd` |  | claude | — |
+| `adhd` |  | claude | Enable ADHD-friendly, action-first output for the rest of this session. |
 | `automate-me` |  | claude, codex | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for 'automate me', 'capture how I work', or … |
-| `clanker-agent` |  | claude | — |
+| `clanker-agent` |  | claude | Routing target for $clanker-mode and any delegate working in that style. Reads the clanker-mode skill in full before any work, including its Principles index. … |
 | `clanker-mode` | router | claude, codex | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or … |
-| `clanker-mode` |  | claude | — |
-| `code-reviewer` |  | claude | — |
+| `clanker-mode` |  | claude | Apply clanker-mode to this request — routed playbooks, cited principles, proof on the real surface. |
+| `code-reviewer` |  | claude | Comprehensive severity-rated review across spec compliance, security, quality, and performance. Read-only. Use for the independent review pass before delivery.… |
 | `codex-first` |  | claude, codex | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:review) as the primary path, raw codex exec as… |
 | `create-verification-skill` |  | claude, codex | Generate a project-owned verification skill, feature map, and control wrapper in the deez-skills hub so an agent can drive the real app and prove behavior. Use… |
 | `design` |  | claude, codex | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implement against the sketch, and scrap it when f… |
-| `executor` |  | claude | — |
-| `explore` |  | claude | — |
+| `executor` |  | claude | Code implementation, refactoring, and feature work on a bounded slice. Use when a scoped implementation task should be carried to a verified outcome by a singl… |
+| `explore` |  | claude | Fast codebase search and file/symbol mapping. Read-only. Use when a task needs repo-local facts — where things live, how they connect, all usages of a symbol —… |
 | `herdr-codex-orchestration` |  | claude, codex | Run independent Codex implementation, review, and verification loops through Herdr with isolated worktrees. Covers arena mode (N candidates, one judge) and swa… |
 | `maintain-verification-skill` |  | claude, codex | Periodic pass keeping a project-owned verification skill, feature map, and tracked control wrapper in the deez-skills hub honest: parallel source readers per f… |
 | `principle-announce-the-linked-review` | principle | claude, codex | Apply at the end of any delivered change. Announce as a title line, a body in the operator's /adhd voice, and the PR or MR link — nothing else — then read the … |
@@ -386,9 +386,9 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-visual-approval-gates-delivery` | principle | claude, codex | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. Approval is the operator's, never inferre… |
 | `reflect` |  | claude, codex | Mine a finished session for durable lessons and route each to a concrete skill edit, gated on approval. Use when the operator says reflect, or after a complex … |
 | `review` |  | claude, codex | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a branch, PR, or MR, dead-code checks, or 'wou… |
-| `test-engineer` |  | claude | — |
+| `test-engineer` |  | claude | Test strategy, coverage-gap analysis, regression design, flaky-test hardening, and running the repository's own gates. Use when a task needs test design or tes… |
 | `test-first` |  | claude, codex | Write the failing check before production code, at the fastest level that expresses the behavior, and report the failing-before evidence. Use before implementi… |
-| `verifier` |  | claude | — |
+| `verifier` |  | claude | Completion evidence and claim validation — turns implementation claims into a PASS/FAIL/PARTIAL verdict backed by fresh evidence. Read-only. Use for the indepe… |
 
 ### Go language toolchain
 
@@ -443,7 +443,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `bump-rc` |  | claude | Release a new @openmarket/rooms-client version — pick the bump from what actually changed, run the repo's release script, then repin all three places the OM Ch… |
 | `chrome-devtools` |  | claude, codex | Browser automation through the Chrome DevTools Protocol with the bundled chrome-devtools script. |
 | `commit` |  | codex | Commit the currently staged git changes only. Use when the user invokes /commit, asks to commit staged changes, or requests a concise commit from the existing … |
-| `commit` |  | claude | — |
+| `commit` |  | claude | Commit the currently staged changes. |
 | `demuddy` |  | claude | Use when a plan, spec, or design doc has accumulated edits from multiple discussion rounds and is about to be handed to an implementing agent (or human) — symp… |
 | `figure-it-out` |  | claude, codex | Design an auditable playbook when no bundled one fits: a large migration, an ambitious multi-part change, or work reviewed after the operator steps away. Scale… |
 | `git` |  | claude, codex | Version-control workflow: commits, staging, rebasing, branching, minimal diffs, and commit messages. |
@@ -456,7 +456,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `loop-me-in` |  | claude | Use when a fix plan, spec, or design doc needs to become a file that a fresh session can execute unattended and prove its own changes landed — "make this runna… |
 | `mailbox` |  | claude, codex | Agent mail, handoffs, replies, waits, handled state, or store inspection. |
 | `maintain-agents-md` |  | claude, codex | AGENTS.md maintenance and repository agent instructions. |
-| `mr-markdown` |  | claude | — |
+| `mr-markdown` |  | claude | Generate a condensed MR markdown for the changes on the current branch. |
 | `pi-development` |  | claude, codex | Pi asset development: extensions, skills, prompts, themes, packages, providers, models, TUI, or SDK integrations. |
 | `product-video` |  | claude, codex | Turn a product journey or feature into a continuous UI motion film with faithful product states, a human cursor, musical timing and deterministic rendering. Us… |
 | `prompt-ready` |  | claude | Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persist… |
@@ -470,10 +470,10 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `testing-harness` |  | claude | Use when a change has to be proven in the real running product rather than in tests — visually diffing the cloud deployment against the local daemon, sweeping … |
 | `war-diary` |  | claude | Use when updating the Frontend War Diaries from a GitLab activity .atom export and the day's Claude Code sessions — turning a day's GitLab work (pushes, MRs, a… |
 | `why` |  | claude, codex | Recover why something was built the way it is, from git history, review threads, tickets, chat, and incident records. Use for 'why is this like this', 'why was… |
-| `worktree-cleanup` |  | claude | — |
-| `worktree-feat` |  | claude | — |
-| `worktree-feat-done` |  | claude | — |
-| `worktree-promote` |  | claude | — |
+| `worktree-cleanup` |  | claude | After a feature branch has been merged, delete the local feature branch from the main worktree — gated on explicit user approval. Local only; never touches the… |
+| `worktree-feat` |  | claude | Create an isolated worktree on a fresh feature branch off the latest default branch, in any repo |
+| `worktree-feat-done` |  | claude | Promote a finished feature worktree by checking out its branch in the main worktree and removing the feature worktree — gated on explicit user approval. Does N… |
+| `worktree-promote` |  | claude | Move a finished feature worktree's branch into the main worktree so it can be checked out and tested — gated on explicit user approval. Does NOT merge into the… |
 
 ### Writing and editing
 

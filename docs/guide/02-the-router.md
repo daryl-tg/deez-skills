@@ -47,7 +47,7 @@ Say so to opt out.
 
 ## When not to use it
 
-Three skills fire on their own, because forcing ceremony onto a read-only
+Three skills fire on their own, because forcing ceremony onto a read-only <!-- deez:counts-ok -->
 question is how a system becomes annoying enough to abandon:
 
 - **`why`** — why is this built this way. Git history, review threads, tickets,

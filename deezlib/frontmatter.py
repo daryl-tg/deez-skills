@@ -37,7 +37,12 @@ def _parse_block(block):
     return fields
 
 
-def parse(path):
+def fields(path):
+    """Every top-level key in the frontmatter, with nothing required.
+
+    A command file carries no `name:` (its stem is the name), so callers that
+    read commands and agents need the block without parse's requirements.
+    """
     path = Path(path)
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
@@ -47,9 +52,13 @@ def parse(path):
     match = _BLOCK.match(text)
     if not match:
         raise FrontmatterError(f"{path}: no YAML frontmatter block")
+    return _parse_block(match.group(1))
 
-    fields = _parse_block(match.group(1))
+
+def parse(path):
+    path = Path(path)
+    found = fields(path)
     for required in ("name", "description"):
-        if not fields.get(required):
+        if not found.get(required):
             raise FrontmatterError(f"{path}: frontmatter is missing {required!r}")
-    return {"name": fields["name"], "description": fields["description"]}
+    return {"name": found["name"], "description": found["description"]}

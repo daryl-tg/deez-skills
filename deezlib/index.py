@@ -6,9 +6,12 @@ MARKER = "<!-- deez:index -->"
 
 
 def _description(entry, repo_root):
-    folder = Path(repo_root) / registry.source_dir(entry, entry.runtimes[0])
+    """A skill's description lives in its SKILL.md. An agent or command is one
+    file, so its description is in that file's own frontmatter."""
+    source = Path(repo_root) / registry.source_dir(entry, entry.runtimes[0])
+    path = source if entry.kind in registry.FILE_KINDS else source / "SKILL.md"
     try:
-        return frontmatter.parse(folder / "SKILL.md")["description"]
+        return frontmatter.fields(path).get("description") or "—"
     except frontmatter.FrontmatterError:
         return "—"
 

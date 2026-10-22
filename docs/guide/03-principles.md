@@ -5,7 +5,7 @@ they never restate them.
 
 ## The problem they solve
 
-Before this layer, the rule "never merge to main" appeared in three skills,
+Before this layer, the rule "never merge to main" appeared in three skills, <!-- deez:counts-ok -->
 worded differently each time, inside the `description` field — the part loaded
 into every session. Three copies, three drifting wordings, three places to
 change when you change your mind, and you pay for all three.

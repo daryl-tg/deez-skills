@@ -74,6 +74,21 @@ project = "example-app"
         self.assertIn("[verify-example](./projects/example-app/skills/verify-example/SKILL.md)", rendered)
         self.assertIn("[Feature map](./projects/example-app/skills/verify-example/features/README.md)", rendered)
 
+    def test_an_agent_row_carries_its_own_description(self):
+        (self.repo / "agents").mkdir()
+        (self.repo / "agents" / "scout.md").write_text(
+            "---\nname: scout\ndescription: Finds things fast.\n---\nBody\n")
+        reg = self.load('\n[agents.scout]\ncategory = "core"\nruntimes = ["claude"]\n')
+        self.assertIn("| `scout` |  | claude | Finds things fast. |",
+                      index.render(reg, self.repo))
+
+    def test_a_command_without_a_name_still_shows_its_description(self):
+        (self.repo / "commands").mkdir()
+        (self.repo / "commands" / "go.md").write_text(
+            "---\ndescription: Goes now.\n---\nBody\n")
+        reg = self.load('\n[commands.go]\ncategory = "core"\nruntimes = ["claude"]\n')
+        self.assertIn("| `go` |  | claude | Goes now. |", index.render(reg, self.repo))
+
     def test_write_preserves_content_above_the_marker(self):
         readme = self.repo / "README.md"
         readme.write_text(f"# deez-skills\n\nHand-written intro.\n\n{index.MARKER}\nOLD\n")

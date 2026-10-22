@@ -83,7 +83,7 @@ OPENING_FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 CLOSING_FENCE = re.compile(r"^ {0,3}(`+|~+)[ \t]*$")
 
 
-def _opening_fence(text):
+def opening_fence(text):
     """Return (char, length) when the line opens a CommonMark fence."""
     match = OPENING_FENCE.match(text)
     if not match or (match.group(1)[0] == "`" and "`" in match.group(2)):
@@ -91,7 +91,7 @@ def _opening_fence(text):
     return match.group(1)[0], len(match.group(1))
 
 
-def _closes_fence(text, fence):
+def closes_fence(text, fence):
     match = CLOSING_FENCE.match(text)
     return bool(
         match and match.group(1)[0] == fence[0] and len(match.group(1)) >= fence[1]
@@ -107,11 +107,11 @@ def _lines(text):
     for i in range(start, len(raw)):
         row = raw[i]
         if fence is None:
-            fence = _opening_fence(row)
+            fence = opening_fence(row)
             code = fence is not None
         else:
             code = True
-            if _closes_fence(row, fence):
+            if closes_fence(row, fence):
                 fence = None
         out.append(Line(i + 1, row, code))
     return out

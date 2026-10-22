@@ -109,7 +109,7 @@ names the old source. The instructions are part of the system.
 
 The hub is now the only source of skills. `bin/doctor`: 0 failures.
 
-**Adopted: 59 skills**, taking every remaining source tree with it.
+**Adopted: 59 skills**, taking every remaining source tree with it. <!-- deez:counts-ok -->
 
 | Was | Count | Now |
 |---|---|---|
@@ -123,7 +123,7 @@ Two categories were added for the intake: `go` (the Go toolchain, 6) and `cmux`
 having them.
 
 **The `cmux` family was removed on 2026-09-10** as irrelevant to this operator's
-stacks, taking the category with it. The 20 skills and their 77 files are in
+stacks, taking the category with it. The 20 skills and their 77 files are in <!-- deez:counts-ok -->
 this repository's history, so `git show` recovers any of them. Counts elsewhere
 in this document describe the September 1 intake and are left as written.
 
