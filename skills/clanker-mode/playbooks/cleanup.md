@@ -10,11 +10,14 @@ still standing in.
 
 1. **List before you delete.** `git worktree list` and `git branch -vv` in the
    main worktree. Name each worktree, its branch, and whether that branch is
-   merged, promoted, or unfinished. Decide merged by review state, not ancestry.
-   A squash-merged branch is never an ancestor of the default branch, so ask the
-   forge: `gh pr list --head <branch> --state merged` or `glab mr list
-   --source-branch <branch> --merged`. A branch you cannot classify is not a
-   deletion candidate.
+   merged, promoted, or unfinished. Decide merged by review state first, with
+   ancestry as the fallback. A squash-merged branch is never an ancestor of the
+   default branch, so ask the forge: `gh pr list --head <branch> --state merged
+   --json headRefOid` or `glab mr list --source-branch <branch> --merged -F
+   json`. Merged by review means the merged head is the local tip. A tip past it
+   carries work the merge never saw, so that branch is unmerged. A forge error
+   counts as no merged review. A branch you cannot classify is not a deletion
+   candidate.
 2. **Promote before pruning.** A branch that only exists in a feature worktree
    is lost when that worktree goes. Check it out in the main worktree first, per
    **principle-promote-to-the-main-worktree**.
@@ -30,9 +33,11 @@ still standing in.
    The reserved ports belong to their owners, and `8098` and `31337` are never
    yours to restart.
 6. **Then prune.** `/worktree-cleanup` for a branch the operator has approved
-   deleting. Git refuses `-d` on a squash-merged branch, so one with a merged PR
-   or MR takes `-D` under that same approval. `git worktree prune` clears
-   administrative leftovers. Local only. Never delete a remote branch.
+   deleting. Git refuses `-d` on a squash-merged branch, so one merged by review
+   in step 1, merged head equal to local tip, takes `-D` under that same
+   approval. Every other branch takes `-d` and never escalates. `git worktree
+   prune` clears administrative leftovers. Local only. Never delete a remote
+   branch.
 7. **Stale simulators last.** `xcrun simctl list` then `xcrun simctl delete
    unavailable` for the unbootable ones. Never delete a booted device or one a
    run is driving.

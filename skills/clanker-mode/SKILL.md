@@ -55,7 +55,8 @@ unread.
 - About to ask the operator → classify the fork first, per
   **principle-never-block-on-reversible-work**. A fact you could observe by
   running something is not a question: run it, through `playbooks/prototype.md`.
-  A read-only Investigation answers from the evidence. Under a full-autonomy
+  A read-only question answers from the evidence, through
+  `playbooks/investigation.md`. Under a full-autonomy
   grant (`playbooks/autonomous-run.md`, `playbooks/agentic-loop.md`), decide a
   call the grant covers, act, and report it with the alternative in plain words,
   never a shorthand token for the operator to type back. Genuine product and
@@ -173,8 +174,9 @@ the principles by name.
 hardest or subtlest work, and less on routine mechanical work. Verifier and
 code-reviewer effort never drops, because a cheap review passes what it missed.
 
-**Read-only roles still hold Bash.** After an explore, verifier, or
-code-reviewer delegate returns, confirm `git status` is unchanged.
+**Read-only roles still hold Bash.** Note `git status` before dispatching an
+explore, verifier, or code-reviewer delegate and compare it after. A change is
+the delegate's mutation to inspect and revert, not yours to keep.
 
 ## Playbooks
 
