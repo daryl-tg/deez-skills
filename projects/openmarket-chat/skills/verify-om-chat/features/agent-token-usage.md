@@ -43,4 +43,4 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the completed-turn fixture, observed 12.3k tokens, expanded Tool activity, and captured the details. **Limitations:** Other token thresholds, missing or invalid totals, and live daemon accounting were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `.agent-answer-meta` read `12.3k tokens` (title `12,345 tokens`), `tokens=1250000` gave `1.3M tokens` (title `1,250,000 tokens`), `tokens=1` gave `1 token`, and `tokens=missing` gave no count and no price. **Expand tool activity** flipped to **Collapse tool activity**, and the detail kept the title `12,345 tokens`. `agent-presentation-fixture` states collapsed/expanded/failed/live rendered their toggles. **Limitations:** The input+output fallback (not seedable) and live daemon accounting were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

@@ -27,7 +27,7 @@ fixture cannot reach.
   (measured at `f7d7c987`).
 - A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
   font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
-  home session (`Shell.tsx:4490`). Reach it through
+  home session (`Shell.tsx:4559`; lazy import at `:245`). Reach it through
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
@@ -81,7 +81,7 @@ agent-browser eval '(()=>document.querySelector(".world-conversation")?.textCont
 ```
 
 **Do not reach for `.world-status-area` as the cheap second observation any
-more.** The element still exists (`WorldView.tsx:789`) but it is filled through
+more.** The element still exists (`WorldView.tsx:818`) but it is filled through
 a **ref**, imperatively, from the running renderer — so with the solo harness
 offline it stays **empty**, and an assertion on `#west-bank-street` now fails
 against a perfectly healthy rig. Use `.world-status` for liveness instead.
@@ -98,7 +98,7 @@ separate connection line (`.world-chat-connection`).
 New in the same rebuild, all present in the solo harness: a `.world-minimap`,
 two `.world-view-control` buttons named **"Follow player"** and **"Enter
 fullscreen"**, and five `.world-look` swatches — **Wayfarer, Ranger,
-Surveyor, Violet, Rust** (`characterModel.ts:9-51`).
+Surveyor, Violet, Rust** (`packages/chat-ui/src/world/scene/characterModel.ts`, Wayfarer at `:11`).
 
 The shared renderer's scripted Agent activity study is a second local harness:
 run `bun x vite --config tools/openscape-preview/vite.config.ts --port <assigned-free-port> --strictPort --host 127.0.0.1`, then open
@@ -138,7 +138,7 @@ below: proving them needs the relay and a second occupant.
   `src/world/WorldView.tsx` and `apps/cloud/src/world/WorldView.tsx` are
   one-line re-export shims, so `#946`'s stat showing a dozen `apps/cloud/src/
   world/*` files changed by one line each is the shims being written, not the
-  feature. Read the 843-line file under `packages/chat-ui/`.
+  feature. Read the 923-line `packages/chat-ui/src/world/WorldView.tsx`.
 - The sidebar row is a `treeitem` inside its own `tree` named "Open World", not
   a button and not part of the `DESK` tree. `find role button` will not match
   it, and in the shell fixture matching it buys you nothing anyway.
@@ -148,4 +148,4 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the solo world harness, waited for both scene/minimap canvases, and observed offline/retrying, reconnecting chat, and no #world channel. **Limitations:** Movement, occupants, emotes, live cues, and relay transport require a daemon/world relay and were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `/rooms/mocks/world-solo/index.html?worldprobe=1` rendered 2 canvases, `.world-status` "world offline, retrying" (`data-world-status=offline`), "Chat: reconnecting" (`data-chat-connection=reconnecting`) and "No #world channel". **Hide** flipped to **Open chat** and back, and Follow player and Enter fullscreen were present. **Limitations:** Movement, occupants, emotes, live cues, relay transport and the channel-width drag were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

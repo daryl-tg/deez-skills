@@ -43,7 +43,15 @@ Say which one a frame shows, always.
 Four sidebar lenses, each stamped `data-home-library-lens-{id}` and carrying
 `aria-current="page"` when active: **Todos** (`?lens=todos`), **Shared docs**,
 **Agents** (`?lens=agents`), and **Archive** (`?lens=archive`). All four are
-present in this lane; Archive is the newest.
+present in this lane; Archive is the newest. **`?lens=agents` crashes in this
+lane at `cd9f8c72`.** The hash reaches `#/library/agents`, but the surface reads
+"Your Library could not load" with Try again / Reload OM Chat, and the console
+shows `TypeError: Cannot read properties of undefined (reading 'tone')` in
+`LibraryPersonaCard` (`personaStatusPresentation` at `LibraryView.tsx:6159`
+returns nothing for a persona status it does not list). The production client
+rejects unlisted states (`src/lib/om-daemon.ts:1548`), so fixture seeding is
+the likely cause, but it is not isolated. Assert only the route for the Agents
+lens here, and report the crash rather than captioning it as the lens.
 
 Archive renders `data-home-library-archive` (`LibraryView.tsx:8706`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
@@ -98,10 +106,36 @@ across the collapse. A proof that asserts on the route will see nothing happen
 and call it broken; assert on `data-library-presentation`.
 
 Other seeding routes confirmed present in the fixture: `?docs=500` (a
-1337-doc corpus, `shell-fixture.tsx:278`), `?list=flat` (**sticky** — it
-writes `localStorage["om.chat.libraryList"]` at `:127` with no clearing
-branch, so it survives until you clear storage by hand), `?note=long|wrapped`,
-and `?libraryState=error` (`:4098`).
+1337-doc corpus, `shell-fixture.tsx:279`), `?list=flat` (**not sticky** — it
+writes `localStorage["om.chat.libraryList"]` and the `else` branch at
+`:128-129` removes it, so the next load without the parameter clears it;
+measured live: `flat`, then `null`), `?note=long|wrapped`, and
+`?libraryState=error` (`:4201`, applied only while the active view is library).
+
+## Doc reader select-all
+
+Since `2a9df60c`, Cmd/Ctrl+A in a doc opened on the right selects only the
+document body while the pane is the reader's last place (just opened, or the
+last pointerdown or focusin landed inside it). A click or focus elsewhere hands
+select-all back to the browser. Text fields (composer, edit-mode CodeMirror,
+tag input) keep their own, and a handler that already prevented the chord (the
+file tree) wins. Drive it in read mode on
+`shell-fixture.html?view=room&alerts=quiet&doc=server` (`doc=journal` and
+`note=long` do not mount the reader):
+
+```bash
+agent-browser click '[data-doc-pane-document]'
+agent-browser press Meta+a
+agent-browser eval '(()=>{const s=getSelection(),d=document.querySelector("[data-doc-pane-document]");return JSON.stringify({len:s.toString().length,inDoc:d.contains(s.anchorNode)})})()'
+```
+
+Expect the selection to cover the document (200 of its 201 characters at
+`cd9f8c72`) with its anchor inside it. On load the composer holds focus, so
+click the doc first. For the hand-back, click a `[data-message-row]` and
+dispatch a cancelable Meta+A `keydown` on `document.body`: `defaultPrevented`
+is `false`. `agent-browser press` does not perform the browser's native
+page-wide select-all, so an empty selection after a chat click is a harness
+artefact, not a failure.
 
 ## Gotchas
 
@@ -141,4 +175,4 @@ and `?libraryState=error` (`:4098`).
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the server-scoped Library panel, filtered to rotation and observed one matching note, expanded to full view, then opened Archive and verified its heading and Refresh control. **Limitations:** Document mutations, populated archive/restore behavior, and daemon-backed shared data were not exercised; fixture archive rows are unavailable.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?panel=library&scope=server` showed the Library scope tabs `Channel # · 0 notes` / `Server · 3 notes`. The `Search Library docs` filter read `0 notes match “cpi”` with **Clear search**. **Open Library full page** set `data-library-presentation=full` and browser Back restored `side`, with the hash `#/room/ops` unchanged. `?view=library&lens=archive` had Archive `aria-current`, the archive section, 0 rows and no copy (INERT, as documented). `lens=todos` and `lens=agents` routed to their hashes, but the Agents lens crashed (see above). `list=flat` was cleared by the next plain load, and doc select-all was scoped as described. **Limitations:** Import, export, trash, move and restore are INERT no-ops on this fixture and remain live verification pending on a daemon lane. The Agents lens content is unverified. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

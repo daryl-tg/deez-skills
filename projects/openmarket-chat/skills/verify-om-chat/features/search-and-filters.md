@@ -33,12 +33,20 @@ proof.
 - The results-scope picker. On room searches it offers **This thread** when
   inside a topic, **This channel**, **This server**, **Library**, and
   **Everywhere**; on a DM it offers **This DM**, **All DMs**, and
-  **Everywhere** (`SearchPanel.tsx:74-101,2424-2484`).
+  **Everywhere** (options `SearchPanel.tsx:74-101`, the picker with trigger
+  `Search in: <label>` and menu `Search in` at `:458-500`).
 - Date filters from **More filters**: `before:`, `after:`, and `during:`
   (`search-query.ts:3-38`).
 - The search-unavailable error state.
 - The two other header search affordances, "Open search in #ops" and
-  "Open search panel".
+  "Open search panel" / "Close search panel" (`SearchBar.tsx:561`). The toggle
+  name follows the scope: `Open search in topic <name>` in a topic, and
+  `Open search with @ana` (not "in") in a DM.
+- Result counts read `${count}${partial ? "+" : ""} results`, so a partial
+  window shows `1+ results` (`SearchPanel.tsx:1287`, `:1295`). Empty states:
+  "No results in #ops." (`:1777`) and "No results in your conversation with
+  @x." (`:2320`). Plus `Clear search`, `Clear search history` and the `Sort
+  search results` menu.
 
 ## How to get to it (user POV)
 
@@ -149,4 +157,4 @@ partial-window warning remains visible.
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the seeded #ops search with one dedupe result; inspected room scopes (This channel, This server, Library, Everywhere) and DM scopes (This DM, All DMs, Everywhere). **Limitations:** Thread-specific retargeting, date-filter submission, live search requests, cloud-host behavior, and backend ranking were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?panel=search` showed `1 results`. The `Search in` menu listed This channel / This server / Library / Everywhere. The `Search #ops` combobox opened the `Search filters` listbox with 6 options, and `searchState=error` showed the unavailable state. On `?search=live` in a topic, `primary` requested `ops:cpi-print-aug:primary`. Switching to the ETF topic re-ran `ops:etf-flows-week:primary` and showed the `primary market` hit. In the DM, `Open search with @ana` gave the combobox `Search @ana`. **Limitations:** Date-filter submission, cloud-host behavior and backend ranking were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

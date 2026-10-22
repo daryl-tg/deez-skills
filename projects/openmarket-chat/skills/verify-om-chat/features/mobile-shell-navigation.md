@@ -103,7 +103,7 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
     appears at phone width too — no takeover, no detail marker, still inside the
     om root card with the tab bar mounted.
   - Opening the session list (the button named **"Open om conversations"**,
-    title "Chats", `AgentPane.tsx:285-287`) renders a control with the same
+    title "Chats", `AgentPane.tsx:314`) renders a control with the same
     accessible name that
     behaves the opposite way: it **is** gated on `useIsMobile()` and **does**
     render as a `[data-mobile-takeover]` dialog, the name belonging to a close
@@ -119,4 +119,4 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** At 390×844, moved from Home to Chats, opened ana’s DM detail, then used Back to Chats and verified the Chats root. **Limitations:** Other supported widths, Spaces detail, takeover routes, native Back, and keyboard behavior were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** At 390×844: `[data-mobile-root]` was `home`, Chats made it `chats`, ana's DM gave `[data-mobile-detail]` count 1 with the Mobile navigation hidden and **Back to Chats**, and Back restored the `chats` root and the tab bar. **Limitations:** Other supported widths, Spaces detail, takeover routes, native Back and keyboard behavior were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

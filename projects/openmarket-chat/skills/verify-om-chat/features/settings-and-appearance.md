@@ -19,7 +19,7 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4492` always does, so the **running app shows twenty**;
+  `Shell.tsx:4561` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
   product. To count twenty without a daemon, open Settings through the shell:
@@ -35,7 +35,7 @@ interaction end to end.
   radiogroup, **Message display** (Cozy / Compact), sits alongside them.
 - High-contrast mode and its interaction with every palette. The system
   contrast preset follows `prefers-contrast: more` independently of the
-  explicit high-contrast switch (`packages/chat-ui/src/lib/appearance.ts`).
+  explicit high-contrast switch (`packages/chat-ui/src/components/settings/appearance.ts`, `prefers-contrast: more` at `:309`).
 - Server settings: Overview, Roles, Members, Moderation, Invites, Integrations,
   Work Ledger, Library, Recovery, Import Vault, Danger. There is **no Access
   page on the server host** — Access is a channel page.
@@ -49,7 +49,7 @@ interaction end to end.
   `ConvertWebhooksStepper.tsx:342,419`).
 - Settings search, the Esc-to-close rail behavior, and the open/close
   transition. Since `06ee56bd` the dialog also closes on **browser Back**:
-  `SettingsShell.tsx:191` calls `useOverlayHistoryDismiss`
+  `SettingsShell.tsx:192` calls `useOverlayHistoryDismiss`
   (`packages/chat-ui/src/lib/overlay-history.ts`), so Esc is no longer the only dismissal path.
 
 ## How to get to it (user POV)
@@ -153,7 +153,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
   only the account-wide radiogroups ("Which to-dos appear in chat or topics",
   "Whether to-do status updates appear in chat"). Proving that sub-feature
   needs a fixture change, not a different query.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4490` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4559` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -171,8 +171,17 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
   likely unmet prerequisite (inferred, not driven).
 - `?perms=` gates what server and channel settings render. A missing control
   may be a correct permission outcome rather than a regression — check the
-  route you opened before reporting one.
+  route you opened before reporting one. Measured nav counts at `cd9f8c72`:
+  channel `perms=owner` 5 (Overview, Access, Webhooks, Moderation, Danger),
+  `perms=member` 1 (Overview); server `perms=owner` 11 (Overview, Roles,
+  Members, Moderation, Invites, Integrations, Work Ledger, Library, Recovery,
+  Import Vault, Danger), `perms=admin` 10 (no Danger), `perms=member` 4
+  (Overview, Roles, Members, Invites). Work Ledger arrives through the server
+  admin extra-tab seam, not the static list. The settings fixture also takes
+  `state=empty`, `mode=away` and `palette=`.
+- The conversion dialog's title names the channel label, not its id:
+  **Convert webhooks to alerts · bitcoin** on the fixture's `#btc` channel.
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Changed Appearance from Dark to Light and restored Dark; opened owner Channel Webhooks and inspected the “Convert webhooks to alerts” review with two selected examples, then canceled. **Limitations:** Conversion effects, other settings pages, channel permissions beyond the fixture owner seed, persisted preferences, and per-viewer to-do overrides were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** The user host showed 19 nav entries with no OM Settings. **Light theme** set `data-theme=light` and read `Light theme (selected)`, **Moss palette** set `data-palette=moss`, and searching `keyboard` left only Keyboard Shortcuts. Channel and server nav counts were measured for owner, admin and member (above). Owner channel Webhooks opened **Convert webhooks to alerts · bitcoin**. The shell `?view=settings&settingsPage=appearance` showed 20 entries including OM Settings. **Limitations:** Conversion effects, help/guide pages, server overview/members/invites/integrations/library/recovery/import/danger page content, persisted preferences and per-viewer to-do overrides were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

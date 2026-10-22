@@ -43,7 +43,10 @@ Routes:
 | `?view=friends&tab=connections` | Connections — the default, an empty state |
 | `?view=friends&tab=requests` | Requests (what this file used to call Pending) |
 | `?view=friends&tab=blocked` | Blocked — **currently crashes**, see Gotchas |
-| `?view=channels` | Public-channel browse board |
+| `?view=channels` | Public-channel browse board (Subscribe to / Unsubscribe from rows) |
+| `?view=channels&directory=empty` | Empty directory: "This workspace has no public channels yet." |
+| `?view=channels&directory=loading` | Loading skeleton, `role=status` named "Loading channels" (any `directory` value except `empty`) |
+| `?view=channels&directory=loading&connection=offline` | Unreachable: "The channel directory is out of reach" (any `connection` value except `live`). There is no separate fetch-error state |
 | `?view=empty` | No destination selected |
 | `?dmTyping=peer` | A typing indicator in the DM — the literal string `peer`, not a name |
 | `?inbox=open` | Topic inbox dialog open over the surface |
@@ -72,8 +75,8 @@ agent-browser find role button click --name "save"
 agent-browser eval 'document.documentElement.dataset.fixtureMermaidEdit'
 ```
 
-The last command returns the literal `dm-saved` (`shell-fixture.tsx:3419`); a
-channel edit writes `channel-saved` to the same key (`:3396`). There is no
+The last command returns the literal `dm-saved` (`shell-fixture.tsx:3522`); a
+channel edit writes `channel-saved` to the same key (`:3499`). There is no
 `fixtureDmEdit` key, and the value carries no conversation or message id.
 Measured at `f7d7c987`. `More` only appears while the row is hovered, so mark
 the row first, then hover it:
@@ -89,8 +92,9 @@ Wrap the lookup in an IIFE. A bare top-level `const` persists in the page, so
 a second eval on the same load throws `Identifier ... has already been
 declared`.
 
-On the Connections surface the chips are `button`, not `tab`: `"Connections"`,
-`"Requests"`, `"Blocked"` — three, and only three, in this lane. The product
+On the Connections surface the chips are `button`, not `tab`: `"Connections 0"`
+(the chip now carries its count, so match it non-exactly), `"Requests"` and
+`"Blocked"`. That is three, and only three, in this lane. The product
 also has a second row of `.cx-chip.is-mini` filters (All / Followers /
 Following) and a `role="tablist"` "Request type" switch, but both render only
 once `tab === "connections"` or a real request filter is active, and the
@@ -142,7 +146,7 @@ seeded presence state — a good second observation alongside the route.
   predicts `?tab=pending` lands on `#/connections/pending`, and it does not.
   The cause is a **fixture stub**: `openFriends` there is written
   `openFriends: () => navigate({ kind: "friends", tab: "online" })`
-  (`tools/visual/shell-fixture.tsx:3183`) — no parameter, hardcoded tab, unlike
+  (`tools/visual/shell-fixture.tsx:3286`) — no parameter, hardcoded tab, unlike
   the real `ChatSession.openFriends`, which honours its argument. Boot seeds the
   hash, routing parses it back, the parsed view differs in shape from the raw
   fixture view for every id except `requests` and `blocked`, so navigation
@@ -176,6 +180,14 @@ seeded presence state — a good second observation alongside the route.
 - Presence in the fixture is seeded, not live. Anything about presence
   *changing* (reachability, going away, reconnect) needs the daemon-pair lane.
 
+- **From a DM, the rail Home button does not leave the DM.** In DM mode the
+  session is already in Home, so `Home: DMs and connections, N pending follow
+  request` keeps `#/dm/ana`. Return to the hub with the sidebar `treeitem`
+  named **Home**, which lands on `#/home`.
+- **Chip clicks cannot switch tabs here.** Clicking **Requests** from the
+  default view calls the argument-blind `openFriends` stub and stays on
+  `#/connections/online`. Load `?view=friends&tab=requests` instead.
+
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened Home and observed the unread summary and waiting row, then opened ana’s DM and checked its online header and composer. **Limitations:** Connections filters, requests/blocked lists, presence changes, and DM editing were not exercised in this pass.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** Home showed h1 `2 unread across 1 conversation.` and the buttons New DM, Follow someone, Create or Join Server, See connections and `ana · Direct message 2`. The ana treeitem opened `#/dm/ana`. The sidebar Home treeitem returned to `#/home`, and See connections showed `Connections 0` / Requests / Blocked. `?tab=requests` gave `#/connections/requests` plus Incoming and Sent. DM editing saved `dm-saved`. Browse showed its empty, loading and offline states and the populated board (9 subscribe controls). **Limitations:** The Blocked tab (fixture crash), presence changes and a real directory catalog were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

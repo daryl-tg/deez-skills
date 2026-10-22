@@ -13,6 +13,11 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   row.
 - The topic view's breadcrumb and its **Back to #channel** return.
 - The composer retargeting to whatever is open.
+- **Mark As Unread** on a channel or topic row (`503a0a4f`), the inverse of
+  Mark As Read: the row turns unread again from the newest message in its own
+  lane, skipping your own trailing posts. It is offered only on a row that is
+  fully read (no unread, no mention) and has a message, and never on a DM
+  (`packages/chat-ui/src/lib/mark-latest-unread.ts`).
 - The channel header, which is **four** separate mechanisms, not one list:
   - a `tablist` named "Channel view" holding **Chat** and **Topics**. The
     Topics tab carries the open-topic count in its accessible name when the
@@ -31,23 +36,24 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   **Pins and bookmarks are no longer menu items**: `#740` gave them rail doors
   and dropped them from here. Menu contents depend on session capabilities and
   state; compact mode adds **Topic inbox** and compact actions, so the menu has
-  no fixed item count (`ChannelHeaderMenus.tsx:444-580`). **Notification
+  no fixed item count (overflow items around `ChannelHeaderMenus.tsx:535-560`,
+  the `More channel actions` trigger at `:598-599`). **Notification
   settings** has its own submenu (`ChannelHeaderMenus.tsx:149`). **Clean up
   topics** is available only where a daemon can triage topics, so it is absent
   from the source fixture. See [topic-cleanup.md](topic-cleanup.md).
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
-  (`packages/chat-ui/src/components/RightPanels.tsx:179`): a collapse/expand toggle plus one
+  (`packages/chat-ui/src/components/RightPanels.tsx:213`): a collapse/expand toggle plus one
   button per panel. In the seeded fixture room that is **four** — Library,
   Bookmarks, Members, Pins — carrying `data-slot-tab` values `library`,
   `bookmarks`, `members`, `pins`. The dock filters
-  `["todos","library","bookmarks","members","pins"]` (`RightPanels.tsx:193`)
-  against what `rightSlotTabsFor` offers, and `alerts` is excluded even when
-  offered. **To-dos can never appear here**, and not because this room lacks
+  `["todos","library","bookmarks","members","pins","alerts"]` (`RightPanels.tsx:198`)
+  against what `rightSlotTabsFor` offers; `alerts` is admitted now, but the
+  fixture offers none, so four is still the count here. **To-dos can never appear here**, and not because this room lacks
   one: the personal doors come from `session.rightRailTabs?.(room)`
   (`ChannelToolbar.tsx:229`), which the fixture never stubs, so it resolves
   through the `INERT` proxy — and `INERT[Symbol.iterator]` is an empty
-  generator (`shell-fixture.tsx:2452`, the trap itself at `:2454`), so
+  generator (`shell-fixture.tsx:2532`, the iterator at `:2534-2535`), so
   spreading it yields nothing for every room. Four is the ceiling in this lane, not a seeding accident.
   `"Show or hide side panel"` no longer exists anywhere in `src/`, and the old
   in-panel `tablist` is not merely hidden: every live render site passes
@@ -158,7 +164,7 @@ the navigation retargeted the *write* path, not only the read pane.
 
   `#715` rebuilt the toggle around a right *region* that stays open while the
   panel collapses, so the label now keys on `session.rightRegionOpen()`
-  (`RightPanels.tsx:213`) rather than on whether a panel is open. `#715` added
+  (`RightPanels.tsx:204`) rather than on whether a panel is open. `#715` added
   that seam and `#735` swapped its body to route through `rightRegionTenant`,
   which is why a docked note counts as open and a topic peek does not. The
   fixture stubs none of `rightRegionOpen`, `collapseRightRegion` or
@@ -194,7 +200,7 @@ the navigation retargeted the *write* path, not only the read pane.
 
   **The gate has moved twice and now explains itself.** `#731` lifted it out of
   `Shell.tsx` into `ConversationRightRegion`; it is now back in `Shell.tsx`
-  (`:4149-4162`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
+  (`:4212-4217`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
   More useful than the address is the condition it gained:
 
   ```
@@ -214,12 +220,32 @@ the navigation retargeted the *write* path, not only the read pane.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
   opens nothing — confirmed live. But that is a fact about the *control*, not
   about the surface: **`?switcher=open` mounts the quick-switcher**
-  (`shell-fixture.tsx:2935` seeds `palette`), and it comes up with real
+  (`shell-fixture.tsx:3026` seeds `palette`), and it comes up with real
   content — a `div.quick-switcher` carrying `role="combobox"`, an input
   placeheld `Search messages, or jump anywhere...`, and the empty state
   *"Nowhere recent yet. Type to search, or start with @, #, * or ."* with its
   PROTIP line beneath. So there **is** a switcher to drive here; it just does
-  not open from the thing that looks like it opens it.
+  not open from the thing that looks like it opens it. Driven at `cd9f8c72`:
+  fill the textbox `Search messages, or jump anywhere...` with `#mac`, and the
+  listbox offers the macro topics; Enter jumps to
+  `#/room/macro/topic/basis-desk-review` with the heading `#macro / Basis desk
+  review`. Type through `find role textbox fill --name ...`; a CSS
+  `[aria-label=...]` selector does not match, because the name comes from the
+  placeholder.
+- **Mark As Unread is gated by state, and the click is a no-op here.** The
+  sidebar row menu (right-click a channel or topic `treeitem`) spells it
+  **Mark As Unread**; the channel header menus spell it **Mark as unread**.
+  Match case-insensitively. In the default dial-on fixture every channel row
+  carries unread, so no channel row offers it; the fully read topic row
+  `Funding flipped negative on Hyperliquid` does, and `CPI print — Aug` (3
+  unread) does not. Load `?policy=off` to see it on channel rows and after
+  `Mark as read` in `More channel actions`. **Mark as read** does not clear the
+  seeded unread either: the fixture stubs `markRoomRead` and `markUnreadFrom`
+  as `noop` (`shell-fixture.tsx:3424`, `:3555`). Prove the offer and its gating
+  here, never the state change. That needs the daemon-pair lane.
+- **A panel button renames itself when open**, Library included: after the
+  click, `Library` reads `Close Library` and `data-library-presentation` is
+  `side`.
 - The **Open World** row above `DESK` is inert here too. It renders as a
   `treeitem` in its own `tree`, but clicking it leaves the route on
   `#/room/ops` and mounts no canvas — the shell fixture never stubs the world
@@ -228,4 +254,4 @@ the navigation retargeted the *write* path, not only the read pane.
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened #ops, selected CPI print — Aug from the topic tree, verified its heading and retargeted composer, returned with Back to #ops, and opened the Topics view. **Limitations:** Other channel-header mechanisms, compact menus, topic expansion variants, and daemon-only actions were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `/rooms/` lane at 1440x900: the CPI print — Aug topic treeitem opened `#/room/ops/topic/cpi-print-aug` with `Back to #ops` and `Message in CPI print — Aug`, and Back restored `#/room/ops` and `Message #ops`. The Panel functions nav listed Collapse panel / Library / Bookmarks / Members / Pins, and Library opened the side library. Mark As Unread was offered on the read Funding topic row, absent on CPI, and offered on channel rows and in the header menu under `?policy=off`. The topic-row offer was repeated on the `/chat/` cloud fixture. The quick switcher filtered `#mac` and jumped. **Limitations:** Mark As Unread / Mark as read effects are fixture no-ops. The topic peek, the collapse toggle, compact menus and daemon-only actions were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit, not on main).

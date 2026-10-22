@@ -43,8 +43,16 @@ Read the gotchas for where the line now falls.
 - The formatting toolbar and its selection clearance.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
-- Send disabled while empty; Enter-to-send versus newline. The Send **button**
-  is a phone-width control only — desktop has no send affordance but Enter.
+- Send disabled while empty; Enter-to-send versus newline. The **Send message**
+  button renders when `isMobile || showSendButton` (`Composer.tsx:6092`). The
+  ordinary room and DM composer is therefore phone-width only, and desktop
+  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:437`) and the
+  remote-control pane (`RemoteControlPane.tsx:345`) also show it on desktop,
+  with an `sr-only` "Send" label.
+- Sent text must not come back as a draft after a reload or a revisit
+  (`cd9f8c72` queues the durable snapshot delete behind the lane's pending
+  saves). The fixture cannot show this: it stubs `restoreDurableComposerLane`
+  and has no IndexedDB snapshot, so it proves only that the box clears.
 - The over-limit "send as file" offer and the mass-mention brake, both of which
   can refuse a send that otherwise looks ready.
 
@@ -119,7 +127,8 @@ agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text
 ```
 
 Related handles that do resolve. In the composer row itself:
-`"Summon your om here"`, `"Add attachment or action"`,
+`"Summon your om here"` (on a private om lane the same button is `"Back to the room"`,
+`Composer.tsx:5381-5382`), `"Add attachment or action"`,
 `"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
 On a message or the recovery banner: `"Add reaction"`,
 `"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
@@ -152,7 +161,7 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:3503-3504`), with a comment naming the lock
+  (`tools/visual/shell-fixture.tsx:3606-3607`), with a comment naming the lock
   it was removing. Measured again on `9902d149`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
@@ -177,8 +186,8 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   inside `.composer-attachment-card`, and clicking either portals an
   `.ui-lightbox[role="dialog"]` under `document.body` — which pages across every
   staged image *and* video, so one click can arrow into the neighbouring file.
-  Nothing here stages one: no parameter does it (all seventy-odd `params.get`
-  keys enumerated — 73 on `f7d7c987`) and the fixture's pending-attachment arrays start empty, fed
+  Nothing here stages one: no parameter does it (all `params.get` keys
+  enumerated — 73 on `f7d7c987`, 78 distinct on `cd9f8c72`) and the fixture's pending-attachment arrays start empty, fed
   only by `session.acceptFile` behind the real file input. The maintained
   `tools/visual/mobile-conversation.visual.ts:667` path drives the hidden input
   with `setInputFiles`, and the shell fixture accepts the file at
@@ -228,4 +237,4 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened a seeded draft, replaced it with a maintenance message, sent it in the local fixture, and confirmed the message appeared while the composer cleared. **Limitations:** This proves local rendering only; delivery, cross-lane recovery, attachments, and file previews were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?view=room&alerts=quiet&mermaid=1` at 1440x900 showed Summon your om here, Add attachment or action, Choose emoji or GIF, Toggle sealed mode and Toggle om approval mode, with no delivery banner and no desktop Send button. Typing then Enter appended the row (17 to 18) and cleared the textarea. At 390x844, **Send message** was present and `[disabled]` while empty. The DM composer was named `Message ana · $ for markets · /chart to post one`. **Limitations:** Local fixture send only. Delivery, cross-lane recovery, sent-draft non-resurrection after reload, attachments and file previews are live verification pending (daemon-pair lane; parity stack down). Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

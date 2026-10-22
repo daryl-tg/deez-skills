@@ -54,6 +54,14 @@ session methods.
 - A shared revision is still an unsent composer draft. Verify the separate Send
   action before making a claim about room delivery.
 
+- Exact names: dismiss is **Dismiss agent draft** (**Dismiss all agent drafts**
+  with several lanes, `AgentDraftDock.tsx:254`), not `Dismiss`. Load is `Load
+  v<N>` for a waiting head (`:319`), `Load v<N> into the composer` per version in
+  History (`:420`, beside `Preview v<N>`), and `Load into composer` (`:344`).
+  **Keep mine** (`:327`) appears when a newer version arrives while the
+  composer holds your text, and several agents get a tablist **Agents with
+  drafts** (`:359`).
+
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the dedicated fixture, changed the loaded draft, shared it, and observed “Shared revision 1 with the agent” while the edited text remained in the composer. **Limitations:** The fixture callback is local; daemon persistence, agent receipt, and room delivery were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `agent-draft-share-fixture.html` showed History, Dismiss agent draft and the textbox `Message #agents-lab`. Editing gave "Edited privately from v1; the agent still sees its original." and **Share with agent**, which gave "Shared revision 1 with the agent.", `fixtureSharedRevision=1`, the shared text recorded and the textarea kept. Editing again gave "Edited since revision 1; changes are private." and **Share update**, which gave revision 2. **Limitations:** Fixture-local sharing. No message is posted and daemon delivery is not proven. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

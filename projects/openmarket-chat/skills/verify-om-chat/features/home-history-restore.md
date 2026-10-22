@@ -14,7 +14,7 @@ Agents → Voice → Manage voice cards → History → older revision → Resto
 
 Use the run-owned wrapper lane and `tools/visual/shell-fixture.html?view=agent&panel=voice`. Add `restore=fail-once` for the error/retry journey. Set the viewport to 1440×900 or 390×844. Click `Manage voice cards`, then `History` with `--exact` (the page also carries "Activity See away history").
 
-Do **not** use `?view=agents&panel=persona`. The fixture mocks persona only when the query or hash names a persona section at page load (`shell-fixture.tsx:186-204`), and that URL reaches `#/agents/voice` after load. The panel then reads "Your voice could not be loaded" with a Retry button and no card controls. Drive controls by the accessible names above; revision row ages vary, so inspect the snapshot before selecting r3.
+Do **not** use `?view=agents&panel=persona`. The fixture mocks persona only when the query or hash names a persona section at page load (`shell-fixture.tsx:189-204`), and that URL reaches `#/agents/voice` after load. The panel then reads "Your voice could not be loaded" with a Retry button and no card controls. Drive controls by the accessible names above; revision row ages vary, so inspect the snapshot before selecting r3.
 
 The fixture's real checkpoint store records `document.documentElement.dataset.fixtureRestoreCalls`, `fixtureRestoreRequest`, `fixtureRestoreHead`, and `fixtureRestoreToast`. Restoring r3 from r4 should create r5, refresh history to r5/r4/r3, and remove the lowercase bullet from the actual editor. First failure leaves the editor unchanged and retry succeeds.
 
@@ -26,4 +26,4 @@ The transport is synthetic; this proves mounted Shell/checkpoint/editor behavior
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened Voice history, previewed r3, observed the configured first restore failure, retried, and verified the new r5 head. **Limitations:** The fixture uses a synthetic checkpoint store; real HOME writes and learning holds remain unverified.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?view=agent&panel=voice&restore=fail-once&theme=dark`: Manage voice cards → History listed `r4 CURRENT` and `r3`. Selecting r3, then **Restore this version** → **Restore**, gave calls 1, request `persona-card:3`, no head and the toast "The fixture restore service is unavailable. Try again." The retry gave calls 2, head 5, "Reverted to r3 (as r5)" and rows r5 CURRENT / r4 / r3. **Limitations:** Synthetic checkpoint store. Real HOME writes, learning holds and the history pane's **Keep current** button (`LibraryView.tsx:6114`) were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

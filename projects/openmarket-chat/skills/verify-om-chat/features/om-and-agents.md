@@ -8,9 +8,10 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 
 ## Sub-features
 
-The Agent Center now also mounts a roster creation/import form and catalog
-section in `AgentCenterSurface.tsx`. These are available only when the daemon
-provides roster support and the viewer has explicit owner identity. The legacy
+**On origin/main there is no roster creation/import form or catalog.**
+`AgentCenterSurface.tsx` and `components/roster/` exist only on the unmerged
+branch `daryl/agent-creator-migration-20261007` (MR !75, `a0916a25`); they are
+absent from `packages/chat-ui/src` at `cd9f8c72`. On main, the
 **+ Wire an agent** control in `AgentCenterPane.tsx` continues to open Agent
 Settings; it does not launch roster creation. See [agent-creator.md](agent-creator.md)
 for the gated flows and their live-lane prerequisites.
@@ -252,11 +253,16 @@ decision surface actually has content:
 ```bash
 agent-browser find role button click --name "Allow"     # consent card
 agent-browser find role button click --name "No"
-agent-browser find role button click --name "Review"
 agent-browser find role button click --name "Accept"
 agent-browser find role button click --name "Reject"
-agent-browser find role button click --name "Open om"
 ```
+
+**The fixture now lands on Roster, not the queue.** Open
+`agent-center-fixture.html`, then click the sidebar button **Waiting on you, 4**
+(or load `#/agents/waiting`) before driving the consent controls. Driven at
+`cd9f8c72`, the queue shows **Allow**, **No**, **Accept** and **Reject**;
+**Review** and **Open om** are no longer there. The roster names its own doors
+`Open your om`, `Open claude code`, `Open backtest helper` and `Open research bot`.
 
 Its header *looks* like `WAITING ON YOU · 4`, and that is the cheap
 observation that the queue seeded at all — but read it carefully. The DOM text
@@ -320,4 +326,4 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened Agent Center and verified + Wire an agent opens Agent Settings; opened RemoteHome live and its conversation drawer; Your om showed “om isn’t running”. **Limitations:** Authenticated roster actions, daemon sessions, unread receipts, watches, and remote-control effects require isolated daemon services and were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?view=agents`: **+ Wire an agent** opened the Settings dialog on Agent Settings with the install notice. No create/import/catalog controls are present. `agent-center-fixture.html` landed on Roster, **Waiting on you, 4** opened `#/agents/waiting` with Allow / No / Accept / Reject, and `#/agents/badge/agcr_claude` showed `Live now`. `state=desk-off` read "assembling the roster". `away-panel-fixture` showed the coverage text and `1h 18m remaining · This Mac`. `remote-home-fixture` `approval` showed Approve / Deny / Stop / Add context, `live` Stop / Add context, `older` Load older, and `unsupported` the unsupported copy. `?view=agent` showed "om isn't running". **Limitations:** Authenticated roster actions, daemon sessions, unread receipts, watches and remote-control effects need isolated daemon services (parity stack down). Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

@@ -53,17 +53,17 @@ Two more standalone harnesses are real, and neither speaks the shell fixture's
 grammar. `tools/visual/agent-center-fixture.html` renders the Agent Center's
 consent queue with content; its vocabulary is only `state=desk-off`, `theme`
 and `zoom` (see [om-and-agents.md](om-and-agents.md)).
-`tools/visual/persona-panel-fixture.html` renders the persona panel — "Your
-voice", an `IDENTITY` section, a `Learning` section and a `switch` named
-**"Learn from my messages"** — and takes `theme` plus `state`, whose four
-values each land a different journey:
+`tools/visual/persona-panel-fixture.html` renders the persona panel (heading
+**"Voice"**, a `Learning` section and a `switch` named **"Learn from my
+messages"**) and takes `theme` plus `state`. Each of the four values below, plus
+`pending-long`, lands a different journey (re-driven 2026-10-22 at `cd9f8c72`):
 
 | Route | State |
 |---|---|
-| `persona-panel-fixture.html` | The voice card (`state=card` is the default), with **Export card**, **Import a card** and **Create manually** |
-| `persona-panel-fixture.html?state=awaiting` | "Make your messages sound like you" — nothing learned yet |
+| `persona-panel-fixture.html` | The voice card (`state=card` is the default): **Edit**, **View full profile**, **Saved profiles** and **Manage voice cards**, which expands to Advanced document / History / **Export card** / **Import a card** / **Create manually** |
+| `persona-panel-fixture.html?state=awaiting` | "Set up how om sounds", with **Set up my voice now**, **Import a card** and **Create manually** |
 | `persona-panel-fixture.html?state=proposed` | "Your first voice card", with a **Use this card** button |
-| `persona-panel-fixture.html?state=pending` | "Proposed changes", with **Review**, **Accept**, **Not now** and **Export card** |
+| `persona-panel-fixture.html?state=pending` | Proposed changes, with **Show changes**, **Read all**, **Accept** and **Not now** |
 
 The shell reaches the same surface at `?view=agent&panel=voice` (or `away`, or
 `activity`) — note the **singular** `agent`. `#807` moved the fixture's gate
@@ -183,7 +183,7 @@ same shape as `message=cozy`), `note=long|wrapped` (bench doc variants),
 Four more that a `params.get(` sweep finds and no feature file mentioned, all
 pre-dating the recent churn:
 
-- **`switcher=open`** (`shell-fixture.tsx:2935`) seeds the quick-switcher
+- **`switcher=open`** (`shell-fixture.tsx:3026`) seeds the quick-switcher
   palette, and it really does mount — see
   [channel-and-topic-navigation.md](channel-and-topic-navigation.md), whose
   "nothing to drive here" note this parameter contradicts.
@@ -258,19 +258,61 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [agent-token-usage.md](agent-token-usage.md)
 - [agent-draft-sharing.md](agent-draft-sharing.md)
 - [message-editing.md](message-editing.md)
-- [agent-creator.md](agent-creator.md) — local creation/import/sharing, both qualified native coding lifecycles, revocation/rollback and explicit evaluation/delivery limits.
+- [agent-creator.md](agent-creator.md) — **branch-only (MR !75, not on origin/main)**: local creation/import/sharing, native coding lifecycles, revocation/rollback. On main only the route-only record applies.
+- [alerts.md](alerts.md) — alert strip, beacon, board and tape card.
+- [polls-and-reactions.md](polls-and-reactions.md) — poll cards, results, roster cache, reactions and reactors.
 
 ## Surface inventory
 
-Source discovery: 2026-10-12, product tree `a0916a25d19bdd5d8890669b89617c2e253679a2`. This initial inventory records missing or partial outcome coverage; it is not a complete product census. No app was driven for this source audit. Existing guide verification records remain unchanged. Every row below needs live verification or reconciliation of its named gap; source inspection does not prove backend success.
+Source discovery: 2026-10-22, product tree `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). This census reads the route parser (`src/lib/routing.ts`), Shell views and right panels, the settings navs, the mobile tab bar, the secondary components under `packages/chat-ui/src/components/`, the `apps/cloud` host and `desktop/`. It groups them into user outcomes. "live verified" means driven on the fixture lane on this date. It never means wire delivery. Pending rows keep their source path and prerequisite until proved or removed with source evidence. The previous inventory (2026-10-12) was stamped `a0916a25`, a feature-branch commit that is not on main; its six rows are merged below.
 
 | User outcome | Product source path | Existing guide / sub-feature | Live verification | Remaining prerequisite or gap |
 |---|---|---|---|---|
-| Read poll rosters and closed-poll results | `tools/visual/poll-cache-fixture.html`; `tools/visual/poll-results-fixture.html` | unmapped outcome; message-editing.md only covers caption edits | live verification pending for the listed gap | No outcome-level drive recipe or fresh proof; fixture state cannot establish server vote persistence or multi-user delivery. |
-| Stage, send and review attachment-only or sealed files | `src/lib/attachments-seam.ts`; `src/lib/desktop-attachment-blobs.ts`; `tools/visual/compact-attachment-only-fixture.html` | [composer-and-sending.md](composer-and-sending.md) / Attachments (partial) | live verification pending for the listed gap | Existing composer recipe covers staged chips; attachment-only/sealed transport, permissions and cross-device delivery still need scoped proof. |
-| Use away / remote control and approvals | `tools/visual/away-panel-fixture.html`; `tools/visual/remote-home-fixture.html` | [om-and-agents.md](om-and-agents.md) / Remote control (away) | live verification pending for the listed gap | Guide has fixture routes; real relay/daemon history and approval delivery need their own proof. No fresh drive in this audit. |
-| Inspect agent tool activity and usage | `tools/visual/agent-presentation-fixture.html`; `tools/visual/agent-usage-fixture.html` | [agent-token-usage.md](agent-token-usage.md) / Sub-features; [om-and-agents.md](om-and-agents.md) | live verification pending for the listed gap | Existing guide covers expanding tool activity and usage. Missing-usage/error variants and backend accounting need explicit scope; no fresh drive in this audit. |
-| Browse public channels and handle an empty directory | `src/lib/routing.ts`; `tools/visual/shell-fixture.tsx` | [direct-messages-and-home.md](direct-messages-and-home.md) / Public channel browse; [channel-and-topic-navigation.md](channel-and-topic-navigation.md) (partial) | live verification pending for the listed gap | Directory empty/loading/error states are not separately proven by ordinary channel navigation; seeded fixtures do not prove real catalog contents. |
-| Import, export, file and trash library documents | `src/lib/doc-import.ts`; `src/lib/doc-export.ts`; `src/lib/doc-filing.ts`; `src/lib/doc-trash.ts` | [your-library.md](your-library.md) / Library document mutations (partial) | live verification pending for the listed gap | Reconcile import/export/trash, readonly access and document history with real persistence; opening the library is insufficient proof. |
+| Move between channels and topics, and back | `packages/chat-ui/src/components/Sidebar.tsx`; `TopicListView.tsx`; `src/lib/routing.ts` | [channel-and-topic-navigation.md](channel-and-topic-navigation.md) | live verified 2026-10-22 | Topic peek pane and dock collapse toggle not driveable in the fixture. |
+| Mark a channel or topic unread (`503a0a4f`) | `packages/chat-ui/src/lib/mark-latest-unread.ts`; `Sidebar.tsx:6209`; `TopicPill.tsx:389`; `ChannelHeaderMenus.tsx:141-147` | channel-and-topic-navigation.md / Mark As Unread | offer and gating live verified on `/rooms/` and `/chat/`; effect pending | `markUnreadFrom` / `markRoomRead` are fixture no-ops; the unread effect needs the daemon-pair lane. |
+| Jump anywhere with the quick switcher | `packages/chat-ui/src/components/QuickSwitcher.tsx` | channel-and-topic-navigation.md / Gotchas (switcher) | live verified 2026-10-22 | Sidebar pill is inert; reach it with `?switcher=open`. |
+| Open a message deep link or push tap (`#/room/<n>/msg/<seq>`) | `src/lib/routing.ts` | unmapped | live verification pending | The fixture never binds routing; needs the daemon-served rig. |
+| Clean up quiet topics | `packages/chat-ui/src/components/TopicCleanupSheet.tsx`; `lib/topic-sweep-gate.ts` | [topic-cleanup.md](topic-cleanup.md) | menu absence and quiet seed live verified; sheet pending | Daemon build with topic triage; parity stack down. |
+| Navigate on a phone | `packages/chat-ui/src/components/mobile/MobileTabBar.tsx`; `Shell.tsx` | [mobile-shell-navigation.md](mobile-shell-navigation.md) | live verified 2026-10-22 (390×844) | Other widths, Spaces detail, takeovers. |
+| Compose and send; delivery recovery; sent drafts stay gone (`cd9f8c72`) | `packages/chat-ui/src/components/Composer.tsx`; `lib/session.ts` | [composer-and-sending.md](composer-and-sending.md) | local send live verified; delivery and draft durability pending | Daemon-pair lane (parity stack 4001/3002 down). |
+| Stage attachments, view attachment-only or sealed rows, open media and risky files | `Composer.tsx`; `AttachmentView.tsx`; `MediaGallery.tsx`; `DangerousDownloadDialog.tsx`; `tools/visual/compact-attachment-only-fixture.html` | composer-and-sending.md / Attachments (partial) | compact attachment-only fixture live verified; staging, lightbox and download pending | Staging needs `setInputFiles`; seeded room images were not in view; transport and cross-device delivery need the daemon lane. |
+| Edit a message | `packages/chat-ui/src/components/InlineMessageEditor.tsx`; `MessageRow.tsx` | [message-editing.md](message-editing.md) | live verified 2026-10-22 (channel and DM) | Relay persistence. |
+| See Mermaid diagrams and linked-message cards (`908855a1`) | `packages/chat-ui/src/components/Markdown.tsx`; `MessageText.tsx`; `lib/share-links.ts` | [mermaid-message-rendering.md](mermaid-message-rendering.md) | live verified on `/rooms/`; `/chat/` card without diagram | The `/chat/` fixture has no `mermaid=1` seed; the diagram cache (`2e1100a5`) is unit-tested only. |
+| Land on Home and open DMs | `packages/chat-ui/src/shared/components/HomeHub.tsx`; `Shell.tsx` | [direct-messages-and-home.md](direct-messages-and-home.md) | live verified 2026-10-22 | Presence changes. |
+| Manage connections and requests | `packages/chat-ui/src/components/FriendsPane.tsx` | direct-messages-and-home.md / Connections | requests live verified; blocked pending | `tab=blocked` crashes from fixture seeding (`blocks: []`). |
+| Browse public channels, including empty, loading and offline | `packages/chat-ui/src/components/BrowseChannels.tsx` | direct-messages-and-home.md / routes table | live verified 2026-10-22 | Real catalog contents need a daemon. |
+| Add people to or rename a group DM | `AddGroupMemberModal.tsx`; `RenameGroupDmModal.tsx` | unmapped | live verification pending | No group-DM edit seed confirmed in the fixture. |
+| Search with scopes and filters | `packages/chat-ui/src/components/SearchPanel.tsx`; `SearchBar.tsx` | [search-and-filters.md](search-and-filters.md) | live verified 2026-10-22 | Date-filter submission, backend ranking, `/chat/`. |
+| Change user, server and channel settings by role | `packages/chat-ui/src/components/settings/` | [settings-and-appearance.md](settings-and-appearance.md) | nav, appearance and permissions live verified | Help and guide pages and most page bodies not driven. |
+| Convert webhooks to alerts | `settings/WebhooksPage.tsx`; `settings/ConvertWebhooksStepper.tsx` | settings-and-appearance.md / Webhooks | dialog live verified; effect pending | Conversion effects need the daemon. |
+| Log out | `settings/UserSettings.tsx:211` | settings-and-appearance.md (nav entry only) | live verification pending | Confirm dialog and real logout need auth. |
+| Set up and edit my voice | `packages/chat-ui/src/components/PersonaPanel.tsx`; `PersonaEditor.tsx` | [persona-setup-and-editing.md](persona-setup-and-editing.md) | live verified 2026-10-22 | Import and export files, learning, offline recovery. |
+| Restore a HOME history version | `packages/chat-ui/src/lib/doc-checkpoint.ts`; `LibraryView.tsx` | [home-history-restore.md](home-history-restore.md) | live verified 2026-10-22 | Real HOME writes. |
+| Review agent asks, the roster and badge pages | `AgentCenterPane.tsx`; `AgentCenterWork.tsx`; `settings/BadgeDetail.tsx` | [om-and-agents.md](om-and-agents.md) | fixture live verified 2026-10-22 | Authenticated roster actions need the daemon. |
+| Use away and remote control, and approve from away | `AwayPanel.tsx`; `RemoteControlPane.tsx`; `tools/visual/remote-home-fixture.html` | om-and-agents.md / Remote control (away) | fixture states live verified; relay pending | Real relay or daemon history and approval delivery. |
+| Inspect agent tool activity and token usage | `AgentPresentation.tsx`; `tools/visual/agent-usage-fixture.html` | [agent-token-usage.md](agent-token-usage.md) | live verified 2026-10-22 | Input+output fallback is not seedable; daemon accounting. |
+| Share an agent draft revision | `AgentDraftDock.tsx` | [agent-draft-sharing.md](agent-draft-sharing.md) | live verified 2026-10-22 (fixture) | Daemon delivery. |
+| Create, import, publish and run agents | branch `daryl/agent-creator-migration-20261007` only (`components/roster/`) | [agent-creator.md](agent-creator.md) (branch-only) | not on origin/main | Merge MR !75, then re-verify on main. |
+| Keep om drafts per session, see unread om replies, manage watches | `AgentSessionRail.tsx`; `OmWatchesSurface.tsx` | [your-om-drafts.md](your-om-drafts.md); [your-om-unread.md](your-om-unread.md); [your-om-watches.md](your-om-watches.md) | live verification pending | Isolated daemon origin; the source route stops at "om isn't running". |
+| Browse the Library panel, full page and lenses | `LibraryPanel.tsx`; `LibraryView.tsx` | [your-library.md](your-library.md) | live verified 2026-10-22; Agents lens crashes | `lens=agents` shows "Your Library could not load" (cause not isolated). |
+| Import, export, file, trash and restore library documents | `packages/chat-ui/src/lib/doc-import.ts`; `doc-export.ts`; `doc-filing.ts`; `doc-trash.ts` | your-library.md (partial) | live verification pending | Session methods are INERT no-ops in the fixture; needs real persistence. |
+| Select all inside the doc reader (`2a9df60c`) | `packages/chat-ui/src/components/DocPane.tsx` | your-library.md / Doc reader select-all | live verified 2026-10-22 | Native page select-all is not observable through `agent-browser press`. |
+| Review doc proposals, reconcile and read history | `DocPane.tsx`; `DocProposals.tsx`; `DocReconcile.tsx` (fixture `docState=`, `docMode=`, `docAccess=`) | unmapped | live verification pending | Seeds exist but were not driven. |
+| Walk Open World | `packages/chat-ui/src/world/`; `mocks/world-solo/` | [open-world.md](open-world.md) | harness live verified 2026-10-22 | Movement, occupants and relay. |
+| See and act on alerts | `AlertStrip.tsx`; `AlertsBeacon.tsx`; `AlertsBoard.tsx`; `AlertMessageRow.tsx`; `AlertsPage.tsx` | [alerts.md](alerts.md) | rendering live verified; claim, create and alerts home pending | Fixture no-ops; `#/alerts` has no fixture view. |
+| Vote in polls and read results | `PollCard.tsx`; `PollComposer.tsx`; `PollResultsDialog.tsx` | [polls-and-reactions.md](polls-and-reactions.md) | rendering and roster cache live verified; votes pending | Gallery votes do not persist; needs the daemon-pair lane. |
+| React and see who reacted | `ReactionRow.tsx`; `ReactorsDialog.tsx`; `EmojiPicker.tsx` | polls-and-reactions.md | dialogs live verified; toggle pending | Gallery toggles do not change counts. |
+| Track to-dos, promote messages, react to to-do updates (`d919f889`) | `TodosPanel.tsx`; `TodoPromotePopover.tsx`; `TodoCreateDialog.tsx`; `MessageRow.tsx` | unmapped (only the `lens=todos` route is in your-library.md) | live verification pending | `?panel=todos` crashes with "Todos could not load" (TodoRow, cause not isolated); `todoPromote: null`; no to-do event seed; `fixture.html?surface=conversation-qol` renders the panel. |
+| Open bookmarks, pins and members panels | `BookmarksPanel.tsx`; `RightPanels.tsx` | channel-and-topic-navigation.md / dock (partial) | dock buttons live verified; populated bookmarks pending | `bookmarks: []` stub. |
+| Open profiles, popovers and user menus | `ProfilePanel.tsx`; `ProfilePopover.tsx`; `UserContextMenu.tsx` | unmapped | `profile=1` region rendered; content pending | Content not asserted; popover needs a click on a name. |
+| Join voice and calls | `VoiceDock.tsx`; `LiveCallPill.tsx`; `IncomingCallCard.tsx` | unmapped | live verification pending | `voice: null` stub; LiveCallPill not found by name in KitchenSink. |
+| Accept an invite link | `InviteLanding.tsx`; `InviteLinkDialog.tsx`; `src/lib/routing.ts` (`#invite/`) | unmapped | live verification pending | Auth and relay. |
+| Forward a message | `ForwardModal.tsx` | unmapped | live verification pending | `forwardSource: null` stub. |
+| Read the news home | `NewsHomePane.tsx`; `NewsCard.tsx`; `BriefChip.tsx` | unmapped | live verification pending | No fixture view; news store inert. |
+| See chart, cashtag, unfurl and webhook cards | `ChartCard.tsx`; `CashtagPeek.tsx`; `UnfurlCard.tsx`; `WebhookEmbedBlock.tsx` | unmapped | live verification pending | No seeds; `cashtagPeek: null`. |
+| Resolve mirror conflicts and run recovery | `MirrorConflictStrip.tsx`; `RecoveryCeremonyDialog.tsx` | unmapped | live verification pending | `mirrorConflictFor` and `recoveryNudge` stubbed null. |
+| Open the keyboard shortcuts modal | `ShortcutsModal.tsx` | settings-and-appearance.md (settings page only) | live verification pending | `shortcutsRequest: false` stub. |
+| Sign in and boot the hosted `/chat/` app | `packages/chat-ui/src/components/Login.tsx`; `BootViews.tsx`; `apps/cloud/src/App.tsx`; `apps/cloud/src/lib/platform-auth.ts` | unmapped | live verification pending | Auth; hosted artifact (`bun run verify:cloud`). |
+| Use the desktop shell: setup, updates, daemon recovery, deep links | `desktop/src/`; `DesktopAppSetup.tsx`; `DaemonRecovery.tsx`; `DesktopUpdateStrip.tsx` | unmapped | live verification pending | Electron via `bun run probe` / `smoke` only. |
 
-Inventory not yet reconciled here: all shared `packages/chat-ui` outcomes, desktop/native-only entry points, server/API registrations and Playwright-only fixtures. Reconcile those source registries before describing the inventory as complete.
+Counts: 46 outcomes: 15 fully live verified on the fixture lane, 14 partially verified (some sub-outcome still pending or failing), 16 pending, and 1 branch-only (agent creator). The 2026-10-12 inventory was explicitly partial, with six rows. 40 rows are new to the table. 13 are outcomes no guide covers (`unmapped`); the new guides alerts.md and polls-and-reactions.md map three more outcomes proved live this pass.

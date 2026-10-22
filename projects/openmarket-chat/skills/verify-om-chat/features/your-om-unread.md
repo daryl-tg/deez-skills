@@ -32,4 +32,4 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the documented omSessions=daemon source route; it displayed “om isn’t running” with no session rail. **Limitations:** An isolated daemon with conversation registry, read receipts, history, and SSE is required; these were unavailable.
+**Last attempted:** 2026-10-22 at `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main): the source route still stops at "om isn't running" with no session rail and no `Message ✦ om` composer. That is the reachability limit, not a proof. **Live verification pending.** It needs an isolated daemon origin, and the local parity services (4001, 3002) were down. Last real verification: none on main. The 2026-10-12 record named `a0916a25`, a feature-branch commit, and was also route-only.

@@ -10,6 +10,8 @@
 - The SVG view box contains the live rendered content, including long labels.
 
 - Library reading mode and editor preview render attribute-free Mermaid label breaks (`<br>`, `<br/>`, `<br />`) without changing source.
+- A linked-message card (a message link on its own line) renders the target's markdown, code and Mermaid through `MessageText` (`908855a1`). A message link inside a card stays an inline citation, so cards never nest.
+- Rendered diagrams are cached per viewer and purged at logout or account switch (`2e1100a5`, `lib/mermaid-svg-cache.ts`). This is not visible in the fixture. Diagrams must simply still render, and unit tests cover the cache.
 
 ## How to get to it (user POV)
 
@@ -29,6 +31,16 @@ agent-browser snapshot -i -c
 
 The DM route is `tools/visual/shell-fixture.html?view=dm&dm=ana&alerts=quiet&mermaid=1`. On both routes, drive the button named `Open Mermaid diagram as PNG`, then check for the named preview region.
 
+Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `cd9f8c72` it is seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1049`) shifts when seeds change:
+
+```bash
+agent-browser find role textbox fill --name 'Message #ops · $ for markets · /chart to post one' 'https://openmarket.xyz/chat/room/ops/msg/116'
+agent-browser press Enter
+agent-browser eval '(()=>{const r=[...document.querySelectorAll("[data-message-row]")].pop();return JSON.stringify({author:r.querySelector(".forwarded-author")?.innerText,svg:r.querySelectorAll(".forwarded-content .doc-mermaid svg").length})})()'
+```
+
+Expect author `kyle` and one svg. Then send a link to that new post (seq 117). Expect one `.forwarded-content`, zero nested `.forwarded-content`, and an inline citation `↩ #·116`. The origin must be `OM_CHAT_SHARE_ORIGIN` (`https://openmarket.xyz/chat`, `share-links.ts:3`). The fixture's `?links=1` plain URLs are not share links and never make a card.
+
 For clipping checks, compare `svg.getBBox()` with `svg.viewBox.baseVal`. The view box must contain the content on all four sides. The Playwright recipe is `tools/visual/mermaid-message.visual.ts`.
 
 For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server&mermaid=labels&alerts=quiet`. This seats all three diagrams from OpenScape 2D vs 3D in the real DocPane. Open **Edit**, open a diagram preview, choose **Edit Mermaid Source**, and move the cursor to **End of diagrams.** The selected fence reveals its original source; moving away restores its diagram. **Publish** stays disabled until bytes change. The maintained recipe is `tools/visual/mermaid-library.visual.ts`.
@@ -40,10 +52,11 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 - Mermaid rendering and the PNG preview are lazy. Wait for `.doc-mermaid svg` before taking refs or screenshots.
 - The shell fixture currently emits an existing React textarea `value` warning. Treat only that exact warning as baseline; new console errors still fail the visual recipe.
 - Mermaid accessibility directives belong inside the diagram declaration, after `flowchart LR` for this fixture.
+- **The `/chat/` fixture has no `?mermaid=1` seed** (`apps/cloud/tools/visual/shell-fixture.tsx` has no mermaid branch). On that host a linked-message card renders, but it resolves seq 116 to a plain message, so the diagram-in-card proof is `/rooms/`-only until the cloud fixture gains the seed.
 
 - Assert visible label text, multiple line positions, and positive SVG bounds. The DOM-only Mermaid harness can return an empty SVG successfully. An SVG count alone does not prove rendering.
 - The shell fixture must set `dockedDocCollapsed: false`; its truthy fallback otherwise hides every docked document.
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Opened the seeded room diagram, waited for the SVG to render, activated “Open Mermaid diagram as PNG”, and verified the named PNG preview region. **Limitations:** DM parity, unsafe/invalid diagrams, exact viewBox bounds, and library editor preview were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** Room and DM `mermaid=1` routes each rendered one `.doc-mermaid svg`. In the room, **Open Mermaid diagram as PNG** opened the named preview region. A share link to seq 116 rendered a card with the diagram (one svg), and a link to that link's post rendered one card with the inline citation `↩ #·116` and no nesting. On `/chat/`, the card rendered without a diagram (no seed there). **Limitations:** Unsafe or invalid diagrams, exact viewBox bounds, the library editor preview and the cache's reload or logout behavior were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

@@ -59,4 +59,4 @@ Full server persistence and other clients receiving the edit require the local a
 
 ### Verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** Hovered an outgoing channel message with a real pointer, opened Edit message, saved changed text, and verified the updated row. **Limitations:** The fixture uses local edit state; DM editing and relay persistence were not exercised.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** Channel: hovered the own sent row, clicked **Edit** (`--exact`), and checked the textbox `Edit message` with `cancel` / `save`. Saving changed text closed the editor and showed `probe line edited (edited)`. DM: on ana's DM, hovered `yep, watching the next print`, then **More** → **Edit Message** → `save`, and `dataset.fixtureMermaidEdit` read `dm-saved`. **Limitations:** Local fixture edit state only. Relay persistence and other viewers are live verification pending. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).

@@ -1,5 +1,19 @@
 # Agent creation, import and sharing
 
+> **Scope on origin/main (2026-10-22, `cd9f8c72`): branch-only.** Everything below
+> except the route-only record describes the unmerged branch
+> `daryl/agent-creator-migration-20261007` (MR !75; `a0916a25` and the GUI
+> receipts named there), which is not an ancestor of origin/main.
+> `packages/chat-ui/src/components/AgentCenterSurface.tsx`, the whole
+> `components/roster/` directory, and the labels Review agent, Choose a brain,
+> Install in shadow mode, Apply update / Apply rollback, Review Plan, Approve
+> Plan, Start approved work, View recorded proof, View delivery history,
+> `Access for <name>` and `Work for <name>` do not exist on main. On main, the
+> Agents route renders the roster shell, and **+ Wire an agent**
+> (`AgentCenterPane.tsx:947`) opens Agent Settings. Re-verify these flows
+> on main only after MR !75 merges. Until then, drive them from that branch's
+> worktree, never from a main lane.
+
 *Closeout verified 2026-10-12. GUI `194281a1dbe02b29ca6542170a704d1726884a09`, daemon `a3a81a5f5192a3786c46e0dc3e7e911c2cb86f7c`, binary `5085976c818d929c64fc9fec15efefc5f7a537d3cd7be3b6f221044dd378f8bb`. Native C6/X4/S2 executed on daemon `635441fb083971c1ff5143835521d5c8193e60c2`, binary `7e7f8ee1e25556d1cc75ad61e0d3f4f240dd0715331a52d4d33f8e71067af213`; current viewing and restart readback are distinct. Root-reviewed gallery `agent-creator-stress-20261007/r03` is operator-local evidence. Private registry installation is qualified. Review requests: https://gitlab.com/openmarketxyz/frontend/openmarket-chat/-/merge_requests/75 and https://github.com/openmarket-xyz/openmarket-internal/pull/1948. Local gates passed, but three daemon workflows received no runner or steps because GitHub Actions is blocked by account billing or spending limits. Ready for review, not merge-ready; no main merge, deployment or release.*
 
 ## Sub-features
@@ -59,4 +73,4 @@ Recorded native proofs (historical execution): Claude C6 source320/reply324, loc
 
 ### Historical route-only verification record
 
-**Last verified:** 2026-10-12. **Product commit:** `a0916a25d19bdd5d8890669b89617c2e253679a2`. **Scope:** opened the Agents route in `/rooms/` at desktop width and `/chat/` at phone width; both rendered the roster shell, and **+ Wire an agent** opened Agent Settings with the install OM link. No create/import/catalog controls appeared. **Limitations:** creator and catalog actions require daemon roster capabilities and explicit owner identity; local parity services on ports 4001 and 3002 were down, so authenticated creation, import, sharing, adoption, and work delivery were not re-driven. Both browser sessions reported no errors. The detailed receipts at the top of this map belong to their named later GUI/daemon revisions.
+**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** Route-only on main. `?view=agents` rendered the roster shell with How agents work / Agent settings / **+ Wire an agent**, and Wire opened the Settings dialog on Agent Settings with the install notice. No create/import/catalog/Work controls are present on main, and their source is absent (see the scope note at the top). **Limitations:** All creator, catalog, sharing, adoption and native-work claims are branch-only and remain live verification pending on main. The prior route-only record (2026-10-12) named `a0916a25`, a branch commit, so it did not establish main coverage.
