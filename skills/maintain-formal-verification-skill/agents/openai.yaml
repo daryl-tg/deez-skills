@@ -1,0 +1,7 @@
+interface:
+  display_name: "Maintain Formal Verification Skill"
+  short_description: "Bring formal verification back in line with the code"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

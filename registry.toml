@@ -650,3 +650,23 @@ runtimes = ["claude", "codex"]
 layer    = "workflow"
 category = "workflow"
 runtimes = ["claude", "codex"]
+
+[skills.correct]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.ketchup]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.create-formal-verification-skill]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]
+
+[skills.maintain-formal-verification-skill]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude", "codex"]

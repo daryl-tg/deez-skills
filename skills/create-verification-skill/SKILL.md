@@ -16,6 +16,10 @@ persistence contract in
 Write for the next agent, not a human. It will be read cold, mid-task, by an
 agent that has never seen the app.
 
+A property that driving the app rarely reaches, such as a race, a retry, or a
+state machine, also gets a formal check, through
+**create-formal-verification-skill**.
+
 ## 0. Resolve the project owner
 
 For a known installed skill, use its registry project ownership first. Otherwise

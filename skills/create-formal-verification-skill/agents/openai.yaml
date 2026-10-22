@@ -1,0 +1,7 @@
+interface:
+  display_name: "Create Formal Verification Skill"
+  short_description: "Generate a project skill that formally verifies code"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

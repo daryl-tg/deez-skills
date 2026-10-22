@@ -11,7 +11,7 @@ playbooks, one router.
 ```mermaid
 flowchart TB
   subgraph hub["one repo, one source of truth"]
-    reg["registry.toml<br/>108 skills, 6 agents,<br/>a layer each"]
+    reg["registry.toml<br/>112 skills, 6 agents,<br/>a layer each"]
     ven["vendor.toml<br/>23 third-party entries,<br/>recorded, never copied"]
     lnk["bin/link<br/>symlinks, never copies"]
     doc["bin/doctor<br/>gates, citations, roles,<br/>playbook links, doc drift, budget"]
@@ -161,10 +161,14 @@ when you want one directly.
 | [`automate-me`](./skills/automate-me/SKILL.md) | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for… |
 | [`blast-radius`](./skills/blast-radius/SKILL.md) | Find what a small-looking change could break beyond its diff, proving each safety claim with running code rather than … |
 | [`codex-first`](./skills/codex-first/SKILL.md) | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:revie… |
+| [`correct`](./skills/correct/SKILL.md) | Find the mistakes agents keep repeating in a repo and make each one impossible: architecture first, then types, a lint… |
+| [`create-formal-verification-skill`](./skills/create-formal-verification-skill/SKILL.md) | Generate a project-owned skill in the deez-skills hub that formally verifies the code where a bug costs most and tests… |
 | [`create-verification-skill`](./skills/create-verification-skill/SKILL.md) | Generate a project-owned verification skill, feature map, and control wrapper in the deez-skills hub so an agent can drive… |
 | [`design`](./skills/design/SKILL.md) | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implemen… |
 | [`figure-it-out`](./skills/figure-it-out/SKILL.md) | Design an auditable playbook when no bundled one fits: a large migration, an ambitious multi-part change, or work revi… |
 | [`herdr-codex-orchestration`](./skills/herdr-codex-orchestration/SKILL.md) | Run independent Codex implementation, review, and verification loops through Herdr with isolated worktrees. Covers are… |
+| [`ketchup`](./skills/ketchup/SKILL.md) | Catch the operator up on what changed since their last message, decisions first, in plain words and small visuals. Eve… |
+| [`maintain-formal-verification-skill`](./skills/maintain-formal-verification-skill/SKILL.md) | Bring a project's formal verification back in line with changed code: read the commits that touched verified code, upd… |
 | [`maintain-verification-skill`](./skills/maintain-verification-skill/SKILL.md) | Periodic pass keeping a project's verification skill and feature map honest: parallel source readers per feature, one … |
 | [`om-chat`](./skills/om-chat/SKILL.md) | Read, search, summarize, draft, and post in OM Chat rooms, channels, and DMs as a governed guest, through the OpenMark… |
 | [`om-chat-design-system`](./skills/om-chat-design-system/SKILL.md) | Design and implement OM Chat React UI against the local components, tokens, layout, and interaction patterns. Load bef… |
@@ -343,11 +347,14 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `clanker-mode` |  | claude | Apply clanker-mode to this request — routed playbooks, cited principles, proof on the real surface. |
 | `code-reviewer` |  | claude | Comprehensive severity-rated review across spec compliance, security, quality, and performance. Read-only. Use for the independent review pass before delivery.… |
 | `codex-first` |  | claude, codex | Route implementation work to Codex; Claude specs, reviews, verifies. Use the codex plugin (/codex:rescue, /codex:review) as the primary path, raw codex exec as… |
+| `correct` |  | claude, codex | Find the mistakes agents keep repeating in a repo and make each one impossible: architecture first, then types, a lint whose error names the fix, a test, and d… |
+| `create-formal-verification-skill` |  | claude, codex | Generate a project-owned skill in the deez-skills hub that formally verifies the code where a bug costs most and tests reach least, with whichever tool fits. U… |
 | `create-verification-skill` |  | claude, codex | Generate a project-owned verification skill, feature map, and control wrapper in the deez-skills hub so an agent can drive the real app and prove behavior. Use… |
 | `design` |  | claude, codex | Settle the shape before writing code: ground, sketch competing designs from the caller's usage, get approval, implement against the sketch, and scrap it when f… |
 | `executor` |  | claude | Code implementation, refactoring, and feature work on a bounded slice. Use when a scoped implementation task should be carried to a verified outcome by a singl… |
 | `explore` |  | claude | Fast codebase search and file/symbol mapping. Read-only. Use when a task needs repo-local facts — where things live, how they connect, all usages of a symbol —… |
 | `herdr-codex-orchestration` |  | claude, codex | Run independent Codex implementation, review, and verification loops through Herdr with isolated worktrees. Covers arena mode (N candidates, one judge) and swa… |
+| `maintain-formal-verification-skill` |  | claude, codex | Bring a project's formal verification back in line with changed code: read the commits that touched verified code, update the model or harness, rerun, and say … |
 | `maintain-verification-skill` |  | claude, codex | Periodic pass keeping a project-owned verification skill, feature map, and tracked control wrapper in the deez-skills hub honest: parallel source readers per f… |
 | `principle-announce-the-linked-review` | principle | claude, codex | Apply at the end of any delivered change. Announce as a title line, a body in the operator's /adhd voice, and the PR or MR link — nothing else — then read the … |
 | `principle-attack-the-premise` | principle | claude, codex | Apply when two or more fixes that share one premise have failed the same gate. Write the premise down, find an observation that would differ if it were false a… |
@@ -454,6 +461,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `graphify` |  | claude, codex | Use for any question about a codebase, its architecture, file relationships, or project content — especially when graphify-out/ exists, where the question shou… |
 | `hatch-pet` |  | codex | Create, repair, validate, visually QA, and package Codex-compatible v2 animated pets from character art, generated images, company or prospect brand cues, or v… |
 | `ivtg` |  | claude | Use when the user wants to queue up bugs, regressions, or issues one at a time and get each one investigated across one or more repos and written up as a fix p… |
+| `ketchup` |  | claude, codex | Catch the operator up on what changed since their last message, decisions first, in plain words and small visuals. Every call waiting on them must be decidable… |
 | `labiew` |  | claude, codex | GitLab MR review comments and response planning for the current branch. |
 | `llm-council` |  | claude, codex | Run any question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final… |
 | `loop-me-in` |  | claude | Use when a fix plan, spec, or design doc needs to become a file that a fresh session can execute unattended and prove its own changes landed — "make this runna… |
