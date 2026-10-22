@@ -1,6 +1,6 @@
 # Market data reads
 
-*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — a live points series driven; envelope, timestamp shape and id keys unchanged.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h` returned `series[0]` with `id` and 3 `points` of `{Point:{open,high,low,close,volume,timestamp:{s},firstTimestamp,...}}`. `--detail summary` returned the same `points` shape for this type. `coins` and `exchanges` returned lists. New on main: `instruments` and `option-chain` (both need `OM_DATA_TRANSPORT=v3` on the CLI call; without it they exit 2 `invalid_query`) and `usage plans` (`{providers:[],cleared:null,clear_lifted:null}` on a guest). Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,

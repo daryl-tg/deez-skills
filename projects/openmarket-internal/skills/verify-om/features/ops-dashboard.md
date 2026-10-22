@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — shell, nav, Overview, the Watches list and the new Strategies/Paper tab switcher driven; `/paper` confirmed unmounted in a lane build.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): the shell and `navigation "Main navigation"` (Overview, Watches, News, Strategies, Channels, Connections, Venues, Receipts, OM Chat). Overview showed `Your market, in view.` with Watch activity. Watches at `/alerts` listed the probe row, and the Strategies/Paper tablist was driven. `/paper` has an empty `main` (unmounted). **`/strategies/does-not-exist` now renders `Unavailable.` and not the documented `Back to Strategies` branch**, although `/rpc/v1/money/show` answers 404 `money_not_found` (a product gap, listed under the README's Known product gaps). Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
@@ -89,7 +89,8 @@ Preconditions:
   `Paused N` / `Needs attention N`, a `searchbox "Search watches"`, and a
   `combobox "Folder"` defaulting to `All folders`.
 - **The strategy detail route.** `/strategies/<id-or-slug>` is a real route
-  (`apps/dashboard/src/app.tsx:58`), reached by clicking a slug on
+  (`apps/dashboard/src/strategy-plane-full.tsx:27`; `app.tsx:99` spreads
+  `{strategyRoutes}`), reached by clicking a slug on
   `/strategies`. On a guest lane there are no strategies to click, so drive it
   directly: `agent-browser open "$(control-om url /strategies/does-not-exist)"`
   renders the shell with `main` holding only a `Back to Strategies` link, and
@@ -97,7 +98,11 @@ Preconditions:
   `/strategies/<id>` and `Watch details` for the new `/alerts/<id>` — and driven
   at v0.400.0 the 404 branch rendered little beyond the shell, inconsistently
   between two reads. Do not pin a heading here; assert the `Back to Strategies`
-  link, which is stable. The populated page (signal state, fills, chart,
+  link, which was stable through `7e22214fb`. **On main `db6e76ef5` it does not
+  appear**: `main` reads `Unavailable.` (`pages/strategy-detail.tsx:370`), and it
+  stayed so for 20 s, while the request `POST /rpc/v1/money/show` returned 404
+  `money_not_found`. The 404 branch (`:357-366`, "No strategy named <slug>. Back
+  to Strategies") is not taken. Report it as a product gap, not map drift. The populated page (signal state, fills, chart,
   transitions timeline, per-strategy digest) is `verified-unreachable` from a
   guest lane: it needs a strategy, which needs a signal and a paired venue.
   Report it that way rather than as empty.

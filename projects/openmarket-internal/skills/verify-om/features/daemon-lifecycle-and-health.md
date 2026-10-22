@@ -1,6 +1,6 @@
 # Daemon lifecycle and health
 
-*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — health, doctor, service status, logs and the wrapper guard driven; the service-unit safety claim re-confirmed from source at this tree.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `/healthz` showed version 0.460.0, `auth: guest`, `last_error: null`, `om_home` ending `/accounts/guest` and `exits_unmanaged` present. `?lite=1` gave exactly `pid`, `started_at`, `stalls` and `version`. `om status`, `om service status` (`not installed`, foreground pid) and `om doctor` (14 checks: binary/llm/agent_wiring warn, the rest ok) were driven, and the wrapper refused `service install` with exit 1. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 The daemon is the product's spine: it boots, serves its HTTP doors, ticks, and
 reports what it is doing. A user starts it (`om run` in the foreground, or
@@ -90,7 +90,12 @@ Preconditions:
   shows up on the daemon's NEXT read rather than fixing the one you already
   saw.
 - **Logs.** Run `control-om om -- logs --limit 40`. It reads `runner.log` from
-  `<lane root>/accounts/guest/`. The flag has always been `--limit`
+  `<lane root>/accounts/guest/`. **On a `control-om` lane that file does not
+  exist**: the lane runs `om run` in the foreground, so the command prints
+  `No log lines yet (<home>/runner.log is empty or missing).` (driven at
+  `db6e76ef5`), and the daemon's own lines go to
+  `.control-om/lane-<port>.log`. Read that file for boot, subscription and hold
+  lines. The flag has always been `--limit`
   (`cmd/logs.ts:24`); `--lines`, which an earlier version of this file told you
   to type, never existed and fails as `unknown option`.
 - **The guard.** Run `control-om om -- service install`. The WRAPPER refuses

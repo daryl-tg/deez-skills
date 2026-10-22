@@ -1,6 +1,6 @@
 # Event ingest and fire
 
-*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — full chain driven (door, stream, journal); no new sibling event this range.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): the full chain was driven. Door 202 `accepted:true`; the same body again gave 200 `deduped:true`; no token gave 401; a paused watch gave 409 `watch_paused`; plain text gave 202. One `event_id` was carried by `watch_committed`/`watch_appended`/`watch_fired` (`kind:listener`, `confidence:1`), by the journal marker (`outcome: update`, `verdict: new story`) and by the dashboard row (`working`, `Last update Just now`). New stream sibling: `subscription_metric`. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 A user points a producer at a watch's inbound door and the daemon takes it from
 there: the event is accepted, committed, appended to the watch's journal, and
@@ -64,7 +64,9 @@ Preconditions:
   `watch_appended`, then `watch_fired` with `fired_at` and `"confidence":1`.
   The fired payload leads with `"kind":"listener"`. These names lost their
   `event_` prefix in v0.35 — grep for `^event: watch_` and nothing else. The
-  stream also carries unrelated siblings — `tick_completed` (predates v0.400.0)
+  stream also carries unrelated siblings — `tick_completed` (predates v0.400.0),
+  `subscription_metric` (seen at `db6e76ef5`: a transport metrics frame with
+  `stream_id`, `adapter_id`, `subscriber_count`, `events_received`, ...)
   and `watch_inventory_changed` (new in v0.408.1, a reconcile-pass diagnostic
   carrying `{watches, armed, alerts, changed_at}`) — so a bare
   `grep '^event:'` returns more than this feature's three, and the second of

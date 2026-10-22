@@ -1,6 +1,6 @@
 # Calendar scheduling and polling windows
 
-*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — the occurrence lifecycle driven end to end on a guest lane: a `calendar_candidate` admitted through the inbound door, then listed, shown, selected and revised to `cancelled`. Polling windows (`om watch window set/list/cancel`) were last driven 2026-10-12 at tree `03bd55226` (v0.432.0) and their files are unchanged since.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): occurrence `cocc_ec41afe3ecff5b96ebb91c0a` was admitted through `event push --kind calendar_candidate` and listed as `scheduled`/`candidate`/revision 1. `show` gave keys decisions, event, links, occurrence, revisions, selections and windows. `select` gave `{ok:true,watch_id,occurrence_id,decision:"selected",change_seq:2}`, and `revise --status cancelled` gave `changed:true`, revision 3, with list `cancelled`. Polling windows on a feed source: `--polling-json` stored the block, `window set` gave `state:"scheduled"`, `window cancel --source --origin` gave `cancelled:true`, and a 4 h window was refused naming `polling.bounds.max_window_sec (7200)`. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 `om calendar` lists and manages scheduled occurrences, while `om watch window`
 sets bounded read windows on sources with a polling policy. The calendar needs
@@ -75,8 +75,10 @@ control-om om -- event push calendar-probe \
   source without a polling block.
 
 1. Run `control-om om -- calendar list --format json`. A fresh guest lane returns
-   an empty `occurrences` and `events` array; calendar review actions need a
-   selected occurrence and are not proved by this empty result.
+   an empty `occurrences` and `events` array. Admit an occurrence first (above)
+   before proving review actions. `--every` on `window set` is plain seconds
+   (`60`): `60s` fails with `every_sec: ... received NaN`, and the window record
+   carries `state`, not `status`.
 2. Create or use a polled feed source. Add a policy with
    `control-om om -- watch edit <watch> --source-id <source-id> --polling-json
    '<policy-json>' --format json`. A minimal policy is

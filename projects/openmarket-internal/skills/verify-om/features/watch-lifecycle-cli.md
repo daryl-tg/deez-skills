@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — create/pause/resume/remove driven with a diverging label; the remove line's new wording captured.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `watch create "Lane Probe Two" --inbound` gave slug `lane-probe-two`, `enabled: true` and an inbound source. Before `accept_all`, `watch list` showed its STATUS as `steps judging paused · no model to run the AI filter on · om init` with LAST FIRE `never`. Pause printed `Paused event watch lane-probe (lane-probe)` (`spec.enabled:false`), resume printed `Resumed ...`, and remove printed `Removed event watch lane-probe-two (lane-probe-two): history deleted (0 rows); journal files kept`. `event push` returned `accepted, deduped, delivery, event_id, notes, watch_id`. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what

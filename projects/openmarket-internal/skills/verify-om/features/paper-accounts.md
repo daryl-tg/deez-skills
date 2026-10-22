@@ -1,6 +1,6 @@
 # Paper trading accounts
 
-*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — create and list driven from the CLI and cross-checked on the dashboard's Paper tab. Opening, closing and logging trades were not driven.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `paper create verify-book` without `--yes` was refused with `confirmation_required`, and with `--yes` gave `{account:{id:pa_…,name,cash:1000},desk:"off"}`. `ls` gave `accounts[]` with id, name, cash, starting_cash, open_lots, open_stakes, open_value and realized_pnl. `show` gave account, rules and lots. `log` gave `{entries:[],next_cursor:null}`. `set --ticket 10 --yes` returned the rules, and `reset --yes` returned `generation:1`. The Paper tab (inside `tablist` with tabs Strategies / Paper) showed the line and the ACCOUNT…REALIZED P&L headers with the row. Opening and closing trades were not driven. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 A paper account is pretend money held locally: no venue, no credentials, no real
 order ever placed. A user opens one from the CLI, and it shows up in the
@@ -52,5 +52,8 @@ credential, no venue.
   CLI's blanket treatment of account-shaped verbs, not a sign it touches money.
 - A new account's `desk` is `off`. Nothing automates against it until that
   changes, so a driver waiting for activity on a fresh book waits forever.
-- Open/close/log/reset were not driven here. `om paper --help` lists them;
-  treat their output shapes as unverified until a pass drives them.
+- `log`, `set` and `reset` were driven at `db6e76ef5` (shapes in the stamp).
+  `reset` without `--yes` is refused with `confirmation_required`. `open
+  [account] --signal <json>`, `close <account> <lot>`, `reset-all`, `digest` and
+  `digest-set` exist but were not driven; treat their output shapes as
+  unverified.

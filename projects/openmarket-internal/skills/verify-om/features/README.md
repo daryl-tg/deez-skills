@@ -120,18 +120,26 @@ state, commands, and observable proof.
 - [Origin challenge backoff](./origin-challenge-backoff.md) — a Cloudflare
   challenge holds every source on the host, provable with a loopback stub.
 - [Firecrawl recovery before whitelist](./firecrawl-first-block.md) — first refusal recovery, repeated-refusal whitelist guidance, and no-key setup.
-- [Agent creator lifecycle](./agent-creator-lifecycle.md) — **provenance unresolved**: this loop could not locate its mechanism in this repo's source. See the banner on the guide before relying on it.
+- [Agent creator lifecycle](./agent-creator-lifecycle.md) — **branch-only, not on origin/main**: the daemon side is on `origin/daryl/agent-creator-closeout` (`a3a81a5f5`, PR #1948) and the GUI side on openmarket-chat MR !75. See the banner on the guide.
 
 Not yet mapped, and worth adding when a change touches them: the MCP
 surface (`om mcp serve --stdio`), charts (`om chart`), the `om chat` TUI,
 packages and the registry, and the execution/venue verbs.
 
-- [agent-creator-lifecycle.md](agent-creator-lifecycle.md) — local creator/import/sharing lifecycle, current-source native coding, exact adopted skills, revocation/rollback and explicit evaluation limits.
 
 ## Surface inventory
 
-Source discovery: 2026-10-22, product tree `7e22214fb` (v0.434.0). Census at
-that tree: **91 top-level `om` commands** and **797 registered actions across 21
+Source discovery re-run 2026-10-22 against **origin/main `db6e76ef5` (v0.460.0)**.
+The earlier census the same day was taken at `7e22214fb`, which is on branch
+`daryl/watch-narrative` and is not an ancestor of main (merge-base
+`463c0ceca`; main is 188 commits past it, and the branch holds 26 commits main
+lacks). The user-facing surface barely differs. Deltas from branch to main:
+commands +2 (`instruments`, `option-chain`) and −1 (`welcome`, branch-only);
+actions +6 (`watch_feedback`, `chart_drawing_update`, `series_delete`,
+`instruments`, `option_chain`, `usage_plans`); the same 21 categories, the same
+9 dashboard routes, and 30 RPC files. So on main that is about **92 top-level
+commands** (93 names with aliases) and **~803 actions**. The original census at
+`7e22214fb`, kept for the deltas: **91 top-level `om` commands** and **797 registered actions across 21
 categories** (rooms 190, watch 74, chart 46, system 31, market-data 17, packages
 16, execution 13, hyperliquid 12, paper 11, research 10, news 9, wallet 8,
 polymarket 8, strategy 7, polymarket-account 6, calendar 6, wrun 5, payments 4,
@@ -144,10 +152,14 @@ removed with source evidence.
 
 | User outcome | Product source path | Guide / sub-feature | Live verification | Prerequisite or gap |
 |---|---|---|---|---|
-| Open a local paper-trading account and read its book | `actions/paper/*.ts`; `runner/http/rpc/paper.ts` | [paper-accounts.md](paper-accounts.md) | 2026-10-22, tree `7e22214fb` | Open/close/log/reset undriven. |
-| Review a scheduled calendar occurrence | `actions/calendar/*`; `runner/calendar/blocks.ts` | [calendar-and-polling-windows.md](calendar-and-polling-windows.md) | 2026-10-22, tree `7e22214fb` | None — guest-drivable via the inbound door. |
-| Recover a challenged origin through a paid reader | `runner/firecrawl/*` | [firecrawl-first-block.md](firecrawl-first-block.md) | step 7 only; configured path pending | Needs `OM_FIRECRAWL_API_KEY` **and** a redirect of `api.firecrawl.dev/v2/scrape` to a fixture, together. |
-| Create, publish, adopt and revoke an agent/text skill | not located in this repo | [agent-creator-lifecycle.md](agent-creator-lifecycle.md) | unknown provenance | Mechanism absent from `openmarket-internal` source; needs `openmarket-chat` confirmation. See the guide's banner. |
+| Open a local paper-trading account and read its book | `actions/paper/*.ts`; `runner/http/rpc/paper.ts` | [paper-accounts.md](paper-accounts.md) | 2026-10-22, main `db6e76ef5` (create/ls/show/log/set/reset + Paper tab) | Open/close/reset-all/digest undriven. |
+| List a venue's instruments and read an options chain | `cmd/instruments.ts`; `cmd/option-chain.ts`; `actions/data/{instruments,option-chain}.ts`; `runner/v3/` | [market-data-reads.md](market-data-reads.md) (stamp) | 2026-10-22, main `db6e76ef5` | New on main. Needs `OM_DATA_TRANSPORT=v3` on the CLI call; the default transport exits 2 `invalid_query`. |
+| Read Data API plan tiers | `actions/data/usage-plans.ts`; `cmd/usage.ts` (`usage plans`) | [market-data-reads.md](market-data-reads.md) (stamp) | 2026-10-22, main `db6e76ef5` (guest: empty `providers`) | Populated tiers need a signed-in account. |
+| Give 👍/👎 feedback on an openfeed alert; a new feed sends today's top 3 | `actions/watch/feedback.ts`; `openfeed/{feedback*,first-look}.ts` | unmapped | live verification pending | New on main (#2106 and nearby). Needs an account, registry, LLM credential and a channel destination. |
+| Open the registry welcome page (`om welcome`) | branch `daryl/watch-narrative` only (`cmd/welcome.ts`) | non-outcome on main | n/a | Removed from main; no recipe should call it there. |
+| Review a scheduled calendar occurrence | `actions/calendar/*`; `runner/calendar/blocks.ts` | [calendar-and-polling-windows.md](calendar-and-polling-windows.md) | 2026-10-22, main `db6e76ef5` (occurrence + polling windows) | None — guest-drivable via the inbound door; `calendar links` undriven. |
+| Recover a challenged origin through a paid reader | `runner/firecrawl/*` | [firecrawl-first-block.md](firecrawl-first-block.md) | no-key path re-driven 2026-10-22, main `db6e76ef5`; configured path pending | Needs `OM_FIRECRAWL_API_KEY` **and** a redirect of `api.firecrawl.dev/v2/scrape` to a fixture, together. |
+| Create, publish, adopt and revoke an agent/text skill | branch `origin/daryl/agent-creator-closeout` only (daemon `a3a81a5f5`, PR #1948) | [agent-creator-lifecycle.md](agent-creator-lifecycle.md) (branch-only) | not on origin/main | Absent from main's source (re-checked at `db6e76ef5`); merge PR #1948 and openmarket-chat MR !75, then verify on main. |
 | Compose a watch (or a set) from a natural-language ask | `actions/watch/watch-compose.ts`; `actions/watch/kit.ts` | unmapped | live verification pending | Needs an LLM credential; the single largest `om watch` entry point. |
 | Share, follow, fork, install a watch; room shares and knocks | `actions/watch/{share,follow,fork,install,share-room,knocks,relay-door}.ts` | unmapped | live verification pending | Registry + account credential; a follower needs a second home. |
 | Attach and arm steps (ai / tool / money) on a watch | `actions/watch/{action-add,action-remove,tools,run-now}.ts` | unmapped | live verification pending | Money steps are capital-gated; ai steps need a model credential. |
@@ -172,7 +184,7 @@ removed with source evidence.
 | Agent memory: save, search and forget durable notes | `actions/memory/*.ts`; `cmd/memory.ts` | unmapped | live verification pending | `memory_save`/`forget` are agent-tool-only — they need a live `om chat` turn, not the bare CLI. |
 | Author and compile a custom WASM indicator | `actions/wrun/{create,author,build,source-set,list}.ts` | unmapped | live verification pending | No credential needed, but `wrun_build` compiles and installs deps — needs outbound package-manager access and a harness that tolerates a real build. |
 | Arm and tune a live managed-strategy wallet | `actions/managed/{arm-disarm,bind-address,set-size,set-drawdown,set-flatten,status}.ts` | unmapped | live verification pending | Capital-reaching: funded venue wallet plus an explicit arm gate. Out of reach for a guest lane. |
-| Place and manage real venue orders; wallet and execution | `cmd/{order,execute,buy,hyperliquid,polymarket}.ts`; `actions/{execution,hyperliquid,wallet,polymarket}/` | unmapped | live verification pending | Real money. Needs a funded account and a safe plan; nothing attempted. |
+| Place and manage real venue orders; wallet and execution | `cmd/{order,execute,buy,hyperliquid,polymarket}.ts`; `actions/{execute,orders,hyperliquid,wallet,polymarket}/` (`actions/execution/` does not exist) | unmapped | live verification pending | Real money. Needs a funded account and a safe plan; nothing attempted. |
 | Reach the capability layer over MCP (local and hosted) | `cmd/mcp.ts`; `mcp/server.ts`; `mcp/http.ts` | unmapped | live verification pending | No stdio/JSON-RPC drive recipe in this map; hosted needs auth/scope. |
 | Publish, install and manage registry packages | `cmd/{packages,publish,install}.ts`; `actions/packages/*` | partially via agent-creator (itself unverified) | live verification pending | Registry credential; `package_delete` is irreversible. |
 | Approve an arming or model edit from the dashboard | `runner/http/rpc/{watch-arm-review,watch-edit-review}.ts` | unmapped | live verification pending | Needs a watch with a money/ai step awaiting approval. |
@@ -181,6 +193,11 @@ removed with source evidence.
 | Standalone `/paper` dashboard route | `apps/dashboard/src/paper-plane.tsx` | **non-outcome** | n/a | Mounts only when `strategyRoutes === null` (the OSS export). Unreachable in any lane `control-om` drives; reach Paper via the `/strategies` tab. |
 
 ### Known product gaps (reported, not map drift)
+
+- `/strategies/<unknown>` renders `Unavailable.` on main `db6e76ef5`. The
+  `No strategy named <slug>. Back to Strategies` branch is never taken, even
+  though `POST /rpc/v1/money/show` returns 404 `money_not_found`. Driven
+  2026-10-22, stable over 20 s. The cause is not isolated (`pages/strategy-detail.tsx:357-370`).
 
 - The "paper book" link on a strategy detail page points at `/paper?account=<id>`,
   a route this build does not mount; driven at `7e22214fb` it renders the shell

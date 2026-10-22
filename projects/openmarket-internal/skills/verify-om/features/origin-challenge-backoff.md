@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: last driven 2026-09-24, tree `8d0403322` (v0.408.1) — entry path and hold arming; the probe, doubling and recovery last driven 2026-09-19 at tree `15db727ba` (v0.353.1). NOT re-driven on 2026-10-22 at tree `7e22214fb`, because both declared triggers were checked and neither fired: the hold machinery (`shared/origin-limiter.ts`, `shared/public-document.ts`, and the cooldown/reopen paths of `runner/subscriptions/manager.ts` and `adapters/feed.ts`) is byte-identical, and `runner/watching/status-sentence.ts`'s only change is an unrelated `no_data_key` row that does not touch `coverageWhy`/`coverageFix`/`cooldownFix`.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): entry, hold and recovery re-driven against the bundled stub on port 18132, with the lane on `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000`. `ok GET /rss` polled every ~60 s. After the flip the stub logged exactly one `challenge GET /rss` (02:56:24Z) and the lane logged `reopen held until 03:11:25.147Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` showed `connection_state: reconnecting`, `reconnect_count: 0` and `cooldown {until, error}`, and `watch show` gave `FAULT source waiting · feed 127.0.0.1: 127.0.0.1 is challenging this machine … · Firecrawl can read it for you` / `FIX om setup firecrawl`. The mode went back to `ok` at 02:59Z, yet the origin received **no request for the full 15 min**. Then exactly one `ok GET /rss` at 03:11:25.238Z and `reopened after the window`. Not re-driven: the doubling (a second challenge at the window end). The previous stamp's "byte-identical" claim no longer holds on main (see Gotchas).*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -58,9 +58,14 @@ Preconditions:
   It answers a small RSS feed at `/rss` with one new item per minute, article
   pages at `/article/<id>`, and flips on the `mode` file to `403` with
   `cf-mitigated: challenge` and a "Just a moment..." body. Challenge detection
-  also recognizes AWS WAF 202 challenges and 405 captchas, plus challenge
-  markers in an HTTP 200 page body (`shared/public-document.ts`,
-  `shared/page-normalize.ts`). A bare 403 proves nothing. Log every request
+  (`shared/public-document.ts`, `isChallenge`) also recognizes AWS WAF 202
+  challenges (`x-amzn-waf-action: challenge`) and 405 captchas, and a 429 opens
+  a cooldown too (its `Retry-After` overrides the doubling, capped at 6 h).
+  Challenge markers in an HTTP 200 body are a **page** path
+  (`shared/page-normalize.ts`, `bot_wall_suspected`), not the feed path. A bare
+  403 proves nothing; on main it is retried once under om's other User-Agent
+  (`requestWithReaderAgent`), and a host refusing both is held to one name for
+  an hour. Log every request
   with a timestamp: that log is the proof of silence.
 - The lane booted with `OM_FEED_ALLOW_LOOPBACK=1` (feed polls, page polls and
   extract fetches may reach `127.0.0.0/8`) and, to shorten the wait,
@@ -82,8 +87,11 @@ Steps:
 
 1. With the stub healthy: `control-om om -- watch page-add
    http://127.0.0.1:18111/rss --prefer feed --every 60s --format json` reads
-   `feed_created`. Wait for two `ok GET /rss` and one `ok GET /article/` in the
-   stub log.
+   `feed_created` (or `adopted` when a watch already reads that URL, as the
+   dashboard-authored `ui-authored-feed` did at `db6e76ef5`; resume it). Wait
+   for two `ok GET /rss` (at `db6e76ef5` no `GET /article/` followed for this
+   stub's items, so do not block on one) in the stub log. Older trees also
+   fetched one `ok GET /article/`.
 2. Flip the mode file to `challenge`. Wait for the first `challenge GET /rss`.
 3. Proof of the hold, three minutes later: the stub log holds exactly one
    challenge-mode request; the lane log holds one line ENDING
@@ -105,7 +113,13 @@ Steps:
    carry UTC. Match a substring, never the whole cell, and note three things
    that moved in `da6121d24`:
 
-   - **The host is not always named.** The subject is `place(host)`
+   - **On main the row names the host** whenever coverage knows it
+     (`status-sentence.ts`, `coverage.host ?? coverage.backend`). Driven at
+     `db6e76ef5`: `feed 127.0.0.1: 127.0.0.1 is challenging this machine`.
+     `watch list` may show a different fault for the same watch (a guest
+     `summary stopped: the credential was refused` on an authored feed with a
+     summary step), so read `watch show`'s FAULT rows.
+   - **The host is not always named (older trees).** The subject is `place(host)`
      (`shared/watch-error-words.ts`): the hostname when the row knows it,
      the literal words `the source` when it does not. Both forms are current —
      grep `is challenging this machine`, not the host.

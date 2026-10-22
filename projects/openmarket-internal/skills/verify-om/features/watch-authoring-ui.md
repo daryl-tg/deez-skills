@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: the detail page and list driven 2026-10-22, tree `7e22214fb` (v0.434.0); the create wizard was last driven 2026-09-23 at tree `9a49752c3` (v0.400.0) and its files are unchanged since.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `/alerts?create=1` opened `dialog "Create a watch"` with the eight kinds. RSS opened `Set up a feed` (Name, Feed address, `Which updates should count?` = All new items). Review gave `Review your watch` / `RSS or Atom feed`, and Create watch landed on `/alerts/ui-authored-feed`. `watch list` showed `ui-authored-feed  1 source  paused  never`, and after resume the stub logged `ok GET /rss`. On the detail page, the History default outcome is `What it kept`. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the
@@ -34,6 +34,8 @@ Preconditions:
   bun ~/.codex/skills/verify-om/helpers/origin-challenge-stub.ts &`.
 - A browser session of your own (`AGENT_BROWSER_SESSION`), viewport 1440x900.
 
+- **Deep link.** `/alerts?create=1` opens the same picker directly; onboarding
+  and the News empty states link there.
 - **Open the picker.** `agent-browser find role button click --name "Create watch"`
   opens `dialog "Create a watch"` holding eight buttons whose accessible names
   are the kind and its one-line description together, so match on a prefix:
@@ -61,8 +63,12 @@ Preconditions:
 - **Open one watch.** Clicking a row's `link "<label>"` goes to
   `/alerts/<id-or-slug>`. Its `heading` at level 1 is the watch's own LABEL (so
   it is dynamic — do not assert a fixed string), beside `Pause` and
-  `Edit watch`, and a tab group `Setup` / `History` / `Delivery` /
-  `Settings`. The Setup tab holds `Choose how you hear about updates` with
+  `Edit watch`, and a `navigation "Watch sections"` of **buttons** (not tabs)
+  `Setup` / `History` / `Delivery` / `Settings`; History sets `?tab=history`.
+  Its filters are selects named `History type` (default `Events and step
+  answers`), `History outcome` (default **`What it kept`** on main, formerly
+  `All outcomes`) and `History source`. Rows that a filter tune moved carry a
+  `back in` or `tuned out` badge. A guest lane has none. The Setup tab holds `Choose how you hear about updates` with
   `Set up delivery`, and `Sources and schedules` with `Add source or schedule`
   plus one `heading` per source and an `Edit source` button. Driven at
   `/alerts/ui-authored-feed`.

@@ -1,6 +1,6 @@
 # Firecrawl recovery before whitelist
 
-*Verified: 2026-10-12, tree `03bd55226` (v0.432.0) — guest no-key challenge path returned `origin_cooldown` and `om setup firecrawl`; configured vendor retry, repeated refusal and restart persistence remain last driven at tree `fe82b2ef1`.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): the guest no-key challenge path. While the origin stub challenged, `om watch show` printed `FAULT source waiting · feed 127.0.0.1: 127.0.0.1 is challenging this machine since … · next try … · Firecrawl can read it for you` and `FIX om setup firecrawl`, and the dashboard detail page showed the same `waiting · … Firecrawl can read it for you` sentence. On main the status-row fix is the bare `om setup firecrawl` in both the setup and the allow case (`runner/watching/status-sentence.ts:2514-2519`). Only the `page-add` CLI hint spells `om setup firecrawl --allow <host>` (`actions/watch/_page-leg.ts:422-423`). Configured vendor retry, repeated refusal and restart persistence remain last driven at tree `fe82b2ef1`; live verification pending (needs `OM_FIRECRAWL_API_KEY` plus a redirect of `api.firecrawl.dev/v2/scrape`).*
 
 A configured Firecrawl connection retries the first eligible direct-read failure or refusal automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
 
@@ -9,7 +9,7 @@ A configured Firecrawl connection retries the first eligible direct-read failure
 - An eligible direct read can recover after one automatic vendor retry, without a whitelist prompt.
 - Repeated refusal makes the site eligible for the existing whitelist offer; paid fetch count stays at one.
 - Restarting the daemon preserves the retry history and the site's refusal status.
-- A missing key offers `om setup firecrawl`; a configured key after repeated refusal offers `om setup firecrawl --allow <host>`.
+- A missing key offers `om setup firecrawl`. A configured key after repeated refusal makes the row read `Firecrawl can read it if you allow it`, with the fix label `allow Firecrawl to read <host>` (`status-sentence.ts:2498`). The command it points at is still `om setup firecrawl`; the explicit `om setup firecrawl --allow <host>` appears in the `page-add` CLI hint.
 - Existing allowed sites continue to use their standing Firecrawl permission.
 
 ## How to get to it (user POV)

@@ -1,6 +1,6 @@
 # The dashboard agent panel
 
-*Verified: 2026-10-22, tree `7e22214fb` (v0.434.0) — the panel, its controls and its guest-lane refusal driven. A real conversation stays pending: it needs an LLM credential.*
+*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): on `/alerts`, **Ask your agent** opened `region "Ask your agent"` with the heading `Ask OpenMarket`, `Message your agent`, Send message (disabled while empty), Open full conversation, Close agent panel, the page-context controls, and the suggestions `Explain watches` / `Help me get started here`. Sending gave `article "Your message"` and the alert `No LLM API key configured. Run \`om init\`, or export OPENMARKET_LLM_KEY for this shell.` with Reload conversation / Check connections. A real conversation stays pending: it needs an LLM credential. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as
