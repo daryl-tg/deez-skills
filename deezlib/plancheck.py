@@ -79,18 +79,41 @@ def _collapse(text):
     return " ".join(text.split())
 
 
+OPENING_FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+CLOSING_FENCE = re.compile(r"^ {0,3}(`+|~+)[ \t]*$")
+
+
+def _opening_fence(text):
+    """Return (char, length) when the line opens a CommonMark fence."""
+    match = OPENING_FENCE.match(text)
+    if not match or (match.group(1)[0] == "`" and "`" in match.group(2)):
+        return None
+    return match.group(1)[0], len(match.group(1))
+
+
+def _closes_fence(text, fence):
+    match = CLOSING_FENCE.match(text)
+    return bool(
+        match and match.group(1)[0] == fence[0] and len(match.group(1)) >= fence[1]
+    )
+
+
 def _lines(text):
     raw = text.replace("\r\n", "\n").split("\n")
     start = 0
     if raw and raw[0] == "---" and "---" in raw[1:]:
         start = raw.index("---", 1) + 1
-    out, fence = [], False
+    out, fence = [], None
     for i in range(start, len(raw)):
-        if raw[i].startswith("```"):
-            fence = not fence
-            out.append(Line(i + 1, raw[i], True))
-            continue
-        out.append(Line(i + 1, raw[i], fence))
+        row = raw[i]
+        if fence is None:
+            fence = _opening_fence(row)
+            code = fence is not None
+        else:
+            code = True
+            if _closes_fence(row, fence):
+                fence = None
+        out.append(Line(i + 1, row, code))
     return out
 
 

@@ -160,6 +160,32 @@ class PlanCheckTest(unittest.TestCase):
         self.assertEqual(len(found), 1)
         self.assertEqual(found[0].line, 4)
 
+class FenceTrackingTest(unittest.TestCase):
+    def code(self, *rows):
+        return [l.code for l in plancheck._lines("\n".join(rows))]
+
+    def test_a_longer_fence_holds_an_inner_fence(self):
+        flags = self.code("a", "````md", "```", "inner", "```", "````", "after")
+        self.assertEqual(flags, [False, True, True, True, True, True, False])
+
+    def test_a_tilde_fence_is_code(self):
+        self.assertEqual(self.code("a", "~~~", "x", "~~~", "b"), [False, True, True, True, False])
+
+    def test_a_fence_may_indent_three_spaces(self):
+        self.assertEqual(self.code("   ```", "x", "   ```", "b"), [True, True, True, False])
+
+    def test_four_space_indent_is_not_a_fence(self):
+        self.assertEqual(self.code("    ```", "b"), [False, False])
+
+    def test_a_shorter_closer_does_not_close(self):
+        self.assertEqual(self.code("````", "```", "x"), [True, True, True])
+
+    def test_a_tilde_line_does_not_close_a_backtick_fence(self):
+        self.assertEqual(self.code("```", "~~~", "x"), [True, True, True])
+
+    def test_a_closer_with_trailing_text_does_not_close(self):
+        self.assertEqual(self.code("```", "``` js", "x"), [True, True, True])
+
 
 if __name__ == "__main__":
     unittest.main()
