@@ -5,16 +5,16 @@ and Codex on every machine. Skills live here once and are symlinked into both
 runtimes, so there is no second copy to drift.
 
 The architecture is [pstack](https://github.com/cursor/plugins/tree/main/pstack),
-adapted for two runtimes instead of one. Thirty-four principles, twenty-four
+adapted for two runtimes instead of one. Thirty-six principles, twenty-five
 playbooks, one router.
 
 ```mermaid
 flowchart TB
   subgraph hub["one repo, one source of truth"]
-    reg["registry.toml<br/>121 skills, 6 agents,<br/>a layer each"]
-    ven["vendor.toml<br/>22 third-party entries,<br/>recorded, never copied"]
+    reg["registry.toml<br/>106 skills, 6 agents,<br/>a layer each"]
+    ven["vendor.toml<br/>23 third-party entries,<br/>recorded, never copied"]
     lnk["bin/link<br/>symlinks, never copies"]
-    doc["bin/doctor<br/>gates, citations, roles,<br/>playbook links, budget"]
+    doc["bin/doctor<br/>gates, citations, roles,<br/>playbook links, doc drift, budget"]
     reg --> lnk
     reg --> doc
     ven --> doc
@@ -25,8 +25,8 @@ flowchart TB
 
   subgraph work["what one request runs"]
     router["$clanker-mode<br/>the router. same on both runtimes"]
-    pb["1 of 24 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
-    prin["34 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
+    pb["1 of 25 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
+    prin["36 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
     role["5 roles<br/>explore, executor, test-engineer,<br/>code-reviewer, verifier"]
     craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, show-me"]
     ship["opening-a-review, then landing<br/>evidence approved before anything ships"]
@@ -89,10 +89,10 @@ That is it. Everything else the router reaches for when a step needs it.
 
 ## usage
 
-`$clanker-mode` matches your task to one of twenty-four playbooks and runs it.
+`$clanker-mode` matches your task to one of twenty-five playbooks and runs it.
 
 <details>
-<summary>the twenty-four playbooks</summary>
+<summary>the twenty-five playbooks</summary>
 
 | playbook | for |
 |---|---|
@@ -108,6 +108,7 @@ That is it. Everything else the router reaches for when a step needs it.
 | [perf-issue](./skills/clanker-mode/playbooks/perf-issue.md) | a slowness with a number on it. baseline, fix, post-fix number |
 | [forensics](./skills/clanker-mode/playbooks/forensics.md) | a live process or a dropped trace, read down to a cited diagnosis |
 | [visual-parity](./skills/clanker-mode/playbooks/visual-parity.md) | pixel-exact equivalence, decided by image diff and never by eye |
+| [product-video](./skills/clanker-mode/playbooks/product-video.md) | a product reel or feature demo, filmed as one continuous UI motion film |
 | [multi-phase-plan](./skills/clanker-mode/playbooks/multi-phase-plan.md) | work spanning phases. the plan is the deliverable, not the code |
 | [agentic-loop](./skills/clanker-mode/playbooks/agentic-loop.md) | a multi-goal plan run as one bounded loop, dispatching to Codex |
 | [autonomous-run](./skills/clanker-mode/playbooks/autonomous-run.md) | one predicate, driven unattended until it holds. no delivery mid-run |
@@ -183,7 +184,7 @@ when you want one directly.
 
 ## principles
 
-Thirty-four rules, one per skill. Playbooks **cite** them by name and never
+Thirty-six rules, one per skill. Playbooks **cite** them by name and never
 restate them, which is what stops the same rule drifting across five files. Each
 one is invisible until something routes to it, so they cost nothing at session
 start.
@@ -192,7 +193,7 @@ Nine are extracted from rules my own skills already asserted. The rest are
 adapted from pstack.
 
 <details>
-<summary>all thirty-four principles</summary>
+<summary>all thirty-six principles</summary>
 
 **Core**
 
@@ -224,9 +225,12 @@ adapted from pstack.
 | principle | apply when |
 | --- | --- |
 | `prove-on-the-real-surface` | Apply after any change, before declaring done. Verify in the running product on the surface the change touches. Tests … |
+| `prove-every-host` | Apply when a change touches shared UI consumed by more than one application host. The change reaches every host at onc… |
 | `visual-approval-gates-delivery` | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. … |
 | `failing-test-first` | Apply before writing production code. Write the failing check first, at the fastest level that expresses the behavior,… |
+| `test-behavior-not-implementation` | Apply when writing, changing, or keeping a test. Call the code the way its users do and assert the observed result aga… |
 | `fix-root-causes` | Apply when debugging. Trace each symptom to its root cause and fix it there. Reproduce first, ask why until you reach … |
+| `attack-the-premise` | Apply when two or more fixes that share one premise have failed the same gate. Write the premise down, take a census o… |
 | `sequence-verifiable-units` | Apply to multi-step work and to how you stack commits. Break work into small units that each end in a check, verify ea… |
 | `finish-or-report` | Apply at the end of any run. Never deliver a partial silently. Either the whole thing is done, or say precisely what i… |
 
@@ -239,7 +243,6 @@ adapted from pstack.
 | `feature-branch-isolation` | Apply before starting any change. Work happens on daryl/<kebab-words> in its own worktree, never on main, never in the… |
 | `promote-to-the-main-worktree` | Apply after rebasing a finished feature. Check the branch out in the main worktree so the local dev stack runs it and … |
 | `announce-the-linked-review` | Apply at the end of any delivered change. Announce with the PR or MR link, then read the announcement back to confirm … |
-| `desktop-before-cloud` | Apply to any change spanning the desktop app and its cloud twin. The desktop change lands and is proven first; the clo… |
 
 **Delegation**
 
@@ -282,7 +285,7 @@ and there is no clean path back, so Claude plans and Codex implements.
 **Principles install on both** because a handoff to Codex cites them by name,
 and that citation only resolves if the leaf exists on that side.
 
-Playbooks are plain markdown inside the router, not registry entries, so twenty-four
+Playbooks are plain markdown inside the router, not registry entries, so twenty-five
 of them cost nothing at session start and can still be read by absolute path
 from either runtime.
 
@@ -295,7 +298,7 @@ and the generated project map index below.
 
 ```bash
 bin/doctor      drift, dangling citations and playbooks, unknown roles, untracked
-                Codex gates, layer violations, budget
+                Codex gates, layer violations, stale doc counts and links, budget
 bin/link        preview the install. --apply to make it so
 bin/new         scaffold and register a skill
 bin/adopt       pull an existing skill in from elsewhere; --project for a project skill
@@ -310,7 +313,8 @@ bin/test        the suite
 `bin/doctor` is the one to run before every commit. It fails on a principle
 cited but never written, a routed layer that lost its flag, a skill instructing
 a local merge to main, a playbook step routing to a role neither runtime
-defines, and a stale index.
+defines, a count or link in these docs that no longer matches the tree, and a
+stale index.
 
 There is deliberately **no per-skill description limit**. A single long
 description is not what makes a runtime truncate its catalogue; the total is.

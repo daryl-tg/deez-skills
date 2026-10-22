@@ -22,7 +22,7 @@ cannot silently drop it.
 
 ## What it routes to
 
-Twenty-four playbooks in `skills/clanker-mode/playbooks/`. Four are task-shaped
+Twenty-five playbooks in `skills/clanker-mode/playbooks/`. Four are task-shaped
 (investigation, bug fix, feature, refactoring). Four are family-specific (OM
 Chat and OM Mobile, each with a feature and a completion playbook). Five widen
 the middle, where a plain feature is the wrong shape: prototype before the
@@ -30,8 +30,9 @@ build, perf issue and forensics when the answer is a number or an artifact,
 visual parity for pixel work, multi-phase plan when the plan is the deliverable.
 Four run the loops, one predicate at a time (autonomous run), one metric
 (hillclimb), one plan of goals (agentic loop), or one experiment on the agent
-itself (eval). The rest carry a change out the door, opening a review, driving
-it green, landing it, cleaning up after it, plus skill authoring and the session
+itself (eval). One films a feature as a continuous UI motion film (product
+video). The rest carry a change out the door, opening a review, driving it
+green, landing it, cleaning up after it, plus skill authoring and the session
 pair of pause and pickup.
 
 The router also holds the table of which repository belongs to which family.

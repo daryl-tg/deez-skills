@@ -1,7 +1,7 @@
 # 3. Principles
 
-Seventeen leaf skills, one rule each. Playbooks **cite** them; they never
-restate them.
+Thirty-six principles, each a leaf skill with one rule. Playbooks **cite** them;
+they never restate them.
 
 ## The problem they solve
 
@@ -10,8 +10,8 @@ worded differently each time, inside the `description` field — the part loaded
 into every session. Three copies, three drifting wordings, three places to
 change when you change your mind, and you pay for all three.
 
-Thirteen of the seventeen were extracted from rules the existing skills already
-asserted. The count of how many files asserted each is the evidence it was real:
+Thirteen of the first seventeen were extracted from rules the existing skills
+already asserted. The count of how many files asserted each is the evidence it was real:
 
 | Principle | Was in |
 |---|---|

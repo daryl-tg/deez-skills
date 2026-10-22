@@ -1,6 +1,6 @@
 # 1. Setup
 
-The [README](../../README.md#set-it-up-on-a-new-machine) has the commands. This
+The [README](../../README.md#install) has the commands. This
 chapter is what they mean and what to check.
 
 ## What "installed" means
