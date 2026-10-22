@@ -63,6 +63,8 @@ class IndexTest(unittest.TestCase):
         folder.mkdir(parents=True)
         (folder / "SKILL.md").write_text(
             "---\nname: verify-example\ndescription: Verify example.\n---\n")
+        (folder / "features").mkdir()
+        (folder / "features" / "README.md").write_text("# Features\n")
         reg = self.load('''
 [skills.verify-example]
 category = "core"
@@ -70,9 +72,26 @@ runtimes = ["claude", "codex"]
 project = "example-app"
 ''')
         rendered = index.render(reg, self.repo)
-        self.assertIn("### Project verification maps", rendered)
+        self.assertIn("### Project skills", rendered)
         self.assertIn("[verify-example](./projects/example-app/skills/verify-example/SKILL.md)", rendered)
         self.assertIn("[Feature map](./projects/example-app/skills/verify-example/features/README.md)", rendered)
+
+    def test_project_skill_without_a_feature_map_gets_no_map_link(self):
+        folder = self.repo / "projects/example-app/skills/formal-example"
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text(
+            "---\nname: formal-example\ndescription: Model check.\n---\n")
+        reg = self.load('''
+[skills.formal-example]
+category = "core"
+runtimes = ["claude"]
+project = "example-app"
+''')
+        rendered = index.render(reg, self.repo)
+        self.assertIn(
+            "| `example-app` | [formal-example](./projects/example-app/skills/formal-example/SKILL.md) | — |",
+            rendered)
+        self.assertNotIn("formal-example/features/README.md", rendered)
 
     def test_an_agent_row_carries_its_own_description(self):
         (self.repo / "agents").mkdir()

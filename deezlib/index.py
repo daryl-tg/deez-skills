@@ -57,13 +57,18 @@ def render(reg, repo_root):
     projects = sorted((e for e in reg.entries if e.kind == "skill" and e.project),
                       key=lambda e: (e.project, e.name))
     if projects:
-        lines += ["### Project verification maps", "",
+        lines += ["### Project skills", "",
                   "| Project | Skill | Map |", "| --- | --- | --- |"]
         for entry in projects:
             source = registry.source_dir(entry, entry.runtimes[0])
+            # Not every project skill keeps a feature map (a formal
+            # verification skill has none), and a dead link fails doctor.
+            feature_map = Path(repo_root) / source / "features" / "README.md"
+            map_cell = (f"[Feature map](./{source}/features/README.md)"
+                        if feature_map.is_file() else "—")
             lines.append(
                 f"| `{entry.project}` | [{entry.name}](./{source}/SKILL.md) | "
-                f"[Feature map](./{source}/features/README.md) |"
+                f"{map_cell} |"
             )
         lines.append("")
     return "\n".join(lines)

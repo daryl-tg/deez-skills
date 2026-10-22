@@ -497,7 +497,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `writing-instructions` |  | claude, codex | Agent-facing instruction edits: skills, AGENTS.md, guidelines, or prompt docs. Not prose style. |
 | `writing-simplified-technical-english` |  | claude, codex | Rewrite an agent-facing document in ASD-STE100 when it is too long, gets truncated, or reads as dense prose: SKILL.md, AGENTS.md, CLAUDE.md, subagent definitio… |
 
-### Project verification maps
+### Project skills
 
 | Project | Skill | Map |
 | --- | --- | --- |
