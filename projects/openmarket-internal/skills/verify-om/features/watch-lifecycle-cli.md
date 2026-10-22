@@ -107,7 +107,10 @@ Preconditions:
   only shape whose resume output is this short.
 - **Remove.** Run `control-om om -- watch remove lane-lifecycle --yes`. It
   prints `Removed event watch <id> (<slug>): history deleted (N rows); journal files kept` — slug again,
-  not label. That plain form only holds when no extra removal disclosures are
+  not label. The count is the watch's stored-event count and inflects on exactly
+  one: `(1 row)`, but `(0 rows)` and `(2 rows)` — zero takes the plural, so a
+  recipe asserting `1 rows` fails. That plain form only holds when no extra
+  removal disclosures are
   needed: removal
   appends `destroyed ...`, `paid output gone: ...`, a chart-unbind line, or a
   `warning: N step(s) on another watch read ...` line when any of those apply,

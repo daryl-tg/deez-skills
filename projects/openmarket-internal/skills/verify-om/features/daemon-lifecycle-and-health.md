@@ -65,18 +65,30 @@ Preconditions:
   unreadable or malformed files under `<home>/schedules/` (a fresh lane has no
   such directory, so it stays silent). Count 14 on a quiet guest lane and treat any of the three
   showing up as a fact about the run, not a broken baseline.
-- **Give the lane a minute before you judge it.** On a fresh lane the daemon's
-  guest mint can FAIL at boot and recover by itself. Driven at v0.434.0: at t+0
-  the lane log carried `ERROR [boot] no API key and guest mint failed; reads
-  retry minting per tick`, `/healthz` read `auth: "none"`, and
-  `om doctor` returned **`ok: false`** with `api_key: fail`; by t+99s `/healthz`
-  read `auth: "guest"` and doctor was `ok: true` with `api_key: ok`. Assert
-  `auth` and the doctor verdict only after the first ticks, and treat a single
-  boot-time mint failure as the retry working, not a broken lane.
-- **The CLI and the daemon hold separate credentials.** In that same window
-  `om coins` returned live market data while the daemon reported
-  `api_key: fail` — the CLI resolves its own key. So a failing `api_key` check
-  says nothing about whether CLI reads work, and vice versa.
+- **Give the lane time to settle before you judge it, and do not assume how
+  much.** On a fresh lane the daemon's guest mint can FAIL at boot and recover
+  by itself. Driven at v0.434.0: at t+0 the lane log carried
+  `ERROR [boot] no API key and guest mint failed; reads retry minting per tick`,
+  `/healthz` read `auth: "none"`, and `om doctor` returned **`ok: false`** with
+  `api_key: fail`; by t+99s `/healthz` read `auth: "guest"` and doctor was
+  `ok: true`. This is the designed path, not a fault: boot makes exactly one
+  bounded mint attempt and, per its own source comment, logs and continues
+  rather than crash-looping the supervisor, leaving `ensureCredential()` on a
+  later pass to retry. **Nothing bounds how long that takes** — there is no
+  backoff or SLA constant; recovery lands whenever a background pass retries and
+  the auth service answers. So 99s is one observation, not a budget: poll until
+  it settles rather than asserting at any fixed moment.
+- **One credential file, two independent minters — and doctor is a pure read.**
+  In that same window `om coins` returned live market data while the daemon
+  reported `api_key: fail`. They are not separate credential systems: there is
+  one `credentials.json` per `OM_HOME`, and every data read — a one-shot CLI
+  process, stdio MCP, the per-tick daemon client — calls `ensureCredential()`
+  for ITSELF, so a CLI command races its own mint and writes the shared file.
+  `/healthz`'s `auth` and doctor's `api_key` never mint; they report whatever
+  the store held at the instant they read it. So a `fail` there is a snapshot,
+  not a verdict on the machinery, and a CLI mint that succeeds alongside it
+  shows up on the daemon's NEXT read rather than fixing the one you already
+  saw.
 - **Logs.** Run `control-om om -- logs --limit 40`. It reads `runner.log` from
   `<lane root>/accounts/guest/`. The flag has always been `--limit`
   (`cmd/logs.ts:24`); `--lines`, which an earlier version of this file told you
