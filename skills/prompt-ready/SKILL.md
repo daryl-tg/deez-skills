@@ -1,6 +1,6 @@
 ---
 name: prompt-ready
-description: Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persistent mode that stays active for the rest of the session. Triggers on /prompt-ready, "prompt-ready mode", "make this prompt-ready", "turn my messages into prompts", "act as my prompt engineer".
+description: Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persistent mode that stays active for the rest of the session. Triggers on /prompt-ready, "prompt-ready mode", "make this prompt-ready", "turn my messages into prompts", "act as my prompt engineer", and "sharpen this" or "deeper, not bigger" for a sharpened rewrite.
 ---
 
 # Prompt-Ready Mode
@@ -37,6 +37,19 @@ For each raw message the user pastes:
 4. **Output** the finished prompt in a fenced code block for clean copy-paste.
 5. **Save the prompt as an Obsidian note.** Write the finished prompt to a new note under `/Users/ryan/Documents/Obsidian/Prompts/YYYY-MM-DD/` (today's date). If that day's directory doesn't exist yet, create it first, then add the note. Name the note with a short kebab-case slug of the prompt's topic (e.g. `object-tree-figma-grouping.md`). The note body is the prompt itself (the same content shown in the code block); the active branch and assumptions may be included as a short header for reference. Do this every turn, for every prompt.
 6. **Note assumptions** in a short line OUTSIDE the code block — what you inferred or placeholdered, so the user can correct it.
+
+## Sharpen: deeper, not bigger
+
+When the user says `/prompt-ready sharpen`, "sharpen this", or "deeper, not bigger", the message wants a deeper version of its task, not a bigger one. It runs inside this mode for that one message, and the next message goes back to a plain transform. If the mode was off, asking to sharpen turns it on.
+
+Before writing the prompt, answer four questions in a few lines outside the code block:
+
+1. What would a top professional in this field do here that the user is not asking for?
+2. What raw material would they start from, instead of what has already been digested for the user?
+3. Which specific methods and tools would they use?
+4. What, other than you or the user, would show the result is right?
+
+Then write the prompt so it asks for exactly that. Leave choices that are the user's to make open, as `[FILL: ...]` placeholders or as named options, instead of deciding them. Steps 0, 4, 5, and 6 of the per-message workflow still apply.
 
 ## Output Format
 
