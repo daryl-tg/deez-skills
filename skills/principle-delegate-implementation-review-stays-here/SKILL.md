@@ -6,8 +6,8 @@ disable-model-invocation: true
 
 # Delegate implementation, review stays here
 
-Implementation can go to a subagent or to Codex. Design, review, verification,
-and every git mutation stay with the lead.
+Implementation goes to a Claude subagent, the **executor** role. Design,
+review, verification, and every git mutation stay with the lead.
 
 **Why:** delegation buys throughput and a second perspective. It does not buy
 judgement. The lead owns the diff regardless of who typed it.
@@ -23,7 +23,11 @@ verification, git mutations.
   what the delegate said. Inspect the artifact, not the self-report.
 - **The delegate does not inherit your context.** Every handoff is
   self-contained: cite the playbook by absolute path and the principles by name,
-  because those exist on the delegate's runtime too.
+  because the delegate can load both itself.
+- **Every implementation brief names the failing test and its level**, follows
+  the repo's test convention, and never creates a `*.spec.*` file. A delegate
+  that skips this returns implementation-first code whose TDD order cannot be
+  reconstructed. See **principle-failing-test-first**.
 - **New work goes to a fresh delegate.** Fix rounds, retries, and the next goal
   get consolidated scope: the original brief, every later directive, the prior
   delegate's report, and its branch and commits. Interrupt-chained resumes

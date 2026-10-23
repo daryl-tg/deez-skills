@@ -29,5 +29,5 @@ structurally distinct.
 
 Running this over a settled design is over-engineering, per
 **principle-laziness-protocol**. The **design** skill is where this happens in
-practice, and parallel **executor** delegates, one worktree each, are how candidates get
-produced.
+practice, and parallel **executor** delegates, one worktree each, are how
+candidates get produced.
