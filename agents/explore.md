@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Fast codebase search and file/symbol mapping. Read-only. Use when a task needs repo-local facts — where things live, how they connect, all usages of a symbol — and the caller wants the conclusion, not file dumps. Claude Code counterpart of the Codex `explore` role.
+description: Fast codebase search and file/symbol mapping. Read-only. Use when a task needs repo-local facts — where things live, how they connect, all usages of a symbol — and the caller wants the conclusion, not file dumps.
 tools: Glob, Grep, Read, Bash, BashOutput, TodoWrite
 model: sonnet
 color: cyan

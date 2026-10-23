@@ -1,6 +1,6 @@
 ---
 name: test-engineer
-description: Test strategy, coverage-gap analysis, regression design, flaky-test hardening, and running the repository's own gates. Use when a task needs test design or test execution owned by a lane separate from implementation. Claude Code counterpart of the Codex `test-engineer` role.
+description: Test strategy, coverage-gap analysis, regression design, flaky-test hardening, and running the repository's own gates. Use when a task needs test design or test execution owned by a lane separate from implementation.
 tools: Glob, Grep, Read, Edit, Write, Bash, BashOutput, KillShell, TodoWrite
 model: opus
 color: blue

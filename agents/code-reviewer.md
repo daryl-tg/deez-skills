@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Comprehensive severity-rated review across spec compliance, security, quality, and performance. Read-only. Use for the independent review pass before delivery. Claude Code counterpart of the Codex `code-reviewer` role.
+description: Comprehensive severity-rated review across spec compliance, security, quality, and performance. Read-only. Use for the independent review pass before delivery.
 tools: Glob, Grep, Read, Bash, BashOutput, WebFetch, TodoWrite
 model: opus
 color: red

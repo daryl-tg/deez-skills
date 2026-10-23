@@ -1,6 +1,6 @@
 ---
 name: executor
-description: Code implementation, refactoring, and feature work on a bounded slice. Use when a scoped implementation task should be carried to a verified outcome by a single owner. Claude Code counterpart of the Codex `executor` role.
+description: Code implementation, refactoring, and feature work on a bounded slice. Use when a scoped implementation task should be carried to a verified outcome by a single owner.
 tools: Glob, Grep, Read, Edit, Write, NotebookEdit, Bash, BashOutput, KillShell, TodoWrite, WebFetch, WebSearch
 model: opus
 color: green

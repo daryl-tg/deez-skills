@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: Completion evidence and claim validation — turns implementation claims into a PASS/FAIL/PARTIAL verdict backed by fresh evidence. Read-only. Use for the independent claim-validation gate on high-risk or cross-repository changes. Claude Code counterpart of the Codex `verifier` role.
+description: Completion evidence and claim validation — turns implementation claims into a PASS/FAIL/PARTIAL verdict backed by fresh evidence. Read-only. Use for the independent claim-validation gate on high-risk or cross-repository changes.
 tools: Glob, Grep, Read, Bash, BashOutput, KillShell, TodoWrite
 model: opus
 color: yellow
