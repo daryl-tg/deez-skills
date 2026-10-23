@@ -68,7 +68,8 @@ unread.
   call the grant covers, act, and report it with the alternative in plain words,
   never a shorthand token for the operator to type back. Genuine product and
   preference calls still get asked.
-- Frozen spec or plan → **stop and ask which execution path**. This gate is
+- Frozen spec or plan → **stop and ask which execution path**: Claude
+  subagents per task, or the current session inline. This gate is
   never auto-picked. It is the one carve-out from not blocking.
 - Broken skill mid-task → fix it in its own change. Do not block, do not
   silently work around it.
@@ -139,13 +140,14 @@ does not authorize a product push or publication of skill/config changes.
 
 ## Delegation
 
-**This skill runs the same on Claude Code and on Codex.** Same playbooks, same
-principles, same roles. Only the resolution differs, and the runtime you are in
-resolves its own.
+**The operator runs Claude Code only.** Every delegate is a Claude subagent.
+The Codex column below is dormant install support, kept so the hub can serve
+Codex again if the operator resubscribes. It is not a routing target: never
+hand a task to Codex, and never offer it as an option.
 
 Playbook steps name a **role**. Never a model, never a runtime.
 
-| Role | On Claude | On Codex |
+| Role | On Claude | On Codex (dormant) |
 |---|---|---|
 | **explore** | `Agent(subagent_type: "explore")` | `agent_type: explore` |
 | **executor** | `Agent(subagent_type: "executor")` | `agent_type: executor` |
@@ -153,17 +155,12 @@ Playbook steps name a **role**. Never a model, never a runtime.
 | **code-reviewer** | `Agent(subagent_type: "code-reviewer")` | `agent_type: code-reviewer` |
 | **verifier** | `Agent(subagent_type: "verifier")` | `agent_type: verifier` |
 
-All five resolve on both runtimes. The hub versions the Claude halves in
-`agents/` and links them into `~/.claude/agents/`. On Codex they are oh-my-codex
-agents under `~/.codex/agents/`, owned by that package and recorded in
-`vendor.toml` rather than copied.
+The Claude column is authoritative. The hub versions the Claude halves in
+`agents/` and links them into `~/.claude/agents/`. The dormant Codex halves are
+oh-my-codex agents under `~/.codex/agents/`, owned by that package and recorded
+in `vendor.toml` rather than copied.
 
-**Nothing crosses the runtime boundary.** Work started in Codex finishes in
-Codex; work started in Claude finishes in Claude. Do not hand a task to the
-other CLI mid-run — the operator picks the runtime when they pick the CLI, and
-that choice is the whole point of having both.
-
-**Non-delegable, on either runtime:** design, review, verification, and every
+**Non-delegable:** design, review, verification, and every
 git mutation. Those stay with the lead — you — regardless of what the roles
 table offers. `[routing]` in `registry.toml` records that, and the registry
 rejects any other value for them.

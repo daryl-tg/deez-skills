@@ -7,7 +7,7 @@ description: Use when the user wants to queue up bugs, regressions, or issues on
 
 ## Overview
 
-The user feeds issues one at a time. Each issue gets investigated by an Opus agent, reviewed by a codex agent, and written into one shared plan file, which is demuddied once the session ends. **The terminal state of this skill is a written plan. No code is ever changed here** — implementation happens only when the user says so, in a later turn, outside this skill.
+The user feeds issues one at a time. Each issue gets investigated by an Opus agent, reviewed by a fresh code-reviewer agent, and written into one shared plan file, which is demuddied once the session ends. **The terminal state of this skill is a written plan. No code is ever changed here** — implementation happens only when the user says so, in a later turn, outside this skill.
 
 Repo-agnostic: every repo path comes from the user at session start, never from the current working directory alone.
 
@@ -27,17 +27,14 @@ The user pastes an issue. Immediately:
 2. Launch **one background Opus agent** (`Agent`, `model: "opus"`, `run_in_background: true`) with the investigator contract below.
 3. Tell the user the issue is queued and take the next one. Issue N+1's pipeline runs while issue N is still investigating.
 
-## Phase 2 — codex review
+## Phase 2 — review
 
 When the investigator returns:
 
 1. Write its findings into that issue's section (Investigation + Fix plan). Set `**Status:** in review`.
-2. Run codex in the background:
+2. Dispatch a fresh **code-reviewer** subagent (`Agent`, `subagent_type: "code-reviewer"`, `run_in_background: true`). It has no context from the investigator, which is the point. Its prompt names the repos by absolute path and carries this text, then the issue and fix plan verbatim. It writes its reply to `<scratch>/ivtg-issue-<N>-review.md`:
 
-```bash
-codex exec -C <repo1> --add-dir <repo2> -m gpt-5.6-sol \
-  -c model_reasoning_effort="high" --sandbox read-only \
-  -o <scratch>/ivtg-issue-<N>-review.md - <<'PROMPT'
+```text
 Review this fix plan against the actual code in the repos you can read.
 Do not write code. Do not edit files.
 
@@ -46,10 +43,9 @@ Then, numbered, each blocker: what is wrong, the file:line evidence, what the pl
 Then non-blocking notes, if any.
 
 <issue text and the fix plan verbatim>
-PROMPT
 ```
 
-3. Append the verdict file's contents verbatim under `### Codex review`.
+3. Append the verdict file's contents verbatim under `### Review`.
 
 ## Phase 3 — one revision, then stop
 
@@ -64,7 +60,7 @@ When the plan file is complete — the user says they're out of issues, or every
 
 Run it once, on the whole file, not per issue: an issue's section is not final until its revision pass has landed.
 
-Preserve through the pass: every `<repo>/<file>:<line>` cite, every gotcha and open unknown, each issue's `**Status:**` line, and the repo list. Codex verdicts and superseded plans are archaeology and may go.
+Preserve through the pass: every `<repo>/<file>:<line>` cite, every gotcha and open unknown, each issue's `**Status:**` line, and the repo list. Review verdicts and superseded plans are archaeology and may go.
 
 Report the demuddied path. This is still a plan — no code.
 
@@ -104,7 +100,7 @@ Repos:
 
 ### Investigation
 ### Fix plan
-### Codex review (gpt-5.6-sol, high)
+### Review
 ```
 
 ## Rules
@@ -121,7 +117,7 @@ Repos:
 ## Red flags — stop
 
 - "This fix is one line, I'll just apply it" — no. The deliverable is a plan.
-- "Codex found blockers, let me fix the code" — revise the plan, not the code.
+- "The reviewer found blockers, let me fix the code" — revise the plan, not the code.
 - "Obvious which repo this is, no need to ask" — the resolved repo set is the only source.
 - "I'll write today's date from context" — run `date +%F`.
 - Third revision round — stop and tell the user the investigation needs redoing.

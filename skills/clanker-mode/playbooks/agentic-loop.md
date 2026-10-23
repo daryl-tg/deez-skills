@@ -3,8 +3,8 @@
 A plan of several approved goals, run as one bounded loop. The lead
 orchestrates and never hands the loop away.
 
-**Runs on either runtime.** On Codex, goals go to the **executor** role
-natively. On Claude, goals go to the **executor** role as subagents.
+Goals go to the **executor** role as Claude subagents. There is no other
+execution path.
 
 **Entering this playbook pre-answers the execution gate for the whole run.** Do
 not re-ask per goal.
