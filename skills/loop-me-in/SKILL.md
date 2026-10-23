@@ -55,6 +55,8 @@ Everything between those is the run's job, commits on its own branch included. A
    **If the plan exists in more than one copy, diff them before building.** A duplicate vault, an older draft, a pre-review version: they can differ by hundreds of lines and by which fix is correct. Build from the copy the user names, and say in the brief how to recognise a stale one.
 2. **Resolve the environment, don't assume it.** This comes before any spec work, because a spec cannot be written, run, or committed without knowing the worktree, the branch, the test runner and the install command. For every repo the plan touches, establish and write down: exact worktree path, branch name and base, whether the tree is clean, how deps are installed, the test runner and how it names spec files, and the verification command. Check these — a stale path is the single most common way these runs die.
 
+   **The run's worktree must be a linked worktree, not a primary checkout.** Ryan's worktree-gate hook denies edits in a primary checkout until a session records a decision, and a headless fix agent cannot record one. Its edits would all be denied, silently. Resolve this now. The brief's preflight re-checks it (`references/verify-loop.md`, Preflight).
+
    **An install is not a safe no-op.** Where a repo depends on a private registry, a bare `install` can re-resolve a package, fail to fetch it, and leave the tree worse than it found it. Name the install command that is known to work, and make a failed install a stop condition rather than something the run works around.
 3. **Lock the acceptance oracle for every requirement. Ask; never assume.** A conversation with Ryan, before phases exist. Work the ladder in **Establishing expected results** below until each requirement has a `CURRENT` and an `EXPECTED` with a named authority, specific enough to encode as an assertion. Assign each one a **gate mode** (table in **Spec-first**). **A requirement whose `EXPECTED` you inferred is a brief-generation blocker: the brief does not ship until Ryan settles it.**
 4. **Plan the specs; the run writes them.** In the brief, map requirements to spec files and phases — many-to-many is fine and often correct. For each, record the gate mode and the *expected* failure signature. The run writes, validates and commits each spec at the start of its own phase; the brief carries the plan and the expected signature, not the spec's text or its recorded output. See **Spec-first**.
@@ -292,7 +294,7 @@ The plugin's own boundary rule already exempts everything persisted outside chat
 
 **Each headless agent is a fresh session.** The run's `/caveman` does not carry into it, so every agent prompt opens with the compression rules inline: five lines that do not depend on a plugin loading in print mode. Exact strings survive compression: error text, selectors, file paths, numbers, units, and code are reproduced verbatim, never paraphrased shorter.
 
-**Model, effort and permission mode are set per call, never inherited.** A `claude -p` call takes `model`, `effortLevel` and `permissions.defaultMode` from `~/.claude/settings.json` unless it overrides them. On this machine those are `opus`, `high` and `auto`. So an agent without explicit flags runs at high effort, including a sweep whose entire job is to click four things and report what it saw. Under `auto`, a classifier decides what it may run, not the brief. Every call passes `--model`, `--effort` and `--permission-mode`. The brief carries an `effort_for` helper keyed on role and attempt: mechanical work opens low, each failed attempt moves one rung up, and behavioural acceptance rows or wide-blast-radius fixes start one rung higher. Values and the helper itself: `references/verify-loop.md`, section 4.
+**Model, effort and permission mode are set per call, never inherited.** A `claude -p` call takes `model`, `effortLevel` and `permissions.defaultMode` from `~/.claude/settings.json` unless it overrides them. An agent that inherits a high effort level spends it on a sweep whose entire job is to click four things and report what it saw, and under an inherited `auto` mode a classifier decides what it may run, not the brief. Every call passes `--model`, `--effort` and `--permission-mode`. The brief carries an `effort_for` helper keyed on role and attempt: mechanical work opens low, each failed attempt moves one rung up, and behavioural acceptance rows or wide-blast-radius fixes start one rung higher. Values and the helper itself: `references/verify-loop.md`, section 4.
 
 The rest of the spend is structural, not stylistic: quote the constraint in the prompt instead of telling the agent to go read it, and reference the console-log path rather than pasting the log.
 
@@ -324,7 +326,7 @@ a mechanical test defect may be corrected in a logged test-only commit that
 re-validates the gate mode; and that a semantic spec error stops the run.
 
 ## Ground truth
-Repos and worktrees (path, branch, base, clean?), the spec-of-record path,
+Repos and worktrees (path, branch, base, clean?, linked?), the spec-of-record path,
 what already landed (commit shas), what is deliberately NOT in scope.
 One branch per repo, one worktree for the whole run.
 The install command known to work, and that a failed install stops the run.

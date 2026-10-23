@@ -7,15 +7,19 @@ fails the stand-alone test.
 Which harness to pick, and why the loop is shaped this way, is in `../SKILL.md`. This
 file is the operational half.
 
-Placeholders: `$WORKTREE`, `$APP_URL`, `$PORT`,
-`$CD` = `~/.claude/skills/chrome-devtools/references/chrome-devtools`, and:
+Placeholders: `$WORKTREE`, `$APP_URL`, `$PORT`, and:
 
 ```sh
+CD="$HOME/.claude/skills/chrome-devtools/references/chrome-devtools"   # absolute, no ~
 RUN_DIR=~/.claude/plans/<YYYY-MM-DD>/<name>-run-evidence   # NOT /tmp
 FINDINGS="$RUN_DIR/findings.md"
 RUN_TAG="loop-<name>"     # every headless agent's --name starts with this
 AGENT_MODEL="opus"        # passed to every agent call; never inherited
 ```
+
+`$CD` is absolute because the sweep agent's `Bash($CD *)` rule is matched as text against
+the command it runs. Hand the agent this exact expanded string; a `~` form or a relative
+path does not match the rule, and the call is denied.
 
 `$RUN_TAG` exists only for this run, so `pgrep -f -- "[c]laude -p .*--name $RUN_TAG"`
 finds this run's agents and nobody else's headless sessions. The `[c]` keeps the pattern
@@ -41,6 +45,30 @@ list by word-splitting a path.
 > on splitting collapses its list into one bogus path under zsh and the runner reports
 > "no tests found" — which a fix loop reads as green.
 
+## Preflight — while Ryan is still at the keyboard
+
+**`$WORKTREE` must be a linked worktree, not a primary checkout.** Ryan's user-level
+`PreToolUse` hook (`~/.claude/hooks/worktree-gate-pretooluse.sh`) denies `Edit` and `Write`
+in a primary checkout until that session has recorded a worktree decision. A headless
+agent loads the hook, has no way to record a decision, and `--permission-prompts none`
+turns the denial silent — every fix edit fails and the night produces nothing. Do not
+work around the gate. Check it as the brief's first command, while Ryan is still there:
+
+```sh
+require_linked_worktree() {
+  local gd common
+  gd=$(git -C "$WORKTREE" rev-parse --absolute-git-dir) || return 1
+  common=$(git -C "$WORKTREE" rev-parse --path-format=absolute --git-common-dir) || return 1
+  [ "$gd" != "$common" ] || {
+    echo "STOP: $WORKTREE is a primary checkout. Point the run at a linked worktree." >&2
+    return 1; }
+}
+```
+
+On failure the run stops and asks Ryan for a linked worktree. Creating one is his call, or
+the interactive spec session's, never the run's: the rule against `git worktree add` during
+the run still holds.
+
 ## 0. `with_timeout` — macOS has no `timeout`
 
 Neither `timeout` nor `gtimeout` is on this machine (no GNU coreutils). A brief that
@@ -57,8 +85,7 @@ with_timeout() {  # with_timeout <seconds> <command...>
 itself takes the SIGALRM. Timed-out runs exit 142.
 
 SIGALRM reaches only the process that was launched — a timed-out `claude -p` can leave
-children behind (Bash tool subprocesses, MCP servers), so run the heartbeat (section 9)
-after any 142.
+children behind (Bash tool subprocesses), so run the heartbeat (section 9) after any 142.
 
 ## 1. The dev server: reuse first, then start
 
@@ -178,6 +205,7 @@ identity_gate() {    # returns non-zero if the thing under test is not this work
     "$WORKTREE"|"$WORKTREE"/*) ;;
     *) echo "identity: port $PORT served from '$cwd', not under '$WORKTREE'" >&2; return 1 ;;
   esac
+  IDENTITY_CWD="$cwd"   # global: the sweep prompt carries it (section 5)
 
   # (b) the phase's sentinel reaches the served output — same tab, every time
   "$CD" navigate --wait-until load "$APP_URL" >/dev/null || {
@@ -202,9 +230,9 @@ Applies to every headless Claude Code call in this file: sweep, fix, and diagnos
 flag below was checked against `claude --help` (Claude Code 2.1.309).
 
 **A `claude -p` call inherits the operator's defaults unless it overrides them.**
-`~/.claude/settings.json` sets `model`, `effortLevel` and `permissions.defaultMode` — on
-this machine `opus`, `high` and `auto`. A sweep that inherits them runs at high effort to
-click four things, and under `auto` a classifier decides what it may run, not the brief.
+`~/.claude/settings.json` sets `model`, `effortLevel` and `permissions.defaultMode`. A
+sweep that inherits a high effort level spends it clicking four things, and under an
+inherited `auto` mode a classifier decides what it may run, not the brief.
 So every call passes these explicitly:
 
 | Flag | Why |
@@ -217,9 +245,12 @@ So every call passes these explicitly:
 | `--tools` / `--allowedTools` / `--disallowedTools` | What the agent can call at all, what runs without asking, and what is refused outright. |
 | `--add-dir "$RUN_DIR"` | Gives the agent's tools the evidence directory as well as the worktree. |
 | `--no-chrome` | Keeps the agent off `claude-in-chrome` and Ryan's real profile. |
+| `--strict-mcp-config` | Loads no MCP servers. Otherwise every call spawns Ryan's stdio servers, which a 142 orphans and the `--name` pattern cannot see. |
 | `--name "$RUN_TAG-…"` | The tag `pgrep` and teardown match on. |
 | `--no-session-persistence` | Dozens of sweeps stay out of `/resume`. |
 | `--output-format text` | Prints only the final message. Redirected, that is the contract file. |
+| `< /dev/null` | The prompt is an argument. Closed stdin skips the wait for piped input. |
+| `$WORKTREE` is a linked worktree | Ryan's worktree-gate hook silently denies every edit in a primary checkout (Preflight). |
 
 Two things have no flag:
 
@@ -285,6 +316,21 @@ it did.
 
 ## 5. Sweep agent
 
+The run executes the identity gate itself, before the agent starts. The agent's Bash is
+only `$CD`, so it cannot run `lsof` and cannot observe the serving cwd. A failed gate
+means no agent call at all: the sweep is void, and the run logs it and rebuilds. A passed
+gate becomes a line in the prompt, which the agent echoes as its `IDENTITY`:
+
+```sh
+if identity_gate; then
+  printf 'IDENTITY (observed by the run; echo verbatim): pass — %s / sentinel found\n' \
+    "$IDENTITY_CWD" >> "$RUN_DIR/sweep-prompt-p$N-a$ATTEMPT.md"
+else
+  printf '## P%s attempt %s — identity: fail, sweep void\n\n' "$N" "$ATTEMPT" >> "$FINDINGS"
+  # rebuild, restart, re-gate — never call the sweep agent on a failed gate
+fi
+```
+
 ```sh
 ( cd "$WORKTREE" && with_timeout 900 claude -p \
     --tools "Read,Grep,Glob,Bash" \
@@ -292,6 +338,7 @@ it did.
     --add-dir "$RUN_DIR" \
     --permission-mode dontAsk \
     --permission-prompts none \
+    --strict-mcp-config \
     --no-chrome \
     --no-session-persistence \
     --name "$RUN_TAG-sweep-p$N-a$ATTEMPT" \
@@ -299,6 +346,7 @@ it did.
     --effort "$(effort_for sweep "$ATTEMPT")" \
     --output-format text \
     "$(cat "$RUN_DIR/sweep-prompt-p$N-a$ATTEMPT.md")" \
+    < /dev/null \
 ) > "$RUN_DIR/sweep-p$N-a$ATTEMPT.md"
 ```
 
@@ -308,13 +356,14 @@ sandbox here, so CDP on `127.0.0.1:$CDP_PORT` is reachable. If a sandbox is ever
 in settings, it must allow localhost, or the sweep reports a connection error that reads
 like a broken app.
 
-The sweep prompt carries the style preamble from section 4, the app URL, the `$CD` path
-and its `--help` hint, the phase's acceptance rows, the sentinel, the scope fence, and
-this output contract — which is the whole response:
+The sweep prompt carries the style preamble from section 4, the app URL, the expanded
+`$CD` string exactly as the rule names it, its `--help` hint, the identity line, the
+phase's acceptance rows, the sentinel, the scope fence, and this output contract — which
+is the whole response:
 
 ```
 PHASE: <n>
-IDENTITY: pass | fail — <cwd observed> / <sentinel found?>
+IDENTITY: <the identity line from the prompt, verbatim>
 ACCEPTANCE:
   - <row>: landed | not-landed — <selector or text observed> — <screenshot path>
 REGRESSIONS: <console errors, 4xx/5xx, broken route> | none
@@ -357,10 +406,12 @@ that exist nowhere else: the post's word ceiling will not carry them.
 
 ```sh
 ( cd "$WORKTREE" && with_timeout 1800 claude -p \
+    --tools "Read,Grep,Glob,Edit,Write,Bash" \
     --allowedTools Read Grep Glob Edit Write "Bash(bun test *)" "Bash($TYPECHECK)" \
     --disallowedTools "Bash(git add *)" "Bash(git commit *)" "Bash(git push *)" \
     --permission-mode acceptEdits \
     --permission-prompts none \
+    --strict-mcp-config \
     --no-chrome \
     --no-session-persistence \
     --name "$RUN_TAG-fix-p$N-a$ATTEMPT" \
@@ -368,14 +419,19 @@ that exist nowhere else: the post's word ceiling will not carry them.
     --effort "$(effort_for fix "$ATTEMPT")" \
     --output-format text \
     "$(cat "$RUN_DIR/fix-prompt-p$N-a$ATTEMPT.md")" \
+    < /dev/null \
 ) > "$RUN_DIR/fix-p$N-a$ATTEMPT.md"
 ```
 
 The fix prompt carries the sweep's `GAPS` verbatim, the scope fence, and the verification
 command. The allowlisted Bash is that verification command — this stack's `TEST_ONE` and
-`TYPECHECK` adapters; substitute the repo's own. The agent does not commit and does not
-stage. The deny rules enforce it, because a headless session loads Ryan's global
-instructions, and they say to commit finished work. The run reviews the diff, then
+`TYPECHECK` adapters; substitute the repo's own. It is not the agent's only shell access:
+`acceptEdits` also auto-approves filesystem commands such as `mkdir`, `touch`, `rm`,
+`rmdir`, `mv`, `cp` and `sed` inside the working directories. So the agent can delete or
+move files, not only edit them. `assert_specs_untouched` below still catches any spec it
+changes or removes. The agent does not commit and does not stage. The deny rules enforce
+it, because a headless session loads Ryan's global instructions, and they say to commit
+finished work. The run reviews the diff, then
 `git add` plus the `/commit` skill.
 
 **The fix prompt states the specs are read-only**, naming this phase's spec files and the
@@ -411,15 +467,19 @@ Exact `=` comparison, not `grep` — substring matching lets `a.spec.ts` match
 On attempt 3, this becomes the diagnosis agent instead:
 
 ```sh
-tree_fingerprint() { ( cd "$WORKTREE" && { git status --porcelain; git diff; } | shasum ); }
+tree_fingerprint() {   # tracked changes, file names, and untracked file contents
+  ( cd "$WORKTREE" && { git status --porcelain; git diff
+      git ls-files -z --others --exclude-standard | xargs -0 shasum; } | shasum )
+}
 
-before=$(tree_fingerprint)
+before=$(tree_fingerprint); rc=0
 ( cd "$WORKTREE" && with_timeout 1800 claude -p \
     --tools "Read,Grep,Glob,Bash" \
     --allowedTools Read Grep Glob "Bash(git log *)" "Bash(git diff *)" \
       "Bash(git show *)" "Bash(bun test *)" \
     --permission-mode dontAsk \
     --permission-prompts none \
+    --strict-mcp-config \
     --no-chrome \
     --no-session-persistence \
     --name "$RUN_TAG-diagnose-p$N" \
@@ -427,15 +487,17 @@ before=$(tree_fingerprint)
     --effort "$(effort_for diagnose)" \
     --output-format text \
     "$(cat "$RUN_DIR/diagnose-prompt-p$N.md")" \
-) > "$RUN_DIR/diagnose-p$N.md"
+    < /dev/null \
+) > "$RUN_DIR/diagnose-p$N.md" || rc=$?   # keep going under set -e: the check must run
 [ "$(tree_fingerprint)" = "$before" ] || {
-  echo "STOP: diagnose agent changed the worktree" >&2; false; }
+  echo "STOP: diagnose agent changed the worktree (agent exit $rc)" >&2; false; }
 ```
 
 Claude Code has no read-only sandbox, so this is the substitute. The agent has no edit
 tools, and its Bash is limited to reading history and re-running the failing case. The
 fingerprint compares against the tree *before* the call, not against a clean tree: the
-failed fix attempts are still uncommitted at this point.
+failed fix attempts are still uncommitted at this point. It runs whatever the agent's exit
+code, including 142, because a timed-out agent can still have written something.
 
 ## 8. Loop control and gate tiers
 
