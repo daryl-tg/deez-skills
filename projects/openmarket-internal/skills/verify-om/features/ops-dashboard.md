@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): the shell and `navigation "Main navigation"` (Overview, Watches, News, Strategies, Channels, Connections, Venues, Receipts, OM Chat). Overview showed `Your market, in view.` with Watch activity. Watches at `/alerts` listed the probe row, and the Strategies/Paper tablist was driven. `/paper` has an empty `main` (unmounted). **`/strategies/does-not-exist` now renders `Unavailable.` and not the documented `Back to Strategies` branch**, although `/rpc/v1/money/show` answers 404 `money_not_found` (a product gap, listed under the README's Known product gaps). Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): built with `bun run build:dashboard`. Driven: the shell and `navigation "Main navigation"` (Overview, Watches, News, Strategies, Channels, Connections, Venues, Receipts, OM Chat), `Switch to light mode` and `Ask your agent`. Overview: `Your market, in view.`, `region "Watch activity"`, `region "Workspace"` and `Restart daemon` (not pressed). On a FRESH lane (18102), the onboarding showed `Welcome to OpenMarket`, `Dismiss welcome`, `Create your first watch` / `Create a watch` and `More setup options ▸`; expanded, it showed `Choose where updates arrive` (`Manage channels`), `Connect a coding agent` (`Manage connections`) and `Connect a trading venue` (`View venues`). Watches at `/alerts`: filter chips, search, Folder and the `lane-probe` row. `/news`, `/strategies`, `/channels`, `/connections`, `/venues` and `/receipts` were walked; `/paper` had an empty `main`. `/strategies/does-not-exist` reached `No strategy named … Back to Strategies` after about 10 s of `Loading…` (see the strategy detail step). Previous stamp `db6e76ef5` is an ancestor of this tree.*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
@@ -98,11 +98,15 @@ Preconditions:
   `/strategies/<id>` and `Watch details` for the new `/alerts/<id>` — and driven
   at v0.400.0 the 404 branch rendered little beyond the shell, inconsistently
   between two reads. Do not pin a heading here; assert the `Back to Strategies`
-  link, which was stable through `7e22214fb`. **On main `db6e76ef5` it does not
-  appear**: `main` reads `Unavailable.` (`pages/strategy-detail.tsx:370`), and it
-  stayed so for 20 s, while the request `POST /rpc/v1/money/show` returned 404
-  `money_not_found`. The 404 branch (`:357-366`, "No strategy named <slug>. Back
-  to Strategies") is not taken. Report it as a product gap, not map drift. The populated page (signal state, fills, chart,
+  link. **It is slow to appear, so wait for it.** Driven at `42d044b02`, `main`
+  read `Loading…` at 6 s and `No strategy named does-not-exist. Back to
+  Strategies.` from 10 s on, held at 35 s, with `link "Back to Strategies"` in
+  the snapshot. `POST /rpc/v1/money/show` answered 404 `money_not_found`. The
+  2026-10-22 pass at `db6e76ef5` saw `Unavailable.` for 20 s instead and filed it
+  as a product gap, but `apps/dashboard/src` is unchanged between the two trees
+  and the gap did not reproduce. Poll `agent-browser get text main` until the
+  text leaves `Loading…`, for up to 30 s. If it lands on `Unavailable.`, record
+  that with timings rather than assuming either outcome. The populated page (signal state, fills, chart,
   transitions timeline, per-strategy digest) is `verified-unreachable` from a
   guest lane: it needs a strategy, which needs a signal and a paired venue.
   Report it that way rather than as empty.
@@ -110,7 +114,21 @@ Preconditions:
   `Watches`), `/strategies` (heading `Strategy digest`), `/channels`, `/venues`,
   and `/receipts`. Each renders its heading and guest-lane empty state. When
   populated, Receipts also shows `OID`, `Notional`, and `Status` alongside
-  `Time`, `Alert`, and `Venue`.
+  `Time`, `Alert`, and `Venue`. Driven at `42d044b02`: `/news` Recent fires has
+  columns `AGE`, `HEADLINE`, `WATCH`, `OUTCOME` and its Watches table `WATCH`,
+  `GOAL`, `STATE`, `LAST ACCEPTED`; `/channels` offers `Connect webhook`;
+  `/receipts` reads `No receipts in the last 24 hours.`
+- **Connections.** `/connections` (H1 `Connections`) has `heading "AI model"`,
+  reading `not connected` on a guest, with a `Connect your first AI provider`
+  disclosure, and `heading "Coding agents"` ("Optional. Connect an installed app
+  to give it OpenMarket tools and skills."). Each agent row (Claude Code, Codex,
+  Cursor, Claude Desktop, OpenClaw) reads `Installed, not connected` with a
+  `Connect` button, or `Not detected on this machine` with a disabled one.
+  **Never press `Connect` from a lane.** The rows reflect the REAL machine's
+  installed apps. `POST /rpc/v1/integrations/connect` runs the CLI's own
+  wiring path for that client (`runner/http/integrations-api.ts`), so a press
+  from a lane would rewire the operator's real Claude Code or Codex to the
+  lane, and that change outlives it. Driven read-only at `42d044b02`.
 - **Prove a cross-surface change.** Create or fire something through the CLI,
   then reload the page and assert the row. The dashboard polls every 3s, so a
   reload is not required, but a reload makes the evidence unambiguous.

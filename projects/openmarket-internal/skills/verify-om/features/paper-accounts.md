@@ -1,6 +1,6 @@
 # Paper trading accounts
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `paper create verify-book` without `--yes` was refused with `confirmation_required`, and with `--yes` gave `{account:{id:pa_…,name,cash:1000},desk:"off"}`. `ls` gave `accounts[]` with id, name, cash, starting_cash, open_lots, open_stakes, open_value and realized_pnl. `show` gave account, rules and lots. `log` gave `{entries:[],next_cursor:null}`. `set --ticket 10 --yes` returned the rules, and `reset --yes` returned `generation:1`. The Paper tab (inside `tablist` with tabs Strategies / Paper) showed the line and the ACCOUNT…REALIZED P&L headers with the row. Opening and closing trades were not driven. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): `paper create verify-book` without `--yes` gave exit 2 `confirmation_required`. With `--yes --format json` it returned `{account:{id:"pa_…",name:"verify-book",cash:1000},desk:"off"}`. `paper ls` rows carried `cash`, `id`, `name`, `open_lots`, `open_stakes`, `open_value`, `realized_pnl` and `starting_cash`. `paper set --ticket 10 --yes` was stored, and `show` read `rules.ticket 10`. `paper log` returned `{entries:[],next_cursor:null}` and `paper reset --yes` returned `generation:1`. The `/strategies` Paper tab showed the intro, the six columns, the `verify-book` row and an equity heading. Not driven: `open`, `close`, `reset-all` and `digest`. Previous stamp `db6e76ef5` is an ancestor of this tree.*
 
 A paper account is pretend money held locally: no venue, no credentials, no real
 order ever placed. A user opens one from the CLI, and it shows up in the
@@ -57,3 +57,8 @@ credential, no venue.
   [account] --signal <json>`, `close <account> <lot>`, `reset-all`, `digest` and
   `digest-set` exist but were not driven; treat their output shapes as
   unverified.
+- **`desk` is not always `off`.** `paper create` from a human terminal or chat
+  sets `desk: "on"` when the setting `paper.auto_arm` reads on (`on`, `true`, `1`
+  or `yes`; `actions/paper/create.ts`, `runner/paper/desk.ts`). A fresh guest
+  lane leaves it unset, so `"desk":"off"` is the lane's answer, not a
+  constant. MCP and the daemon never arm the desk.

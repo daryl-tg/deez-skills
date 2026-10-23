@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `/alerts?create=1` opened `dialog "Create a watch"` with the eight kinds. RSS opened `Set up a feed` (Name, Feed address, `Which updates should count?` = All new items). Review gave `Review your watch` / `RSS or Atom feed`, and Create watch landed on `/alerts/ui-authored-feed`. `watch list` showed `ui-authored-feed  1 source  paused  never`, and after resume the stub logged `ok GET /rss`. On the detail page, the History default outcome is `What it kept`. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): `Create watch` opened `dialog "Create a watch"` with the eight kinds. RSS opened `Set up a feed` (Name, Feed address, `Which updates should count?` = All new items), and Review gave `Review your watch` / `heading "RSS or Atom feed"`. Create landed on `/alerts/ui-authored-feed`, and `watch list` read `ui-authored-feed  1 source  paused  never`. The detail page showed H1 `UI authored feed`, `Fetch now`, `Resume`, `Edit watch`, `Watch sections` (Setup/History/Delivery/Settings), `Sources and schedules` with a `127.0.0.1` source (`Edit source`, `Pause source`) and `Connected steps`. Its next-step card read `Start when you are ready` while paused and `Choose how you hear about updates` / `Set up delivery` once resumed. History (`?tab=history`) defaulted to `Events and step answers` / `What it kept` / `All sources`. After `watch resume`, the stub logged `ok GET /rss` every 60 s. Batch actions were not driven. Previous stamp `db6e76ef5` is an ancestor of this tree.*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the
@@ -113,3 +113,11 @@ Preconditions:
 - A loopback feed address is refused unless the LANE carries
   `OM_FEED_ALLOW_LOOPBACK=1`. Unlike `om watch page-add`, the UI creates through
   the daemon, so the switch is needed on `up` only — not on a CLI call.
+- **The detail page's next-step card follows the watch's state.** A just-created
+  watch is paused, and its Setup tab opens `heading "Start when you are ready"`
+  beside a `Resume` button. Once resumed, the same slot reads `Choose how you
+  hear about updates` with `Set up delivery`
+  (`components/watches/next-step.tsx`). Assert the one that matches the state
+  you put it in. Each source row also carries `Pause source`, and a
+  `heading "Connected steps"` section follows `Sources and schedules` (driven at
+  `42d044b02`).

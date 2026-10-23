@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `watch create "Lane Probe Two" --inbound` gave slug `lane-probe-two`, `enabled: true` and an inbound source. Before `accept_all`, `watch list` showed its STATUS as `steps judging paused · no model to run the AI filter on · om init` with LAST FIRE `never`. Pause printed `Paused event watch lane-probe (lane-probe)` (`spec.enabled:false`), resume printed `Resumed ...`, and remove printed `Removed event watch lane-probe-two (lane-probe-two): history deleted (0 rows); journal files kept`. `event push` returned `accepted, deduped, delivery, event_id, notes, watch_id`. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): `watch create "Lane Lifecycle Probe" --inbound` gave slug `lane-lifecycle-probe`, `enabled: true`, one `inbound` source, `spec_version: 3` and a file under `accounts/guest/watches/`. `watch list` STATUS read `steps judging paused · no model to run the AI filter on · om init`. After `--classifier-mode accept_all` (the `edited` block named `classifier`, `goal`, `name`, `overview` and `source_id`) it read `working`. Pause and resume printed `Paused/Resumed event watch lane-lifecycle-probe (lane-lifecycle-probe)`, and `watch show` gave `spec.enabled` false and then true, with a card opening `Lane Lifecycle Probe · paused`. Remove printed `history deleted (1 row); journal files kept`. Journal reads were driven too: `event-journal list`, `watch journal-stats` and `watch chapters`. Previous stamp `db6e76ef5` is an ancestor of this tree.*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
@@ -121,6 +121,18 @@ Preconditions:
   is not gone, which is the point of the trailing clause.
 - **Proof.** Keep the create/edit/show JSON, the `watch list` text before and
   after each transition, and a `ls` of the watches dir at the start and end.
+- **Read the journal surface.** With a watch that has accepted rows (the
+  `lane-probe` from [event ingest](./event-ingest-and-fire.md) is enough), run
+  `control-om om -- event-journal list --format json`, which returns
+  `journals[]` of `{slug, watch_id, label}`. A removed watch's journal stays
+  listed with `watch_id: null`, which is the `journal files kept` promise made
+  visible. Then `control-om om -- watch journal-stats <slug> --format json`
+  returns `window_days`, `generated_at` and an `activity` block
+  (`accepted_total`, `live`, `relay`, `catchup`, `imported`, `backfill`), and
+  `control-om om -- watch chapters <slug> --format json` returns `chapters: []`
+  with `developments_folded: 0` on a fresh watch. Chapters need a summary
+  fold, which needs a model. `event-journal search <query>` exists
+  (`om event-journal search --help`) but was not driven.
 
 ## Gotchas
 
@@ -166,3 +178,8 @@ Preconditions:
 - Removing a SHARED watch tells followers first and is refused outright while
   om cannot reach OpenMarket — unreachable on a guest lane, and not something to
   report as broken from here.
+- **OpenFeed receipt wording moved in #2107** (source only, not driven: it needs
+  an account with an OpenFeed link). `om watch openfeeds` now says `Feeds: N of
+  M in use` (formerly `Slots:`), an OpenFeed `source add` prints `Feed: <meaning>
+  · <volume>` (formerly `OpenFeed: <shape> · ...`), and the provenance label is
+  `your feed`. A recipe that greps the old words finds nothing.

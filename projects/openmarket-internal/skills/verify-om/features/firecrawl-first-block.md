@@ -1,6 +1,6 @@
 # Firecrawl recovery before whitelist
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): the guest no-key challenge path. While the origin stub challenged, `om watch show` printed `FAULT source waiting · feed 127.0.0.1: 127.0.0.1 is challenging this machine since … · next try … · Firecrawl can read it for you` and `FIX om setup firecrawl`, and the dashboard detail page showed the same `waiting · … Firecrawl can read it for you` sentence. On main the status-row fix is the bare `om setup firecrawl` in both the setup and the allow case (`runner/watching/status-sentence.ts:2514-2519`). Only the `page-add` CLI hint spells `om setup firecrawl --allow <host>` (`actions/watch/_page-leg.ts:422-423`). Configured vendor retry, repeated refusal and restart persistence remain last driven at tree `fe82b2ef1`; live verification pending (needs `OM_FIRECRAWL_API_KEY` plus a redirect of `api.firecrawl.dev/v2/scrape`).*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): the guest no-key challenge path, re-driven with the origin stub on 18111. While the origin challenged, `om watch show` printed `FAULT source waiting · feed 127.0.0.1: 127.0.0.1 is challenging this machine since … · next try … · Firecrawl can read it for you` and `FIX om setup firecrawl`, and the dashboard detail page `/alerts/ui-authored-feed` showed the same `waiting · … Firecrawl can read it for you` sentence. Repeating `page-add` with no key gave exit 2 and the bare hint "Run `om setup firecrawl` to retry public pages this machine cannot read." For the held feed URL the code was `page_origin_cooldown`. For a challenged article page it was `page_bot_wall_suspected`, and the message ended `(HTTP 403)`. On main the status-row fix is the bare `om setup firecrawl` in both the setup and the allow case (`runner/watching/status-sentence.ts:2514-2519`). Only the `page-add` CLI hint spells `om setup firecrawl --allow <host>` (`actions/watch/_page-leg.ts:422-423`). Configured vendor retry, repeated refusal and restart persistence remain last driven at tree `fe82b2ef1`; live verification pending (needs `OM_FIRECRAWL_API_KEY` plus a redirect of `api.firecrawl.dev/v2/scrape`). Previous no-key stamp `db6e76ef5` is an ancestor of this tree.*
 
 A configured Firecrawl connection retries the first eligible direct-read failure or refusal automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.
 
@@ -35,7 +35,7 @@ Use a fresh, run-owned guest lane. The proved rig uses assigned ports 18121 (dae
 
 The 2026-09-30 rig and preload are preserved in `/Users/dboon/Documents/dev-notes/firecrawl-first-block/rig/`; its proof is `firecrawl-first-block-20260930/r2`, archived under `delivery-evidence-archive/` in the same notes directory after the task worktree was removed. Recreate the rig under the next run's assigned ports rather than treating these running servers as shared infrastructure.
 
-## Guest-lane reachability (source-established 2026-10-22, tree `7e22214fb`)
+### Guest-lane reachability (source-established 2026-10-22, tree `7e22214fb`)
 
 Only the no-key path is drivable with nothing configured. `resolveFirecrawlEscalation()`
 returns `null` when no key resolves (`runner/firecrawl/escalation.ts`), and

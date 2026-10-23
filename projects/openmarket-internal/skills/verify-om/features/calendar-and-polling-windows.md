@@ -1,6 +1,6 @@
 # Calendar scheduling and polling windows
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): occurrence `cocc_ec41afe3ecff5b96ebb91c0a` was admitted through `event push --kind calendar_candidate` and listed as `scheduled`/`candidate`/revision 1. `show` gave keys decisions, event, links, occurrence, revisions, selections and windows. `select` gave `{ok:true,watch_id,occurrence_id,decision:"selected",change_seq:2}`, and `revise --status cancelled` gave `changed:true`, revision 3, with list `cancelled`. Polling windows on a feed source: `--polling-json` stored the block, `window set` gave `state:"scheduled"`, `window cancel --source --origin` gave `cancelled:true`, and a 4 h window was refused naming `polling.bounds.max_window_sec (7200)`. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): an occurrence was admitted through `event push --kind calendar_candidate` and came back as `cocc_…` with `scheduled`, `candidate` and `revision 1`. `calendar show` carried `provider`, `provider_occurrence_id`, `scheduled_at` and `evidence_url`. `select` returned `{ok:true, decision:"selected", change_seq:2}`. `revise --status cancelled` returned `changed:true, revision:3`, and `list` then read `cancelled`. `calendar links watch calendar-probe` returned `{"links":[]}`. Polling windows: `--polling-json` was stored on the source; `window set --every 60` gave `state: scheduled`; a 10800 s window was refused with `window_refused` naming `max_window_sec (7200)`; `--every 60s` failed with `every_sec ... NaN`; `window list` showed the window; `window cancel --origin` returned `cancelled:true`. Not driven: `calendar reject`. Previous stamp `db6e76ef5` is an ancestor of this tree.*
 
 `om calendar` lists and manages scheduled occurrences, while `om watch window`
 sets bounded read windows on sources with a polling policy. The calendar needs
@@ -103,6 +103,9 @@ The 2026-10-12 guest-lane drive used the `oct12-feed` RSS source. It confirmed
 the stored policy and the scheduled-to-cancelled transition. It did not wait
 for the scheduled window to run. Occurrence review actions remain unverified
 because the guest calendar had no occurrences.
+- **Links.** `control-om om -- calendar links watch <watch> --format json`
+  lists the watch's occurrence links (`--status pending|verified|mismatch|closed`
+  filters them). Driven on `calendar-probe` after a select: `{"links":[]}`.
 
 ## Gotchas
 

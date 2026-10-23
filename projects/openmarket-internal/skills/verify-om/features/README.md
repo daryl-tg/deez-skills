@@ -8,8 +8,17 @@ recipe.
 
 - Launch the lane on its **assigned** port. Bind `127.0.0.1`. Never pick a free
   one: `control-om up` (default `18101`, range `18097`–`18197`).
+- **Only `up` reads `--port`.** Every other subcommand (`down`, `doctor`, `url`,
+  `om`) takes the port from `OM_LANE_PORT` and silently falls back to `18101`.
+  Driven 2026-10-23: `control-om down --port 18102` stopped lane 18101 and left
+  18102 running. For a second lane, prefix every call: `OM_LANE_PORT=18102
+  control-om down`.
 - `control-om doctor` reports the expected origin, an isolated lane home, a
-  present dashboard bundle, and a lane that is down or yours.
+  present dashboard bundle, and a lane that is down or yours. **`dist present`
+  does not mean a real bundle.** A fresh worktree that ran `bun run
+  dashboard:stubs` reports `dist present (693 bytes)`: those stubs boot the
+  daemon but render no dashboard. Run `bun run build:dashboard` (about 700 KB of
+  `app.js`) before driving any dashboard guide.
 - Never drive an instance this run did not start. The daemon on `31337` is the
   operator's, and it is never a target.
 - A source lane is the tree **at boot**. If the repo moves under the run, doctor
@@ -120,31 +129,49 @@ state, commands, and observable proof.
 - [Origin challenge backoff](./origin-challenge-backoff.md) — a Cloudflare
   challenge holds every source on the host, provable with a loopback stub.
 - [Firecrawl recovery before whitelist](./firecrawl-first-block.md) — first refusal recovery, repeated-refusal whitelist guidance, and no-key setup.
+- [The capability layer over MCP (stdio)](./mcp-stdio.md) — new 2026-10-23:
+  handshake, catalog, a read, and the capital gate refusing without spending.
+- [Chart catalog reads](./chart-catalog-reads.md) — new 2026-10-23: indicator
+  and drawing schemas, which need no chart tab.
+- [Local reads and discovery](./local-reads-and-discovery.md) — new 2026-10-23:
+  config and key claims, notification history, enums, schema intents, skills,
+  indicator packages.
 - [Agent creator lifecycle](./agent-creator-lifecycle.md) — **branch-only, not on origin/main**: the daemon side is on `origin/daryl/agent-creator-closeout` (`a3a81a5f5`, PR #1948) and the GUI side on openmarket-chat MR !75. See the banner on the guide.
 
-Not yet mapped, and worth adding when a change touches them: the MCP
-surface (`om mcp serve --stdio`), charts (`om chart`), the `om chat` TUI,
+Not yet mapped, and worth adding when a change touches them: hosted MCP
+(`om mcp serve --http`), the chart workspace mutations (`om chart` add,
+update, remove and drawings, which need a GUI chart tab), the `om chat` TUI,
 packages and the registry, and the execution/venue verbs.
 
 
 ## Surface inventory
 
-Source discovery re-run 2026-10-22 against **origin/main `db6e76ef5` (v0.460.0)**.
-The earlier census the same day was taken at `7e22214fb`, which is on branch
-`daryl/watch-narrative` and is not an ancestor of main (merge-base
-`463c0ceca`; main is 188 commits past it, and the branch holds 26 commits main
-lacks). The user-facing surface barely differs. Deltas from branch to main:
-commands +2 (`instruments`, `option-chain`) and −1 (`welcome`, branch-only);
-actions +6 (`watch_feedback`, `chart_drawing_update`, `series_delete`,
-`instruments`, `option_chain`, `usage_plans`); the same 21 categories, the same
-9 dashboard routes, and 30 RPC files. So on main that is about **92 top-level
-commands** (93 names with aliases) and **~803 actions**. The original census at
-`7e22214fb`, kept for the deltas: **91 top-level `om` commands** and **797 registered actions across 21
-categories** (rooms 190, watch 74, chart 46, system 31, market-data 17, packages
-16, execution 13, hyperliquid 12, paper 11, research 10, news 9, wallet 8,
-polymarket 8, strategy 7, polymarket-account 6, calendar 6, wrun 5, payments 4,
-memory 4, state 2, transient 1), plus 9 dashboard routes and ~29 runner RPC
-families. Twelve guides exist. This table is the gap between those two numbers.
+Source discovery re-run **2026-10-23** against **origin/main `42d044b02`
+(v0.462.0)**, 22 commits past the previous census at `db6e76ef5` (an ancestor).
+Counts were taken from source, not from older prose:
+
+- **93 top-level command names** registered by 84 modules in
+  `packages/cli/src/main.ts` (unchanged since `db6e76ef5`; `welcome` is absent
+  on main, `alerts` is staff-only and hidden from `--help`).
+- **478 registered actions** across 19 categories, counted by loading the
+  `registry` array in `packages/cli/src/actions/index.ts` (477 at
+  `db6e76ef5`; the one addition is `chart_indicator_schema`; 481 with
+  `OM_CHART_MULTIPLAYER=1`): rooms 192, watch 75, chart 45, system 32,
+  market-data 19, packages 17, execution 13, hyperliquid 12, paper 11,
+  research 10, news 9, wallet 8, polymarket 8, polymarket-account 6, calendar
+  6, wrun 5, payments 4, memory 4, state 2. `docs/TOOLS.md` lists 476.
+- **9 dashboard routes** plus the detail routes (`/`, `/agent`, `/alerts`,
+  `/alerts/:idOrSlug`, `/news`, `/strategies`, `/strategies/:idOrSlug`,
+  `/connections`, `/channels`, `/venues`, `/receipts`; `/paper` is not mounted
+  in this build), and **30 runner RPC files**.
+
+**The previous headline was wrong.** It claimed ~803 actions (797 at
+`7e22214fb`) across 21 categories, but its own per-category numbers summed to
+482. No `strategy` or `transient` category is registered at either tree: the
+seven `actions/managed/*.ts` files declare `category: "strategy"` but are
+built by factories behind `om managed` (`cmd/managed.ts`) and never enter the
+registry. Fifteen guides exist (one branch-only). This table is the gap
+between the guides and the surface.
 
 Rows marked `live verification pending` are source-supported and undriven;
 source inspection is not proof. Keep them across passes until driven, mapped, or
@@ -152,20 +179,25 @@ removed with source evidence.
 
 | User outcome | Product source path | Guide / sub-feature | Live verification | Prerequisite or gap |
 |---|---|---|---|---|
-| Open a local paper-trading account and read its book | `actions/paper/*.ts`; `runner/http/rpc/paper.ts` | [paper-accounts.md](paper-accounts.md) | 2026-10-22, main `db6e76ef5` (create/ls/show/log/set/reset + Paper tab) | Open/close/reset-all/digest undriven. |
-| List a venue's instruments and read an options chain | `cmd/instruments.ts`; `cmd/option-chain.ts`; `actions/data/{instruments,option-chain}.ts`; `runner/v3/` | [market-data-reads.md](market-data-reads.md) (stamp) | 2026-10-22, main `db6e76ef5` | New on main. Needs `OM_DATA_TRANSPORT=v3` on the CLI call; the default transport exits 2 `invalid_query`. |
-| Read Data API plan tiers | `actions/data/usage-plans.ts`; `cmd/usage.ts` (`usage plans`) | [market-data-reads.md](market-data-reads.md) (stamp) | 2026-10-22, main `db6e76ef5` (guest: empty `providers`) | Populated tiers need a signed-in account. |
-| Give 👍/👎 feedback on an openfeed alert; a new feed sends today's top 3 | `actions/watch/feedback.ts`; `openfeed/{feedback*,first-look}.ts` | unmapped | live verification pending | New on main (#2106 and nearby). Needs an account, registry, LLM credential and a channel destination. |
+| Check the install: doctor, status, logs | `cmd/{doctor,status,logs}.ts` | [daemon-lifecycle-and-health.md](daemon-lifecycle-and-health.md) | 2026-10-23, main `42d044b02` (14 doctor checks, status, logs) | Was implicit in the guide but absent from this table. |
+| Look up enum domains, schema intents and bundled skills | `cmd/{enum,schema,skill}.ts`; `packages/sdk/src/types/enum-domains.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) | 2026-10-23, main `42d044b02` (`enum --list`/`--domain`, `schema read`, `skill list`) | `schema read <intent>` and `skill show` undriven. |
+| Connect an AI provider or coding agent from the dashboard | `apps/dashboard/src/pages/connections.tsx`; `runner/http/integrations-api.ts` | [ops-dashboard.md](ops-dashboard.md) (Connections) | 2026-10-23, main `42d044b02` (read-only) | Pressing `Connect` rewires the operator's real coding agents, so it is never driven from a lane. |
+| Publish and read live series snapshots | `cmd/series.ts`; `docs/LIVE-SERIES.md` | unmapped | live verification pending | `list`/`show`/`create` look local per source; `publish` needs an account. |
+| Resolve a phrase to venue fields; screen and chart metrics | `cmd/{resolve,metric,markets,tenors}.ts` | [market-data-reads.md](market-data-reads.md) (sub-features only) | live verification pending | Guest-drivable per source; this pass drove only `enum`, `coins`, `exchanges`, `points`, `instruments` and `option-chain`. |
+| Open a local paper-trading account and read its book | `actions/paper/*.ts`; `runner/http/rpc/paper.ts` | [paper-accounts.md](paper-accounts.md) | 2026-10-23, main `42d044b02` (create/ls/show/log/set/reset + Paper tab) | Open/close/reset-all/digest undriven. |
+| List a venue's instruments and read an options chain | `cmd/instruments.ts`; `cmd/option-chain.ts`; `actions/data/{instruments,option-chain}.ts`; `runner/v3/` | [market-data-reads.md](market-data-reads.md) (Gotchas) | 2026-10-23, main `42d044b02` (default refusal; v3 rows and expiries) | Needs `OM_DATA_TRANSPORT=v3` on the CLI call (`OM_DATA_V3_URL` too if the home sets `OM_BASE_URL`); the default transport exits 2 `invalid_query`. Typed-door reads added by #2114 (fx/index candles, ETF flow, FRED) are undriven. |
+| Read and clear model-provider plan holds (`usage plans`) | `actions/data/usage-plans.ts`; `cmd/usage.ts` | [market-data-reads.md](market-data-reads.md) (Gotchas) | 2026-10-23, main `42d044b02` (guest: empty `providers`) | Corrected: this reports MODEL provider plans and holds, not Data API tiers. Populated rows, `--refresh` and `--clear` need a signed-in model provider. |
+| Give 👍/👎 feedback on an openfeed alert; a new feed sends today's top 3 | `actions/watch/feedback.ts`; `openfeed/{feedback*,first-look}.ts` | unmapped | live verification pending | Needs an account, registry, LLM credential and a channel destination. `watch_feedback` has no CLI verb (MCP or chat only). Its refusal on a non-OpenFeed watch, `watch_feedback_not_openfeed`, is guest-reachable over MCP per source but undriven. |
 | Open the registry welcome page (`om welcome`) | branch `daryl/watch-narrative` only (`cmd/welcome.ts`) | non-outcome on main | n/a | Removed from main; no recipe should call it there. |
-| Review a scheduled calendar occurrence | `actions/calendar/*`; `runner/calendar/blocks.ts` | [calendar-and-polling-windows.md](calendar-and-polling-windows.md) | 2026-10-22, main `db6e76ef5` (occurrence + polling windows) | None — guest-drivable via the inbound door; `calendar links` undriven. |
-| Recover a challenged origin through a paid reader | `runner/firecrawl/*` | [firecrawl-first-block.md](firecrawl-first-block.md) | no-key path re-driven 2026-10-22, main `db6e76ef5`; configured path pending | Needs `OM_FIRECRAWL_API_KEY` **and** a redirect of `api.firecrawl.dev/v2/scrape` to a fixture, together. |
+| Review a scheduled calendar occurrence | `actions/calendar/*`; `runner/calendar/blocks.ts` | [calendar-and-polling-windows.md](calendar-and-polling-windows.md) | 2026-10-23, main `42d044b02` (occurrence, links, polling windows) | None — guest-drivable via the inbound door; `calendar reject` undriven. |
+| Recover a challenged origin through a paid reader | `runner/firecrawl/*` | [firecrawl-first-block.md](firecrawl-first-block.md) | no-key path re-driven 2026-10-23, main `42d044b02`; configured path pending | Needs `OM_FIRECRAWL_API_KEY` **and** a redirect of `api.firecrawl.dev/v2/scrape` to a fixture, together. |
 | Create, publish, adopt and revoke an agent/text skill | branch `origin/daryl/agent-creator-closeout` only (daemon `a3a81a5f5`, PR #1948) | [agent-creator-lifecycle.md](agent-creator-lifecycle.md) (branch-only) | not on origin/main | Absent from main's source (re-checked at `db6e76ef5`); merge PR #1948 and openmarket-chat MR !75, then verify on main. |
 | Compose a watch (or a set) from a natural-language ask | `actions/watch/watch-compose.ts`; `actions/watch/kit.ts` | unmapped | live verification pending | Needs an LLM credential; the single largest `om watch` entry point. |
 | Share, follow, fork, install a watch; room shares and knocks | `actions/watch/{share,follow,fork,install,share-room,knocks,relay-door}.ts` | unmapped | live verification pending | Registry + account credential; a follower needs a second home. |
 | Attach and arm steps (ai / tool / money) on a watch | `actions/watch/{action-add,action-remove,tools,run-now}.ts` | unmapped | live verification pending | Money steps are capital-gated; ai steps need a model credential. |
 | Grow an existing watch with more sources | `actions/watch/{source-add,page-add,search-add,model-add,source-copy}.ts` | unmapped | live verification pending | Page/search/model sources need a model credential; a feed source does not. |
 | Repair or retry a watch broken for any non-origin reason | `actions/watch/{repair,retry,lane-retry}.ts` | unmapped | live verification pending | Needs a watch in a genuinely broken state to repair. |
-| Read the wider journal surface: search, stats, chapters | `actions/watch/{journal-search,journal-stats,chapters,journal-list}.ts` | unmapped | live verification pending | Needs accumulated journal history. |
+| Read the wider journal surface: list, stats, chapters, search | `actions/watch/{journal-search,journal-stats,chapters,journal-list}.ts`; `cmd/event-journal.ts` | [watch-lifecycle-cli.md](watch-lifecycle-cli.md) (journal step) | 2026-10-23, main `42d044b02` (`event-journal list`, `journal-stats`, empty `chapters`) | `event-journal search` and populated chapters undriven (chapters need a model's summary fold). |
 | See and reclassify rows the judge never reached | `actions/watch/unjudged-rows.ts`; `actions/watch/reclassify.ts` | unmapped | live verification pending | `watch unjudged` is new this range; needs a daily-cap state to observe. |
 | Rewrite a fired row's recorded verdict | `actions/watch/synthesize.ts` | unmapped | live verification pending | Destructive projection rewrite; no guide at all. |
 | Move a watch between devices, mute a remote copy, restore one | `actions/watch/{move-here,move-readiness,mute,restore,adopt-here}.ts` | unmapped | live verification pending | Needs a second device/home for the interesting cases. |
@@ -173,19 +205,21 @@ removed with source evidence.
 | Session and device identity: sign-in state, rename/revoke devices, account email | `actions/auth/{status,relogin}.ts`; `actions/devices/*`; `actions/account/email.ts` | unmapped | live verification pending | Account credential; revoke is destructive. |
 | Mint and revoke API keys | `actions/keys/{create,revoke}.ts` | unmapped | live verification pending | Account credential; security-tiered, revoke is permanent. |
 | Pair and manage a notification channel | `actions/system/{channel-add,channel-home}.ts`; `runner/http/rpc/channel.ts` | unmapped (dashboard shell only) | live verification pending | Needs a real Telegram/Discord/Slack credential. |
-| Read the daemon's own notification history | `actions/system/{notis-list,notis-get}.ts` | unmapped | live verification pending | Needs delivered notices to read. |
-| Inspect resolved config and the active key's claims | `actions/system/{config-show,config-key-info}.ts` | unmapped | live verification pending | Guest-drivable in principle; simply undriven. |
+| Read the daemon's own notification history | `actions/system/{notis-list,notis-get}.ts`; `cmd/notis.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) | 2026-10-23, main `42d044b02` (`notis --since 7d` rows) | `notis get` and `--after` paging undriven. |
+| Inspect resolved config and the active key's claims | `actions/system/{config-show,config-key-info}.ts`; `cmd/config.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) | 2026-10-23, main `42d044b02` (`show`, `key-info`, `get`) | `config set`/`edit` undriven. |
 | Upgrade the binary, migrate and restart | `actions/system/upgrade.ts` | unmapped | live verification pending | Risk tier 5, confirm-carded; must never run against a lane. |
 | Read the subscription plan and pricing | `actions/system/upgrade-show.ts` | unmapped | live verification pending | Account/billing state; note the filename does not match the outcome. |
 | Watch roster triage: what needs attention, one-click repair | `actions/system/{watching,watching-resolve-attention}.ts` | unmapped | live verification pending | Needs watches in attention-needing states. |
+| Read indicator and drawing schemas (catalog) | `actions/collab/{indicator-schema,indicator-list}.ts`; `cmd/chart.ts` | [chart-catalog-reads.md](chart-catalog-reads.md) | 2026-10-23, main `42d044b02` (`indicator schema`, `indicator list`, `drawing schema`) | The `--chart`/`--workspace` forms and the `wrun/@scope/name/output` metric-id form are undriven. |
 | Drive chart workspaces, indicators and drawings | `actions/collab/chart-*.ts`, `drawing-*.ts`, `indicator-*.ts` | unmapped | live verification pending | Needs a human's GUI chart tab open on a live collab session; a headless lane has nothing to submit to. |
 | Backtest a strategy over historical bars | `actions/research/backtest*.ts` | unmapped | live verification pending | Condition-source backtests are guest-key drivable; fixed-view/ai-step kinds need accepted event-watch rows first. |
 | Browse paid news feeds and read Fast-alerts billing | `actions/news/{feeds,billing,brief,voice}.ts`; `runner/http/rpc/news.ts` | unmapped (dashboard shell only) | live verification pending | Catalog browsing may be guest-ok; billing and follow need an account and a funded vendor relationship. |
 | Agent memory: save, search and forget durable notes | `actions/memory/*.ts`; `cmd/memory.ts` | unmapped | live verification pending | `memory_save`/`forget` are agent-tool-only — they need a live `om chat` turn, not the bare CLI. |
-| Author and compile a custom WASM indicator | `actions/wrun/{create,author,build,source-set,list}.ts` | unmapped | live verification pending | No credential needed, but `wrun_build` compiles and installs deps — needs outbound package-manager access and a harness that tolerates a real build. |
-| Arm and tune a live managed-strategy wallet | `actions/managed/{arm-disarm,bind-address,set-size,set-drawdown,set-flatten,status}.ts` | unmapped | live verification pending | Capital-reaching: funded venue wallet plus an explicit arm gate. Out of reach for a guest lane. |
+| Author and compile a custom WASM indicator | `actions/wrun/{create,author,build,source-set,list}.ts`; `cmd/wrun.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) (`wrun list`/`templates` only) | 2026-10-23, main `42d044b02` (list and templates) | `wrun create`/`validate` are filesystem-only and undriven; `wrun build` compiles and installs deps, so it needs package-manager access. |
+| Arm and tune a live managed-strategy wallet | `cmd/managed.ts` over `actions/managed/*.ts` factories (CLI-only: not in the action registry) | unmapped | live verification pending | Capital-reaching: funded venue wallet plus an explicit arm gate. Out of reach for a guest lane. |
 | Place and manage real venue orders; wallet and execution | `cmd/{order,execute,buy,hyperliquid,polymarket}.ts`; `actions/{execute,orders,hyperliquid,wallet,polymarket}/` (`actions/execution/` does not exist) | unmapped | live verification pending | Real money. Needs a funded account and a safe plan; nothing attempted. |
-| Reach the capability layer over MCP (local and hosted) | `cmd/mcp.ts`; `mcp/server.ts`; `mcp/http.ts` | unmapped | live verification pending | No stdio/JSON-RPC drive recipe in this map; hosted needs auth/scope. |
+| Reach the capability layer over MCP (stdio) | `cmd/mcp.ts`; `mcp/server.ts`; `mcp/capital-gate.ts` | [mcp-stdio.md](mcp-stdio.md) | 2026-10-23, main `42d044b02` (handshake, 451 tools, a read, `capital_not_armed`) | `om mcp arm`, `--catalog operator` and `--session merged` undriven. |
+| Reach the capability layer over hosted MCP (HTTP) | `mcp/http.ts` | unmapped | live verification pending | Needs hosted auth and scopes. |
 | Publish, install and manage registry packages | `cmd/{packages,publish,install}.ts`; `actions/packages/*` | partially via agent-creator (itself unverified) | live verification pending | Registry credential; `package_delete` is irreversible. |
 | Approve an arming or model edit from the dashboard | `runner/http/rpc/{watch-arm-review,watch-edit-review}.ts` | unmapped | live verification pending | Needs a watch with a money/ai step awaiting approval. |
 | Sealed secrets bridge | `runner/http/rpc/secrets.ts` | unmapped | live verification pending | Security-sensitive; GUI never holds keys. |
@@ -194,15 +228,17 @@ removed with source evidence.
 
 ### Known product gaps (reported, not map drift)
 
-- `/strategies/<unknown>` renders `Unavailable.` on main `db6e76ef5`. The
-  `No strategy named <slug>. Back to Strategies` branch is never taken, even
-  though `POST /rpc/v1/money/show` returns 404 `money_not_found`. Driven
-  2026-10-22, stable over 20 s. The cause is not isolated (`pages/strategy-detail.tsx:357-370`).
+- **Not reproduced 2026-10-23**: the 2026-10-22 pass saw `/strategies/<unknown>`
+  stuck on `Unavailable.` at `db6e76ef5`. At `42d044b02`, with
+  `apps/dashboard/src` unchanged, it showed `Loading…` for 6+ s and then
+  `No strategy named <slug>. Back to Strategies.` Kept here as an
+  intermittent observation until a pass sees `Unavailable.` again with timings.
 
 - The "paper book" link on a strategy detail page points at `/paper?account=<id>`,
   a route this build does not mount; driven at `7e22214fb` it renders the shell
   with an empty `main` — no content, no 404.
 - `AGENTS.md`'s capital-line section documents a `strategy_*` verb family
   (`strategy_create`, `strategy_resume`, `strategy_edit`, `strategy_remove`,
-  `strategy_paper_reset`) that no longer exists in source; the live category is
-  entirely `managed_*`.
+  `strategy_paper_reset`) that no longer exists in source. No `strategy`
+  category is registered at all; the managed verbs exist only behind
+  `om managed` (`cmd/managed.ts`).

@@ -1,6 +1,6 @@
 # The dashboard agent panel
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): on `/alerts`, **Ask your agent** opened `region "Ask your agent"` with the heading `Ask OpenMarket`, `Message your agent`, Send message (disabled while empty), Open full conversation, Close agent panel, the page-context controls, and the suggestions `Explain watches` / `Help me get started here`. Sending gave `article "Your message"` and the alert `No LLM API key configured. Run \`om init\`, or export OPENMARKET_LLM_KEY for this shell.` with Reload conversation / Check connections. A real conversation stays pending: it needs an LLM credential. Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): on `/alerts`, `Ask your agent` opened `region "Ask your agent"` with `Ask OpenMarket`, `Open full conversation`, `Close agent panel`, `textbox "Message your agent"`, a disabled `Send message`, `Preview shared page context` / `Remove page context`, and the suggestions `Explain watches` / `Help me get started here`. A send produced the `role=alert` text "No LLM API key configured. Run `om init`, or export OPENMARKET_LLM_KEY for this shell." with `Reload conversation` and `Check connections`. The full-page `/agent` showed `heading "Conversations"` and `What can I help with?`. A real reply needs an LLM credential and stays unreachable. Previous stamp `db6e76ef5` is an ancestor of this tree.*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as
@@ -64,6 +64,12 @@ Preconditions:
   accessible name is `OpenMarket, chat with your agent`. It is NOT a nav item,
   so a driver walking the nav will never find it. Open `/agent` directly or use
   `Open full conversation` to inspect the history rail and chat workspace.
+- **The full-page workspace.** `agent-browser open "$(control-om url /agent)"`
+  (also the sidebar brand link `OpenMarket, chat with your agent`) renders
+  an `Agent conversations` rail with `heading "Conversations"` and, on an
+  empty conversation, the H1 `What can I help with?`. Driven at `42d044b02`.
+  `Load earlier messages`, the `Stop reply` button and tool approval cards need
+  a credentialed conversation and stay unreachable on a guest lane.
 
 ## Gotchas
 

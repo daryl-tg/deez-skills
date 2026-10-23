@@ -1,6 +1,6 @@
 # Market data reads
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h` returned `series[0]` with `id` and 3 `points` of `{Point:{open,high,low,close,volume,timestamp:{s},firstTimestamp,...}}`. `--detail summary` returned the same `points` shape for this type. `coins` and `exchanges` returned lists. New on main: `instruments` and `option-chain` (both need `OM_DATA_TRANSPORT=v3` on the CLI call; without it they exit 2 `invalid_query`) and `usage plans` (`{providers:[],cleared:null,clear_lifted:null}` on a guest). Previous stamp `7e22214fb` is on branch `daryl/watch-narrative`, not an ancestor of main.*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): doctor `api_key`/`network` ok. `enum --format json` returned domain keys including `exchanges`, `types` and `intervals`. `coins` returned `{coins}` and `exchanges` included `BINANCE` and `HYPERLIQUID`. `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h` returned the full `id` block and 3 `Point` wrappers. `--type OHLCV` was refused with `is not a valid value`. `instruments` on the default transport gave exit 2 `invalid_query` (`not v3`). With only `OM_DATA_TRANSPORT=v3` on the CLI call, `instruments BINANCE BTCUSDT` returned `arm: crypto` with one row and `option-chain DERIBIT BTC` returned `expiries`. `usage plans` returned `{providers:[],cleared:null,clear_lifted:null}`: a MODEL provider plan read, not a Data API one (see Gotchas). Previous stamp `db6e76ef5` is an ancestor of this tree.*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,
@@ -86,3 +86,26 @@ Preconditions:
   an `om usage llm` subcommand (`--since`, `--by provider|watch|model|day|hour`)
   reading a LOCAL token/cost ledger — a different question entirely, and not the
   Data API quota. Bare `om usage` is unchanged. A long drive can exhaust it.
+- **`om usage plans` is not a Data API read either.** It reports each signed-in
+  MODEL provider's plan (Anthropic, OpenAI Codex): its usage windows and the hold
+  every model call reads before it dials (`actions/data/usage-plans.ts`, header).
+  `--refresh` re-reads the usage pages and `--clear <provider>` lifts a
+  provider's cap. A guest has no model provider, so it returns
+  `{"providers":[],"cleared":null,"clear_lifted":null}` (driven 2026-10-23). An
+  earlier pass filed it here as "Data API plan tiers". It lives in the
+  market-data source folder, but it answers a model question.
+- **`instruments` and `option-chain` are v3-socket reads.** On the default
+  transport (`auto`, which never resolves to v3) both exit 2 `invalid_query` with
+  `the catalog is served over the v3 socket only, and this install's data
+  transport is not v3.` The hint names `om config set data.transport v3`, or
+  `OM_DATA_TRANSPORT=v3 with OM_DATA_V3_URL`. On a guest lane,
+  `OM_DATA_TRANSPORT=v3` alone on the CLI call was enough (driven 2026-10-23):
+  `instruments BINANCE BTCUSDT --limit 3` returned `{exchange, arm:"crypto",
+  rows[1], received, truncated}` and `option-chain DERIBIT BTC --neighbor-strikes
+  1` returned `expiries`. Per source (`runner/v2/url.ts`), a home that sets
+  `OM_BASE_URL` without `OM_DATA_V3_URL` resolves no v3 endpoint and falls back
+  to the same refusal. #2114 changed only the signed-in path.
+- **Enum discovery has two more forms.** `om enum --list` is the domain index
+  (`domains[]` with `name`, `count`, `dynamic`, `sample`). `om enum --domain
+  exchange_id --query BIN --limit 3` pages one domain (`total`, `offset`,
+  `next_offset`). See [local reads and discovery](./local-reads-and-discovery.md).

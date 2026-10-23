@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-22, tree `db6e76ef5` (origin/main, v0.460.0): entry, hold and recovery re-driven against the bundled stub on port 18132, with the lane on `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000`. `ok GET /rss` polled every ~60 s. After the flip the stub logged exactly one `challenge GET /rss` (02:56:24Z) and the lane logged `reopen held until 03:11:25.147Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` showed `connection_state: reconnecting`, `reconnect_count: 0` and `cooldown {until, error}`, and `watch show` gave `FAULT source waiting · feed 127.0.0.1: 127.0.0.1 is challenging this machine … · Firecrawl can read it for you` / `FIX om setup firecrawl`. The mode went back to `ok` at 02:59Z, yet the origin received **no request for the full 15 min**. Then exactly one `ok GET /rss` at 03:11:25.238Z and `reopened after the window`. Not re-driven: the doubling (a second challenge at the window end). The previous stamp's "byte-identical" claim no longer holds on main (see Gotchas).*
+*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): entry, hold and recovery were re-driven against the bundled stub on 18111, with the lane on `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000`. `page-add … --prefer feed --every 60s` returned `adopted` onto the dashboard-authored `ui-authored-feed`, and `ok GET /rss` arrived every 60 s. After the flip, the stub's `requests.log` held exactly one `challenge GET /rss` (02:18:25.673Z), and the lane logged `reopen held until 2026-10-23T02:33:25.980Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` read `connection_state: reconnecting`, `reconnect_count: 0` and `cooldown {until, error}`. `watch show` gave `FAULT source waiting · feed 127.0.0.1: 127.0.0.1 is challenging this machine since … · next try … · Firecrawl can read it for you` and `FIX om setup firecrawl`, and `watch run now` gave the generic `reconnecting this watch's source` refusal (exit 2) with no request. The mode went back to `ok` at 02:20Z, and the origin received no `/rss` request until exactly one `ok GET /rss` at 02:33:25.989Z, followed by `reopened after the window` and `/healthz` `open` with `cooldown: null`. Not driven: the doubling. Previous stamp `db6e76ef5` is an ancestor of this tree.*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -168,3 +168,20 @@ Steps:
   env var is what makes the rig poll every minute.
 - The `[library]` mirror logs `registry answered 403` on a guest lane; it is
   unrelated to the stub and matches a grep for `403`.
+- **The stub's request log is `requests.log` in its working directory**, not its
+  stdout. Stdout prints only `origin stub listening on …`, so a run reading
+  stdout sees no requests and concludes the poller is dead. Run it from a
+  scratch directory of the run's own (`mkdir -p <run>/origin-stub && cd …`),
+  and copy `requests.log` into the artifact directory as the silence proof. The
+  helper ships with this skill: `helpers/origin-challenge-stub.ts` under the
+  canonical hub path, also reachable as `~/.claude/skills/verify-om/helpers/`
+  and `~/.codex/skills/verify-om/helpers/`.
+- **Other processes on this machine probe 18111.** Driven 2026-10-23, the log
+  caught `ok GET /chat/tools/visual/shell-fixture.html` from something that was
+  not the lane. Filter the silence proof on `/rss` (and `/article/`) rather than
+  counting every line.
+- **A CLI probe during a hold hits the origin.** `page-add` runs in the CLI
+  process, outside the daemon's hold. Repeating it while the origin is
+  challenged adds a `challenge GET` line to the log and refuses with
+  `page_origin_cooldown`. Run the Firecrawl no-key step only after the
+  recovery proof, never inside the window you are proving silent.
