@@ -47,6 +47,14 @@ interaction end to end.
   owner select legacy webhooks; URLs and senders stay while deliveries become
   alert cards in that channel's tape (`WebhooksPage.tsx:600`,
   `ConvertWebhooksStepper.tsx:342,419`).
+- Keyboard Shortcuts carries an **Editing** group with one switch, **Vim mode**
+  (`UserSettings.tsx:1278-1296`, `878049d8`/`b1ed7135`). It is off by default and
+  stored as `localStorage["om.chat.vimMode"]` (`"true"`/`"false"`). It is synced and
+  scoped per account (`lib/prefs.ts`) and turns on Vim keys in the message box
+  ([composer-and-sending.md](composer-and-sending.md)) and the doc editor
+  ([your-library.md](your-library.md)). It adds no nav entry. The page's search
+  keywords gained `vim modal editing`, so searching `vim` narrows the nav to
+  Keyboard Shortcuts.
 - Settings search, the Esc-to-close rail behavior, and the open/close
   transition. Since `06ee56bd` the dialog also closes on **browser Back**:
   `SettingsShell.tsx:192` calls `useOverlayHistoryDismiss`
@@ -115,6 +123,9 @@ Other handles that resolve today:
 ```bash
 agent-browser find role button   click --name "Notifications"
 agent-browser find role searchbox fill  "keyboard" --name "Search settings"
+agent-browser find role searchbox fill  "vim" --name "Search settings"       # -> only Keyboard Shortcuts
+agent-browser find role switch   click --name "Vim mode"   # on settings-fixture ?host=user&page=shortcuts,
+                                                         # or shell ?view=settings&settingsPage=shortcuts
 agent-browser find role radio    click --name "Moss palette"
 agent-browser find role radio    click --name "Iris accent"
 agent-browser find role tab      click --name "Direct message"   # preview toggle, NOT density
@@ -184,4 +195,4 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** The user host showed 19 nav entries with no OM Settings. **Light theme** set `data-theme=light` and read `Light theme (selected)`, **Moss palette** set `data-palette=moss`, and searching `keyboard` left only Keyboard Shortcuts. Channel and server nav counts were measured for owner, admin and member (above). Owner channel Webhooks opened **Convert webhooks to alerts · bitcoin**. The shell `?view=settings&settingsPage=appearance` showed 20 entries including OM Settings. **Limitations:** Conversion effects, help/guide pages, server overview/members/invites/integrations/library/recovery/import/danger page content, persisted preferences and per-viewer to-do overrides were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries, the h1 Keyboard Shortcuts and the switch **Vim mode**. Searching `vim` left only Keyboard Shortcuts in the nav. On `?host=user&page=appearance`, the **Moss** palette radio set `data-palette=moss`. On the shell `?view=settings&settingsPage=shortcuts`, the switch flipped `om.chat.vimMode` to `"true"`, and flipping it back wrote `"false"`. The same switch rendered on the `/chat/` cloud fixture. **Limitations:** Light theme, channel and server nav counts per role, Webhooks conversion and the shell's 20-entry OM Settings view were not re-driven this pass (last proved 2026-10-22). Conversion effects, help/guide pages, server page content, persisted preferences, cross-device Vim pref sync and per-viewer to-do overrides were not exercised. Previous record: 2026-10-22 at `cd9f8c72`.

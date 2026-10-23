@@ -43,10 +43,10 @@ for the gated flows and their live-lane prerequisites.
   remote device answers over the relay, the doors read
   **"Your om, connected remotely"** and **"Agents, connected remotely"**, or
   **"…, remote control off"** when a device is reachable but none is selected
-  (`Shell.tsx:1507-1511`; accessible names at `:3066`, `:3585`, `:3610`,
+  (`Shell.tsx:1551`; accessible names at `:3066`, `:3585`, `:3610`,
   `:3747`). The tooltips spell it with a colon instead, "Agents: connected
   remotely" (`:3043`, `:3729`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4034`). The pane
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4137`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -109,7 +109,7 @@ for the gated flows and their live-lane prerequisites.
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:483`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:476`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -134,12 +134,12 @@ for the gated flows and their live-lane prerequisites.
 
   **Since `#978` persona lives inside Agents, not beside it.** The Agent
   Center's context rail is an `aside` named **"Agent roster"**
-  (`AgentCenterPane.tsx:745`) holding, top to bottom:
+  (`AgentCenterPane.tsx:750`) holding, top to bottom:
 
   - a `nav` named **"Roster sections"** (`:759`) — **Roster**, **Waiting on
     you, N**, **In progress, N** (the counts ride the accessible names);
   - a group named **"Persona"** holding a `nav` named **"Persona sections"**
-    (`AgentCenterPane.tsx:806-810`) — **Voice**, **Away coverage, off**
+    (`AgentCenterPane.tsx:815`) — **Voice**, **Away coverage, off**
     (state in the name again), **Activity**;
   - a `nav` named **"Agents"** — **Open your om**, then one row per helper
     badge when any are seeded.
@@ -182,7 +182,7 @@ for the gated flows and their live-lane prerequisites.
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:282-298`), supplied by `Shell.tsx:4492`. That is
+  remains (`UserSettings.tsx:274`), supplied by `Shell.tsx:4561`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
@@ -196,7 +196,7 @@ for the gated flows and their live-lane prerequisites.
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:3831`, `:5163`),
+  composer with no lane toggle and no target (`Composer.tsx:5412-5413`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -326,4 +326,4 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?view=agents`: **+ Wire an agent** opened the Settings dialog on Agent Settings with the install notice. No create/import/catalog controls are present. `agent-center-fixture.html` landed on Roster, **Waiting on you, 4** opened `#/agents/waiting` with Allow / No / Accept / Reject, and `#/agents/badge/agcr_claude` showed `Live now`. `state=desk-off` read "assembling the roster". `away-panel-fixture` showed the coverage text and `1h 18m remaining · This Mac`. `remote-home-fixture` `approval` showed Approve / Deny / Stop / Add context, `live` Stop / Add context, `older` Load older, and `unsupported` the unsupported copy. `?view=agent` showed "om isn't running". **Limitations:** Authenticated roster actions, daemon sessions, unread receipts, watches and remote-control effects need isolated daemon services (parity stack down). Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `?view=agents` routed to `#/agents`, and **+ Wire an agent** opened the Settings dialog on Agent Settings. `agent-center-fixture.html` **Waiting on you** opened `#/agents/waiting` with Allow / No / Allow / No / Accept / Reject, `#/agents/badge/agcr_claude` showed `Live now`, and `state=desk-off` read "assembling the roster". `away-panel-fixture` showed the coverage text and `1h 18m remaining · This Mac`. `remote-home-fixture` `approval` showed Stop / Approve / Deny, `live` showed Stop and the aria-labelled **Add context** (no visible text), and `unsupported` showed the unsupported copy. `?view=agent&omSessions=drafts` still showed "om isn't running". Line citations re-measured this pass: Shell `:1551` and `:4561`, ChatPane `:476`, AgentCenterPane `:750`/`:815`, UserSettings `:274`, Composer `:5412-5413`, shell-fixture `:4137`. The rail and mobile-segment ranges (`Shell.tsx:3054-3068`, `:3572-3624`) were not re-measured. **Limitations:** `older` (Load older) was not re-driven. Authenticated roster actions, daemon sessions, unread receipts, watches and remote-control effects need isolated daemon services (parity stack down). Previous record: 2026-10-22 at `cd9f8c72`.

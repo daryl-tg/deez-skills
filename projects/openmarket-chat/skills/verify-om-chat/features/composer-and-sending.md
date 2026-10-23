@@ -44,9 +44,9 @@ Read the gotchas for where the line now falls.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
 - Send disabled while empty; Enter-to-send versus newline. The **Send message**
-  button renders when `isMobile || showSendButton` (`Composer.tsx:6092`). The
+  button renders when `isMobile || showSendButton` (`Composer.tsx:6318`). The
   ordinary room and DM composer is therefore phone-width only, and desktop
-  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:437`) and the
+  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:432`) and the
   remote-control pane (`RemoteControlPane.tsx:345`) also show it on desktop,
   with an `sr-only` "Send" label.
 - Sent text must not come back as a draft after a reload or a revisit
@@ -55,6 +55,20 @@ Read the gotchas for where the line now falls.
   and has no IndexedDB snapshot, so it proves only that the box clears.
 - The over-limit "send as file" offer and the mass-mention brake, both of which
   can refuse a send that otherwise looks ready.
+- **Vim mode** (`b1ed7135`, `1aebc918`), opt-in from Settings → Keyboard
+  Shortcuts → **Vim mode** (see
+  [settings-and-appearance.md](settings-and-appearance.md)). The engine is a lazy
+  chunk (`lib/composer-vim.ts`) loaded once the setting is on. Focus lands in
+  insert mode. Escape enters normal mode, `v` visual and `V` visual-line.
+  Motions, operators with text objects, counts and undo exist in the engine and
+  its unit tests; the recipe below drives a subset of them.
+  The mode badge is
+  `<span class="composer-vim-mode" data-vim-mode="normal|insert|visual|visual-line">`
+  (`Composer.tsx:6401-6411`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
+  a pending operator in `.composer-vim-pending`. Enter sends only in insert
+  mode. Escape belongs to Vim, so it no longer cancels a reply. Touch screens
+  (coarse pointer) never get Vim. With the setting off none of this renders,
+  and Enter and Escape behave as before.
 
 ## How to get to it (user POV)
 
@@ -128,7 +142,7 @@ agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text
 
 Related handles that do resolve. In the composer row itself:
 `"Summon your om here"` (on a private om lane the same button is `"Back to the room"`,
-`Composer.tsx:5381-5382`), `"Add attachment or action"`,
+`Composer.tsx:5599-5600`), `"Add attachment or action"`,
 `"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
 On a message or the recovery banner: `"Add reaction"`,
 `"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
@@ -151,6 +165,35 @@ four-minute build is the expensive order.
 
 The cheaper alternative for a pure logic change is a unit test in `test/`
 against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
+
+Vim mode. Turn it on through the Settings switch (or seed
+`localStorage["om.chat.vimMode"]="true"` and reload). The fixture never writes the key:
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=settings&settingsPage=shortcuts&alerts=quiet')"
+agent-browser find role switch click --name "Vim mode"      # localStorage om.chat.vimMode -> "true"
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
+agent-browser find role textbox click --name "Message #ops"
+V='(()=>{const b=document.querySelector(".composer-vim-mode");const t=document.querySelector("textarea");
+  return JSON.stringify({mode:b?.dataset.vimMode,val:t.value,sel:[t.selectionStart,t.selectionEnd],
+  rows:document.querySelectorAll("[data-message-row]").length})})()'
+agent-browser eval "$V"                      # mode insert
+agent-browser keyboard type "hello world"; agent-browser press Escape
+agent-browser eval "$V"                      # mode normal, val "hello world"
+agent-browser press 0; agent-browser press d  # .composer-vim-pending reads "d"
+agent-browser press w                         # val "world"
+agent-browser press Enter                     # normal mode: no new row, draft kept
+agent-browser press v; agent-browser press '$' # mode visual, sel [0,5]
+agent-browser press V                         # mode visual-line
+agent-browser press Escape; agent-browser press i; agent-browser press Enter
+agent-browser eval "$V"                      # rows +1, val "", mode STILL insert
+```
+
+Reply interplay: open `?view=room&alerts=quiet&reply=1`, focus the box, and press
+Escape twice. **Cancel reply** stays. Turn the switch off and the same Escape
+removes it, which is the control. Verified on `/rooms/` and on the `/chat/`
+cloud fixture, which share the same Vim behavior (the `/chat/` route is
+path-based: `/chat/room/ops`).
 
 ## Gotchas
 
@@ -224,6 +267,15 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
   about delivery and recovery states. Keep those claims on the daemon-pair
   lane and say which lane a frame came from.
 
+- **A send in Vim insert mode stays in insert mode.** The box empties and the
+  badge keeps reading INSERT. It does not drop back to normal. Assert that,
+  not a return to NORMAL.
+
+- **Turning Vim mode off writes `"false"`.** It does not remove the key. Check
+  `localStorage.getItem("om.chat.vimMode") === "true"` rather than checking for
+  the key's presence. Remove it yourself between runs in one browser session:
+  a later default-state frame otherwise renders with Vim on.
+
 - The composer is a `textarea` with `role="textbox"`, not a `contenteditable`.
   `document.querySelector("[contenteditable=true]")` finds nothing.
 
@@ -237,4 +289,4 @@ against the real `ChatSession`, which is what `tools/gui-e2e.ts` drives.
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?view=room&alerts=quiet&mermaid=1` at 1440x900 showed Summon your om here, Add attachment or action, Choose emoji or GIF, Toggle sealed mode and Toggle om approval mode, with no delivery banner and no desktop Send button. Typing then Enter appended the row (17 to 18) and cleared the textarea. At 390x844, **Send message** was present and `[disabled]` while empty. The DM composer was named `Message ana · $ for markets · /chart to post one`. **Limitations:** Local fixture send only. Delivery, cross-lane recovery, sent-draft non-resurrection after reload, attachments and file previews are live verification pending (daemon-pair lane; parity stack down). Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `?view=room&alerts=quiet` at 1440x900 with Vim off: no `.composer-vim-mode` and no desktop Send button, and typing then Enter appended a row (16 to 17) and cleared the textarea. At 390x844, **Send message** was present and `[disabled]` while empty. `?view=dm&dm=ana&draft=<js fence>` named the box `Message ana · $ for markets · /chart to post one` with one `[data-code-panel]`. Vim mode on (new): focus gave INSERT, Escape NORMAL, `0dw` turned `hello world` into `world` with a pending `d` shown first, Enter in normal mode posted nothing, `v$` gave VISUAL with selection [0,5], `V` gave VISUAL LINE, and `i` then Enter sent (16 to 17) and stayed in INSERT. With `reply=1`, Escape kept **Cancel reply** under Vim and removed it with Vim off. The same Vim journey passed on the `/chat/` cloud fixture. **Limitations:** Local fixture send only. Delivery, cross-lane recovery, sent-draft non-resurrection after reload, attachments and file previews are live verification pending (daemon-pair lane; parity stack down). Vim on touch devices, IME composition, account pref sync and the full motion and operator set (unit-tested in `packages/chat-ui/test/composer/vim-*.test.ts*`) were not driven. Previous record: 2026-10-22 at `cd9f8c72`.

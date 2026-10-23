@@ -58,4 +58,4 @@ rows, and capture the **Resolving topics** count after starting a cleanup.
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?quiet=on` rendered **Quiet topics 20** on the rail, and More channel actions listed no Clean up topics. **Limitations:** The sheet and resolve job are live verification pending. They need an eligible daemon build and an isolated topic-triage service, and the local parity services (4001, 3002) were down. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `?quiet=on` rendered **Quiet topics 20** on the rail, and More channel actions listed 14 items with no Clean up topics. **Limitations:** The sheet and resolve job are live verification pending. They need an eligible daemon build and an isolated topic-triage service, and the local parity services (4001, 3002) were down. Previous record: 2026-10-22 at `cd9f8c72`.

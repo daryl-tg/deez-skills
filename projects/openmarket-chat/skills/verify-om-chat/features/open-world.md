@@ -41,15 +41,18 @@ channel for talking to whoever is nearby.
 
 ## Driving it with a standalone source Vite lane
 
-**Not through the shell fixture or the wrapper lane.** `?view=` has no `world`
-value, and the shell fixture never stubs the world session port, so the sidebar
-row is inert there — clicking it leaves the route on `#/room/ops` and mounts
-nothing. The solo harness must run in its own root Vite process: the wrapper lane
-produced a React invalid-hook error in `WorldCanvas` during this pass, while a
-fresh standalone Vite process rendered the harness successfully.
+**Not through the shell fixture.** `?view=` has no `world` value, and the shell
+fixture never stubs the world session port, so the sidebar row is inert there.
+Clicking it leaves the route on `#/room/ops` and mounts nothing.
 
-From the product repo root, use a free assigned port in the 18097–18197
-range. Preflight it before starting Vite; the example below uses 18102:
+The wrapper lane serves the solo harness directly. At `afabb11c`,
+`agent-browser open "$(control-om-chat url 'mocks/world-solo/index.html?worldprobe=1')"`
+rendered it with no invalid-hook error, even after that lane had served a dozen
+other fixtures. An earlier pass (`cd9f8c72`) hit a React invalid-hook error in
+`WorldCanvas` on the wrapper lane. If `agent-browser console` shows one, fall
+back to a fresh standalone root Vite process. From the product repo root, use
+a free assigned port in the 18097–18197 range and preflight it. The example
+below uses 18102:
 
 ```bash
 world_port=18102
@@ -148,4 +151,4 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `/rooms/mocks/world-solo/index.html?worldprobe=1` rendered 2 canvases, `.world-status` "world offline, retrying" (`data-world-status=offline`), "Chat: reconnecting" (`data-chat-connection=reconnecting`) and "No #world channel". **Hide** flipped to **Open chat** and back, and Follow player and Enter fullscreen were present. **Limitations:** Movement, occupants, emotes, live cues, relay transport and the channel-width drag were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** On the wrapper lane, `/rooms/mocks/world-solo/index.html?worldprobe=1` rendered 2 canvases, `.world-status` "world offline, retrying", "Chat: reconnecting" and "HideNo #world channel". **Hide** flipped to **Open chat** and back. The console showed no invalid-hook error. **Limitations:** Follow player and Enter fullscreen were not re-checked this pass. Movement, occupants, emotes, live cues, relay transport and the channel-width drag were not exercised. Previous record: 2026-10-22 at `cd9f8c72`.

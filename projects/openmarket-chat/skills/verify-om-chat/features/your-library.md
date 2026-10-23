@@ -44,14 +44,20 @@ Four sidebar lenses, each stamped `data-home-library-lens-{id}` and carrying
 `aria-current="page"` when active: **Todos** (`?lens=todos`), **Shared docs**,
 **Agents** (`?lens=agents`), and **Archive** (`?lens=archive`). All four are
 present in this lane; Archive is the newest. **`?lens=agents` crashes in this
-lane at `cd9f8c72`.** The hash reaches `#/library/agents`, but the surface reads
+lane (still at `afabb11c`).** The hash reaches `#/library/agents`, but the surface reads
 "Your Library could not load" with Try again / Reload OM Chat, and the console
 shows `TypeError: Cannot read properties of undefined (reading 'tone')` in
-`LibraryPersonaCard` (`personaStatusPresentation` at `LibraryView.tsx:6159`
-returns nothing for a persona status it does not list). The production client
-rejects unlisted states (`src/lib/om-daemon.ts:1548`), so fixture seeding is
-the likely cause, but it is not isolated. Assert only the route for the Agents
-lens here, and report the crash rather than captioning it as the lens.
+`LibraryPersonaCard`. The cause is now isolated to the fixture. The shell fixture never
+stubs `session.libraryDaemon`, so the autofill proxy answers `INERT`
+(`shell-fixture.tsx:2557-2562`). `LibraryView.tsx:6959` awaits
+`daemon?.fetchPersona()`, gets the truthy `INERT` back and takes the `ready`
+branch (`:6960`). `personaStatusPresentation` (`:6168-6188`) then matches no
+`status.state` and returns `undefined`, and `.tone` throws (`:6405`). The
+production client rejects unlisted states (`src/lib/om-daemon.ts:1548`), so
+this is a fixture gap, not a product bug. Stubbing `libraryDaemon: null` would
+render the card's `unavailable` branch instead. Until the fixture changes, assert only
+the route for the Agents lens here, and report the crash rather than
+captioning it as the lens.
 
 Archive renders `data-home-library-archive` (`LibraryView.tsx:8706`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
@@ -111,6 +117,57 @@ writes `localStorage["om.chat.libraryList"]` and the `else` branch at
 `:128-129` removes it, so the next load without the parameter clears it;
 measured live: `flat`, then `null`), `?note=long|wrapped`, and
 `?libraryState=error` (`:4201`, applied only while the active view is library).
+
+## Doc pane states (`doc=server`)
+
+Three fixture seeds render doc-pane states that no other guide covers. Each needs
+`doc=server`: `docState` and `docMode` do nothing without it
+(`shell-fixture.tsx:394-460`), and `doc=journal` cannot reconcile because the
+conflict model is built against the server doc.
+
+| Route (`shell-fixture.html?view=room&alerts=quiet&doc=server&…`) | What renders |
+|---|---|
+| (none) | The reader, with **Edit** and **Version history** |
+| `docState=reconcile` | A `dialog` named **Two versions of this doc** with **Use every ↓** (twice), **what both started from**, **write it myself**, **Combine** ("1 passage left to settle") and **Later**. **Later** closes it and sets `dataset.fixtureDocReconcile=dismissed` |
+| `docState=history` | History mode: a `select` named **Version history** at `9`, revisions r9 / r8 |
+| `docAccess=readonly` | The reader keeps **Version history** but drops **Edit** |
+
+`docState=review` (an auto-sync receipt in edit mode) exists too but was not
+driven. No fixture seed opens an agent's doc **proposal**
+(`DocProposalInlineReview.tsx:248`, "Review <author>'s proposal for <path>"),
+so proposals remain live verification pending.
+
+## Doc editor Vim mode
+
+With Settings → Keyboard Shortcuts → **Vim mode** on
+([settings-and-appearance.md](settings-and-appearance.md)), the CodeMirror
+editor runs `@replit/codemirror-vim` (`editor/vim.ts`). Its root carries
+`data-vim="on"` and a bottom `.cm-vim-panel` reads `--NORMAL--` or
+`--INSERT--`. Escape changes Vim's mode only; it no longer leaves editing.
+`:w` is the surface's Cmd/Ctrl+S (publish in DocPane, quiet flush in Library) and
+`:q` is **Done** (`DocPane.tsx:2128-2135`). Toggling the setting reconfigures
+open editors live. `?view=room&alerts=quiet&doc=journal` opens straight into
+edit mode (**Edit Journal/2026/2026-08-07.md**):
+
+```bash
+D='(()=>JSON.stringify({vim:!!document.querySelector("[data-vim=on]"),
+  panel:document.querySelector(".cm-vim-panel")?.textContent,
+  mode:document.documentElement.dataset.fixtureDocMode}))()'
+agent-browser eval "$D"                                   # vim true, --NORMAL--
+agent-browser press i; agent-browser eval "$D"             # --INSERT--
+agent-browser press Escape; agent-browser press Escape     # --NORMAL--, still editing
+agent-browser press :; agent-browser press q; agent-browser press Enter
+agent-browser eval "$D"                                   # mode "view", editor gone
+```
+
+Send ex commands one key at a time with `press`. `agent-browser keyboard type
+":w"` inserts the literal text into the document, because it bypasses the Vim
+keymap, even in normal mode. `:w` cannot be proved here. The fixture's
+`session.docs` stub (`shell-fixture.tsx:3919-3995`) has no `publish` method, so
+`:w`, like the **Publish** button, calls a method that does not exist. Driven,
+Publish stayed enabled and `fixtureDocDirty` stayed `true`. (The
+"Fixture publish is not configured" stub at `:4268` belongs to the checkpoint
+restore store, not to this pane.)
 
 ## Doc reader select-all
 
@@ -175,4 +232,4 @@ artefact, not a failure.
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?panel=library&scope=server` showed the Library scope tabs `Channel # · 0 notes` / `Server · 3 notes`. The `Search Library docs` filter read `0 notes match “cpi”` with **Clear search**. **Open Library full page** set `data-library-presentation=full` and browser Back restored `side`, with the hash `#/room/ops` unchanged. `?view=library&lens=archive` had Archive `aria-current`, the archive section, 0 rows and no copy (INERT, as documented). `lens=todos` and `lens=agents` routed to their hashes, but the Agents lens crashed (see above). `list=flat` was cleared by the next plain load, and doc select-all was scoped as described. **Limitations:** Import, export, trash, move and restore are INERT no-ops on this fixture and remain live verification pending on a daemon lane. The Agents lens content is unverified. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `?panel=library&scope=server`: the `Search Library docs` filter `a` read `2 notes match “a”` with **Clear search**. **Open Library full page** set `data-library-presentation=full` and browser Back restored `side`, with the hash `#/room/ops` unchanged. `lens=todos` routed to `#/library/todos` with "Review the launch checklist", and `lens=archive` routed to `#/library/archive`. `lens=agents` crashed with `reading 'tone'` in `LibraryPersonaCard`, with the cause now isolated (above). New: `doc=server` with `docState=reconcile` gave the **Two versions of this doc** dialog, and **Later** set `fixtureDocReconcile=dismissed`. `docState=history` gave **Version history** = 9 with r9/r8, and `docAccess=readonly` dropped **Edit**. Doc editor Vim on `doc=journal`: `data-vim=on`, `--NORMAL--`/`--INSERT--`, Escape stayed in edit, and `:q` set `fixtureDocMode=view`. **Limitations:** Select-all and `list=flat` were not re-driven this pass (last proved 2026-10-22). Vim `:w`/`:wq` (the fixture's `session.docs` has no `publish`), doc proposals, `docState=review`, and import, export, trash, move and restore (INERT no-ops) remain live verification pending on a daemon lane. The Agents lens content is unverified. Previous record: 2026-10-22 at `cd9f8c72`.

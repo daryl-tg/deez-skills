@@ -38,7 +38,7 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   state; compact mode adds **Topic inbox** and compact actions, so the menu has
   no fixed item count (overflow items around `ChannelHeaderMenus.tsx:535-560`,
   the `More channel actions` trigger at `:598-599`). **Notification
-  settings** has its own submenu (`ChannelHeaderMenus.tsx:149`). **Clean up
+  settings** has its own submenu (`ChannelHeaderMenus.tsx:158`). **Clean up
   topics** is available only where a daemon can triage topics, so it is absent
   from the source fixture. See [topic-cleanup.md](topic-cleanup.md).
 - The right-panel **dock**, which is no longer in the header at all. `#694`
@@ -254,4 +254,4 @@ the navigation retargeted the *write* path, not only the read pane.
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `/rooms/` lane at 1440x900: the CPI print — Aug topic treeitem opened `#/room/ops/topic/cpi-print-aug` with `Back to #ops` and `Message in CPI print — Aug`, and Back restored `#/room/ops` and `Message #ops`. The Panel functions nav listed Collapse panel / Library / Bookmarks / Members / Pins, and Library opened the side library. Mark As Unread was offered on the read Funding topic row, absent on CPI, and offered on channel rows and in the header menu under `?policy=off`. The topic-row offer was repeated on the `/chat/` cloud fixture. The quick switcher filtered `#mac` and jumped. **Limitations:** Mark As Unread / Mark as read effects are fixture no-ops. The topic peek, the collapse toggle, compact menus and daemon-only actions were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit, not on main).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `/rooms/` lane at 1440x900 on `?search=live`: the CPI print — Aug topic treeitem opened `#/room/ops/topic/cpi-print-aug` with h1 `#ops/CPI print — Aug` and `Message in CPI print — Aug`, and **Back to #ops** restored `#/room/ops` and `Message #ops · $ for markets · /chart to post one`. The dock's **Library** button set `[data-slot-tab=library][aria-pressed=true]` and opened `.right-panel-drawer`. More channel actions listed the same 14 items. **Limitations:** Mark As Unread, the quick switcher and the `/chat/` topic-row offer were not re-driven this pass (last proved 2026-10-22). Mark As Unread / Mark as read effects are fixture no-ops. The topic peek, the collapse toggle, compact menus and daemon-only actions were not exercised. Previous record: 2026-10-22 at `cd9f8c72`.

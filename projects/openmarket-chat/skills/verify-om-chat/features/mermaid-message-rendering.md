@@ -31,7 +31,7 @@ agent-browser snapshot -i -c
 
 The DM route is `tools/visual/shell-fixture.html?view=dm&dm=ana&alerts=quiet&mermaid=1`. On both routes, drive the button named `Open Mermaid diagram as PNG`, then check for the named preview region.
 
-Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `cd9f8c72` it is seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1049`) shifts when seeds change:
+Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1050`) shifts when seeds change:
 
 ```bash
 agent-browser find role textbox fill --name 'Message #ops · $ for markets · /chart to post one' 'https://openmarket.xyz/chat/room/ops/msg/116'
@@ -59,4 +59,4 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** Room and DM `mermaid=1` routes each rendered one `.doc-mermaid svg`. In the room, **Open Mermaid diagram as PNG** opened the named preview region. A share link to seq 116 rendered a card with the diagram (one svg), and a link to that link's post rendered one card with the inline citation `↩ #·116` and no nesting. On `/chat/`, the card rendered without a diagram (no seed there). **Limitations:** Unsafe or invalid diagrams, exact viewBox bounds, the library editor preview and the cache's reload or logout behavior were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `/rooms/` `?view=room&mermaid=1` rendered one `.doc-mermaid svg`, and **Open Mermaid diagram as PNG** opened the region `Mermaid diagram PNG preview. Right-click or press Shift+F10 for actions.` A share link to seq 116 rendered a card by `kyle` with one svg and no nesting, and a link to that post (seq 117) rendered one card with the citation `↩ #·116`. **Limitations:** The DM `mermaid=1` route and the `/chat/` card were not re-driven this pass. Unsafe or invalid diagrams, exact viewBox bounds, the library editor preview and the cache's reload or logout behavior were not exercised. Previous record: 2026-10-22 at `cd9f8c72`.

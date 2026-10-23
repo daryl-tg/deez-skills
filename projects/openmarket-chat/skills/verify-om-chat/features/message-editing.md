@@ -55,8 +55,10 @@ On agent-browser 0.33.2, click does not document a --button option. Do not treat
 
 In the recorded DM journey, reopening the message menu after a save selected an incoming row. Fresh fixture navigations between cases avoided this fixture interaction; they did not prove persistence across reload. The fixture also logged a React invalid textarea value warning. Record it.
 
+The first `agent-browser hover` after a fresh `open` often leaves the CSS-hover toolbar hidden, so **Edit** or **More** is "not found" although the row's `.msg-toolbar` holds it. Scroll the marked row into view (`r.scrollIntoView({block:"center"})` in the marking eval) and hover it a second time before clicking. Measured 2026-10-23 on both the channel and the DM path.
+
 Full server persistence and other clients receiving the edit require the local auth/relay stack and daemon-pair lane. The fixture cannot prove those outcomes.
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** Channel: hovered the own sent row, clicked **Edit** (`--exact`), and checked the textbox `Edit message` with `cancel` / `save`. Saving changed text closed the editor and showed `probe line edited (edited)`. DM: on ana's DM, hovered `yep, watching the next print`, then **More** → **Edit Message** → `save`, and `dataset.fixtureMermaidEdit` read `dm-saved`. **Limitations:** Local fixture edit state only. Relay persistence and other viewers are live verification pending. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** Channel: marked the first `Message from kyle` row, scrolled it into view, hovered it twice, clicked **Edit** (`--exact`) and got the focused textbox `Edit message`. Saving changed text closed the editor, showed `edited by maint 1023 (edited)` and set `fixtureMermaidEdit=channel-saved`. DM: on ana's DM, the last own row (`yep, watching the next print`) took **More** → **Edit Message** → `save`, and `fixtureMermaidEdit` read `dm-saved`. **Limitations:** Local fixture edit state only. Relay persistence and other viewers are live verification pending. Previous record: 2026-10-22 at `cd9f8c72`.

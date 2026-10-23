@@ -154,7 +154,12 @@ partial-window warning remains visible.
   (`SearchPanel.tsx:1287`, `:1295`). That is the product string, not a fixture
   artefact; caption a screenshot around it rather than quietly "fixing" it in
   the caption.
+- **The query survives navigation, and a filled combobox shows no filter
+  listbox.** After searching `primary` in a topic and going **Back to #ops**,
+  the channel's **Search #ops** combobox still holds `primary`. Clicking it
+  then lists no `From a specific user` option, and the filter step looks broken.
+  Drive the filter grammar from a fresh load, or clear the field first.
 
 ### Verification record
 
-**Last verified:** 2026-10-22. **Product commit:** `cd9f8c72a6522caccc3b6157a4990fb6c9d0b0cf` (origin/main). **Scope:** `?panel=search` showed `1 results`. The `Search in` menu listed This channel / This server / Library / Everywhere. The `Search #ops` combobox opened the `Search filters` listbox with 6 options, and `searchState=error` showed the unavailable state. On `?search=live` in a topic, `primary` requested `ops:cpi-print-aug:primary`. Switching to the ETF topic re-ran `ops:etf-flows-week:primary` and showed the `primary market` hit. In the DM, `Open search with @ana` gave the combobox `Search @ana`. **Limitations:** Date-filter submission, cloud-host behavior and backend ranking were not exercised. Previous record: 2026-10-12 at `a0916a25` (a feature-branch commit).
+**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** On `?search=live` in a topic, `primary` in **Search this topic: CPI print — Aug** requested `ops:cpi-print-aug:primary` and opened the results panel. Switching to the ETF topic re-ran `ops:etf-flows-week:primary` and renamed the combobox **Search this topic: ETF flows, week of the 28th**. From a fresh load, **Search #ops** opened the `Search filters` listbox with 6 filter options, and **From a specific user** then **@ana ana (ops)** left `from:@ana ` in the input. **Limitations:** `?panel=search`, the `Search in` menu, `searchState=error` and the DM `Search @ana` scope were not re-driven this pass (last proved 2026-10-22). Date-filter submission, cloud-host behavior and backend ranking were not exercised. Previous record: 2026-10-22 at `cd9f8c72`.
