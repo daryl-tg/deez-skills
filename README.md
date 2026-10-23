@@ -24,7 +24,7 @@ flowchart TB
   cx["~/.codex<br/>skills"]
 
   subgraph work["what one request runs"]
-    router["$clanker-mode<br/>the router. same on both runtimes"]
+    router["$clanker-mode<br/>the router. used from Claude Code"]
     pb["1 of 25 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
     prin["37 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
     role["5 roles<br/>explore, executor, test-engineer,<br/>code-reviewer, verifier"]
@@ -56,7 +56,8 @@ bin/link            # preview. changes nothing
 bin/link --apply    # install into ~/.claude and ~/.codex
 ```
 
-Restart both runtimes, then `bin/doctor` to confirm.
+Restart Claude Code, then `bin/doctor` to confirm. The `~/.codex` install is
+kept but dormant.
 
 **That installs the hub. It does not set up verification** — that is one session
 per repository and is the step everything else leans on.
@@ -252,7 +253,7 @@ adapted from pstack.
 
 | principle | apply when |
 | --- | --- |
-| `delegate-implementation-review-stays-here` | Apply when handing work to a subagent or another runtime. Implementation delegates; design, review, verification, and … |
+| `delegate-implementation-review-stays-here` | Apply when handing work to a subagent. Implementation delegates; design, review, verification, and git mutations stay … |
 | `never-block-on-reversible-work` | Apply when tempted to ask permission for reversible work. Proceed and present the result. Does not apply to the planni… |
 | `guard-the-context-window` | Apply when context fills up: large outputs, long files, repeated reads, fan-out planning. Route bulk to subagents and … |
 | `todo-discipline` | Apply to any multi-step task. A step you skip stays in the list with a stated reason. Silent omission is not allowed. |

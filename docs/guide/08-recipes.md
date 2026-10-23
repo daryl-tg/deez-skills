@@ -70,7 +70,7 @@ bin/sync                          commit and push
 change and keep the task moving. A skill edit tangled into feature work is
 invisible to review.
 
-**Assuming a skill is loaded.** Both runtimes read their skill directories at
+**Assuming a skill is loaded.** Claude Code reads its skill directories at
 session start. Restart after installing.
 
 **Handing over an `18097`–`18197` URL.** Not tunnelled. It looks like a working
