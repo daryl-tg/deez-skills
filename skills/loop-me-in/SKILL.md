@@ -143,17 +143,17 @@ The specs accumulate. By the last phase, the run's own spec files are a fast, ta
 
 The brief verifies itself. Manual confirmation is not a phase, not a gate, and not a completion criterion.
 
-Commands, prompts, the sweep output contract, and the exact codex invocations live in `references/verify-loop.md`. **Copy the resolved commands into the brief** — a fresh session will not read that file.
+Commands, prompts, the sweep output contract, and the exact headless `claude -p` invocations live in `references/verify-loop.md`. **Copy the resolved commands into the brief** — a fresh session will not read that file.
 
 ### Pick the harness
 
 | Target | Harness | Why |
 |---|---|---|
-| Any web UI served from the worktree | A codex agent driving the `chrome-devtools` CDP script | Headless-capable, scriptable, no interactive consent, works against any localhost surface |
+| Any web UI served from the worktree | A headless Claude Code agent (`claude -p`) driving the `chrome-devtools` CDP script | Headless-capable, scriptable, no interactive consent, works against any localhost surface |
 | The OM Chat GUI | `/om-chat-web` | Already carries `doctor` (is the daemon actually serving the working tree?), saved logins, and a cloud-vs-local pixel-diff report |
 | Backend, CLI, library | A command with an expected value | A browser check that proves nothing is worse than admitting the check is a command |
 
-`claude-in-chrome` is the wrong tool here: per-site permission grants and Ryan's real profile mean the run stalls at 3am waiting for consent.
+`claude-in-chrome` is the wrong tool here: per-site permission grants and Ryan's real profile mean the run stalls at 3am waiting for consent. For the same reason every headless agent call passes `--no-chrome`.
 
 ### The build-identity gate
 
@@ -183,7 +183,7 @@ The sweep returns a fixed shape — verdict per acceptance row with the evidence
 
 **Cap at 3 sweeps per phase, and the third attempt changes job.** Two failures of the same class mean the model of the problem is wrong, so attempt 3 is not a third patch: it is a read-only diagnosis agent that returns a root cause and a verdict on whether the plan's premise still holds. The phase then stops red with that explanation in the findings log, and the run moves to the next phase that does not depend on it. An explanation is worth more than a fourth patch.
 
-**Every codex run and every browser command is time-boxed.** A hung agent costs the whole night. macOS has no `timeout` binary — the brief defines a `with_timeout` helper instead (`references/verify-loop.md`, section 0), or the first phase dies on `command not found`.
+**Every headless agent run and every browser command is time-boxed.** A hung agent costs the whole night. macOS has no `timeout` binary — the brief defines a `with_timeout` helper instead (`references/verify-loop.md`, section 0), or the first phase dies on `command not found`.
 
 ### Targeted gates. The full suite is a last resort, not a tier.
 
@@ -224,13 +224,13 @@ The most expensive failure mode here is a run that spends the night launching br
 - **A port that answers is not a working browser.** Before the first sweep and at every heartbeat, the browser must pass a functional smoke test: navigate, evaluate, and write a real screenshot file. Those are the three things every sweep depends on, and `/json/version` still answers from a Chrome whose renderer has died.
 - **Two launch attempts for the whole run, then stop.** A relaunch loop ends the night with forty headless Chromes and zero verification. The third failure is a stop condition, not a retry.
 - **One tab, not one per check.** `--new-tab` once at the start, then navigate that same tab. Each extra tab is another renderer process.
-- **One codex agent at a time** — sweep or fix, never both, never two phases in parallel.
+- **One headless agent at a time** — sweep or fix, never both, never two phases in parallel.
 
 ### Process ledger, memory, teardown
 
-Anything the run starts that outlives one command — dev server, Chrome, background codex — is recorded at spawn with its claimed port and PID, in a `## Process ledger` section the run appends to. Reused processes are recorded separately, because they must not be torn down.
+Anything the run starts that outlives one command — dev server, Chrome, a background agent — is recorded at spawn with its claimed port and PID, in a `## Process ledger` section the run appends to. Reused processes are recorded separately, because they must not be torn down.
 
-- **Between phases, a heartbeat:** app URL answers, browser passes the smoke test, no `codex exec` still running, no stopped background jobs, and two numbers — the RSS of this run's browser tree and the machine's free memory (`memory_pressure`). Anything stuck is killed and restarted, not waited on.
+- **Between phases, a heartbeat:** app URL answers, browser passes the smoke test, no headless agent from this run still running (`pgrep` on the run's `--name` tag), no stopped background jobs, and two numbers — the RSS of this run's browser tree and the machine's free memory (`memory_pressure`). Anything stuck is killed and restarted, not waited on.
 - **Recycle on pressure, don't wait for the crash.** Browser tree over ~1.5 GB or system free under 15%: kill it by ledger PID and bring one back. A headless Chrome twenty sweeps deep is not the process it was at phase 1.
 - **Teardown runs on success, failure, and abort.** Kill by ledger PID, then one pattern kill scoped to this run's profile path to reap the renderer children; `pgrep` only to confirm nothing survived. A bare `pkill -f chrome` would take Ryan's own browser with it, and the brief must never contain one.
 
@@ -284,15 +284,15 @@ An unattended run pays for every word it generates, and most of them are scaffol
 | Compressed | Left as normal prose |
 |---|---|
 | The run's reasoning, phase notes, todos, tool-call descriptions | The completion post — Ryan reads it |
-| Sweep and fix prompts sent to codex | The findings log — Ryan reads it the next morning |
+| Sweep, fix and diagnose prompts sent to the headless agents | The findings log — Ryan reads it the next morning |
 | Messages between the run and its agents | Commit messages, MR descriptions, code, comments |
 | Verdict prose in the sweep output contract | Security warnings, and any irreversible-action confirmation |
 
 The plugin's own boundary rule already exempts everything persisted outside chat, so turning it on does not corrupt the post or the log. Say which side of the line each artifact is on anyway; a run that compresses the one message Ryan reads has saved tokens by making the output useless.
 
-**Codex cannot invoke Claude Code skills**, so its prompts carry the compression rules inline instead. Exact strings survive compression: error text, selectors, file paths, numbers, units, and code are reproduced verbatim, never paraphrased shorter.
+**Each headless agent is a fresh session.** The run's `/caveman` does not carry into it, so every agent prompt opens with the compression rules inline: five lines that do not depend on a plugin loading in print mode. Exact strings survive compression: error text, selectors, file paths, numbers, units, and code are reproduced verbatim, never paraphrased shorter.
 
-**Reasoning effort is set per call, never inherited.** `~/.codex/config.toml` sets `model_reasoning_effort = "xhigh"` globally, so an agent without an explicit override runs at xhigh — including a sweep whose entire job is to click four things and report what it saw. The brief carries an `effort_for` helper keyed on role and attempt: mechanical work opens low, each failed attempt moves one rung up, and behavioural acceptance rows or wide-blast-radius fixes start one rung higher. Values and the helper itself: `references/verify-loop.md`, section 4.
+**Model, effort and permission mode are set per call, never inherited.** A `claude -p` call takes `model`, `effortLevel` and `permissions.defaultMode` from `~/.claude/settings.json` unless it overrides them. On this machine those are `opus`, `high` and `auto`. So an agent without explicit flags runs at high effort, including a sweep whose entire job is to click four things and report what it saw. Under `auto`, a classifier decides what it may run, not the brief. Every call passes `--model`, `--effort` and `--permission-mode`. The brief carries an `effort_for` helper keyed on role and attempt: mechanical work opens low, each failed attempt moves one rung up, and behavioural acceptance rows or wide-blast-radius fixes start one rung higher. Values and the helper itself: `references/verify-loop.md`, section 4.
 
 The rest of the spend is structural, not stylistic: quote the constraint in the prompt instead of telling the agent to go read it, and reference the console-log path rather than pasting the log.
 
@@ -390,8 +390,9 @@ the ceiling — 100 words consolidated, 40 per wave. What it may not claim.
 Authorised without asking: commits on the run's own branch, the verify sweeps,
 the completion post. Needs explicit human OK: push, merge, cherry-pick into
 main, publish, release, migrations against real data, anything else
-outward-facing. Codex agents never commit — the run reviews the diff, stages,
-and commits via the `/commit` skill.
+outward-facing. Headless agents never commit: their calls deny `git add`,
+`git commit` and `git push`, and the run reviews the diff, stages, and commits
+via the `/commit` skill.
 **Never authorised, at any attempt, for any reason: changing what a spec
 asserts, or its expected value, to make an implementation pass.** Weakening,
 skipping, loosening or deleting an assertion is the same move under another

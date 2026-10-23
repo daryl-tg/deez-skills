@@ -13,7 +13,13 @@ Placeholders: `$WORKTREE`, `$APP_URL`, `$PORT`,
 ```sh
 RUN_DIR=~/.claude/plans/<YYYY-MM-DD>/<name>-run-evidence   # NOT /tmp
 FINDINGS="$RUN_DIR/findings.md"
+RUN_TAG="loop-<name>"     # every headless agent's --name starts with this
+AGENT_MODEL="opus"        # passed to every agent call; never inherited
 ```
+
+`$RUN_TAG` exists only for this run, so `pgrep -f -- "[c]laude -p .*--name $RUN_TAG"`
+finds this run's agents and nobody else's headless sessions. The `[c]` keeps the pattern
+from matching the shell that runs `pgrep`, whose own command line contains it.
 
 `$RUN_DIR` sits beside the brief in the plans vault, not in a temp directory a reboot
 clears. Sweep verdicts, screenshots, and console logs are the only proof the night's work
@@ -38,7 +44,7 @@ list by word-splitting a path.
 ## 0. `with_timeout` — macOS has no `timeout`
 
 Neither `timeout` nor `gtimeout` is on this machine (no GNU coreutils). A brief that
-writes `timeout 900 codex exec …` dies on `command not found` at the first phase. Define
+writes `timeout 900 claude -p …` dies on `command not found` at the first phase. Define
 this once, near the top of the brief, and use it for every long-running command:
 
 ```sh
@@ -50,8 +56,9 @@ with_timeout() {  # with_timeout <seconds> <command...>
 `/usr/bin/perl` ships with macOS, and a pending `alarm` survives `exec`, so the command
 itself takes the SIGALRM. Timed-out runs exit 142.
 
-SIGALRM reaches only the process that was launched — a timed-out `codex exec` can leave
-children behind, so run the heartbeat (section 9) after any 142.
+SIGALRM reaches only the process that was launched — a timed-out `claude -p` can leave
+children behind (Bash tool subprocesses, MCP servers), so run the heartbeat (section 9)
+after any 142.
 
 ## 1. The dev server: reuse first, then start
 
@@ -189,13 +196,46 @@ The sentinel is a string that exists **only** after this phase's change — a ne
 phase with no observable sentinel has no browser verification: say so, and give it a
 command gate instead.
 
-## 4. Agent configuration — effort, and prompt style
+## 4. Agent configuration — flags, effort, and prompt style
 
-Applies to every codex call in this file: sweep, fix, and diagnose.
+Applies to every headless Claude Code call in this file: sweep, fix, and diagnose. Every
+flag below was checked against `claude --help` (Claude Code 2.1.309).
 
-**`~/.codex/config.toml` sets `model_reasoning_effort = "xhigh"` globally.** Every agent
-that does not override it runs at xhigh, including a sweep whose whole job is to click
-four things and report what it saw. Always pass the flag explicitly.
+**A `claude -p` call inherits the operator's defaults unless it overrides them.**
+`~/.claude/settings.json` sets `model`, `effortLevel` and `permissions.defaultMode` — on
+this machine `opus`, `high` and `auto`. A sweep that inherits them runs at high effort to
+click four things, and under `auto` a classifier decides what it may run, not the brief.
+So every call passes these explicitly:
+
+| Flag | Why |
+|---|---|
+| `-p` | Print mode: one prompt, one answer, exit. |
+| `--model "$AGENT_MODEL"` | Never inherit the session's model. |
+| `--effort "$(effort_for <role> …)"` | Per call, from the ladder below. Accepts `low`, `medium`, `high`, `xhigh`, `max`. |
+| `--permission-mode` | `dontAsk` for sweep and diagnose, `acceptEdits` for fix. Never the inherited `auto`. |
+| `--permission-prompts none` | Nobody is there to answer. Anything that would prompt is denied, so the run never stalls. |
+| `--tools` / `--allowedTools` / `--disallowedTools` | What the agent can call at all, what runs without asking, and what is refused outright. |
+| `--add-dir "$RUN_DIR"` | Gives the agent's tools the evidence directory as well as the worktree. |
+| `--no-chrome` | Keeps the agent off `claude-in-chrome` and Ryan's real profile. |
+| `--name "$RUN_TAG-…"` | The tag `pgrep` and teardown match on. |
+| `--no-session-persistence` | Dozens of sweeps stay out of `/resume`. |
+| `--output-format text` | Prints only the final message. Redirected, that is the contract file. |
+
+Two things have no flag:
+
+- **Working directory.** There is no `-C`. Each call runs in a subshell,
+  `( cd "$WORKTREE" && … )`, so the agent's project root is the worktree.
+- **An OS-level read-only sandbox.** Claude Code's CLI has no equivalent. The diagnose
+  agent gets no edit tools and an allowlisted Bash instead, and the run fingerprints the
+  tree before and after it (section 7).
+
+**Trap: `--tools`, `--allowedTools`, `--disallowedTools` and `--add-dir` take lists.**
+A list flag swallows the arguments after it. Put the prompt last, after a single-value
+flag such as `--output-format text`, or it becomes a tool name.
+
+**A denied call is silent.** With `--permission-prompts none`, a Bash command the
+allowlist does not cover is refused and the agent carries on. After every sweep, check the
+evidence files it was told to write exist. A missing screenshot means the sweep is void.
 
 ```sh
 effort_for() {   # effort_for <role> [attempt] — attempt defaults, so `effort_for diagnose`
@@ -225,12 +265,13 @@ Two adjustments on top of the ladder:
   A one-string edit does not.
 
 **There is no `fix:3`** — attempt 3 calls the `diagnose` agent (section 7) instead, at
-`xhigh` and `--sandbox read-only`. It returns a root cause and a verdict on whether the
+`xhigh`, with no edit tools. It returns a root cause and a verdict on whether the
 plan's premise still holds, writes no code, and the phase stops red with that entry in the
 findings log.
 
-Codex cannot invoke `/caveman:caveman`, so every codex prompt opens with the compression
-rules inline:
+Each agent is a fresh session: the run's `/caveman:caveman` does not carry into it, so
+every agent prompt opens with the compression rules inline. Five lines cost less than
+depending on a plugin loading in print mode:
 
 ```
 Style: terse. Drop articles, filler, hedging. Fragments fine. No preamble, no
@@ -245,20 +286,27 @@ it did.
 ## 5. Sweep agent
 
 ```sh
-with_timeout 900 codex exec \
-  -C "$WORKTREE" \
-  -m gpt-5.6-sol \
-  -c model_reasoning_effort="$(effort_for sweep "$ATTEMPT")" \
-  -c sandbox_workspace_write.network_access=true \
-  --sandbox workspace-write \
-  --add-dir "$RUN_DIR" \
-  --output-last-message "$RUN_DIR/sweep-p$N-a$ATTEMPT.md" \
-  "$(cat "$RUN_DIR/sweep-prompt-p$N-a$ATTEMPT.md")"
+( cd "$WORKTREE" && with_timeout 900 claude -p \
+    --tools "Read,Grep,Glob,Bash" \
+    --allowedTools Read Grep Glob "Bash($CD *)" \
+    --add-dir "$RUN_DIR" \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --no-chrome \
+    --no-session-persistence \
+    --name "$RUN_TAG-sweep-p$N-a$ATTEMPT" \
+    --model "$AGENT_MODEL" \
+    --effort "$(effort_for sweep "$ATTEMPT")" \
+    --output-format text \
+    "$(cat "$RUN_DIR/sweep-prompt-p$N-a$ATTEMPT.md")" \
+) > "$RUN_DIR/sweep-p$N-a$ATTEMPT.md"
 ```
 
-`sandbox_workspace_write.network_access=true` is required — `workspace-write` blocks
-network by default and CDP on `127.0.0.1:$CDP_PORT` counts as network. Without it the
-sweep reports a connection error that reads like a broken app.
+The sweep has no edit tools, and its only Bash is the `chrome-devtools` script. It writes
+screenshots and console logs through that script, into `$RUN_DIR`. Settings enable no
+sandbox here, so CDP on `127.0.0.1:$CDP_PORT` is reachable. If a sandbox is ever turned on
+in settings, it must allow localhost, or the sweep reports a connection error that reads
+like a broken app.
 
 The sweep prompt carries the style preamble from section 4, the app URL, the `$CD` path
 and its `--help` hint, the phase's acceptance rows, the sentinel, the scope fence, and
@@ -308,17 +356,26 @@ that exist nowhere else: the post's word ceiling will not carry them.
 ## 7. Fix agent
 
 ```sh
-with_timeout 1800 codex exec \
-  -C "$WORKTREE" \
-  -m gpt-5.6-sol \
-  -c model_reasoning_effort="$(effort_for fix "$ATTEMPT")" \
-  --sandbox workspace-write \
-  --output-last-message "$RUN_DIR/fix-p$N-a$ATTEMPT.md" \
-  "$(cat "$RUN_DIR/fix-prompt-p$N-a$ATTEMPT.md")"
+( cd "$WORKTREE" && with_timeout 1800 claude -p \
+    --allowedTools Read Grep Glob Edit Write "Bash(bun test *)" "Bash($TYPECHECK)" \
+    --disallowedTools "Bash(git add *)" "Bash(git commit *)" "Bash(git push *)" \
+    --permission-mode acceptEdits \
+    --permission-prompts none \
+    --no-chrome \
+    --no-session-persistence \
+    --name "$RUN_TAG-fix-p$N-a$ATTEMPT" \
+    --model "$AGENT_MODEL" \
+    --effort "$(effort_for fix "$ATTEMPT")" \
+    --output-format text \
+    "$(cat "$RUN_DIR/fix-prompt-p$N-a$ATTEMPT.md")" \
+) > "$RUN_DIR/fix-p$N-a$ATTEMPT.md"
 ```
 
 The fix prompt carries the sweep's `GAPS` verbatim, the scope fence, and the verification
-command. Codex does not commit and does not stage — the run reviews the diff, then
+command. The allowlisted Bash is that verification command — this stack's `TEST_ONE` and
+`TYPECHECK` adapters; substitute the repo's own. The agent does not commit and does not
+stage. The deny rules enforce it, because a headless session loads Ryan's global
+instructions, and they say to commit finished work. The run reviews the diff, then
 `git add` plus the `/commit` skill.
 
 **The fix prompt states the specs are read-only**, naming this phase's spec files and the
@@ -354,14 +411,31 @@ Exact `=` comparison, not `grep` — substring matching lets `a.spec.ts` match
 On attempt 3, this becomes the diagnosis agent instead:
 
 ```sh
-with_timeout 1800 codex exec \
-  -C "$WORKTREE" \
-  -m gpt-5.6-sol \
-  -c model_reasoning_effort="$(effort_for diagnose)" \
-  --sandbox read-only \
-  --output-last-message "$RUN_DIR/diagnose-p$N.md" \
-  "$(cat "$RUN_DIR/diagnose-prompt-p$N.md")"
+tree_fingerprint() { ( cd "$WORKTREE" && { git status --porcelain; git diff; } | shasum ); }
+
+before=$(tree_fingerprint)
+( cd "$WORKTREE" && with_timeout 1800 claude -p \
+    --tools "Read,Grep,Glob,Bash" \
+    --allowedTools Read Grep Glob "Bash(git log *)" "Bash(git diff *)" \
+      "Bash(git show *)" "Bash(bun test *)" \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --no-chrome \
+    --no-session-persistence \
+    --name "$RUN_TAG-diagnose-p$N" \
+    --model "$AGENT_MODEL" \
+    --effort "$(effort_for diagnose)" \
+    --output-format text \
+    "$(cat "$RUN_DIR/diagnose-prompt-p$N.md")" \
+) > "$RUN_DIR/diagnose-p$N.md"
+[ "$(tree_fingerprint)" = "$before" ] || {
+  echo "STOP: diagnose agent changed the worktree" >&2; false; }
 ```
+
+Claude Code has no read-only sandbox, so this is the substitute. The agent has no edit
+tools, and its Bash is limited to reading history and re-running the failing case. The
+fingerprint compares against the tree *before* the call, not against a clean tree: the
+failed fix attempts are still uncommitted at this point.
 
 ## 8. Loop control and gate tiers
 
@@ -381,8 +455,8 @@ red, and move to the next phase that does not depend on it.
 spec itself looks wrong, that is a stop condition for Ryan, not a repair the run performs —
 a run that edits its own acceptance criteria has stopped verifying anything.
 
-One codex agent at a time — sweep or fix, never both, never two phases in parallel. Two
-`codex exec` runs plus a browser tree is where an unattended night turns into swap.
+One headless agent at a time — sweep or fix, never both, never two phases in parallel. Two
+`claude -p` runs plus a browser tree is where an unattended night turns into swap.
 
 ### Which gate runs when
 
@@ -531,7 +605,7 @@ subset against a whole-repo baseline is how a broken repo reads as a passing one
 ```sh
 curl -sf -o /dev/null "$APP_URL"    || echo "STUCK: dev server down"
 chrome_works                        || echo "STUCK: browser unhealthy"
-pgrep -f "codex exec" | wc -l       # expect 0 between phases
+pgrep -f -- "[c]laude -p .*--name $RUN_TAG" | wc -l   # this run's agents: expect 0
 jobs -l                             # expect no stopped jobs
 
 # memory: this run's browser tree, then the machine
@@ -555,7 +629,7 @@ pgrep -fc -- "--user-data-dir=$RUN_DIR"
 ```sh
 for f in "$RUN_DIR"/*.pid; do kill "$(cat "$f")" 2>/dev/null; done   # *.pid.reused excluded
 pkill -f -- "--user-data-dir=$PROFILE" 2>/dev/null                   # this run's chrome tree only
-pgrep -fl -- "--user-data-dir=$RUN_DIR|codex exec"                   # confirm empty
+pgrep -fl -- "--user-data-dir=$RUN_DIR|[c]laude -p .*--name $RUN_TAG"  # confirm empty
 ```
 
 Kill by recorded PID first. The one pattern kill that is safe is `--user-data-dir=$PROFILE`,
