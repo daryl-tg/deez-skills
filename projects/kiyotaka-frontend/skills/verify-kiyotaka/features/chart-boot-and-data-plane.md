@@ -76,10 +76,35 @@ Preconditions:
 
 ## Driving the wake heal
 
-Last driven 2026-10-22: base `b153a7751a` against the fix branch
-`daryl/wake-heal-interior-hole` (`5287b9a644`, not yet on `main`), guest
-COINBASE BTC-USD 1m, in headless Chromium and in the desktop shell. NOT driven: a
-real OS sleep with macOS dark wakes; the trigger below is synthesized.
+Last driven 2026-10-23: `main` `034978a50f` (the lone-bar heal `8a7d91341a` on
+board) with the process-suspend lane below, guest COINBASE BTC-USD 1m, headless
+Chromium, 13-minute outage with two dark wakes (4 blank rows at wake, 0 after the
+heal) and, on `daryl/wake-outage-carry` `9da7dfbd5c`, a 29.6-minute outage with
+three dark wakes past the access token's life (token refreshed in 113 ms, 15 blank
+rows at wake, 0 after the heal; the wake pass ran from the hide slot over 1790 s).
+The data grew while hidden both times: lone bars from the trickle. 2026-10-22 drove
+the synthesized trigger on base `b153a7751a` against `5287b9a644`, in Chromium and
+the desktop shell. NOT driven: a real `pmset sleepnow` on a machine with display
+sleep (the mini runs caffeinated and carries every lane).
+
+**Process-suspend lane (preferred, no injected bars).** The script is
+`dev-notes/desktop-chart-sleep-wake-gap/sleep-rig.mjs <playwright index.mjs>
+<chart url> <out dir> <label> <stopMin> <darkWakes> <darkWakeSec>`. It hides the
+tab (bringToFront of a cover tab; headless falls back to the visibility override
+below), then `SIGSTOP`s every process of that Chromium tree for `stopMin` minutes
+per segment, lets it run `darkWakeSec` seconds between segments with the tab still
+hidden (the feed reconnects and trickles ticks the worker holds and drains on the
+visible flip), then `SIGCONT`s and shows the tab. Playwright has no process
+handle: the browser is the node process's one Chrome child (`pgrep -P $$`). While
+stopped the gateway drops the idle sockets as a sleeping laptop's would; on macOS
+the monotonic clock keeps counting under `SIGSTOP`, so a VISIBLE page would read
+the stop as a busy stall, which is why the lane hides the tab (a closed lid
+occludes the window anyway). Verdict: NaN closes and slot jumps in
+`tc[0].metadata[0].rawData` between the hide time and the wake, 75 s after the
+visible flip; the ring should show `wake-resync-hidden-reopen-recorded` per dark
+wake, `lifecycle-wake-emit` with `outageStartedAt` = the hide time, narrow
+`socket-open` passes, then the `wake` pass `queued-wider` and run from the first
+damaged slot, and a `main-heal-commit` with `reason: interior-change`.
 
 - **Hide the page by overriding visibility.** The app reads
   `document.visibilityState`; define it as a getter and dispatch
@@ -110,6 +135,17 @@ real OS sleep with macOS dark wakes; the trigger below is synthesized.
   `/chart/`: the title bar's `data:` view loads first).
 
 ## Gotchas
+
+- **Never edit the lane's tree while a suspended run sleeps.** Vite pushes a
+  `page reload` for a `.ts` edit; the stopped renderer takes it on its next
+  `SIGCONT`, the chart reloads fresh and the outage is gone (2026-10-23, sleep-2).
+  Finish edits, then start the run, or serve the run from a lane whose tree stays
+  still.
+- **A production build exposes no `window.tc`.** Every engine read above is a
+  dev-lane read; a rig pointed at `openmarket.xyz` times out waiting for candles.
+  Read the served build instead: `window.__kiyoBuildId` is `<pipeline iid>-<short
+  sha>` and names the production commit (2026-10-23: retail served `18638-6fafc7ce`,
+  a commit before the pick that carried the heal).
 
 - **Zero bars plus `v2 streaming websocket connection failed` is almost never the
   socket.** The worker owns the websockets, so a dead worker presents as a
