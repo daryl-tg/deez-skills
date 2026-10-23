@@ -7,7 +7,7 @@ sessions, though only Claude Code is in use today.
 ## Claude hosts the router. Codex support is dormant.
 
 The operator works in Claude Code only, so every delegate is a Claude subagent.
-The hub still installs to `~/.codex`, so a resubscribe needs no rebuild. Three
+The hub still installs to `~/.codex`, so a resubscribe needs no rebuild. Two
 facts, all verified rather than assumed, say why the router never lived there:
 
 1. **`disable-model-invocation` works on Claude and is a no-op on Codex.**
