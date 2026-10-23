@@ -3,14 +3,13 @@
 The maintained source for verifying user-facing chart behavior. Read this index
 before driving, then use the matching feature file as the recipe.
 
-Maintenance pass: 2026-10-22 — SOURCE ONLY, nothing driven. The lane could not
-start on product tree `fcc8e53b12`: `pnpm` refused the install under its
-`minimumReleaseAge` supply-chain policy (`electron@44.9.3` was inside the 1440-
-minute cooldown), and both offered fixes mutate the product lockfile or relax the
-policy. Every entry below was re-read against `fcc8e53b12` and corrected where
-source contradicted it, but NO claim in this pass carries live proof; the last
-driven state for each entry is named in its own header. Re-drive before trusting
-any recipe here.
+Maintenance pass: 2026-10-23 on product tree `2a1ed750db` (= `origin/main`), lane
+`18097`, on a REAL guest-JWT lane (`isGuest` true, metadata present — not the
+no-JWT lane earlier passes hit). Driven: chart boot, the full ticker pinned set,
+chart type, interval, the v2 symbol dialog and a symbol switch, the editor via
+Super Search, and — for the first time — `ind-add`, `ind-legend` and `ind-limit`.
+Not driven: `ind-catalog`, and voice control, which is verified-unreachable on
+any guest lane because `voiceControlEnabled()` is `isSignedInSession()`.
 
 ## Baseline preconditions
 
@@ -86,6 +85,20 @@ any recipe here.
     free-tier grids, and voice control.
 
   Source-verified on `fcc8e53b12`; not driven.
+- **Identify the overlay before dismissing it — there are now two, and they
+  alternate.** A guest boot raises the ink tutorial AND the signup modal, and the
+  signup modal re-raises ~15s after the last blocking surface closes, so a
+  multi-step drive gets interrupted repeatedly. Three drives were lost this pass
+  clicking `guest-signup-modal-close-btn` while the INK TUTORIAL was the thing on
+  top. Read what is there, then dismiss that:
+
+  ```bash
+  ./control-kiyotaka browser eval \
+    "(()=>{const d=[...document.querySelectorAll('.dialog-style,.q-dialog')];return JSON.stringify(d.map(x=>[...x.querySelectorAll('[data-testid]')].map(y=>y.dataset.testid)[0]))})()"
+  ```
+
+  A `covered by <div.dialog-style.dialog-overlay>` failure means re-read, not
+  retry.
 - Never drive an instance this verification run did not start.
 
 ## Driving conventions

@@ -3,8 +3,9 @@
 A user adds an indicator from the Indicators dialog; it mounts as an overlay with
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
-interest) or kScript-backed. This entry was SOURCE-corrected on 2026-10-22 against tree `fcc8e53b12` and NOT
-driven; its last live check was 2026-10-06 on `064254b1e7`; guest coverage opened the V2 dialog, selected All,
+interest) or kScript-backed. This entry was DRIVEN on 2026-10-23 against product tree `2a1ed750db` on a real
+guest-JWT lane: ind-add, ind-legend and ind-limit were all proven for the first
+time. ind-catalog was not re-exercised this pass; guest coverage opened the V2 dialog, selected All,
 searched RSI, and recorded the current empty official-catalog state. The
 top-level Indicators/kScript strip, Pine paste offer, and WRUN catalog paths
 remain flag- or auth-dependent and were not driven here.
@@ -93,9 +94,12 @@ Preconditions:
      mounted:window.tc[0].metadata.some(m=>m.settings?.ovType==='BITCOIN_DOMINANCE')})})()
   ```
 
-  Success is a string id starting `BITCOIN_DOMINANCE` with `mounted:true`.
-  Source-derived on `fcc8e53b12`; **not yet driven** — settling `ind-add`,
-  `ind-legend` and `ind-limit` with this key is the next pass's first job.
+  **DRIVEN 2026-10-23 and it works.** On a guest lane at COINBASE BTC-USD 1h the
+  call returned the id `BITCOIN_DOMINANCE…` with `mounted:true` in **439ms**, no
+  toast and no error. That closes the question four earlier passes got wrong:
+  the add path was never broken — those passes probed `ALWAYS_LOAD_TYPES` keys
+  that cannot mount. Pre-check first (`COINBASE` / `1h` / `budget:null` /
+  `tc:true`), then add.
 
   **Do not pick an `ALWAYS_LOAD_TYPES` key.**
   That list means "preload this control when a hardcoded panel restores", not
@@ -157,22 +161,22 @@ Preconditions:
   Whether that is the engine or the bypassed add path is unresolved — so prove any
   legend claim on a dialog-added overlay, and do not report a removal bug from a
   programmatic one.
-- **Guest cap.** Read the live counter after workspace restoration, not during
-  first paint. The current fresh guest dialog exposes `button "1 / 3"`, and adding
-  RSI raised the engine metadata to three rows. The dialog carries the same count
-  as its chart-only counter (testid
-  `indicator-search-bar-chart-only-btn`). Assert that text — and assert it through
-  the DIALOG's Add button, because **the cap is a UI gate that
-  `chartStore.addIndicator` does not enforce**. A programmatic fourth add mounts
-  regardless: the counter stayed pinned at `Indicators 3/3` while `metadata` grew
-  to six entries. The gate runs only when the caller passes `opts.recordUndo` or
-  `opts.enforceIndicatorLimit` (`src/store/chart.add-indicator.ts:1928`, the flag computed at `:1852`), and a
-  bare `addIndicator(KEY,{},0)` passes neither. Re-reading `metadata` after a
-  programmatic add therefore proves nothing about the cap, and reads as the cap
-  being broken when it is not. Use eval adds to REACH three slots, then assert the
-  at-limit surfaces: the refusal is **not** silent — at 3/3 the dialog shows a
-  banner (`indicator-list-card-upgrade-btn`, "You've used all 3 free slots") and a
-  UI add opens the upgrade dialog.
+- **Guest cap — driven 2026-10-23, and the counter does NOT stay pinned.** A bare
+  `addIndicator` still bypasses ENFORCEMENT: four successive adds all succeeded
+  with no toast and no refusal. But the ticker counter tracks every one of them
+  and goes visibly over the limit — `1/3` → `2/3` → `3/3` → `4/3` → `5/3`. An
+  earlier note here claimed it stayed pinned at `3/3` while `metadata` grew; that
+  is wrong. Assert the over-limit reading, not a pinned one. The cap gate only
+  runs when the caller passes `opts.recordUndo` or `opts.enforceIndicatorLimit`,
+  which the dialog path does and a bare call does not.
+- **Legend handles — driven 2026-10-23.** All fourteen documented handles were
+  present on the programmatically added overlay, and `legends.closeBtn.click()`
+  removed it cleanly (four overlays torn down in sequence, counter falling back
+  to `1/3`). An older warning here said close was untrustworthy on a
+  programmatic overlay; that is no longer true. Still poll after the click — each
+  teardown took about a second.
+
+
 - **Proof.** Screenshot the pane with the legend visible, plus the engine-state
   read naming the overlay. Capture the settings dialog as its own frame if the
   claim is about settings.

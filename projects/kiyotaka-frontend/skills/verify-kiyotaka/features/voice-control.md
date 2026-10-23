@@ -12,7 +12,10 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
-**SOURCE-corrected 2026-10-22 against `fcc8e53b12`, NOT driven — and this
+**VERIFIED-UNREACHABLE on the guest lane as of 2026-10-23 (tree `2a1ed750db`).**
+The unmet prerequisite is a signed-in session; the route attempted was the
+standard `control-kiyotaka up` guest lane, which has no mic, no chip and no
+`window.__voiceControl` seam to call. Source-corrected 2026-10-22 — and this
 entry's preconditions are now wrong.** The `voice-control` flag GRADUATED on
 2026-10-19: `voiceControlEnabled()` is now just `isSignedInSession()`. Setting
 `kiyo.flag-overrides` for it does nothing, and a guest or no-JWT lane gets no

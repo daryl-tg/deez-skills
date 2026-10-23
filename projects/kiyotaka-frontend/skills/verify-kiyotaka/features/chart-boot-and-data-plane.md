@@ -3,8 +3,9 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was SOURCE-corrected on 2026-10-22 against `fcc8e53b12` and NOT driven;
-its last live check was 2026-10-12 on `61d1e911cc`; coverage
+entry was DRIVEN on 2026-10-23 against product tree `2a1ed750db` on a real
+guest-JWT lane: 250 candles, two metadata rows, 1h, the COINBASE default, a
+clean worker console, and the absence of OI/funding on spot; coverage
 was boot to 250 candles, the two-row overlay set, interval, the default market,
 and a screenshot. The worker-death console grep and the live ticker values were
 NOT re-run this pass; their last live check was 2026-10-06.
@@ -162,7 +163,7 @@ real OS sleep with macOS dark wakes; the trigger below is synthesized.
   backdrop and a swipe all write the seen flag, so a second run on the same
   browser profile meets only the signup modal — a recipe that expects two
   overlays every time is wrong after the first run.
-- **OI and FUNDING do not render on the default market.** The guest default is
+- **OI and FUNDING do not render on the default market — confirmed live.** The guest default is
   COINBASE BTC-USD, which is SPOT, and `isOiSupported`/`isFrSupported` are
   futures-only — so the live edge carries price, change and `24H VOLUME` only. A
   recipe that asserts `OPEN INTEREST` or `FUNDING / COUNTDOWN` on a default boot

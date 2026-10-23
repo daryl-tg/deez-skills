@@ -4,7 +4,7 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was SOURCE-corrected on 2026-10-22 against `fcc8e53b12` and NOT driven; last live check 2026-10-12; guest coverage
+was DRIVEN on 2026-10-23 against product tree `2a1ed750db` (real guest-JWT lane): bar set, chart type, interval, the v2 dialog and a symbol switch; guest coverage
 opened V2 search, attempted an ETHUSDT venue switch, changed interval, and
 selected Heikin Ashi. The ETHUSDT reload remained at zero candles because the
 backend was down. The hover quick-search result list and memecoin/Pulse rows
@@ -195,11 +195,14 @@ Preconditions:
   too — it is the full catalog, not only what was folded — so a row's presence
   says nothing about whether that panel is also in the bar.
   A blocked row carries `tb-panels-reason-<id>` explaining why.
-- **Popover bodies are lazy now.** Chart type, layout and heatmap load their
-  bodies from a loader map behind skeleton frames (`tb-chart-type-frame`,
-  `tb-layout-frame`, `tb-panel-standin-heatmap-frame`). After hovering or clicking
-  a trigger, POLL for an option testid — the options are absent from the DOM for
-  the first frames, which reads exactly like a trigger that did not open.
+- **Chart-type and layout options are EAGER — wait for the hover peek, not a
+  chunk.** A one-day-old note here said the bodies were lazy and told you to poll
+  for a chunk; that lane was reverted on 2026-10-23 and `tb-chart-type-frame`,
+  `tb-layout-frame` and `tb-popover-skeleton` no longer exist. Driven: straight
+  after `hover` the option count is `0`, and about two seconds later all **15**
+  `tb-chart-type-option-*` testids are present at once. What you are waiting on is
+  the popover's hover-peek delay. A `click` on the trigger opens it just as well
+  and is the more reliable door for a driver.
 - **New in the bar, and guest-reachable:** `tb-super-search-btn` opens Super
   Search with no guest gate (proven live: `isSuperSearchOpen` went true with
   `isAuthenticationDialogOpen` false). `tb-news-toggle-btn` (News) is
@@ -277,7 +280,7 @@ Preconditions:
 
   The v2 category ids are TWELVE — `all`, `crypto`, `memecoins`, `stocks`,
   `forex`, `commodities`, `indices`, `predictions`, `cme`, `hip4`, `economics`,
-  `options` — but a guest sees TEN. `memecoins` and `options` are no longer
+  `options` — but a guest sees TEN — driven live: `all, crypto, stocks, forex, commodities, indices, predictions, cme, hip4, economics`. `memecoins` and `options` are no longer
   flag-gated: both now require a signed-in session, so their absence on a guest
   lane is correct rather than drift. v2 itself is structural, not flag-driven:
   the dialog falls back to legacy only when opened from a comparison chart, in

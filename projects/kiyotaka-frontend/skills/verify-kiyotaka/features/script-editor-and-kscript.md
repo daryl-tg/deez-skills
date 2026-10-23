@@ -6,8 +6,8 @@ overlay through the frontend adapter. Public and own scripts can run client-side
 marketplace (WRUN) scripts use the shared hosted-run path when their delivered
 source or published build requires it and return through the same pipeline. Run targets depend on delivered source, visibility, and published
 builds: editable and delivered read-only scripts can run in the browser, while
-protected or unavailable builds use the cloud lane. This entry was SOURCE-corrected on 2026-10-22 against `fcc8e53b12` and NOT driven; last live
-check 2026-10-12 on `61d1e911cc`; guest coverage confirmed the
+protected or unavailable builds use the cloud lane. This entry was DRIVEN on 2026-10-23 against product tree `2a1ed750db`: ks-open through the
+ungated Super Search route on a guest lane; guest coverage confirmed the
 editor-toggle verification wall and no writable editor mount.
 WRUN launch-box/ring, Pine conversion, Kata hand-offs, and AI provenance remain
 authenticated coverage obligations.
@@ -168,7 +168,11 @@ Preconditions:
   `tb-editor-toggle-btn` will fail even though the drawer correctly stays inert —
   check the verify prompt instead. Kata's activity-bar entry is also VISIBLE on a
   no-JWT lane (it hides only for a real guest) while still being walled.
-- **The drawer no longer goes blank for ~25s.** `EditorDrawer` uses
+- **The drawer no longer goes blank for ~25s — confirmed live.** Driven: the
+  skeleton was present 4s after the click and gone by 12s with `kscript-run-btn`
+  rendered, and the drawer's `aria-label` read `Editor` while the Super Search row
+  read `Script Editor` — both matched by the substring probe, which is why it is
+  written that way. `EditorDrawer` uses
   `lazyWithRetry` with `EditorWorkspaceSkeleton` as the loading component, so
   `editor-workspace-skeleton` paints from the first frame of an open, and a failed
   chunk shows an inline "Couldn't load this." with Try again rather than a
