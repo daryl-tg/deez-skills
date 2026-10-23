@@ -163,10 +163,6 @@ Codex; work started in Claude finishes in Claude. Do not hand a task to the
 other CLI mid-run — the operator picks the runtime when they pick the CLI, and
 that choice is the whole point of having both.
 
-`codex-first` and `herdr-codex-orchestration` remain available on Claude for the
-cases where the operator explicitly asks for a Codex handoff. They are not the
-default and no playbook step reaches for them.
-
 **Non-delegable, on either runtime:** design, review, verification, and every
 git mutation. Those stay with the lead — you — regardless of what the roles
 table offers. `[routing]` in `registry.toml` records that, and the registry

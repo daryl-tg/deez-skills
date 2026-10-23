@@ -423,14 +423,6 @@ runtimes = ["claude", "codex"]
 category = "om-chat"
 runtimes = ["claude", "codex"]
 
-[skills.codex-first]
-category = "core"
-runtimes = ["claude", "codex"]
-
-[skills.herdr-codex-orchestration]
-category = "core"
-runtimes = ["claude", "codex"]
-
 [skills.writing-simplified-technical-english]
 category = "writing"
 runtimes = ["claude", "codex"]

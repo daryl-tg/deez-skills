@@ -4,9 +4,7 @@ A plan of several approved goals, run as one bounded loop. The lead
 orchestrates and never hands the loop away.
 
 **Runs on either runtime.** On Codex, goals go to the **executor** role
-natively. On Claude, the operator may instead ask for a Codex handoff per goal
-via `codex-first` — that is a preference they state, not this playbook's
-default.
+natively. On Claude, goals go to the **executor** role as subagents.
 
 **Entering this playbook pre-answers the execution gate for the whole run.** Do
 not re-ask per goal.
