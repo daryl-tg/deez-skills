@@ -185,6 +185,14 @@ code-reviewer effort never drops, because a cheap review passes what it missed.
 explore, verifier, or code-reviewer delegate and compare it after. A change is
 the delegate's mutation to inspect and revert, not yours to keep.
 
+**Fan-out reads in parallel.** When several slices need review or verification at
+once, run one delegate per slice, each in its own worktree, per
+**principle-separate-before-serializing-shared-state**, and write one report from
+the results. Each brief names the exact SHAs to inspect and the method for any
+measurement, and asks for every defect the delegate can prove, not only the
+first. A result without SHAs or method is dropped and that slice respawned once.
+A gap in coverage is not a pass.
+
 ## Playbooks
 
 Your first todo items are the matched playbook's steps, **copied in verbatim**,
