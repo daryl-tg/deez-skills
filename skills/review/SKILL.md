@@ -6,8 +6,8 @@ disable-model-invocation: true
 
 # Review
 
-Merges the local review stance with adversarial multi-model fan-out and a
-forced verdict per finding.
+Merges the local review stance with adversarial fan-out across distinct lenses
+and a forced verdict per finding.
 
 ## Stance
 
@@ -34,8 +34,9 @@ Redundancy finds the same thing twice; diversity finds what one lens cannot see.
 | Simplification | What is here that does not need to be |
 | Test integrity | Does the test prove the behavior, or restate the implementation |
 
-For a second opinion, dispatch a fresh **code-reviewer** with a distinct lens. For a decision rather than a diff, **llm-council**
-is the right tool and this one is not.
+For a second opinion, dispatch a fresh **code-reviewer** with a distinct lens.
+For a decision rather than a diff, **llm-council** is the right tool and this
+one is not.
 
 ## Categorize — every finding gets a verdict
 

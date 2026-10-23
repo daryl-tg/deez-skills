@@ -24,7 +24,7 @@ genuinely trivial.
   it; do not spawn delegates to hand-apply what a script can do.
 - **When you do fan out, write the lever as a skill every delegate reads** —
   the recipe, the verification contract, the do-not-touch fences in one
-  artifact. This is how a handoff to another runtime stays consistent instead of
+  artifact. This is how a handoff to many subagents stays consistent instead of
   drifting per prompt. Keep it outside the delegates' write scope.
 - **Applying this principle produces a file.** If you cited it and there is no
   script, codemod, generator, or delegate skill in the diff, you did not apply

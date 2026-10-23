@@ -38,8 +38,8 @@ map from it. Bodies stay `not implemented`.
 **Design it twice.** Produce at least two *structurally distinct* candidates
 before choosing. A second flavour of the first shape does not count. When the
 fork is genuinely open, run one **executor** per candidate in its own worktree
-and judge them in one pass by one judge. `playbooks/eval.md` has the judge rules, not
-the whole protocol.
+and judge them in one pass by one judge. Take the judge rules from
+`playbooks/eval.md`, not its whole protocol.
 
 Assume the next contributor is an agent that sees only the files it opened,
 copies the nearest example, and takes the shortest path that compiles. Prefer

@@ -32,8 +32,9 @@ lives in `packages/chat-ui` and a change there hits both hosts at once, host
    range. Review that frozen diff against the acceptance criteria and
    non-goals. Fix substantive findings, rerun the gates those fixes touch,
    re-freeze. Store the review output with the run evidence.
-   **Cross-model review is off by default here** — it cost more than it
-   returned. Run one only when the operator asks by name.
+   **A second, independent reviewer is off by default here.** When the
+   operator asks for one, dispatch a fresh **code-reviewer** subagent on the
+   same frozen diff.
 6. **Terminal gate, once.** A headless `agent-browser` journey per affected
    **host**, fresh session per run, host, and revision. A `/rooms` capture is
    never evidence for `/chat/`. Prove every changed
