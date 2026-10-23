@@ -39,17 +39,17 @@ what happens to whatever is at the destination now. The two worth pausing on:
   apply rather than skipping the entry, because a partial install is harder to
   reason about than none.
 
-## Verify against the runtimes, not the filesystem
+## Verify against the runtime, not the filesystem
 
 `bin/doctor` proves the symlinks are right. It cannot prove a runtime *loaded*
-them, because both read their skill directories at session start.
+them, because Claude Code reads its skill directory at session start.
 
-So: restart, then check. `$clanker-mode` should resolve in Claude Code. In Codex, ask
-for skills starting with `principle-`; all seventeen should be there.
+So: restart, then check. `$clanker-mode` should resolve in Claude Code. Codex
+support is dormant, so there is no routine Codex check.
 
-If a skill is missing on Codex specifically, check the frontmatter `name`
-matches the install name. Codex resolves its catalogue by that field, so a
-mismatch makes a skill invisible even when the symlink is perfect. `bin/doctor`
+If a skill is missing, check the frontmatter `name` matches the install name.
+The runtimes resolve their catalogues by that field, so a mismatch makes a skill
+invisible even when the symlink is perfect. `bin/doctor`
 checks this, which is why it exists as a check at all.
 
 Next: [The router](./02-the-router.md).

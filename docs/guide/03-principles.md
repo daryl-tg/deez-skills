@@ -38,9 +38,11 @@ caught — it happened once during the build.
 
 ## Why they install on both runtimes
 
-A handoff to Codex cites principles by name. That citation only resolves if the
-leaf exists on Codex too. A principle missing there is a silently truncated
-instruction, so the registry **rejects** one not installed on both.
+A handoff cites principles by name. That citation only resolves if the leaf
+exists on the delegate's runtime. Codex support is dormant, but the rule stays so
+a resubscribe finds every principle in place. A principle missing there is a
+silently truncated instruction, so the registry **rejects** one not installed on
+both.
 
 ## Why they are invisible
 

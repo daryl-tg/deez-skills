@@ -13,28 +13,27 @@ bin/link                 # preview. read it
 bin/link --apply
 ```
 
-Restart Claude Code and Codex. Both read their skill directories at session
-start, so nothing installed now is visible until you do.
+Restart Claude Code. It reads its skill directory at session start, so nothing
+installed now is visible until you do. Codex support is dormant: the links to
+`~/.codex` still install, but nothing routes there, so there is nothing to
+restart or check.
 
 Details, including the Python requirement and every `bin/link` verb, are in
 [chapter 1](./01-setup.md).
 
-## Step 2 — Prove both runtimes see it
+## Step 2 — Prove Claude Code sees it
 
 ```bash
 bin/doctor               # should be 0 failures
 ```
 
-Then check the runtimes themselves, because `doctor` proves the symlinks are
-right and cannot prove a runtime loaded them.
+Then check the runtime itself, because `doctor` proves the symlinks are right
+and cannot prove Claude Code loaded them.
 
-In **Claude Code**, `$clanker-mode` should resolve. In **Codex**, ask it to list
-skills whose name starts with `principle-`. All thirty-seven should appear — they
-install on both runtimes precisely so a handoff citing one resolves on either
-side.
+In **Claude Code**, `$clanker-mode` should resolve.
 
-If a skill is missing on Codex specifically, check that its frontmatter `name`
-matches its install name. Codex resolves its catalogue by that field.
+If a skill is missing, check that its frontmatter `name` matches its install
+name. The runtimes resolve their catalogues by that field.
 
 ## Step 3 — Set up verification, once per repository
 

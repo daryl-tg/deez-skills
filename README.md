@@ -110,7 +110,7 @@ That is it. Everything else the router reaches for when a step needs it.
 | [visual-parity](./skills/clanker-mode/playbooks/visual-parity.md) | pixel-exact equivalence, decided by image diff and never by eye |
 | [product-video](./skills/clanker-mode/playbooks/product-video.md) | a product reel or feature demo, filmed as one continuous UI motion film |
 | [multi-phase-plan](./skills/clanker-mode/playbooks/multi-phase-plan.md) | work spanning phases. the plan is the deliverable, not the code |
-| [agentic-loop](./skills/clanker-mode/playbooks/agentic-loop.md) | a multi-goal plan run as one bounded loop, dispatching to Codex |
+| [agentic-loop](./skills/clanker-mode/playbooks/agentic-loop.md) | a multi-goal plan run as one bounded loop, dispatching to executor subagents |
 | [autonomous-run](./skills/clanker-mode/playbooks/autonomous-run.md) | one predicate, driven unattended until it holds. no delivery mid-run |
 | [hillclimb](./skills/clanker-mode/playbooks/hillclimb.md) | one metric, driven to a target. one change, one measurement, keep or revert |
 | [eval](./skills/clanker-mode/playbooks/eval.md) | does a change to how an agent works actually help. blind candidates, one judge |
@@ -283,11 +283,12 @@ Two consequences worth knowing:
 
 **The router is Claude-only** because `disable-model-invocation` is a no-op on
 Codex — tested, not assumed. A mode skill there would fire on description
-matches instead of waiting to be routed to. Claude can also dispatch to Codex
-and there is no clean path back, so Claude plans and Codex implements.
+matches instead of waiting to be routed to. The operator works in Claude Code
+only, so Claude subagents implement and Codex install support is dormant.
 
-**Principles install on both** because a handoff to Codex cites them by name,
-and that citation only resolves if the leaf exists on that side.
+**Principles install on both** because a handoff cites them by name, and
+that citation only resolves if the leaf exists on the delegate's side. Codex
+support is dormant, and the rule stays so a resubscribe needs no rebuild.
 
 Playbooks are plain markdown inside the router, not registry entries, so twenty-five
 of them cost nothing at session start and can still be read by absolute path
@@ -344,7 +345,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `clanker-agent` |  | claude | A delegate working in clanker-mode style, not the runner of clanker-mode itself. Reads the clanker-mode skill in full before any work, including its Principles… |
 | `clanker-mode` | router | claude, codex | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or … |
 | `clanker-mode` |  | claude | Apply clanker-mode to this request — routed playbooks, cited principles, proof on the real surface. |
-| `code-reviewer` |  | claude | Comprehensive severity-rated review across spec compliance, security, quality, and performance. Read-only. Use for the independent review pass before delivery.… |
+| `code-reviewer` |  | claude | Comprehensive severity-rated review across spec compliance, security, quality, and performance. Read-only. Use for the independent review pass before delivery. |
 | `correct` |  | claude, codex | Find the mistakes agents keep repeating in a repo and make each one impossible: architecture first, then types, a lint whose error names the fix, a test, and d… |
 | `create-formal-verification-skill` |  | claude, codex | Generate a project-owned skill in the deez-skills hub that formally verifies the code where a bug costs most and tests reach least, with whichever tool fits. U… |
 | `create-verification-skill` |  | claude, codex | Generate a project-owned verification skill, feature map, and control wrapper in the deez-skills hub so an agent can drive the real app and prove behavior. Use… |

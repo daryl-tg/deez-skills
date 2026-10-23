@@ -10,7 +10,7 @@ checklist. The rest are reference.
 3. [Principles](./03-principles.md) — how rules are cited instead of restated
 4. [Verification](./04-verification.md) — the two lanes, and what counts as proof
 5. [Delivery](./05-delivery.md) — rebase, promote, PR, squash
-6. [Two runtimes](./06-two-runtimes.md) — Claude plans, Codex implements
+6. [Two runtimes](./06-two-runtimes.md) — Claude hosts the router, Codex support is dormant
 7. [Making it yours](./07-making-it-yours.md) — adding, merging, retiring skills
 8. [Recipes](./08-recipes.md) — the short version of common tasks
 9. [Keeping it honest](./09-keeping-it-honest.md) — when to run the maintenance

@@ -17,21 +17,23 @@ which one an entry belongs to, and `bin/doctor` enforces the consequences.
 listed both. A mode skill installed there would fire on description matches
 instead of waiting to be routed to.
 
-Claude can also dispatch to Codex, and Codex has no clean path back. So Claude
-hosts the router and Codex is an executor lane.
+The operator works in Claude Code only, so Claude hosts the router and every
+delegate. Codex install support is dormant: kept so a resubscribe needs no
+rebuild, never a routing target.
 
 ## Why principles install on both
 
-A handoff to Codex cites principles by name. Those citations only resolve if the
-leaf exists on that runtime. A principle missing from Codex is a silently
+A handoff cites principles by name. Those citations only resolve if the leaf
+exists on the delegate's runtime, which is why Codex still gets them while its
+support is dormant. A principle missing from Codex is a silently
 truncated instruction, so the registry rejects one that is not on both.
 
 ## Why playbooks are not skills
 
 They are plain `.md` files inside the mode skill. Twenty-four of them cost zero
 registry entries and zero session tokens, and they are readable by absolute path
-from either runtime without being installed anywhere. A Codex handoff cites the
-path directly.
+from either runtime without being installed anywhere. A handoff cites the path
+directly.
 
 ## Session cost
 
@@ -58,13 +60,10 @@ Playbook steps name a **role**, never a model or a runtime, and the router
 resolves it at dispatch. The five roles are defined for both runtimes in
 agent definitions installed in both runtimes, which the hub does not yet version.
 
-Implementation dispatches to Codex through
-`Agent(subagent_type: "codex:codex-rescue")` — the official OpenAI plugin's
-subagent, which is what a router can call, unlike its slash commands. Raw
-`codex exec` is the escape hatch when a structured return (`--output-schema`),
-an explicit sandbox, or an ephemeral run is needed. The Codex MCP server is not
-used: it exposes two tools and carries a conversation-tracking bug that breaks
-multi-turn.
+Implementation dispatches to a Claude subagent through
+`Agent(subagent_type: "executor")`. Review goes to `code-reviewer`, verification
+to `verifier`. The Codex roles stay in the install matrix as dormant support and
+are never dispatched.
 
 Planning, review, verification, and git mutations never dispatch.
 
