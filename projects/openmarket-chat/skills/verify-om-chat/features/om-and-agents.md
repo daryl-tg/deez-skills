@@ -189,6 +189,7 @@ for the gated flows and their live-lane prerequisites.
   `shell-fixture.html?view=settings&settingsPage=appearance` renders all
   twenty, OM Settings included (measured at `f7d7c987`). See
   [settings-and-appearance.md](settings-and-appearance.md).
+- **Remote Control `operation` verb (branch, pending release).** Beside turns and the session rail, an away session can run named persona/away operations on the selected device: `remoteOperation(name)` in `packages/chat-ui/src/lib/remote-operation.ts`. A device advertises `operation.v1` in `hello_ack`; the daemon answers `operation.accepted` then `operation.response` parts, and the client gives up after 8 s without an accept and re-checks the desk at most every 15 s. See persona-setup-and-editing.md "Hosted /chat/ over Remote Control" for the rig.
 - **Remote control (away).** `RemoteHome` in `RemoteControlPane.tsx` is the om
   pane of an away session that drives a desktop's om over the relay. It
   reuses the session rail with **no Watches destination**

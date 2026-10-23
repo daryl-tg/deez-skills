@@ -9,6 +9,8 @@
 - Evidence-free default export, optional private evidence, and a private saved-voice sample.
 - Direct History entry and restore, phone layout, browser Back and owner-scoped offline recovery.
 
+- Hosted /chat/ parity over Remote Control: every Voice and Away call runs on the owner's home daemon by operation name, with unreachable-desk states (offline, remote control off, outdated, busy, no answer). Pending: on origin/main only after the relay, rooms-client 0.105.0 and daemon releases.
+
 ## How to get to it (user POV)
 
 Open Agents, then **Voice** in the sidebar's **Persona** group (a `nav` named "Persona sections"). Voice is the first row. With no card, choose Set up my voice now, Import a card, or Create manually. A saved setup or imported card needs Use this card before selection. An existing card offers **Edit**, Advanced document, History and Export card (measured at `f7d7c987` with `personaState=ready`; the button text is plain "Edit", `PersonaPanel.tsx:1137-1151`). Away coverage and Activity are the other two Persona rows; this surface does not arm an agent.
@@ -47,6 +49,14 @@ Read all opens the Proposed voice changes dialog. Verify Current voice / Propose
 
 The revamp uses centered content columns beside the sidebar. Check the composed Shell Voice, Away coverage and Activity routes at 1440x1000, rather than measuring against the whole viewport. Voice editing is reached through Edit, Saved profiles holds profile selection, and Manage voice cards holds import/create/export. Existing full-profile viewing is separate from proposal review.
 
+### Hosted /chat/ over Remote Control (branch, pending release)
+
+In the hosted app the Persona hub reaches the home daemon through the Remote Control `operation` verb, never daemon HTTP. Source: `packages/chat-ui/src/lib/remote-operation.ts` (`remoteOperation(name, init)`), `RemoteControl.operation()` in `remote-control.ts`, and the cloud adapters `apps/cloud/src/lib/{local-operation,away-client,daemon-operations,om-daemon}.ts`. The daemon maps the closed name list to its routes (`@openmarket/rooms-client/remote-operation-routes`, daemon-only). The cloud dist must never contain `/api/away` or `/api/library/` (`apps/cloud/tools/check-dist.mjs`).
+
+Driving it needs a three-hop rig: a local relay from `kiyotaka-chat-service` (Redis off, dev RS256 `JWT_KEYS`), a `control-om` lane daemon with `OM_ROOMS_WS_URL` at that relay and remote control enabled, a local store (`tharamine-user-service` on a fresh `mongo:7` replica set) for Voice data, and the cloud app under `vite` on 4178 with an out-of-repo proxy config and seeded `jwt` + `om.chat.voucher` localStorage. Start vite with `--force` after any rooms-client link change: a stale dep pre-bundle makes the lazy Remote Control chunk fail and every call reads offline. Full runbook: the task's dev-notes `rig.md` (cloud-persona-parity).
+
+Unreachable states to drive: stop the lane (Voice "Your desk is offline. Voice settings load when om at your desk is running.", Away "Your desk is offline. Away coverage needs om running at your desk.", sidebar Away "Can't tell"); `om agent remote disable` on the lane ("Remote control is off at your desk. Turn it on with om agent remote enable."). For `/rooms` regression set `OM_ROOMS_GUI_DIR` on the lane to the candidate `dist/` and confirm zero relay `operation` frames.
+
 ## Gotchas
 
 The canned fixture proves navigation and component behavior. An actual HTTP handler with a synthetic relay adapter proves API integration, not deployed relay delivery. Setup with an injected zero-history learner does not prove a paid model pass. Test durable checkpoint reuse and publication separately in the daemon suite.
@@ -58,5 +68,7 @@ There is no cross-fork drift report: `sync-shared.ts` was deleted in `f190644c` 
 The actual API rig must include a synthetic HOME mirror-health entry and directory to prove managed voice skill publication. Missing mirror state should produce an unavailable load and preserve the previous selection; a 200 report by itself is not proof that the voice skill exists. Never configure that rig against the operator’s real mirror.
 
 ### Verification record
+
+**Branch verification (pending release), 2026-10-23.** **Candidate:** openmarket-chat `fb33a827` (daryl/cloud-persona-parity) on rooms-client 0.105.0 (unpublished, openmarket-internal `d020cfee9`) and relay `0463fe2`. **Scope (rig, measured against operator-proof curl):** cloud Voice load, rule edit and save, profile switch, export, 51 KiB pair import (multi-part), Away policy Cover DMs toggle, three unreachable states, `/rooms` regression with zero relay operation frames. **Limitations:** Away arm/pause/resume/stop, Activity mark-handled, Try voice and persona proposal accept were not drivable (no agent badge, model or learning pass in the rig); production auth not exercised. Evidence: `http://127.0.0.1:8098/cloud-persona-parity/fb33a827/`.
 
 **Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `personaState=empty` **Create manually** gave Voice name, About me, Voice rule 1, Example for voice rule 1 and Save voice. `persona-panel-fixture.html` states: `card` (Edit, View full profile), `awaiting` (Set up my voice now), `proposed` (Use this card) and `pending` (Show changes, Accept, Not now). On `pending-long`, Show changes then Read all opened the **Proposed voice changes** dialog. **Limitations:** `personaState=invalid` and the Manage voice cards menu items were not re-driven this pass. The draft was not saved. Import/export files, profile selection, learning, offline recovery and production host parity were not exercised. Previous record: 2026-10-22 at `cd9f8c72`.
