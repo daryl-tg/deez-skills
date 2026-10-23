@@ -1,13 +1,14 @@
 ---
 name: principle-delegate-implementation-review-stays-here
-description: "Apply when handing work to a subagent or another runtime. Implementation delegates; design, review, verification, and git mutations stay with the lead."
+description: "Apply when handing work to a subagent. Implementation delegates; design, review, verification, and git mutations stay with the lead."
 disable-model-invocation: true
 ---
 
 # Delegate implementation, review stays here
 
-Implementation goes to a Claude subagent, the **executor** role. Design,
-review, verification, and every git mutation stay with the lead.
+Implementation can go to a Claude subagent, the **executor** role, when it is
+delegated. Design, review, verification, and every git mutation stay with the
+lead.
 
 **Why:** delegation buys throughput and a second perspective. It does not buy
 judgement. The lead owns the diff regardless of who typed it.

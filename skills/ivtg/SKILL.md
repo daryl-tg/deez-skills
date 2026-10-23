@@ -32,11 +32,13 @@ The user pastes an issue. Immediately:
 When the investigator returns:
 
 1. Write its findings into that issue's section (Investigation + Fix plan). Set `**Status:** in review`.
-2. Dispatch a fresh **code-reviewer** subagent (`Agent`, `subagent_type: "code-reviewer"`, `run_in_background: true`). It has no context from the investigator, which is the point. Its prompt names the repos by absolute path and carries this text, then the issue and fix plan verbatim. It writes its reply to `<scratch>/ivtg-issue-<N>-review.md`:
+2. Dispatch a fresh **code-reviewer** subagent (`Agent`, `subagent_type: "code-reviewer"`, `run_in_background: true`). It has no context from the investigator, which is the point. Its prompt names the repos by absolute path and carries this text, then the issue and fix plan verbatim. The prompt says this is a plan review, not a diff review, and that the VERDICT format below replaces its default output contract. The reviewer is read-only and cannot write files, so the main thread writes its returned message to `<scratch>/ivtg-issue-<N>-review.md`:
 
 ```text
 Review this fix plan against the actual code in the repos you can read.
 Do not write code. Do not edit files.
+This is a plan review, not a diff review. The format below replaces your
+default output format.
 
 First line of your reply must be exactly: VERDICT: clean  — or —  VERDICT: <N> blockers
 Then, numbered, each blocker: what is wrong, the file:line evidence, what the plan should say instead.

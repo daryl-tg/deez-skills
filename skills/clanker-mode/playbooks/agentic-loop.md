@@ -9,7 +9,7 @@ execution path.
 **Entering this playbook pre-answers the execution gate for the whole run.** Do
 not re-ask per goal.
 
-**Stays with Claude by rule**, whatever the goal says: tiny edits, anything
+**Stays with the lead by rule**, whatever the goal says: tiny edits, anything
 needing session-only tools, all git mutations and pushes, and every review or
 validation step.
 
