@@ -3,7 +3,8 @@
 The maintained source for verifying user-facing chart behavior. Read this index
 before driving, then use the matching feature file as the recipe.
 
-Maintenance pass: 2026-10-23 on product tree `2a1ed750db` (= `origin/main`), lane
+Watchlist entry added 2026-10-23 on product tree `2a1ed750db` (guest-side driven
+only). Maintenance pass: 2026-10-23 on product tree `2a1ed750db` (= `origin/main`), lane
 `18097`, on a REAL guest-JWT lane (`isGuest` true, metadata present — not the
 no-JWT lane earlier passes hit). Driven: chart boot, the full ticker pinned set,
 chart type, interval, the v2 symbol dialog and a symbol switch, the editor via
@@ -99,6 +100,13 @@ any guest lane because `voiceControlEnabled()` is `isSignedInSession()`.
 
   A `covered by <div.dialog-style.dialog-overlay>` failure means re-read, not
   retry.
+- **An authed lane cannot be self-served.** Driven 2026-10-23: the local dev
+  stack's login form does not do password auth — it sends a **6-digit sign-in
+  code by email**, which the harness cannot read. So every "authed lane" claim in
+  this map is currently unverifiable by an agent alone, and a guest-walled
+  surface can only ever be proven as far as its wall. Ask the operator for a code
+  or a password-capable account before planning an authed run; do not burn a pass
+  discovering this again.
 - Never drive an instance this verification run did not start.
 
 ## Driving conventions
@@ -191,4 +199,8 @@ start of any symbol run rather than trusting either lane:
   `node scripts/seed-official-catalog.mjs`, not the authed lane)
 - [Symbol search and the ticker bar](./symbol-search-and-ticker-bar.md) — guest
 - [Script editor and kScript](./script-editor-and-kscript.md) — guest (authed for protected/wrun)
-- [Voice control](./voice-control.md) — guest with the `voice-control` flag override (seam only; the microphone path is unverified)
+- [Watchlist](./watchlist.md) — guest proves the wall ONLY; every sub-feature
+  behind it is unverified because this stack cannot be signed into by an agent
+- [Voice control](./voice-control.md) — NOT guest-reachable: the `voice-control`
+  flag graduated to `isSignedInSession()`, so the override is dead and a guest
+  lane has no mic, chip or seam at all
