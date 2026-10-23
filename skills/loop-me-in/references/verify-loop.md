@@ -15,6 +15,7 @@ RUN_DIR=~/.claude/plans/<YYYY-MM-DD>/<name>-run-evidence   # NOT /tmp
 FINDINGS="$RUN_DIR/findings.md"
 RUN_TAG="loop-<name>"     # every headless agent's --name starts with this
 AGENT_MODEL="opus"        # passed to every agent call; never inherited
+FIRST_SWEEP_MODEL="sonnet"  # sweep attempt 1 only: a checklist. Set to "$AGENT_MODEL" to opt out
 ```
 
 `$CD` is absolute because the sweep agent's `Bash($CD *)` rule is matched as text against
@@ -69,6 +70,10 @@ On failure the run stops and asks Ryan for a linked worktree. Creating one is hi
 the interactive spec session's, never the run's: the rule against `git worktree add` during
 the run still holds.
 
+The last preflight step is the agent smoke test (end of section 7): one real sweep call and
+one real fix call, with the night's exact flags, once the dev server and browser are up.
+It runs while Ryan can still fix what it finds.
+
 ## 0. `with_timeout` — macOS has no `timeout`
 
 Neither `timeout` nor `gtimeout` is on this machine (no GNU coreutils). A brief that
@@ -77,15 +82,35 @@ this once, near the top of the brief, and use it for every long-running command:
 
 ```sh
 with_timeout() {  # with_timeout <seconds> <command...>
-  perl -e 'alarm shift; exec @ARGV' "$@"
+  perl -e '
+    my $secs = shift;
+    my $pid = fork() // die "with_timeout: fork: $!\n";
+    if ($pid == 0) { exec { $ARGV[0] } @ARGV or exit 127 }
+    $SIG{ALRM} = sub {   # on timeout, kill the whole process tree, not just the root
+      my (%kids, @todo, @tree);
+      for (`ps -Ao pid=,ppid=`) { my ($c, $p) = split; push @{ $kids{$p} }, $c }
+      @todo = ($pid);
+      while (defined(my $p = shift @todo)) { push @tree, $p; push @todo, @{ $kids{$p} || [] } }
+      kill "TERM", @tree; sleep 2; kill "KILL", @tree;
+      exit 142;
+    };
+    alarm $secs;
+    waitpid($pid, 0);
+    exit($? & 127 ? 128 + ($? & 127) : $? >> 8);
+  ' "$@"
 }
 ```
 
-`/usr/bin/perl` ships with macOS, and a pending `alarm` survives `exec`, so the command
-itself takes the SIGALRM. Timed-out runs exit 142.
+`/usr/bin/perl` ships with macOS. The command runs as a child, and its exit code passes
+through unchanged. Timed-out runs exit 142.
 
-SIGALRM reaches only the process that was launched — a timed-out `claude -p` can leave
-children behind (Bash tool subprocesses), so run the heartbeat (section 9) after any 142.
+**The timeout kills the tree, not one process.** A timed-out `claude -p` has children: a
+`bun test` its Bash tool started can be the thing that hung. Killing only `claude` orphans
+it. A process-group kill does not reach it either, because Claude Code starts each Bash
+tool call in its own process group. So the handler walks `ps` for every descendant, then
+sends TERM and, two seconds later, KILL. A child that already left the tree (a daemonised
+process, reparented to `launchd`) escapes the walk, so still run the heartbeat (section 9)
+after any 142.
 
 ## 1. The dev server: reuse first, then start
 
@@ -267,6 +292,42 @@ flag such as `--output-format text`, or it becomes a tool name.
 **A denied call is silent.** With `--permission-prompts none`, a Bash command the
 allowlist does not cover is refused and the agent carries on. After every sweep, check the
 evidence files it was told to write exist. A missing screenshot means the sweep is void.
+The preflight smoke test (end of section 7) proves the rules before the night starts.
+
+**Every agent call's exit code is captured**, as `rc=0; … || rc=$?`, so `set -e` cannot
+skip the check that follows it:
+
+- `0`: read the output.
+- `142`: timeout. The attempt counts as failed, its findings entry says `timed out`, and
+  the heartbeat (section 9) runs.
+- Any other code, or usage-limit or auth text in the output: **stop condition.** Append
+  the reason to the findings log, send the completion post in its blocked-run form, then
+  stop. Every later call would fail the same way, and a fix loop reads an empty answer as
+  one more failed attempt.
+
+**The quota is shared.** The run session and every agent it starts draw on the same
+Claude plan. A night of sweeps can use it up mid-phase, and then the run's own completion
+post fails too, so the report falls back to the findings log. This is why sweep attempt 1
+runs on `$FIRST_SWEEP_MODEL`: the first look at a checklist row does not need the strongest
+model.
+
+```sh
+# Texts found in the Claude Code 2.1.309 binary. Widen the pattern if a run prints another.
+LIMIT_PATTERN='usage limit|spend limit reached|credit balance is too low|invalid api key|please run /login|login expired|oauth token revoked|failed to authenticate'
+
+agent_must_stop() {   # agent_must_stop <rc> <stem> — true when the run must stop
+  local rc="$1" out="$RUN_DIR/$2.md" err="$RUN_DIR/$2.err"
+  if [ "$rc" -ne 0 ] && [ "$rc" -ne 142 ]; then
+    echo "agent $2 exited $rc, see $err" >&2; return 0
+  fi
+  # Only the head of the answer: a limit message replaces the whole answer, and a sweep
+  # that quotes the app's own auth error further down must not stop the run.
+  if { head -n 3 "$out"; cat "$err"; } 2>/dev/null | grep -qiE -- "$LIMIT_PATTERN"; then
+    echo "agent $2 hit a usage limit or an auth failure, see $out" >&2; return 0
+  fi
+  return 1
+}
+```
 
 ```sh
 effort_for() {   # effort_for <role> [attempt] — attempt defaults, so `effort_for diagnose`
@@ -316,39 +377,64 @@ it did.
 
 ## 5. Sweep agent
 
+```sh
+sweep_agent() {   # sweep_agent <tag> <effort> <model> — reads sweep-prompt-<tag>.md
+  local tag="$1" effort="$2" model="$3"
+  ( cd "$WORKTREE" && with_timeout 900 claude -p \
+      --tools "Read,Grep,Glob,Bash" \
+      --allowedTools Read Grep Glob "Bash($CD *)" \
+      --add-dir "$RUN_DIR" \
+      --permission-mode dontAsk \
+      --permission-prompts none \
+      --strict-mcp-config \
+      --no-chrome \
+      --no-session-persistence \
+      --name "$RUN_TAG-sweep-$tag" \
+      --model "$model" \
+      --effort "$effort" \
+      --output-format text \
+      "$(cat "$RUN_DIR/sweep-prompt-$tag.md")" \
+      < /dev/null \
+  ) > "$RUN_DIR/sweep-$tag.md" 2> "$RUN_DIR/sweep-$tag.err"
+}
+```
+
 The run executes the identity gate itself, before the agent starts. The agent's Bash is
-only `$CD`, so it cannot run `lsof` and cannot observe the serving cwd. A failed gate
-means no agent call at all: the sweep is void, and the run logs it and rebuilds. A passed
-gate becomes a line in the prompt, which the agent echoes as its `IDENTITY`:
+only `$CD`, so it cannot run `lsof` and cannot observe the serving cwd. The sweep call sits
+inside the gate's `then` branch, so a copied block cannot sweep on a failed gate. A failed
+gate means no agent call at all: the sweep is void, and the run logs it and rebuilds. A
+passed gate becomes a line in the prompt, which the agent echoes as its `IDENTITY`:
 
 ```sh
+# Written once per phase: everything the prompt carries except the identity line.
+BODY="$RUN_DIR/sweep-body-p$N.md"
+TAG="p$N-a$ATTEMPT"
+MODEL="$AGENT_MODEL"
+if [ "$ATTEMPT" -eq 1 ]; then MODEL="$FIRST_SWEEP_MODEL"; fi
+
 if identity_gate; then
-  printf 'IDENTITY (observed by the run; echo verbatim): pass — %s / sentinel found\n' \
-    "$IDENTITY_CWD" >> "$RUN_DIR/sweep-prompt-p$N-a$ATTEMPT.md"
+  { cat "$BODY"   # one write: a re-gate replaces the prompt, never appends a second line
+    printf 'IDENTITY (observed by the run; echo verbatim): pass — %s / sentinel found\n' \
+      "$IDENTITY_CWD"
+  } > "$RUN_DIR/sweep-prompt-$TAG.md"
+  rc=0; sweep_agent "$TAG" "$(effort_for sweep "$ATTEMPT")" "$MODEL" || rc=$?
+  if agent_must_stop "$rc" "sweep-$TAG"; then
+    printf '## STOP P%s attempt %s — sweep agent exit %s, see sweep-%s.err\n\n' \
+      "$N" "$ATTEMPT" "$rc" "$TAG" >> "$FINDINGS"
+    # completion post in its blocked-run form, then stop the run
+  fi
 else
-  printf '## P%s attempt %s — identity: fail, sweep void\n\n' "$N" "$ATTEMPT" >> "$FINDINGS"
-  # rebuild, restart, re-gate — never call the sweep agent on a failed gate
+  VOIDS=$((VOIDS + 1))   # VOIDS=0 at the start of every phase
+  printf '## P%s attempt %s — identity: fail, sweep void (%s of 3)\n\n' \
+    "$N" "$ATTEMPT" "$VOIDS" >> "$FINDINGS"
+  # rebuild, restart, re-gate. On the third void, record the phase as not verified
+  # and move to the next independent phase.
 fi
 ```
 
-```sh
-( cd "$WORKTREE" && with_timeout 900 claude -p \
-    --tools "Read,Grep,Glob,Bash" \
-    --allowedTools Read Grep Glob "Bash($CD *)" \
-    --add-dir "$RUN_DIR" \
-    --permission-mode dontAsk \
-    --permission-prompts none \
-    --strict-mcp-config \
-    --no-chrome \
-    --no-session-persistence \
-    --name "$RUN_TAG-sweep-p$N-a$ATTEMPT" \
-    --model "$AGENT_MODEL" \
-    --effort "$(effort_for sweep "$ATTEMPT")" \
-    --output-format text \
-    "$(cat "$RUN_DIR/sweep-prompt-p$N-a$ATTEMPT.md")" \
-    < /dev/null \
-) > "$RUN_DIR/sweep-p$N-a$ATTEMPT.md"
-```
+Void sweeps are capped at three per phase. A gate that fails three times after a rebuild
+is not a flake: something serves a different build, and another rebuild will not change
+that.
 
 The sweep has no edit tools, and its only Bash is the `chrome-devtools` script. It writes
 screenshots and console logs through that script, into `$RUN_DIR`. Settings enable no
@@ -405,26 +491,39 @@ that exist nowhere else: the post's word ceiling will not carry them.
 ## 7. Fix agent
 
 ```sh
-( cd "$WORKTREE" && with_timeout 1800 claude -p \
-    --tools "Read,Grep,Glob,Edit,Write,Bash" \
-    --allowedTools Read Grep Glob Edit Write "Bash(bun test *)" "Bash($TYPECHECK)" \
-    --disallowedTools "Bash(git add *)" "Bash(git commit *)" "Bash(git push *)" \
-    --permission-mode acceptEdits \
-    --permission-prompts none \
-    --strict-mcp-config \
-    --no-chrome \
-    --no-session-persistence \
-    --name "$RUN_TAG-fix-p$N-a$ATTEMPT" \
-    --model "$AGENT_MODEL" \
-    --effort "$(effort_for fix "$ATTEMPT")" \
-    --output-format text \
-    "$(cat "$RUN_DIR/fix-prompt-p$N-a$ATTEMPT.md")" \
-    < /dev/null \
-) > "$RUN_DIR/fix-p$N-a$ATTEMPT.md"
+fix_agent() {     # fix_agent <tag> <effort> — reads fix-prompt-<tag>.md
+  local tag="$1" effort="$2"
+  ( cd "$WORKTREE" && with_timeout 1800 claude -p \
+      --tools "Read,Grep,Glob,Edit,Write,Bash" \
+      --allowedTools Read Grep Glob Edit Write "Bash(bun test *)" "Bash($TYPECHECK)" \
+      --disallowedTools "Bash(git add *)" "Bash(git commit *)" "Bash(git push *)" \
+      --permission-mode acceptEdits \
+      --permission-prompts none \
+      --strict-mcp-config \
+      --no-chrome \
+      --no-session-persistence \
+      --name "$RUN_TAG-fix-$tag" \
+      --model "$AGENT_MODEL" \
+      --effort "$effort" \
+      --output-format text \
+      "$(cat "$RUN_DIR/fix-prompt-$tag.md")" \
+      < /dev/null \
+  ) > "$RUN_DIR/fix-$tag.md" 2> "$RUN_DIR/fix-$tag.err"
+}
+
+TAG="p$N-a$ATTEMPT"
+rc=0; fix_agent "$TAG" "$(effort_for fix "$ATTEMPT")" || rc=$?
+if agent_must_stop "$rc" "fix-$TAG"; then
+  printf '## STOP P%s attempt %s — fix agent exit %s, see fix-%s.err\n\n' \
+    "$N" "$ATTEMPT" "$rc" "$TAG" >> "$FINDINGS"
+  # completion post in its blocked-run form, then stop the run
+fi
 ```
 
 The fix prompt carries the sweep's `GAPS` verbatim, the scope fence, and the verification
-command. The allowlisted Bash is that verification command — this stack's `TEST_ONE` and
+command, with the instruction to run it exactly as written. `Bash($TYPECHECK)` matches
+that exact text, so `$TYPECHECK | tail` is a different command and is denied, silently.
+The allowlisted Bash is that verification command — this stack's `TEST_ONE` and
 `TYPECHECK` adapters; substitute the repo's own. It is not the agent's only shell access:
 `acceptEdits` also auto-approves filesystem commands such as `mkdir`, `touch`, `rm`,
 `rmdir`, `mv`, `cp` and `sed` inside the working directories. So the agent can delete or
@@ -467,9 +566,14 @@ Exact `=` comparison, not `grep` — substring matching lets `a.spec.ts` match
 On attempt 3, this becomes the diagnosis agent instead:
 
 ```sh
+# Snapshots are excluded: `bun test` writes a new __snapshots__ file for a new snapshot
+# test, and that is the runner's output, not an edit by the agent.
+NOT_SNAPSHOTS=':(glob,exclude)**/__snapshots__/**'
 tree_fingerprint() {   # tracked changes, file names, and untracked file contents
-  ( cd "$WORKTREE" && { git status --porcelain; git diff
-      git ls-files -z --others --exclude-standard | xargs -0 shasum; } | shasum )
+  ( cd "$WORKTREE" && { git status --porcelain -- . "$NOT_SNAPSHOTS"
+      git diff -- . "$NOT_SNAPSHOTS"
+      git ls-files -z --others --exclude-standard -- . "$NOT_SNAPSHOTS" \
+        | xargs -0 shasum; } | shasum )
 }
 
 before=$(tree_fingerprint); rc=0
@@ -488,9 +592,11 @@ before=$(tree_fingerprint); rc=0
     --output-format text \
     "$(cat "$RUN_DIR/diagnose-prompt-p$N.md")" \
     < /dev/null \
-) > "$RUN_DIR/diagnose-p$N.md" || rc=$?   # keep going under set -e: the check must run
+) > "$RUN_DIR/diagnose-p$N.md" 2> "$RUN_DIR/diagnose-p$N.err" || rc=$?   # check must run
 [ "$(tree_fingerprint)" = "$before" ] || {
   echo "STOP: diagnose agent changed the worktree (agent exit $rc)" >&2; false; }
+agent_must_stop "$rc" "diagnose-p$N" && {
+  echo "STOP: diagnose agent failed (exit $rc)" >&2; false; }
 ```
 
 Claude Code has no read-only sandbox, so this is the substitute. The agent has no edit
@@ -498,6 +604,63 @@ tools, and its Bash is limited to reading history and re-running the failing cas
 fingerprint compares against the tree *before* the call, not against a clean tree: the
 failed fix attempts are still uncommitted at this point. It runs whatever the agent's exit
 code, including 142, because a timed-out agent can still have written something.
+
+Snapshot files are left out of the fingerprint, because re-running the failing case can
+write one. Any other test output that is not gitignored trips the check the same way.
+Exclude it in `NOT_SNAPSHOTS` or `.gitignore` during the spec session, not at 3am.
+
+### Preflight smoke test — both agents, before Ryan leaves
+
+Every allow rule above is unverified until a real call goes through it, and a denied call
+is silent. Three denials are plausible and none has been tested: the console redirect in
+`$CD logs … > "$RUN_DIR/…" 2>&1` under `dontAsk`, an agent adding `| tail` to the
+exact-match `Bash($TYPECHECK)`, and the worktree-gate hook on a headless `Edit`. So the
+brief makes one sweep call and one fix call while Ryan is still there, through the same
+`sweep_agent` and `fix_agent` the night uses. Missing evidence from either one stops the
+run before the night starts.
+
+```sh
+SMOKE_FILE="<a tracked source file, relative to the worktree>"
+
+preflight_agents() {
+  local rc edited=no
+  git -C "$WORKTREE" diff --quiet -- "$SMOKE_FILE" || {
+    echo "STOP: $SMOKE_FILE has local changes; pick a clean file" >&2; return 1; }
+
+  # sweep: a screenshot and a console log, written the way every sweep writes them
+  cat > "$RUN_DIR/sweep-prompt-p0-smoke.md" <<EOF
+Preflight. Run these three commands exactly as written, then output: SMOKE: done
+$CD navigate --wait-until load "$APP_URL"
+$CD screenshot --full-page --output "$RUN_DIR/p0-smoke.png"
+$CD logs --duration-ms 2000 --include-network > "$RUN_DIR/p0-console.log" 2>&1
+EOF
+  rc=0; sweep_agent p0-smoke "$(effort_for sweep 1)" "$FIRST_SWEEP_MODEL" || rc=$?
+  agent_must_stop "$rc" sweep-p0-smoke && return 1
+  [ -s "$RUN_DIR/p0-smoke.png" ] && [ -e "$RUN_DIR/p0-console.log" ] || {
+    echo "STOP: preflight sweep left no screenshot or console log (exit $rc)" >&2; return 1; }
+
+  # fix: one trivial edit in the linked worktree, then the verification command
+  cat > "$RUN_DIR/fix-prompt-p0-smoke.md" <<EOF
+Preflight. Use the Edit tool to add one blank line at the end of $SMOKE_FILE.
+Then run this command exactly as written, with no pipe or redirect: $TYPECHECK
+Output two lines: EDIT: done | denied, then TYPECHECK: exit <code> | denied
+EOF
+  rc=0; fix_agent p0-smoke "$(effort_for fix 1)" || rc=$?
+  git -C "$WORKTREE" diff --quiet -- "$SMOKE_FILE" || edited=yes
+  git -C "$WORKTREE" checkout -- "$SMOKE_FILE"          # revert the smoke edit
+  agent_must_stop "$rc" fix-p0-smoke && return 1
+  [ "$edited" = yes ] || {
+    echo "STOP: preflight fix could not edit $SMOKE_FILE (worktree gate?)" >&2; return 1; }
+  grep -q '^TYPECHECK: exit' "$RUN_DIR/fix-p0-smoke.md" || {
+    echo "STOP: preflight fix could not run $TYPECHECK" >&2; return 1; }
+}
+```
+
+The screenshot proves the agent can drive the browser. The console log proves the
+redirect is allowed, and it may be empty: a denied command never creates the file. The
+edit shows in `git diff` or it did not happen. The typecheck line is the agent's own
+report, which is enough here: a denied call returns a denial to the agent, and the prompt
+asks for that word.
 
 ## 8. Loop control and gate tiers
 

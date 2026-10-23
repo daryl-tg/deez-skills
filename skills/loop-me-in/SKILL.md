@@ -164,7 +164,7 @@ Every sweep opens with a gate in two parts:
 - the process listening on the app's port has its `cwd` inside this worktree, and
 - a **sentinel** — a string that exists only after this phase's change — reaches the served output.
 
-Both pass or the sweep is void. A void sweep is recorded as *not verified*, and the run rebuilds and re-gates; it is never recorded as *not landed*. Without this, a stale bundle or a second dev server on the same port turns "verified" into "clicked around something".
+Both pass or the sweep is void. A void sweep is recorded as *not verified*, and the run rebuilds and re-gates; it is never recorded as *not landed*. The third void in one phase ends the retries: the phase is recorded as not verified and the run moves on. Without this, a stale bundle or a second dev server on the same port turns "verified" into "clicked around something".
 
 Name a sentinel per phase while writing the brief: a new `data-testid`, a new route, a new label. A phase with no observable sentinel gets a command gate instead, and the brief says so.
 
@@ -185,7 +185,11 @@ The sweep returns a fixed shape — verdict per acceptance row with the evidence
 
 **Cap at 3 sweeps per phase, and the third attempt changes job.** Two failures of the same class mean the model of the problem is wrong, so attempt 3 is not a third patch: it is a read-only diagnosis agent that returns a root cause and a verdict on whether the plan's premise still holds. The phase then stops red with that explanation in the findings log, and the run moves to the next phase that does not depend on it. An explanation is worth more than a fourth patch.
 
-**Every headless agent run and every browser command is time-boxed.** A hung agent costs the whole night. macOS has no `timeout` binary — the brief defines a `with_timeout` helper instead (`references/verify-loop.md`, section 0), or the first phase dies on `command not found`.
+**Every headless agent run and every browser command is time-boxed.** A hung agent costs the whole night. macOS has no `timeout` binary — the brief defines a `with_timeout` helper instead (`references/verify-loop.md`, section 0), or the first phase dies on `command not found`. On timeout it kills the agent's whole process tree, so a hung `bun test` under it is not orphaned.
+
+**Every agent call's exit code is checked.** A 142 is a timeout and a failed attempt. Any other non-zero exit, or usage-limit or auth text in the output, stops the run after it writes the findings log and the completion post. The run session and its agents share one Claude plan, so the first sweep attempt runs on a cheaper model.
+
+**A denied call is silent, so the brief proves its agents before the night.** While Ryan is still there, it makes one real sweep call and one real fix call with the night's exact flags, and stops if either leaves no evidence (`references/verify-loop.md`, end of section 7).
 
 ### Targeted gates. The full suite is a last resort, not a tier.
 
@@ -342,7 +346,9 @@ port, URL), how the browser starts and how it is reused, the smoke test, the
 two-part identity gate, the sweep and fix agent invocations, the `effort_for`
 helper, and the sweep output contract. Attempt cap: 3 sweeps per phase, the
 third being diagnosis rather than a fix. The `with_timeout` helper, defined
-here and used on every long-running command.
+here and used on every long-running command. The exit-code check after every
+agent call, and the preflight smoke test that runs both agents once before
+Ryan leaves.
 
 ## Process ledger
 Empty table the run fills in as it spawns things: what, port, PID, started,
@@ -411,18 +417,22 @@ CLEARED IN DAYLIGHT — brief-generation blockers. The brief does not ship
 until every one is resolved, so the run never meets them: unconfirmed
 EXPECTED, a gate mode that cannot be validated, an unresolved worktree or
 branch, a failing install, a duplicate-vault ambiguity, a missing posting
-grant, a verification that only a human can perform.
+grant, a verification that only a human can perform, a preflight agent call
+that left no evidence.
 
 RUNTIME — the run halts and reports only for: a semantic spec error, a
 product decision the spec session did not settle, a third failed sweep on one
-phase, or work that would widen scope.
+phase, work that would widen scope, or an agent call that exits non-zero
+(other than a 142 timeout) or prints usage-limit or auth text. On that last
+one, write the findings log and the completion post first, then stop.
 
 RUNTIME RECOVERY, not a stop — the run handles these itself and logs them:
 a foreign process on a port (step to the next port), a browser that will not
 come up healthy after two attempts (record the phase as unverified and
 continue with command gates), an unreachable posting destination (write the
 report to the findings log instead), a phase blocked by an earlier red phase
-(skip it and take the next independent one).
+(skip it and take the next independent one), a third void identity gate in
+one phase (record the phase as not verified and move on).
 Everything else: keep going. Do not stop to ask whether it looks right.
 ```
 
