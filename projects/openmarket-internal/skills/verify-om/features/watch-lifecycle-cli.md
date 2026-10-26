@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): `watch create "Lane Lifecycle Probe" --inbound` gave slug `lane-lifecycle-probe`, `enabled: true`, one `inbound` source, `spec_version: 3` and a file under `accounts/guest/watches/`. `watch list` STATUS read `steps judging paused · no model to run the AI filter on · om init`. After `--classifier-mode accept_all` (the `edited` block named `classifier`, `goal`, `name`, `overview` and `source_id`) it read `working`. Pause and resume printed `Paused/Resumed event watch lane-lifecycle-probe (lane-lifecycle-probe)`, and `watch show` gave `spec.enabled` false and then true, with a card opening `Lane Lifecycle Probe · paused`. Remove printed `history deleted (1 row); journal files kept`. Journal reads were driven too: `event-journal list`, `watch journal-stats` and `watch chapters`. Previous stamp `db6e76ef5` is an ancestor of this tree.*
+*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: create (`lane-lifecycle-probe`, `enabled`, one `inbound` source, `spec_version 3`), list STATUS `steps judging paused · no model to run the AI filter on · om init` and then `working` after `accept_all`, pause/resume lines and `spec.enabled`, the card `Lane Lifecycle Probe · paused`, and remove (`history deleted (1 row); journal files kept`). Journal reads: `event-journal list` (a removed watch keeps `watch_id: null`), `journal-stats` and empty `chapters`. The `watch history --help` KIND legend now reads "a condition watch's level changes, and a package band's row per bar". Not driven: `event-journal search`. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
 
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
@@ -183,3 +183,11 @@ Preconditions:
   M in use` (formerly `Slots:`), an OpenFeed `source add` prints `Feed: <meaning>
   · <volume>` (formerly `OpenFeed: <shape> · ...`), and the provenance label is
   `your feed`. A recipe that greps the old words finds nothing.
+- **The `watch history` KIND legend changed** at `7a4700048`. `level` now reads
+  "a condition watch's level changes, and a package band's row per bar"
+  (`om watch history --help`, driven 2026-10-26). A grep for the old wording
+  misses it.
+- `om watch remove` of a watch that came from an install does NOT retract that
+  install's registry receipt. Only `om uninstall` and a person's own unfollow
+  queue a retraction, and only for an account (#1947, source only). See
+  [registry welcome and search](./registry-welcome-and-search.md).

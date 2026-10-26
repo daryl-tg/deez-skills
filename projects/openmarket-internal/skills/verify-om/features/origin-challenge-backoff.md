@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): entry, hold and recovery were re-driven against the bundled stub on 18111, with the lane on `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000`. `page-add … --prefer feed --every 60s` returned `adopted` onto the dashboard-authored `ui-authored-feed`, and `ok GET /rss` arrived every 60 s. After the flip, the stub's `requests.log` held exactly one `challenge GET /rss` (02:18:25.673Z), and the lane logged `reopen held until 2026-10-23T02:33:25.980Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` read `connection_state: reconnecting`, `reconnect_count: 0` and `cooldown {until, error}`. `watch show` gave `FAULT source waiting · feed 127.0.0.1: 127.0.0.1 is challenging this machine since … · next try … · Firecrawl can read it for you` and `FIX om setup firecrawl`, and `watch run now` gave the generic `reconnecting this watch's source` refusal (exit 2) with no request. The mode went back to `ok` at 02:20Z, and the origin received no `/rss` request until exactly one `ok GET /rss` at 02:33:25.989Z, followed by `reopened after the window` and `/healthz` `open` with `cooldown: null`. Not driven: the doubling. Previous stamp `db6e76ef5` is an ancestor of this tree.*
+*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: the stub ran on 18111 with the lane on `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000`. `page-add` returned `status: adopted` onto the dashboard-authored feed, which polled every 60 s. The flip produced exactly one `challenge GET /rss` (02:10:34.884Z) and the lane line `reopen held until 2026-10-26T02:25:34.897Z: 127.0.0.1 is challenging this machine; next try …`. **Read 4 s later, `/healthz` still said `open` with no cooldown and `watch show` had no challenge row. By 13 s both carried the hold** (`reconnecting`, `reconnect_count 0`, `cooldown {until, error}`; `FAULT … is challenging this machine … · Firecrawl can read it for you`, `FIX om setup firecrawl`). `watch run now` gave the generic refusal (exit 2) with no request. The mode went back to `ok` at 02:10:43Z. The origin received no `/rss` request until exactly one `ok GET /rss` at 02:25:34.918Z, then `reopened after the window` (02:25:34.923Z) and `/healthz` `open` with `cooldown: null`. Not driven: the doubling. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -185,3 +185,9 @@ Steps:
   challenged adds a `challenge GET` line to the log and refuses with
   `page_origin_cooldown`. Run the Firecrawl no-key step only after the
   recovery proof, never inside the window you are proving silent.
+- **The status surfaces trail the hold line by several seconds.** Driven
+  2026-10-26: the lane logged `reopen held until …` at the challenged poll. Read
+  4 s later, `/healthz` still showed the stream `open` with `cooldown: null`,
+  and `watch show` and the detail page had no challenge row. By 13 s all three
+  carried the hold. Assert the hold surfaces at least 15 s after the
+  `challenge GET`, and re-read before calling a missing row a regression.

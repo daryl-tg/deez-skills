@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): built with `bun run build:dashboard`. Driven: the shell and `navigation "Main navigation"` (Overview, Watches, News, Strategies, Channels, Connections, Venues, Receipts, OM Chat), `Switch to light mode` and `Ask your agent`. Overview: `Your market, in view.`, `region "Watch activity"`, `region "Workspace"` and `Restart daemon` (not pressed). On a FRESH lane (18102), the onboarding showed `Welcome to OpenMarket`, `Dismiss welcome`, `Create your first watch` / `Create a watch` and `More setup options ▸`; expanded, it showed `Choose where updates arrive` (`Manage channels`), `Connect a coding agent` (`Manage connections`) and `Connect a trading venue` (`View venues`). Watches at `/alerts`: filter chips, search, Folder and the `lane-probe` row. `/news`, `/strategies`, `/channels`, `/connections`, `/venues` and `/receipts` were walked; `/paper` had an empty `main`. `/strategies/does-not-exist` reached `No strategy named … Back to Strategies` after about 10 s of `Loading…` (see the strategy detail step). Previous stamp `db6e76ef5` is an ancestor of this tree.*
+*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: the shell, Main navigation, the Overview regions, Watches at `/alerts` (filter chips, search, Folder, rows), and `/news`, `/strategies` (and Paper), `/channels`, `/connections` (read-only), `/venues`, `/receipts`, `/agent` and `/paper` (empty `main`). A fresh lane on 18104 showed the onboarding checklist with all three optional steps expanded. `/strategies/does-not-exist` alternated between `No strategy named … Back to Strategies.` and `Loading…` (see the strategy detail step and the README's product gaps). `Restart daemon` was not pressed. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
@@ -98,15 +98,17 @@ Preconditions:
   `/strategies/<id>` and `Watch details` for the new `/alerts/<id>` — and driven
   at v0.400.0 the 404 branch rendered little beyond the shell, inconsistently
   between two reads. Do not pin a heading here; assert the `Back to Strategies`
-  link. **It is slow to appear, so wait for it.** Driven at `42d044b02`, `main`
-  read `Loading…` at 6 s and `No strategy named does-not-exist. Back to
-  Strategies.` from 10 s on, held at 35 s, with `link "Back to Strategies"` in
-  the snapshot. `POST /rpc/v1/money/show` answered 404 `money_not_found`. The
-  2026-10-22 pass at `db6e76ef5` saw `Unavailable.` for 20 s instead and filed it
-  as a product gap, but `apps/dashboard/src` is unchanged between the two trees
-  and the gap did not reproduce. Poll `agent-browser get text main` until the
-  text leaves `Loading…`, for up to 30 s. If it lands on `Unavailable.`, record
-  that with timings rather than assuming either outcome. The populated page (signal state, fills, chart,
+  link. **The page does not settle: it flickers.** Driven at `ee8e3a7ab` and
+  read every 3 s, `main` showed `No strategy named does-not-exist. Back to
+  Strategies.` at 3, 6 and 9 s, `Loading…` at 12 s, the 404 text at 15 to 21 s,
+  and `Loading…` again at 25 s. The ~12 s cadence looks like a refetch
+  clearing the error state, but the cause is not isolated. `POST
+  /rpc/v1/money/show` answers 404 `money_not_found` every time. The cycle
+  explains 2026-10-23's slow `Loading…`, but not 2026-10-22's `Unavailable.`
+  (a third branch, not seen since), with `apps/dashboard/src` unchanged across
+  all three trees. Sample the text several times over 30 s and assert
+  that the 404 text appears. A single read proves nothing. The flicker is a
+  product gap (README). The populated page (signal state, fills, chart,
   transitions timeline, per-strategy digest) is `verified-unreachable` from a
   guest lane: it needs a strategy, which needs a signal and a paired venue.
   Report it that way rather than as empty.

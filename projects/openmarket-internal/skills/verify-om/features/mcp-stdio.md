@@ -1,6 +1,6 @@
 # The capability layer over MCP (stdio)
 
-*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): `control-om om -- mcp serve --stdio --no-fire-bridge` answered `initialize` as `{"name":"openmarket","version":"0.462.0"}`, `tools/list` returned 451 tools including `watch_list` and `order_place`, `tools/call watch_list` returned the lane's watches with `isError` false, and `tools/call order_place` (Hyperliquid, quote 10) was refused with `capital_not_armed` before dispatch. Not driven: hosted HTTP (`--http`), `--catalog operator`, `--session merged`, `om mcp arm`, and the fire-event SSE bridge.*
+*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.464.0. `tools/list` returned 451 tools including `watch_list` and `order_place`, `watch_list` ran with no error, and `order_place` (Hyperliquid, quote 10) was refused with `capital_not_armed`. Not driven: hosted HTTP, `--catalog operator`, `--session merged`, `om mcp arm` and the fire bridge. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
 
 An MCP client (Claude Desktop, Cursor, a coding agent) launches `om mcp serve
 --stdio` and gets the same registered actions the CLI and chat use, under the

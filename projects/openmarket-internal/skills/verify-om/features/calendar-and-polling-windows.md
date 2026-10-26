@@ -1,6 +1,6 @@
 # Calendar scheduling and polling windows
 
-*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): an occurrence was admitted through `event push --kind calendar_candidate` and came back as `cocc_…` with `scheduled`, `candidate` and `revision 1`. `calendar show` carried `provider`, `provider_occurrence_id`, `scheduled_at` and `evidence_url`. `select` returned `{ok:true, decision:"selected", change_seq:2}`. `revise --status cancelled` returned `changed:true, revision:3`, and `list` then read `cancelled`. `calendar links watch calendar-probe` returned `{"links":[]}`. Polling windows: `--polling-json` was stored on the source; `window set --every 60` gave `state: scheduled`; a 10800 s window was refused with `window_refused` naming `max_window_sec (7200)`; `--every 60s` failed with `every_sec ... NaN`; `window list` showed the window; `window cancel --origin` returned `cancelled:true`. Not driven: `calendar reject`. Previous stamp `db6e76ef5` is an ancestor of this tree.*
+*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: an occurrence was admitted through `--kind calendar_candidate` and listed as `scheduled`/`candidate`/rev 1. `select` returned `{ok:true, decision:"selected", change_seq:2}`, `revise --status cancelled` returned `changed:true, revision:3`, and `list` then read `cancelled`. `calendar links` returned `{"links":[]}`. The occurrence id came back as `cocc_7b9fda6cbfb9ff76e5f54389`, the same id as on 2026-10-23's separate lane (see Gotchas). Polling windows: `--polling-json` was stored; `window set --every 60` gave `state: scheduled`; a 3 h window was refused with `window_refused`; `--every 60s` failed with `NaN`; `window list` and `window cancel --origin` returned `cancelled:true`. Not driven: `calendar reject`. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
 
 `om calendar` lists and manages scheduled occurrences, while `om watch window`
 sets bounded read windows on sources with a polling policy. The calendar needs
@@ -117,3 +117,8 @@ because the guest calendar had no occurrences.
   existed.
 - A scheduled window is not proof that a poll ran. This drive cancelled its
   future window before its start time.
+- **The minted occurrence id is derived from content, like `event_id`.** The same
+  provider fields (`verify-om` / `vm-1` / `vm-1-occ`) produced
+  `cocc_7b9fda6cbfb9ff76e5f54389` on two separate fresh lanes, 2026-10-23 and
+  2026-10-26. An id that repeats across runs does not show which run admitted
+  it, so put the run id in `provider_event_id` when that matters.

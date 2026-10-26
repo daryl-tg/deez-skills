@@ -1,0 +1,84 @@
+# Registry welcome page and personalised search
+
+*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), new on main with #1947. Against the real registry, a guest lane's `om welcome` printed `This registry does not offer the welcome page yet.` and exited 1, and `om search "btc funding" --format json` returned the old shape: `results`, `total`, and no `served`, `class` or `reasons`. Against a loopback fixture registry on 18112: with `welcome:true` the guest got "om welcome needs an account. Run `om login` to sign in, then run `om welcome` again." (exit 1), and with `OM_API_KEY=sk-test OM_NO_BROWSER=1` the call printed `Personalise your watch feed on any device: http://127.0.0.1:18112/welcome?src=om-init` (exit 0). With health `{"ok":true}`, the same key got the "does not offer" refusal (exit 1). With `search_modes:["nl"]` and `rank_modes:["for-you"]`, the guest's request was `GET /v1/search?q=btc+dip&mode=nl` with no bearer and its result carried `reasons`, `served` and `class`; the key's request added `rank=for-you` and a bearer. Not driven: `om init`'s closing step (it needs a TTY) and the browser-opening branch of `om welcome`.*
+
+A signed-in user can open a registry page that personalises their watch feed:
+`om welcome`, or the last step of `om init`. A user searching the registry gets
+plain-language results, and with an account the results are ranked for them.
+Both features ask the registry's `/v1/health` what it serves first. Where it
+offers neither, the request is the one older builds sent, and the user sees
+the old behavior.
+
+## Sub-features
+
+- `welcome-gate`: `om welcome` refuses with `This registry does not offer the
+  welcome page yet.` (exit 1) unless health says `welcome: true`. This gate runs
+  before the account check.
+- `welcome-account`: on a registry that serves the page, a guest or signed-out
+  home gets the `om login` hint (exit 1). An account opens
+  `<registry>/welcome?src=om-init`, or prints it when headless.
+- `init-closing`: `om init` ends with "Personalise your watch feed now?" for an
+  account on a serving registry. `--launch welcome|agent|dashboard|nothing`
+  answers that question for a script.
+- `search-nl`: when health lists `search_modes: ["nl"]`, `om search <words>`
+  adds `mode=nl`, and results carry `reasons` (up to two per hit), `served` and
+  `class`.
+- `search-for-you`: when health also lists `rank_modes: ["for-you"]` and the
+  home holds an account key, the request adds `rank=for-you` with a bearer. A
+  guest never sends a bearer.
+
+## How to get to it (user POV)
+
+- `om welcome`, or the last step of `om init`.
+- `om search "<words>"`, unchanged on the surface: no new flags.
+
+## Driving it with control-om
+
+Preconditions: a lane the run started. The success branches need a registry
+that advertises the features. On 2026-10-26 the production registry did not,
+so they are driven against a loopback fixture on an assigned agent port
+(`18112`). `control-om om --` passes the caller's environment through, so
+`OM_REGISTRY_URL`, `OM_API_KEY` and `OM_NO_BROWSER` reach the CLI process.
+
+- **The real registry.** `control-om om -- welcome`: record the refusal it
+  gives, `does not offer` or `needs an account`, because that depends on what
+  production advertises that day. `control-om om -- search "btc funding"
+  --format json`: assert `results[]` with `name`, `kind`, `description` and
+  `latest`, and note whether `served` appears.
+- **The fixture.** A Bun server answering `GET /v1/health` from a
+  `health.json` you edit between calls, and `GET /v1/search` with
+  `packages/contracts/fixtures/wire/search-page-nl.json` from the product tree.
+  Log each request's path, query and whether it carried `Authorization`. That
+  log is the proof of what the CLI sent.
+- **Welcome, three branches.** Use health `{"ok":true,"welcome":true}`, then
+  `OM_REGISTRY_URL=http://127.0.0.1:18112 control-om om -- welcome`: the
+  `om login` hint, exit 1. Add `OM_API_KEY=sk-test OM_NO_BROWSER=1`: exit 0 and
+  the `…/welcome?src=om-init` line. Change health to `{"ok":true}` and run the
+  same keyed call: `does not offer`, exit 1. That shows the gate comes first.
+- **Search.** Use health
+  `{"ok":true,"search_modes":["nl"],"rank_modes":["for-you"]}`. As a guest,
+  `… search "btc dip" --format json` returns rows with `reasons`, and the log
+  shows `mode=nl` with no bearer. With `OM_API_KEY=sk-test`, the log shows
+  `mode=nl&rank=for-you` and a bearer.
+- **Proof.** Keep the fixture's request log, each command's output and its
+  exit code.
+
+## Gotchas
+
+- `OM_API_KEY=sk-test` is not a real key. It only makes the CLI treat the home
+  as an account, because an env key's source is `env`, not the stored guest.
+  Never send it to the real registry: keep it on calls that also set
+  `OM_REGISTRY_URL` to the fixture.
+- `om init` cannot be driven here: it exits 2 without a TTY
+  (`'om init' requires an interactive terminal.`), and it writes channel,
+  credential and service state. Its closing step stays source-only.
+- Piped, `om search` printed JSON even without `--format json`, so the text
+  renderer's indented reasons lines were not seen.
+- **Receipt retraction is the third part of #1947 and is not here.** An
+  uninstall or unfollow queues a DELETE to the registry in
+  `<home>/receipts/retractions.json` only for an account whose install or
+  follow receipt returned an `edge`. A guest never retracts, so the feature stays
+  `live verification pending` in the inventory.
+- The `Welcome to OpenMarket` block on the dashboard Overview is the
+  onboarding checklist ([the ops dashboard](./ops-dashboard.md)), unrelated to
+  `om welcome`.

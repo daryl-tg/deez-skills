@@ -1,6 +1,6 @@
 # Paper trading accounts
 
-*Verified: 2026-10-23, tree `42d044b02` (origin/main, v0.462.0): `paper create verify-book` without `--yes` gave exit 2 `confirmation_required`. With `--yes --format json` it returned `{account:{id:"pa_…",name:"verify-book",cash:1000},desk:"off"}`. `paper ls` rows carried `cash`, `id`, `name`, `open_lots`, `open_stakes`, `open_value`, `realized_pnl` and `starting_cash`. `paper set --ticket 10 --yes` was stored, and `show` read `rules.ticket 10`. `paper log` returned `{entries:[],next_cursor:null}` and `paper reset --yes` returned `generation:1`. The `/strategies` Paper tab showed the intro, the six columns, the `verify-book` row and an equity heading. Not driven: `open`, `close`, `reset-all` and `digest`. Previous stamp `db6e76ef5` is an ancestor of this tree.*
+*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: `create` without `--yes` was refused with `confirmation_required`. With `--yes` it returned `verify-book`, cash 1000, `desk: off`. `ls` rows carried the eight fields, and `set --ticket 10` was stored. `log` returned `{entries:[],next_cursor:null}` and `reset` returned `generation:1`. The Paper tab read `Loading paper accounts…` briefly, then showed the intro, six columns and the `verify-book` row. Not driven: `open`, `close`, `reset-all`, `digest`, and the new `target` money mode on a paper account (it needs a strategy package and a terminal arm). Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
 
 A paper account is pretend money held locally: no venue, no credentials, no real
 order ever placed. A user opens one from the CLI, and it shows up in the
@@ -62,3 +62,7 @@ credential, no venue.
   or `yes`; `actions/paper/create.ts`, `runner/paper/desk.ts`). A fresh guest
   lane leaves it unset, so `"desk":"off"` is the lane's answer, not a
   constant. MCP and the daemon never arm the desk.
+- The Paper tab first renders a single row `Loading paper accounts…` for a second
+  or two before the table (driven 2026-10-26). A snapshot taken right after the
+  tab click finds no column headers. Wait for `columnheader "ACCOUNT"` before
+  asserting.
