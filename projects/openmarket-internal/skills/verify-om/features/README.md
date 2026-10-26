@@ -145,8 +145,13 @@ state, commands, and observable proof.
   indicator packages.
 - [Agent creator lifecycle](./agent-creator-lifecycle.md) — **branch-only, not on origin/main**: the daemon side is on `origin/daryl/agent-creator-closeout` (`a3a81a5f5`, PR #1948) and the GUI side on openmarket-chat MR !75. See the banner on the guide.
 
-Not yet mapped, and worth adding when a change touches them: hosted MCP
-(`om mcp serve --http`), the chart workspace mutations (`om chart` add,
+- [Hosted chart MCP: tenant state, health and readiness](./hosted-chart-mcp-tenant-state.md) — the
+  `om-chart-mcp` binary on an agent port against a local Mongo: boot lines,
+  `/healthz` vs `/readyz`, index rebuild, refusals; the tool-call path over
+  the production gateway stays unverified without an operator key.
+
+Not yet mapped, and worth adding when a change touches them: the hosted MCP
+tool calls over the production gateway (`chart_*` with a real key), the chart workspace mutations (`om chart` add,
 update, remove and drawings, which need a GUI chart tab), the `om chat` TUI,
 packages and the registry, and the execution/venue verbs.
 
