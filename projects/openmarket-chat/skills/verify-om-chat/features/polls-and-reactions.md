@@ -105,7 +105,8 @@ listed.
 - **Add a reaction** and **See who reacted** are hover-revealed. They are in the
   DOM but missing from `snapshot -i`, and `find role button` reports them
   absent. Run `agent-browser hover '[aria-label="Message from Mira Chen"]'`
-  twice, then click.
+  once, wait about 0.6 s for the toolbar to settle, then click (re-measured
+  2026-10-26; see [message-editing.md](message-editing.md)).
 - **The emoji picker loads its table lazily, and a full snapshot of it can
   hang.** On a cold vite lane, **Choose an emoji** reads "Loading emoji" for
   4–10 s, then mounts 1,870 buttons. A `snapshot -c` taken while it is open ran
@@ -127,4 +128,4 @@ listed.
 
 ### Verification record
 
-**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `/rooms/` lane at 1440x900. The results fixture showed `Final results · 14 votes`. The poll cache showed `roster loads: 1` after the first and second Show results. On `poll-ux`, after Escape closed **Create poll in #chat**, voting **ye** moved `ye 8 · 80%` to `ye 9 · 82%`, which corrects the old "no count changes" gotcha. On `reaction-polish`, after hovering, **See who reacted** opened **Reactions**, and **Add a reaction** opened **Choose an emoji**, which loaded 1,870 buttons after a few seconds. New: themed scenes on `reaction-scene-integration` played fall/shake/pulse with lifetimes 1122/1202/1002 ms with the forced reduced-motion class removed, 322 ms with it, and identically on the `/chat/` gallery. **Limitations:** Persistence, multi-user delivery, to-do event reactions, burst/rise/shimmer families, hand-built scenes and in-shell scenes from a real reaction were not exercised. Previous record: 2026-10-22 at `cd9f8c72`.
+**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** `Final results · 14 votes`, `roster loads: 1` twice, and the `poll-ux` vote `ye 8` → `ye 9 · 82%`. After one hover plus a 0.6 s wait, **See who reacted** opened **Reactions** and **Add a reaction** opened **Choose an emoji** with 1,870 buttons after about 8 s. Themed scenes (reduced-motion class removed) lived about 1100/1200/1000 ms for fall/shake/pulse. **Limitations:** Persistence, multi-user delivery, to-do event reactions, burst/rise/shimmer, hand-built scenes and `/chat/`. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.

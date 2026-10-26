@@ -34,6 +34,7 @@ agent-browser eval '(()=>{const r=[...document.querySelectorAll("[data-message-r
   .find(x=>/Message from kyle/.test(x.getAttribute("aria-label")||""));
   r.setAttribute("data-probe","1");return "marked";})()'
 agent-browser hover '[data-probe]'
+sleep 0.6                      # let the toolbar settle (see Gotchas)
 agent-browser find role button click --name "Edit" --exact
 ```
 
@@ -55,10 +56,18 @@ On agent-browser 0.33.2, click does not document a --button option. Do not treat
 
 In the recorded DM journey, reopening the message menu after a save selected an incoming row. Fresh fixture navigations between cases avoided this fixture interaction; they did not prove persistence across reload. The fixture also logged a React invalid textarea value warning. Record it.
 
-The first `agent-browser hover` after a fresh `open` often leaves the CSS-hover toolbar hidden, so **Edit** or **More** is "not found" although the row's `.msg-toolbar` holds it. Scroll the marked row into view (`r.scrollIntoView({block:"center"})` in the marking eval) and hover it a second time before clicking. Measured 2026-10-23 on both the channel and the DM path.
+**Wait after hovering; do not hover twice.** The row toolbar settles for about
+half a second after the pointer arrives (the row grows from 53 to 81 px), and a
+`find role button` sent straight after `agent-browser hover` reports **Edit** or
+**More** absent even though the button is in the row's `.msg-toolbar`. Scroll the
+marked row into view in the marking eval (`r.scrollIntoView({block:"center"})`),
+run `agent-browser hover '[data-probe]'` once, wait about 0.6 s (`sleep 0.6`), then
+click. Measured 2026-10-26 on both the channel and the DM path. A control of
+two back-to-back hovers with no wait failed, so the earlier "hover twice" advice
+only worked when command latency happened to supply the wait.
 
 Full server persistence and other clients receiving the edit require the local auth/relay stack and daemon-pair lane. The fixture cannot prove those outcomes.
 
 ### Verification record
 
-**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** Channel: marked the first `Message from kyle` row, scrolled it into view, hovered it twice, clicked **Edit** (`--exact`) and got the focused textbox `Edit message`. Saving changed text closed the editor, showed `edited by maint 1023 (edited)` and set `fixtureMermaidEdit=channel-saved`. DM: on ana's DM, the last own row (`yep, watching the next print`) took **More** → **Edit Message** → `save`, and `fixtureMermaidEdit` read `dm-saved`. **Limitations:** Local fixture edit state only. Relay persistence and other viewers are live verification pending. Previous record: 2026-10-22 at `cd9f8c72`.
+**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** Channel **Edit** → `save` gave `channel-saved`, and DM **More** → **Edit Message** → `save` gave `dm-saved`. Both used one hover plus a 0.6 s wait (the corrected gotcha above); two hovers with no wait failed as the control. **Limitations:** Local fixture edit state only. Relay persistence and other viewers are live verification pending. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.

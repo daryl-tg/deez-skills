@@ -58,4 +58,4 @@ rows, and capture the **Resolving topics** count after starting a cleanup.
 
 ### Verification record
 
-**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `?quiet=on` rendered **Quiet topics 20** on the rail, and More channel actions listed 14 items with no Clean up topics. **Limitations:** The sheet and resolve job are live verification pending. They need an eligible daemon build and an isolated topic-triage service, and the local parity services (4001, 3002) were down. Previous record: 2026-10-22 at `cd9f8c72`.
+**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** `?quiet=on` showed **Quiet topics 20**, and the 14-item channel menu had no Clean up topics. **Limitations:** The sheet and resolve job remain live verification pending (daemon build with topic triage; parity services 4001/3002 down on 2026-10-26). Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.

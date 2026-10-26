@@ -64,4 +64,4 @@ session methods.
 
 ### Verification record
 
-**Last verified:** 2026-10-23. **Product commit:** `afabb11c601d605ffaf2a22a406314baa1fbd2eb` (origin/main). **Scope:** `agent-draft-share-fixture.html` showed the textbox `Message #agents-lab`. Editing gave "Edited privately" and **Share with agent**, which gave "Shared revision 1 with the agent.", `fixtureSharedRevision=1` and the textarea text kept. **Limitations:** The second **Share update** revision was not re-driven this pass. Fixture-local sharing. No message is posted and daemon delivery is not proven. Previous record: 2026-10-22 at `cd9f8c72`.
+**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** Editing the `Message #agents-lab` draft and pressing **Share with agent** gave "Shared revision 1 with the agent." **Limitations:** Share update (revision 2); fixture-local only, so no post and no daemon delivery. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
