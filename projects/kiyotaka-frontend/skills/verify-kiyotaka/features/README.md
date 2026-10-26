@@ -180,10 +180,16 @@ state, commands, and observable proof.
 
 ## Which dialog am I on?
 
-`search-v2` now resolves TRUE for guests (`GUEST_DEFAULT_FLAGS`), so the guest
-lane exercises the V2 symbol dialog and `sym-scope` is a guest proof rather than
-an internal-role one. This flag has flipped twice; read it off the DOM at the
-start of any symbol run rather than trusting either lane:
+No flag picks the dialog any more. `search-v2` graduated and
+`GUEST_DEFAULT_FLAGS` is `{}`. The dialog is V2 when it opens from a main chart
+on desktop and is not in pair, screener or comparison mode. Every lane, guest
+included, gets V2 there, so `sym-scope` is a guest proof. The legacy
+`intent-filter-class-*` dialog appears only in the excluded contexts and on
+mobile. Source-verified on `fcc8e53b12` (`isSearchV2` in
+`src/components/symbolSelection/SymbolSelectionDialog.vue`); not driven.
+
+The gate has changed three times, so read it off the DOM at the start of any
+symbol run:
 
 ```bash
 ./control-kiyotaka browser eval \
@@ -204,3 +210,95 @@ start of any symbol run rather than trusting either lane:
 - [Voice control](./voice-control.md) — NOT guest-reachable: the `voice-control`
   flag graduated to `isSignedInSession()`, so the override is dead and a guest
   lane has no mic, chip or seam at all
+
+## Surface inventory
+
+Discovered 2026-10-26 from kiyotaka-frontend source on product tree `fcc8e53b12`
+(`origin/main`). The rows come from the router (`src/router/routes.ts`), the
+Super Search providers, the 41 gate ids in
+`src/constants/authFeatures.constants.ts` and the panel registry
+(`src/constants/panels.constants.ts`), not from the guides. Gates were read from
+those registries and a usage grep, not from each component; "gate not checked"
+says so where nothing was found. "Live" names the run that last drove the
+outcome. An `unmapped` row has no recipe yet and has never been driven by this
+map. Most of them stop at a sign-in wall, and no agent can sign in on this stack
+(see Baseline preconditions).
+
+| User outcome | Product source path | Guide / sub-feature | Live verification | Prerequisite or gap |
+|---|---|---|---|---|
+| Chart opens and draws candles from the worker-owned feed | `src/pages/chart.vue`, `src/workers/worker-manager.ts`, `src/workers/services/websocket.worker.service.ts` | [boot](./chart-boot-and-data-plane.md) `boot-mount`, `boot-candles`, `boot-worker` | 2026-10-23, `2a1ed750db`, guest-JWT lane; the worker console grep last ran 2026-10-06 | none |
+| Ticker shows live price, 24h volume, OI and funding | `src/services/live-feed.service.ts`, `src/components/TickerBar/TBMarketStats.vue` | [boot](./chart-boot-and-data-plane.md) `boot-live` | 2026-10-06; not re-run 2026-10-23 | OI and funding exist only on derivatives |
+| A woken tab backfills the candles it missed | `src/composables/chart/useVisiblityChanges.ts`, `src/utility/chart/wake-resync-overlay-plan.util.ts` | [boot](./chart-boot-and-data-plane.md) `wake-heal` | live date not recorded in the guide | the wake's token refresh needs the backend reachable |
+| Indicators dialog opens, searches and adds an overlay | `src/components/dialogs/IndicatorDialogV2.vue`, `src/store/chart.add-indicator.ts` | [indicators](./indicators.md) `ind-dialog`, `ind-add` | 2026-10-23, `2a1ed750db`, guest-JWT lane | none |
+| The legend's settings, visibility and close controls work | `src/components/chart/ChartLegends.vue`, `src/store/chart.indicator-mgmt.ts` | [indicators](./indicators.md) `ind-legend` | 2026-10-23, `2a1ed750db` | none |
+| Official indicators are listed | `src/services/indicator-catalog.service.ts`, `src/composables/chart/useIndicatorCatalogV2.ts` | [indicators](./indicators.md) `ind-catalog` | 2026-10-12, `1570b59d69`, desktop parity sweep; not re-run 2026-10-23 | a seeded catalog (`node scripts/seed-official-catalog.mjs`) |
+| The indicators-per-chart cap holds | `src/store/chart.add-indicator.ts`, `packages/wrun-chart-host/src/constants/feature-limits.constants.ts` | [indicators](./indicators.md) `ind-limit` | 2026-10-23, `2a1ed750db` | the cap is per tier (free 3, plus 10), so a guest lane proves only the free cap |
+| Symbol search finds and switches a market; scope chips filter | `src/components/symbolSelection/SymbolSelectionDialog.vue`, `src/components/symbolSearchV2/ScopeChips.vue` | [symbol search](./symbol-search-and-ticker-bar.md) `sym-search`, `sym-scope` | 2026-10-23, `2a1ed750db`; the ETHUSDT reload stayed at zero candles with the backend down | none |
+| Memecoin lane, liquidity floor and Pulse rows | `src/components/symbolSelection/component/MemecoinRow.vue`, `src/components/symbolSearchV2/RefineControls.vue`, `src/components/pulse/PulseRow.vue` | [symbol search](./symbol-search-and-ticker-bar.md) `sym-memecoins` | live verification pending | a signed-in session (the `memecoins` tab and Pulse need it) |
+| Interval, chart type and layout pickers re-drive the chart | `src/components/TickerBar/TBIntervalSelector.vue`, `src/components/TickerBar/TBChartTypeSelector.vue`, `src/components/TickerBar/TBLayoutPicker.vue` | [ticker bar](./symbol-search-and-ticker-bar.md) `tb-interval`, `tb-plot`, `tb-layout` | 2026-10-23, `2a1ed750db` (interval, Heikin Ashi) | the 4x4 free-tier grids need a signed-in session |
+| Pickers peek on hover; the bar folds into an overflow menu | `src/components/TickerBar/tb-popover-open.util.ts`, `src/composables/chart/useTickerBarFoldedControl.ts` | [ticker bar](./symbol-search-and-ticker-bar.md) `tb-hover`, `tb-more` | not driven 2026-10-23; live date not recorded in the guide | the overflow menu needs a viewport narrow enough to fold the bar |
+| The right-hand cluster toggles its drawers | `src/components/TickerBar/TBPanelToggle.vue`, `src/components/TickerBar/TBPanelsMenu.vue` | [ticker bar](./symbol-search-and-ticker-bar.md) `tb-bar-toggles` | 2026-10-23, `2a1ed750db` (the pinned set) | several drawers raise the sign-in wall for a guest |
+| The script editor drawer opens | `src/components/scriptEditor/shell/EditorDrawer.vue`, `src/components/TickerBar/TBEditorToggle.vue` | [editor](./script-editor-and-kscript.md) `ks-open` | 2026-10-23, `2a1ed750db`, through Super Search on a guest lane | the ticker-bar toggle raises the sign-in wall for a guest |
+| An own kScript runs, or reports its lint error | `src/store/script.ts`, `src/workers/kscript-engine.worker.ts`, `src/workers/scriptEditor/editor-analysis.worker.ts` | [editor](./script-editor-and-kscript.md) `ks-run`, `ks-lint` | live verification pending | a signed-in session; no agent can sign in on this stack |
+| A protected or WRUN script returns from the hosted lane | `src/services/protected-kscript-cache.service.ts`, `src/workers/services/kscript-ws.worker.service.ts` | [editor](./script-editor-and-kscript.md) `ks-protected` | live verification pending | a signed-in session |
+| WRUN launch box and Pine conversion create a draft | `src/components/wrun/launch/KataPineBox.vue`, `src/components/scriptEditor/shell/PineConvertDialog.vue` | [editor](./script-editor-and-kscript.md) `ks-wrun-launch` | live verification pending | a signed-in session and the entitlement |
+| Watchlist panel opens; a guest gets the sign-in wall | `src/components/watchlist/Watchlist.vue`, `src/components/TickerBar/TBPanelToggle.vue` | [watchlist](./watchlist.md) `wl-open` | 2026-10-23, `2a1ed750db`, the three doors and the wall only | none for the wall |
+| Lists are picked, added to, pruned, reordered, imported and capped | `src/components/watchlist/WatchlistListMenu.vue`, `src/store/watchlist.ts`, `src/composables/watchlist/useWatchlistImport.ts`, `src/constants/watchlist-limits.constants.ts` | [watchlist](./watchlist.md) `wl-lists` to `wl-limits` | live verification pending | a signed-in session |
+| A spoken command changes symbol, interval and indicators | `src/components/voiceControl/VoiceControlNavButton.vue`, `src/utility/voice-control/voice-control-gate.util.ts`, `src/utility/voice-control/voice-grammar.util.ts` | [voice](./voice-control.md) `vc-*` | 2026-10-12, `7347b94e69`, through the rig seam with the flag forced; unreachable on a guest lane since the flag graduated | a signed-in session; the microphone path was never driven |
+| Sign in, sign up, code request with Turnstile, reset and verify | `src/pages/auth/auth.page.vue` | unmapped | live verification pending | no agent-readable sign-in code on this stack; Turnstile fails under Playwright |
+| Guest sign-in wall and feature-aware signup prompt | `src/components/dialogs/LoginSignupDialog.vue`, `src/store/guest-prompt.ts` | unmapped (each guide proves its own wall) | live verification pending | none for a guest lane |
+| Delete and restore account | `src/pages/DeleteAccount.vue`, `src/components/dialogs/RestoreAccountDialog.vue` | unmapped | live verification pending | a signed-in throwaway account |
+| Settings dialog: profile, security, appearance, language, timezone, trade and workspace settings | `src/components/dialogs/SettingsPagesDialog.vue` | unmapped | live verification pending | `ACCOUNT_SETTINGS` wall; 2FA needs `TWO_FACTOR` |
+| Keyboard shortcuts | `src/components/dialogs/KeyboardShortcutsDialog.vue`, `src/store/keybinding.ts` | unmapped | live verification pending | none known |
+| Release notes and announcements | `src/components/dialogs/ReleaseNotesDialog.vue`, `src/store/announcements.ts` | unmapped | live verification pending | none known |
+| Guided tour | `src/components/tour/GuidedTour.vue` | unmapped | live verification pending | gate not checked |
+| Themes and light mode | `src/composables/superSearch/providers/themes.ts`, `src/store/my-themes.ts` | unmapped | live verification pending | light mode raises `LIGHT_MODE` for a guest |
+| Referrals | `src/pages/settings/Referral.vue` | unmapped | live verification pending | `REFERRALS` wall |
+| Support center and contact | `src/components/dialogs/ReachOutPopoverContent.vue`, `src/components/dialogs/SupportInboxDialog.vue` | unmapped | live verification pending | `SUPPORT_CENTER` wall |
+| Plus subscription, upgrade, trial and payment status | `src/pages/console/ConsoleSubscription.vue`, `src/components/dialogs/UpgradeDialog.vue`, `src/pages/PaymentStatus.vue` | unmapped | live verification pending | signed-in; `BILLING`; flags `free-trial`, `prepaid-plus-cn`, `plus-usdc-autopay` |
+| Developer console: plans, API keys, agents, usage | `src/pages/console/ConsoleLayout.vue` | unmapped | live verification pending | signed-in; `API_KEY`; flag `api-console` |
+| Connect an AI agent | `src/components/dialogs/ConnectAgentDialog.vue`, `src/components/footer/FooterAgents.vue` | unmapped | live verification pending | `AGENTS`; flag `agents-surface` |
+| Alerts: create, list, history and delivery | `src/components/alert/AlertSidebar.vue`, `src/components/alert/AddAlertMenu.vue` | unmapped | live verification pending | `ALERT` wall; OPRA alerts need flag `opra-alerts` |
+| Notifications panel | `src/components/GlobalNav/NotificationPanel.vue` | unmapped | live verification pending | `NOTIFICATION` wall |
+| Drawing tools and the floating toolbar | `src/components/toolsSidebar/ToolsSidebar.vue`, `src/components/toolsSidebar/FloatingToolbar.vue` | unmapped | live verification pending | favorites need `FAVORITES`; flag `tools-delta` |
+| Object tree | `src/components/objects/ObjectsLayout.vue` | unmapped | live verification pending | the panel's guest wall is `TERMINAL` |
+| Replay | `src/components/replay/ReplayOverlay.vue`, `src/composables/chart/useReplayToggle.ts` | unmapped | live verification pending | tier budget in `useReplayToggle` |
+| Compare mode and formula charts | `src/composables/superSearch/providers/formulas.ts` | unmapped | live verification pending | none known |
+| Multi-chart grid and monitors | `src/composables/chart/useMonitorPicker.ts` | unmapped (the picker is `tb-layout`) | live verification pending | `MULTI_CHART`, `MONITOR` walls |
+| Workspace tabs: new, rename, duplicate, delete, import, share | `src/components/GlobalNav/workspace-tabs/WorkspaceTabStrip.vue` | unmapped | live verification pending | `WORKSPACE` wall; mutates an autosaving workspace |
+| Layouts library and community publish | `src/components/dialogs/LayoutsDialog.vue`, `src/components/dialogs/LayoutPublishDialog.vue` | unmapped | live verification pending | `LAYOUTS` wall |
+| Right-side panel grid and panel picker | `src/components/panels/RightSideGrid.vue`, `src/constants/panels.constants.ts` | unmapped (the toggles are `tb-bar-toggles`) | live verification pending | each panel's `available()` and `guestFeature` |
+| Terminal: Scanner, Markets and Orderbook tabs | `src/constants/panels.constants.ts` | unmapped | live verification pending | `TERMINAL` wall; Markets and Orderbook need an eligible chart |
+| Options panel: Levels, Flow, Volatility and Chain | `src/components/TickerBar/TBOptionsButton.vue`, `src/utility/options/options-panel-gate.util.ts` | unmapped | live verification pending | flag `options-panel`; OPRA data needs flag `opra` |
+| Option chain browser page | `src/pages/options/OptionsChainPage.vue` | unmapped | live verification pending | signed-in route |
+| Options flow tape | `src/components/options/OptionsFlowTape.vue` | unmapped | live verification pending | offered only when the chart has a chain |
+| ETF screener | `src/components/etf-screener/EtfScreenerPanel.vue` | unmapped | live verification pending | gate not checked |
+| OPRA and CME data purchase, registration and terms | `src/components/options/CmeTermsDoor.vue`, `src/components/options/OpraRegistrationDoor.vue` | unmapped | live verification pending | `BILLING`; flag `opra`; a purchase |
+| Orderbook ladder, DOM, delta and heatmap | `src/components/orderbook/Orderbook.vue`, `src/composables/chart/useHeatmapToggle.ts` | unmapped | live verification pending | `ORDERBOOK`, `ORDERBOOK_DELTA`, `ORDERBOOK_HEATMAP` walls |
+| Tape mode and the 1s interval | `src/composables/chart/useTapeMode.ts` | unmapped | live verification pending | `ONE_SECOND_INTERVAL`; `TAPE_MODE` on mobile |
+| Footprint and TPO | `src/composables/chart/chartTypePick.ts`, `src/components/dialogs/TimePriceOpportunityDialog.vue` | unmapped | live verification pending | `VOLUME_FOOTPRINT`, `TIME_PRICE_OPPORTUNITY` walls |
+| Trades and liquidations; market, volume and liquidity stats | `src/components/tradingVolume/Stats.vue` | unmapped | live verification pending | `TRADE_LIQUIDATIONS` wall |
+| News feed and synoptic streams | `src/components/topic-feed/TopicFeedPanel.vue` | unmapped | live verification pending | `NEWS`; flags `feeds`, `synoptic-streams` |
+| Market events, earnings calendar and the chart event lane | `src/components/earnings/EarningsPanel.vue`, `src/components/chart/ChartEventLane.vue` | unmapped | live verification pending | a signed-in session |
+| Tweet callers bar | `src/components/tweet-callers/TweetCallerBar.vue` | unmapped | live verification pending | `TWEET_CALLERS` wall |
+| Journal | `src/components/journal/JournalLayout.vue` | unmapped | live verification pending | gate not checked |
+| Hyperliquid account dock, trade rail and order ticket | `src/components/hyperliquid/trade/HLTradeTicketPanel.vue`, `src/components/hyperliquid/account-panel/HLAccountDock.vue` | unmapped (the desktop map covers the shell's wallet handoff) | live verification pending | flag `ems-hyperliquid`; a funded testnet wallet |
+| Trading hub, CEX connect and paper trading | `src/components/trading-hub/TradingHubDialog.vue`, `src/components/dialogs/CexConnectDialog.vue` | unmapped | live verification pending | flags `trading-hub`, `paper-trading`, `robinhood-trading` |
+| Pulse board, token overview and onchain swap | `src/pages/pulse/PulsePage.vue`, `src/components/tokenOverview/TokenOverviewPanel.vue` | unmapped | live verification pending | a signed-in session |
+| Marketplace store, purchases and seller hub | `src/components/marketplace/MarketplaceStoreLayout.vue` | unmapped | live verification pending | signed-in route |
+| Sharing hub and the My access page | `src/components/sharing/SharingHost.vue`, `src/pages/MyAccessPage.vue` | unmapped | live verification pending | flags `sharing-hub`, `my-access`; signed-in route |
+| Kata AI assistant | `src/components/kata/KataPanel.vue` | unmapped | live verification pending | `KATA` wall |
+| Ask | `src/ask/execute/plan.ts` | unmapped | live verification pending | gate not checked beyond `ALERT` in the plan |
+| Community chat and DMs | `src/components/chat/CommunityChat.vue` | unmapped | live verification pending | `COMMUNITY_CHAT` wall |
+| Go live, streams and spectating | `src/components/collab/GoLiveButton.vue`, `src/pages/LiveStreams.vue` | unmapped | live verification pending | `GO_LIVE`, `FOLLOWING`; signed-in routes |
+| Author profiles and people search | `src/pages/AuthorProfile.vue`, `src/composables/superSearch/providers/people.ts` | unmapped | live verification pending | `AUTHOR_PROFILE`; people search needs a signed-in session and flag `people-search` |
+| Board (Academy) | `src/pages/academy/AcademyPage.vue` | unmapped | live verification pending | signed-in route; flag `om-board`, default off |
+| Screenshot and chart-data export | `src/components/dialogs/ScreenshotDialog.vue`, `src/components/dialogs/ExportChartDataDialog.vue` | unmapped | live verification pending | `SCREENSHOT` wall |
+| Simple mode, light charts and Layers | `src/composables/chart/useSimpleMode.ts`, `src/store/layers.ts` | unmapped | live verification pending | `SIMPLE_MODE`; flag `layers` |
+| Strategy tester | `src/components/strategy-tester/StrategyTesterPanel.vue` | unmapped | live verification pending | gate not checked |
+| CRYPTOCAP indices as the main series | `src/store/omSeries.ts`, `src/components/chart/OmSeriesHost.vue` | unmapped | live verification pending | gate not found |
+| History cap and Manage history | `src/utility/chart/history-cap.util.ts`, `src/components/dialogs/ManageHistoryDialog.vue` | unmapped | live verification pending | `CHART_HISTORY` wall |
+| Super Search palette | `src/composables/superSearch/useSuperSearch.ts` | unmapped (used as a door by `ks-open`) | live verification pending | per-provider gates |
+| Beta invite and partner landings | `src/pages/BetaInvite.vue`, `src/pages/Partners.vue` | unmapped | live verification pending | an invite id; a partner referral |
+| Script registry SSO handoff | `src/pages/RegistrySso.vue` | unmapped | live verification pending | a signed-in session |
+| Desktop sign page | `src/pages/desktop/sign.page.vue` | [desktop map](../../verify-kiyotaka-desktop/features/browser-handoff-wallet.md) `sign-page` | 2026-10-12, `133c5af8ca`, in the desktop map | none |
