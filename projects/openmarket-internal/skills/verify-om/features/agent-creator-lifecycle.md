@@ -1,15 +1,16 @@
 # Agent creator lifecycle and private-state isolation
 
-> **Branch-only, not on origin/main (re-checked 2026-10-22 at main `db6e76ef5`).**
-> The daemon commit this guide's closeout names, `a3a81a5f5`, exists in
-> `openmarket-internal`, but only on `origin/daryl/agent-creator-closeout`
-> (PR #1948). It is not an ancestor of origin/main, and a source search of main
-> finds none of the mechanisms named here (Agent Center roster, shadow install,
-> task-vault, work_stage / work_commit, ACP). The GUI half is openmarket-chat
-> MR !75, also unmerged. The guide is therefore not unsound; it describes
-> unmerged branches. Drive it from those branches' worktrees, never from a main
-> lane, and re-verify on main only after both merge. Nothing here has been
-> driven by a maintenance loop.
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103, guest, no `OM_DEV` on the lane. `/healthz` `roster.capabilities` listed executors `coding`/`investigate`, delivery modes `chat-post`/`vault-doc`/`branch` and the operations list. `OM_DEV=1 om agent runs` returned `{"ok":true,"result":{"items":[],"next":null}}`. The refusals were `not_found` (proof, pause, cancel, `roster retry`, `project unlink`) and `malformed_body` (`agent runs --proof`). `roster list` printed only its header, and `roster measures` printed zeroed measures. `agent eval nobody` printed `Expected one installed agent named nobody; found 0.` `GET /rpc/v1/roster/projects` and `/instances` returned empty `items`. Not driven on main: create/import, Try, install, publish/adopt, runs, plan approval, steer, delivery, and every GUI step. They need an installed agent, an LLM credential or coding brain, and an account.*
+
+> **On main since `b50ca927d` (#1948), v0.465.0.** The daemon mechanisms now
+> live in `packages/roster/` (moved from `packages/cli/src/runner/roster`).
+> The roster boots in every daemon unless the setting `roster.enabled` is `0`
+> or `false`. Only the CLI verbs are dev-gated: `om roster`, `om project`, and
+> the `runs`/`pause`/`cancel`/`steer`/`eval` subcommands of `om agent` register
+> only when the CLI process itself has `OM_DEV=1`. The GUI half (openmarket-chat
+> MR !75, the Agents surface in `/rooms`) belongs to `verify-om-chat` and was not
+> checked here. The closeout record below was driven on the branch and remains
+> historical. Only the guest-lane section was driven on main.
 
 *Closeout verified 2026-10-12. GUI `194281a1dbe02b29ca6542170a704d1726884a09`, daemon `a3a81a5f5192a3786c46e0dc3e7e911c2cb86f7c`, binary `5085976c818d929c64fc9fec15efefc5f7a537d3cd7be3b6f221044dd378f8bb`. Native C6/X4/S2 executed on daemon `635441fb083971c1ff5143835521d5c8193e60c2`, binary `7e7f8ee1e25556d1cc75ad61e0d3f4f240dd0715331a52d4d33f8e71067af213`; current viewing and restart readback are distinct. Root-reviewed gallery `agent-creator-stress-20261007/r03` is operator-local evidence. Private registry installation is qualified. Review requests: https://gitlab.com/openmarketxyz/frontend/openmarket-chat/-/merge_requests/75 and https://github.com/openmarket-xyz/openmarket-internal/pull/1948. Local gates passed, but three daemon workflows received no runner or steps because GitHub Actions is blocked by account billing or spending limits. Ready for review, not merge-ready; no main merge, deployment or release.*
 
@@ -22,7 +23,7 @@ The daemon owns release, installation and account state. Shared text packages ha
 - Publish authenticated server versions without publisher-private state; adopt as a separate user and pin the reviewed digest.
 - Explicitly review update/rollback, preserve recipient-private state and revoke an exact release.
 - Read the selected release-local skill across repeated invocations on one daemon, including after update/rollback.
-- Read bound task-vault context, implement in a private linked worktree, run actual checks and commit locally. Deliver Findings/Plan/Result/History/chat before durable Completed.
+- Read bound vault context (`vault/*` routes, `packages/roster/src/vault/`; the name "task-vault" appears nowhere in source), implement in a private linked worktree, run actual checks and commit locally. Deliver Findings/Plan/Result/History/chat before durable Completed.
 - Fence current coding claims, native producers, manifests, budget and credential grants across restart. Missing current work output fails; it never falls back to host completion.
 - Advertise readiness only for the qualified CLI/adapter/sandbox/platform/host tuple; report actionable startup/auth/quota/policy failures to the invoker.
 
@@ -35,6 +36,38 @@ Publish as A and review/adopt as B in a separate signed-in home. Review/apply ch
 For work, use a feature template and linked repository. Open **Review Plan**, read the bound context and proposed changes, then **Approve Plan** and **Start approved work**. Follow automatically refreshed Work, recorded proof, local delivery history and the Run Topic reply.
 
 ## Driving it with control-om
+
+### Guest lane on main (driven 2026-10-27)
+
+A plain lane carries the roster. `OM_DEV=1` goes on each CLI call, not on
+`up`: `control-om om` passes the caller's environment through, and the verbs
+register in the CLI process. **There is no `--format json`.** Every
+`roster`/`agent runs`/`project` verb prints a JSON envelope unconditionally,
+except `roster list` (a tab table); only `agent steer` takes `--json`. Without
+`OM_DEV`, `om agent runs` fails with `unknown command 'runs'; did you mean
+'grants'?`, because the non-dev `om agent` (credentials, docs, grants, ...)
+still exists.
+
+```sh
+curl -fsS "$(control-om url /healthz)" | jq '.roster.capabilities.executors'   # ["coding","investigate"]
+OM_DEV=1 control-om om -- agent runs                 # {"ok":true,"result":{"items":[],"next":null}}, exit 0
+OM_DEV=1 control-om om -- agent runs run_x --proof   # not_found "Work proof was not found.", exit 1
+OM_DEV=1 control-om om -- agent runs --proof         # malformed_body "Run read command is invalid.", exit 1
+OM_DEV=1 control-om om -- agent pause nope           # not_found "Work run was not found.", exit 1 (cancel likewise)
+OM_DEV=1 control-om om -- roster list                # header NAME ORIGIN VERSION BRAIN, no rows
+OM_DEV=1 control-om om -- roster measures            # zeroed queueLatencyMs, orphanRate, spendUsd, ...
+OM_DEV=1 control-om om -- project unlink nope        # not_found "Project was not found.", exit 1
+curl -fsS "$(control-om url /rpc/v1/roster/projects)" # {"ok":true,"result":{"items":[]}}
+```
+
+Create/import, Try and install are HTTP routes the GUI calls (`imports/*`,
+`local-packages/*`, `builder`, `instances/:id/try|shadow`), not CLI verbs.
+"Review Plan" and "Approve Plan" are GUI labels over `GET work/runs/:id/plan`
+and `POST .../plan/decision`. Anything past a refusal needs an installed agent,
+an LLM credential or coding brain, and an account. `roster drive --once` and
+`roster conformance` are a fake-brain dev harness, not product proof.
+
+### Historical branch closeout (not re-driven on main)
 
 Use private worktrees, assigned ports and independently authenticated owned homes. Never target operator ports or reconstruct account cookies.
 

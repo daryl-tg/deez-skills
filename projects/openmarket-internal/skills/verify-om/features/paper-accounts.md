@@ -1,6 +1,6 @@
 # Paper trading accounts
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: `create` without `--yes` was refused with `confirmation_required`. With `--yes` it returned `verify-book`, cash 1000, `desk: off`. `ls` rows carried the eight fields, and `set --ticket 10` was stored. `log` returned `{entries:[],next_cursor:null}` and `reset` returned `generation:1`. The Paper tab read `Loading paper accounts…` briefly, then showed the intro, six columns and the `verify-book` row. Not driven: `open`, `close`, `reset-all`, `digest`, and the new `target` money mode on a paper account (it needs a strategy package and a terminal arm). Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: `create` without `--yes` was refused with `confirmation_required`. With `--yes` it returned `verify-book`, cash 1000 and `desk: off`. `ls` rows carried the eight fields, and `paper list` suggested `ls`. The Paper tab showed the intro, six columns, the `verify-book` row and the empty equity, lots and decisions blocks. Not re-driven: `set`, `log` and `reset` (driven 2026-10-26). Not driven: `open`, `close`, `reset-all`, `digest` and the `target` money mode. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 A paper account is pretend money held locally: no venue, no credentials, no real
 order ever placed. A user opens one from the CLI, and it shows up in the

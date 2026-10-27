@@ -1,6 +1,6 @@
 # Event ingest and fire
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: the full chain was re-driven with the same results. Door results: 202 `accepted:true`; the same body 200 `deduped:true`; no token 401; a paused watch 409 `watch_paused`; `text/plain` 202. `watch_committed`/`watch_appended`/`watch_fired` carried one `event_id`, alongside `tick_completed`, `subscription_metric` and `watch_inventory_changed`. The journal held the marker, `outcome: update` and `verdict: new story`. The dashboard row read `working`. `event push` returned `delivery: daemon`. Not driven: the 413/415/422/429/503 door answers and `event push --file`. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: create, `accept_all`, `rotate-token`, then a door push gave 202 `accepted:true`. `watch_committed`/`watch_appended`/`watch_fired` carried the same `event_id`, and the journal held the marker, the run-unique text, `outcome: update` and `verdict: new story`. The Watches list showed the `lane-probe` row with `Pause`. Not re-driven this pass: the dedupe, 401, 409 and `text/plain` door answers (driven 2026-10-26). Not driven: the 413/415/422/429/503 door answers and `event push --file`. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 A user points a producer at a watch's inbound door and the daemon takes it from
 there: the event is accepted, committed, appended to the watch's journal, and

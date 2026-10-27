@@ -1,6 +1,6 @@
 # The dashboard agent panel
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: `Ask your agent` on `/alerts` showed the region, `Ask OpenMarket`, `Open full conversation`, `Close agent panel`, the message box, a disabled `Send message` and the `Explain watches` / `Help me get started here` suggestions. A send produced the alert "No LLM API key configured. Run `om init`, or export OPENMARKET_LLM_KEY for this shell." with `Reload conversation` / `Check connections`. `/agent` showed `Conversations` and `What can I help with?`. A real reply needs an LLM credential. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: `Ask your agent` on `/alerts` showed the region, `Ask OpenMarket`, `Open full conversation`, `Close agent panel`, the message box, a disabled `Send message`, the page-context buttons and the `Explain watches` / `Help me get started here` suggestions. A send produced `article "Your message"` and the alert "No LLM API key configured. Run `om init`, or export OPENMARKET_LLM_KEY for this shell." with `Reload conversation` / `Check connections`. Not re-driven: `/agent`. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as

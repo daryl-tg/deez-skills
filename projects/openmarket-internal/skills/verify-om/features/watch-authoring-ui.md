@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: `/alerts?create=1` opened the picker with eight kinds. RSS led through `Set up a feed` (`Which updates should count?` = All new items) and `Review your watch` / `RSS or Atom feed` to `/alerts/ui-authored-feed`, and `watch list` read `paused never`. The detail page showed `Fetch now`, `Resume`, `Edit watch`, `Start when you are ready`, `Sources and schedules` (`127.0.0.1` with `Edit source` and `Pause source`) and `Connected steps`. After resume it showed `Pause` and `Choose how you hear about updates` / `Set up delivery`. History defaulted to `Events and step answers` / `What it kept` / `All sources`. The stub logged `ok GET /rss` every 60 s. Batch actions were not driven. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18104 with the loopback switch: `Create watch` opened `Create a watch` with eight kinds. RSS led through `Set up a feed` and `Review your watch` / `RSS or Atom feed` to `/alerts/ui-authored-feed`, and `watch list` read `paused never`. On the paused watch, the detail page showed `Resume`, `Edit watch`, the `Watch sections` buttons, `Start when you are ready`, `Sources and schedules` (`127.0.0.1` with `Edit source`) and `Connected steps`. History set `?tab=history` with `Events and step answers` / `What it kept` / `All sources`. Not driven: batch actions and the post-resume Setup state. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the
@@ -31,7 +31,7 @@ Preconditions:
   stub is the cheapest one, and the lane must carry the loopback switch:
   `control-om up --env OM_FEED_ALLOW_LOOPBACK=1 --env OM_FEED_POLL_INTERVAL_MS=60000`,
   then `mkdir -p /tmp/origin-stub && cd /tmp/origin-stub && echo ok > mode &&
-  bun ~/.codex/skills/verify-om/helpers/origin-challenge-stub.ts &`.
+  bun ~/.claude/skills/verify-om/helpers/origin-challenge-stub.ts &`.
 - A browser session of your own (`AGENT_BROWSER_SESSION`), viewport 1440x900.
 
 - **Deep link.** `/alerts?create=1` opens the same picker directly; onboarding
@@ -68,7 +68,7 @@ Preconditions:
   Its filters are selects named `History type` (default `Events and step
   answers`), `History outcome` (default **`What it kept`** on main, formerly
   `All outcomes`) and `History source`. Rows that a filter tune moved carry a
-  `back in` or `tuned out` badge. A guest lane has none. The Setup tab holds `Choose how you hear about updates` with
+  `back in` or `tuned out` badge. A guest lane has none. The Setup tab is state-dependent. On a just-authored, still-paused watch it shows `Start when you are ready`, `Sources and schedules` and `Connected steps` (driven 2026-10-27). The mapped form holds `Choose how you hear about updates` with
   `Set up delivery`, and `Sources and schedules` with `Add source or schedule`
   plus one `heading` per source and an `Edit source` button. Driven at
   `/alerts/ui-authored-feed`.

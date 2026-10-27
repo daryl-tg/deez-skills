@@ -1,6 +1,6 @@
 # Local reads and discovery
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: `config show` keys, `config key-info` (`om_guest`, not expired), `config get data.transport` (`source default`, `default auto`) and the new `config get wrun.tape_per_order` (`source default`, `default off`). `notis --since 7d` returned `fire` and `notice` rows. `enum --list` showed `exchange_id` with 35 values; `enum --domain exchange_id --query BIN --limit 3` returned one page. `schema read` returned 7 intents, `skill list` the bundled skills, `wrun list` 20 packages and `wrun templates` 97. Not driven: `config set`, `notis --after`, `schema read <intent>`, `skill show`, `wrun create`/`build` and `vault status`. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: `config show` (`api_key_set`, a masked key), `config key-info` (`om_guest`, not expired) and `config get data.transport` (`source default`, `default auto`). `notis --since 7d` returned `fire` and `notice` rows. `enum --list` returned 26 domains, `enum --domain exchange_id --query BIN --limit 3` returned `total 3`, `schema read` returned 7 intents and `skill list` printed the bundled skills. `wrun list` returned `{packages, skipped}`, and **`wrun templates` returned 91, down from 97**: `5a03ffb43` removed six option recipes. Not driven: `config set`, `notis --after`, `schema read <intent>`, `skill show`, `wrun create`/`build` and `vault status`. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 The questions a user asks the install itself rather than the market: which key
 is in use and when it expires, what a setting is and where its value comes from,
@@ -59,6 +59,12 @@ decode.
   See [market data reads](./market-data-reads.md).
 - `wrun build` compiles and runs `bun install` by default, so it needs the package
   registry. Keep it out of a quick pass.
+- **`wrun templates` lost six option recipes in v0.466.0** (`5a03ffb43`):
+  `dealer-nodes`, `gamma-map`, `zero-dte-levels`, `vol-term-structure`,
+  `vol-smile` and `iv-term-structure`. The list went from 97 to 91, and those
+  ids are gone from the template enum domain too, so `wrun create --template
+  <one of them>` now fails. `expected-move` remains. Assert membership, not a
+  count.
 - `hl_dex` is a dynamic enum domain listed live from the venue. It needs network
   where the static domains do not.
 - Per source (`cmd/notis.ts`; not driven), `notis` exits 1 on a runtime error

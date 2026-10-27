@@ -1,6 +1,6 @@
 # Chart catalog reads
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: on a guest lane with no chart tab: `indicator schema rsi` returned `kind stock`, `@om-core/rsi` and field `period`; `--keys period` returned the same; `nonsense` returned `indicator_unknown`; `indicator list --query rsi` returned `scriptSubTypes ["RSI"]` and the `@om-core/ichimoku` and `@om-core/rsi` packages; `drawing schema trend_line` returned `invalid_options`. Not driven: the `--chart`/`--workspace` forms, metric ids and `TECHNICAL_SCRIPT --sub-type`. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103 with no chart tab: `indicator schema rsi` returned `{fields, note, paint, spec, target}`, with `target.kind stock`, `@om-core/rsi` and field `period`. `nonsense` returned `indicator_unknown`, `indicator list --query rsi` returned `{indicators, packages, scriptSubTypes}`, and `drawing schema` returned `{anchorFormat, tools}`. Not driven: the `--chart`/`--workspace` forms, metric ids and `TECHNICAL_SCRIPT --sub-type`. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 A user (or an agent) asks what an indicator or drawing tool accepts before
 putting it on a chart: its settings, their kinds, defaults and ranges, and which

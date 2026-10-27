@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: the stub ran on 18111 with the lane on `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000`. `page-add` returned `status: adopted` onto the dashboard-authored feed, which polled every 60 s. The flip produced exactly one `challenge GET /rss` (02:10:34.884Z) and the lane line `reopen held until 2026-10-26T02:25:34.897Z: 127.0.0.1 is challenging this machine; next try …`. **Read 4 s later, `/healthz` still said `open` with no cooldown and `watch show` had no challenge row. By 13 s both carried the hold** (`reconnecting`, `reconnect_count 0`, `cooldown {until, error}`; `FAULT … is challenging this machine … · Firecrawl can read it for you`, `FIX om setup firecrawl`). `watch run now` gave the generic refusal (exit 2) with no request. The mode went back to `ok` at 02:10:43Z. The origin received no `/rss` request until exactly one `ok GET /rss` at 02:25:34.918Z, then `reopened after the window` (02:25:34.923Z) and `/healthz` `open` with `cooldown: null`. Not driven: the doubling. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18104 with `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000` and the stub on 18111. `page-add --prefer feed --every 60s` returned `feed_created`, and the feed polled `ok GET /rss` every 60 s. The flip produced one daemon `challenge GET /rss` (02:01:08.357Z) and the lane line `reopen held until 2026-10-27T02:16:08.815Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` read `reconnecting`, `reconnect_count 0` and a `cooldown`. `watch show` gave `FAULT … feed 127.0.0.1: Origin stub: 127.0.0.1 is challenging this machine since … · Firecrawl can read it for you` (the row now carries the feed title) and `FIX om setup firecrawl`. The daemon then stayed silent for 15 minutes; the one other challenged request, at 02:01:39, was this run's own CLI `page-add` probe. With the stub flipped back to `ok` before the window ended, the daemon made exactly one `ok GET /rss` at 02:16:08.831Z, and the lane logged `reopened after the window`. `/healthz` lagged about 40 s, then read `open` with `cooldown` null, and the challenge sentence was gone from `watch show`. Not driven: a still-challenged probe at `until` and the doubling. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -52,7 +52,7 @@ Preconditions:
 
   ```bash
   mkdir -p /tmp/origin-stub && cd /tmp/origin-stub && echo ok > mode
-  bun ~/.codex/skills/verify-om/helpers/origin-challenge-stub.ts &
+  bun ~/.claude/skills/verify-om/helpers/origin-challenge-stub.ts &
   ```
 
   It answers a small RSS feed at `/rss` with one new item per minute, article

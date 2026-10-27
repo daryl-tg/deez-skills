@@ -1,6 +1,6 @@
 # Daemon lifecycle and health
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: `/healthz` 0.464.0, `auth: guest`, `last_error: null`, `exits_unmanaged: []`, `om_home` ending `/accounts/guest`; `?lite=1` exactly `pid`, `stalls`, `started_at`, `version`. `om status` showed the foreground pid, and `service status` printed the INACTIVE Loops. Doctor ran 14 checks: binary, llm and agent_wiring warned, contracts and stream were ok. `om logs` returned only the two CLI-written `watch_remove` lines. The wrapper refused `service install` (exit 1), and the LaunchAgents listing matched before and after. A second lane on 18104 was stopped with `OM_LANE_PORT=18104 control-om down`: `/healthz` then refused (curl exit 7) and nothing listened. Not driven: the boot-time guest-mint failure and the 503 branch. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lanes on 18103 and 18104: `/healthz` 0.466.0, `auth: guest`, `last_error: null`, `exits_unmanaged: []`, `om_home` ending `/accounts/guest`, plus the new `memory`, `slow_sql: []` and `roster` keys. `?lite=1` was still exactly `pid`, `stalls`, `started_at`, `version`. Doctor ran 14 checks: binary, llm and agent_wiring warned, and contracts and stream were ok. `status` and `service status` (the INACTIVE Loops) were as mapped. The new profiler RPC answered 409 `not_started`, 400 `bad_request`, 200 on `start`, and samples on `stacks`. Not driven: the boot-time guest-mint failure, the 503 branch and a real slow statement (`OM_DB_SLOW_MS`). Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 The daemon is the product's spine: it boots, serves its HTTP doors, ticks, and
 reports what it is doing. A user starts it (`om run` in the foreground, or
@@ -14,6 +14,13 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
   lanes, loops, stalls, subscriptions and contributed status fields.
   `/healthz?lite=1` returns a small presence payload (`pid`, `version`,
   `started_at`, `stalls`). Runtime-specific fields depend on active planes.
+  Since v0.466.0 the full body also carries `memory` (`rss_mb`,
+  `heap_used_mb`, `heap_total_mb`), `slow_sql` (the newest 10 statements over
+  `OM_DB_SLOW_MS`, default 100; `0` turns timing off) and `roster`
+  (`{capabilities}`, or `null` when the roster is not wired).
+- `profile` — `POST /rpc/v1/system/profile` arms an on-demand sampling profiler
+  (`{"action":"start"}`) and reads it back (`{"action":"stacks"}`). There is no
+  CLI verb.
 - `status` renders the same state as a human rollup.
 - `doctor` self-diagnoses the install: binary, version, home, network, key,
   schema, daemon.
@@ -44,6 +51,18 @@ Preconditions:
   root you passed: `<lane root>/accounts/guest`. Assert that it sits under the
   lane root and never under `~/.openmarket`; an equality check against
   `OM_HOME` fails on a healthy lane.
+- **Footprint and the profiler.** `curl -fsS "$(control-om url /healthz)" | jq
+  '{memory, slow_sql, roster}'` shows three integer MiB values, `slow_sql: []`
+  on a quiet lane, and `roster.capabilities`. Then POST JSON to
+  `$(control-om url /rpc/v1/system/profile)`. The lane takes the call with no
+  bearer. `{"action":"stacks"}` before any start answers 409 `not_started`,
+  and `{"action":"x"}` answers 400 `bad_request`. `{"action":"start"}` answers
+  200 `{started_at, already}`, and `stacks` then returns `inclusive`, `self`,
+  `samples`, `seconds`, `slow_sql`, `rss_mb` and `started_at`. **A second
+  `start` also says `already: false`**, with the first `started_at`
+  (`runner/http/rpc/system.ts:403`), so assert on the repeated `started_at`,
+  not on `already`. Driven 2026-10-27 at `8fe6a8432`. The profiler stays armed
+  until the lane stops.
 - **Human rollup.** Run `control-om om -- status`. Then
   `control-om om -- service status`, which additionally prints the Loops
   block: on a guest lane every library and gardener loop reads

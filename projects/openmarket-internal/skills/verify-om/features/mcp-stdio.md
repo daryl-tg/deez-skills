@@ -1,6 +1,6 @@
 # The capability layer over MCP (stdio)
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.464.0. `tools/list` returned 451 tools including `watch_list` and `order_place`, `watch_list` ran with no error, and `order_place` (Hyperliquid, quote 10) was refused with `capital_not_armed`. Not driven: hosted HTTP, `--catalog operator`, `--session merged`, `om mcp arm` and the fire bridge. Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.466.0 with no stdout leak. `tools/list` returned 451 tools including `watch_list` and `order_place`, and `package_search`'s kind enum now includes `agent-plugin`. `watch_list` ran with no error. `order_place` (Hyperliquid, quote 10) was refused, but with **`capital_yolo_harness`, not `capital_not_armed`**, because this nightly session ran under `--permission-mode bypassPermissions` (see Gotchas). Not driven: hosted HTTP, `--catalog operator`, `--session merged`, `om mcp arm` and the fire bridge. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 An MCP client (Claude Desktop, Cursor, a coding agent) launches `om mcp serve
 --stdio` and gets the same registered actions the CLI and chat use, under the
@@ -47,6 +47,8 @@ home rather than the operator's.
   Expect `isError` and a payload whose `error` is `capital_not_armed`, whose
   message says the call moves capital (family `order`), and whose hint names
   `om mcp arm`. The lane has no venue paired, so nothing could be placed anyway.
+  A driver launched with an auto-approve flag gets `capital_yolo_harness`
+  instead (see Gotchas).
 - **Proof.** Keep the transcript of the four responses. A tiny Bun script that
   spawns the wrapper and matches responses by `id` is enough; the shape to copy
   is `packages/cli/test/mcp-inspector-smoke.test.ts` in the product repo.
@@ -58,6 +60,16 @@ home rather than the operator's.
   `size: ... expected object`). That is the validation rewriter answering, not the
   capital gate. Use the exact shape above, which the product's own
   `mcp-capital-gate.test.ts` uses.
+- **The capital refusal depends on how the DRIVING session was launched.**
+  The stdio server walks its parent process tree (`mcp/harness-sniff.ts`). If
+  any ancestor carries an auto-approve flag (`--dangerously-skip-permissions`,
+  `--permission-mode bypassPermissions`, `--yolo`, ...), `order_place` is
+  refused with `capital_yolo_harness` ("No arm counts in this session")
+  instead of `capital_not_armed`. An unattended or bypass-mode agent run lands
+  on the first. Driven 2026-10-27 from a nightly session under
+  `bypassPermissions`. Both are the capital gate refusing before any venue
+  call, so either proves the no-spend claim. Assert `isError` and a `capital_`
+  code, and record which one you got and why.
 - The tool count (451 here) is the stdio catalog, which is not the registry count
   (478 at this tree). Assert membership, not a number.
 - `--no-fire-bridge` keeps watch-fire log notifications off stdout, so the

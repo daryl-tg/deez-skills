@@ -1,6 +1,6 @@
 # Market data reads
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), lane on 18103: doctor `api_key`/`network` ok. `enum` included `exchanges`, `types` and `intervals`; `exchanges` included `BINANCE` and `HYPERLIQUID`. `points` returned 3 `Point` wrappers, and `--type OHLCV` gave `is not a valid value`. `instruments` on the default transport gave exit 2 `invalid_query` with the v3 hint. With `OM_DATA_TRANSPORT=v3`, `instruments BINANCE BTCUSDT` returned `arm: crypto` with one row and `option-chain DERIBIT BTC` returned `expiries`. `usage plans` returned empty `providers`. Not driven: the typed-door `HISTORICAL_RETURN`/`TOKEN_UNLOCKS` reads (socket-only, new this range). Previous stamp `42d044b02` is an ancestor of this tree (46 commits).*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: doctor `api_key`/`network` were ok. `enum` included `exchanges`, `types` and `intervals`. `exchanges --format json` returned `{exchanges, refusedTypes, unselectable}`, and `coins` returned `{coins}`. `points` returned one `series` entry of `{id, points}`, and `--type OHLCV` gave `is not a valid value`. Not re-driven this pass: `instruments` and `option-chain` (driven 2026-10-26 at `ee8e3a7ab`; no data-read source changed since). Not driven: the typed-door `HISTORICAL_RETURN`/`TOKEN_UNLOCKS` reads. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,

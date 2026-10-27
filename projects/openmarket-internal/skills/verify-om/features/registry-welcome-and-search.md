@@ -1,6 +1,6 @@
 # Registry welcome page and personalised search
 
-*Verified: 2026-10-26, tree `ee8e3a7ab` (origin/main, v0.464.0), new on main with #1947. Against the real registry, a guest lane's `om welcome` printed `This registry does not offer the welcome page yet.` and exited 1, and `om search "btc funding" --format json` returned the old shape: `results`, `total`, and no `served`, `class` or `reasons`. Against a loopback fixture registry on 18112: with `welcome:true` the guest got "om welcome needs an account. Run `om login` to sign in, then run `om welcome` again." (exit 1), and with `OM_API_KEY=sk-test OM_NO_BROWSER=1` the call printed `Personalise your watch feed on any device: http://127.0.0.1:18112/welcome?src=om-init` (exit 0). With health `{"ok":true}`, the same key got the "does not offer" refusal (exit 1). With `search_modes:["nl"]` and `rank_modes:["for-you"]`, the guest's request was `GET /v1/search?q=btc+dip&mode=nl` with no bearer and its result carried `reasons`, `served` and `class`; the key's request added `rank=for-you` and a bearer. Not driven: `om init`'s closing step (it needs a TTY) and the browser-opening branch of `om welcome`.*
+*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103. Against the real registry, `om welcome` still printed `This registry does not offer the welcome page yet.` (exit 1), and `om search "btc funding" --format json` returned three rows of `name`, `kind`, `description` and `latest`, with no `served`. Against the loopback fixture on 18112, all three welcome branches matched (guest `om login` hint, exit 1; keyed `…/welcome?src=om-init`, exit 0; keyed without `welcome`, `does not offer`, exit 1). Search sent `mode=nl` without a bearer as a guest and `mode=nl&rank=for-you` with one when keyed. **The text renderer's reasons lines are now seen**, but only under a TTY (see Gotchas). Not driven: `om init`'s closing step and the browser-opening branch of `om welcome`. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
 A signed-in user can open a registry page that personalises their watch feed:
 `om welcome`, or the last step of `om init`. A user searching the registry gets
@@ -72,8 +72,11 @@ so they are driven against a loopback fixture on an assigned agent port
 - `om init` cannot be driven here: it exits 2 without a TTY
   (`'om init' requires an interactive terminal.`), and it writes channel,
   credential and service state. Its closing step stays source-only.
-- Piped, `om search` printed JSON even without `--format json`, so the text
-  renderer's indented reasons lines were not seen.
+- Piped, `om search` prints JSON even without `--format json`. To see the text
+  renderer, give it a TTY: `script -q /dev/null control-om om -- search "btc
+  dip"`. Driven 2026-10-27 against the fixture, it printed
+  `@acme/signal@1.0.0  [watch-pack]  (20 USDC / month)  BTC dip signal: ...`,
+  then two indented reasons lines and `1 of 1`.
 - **Receipt retraction is the third part of #1947 and is not here.** An
   uninstall or unfollow queues a DELETE to the registry in
   `<home>/receipts/retractions.json` only for an account whose install or
