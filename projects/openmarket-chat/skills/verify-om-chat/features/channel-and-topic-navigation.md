@@ -53,11 +53,23 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   one: the personal doors come from `session.rightRailTabs?.(room)`
   (`ChannelToolbar.tsx:229`), which the fixture never stubs, so it resolves
   through the `INERT` proxy — and `INERT[Symbol.iterator]` is an empty
-  generator (`shell-fixture.tsx:2532`, the iterator at `:2534-2535`), so
+  generator (`shell-fixture.tsx:2539`, the iterator at `:2541-2542`), so
   spreading it yields nothing for every room. Four is the ceiling in this lane, not a seeding accident.
   `"Show or hide side panel"` no longer exists anywhere in `src/`, and the old
   in-panel `tablist` is not merely hidden: every live render site passes
   `showSlotTabs={false}`, so it is dead on every route.
+- The **topics primer** on a channel's topic list (`TopicPrimer`,
+  `TopicListView.tsx:214`; `div.topic-primer[data-topic-primer]`): "Topics keep
+  a long conversation in its own lane, so the channel stays readable. Start one
+  below, or from any message with **Turn into topic**." with **New topic** and
+  **Dismiss the topics explainer**. Dismissing writes `topicsPrimerSeen` and
+  survives reload. Since `cb3e5274` a one-line banner sits on a 28 px row
+  (`--topic-primer-row`) with even 12 px padding, and the icon and the dismiss
+  glyph both sit 12 px from the edges; on a phone the dismiss hit box is 44 px.
+- The desktop rail lives in a `complementary` landmark named **Workspace
+  navigation** holding the `nav` **Workspaces, agents and people**, which no
+  longer carries `role="toolbar"` (`Shell.tsx:3746`, `:3755`; `01bf4481`). Locate the rail
+  by those names, not by a toolbar role.
 
 ## How to get to it (user POV)
 
@@ -200,7 +212,7 @@ the navigation retargeted the *write* path, not only the read pane.
 
   **The gate has moved twice and now explains itself.** `#731` lifted it out of
   `Shell.tsx` into `ConversationRightRegion`; it is now back in `Shell.tsx`
-  (`:4212-4217`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
+  (`:4213-4218`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
   More useful than the address is the condition it gained:
 
   ```
@@ -220,7 +232,7 @@ the navigation retargeted the *write* path, not only the read pane.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
   opens nothing — confirmed live. But that is a fact about the *control*, not
   about the surface: **`?switcher=open` mounts the quick-switcher**
-  (`shell-fixture.tsx:3026` seeds `palette`), and it comes up with real
+  (`shell-fixture.tsx:3033` seeds `palette`), and it comes up with real
   content — a `div.quick-switcher` carrying `role="combobox"`, an input
   placeheld `Search messages, or jump anywhere...`, and the empty state
   *"Nowhere recent yet. Type to search, or start with @, #, * or ."* with its
@@ -241,7 +253,7 @@ the navigation retargeted the *write* path, not only the read pane.
   unread) does not. Load `?policy=off` to see it on channel rows and after
   `Mark as read` in `More channel actions`. **Mark as read** does not clear the
   seeded unread either: the fixture stubs `markRoomRead` and `markUnreadFrom`
-  as `noop` (`shell-fixture.tsx:3424`, `:3555`). Prove the offer and its gating
+  as `noop` (`shell-fixture.tsx:3431`, `:3562`). Prove the offer and its gating
   here, never the state change. That needs the daemon-pair lane.
 - **A panel button renames itself when open**, Library included: after the
   click, `Library` reads `Close Library` and `data-library-presentation` is
@@ -251,7 +263,10 @@ the navigation retargeted the *write* path, not only the read pane.
   `#/room/ops` and mounts no canvas — the shell fixture never stubs the world
   session port. Drive that surface from its own harness instead
   ([open-world.md](open-world.md)).
+- **The topics primer shows only while `topicsPrimerSeen` is unset.** Once a
+  session dismisses it, every later load in that browser hides it. Clear
+  `localStorage` before capturing the banner.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug`, and **Back to #ops** gave `#/room/ops`. The dock **Library** button set `aria-pressed=true`, and More channel actions listed 14 items. **Limitations:** Mark As Unread, the quick switcher and `/chat/` were not re-driven. Effects of Mark As Unread / Mark as read are fixture no-ops. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug`, and **Back to #ops** gave `#/room/ops`; `aside[aria-label="Workspace navigation"]` held the rail `nav` with no role. `?switcher=open` mounted the switcher with its empty state; `#mac` then Enter reached `#/room/macro/topic/basis-desk-review`. `?view=topics` showed the primer at 52 px with 12 px padding on every side and both glyphs 12 px from the edges; dismissing it survived reload, and at 390×844 the dismiss hit box was 44×44. On `/chat/`, the primer had 12 px top and bottom padding, and the CPI topic reached `/chat/room/ops/topic/cpi-print-aug`. **Limitations:** Mark As Unread, the dock and the channel menu were not re-driven; Mark As Unread effects remain fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 02-03, 20, 38-39). Previous record: 2026-10-26 at `5820fbea`.

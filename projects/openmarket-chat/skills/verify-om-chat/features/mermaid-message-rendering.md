@@ -31,7 +31,7 @@ agent-browser snapshot -i -c
 
 The DM route is `tools/visual/shell-fixture.html?view=dm&dm=ana&alerts=quiet&mermaid=1`. On both routes, drive the button named `Open Mermaid diagram as PNG`, then check for the named preview region.
 
-Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1050`) shifts when seeds change:
+Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1056`) shifts when seeds change:
 
 ```bash
 agent-browser find role textbox fill --name 'Message #ops · $ for markets · /chart to post one' 'https://openmarket.xyz/chat/room/ops/msg/116'
@@ -59,4 +59,4 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** `?mermaid=1`: **Open Mermaid diagram as PNG** opened the preview region. A link to seq 116 rendered a card with one svg, and a link to 117 rendered the citation `↩ #·116`. **Limitations:** The DM route, `/chat/`, unsafe or invalid diagrams and the cache. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?mermaid=1`: `msg-ops-116` rendered `.doc-mermaid` with the `role=button` control **Open Mermaid diagram as PNG**. **Limitations:** The preview region, the linked-message cards (seq 116/117), the DM route, `/chat/`, unsafe or invalid diagrams and the cache were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 28). Previous record: 2026-10-26 at `5820fbea`.

@@ -6,12 +6,12 @@ says about them.
 ## Sub-features
 
 - **Profile drawer** (`packages/chat-ui/src/components/ProfilePanel.tsx`): a
-  right-panel drawer with **Close profile** (`:308`, `:325`, `:411`), the avatar,
+  right-panel drawer with **Close profile** (`:320`, `:337`, `:423`), the avatar,
   the display name and handle, and three action buttons.
-- **Profile sections** tablist (`:520`): **Info** (selected by default),
+- **Profile sections** tablist (`:532`): **Info** (selected by default),
   **Media**, **Links** and **To-dos**.
 - **Info** content: About, Mutual servers with a count and chips, Member since,
-  Connections (follower count), and **Block user** / **Unblock user** (`:781`).
+  Connections (follower count), and **Block user** / **Unblock user** (`:793`).
 - The DM header's identity button (`A Online ana`) opens the same drawer.
 - The floating identity card (`?card=1`) and the name popover
   (`ProfilePopover.tsx`) exist in source. Neither was driven here.
@@ -30,8 +30,8 @@ agent-browser find role tab click --name "Media" --exact      # aria-selected mo
 agent-browser find role button click --name "Close profile"   # the tablist unmounts
 ```
 
-`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3042`, origin
-`dm:ana`) and sets `rightPanel` to `profile` (`:3100`). Use it on the DM view;
+`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3049`, origin
+`dm:ana`) and sets `rightPanel` to `profile` (`:3107`). Use it on the DM view;
 the room view has no matching origin. The user path is the header button:
 open `?view=dm&dm=ana&alerts=quiet` and click
 `find role button --name "A Online ana"`. `Close profile` appears.
@@ -45,14 +45,20 @@ Assert the Info content through the drawer's text, e.g. walk up from
 
 - The sections have no `role="tabpanel"`. A query for the panel finds nothing,
   so read the drawer's text instead.
-- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:2970`). It
+- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:2977`). It
   proves layout and the tab and close mechanics, not that a real profile fetch
   works. Media, Links and To-dos switched selection but were not asserted for
   content.
 - Blocking is not exercised: the fixture does not persist it, and the Blocked
   tab under Connections crashes (see
   [direct-messages-and-home.md](direct-messages-and-home.md)).
+- **Agent names follow the persona handle** (`DisplayName.tsx:56-150`, `01bf4481`).
+  For an agent, owner nicknames and display names no longer relabel it; a
+  degraded handle falls back to the account name, and the hover title is
+  `@persona`. Search hits, DM hits, Pins and the channel peek now pass
+  `isAgent`. No fixture seeds an agent entry with `isAgent`, so this is source
+  only.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** On ana's DM, the header **A Online ana** opened the drawer with Info selected, **Links** took the selection, and **Close profile** unmounted it. **Limitations:** Tab contents beyond Info, `?card=1`, the name popover, block effects, real fetches and `/chat/`. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On ana's DM, the header **A Online ana** opened the drawer with Info selected (tabs Info / Media / Links / To-dos) and **Close profile** present. **Limitations:** Links selection, tab contents beyond Info, `?card=1`, the name popover, agent display names, block effects, real fetches and `/chat/`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 22). Previous record: 2026-10-26 at `5820fbea`.

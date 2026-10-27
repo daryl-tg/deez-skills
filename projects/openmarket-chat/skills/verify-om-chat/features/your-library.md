@@ -23,20 +23,20 @@ Say which one a frame shows, always.
 - **Match count**: a `role="status"` element (`data-library-filter-count`).
   The string carries the query in curly quotes, and a settling suffix:
   `1 note matches “a”` / `2 notes match “a”`, plus `" so far"` while the shelf
-  has not settled (`LibraryPanel.tsx:2034-2035`). Measured live as
+  has not settled (`LibraryPanel.tsx:2032-2033`). Measured live as
   `2 notes match “a”` — an `--exact` match on a bare `"2 notes match"` misses.
 - **Clear control**: `button[aria-label="Clear search"]`
   (`data-library-filter-clear`), rendered **only when the field is non-empty**.
   Absent on a fresh panel; that is the control working, not a regression.
 - **Scope switch**: `role="tablist"` named **"Library scope"**
-  (`LibraryPanel.tsx:2043-2044`, `data-library-scope-switch`) with two tabs.
-  The server tab (`data-library-scope-server`, `:2105`) is named **"Server"**,
+  (`LibraryPanel.tsx:2041-2042`, `data-library-scope-switch`) with two tabs.
+  The server tab (`data-library-scope-server`, `:2103`) is named **"Server"**,
   deliberately not "Server library", to disambiguate from the rail's own
   Library door. Accessible names carry counts: `Server · 3 notes`.
 - **Expand / collapse**: `button[aria-label="Open Library full page"]`, which
-  becomes `"Collapse Library to side panel"` (`LibraryPanel.tsx:1943-1944`).
+  becomes `"Collapse Library to side panel"` (`LibraryPanel.tsx:1941-1942`).
   The cheap DOM check is `data-library-presentation` on the panel root
-  (`:1812`), which flips `side` → `full`.
+  (`:1810`), which flips `side` → `full`.
 
 ### The full page (`?view=library`)
 
@@ -49,7 +49,7 @@ lane (still at `afabb11c`).** The hash reaches `#/library/agents`, but the surfa
 shows `TypeError: Cannot read properties of undefined (reading 'tone')` in
 `LibraryPersonaCard`. The cause is now isolated to the fixture. The shell fixture never
 stubs `session.libraryDaemon`, so the autofill proxy answers `INERT`
-(`shell-fixture.tsx:2557-2562`). `LibraryView.tsx:6959` awaits
+(`shell-fixture.tsx:2564-2569`). `LibraryView.tsx:6959` awaits
 `daemon?.fetchPersona()`, gets the truthy `INERT` back and takes the `ready`
 branch (`:6960`). `personaStatusPresentation` (`:6168-6188`) then matches no
 `status.state` and returns `undefined`, and `.tone` throws (`:6405`). The
@@ -81,7 +81,7 @@ agent-browser open "$(control-om-chat url \
   'tools/visual/shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server')"
 ```
 
-`?scope=server` selects the server tab at boot (`shell-fixture.tsx:224`). A
+`?scope=server` selects the server tab at boot (`shell-fixture.tsx:230`). A
 five-observation proof, each step verified live on lane 18116:
 
 ```bash
@@ -112,17 +112,17 @@ across the collapse. A proof that asserts on the route will see nothing happen
 and call it broken; assert on `data-library-presentation`.
 
 Other seeding routes confirmed present in the fixture: `?docs=500` (a
-1337-doc corpus, `shell-fixture.tsx:279`), `?list=flat` (**not sticky** — it
+1337-doc corpus, `shell-fixture.tsx:285`), `?list=flat` (**not sticky** — it
 writes `localStorage["om.chat.libraryList"]` and the `else` branch at
-`:128-129` removes it, so the next load without the parameter clears it;
+`:134-135` removes it, so the next load without the parameter clears it;
 measured live: `flat`, then `null`), `?note=long|wrapped`, and
-`?libraryState=error` (`:4201`, applied only while the active view is library).
+`?libraryState=error` (`:4208`, applied only while the active view is library).
 
 ## Doc pane states (`doc=server`)
 
 Three fixture seeds render doc-pane states that no other guide covers. Each needs
 `doc=server`: `docState` and `docMode` do nothing without it
-(`shell-fixture.tsx:394-460`), and `doc=journal` cannot reconcile because the
+(`shell-fixture.tsx:400-466`), and `doc=journal` cannot reconcile because the
 conflict model is built against the server doc.
 
 | Route (`shell-fixture.html?view=room&alerts=quiet&doc=server&…`) | What renders |
@@ -163,10 +163,10 @@ agent-browser eval "$D"                                   # mode "view", editor 
 Send ex commands one key at a time with `press`. `agent-browser keyboard type
 ":w"` inserts the literal text into the document, because it bypasses the Vim
 keymap, even in normal mode. `:w` cannot be proved here. The fixture's
-`session.docs` stub (`shell-fixture.tsx:3919-3995`) has no `publish` method, so
+`session.docs` stub (`shell-fixture.tsx:3926-4002`) has no `publish` method, so
 `:w`, like the **Publish** button, calls a method that does not exist. Driven,
 Publish stayed enabled and `fixtureDocDirty` stayed `true`. (The
-"Fixture publish is not configured" stub at `:4268` belongs to the checkpoint
+"Fixture publish is not configured" stub at `:4275` belongs to the checkpoint
 restore store, not to this pane.)
 
 ## Doc reader select-all
@@ -232,4 +232,4 @@ artefact, not a failure.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** The panel filter `a` read `2 notes match “a”`, full page and Back toggled `full`/`side`, `lens=todos` showed "Review the launch checklist", and `lens=agents` still crashed (fixture gap, above). `docState=reconcile` → **Later** set `fixtureDocReconcile=dismissed`, `docState=history` showed **Version history**=9, and `docAccess=readonly` had no **Edit**. Doc Vim: `--NORMAL--`/`--INSERT--`, Escape stayed in edit, and `:q` → `view`. **Limitations:** Select-all, `:w`, proposals, `docState=review`, and import/export/trash/move/restore. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist", and `doc=server&docState=history` showed **Version history** at `9`. **Limitations:** The panel filter, full page, `lens=agents` (fixture crash), reconcile, read-only, doc Vim, select-all, `:w`, proposals and import/export/trash/move/restore were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 25). Previous record: 2026-10-26 at `5820fbea`.

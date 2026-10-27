@@ -19,7 +19,7 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4561` always does, so the **running app shows twenty**;
+  `Shell.tsx:4562` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
   product. To count twenty without a daemon, open Settings through the shell:
@@ -164,7 +164,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
   only the account-wide radiogroups ("Which to-dos appear in chat or topics",
   "Whether to-do status updates appear in chat"). Proving that sub-feature
   needs a fixture change, not a different query.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4559` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4560` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -176,7 +176,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
   `?host=user&page=agent-access&mode=away` the page renders only the daemon
   notice, *"Agent grants live on your OM daemon, so this page cannot show them
   from here."* (`front-desk-shared.tsx:94`). The **"Phone reach"** dial in
-  source (`AgentAccessPage.tsx:400`) did not render in either mode of this
+  source (`AgentAccessPage.tsx:401`) did not render in either mode of this
   fixture (measured at `f7d7c987`). Its away branch reads
   `session.remoteControl()`, which this fixture does not stub; that is the
   likely unmet prerequisite (inferred, not driven).
@@ -195,4 +195,4 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and the **Vim mode** switch, searching `vim` left only Keyboard Shortcuts, and Moss set `data-palette=moss`. In the shell, the switch wrote `om.chat.vimMode=true`. **Limitations:** Role-specific nav counts, Webhooks conversion, help pages and persisted preferences. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and the **Vim mode** switch; `page=agent-access` rendered without error. **Limitations:** The `vim` search, palettes, role-specific nav counts, Webhooks conversion, help pages and persisted preferences were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 24, 41). Previous record: 2026-10-26 at `5820fbea`.

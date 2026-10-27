@@ -43,4 +43,4 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** `.agent-answer-meta` title `12,345 tokens`, `tokens=1250000` → `1.3M tokens`, and `agent-presentation-fixture?state=expanded` → **Collapse tool activity**. **Limitations:** `tokens=1`, `tokens=missing`, the input+output fallback and daemon accounting. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`, and `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** `tokens=1250000`, `tokens=1`, `tokens=missing`, the input+output fallback and daemon accounting were not re-driven. Previous record: 2026-10-26 at `5820fbea`.

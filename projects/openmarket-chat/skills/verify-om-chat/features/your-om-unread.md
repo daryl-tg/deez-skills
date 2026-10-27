@@ -32,4 +32,4 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last attempted:** 2026-10-26 at `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; previous attempts 2026-10-23 at `afabb11c` and 2026-10-22 at `cd9f8c72`): `?view=agent&omSessions=drafts` still stops at "om isn't running" with no session rail and no `Message ✦ om` composer. That is the reachability limit, not a proof. **Live verification pending.** It needs an isolated daemon origin, and the local parity services (4001, 3002) were down. Last real verification: none on main. The 2026-10-12 record named `a0916a25`, a feature-branch commit, and was also route-only.
+**Last attempted:** 2026-10-27 at `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main): `?view=agent&omSessions=daemon` on a fresh browser session stopped at "om isn’t running" (`/healthz` 404) with no session rail. That is the reachability limit, not a proof. **Live verification pending.** It needs an isolated daemon origin with a real AgentRuntime, and the local parity services were not used. Last real verification: none on main. Previous attempt: 2026-10-26 at `5820fbea`.

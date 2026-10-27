@@ -75,8 +75,8 @@ agent-browser find role button click --name "save"
 agent-browser eval 'document.documentElement.dataset.fixtureMermaidEdit'
 ```
 
-The last command returns the literal `dm-saved` (`shell-fixture.tsx:3522`); a
-channel edit writes `channel-saved` to the same key (`:3499`). There is no
+The last command returns the literal `dm-saved` (`shell-fixture.tsx:3529`); a
+channel edit writes `channel-saved` to the same key (`:3506`). There is no
 `fixtureDmEdit` key, and the value carries no conversation or message id.
 Measured at `f7d7c987`. `More` only appears while the row is hovered, so mark
 the row first, then hover it:
@@ -146,7 +146,7 @@ seeded presence state — a good second observation alongside the route.
   predicts `?tab=pending` lands on `#/connections/pending`, and it does not.
   The cause is a **fixture stub**: `openFriends` there is written
   `openFriends: () => navigate({ kind: "friends", tab: "online" })`
-  (`tools/visual/shell-fixture.tsx:3286`) — no parameter, hardcoded tab, unlike
+  (`tools/visual/shell-fixture.tsx:3293`) — no parameter, hardcoded tab, unlike
   the real `ChatSession.openFriends`, which honours its argument. Boot seeds the
   hash, routing parses it back, the parsed view differs in shape from the raw
   fixture view for every id except `requests` and `blocked`, so navigation
@@ -190,4 +190,4 @@ seeded presence state — a good second observation alongside the route.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** Home h1 `2 unread across 1 conversation.`, the ana treeitem → `#/dm/ana`, the sidebar **Home** → `#/home`, **See connections** → `#/connections/online`, `tab=requests` → `#/connections/requests`, and `view=public` → `#/room/btc`. **Limitations:** Browse states, the Blocked tab (fixture crash), presence and a real catalog. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home`; `view=dm` landed on `#/dm/ana` with 2 rows. **Limitations:** Connections, requests, `view=public`, the Blocked tab (fixture crash), presence and a real catalog were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 21). Previous record: 2026-10-26 at `5820fbea`.

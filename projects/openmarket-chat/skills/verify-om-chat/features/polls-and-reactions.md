@@ -5,7 +5,7 @@ who reacted.
 
 ## Sub-features
 
-- **Poll card** (`packages/chat-ui/src/components/PollCard.tsx`): one button per
+- **Poll card** (`packages/chat-ui/src/components/PollCard.tsx`; the closed rule now lives in `lib/poll-closed.ts`): one button per
   option, named `<option>\n<votes> · <percent>`, plus **Show results** and
   **Close poll**.
 - **Poll composer** (`PollComposer.tsx`): a `Create poll in #<channel>` form with
@@ -15,9 +15,19 @@ who reacted.
 - **Roster cache** (`#752`): reopening results in the same session does not
   refetch the voter roster.
 - **Reaction row** (`ReactionRow.tsx`): buttons named `<emoji> <count>, you
-  reacted|not reacted`, plus **Add a reaction** and **See who reacted**.
+  reacted|not reacted`, plus **Add a reaction** and **See who reacted**. Since
+  `01bf4481` the row renders those two tools itself, only when it has chips and
+  its caller passes `tools`. **See who reacted** carries `aria-haspopup="dialog"`
+  and `aria-expanded`, and both take an `is-open` class while open.
 - **Reactors dialog** (`ReactorsDialog.tsx`): a dialog named **Reactions**
-  listing the reactors under each emoji.
+  listing the reactors under each emoji. It builds people from the message's
+  cached reactor windows and fetches only when a window is incomplete. A row
+  can read loading, truncated (fewer people than the count) or unavailable.
+- **Lazy pickers:** the emoji picker, the Reactions dialog and Poll results are
+  lazy surfaces. While one loads, a `role=status` anchor with
+  `data-lazy-surface-anchor` reads **Loading Choose emoji** (and so on). A
+  failed load shows `[role=alert][data-lazy-surface-error]` "`<name>` could not
+  load." with **Try again** (`LazySurface.tsx:512-530`).
 - **Emoji picker**: **Add a reaction** opens a dialog named **Choose an emoji**,
   with a `Search emoji (:fire:)` field and, once the table loads, 1,870 emoji
   buttons (rooms-client `0.104.0`, `7e57ee84`).
@@ -98,7 +108,7 @@ listed.
 - None of these routes travel the wire. Reaction chip clicks change no count.
   On `surface=poll-ux`, however, a vote **does** settle locally: after a 700 ms
   timeout `ye 8 · 80%` becomes `ye 9 · 82%` (`PollUxFixture`'s `settleVote`,
-  `tools/visual/fixture.tsx:1285+`). That proves the card's optimistic update,
+  `tools/visual/fixture.tsx:1289+`). That proves the card's optimistic update,
   not delivery. Close the **Create poll in #chat** dialog (Escape) first: its
   backdrop covers the card and the click is refused. Vote and reaction
   persistence still need the daemon-pair lane. Live verification pending.
@@ -112,7 +122,7 @@ listed.
   4–10 s, then mounts 1,870 buttons. A `snapshot -c` taken while it is open ran
   past 75 s and had to be killed. Assert with a targeted eval instead, e.g.
   `document.querySelector('[aria-label="Choose an emoji"]').querySelectorAll('button').length`.
-- **Every `fixture.html` gallery forces reduced motion.** `fixture.tsx:48` adds
+- **Every `fixture.html` gallery forces reduced motion.** `fixture.tsx:52` adds
   `reduced-motion` to `<html>` (only `surface=resizable-panel` removes it), and
   `reducedMotionActive` honours that class as well as the media query. So every
   scene there takes the reduced path and dies at 320 ms. A themed (non-shipped)
@@ -125,7 +135,11 @@ listed.
 - `reaction-scene-fixture.tsx` takes an arbitrary emoji list and is mounted only
   by its Playwright spec. `surface=reaction-scene-integration` with the
   `reactionSceneIntegrationFixture` controller is the live path.
+- **Prove the reactors dialog on `fixture.html?surface=reaction-polish`, not the
+  shell.** The gallery supplies `fetchReactors`; the shell fixture leaves it to
+  the INERT proxy, so a Reactions dialog there would show every emoji as
+  unavailable.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** `Final results · 14 votes`, `roster loads: 1` twice, and the `poll-ux` vote `ye 8` → `ye 9 · 82%`. After one hover plus a 0.6 s wait, **See who reacted** opened **Reactions** and **Add a reaction** opened **Choose an emoji** with 1,870 buttons after about 8 s. Themed scenes (reduced-motion class removed) lived about 1100/1200/1000 ms for fall/shake/pulse. **Limitations:** Persistence, multi-user delivery, to-do event reactions, burst/rise/shimmer, hand-built scenes and `/chat/`. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `poll-results-fixture` read `Final results · 14 votes`. `poll-cache-fixture` **Show results** → Escape → **Show results** read `roster loads: 1`. On `surface=reaction-polish`, one hover plus a wait exposed **See who reacted** (`aria-haspopup=dialog`); clicking it set `aria-expanded=true` and `is-open`, and opened **Reactions** listing Mira Chen, Keeper, Ada, Daryl, Sana and Lionel. **Add a reaction** showed **Loading Choose emoji**, then the **Choose an emoji** dialog. **Limitations:** The `poll-ux` vote, themed scenes, loading/truncated/unavailable reactor rows and the lazy-failure state were not driven; persistence, multi-user delivery and `/chat/` are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 16-17, 27). Previous record: 2026-10-26 at `5820fbea`.

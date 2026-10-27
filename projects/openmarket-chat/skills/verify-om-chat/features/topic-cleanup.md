@@ -44,7 +44,7 @@ rows, and capture the **Resolving topics** count after starting a cleanup.
 
 - `quiet=on` affects the topic rail and inbox but does not add daemon-only menu
   capabilities to the source fixture. Its visible proof is the bottom-rail
-  button **Quiet topics 20** (`shell-fixture.tsx:2236-2241`; `showQuiet=1` also
+  button **Quiet topics 20** (`shell-fixture.tsx:2242-2247`; `showQuiet=1` also
   seeds the shown state). Assert that, not only the missing menu item.
 - The fixture does stub a sweep start (it sets
   `document.documentElement.dataset.fixtureTopicSweep`), but nothing in the
@@ -58,4 +58,4 @@ rows, and capture the **Resolving topics** count after starting a cleanup.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** `?quiet=on` showed **Quiet topics 20**, and the 14-item channel menu had no Clean up topics. **Limitations:** The sheet and resolve job remain live verification pending (daemon build with topic triage; parity services 4001/3002 down on 2026-10-26). Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?view=room&alerts=quiet&quiet=on` showed the **Quiet topics 20** button. **Limitations:** The channel-menu absence was not re-checked. The sheet and resolve job remain live verification pending (daemon build with topic triage). Previous record: 2026-10-26 at `5820fbea`.

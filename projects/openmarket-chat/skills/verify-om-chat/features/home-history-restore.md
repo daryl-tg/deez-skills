@@ -14,7 +14,7 @@ Agents → Voice → Manage voice cards → History → older revision → Resto
 
 Use the run-owned wrapper lane and `tools/visual/shell-fixture.html?view=agent&panel=voice`. Add `restore=fail-once` for the error/retry journey. Set the viewport to 1440×900 or 390×844. Click `Manage voice cards`, then `History` with `--exact` (the page also carries "Activity See away history").
 
-Do **not** use `?view=agents&panel=persona`. The fixture mocks persona only when the query or hash names a persona section at page load (`shell-fixture.tsx:185-206`), and that URL reaches `#/agents/voice` after load. The panel then reads "Your voice could not be loaded" with a Retry button and no card controls. Drive controls by the accessible names above; revision row ages vary, so inspect the snapshot before selecting r3.
+Do **not** use `?view=agents&panel=persona`. The fixture mocks persona only when the query or hash names a persona section at page load (`shell-fixture.tsx:191-212`), and that URL reaches `#/agents/voice` after load. The panel then reads "Your voice could not be loaded" with a Retry button and no card controls. Drive controls by the accessible names above; revision row ages vary, so inspect the snapshot before selecting r3.
 
 The fixture's real checkpoint store records `document.documentElement.dataset.fixtureRestoreCalls`, `fixtureRestoreRequest`, `fixtureRestoreHead`, and `fixtureRestoreToast`. Restoring r3 from r4 should create r5, refresh history to r5/r4/r3, and remove the lowercase bullet from the actual editor. First failure leaves the editor unchanged and retry succeeds.
 

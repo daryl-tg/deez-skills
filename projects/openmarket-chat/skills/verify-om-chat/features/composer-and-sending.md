@@ -30,6 +30,26 @@ Read the gotchas for where the line now falls.
   and — since `#796`/`#798` — a preview of a staged image or video before you
   send it, the image one portaled under `document.body` so composer overflow
   cannot clip it.
+- Sent video in the tape (`VideoAttachment.tsx`, reworked in `6c15b0fb`): a
+  poster-mode tile (`data-video-mode="poster"`, button `Play <filename>`) that
+  becomes the player (`data-video-mode="player"`, a `role=status`
+  `[data-video-buffering]` "Buffering" chip) on Play. Progress is judged in
+  12 s windows (`VideoAttachment.tsx:28`). Two silent windows in a row (about
+  24 s with no bytes) re-mint the URL, at most twice (`:25`, `:35`). Any byte
+  progress re-arms the window, so a slow link is never restarted. A decode
+  error, or a failure after the second re-mint, lands on the fallback
+  (`:401-402`). In a room that is the compact video file card
+  (`data-file-family="video"`, `data-attachment-layout="compact"`) with a forced
+  `Download <filename>` (`:764-770`). In a DM it is the "<size> · Couldn't play
+  here" card with **Retry** and `Download <filename>`. A failed URL mint shows
+  "Video unavailable" with **Retry** instead (`MediaRetryBox`, `:763`). Unsigned
+  `https://assets.openmarket.xyz`
+  images and posters paint a 1100 px CDN variant first (`lib/media-variants.ts`).
+- Agents in the `@` menu (roster-gated, `01bf4481`): an agents group with
+  `<owner> | <name>` rows, dimmed not-ready rows (`aria-disabled="true"`, the
+  refusal reason in place of the detail) that cannot be committed, and an `om`
+  router row (`lib/composer-complete.ts:462-519`, `ComposerAutocomplete.tsx:178-215`).
+  No fixture reports roster support, so none of it renders on the fixture lane.
 - A code-fence panel behind the text. `#799` paints a full-width panel behind
   each fenced region of the draft, incomplete fences included, and dims the
   fence marker lines with `.composer-token-code-marker` (`color: var(--text-faint)`
@@ -44,9 +64,9 @@ Read the gotchas for where the line now falls.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
 - Send disabled while empty; Enter-to-send versus newline. The **Send message**
-  button renders when `isMobile || showSendButton` (`Composer.tsx:6318`). The
+  button renders when `isMobile || showSendButton` (`Composer.tsx:6466`). The
   ordinary room and DM composer is therefore phone-width only, and desktop
-  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:432`) and the
+  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:433`) and the
   remote-control pane (`RemoteControlPane.tsx:345`) also show it on desktop,
   with an `sr-only` "Send" label.
 - Sent text must not come back as a draft after a reload or a revisit
@@ -64,7 +84,7 @@ Read the gotchas for where the line now falls.
   its unit tests; the recipe below drives a subset of them.
   The mode badge is
   `<span class="composer-vim-mode" data-vim-mode="normal|insert|visual|visual-line">`
-  (`Composer.tsx:6401-6411`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
+  (`Composer.tsx:6549-6559`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
   a pending operator in `.composer-vim-pending`. Enter sends only in insert
   mode. Escape belongs to Vim, so it no longer cancels a reply. Touch screens
   (coarse pointer) never get Vim. With the setting off none of this renders,
@@ -142,7 +162,7 @@ agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text
 
 Related handles that do resolve. In the composer row itself:
 `"Summon your om here"` (on a private om lane the same button is `"Back to the room"`,
-`Composer.tsx:5599-5600`), `"Add attachment or action"`,
+`Composer.tsx:5747-5748`), `"Add attachment or action"`,
 `"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
 On a message or the recovery banner: `"Add reaction"`,
 `"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
@@ -204,7 +224,7 @@ path-based: `/chat/room/ops`).
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:3606-3607`), with a comment naming the lock
+  (`tools/visual/shell-fixture.tsx:3613-3614`), with a comment naming the lock
   it was removing. Measured again on `9902d149`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
@@ -234,9 +254,20 @@ path-based: `/chat/room/ops`).
   only by `session.acceptFile` behind the real file input. The maintained
   `tools/visual/mobile-conversation.visual.ts:667` path drives the hidden input
   with `setInputFiles`, and the shell fixture accepts the file at
-  `tools/visual/shell-fixture.tsx:4101`. Preview/lightbox behavior still needs
+  `tools/visual/shell-fixture.tsx:4108`. Preview/lightbox behavior still needs
   preview-ready attachment metadata and is not established by that fixture
   path.
+- **The seeded room video is a stub and only proves the fallback ladder.** The
+  default `#ops` tape carries dax's "recording of the retest, plus the notes"
+  (`msg-ops-110`, a 15.9 MB `.mov` plus a PDF; `shell-fixture.tsx:1162-1186`).
+  Its URL is a truncated `data:video/mp4` stub, so it never decodes. Driven at
+  `6c15b0fb`: a fresh load shows the poster tile and `Play Screen Recording …
+  .mov`. Play switches to the player with the Buffering chip at `readyState` 0,
+  and about 10 s later the row falls back to the compact video file card with
+  Download. If the row is already a file card, the ladder has run. Reload to
+  see the poster again. This is a decode failure, not a slow link. The
+  watchdog's progress re-arm, the re-mint rungs, CDN variants (data URLs are
+  never rewritten) and the DM "Couldn't play here" card all need real media.
 - **A reference pill is a backdrop token, not a DOM node in the textarea.**
   Typing an `om://doc/...` URI into the composer paints a run in
   `.composer-backdrop` carrying `data-pill="true"` and
@@ -289,4 +320,4 @@ path-based: `/chat/room/ops`).
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** With Vim off there was no `.composer-vim-mode`, and Enter sent (16 to 17). Vim on: INSERT on focus, NORMAL after Escape, `0dw` → `world`, no send from normal, VISUAL and VISUAL LINE, a send from insert (16 to 17) that stayed INSERT, Escape kept **Cancel reply**, and with Vim off the same Escape removed it. **Limitations:** Delivery, recovery, draft durability, attachments, touch, IME and pref sync remain pending; `/chat/` was not re-driven. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/`, a composer send from the `Message #ops · $ for markets · /chart to post one` textbox appended `msg-ops-117`, and the composer cleared. The seeded room video went poster (`Play …`) → player with Buffering → compact video file card with Download. **Limitations:** Vim mode, reply Escape, delivery, recovery, draft durability, staging, touch, IME, pref sync, the roster-gated `@` rows and `/chat/` sends were not driven this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 01, 14, 43-44). Previous record: 2026-10-26 at `5820fbea`.

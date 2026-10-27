@@ -8,13 +8,13 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 
 ## Sub-features
 
-**On origin/main there is no roster creation/import form or catalog.**
-`AgentCenterSurface.tsx` and `components/roster/` exist only on the unmerged
-branch `daryl/agent-creator-migration-20261007` (MR !75, `a0916a25`); they are
-absent from `packages/chat-ui/src` at `cd9f8c72`. On main, the
-**+ Wire an agent** control in `AgentCenterPane.tsx` continues to open Agent
-Settings; it does not launch roster creation. See [agent-creator.md](agent-creator.md)
-for the gated flows and their live-lane prerequisites.
+**Agent creation, import, sharing and guided work are on origin/main since
+`01bf4481`.** `AgentCenterSurface.tsx`, `components/roster/` and
+`lib/roster-*.ts` landed there; see [agent-creator.md](agent-creator.md) for
+the creator, its fixture door (`agent-center-fixture.html?roster=…`) and the
+live-lane prerequisites. **+ Wire an agent** (`AgentCenterPane.tsx:963`) still
+opens Agent Settings; it is not the creator entry point. The shell fixture's
+`?view=agents` does not mount the roster section, so it shows no creator.
 
 - The rail doors: `button` **"Your om"** and `button` **"Agents"**, joined by
   **"Browse features"** since `#846` added its feature-catalog tile — but both
@@ -34,7 +34,7 @@ for the gated flows and their live-lane prerequisites.
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3745`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3748`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
   (`Shell.tsx:3059`, `:3064`). Two states is the old shape; matching on it
   during a flaky connect misses silently.
@@ -44,9 +44,9 @@ for the gated flows and their live-lane prerequisites.
   **"Your om, connected remotely"** and **"Agents, connected remotely"**, or
   **"…, remote control off"** when a device is reachable but none is selected
   (`Shell.tsx:1551`; accessible names at `:3066`, `:3585`, `:3610`,
-  `:3747`). The tooltips spell it with a colon instead, "Agents: connected
+  `:3750`). The tooltips spell it with a colon instead, "Agents: connected
   remotely" (`:3043`, `:3729`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4137`). The pane
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4144`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -76,8 +76,8 @@ for the gated flows and their live-lane prerequisites.
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:3993-4025` for spaces; the zone-1 feature folders use the same
-  markers at `Shell.tsx:3813-3841`).
+  (`Shell.tsx:3994-4026` for spaces; the zone-1 feature folders use the same
+  markers at `Shell.tsx:3814-3842`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -96,7 +96,7 @@ for the gated flows and their live-lane prerequisites.
   ```
 
   The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
-  **`u1`** (`shell-fixture.tsx:1049` maps the `kyle` handle to `u1`; every
+  **`u1`** (`shell-fixture.tsx:1055` maps the `kyle` handle to `u1`; every
   other handle becomes `u-<handle>`). Write it under the wrong id and nothing
   happens, silently. Proven end to end on lane 18118: after the reload one
   `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
@@ -109,7 +109,7 @@ for the gated flows and their live-lane prerequisites.
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:476`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:477`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -134,13 +134,16 @@ for the gated flows and their live-lane prerequisites.
 
   **Since `#978` persona lives inside Agents, not beside it.** The Agent
   Center's context rail is an `aside` named **"Agent roster"**
-  (`AgentCenterPane.tsx:750`) holding, top to bottom:
+  (`AgentCenterPane.tsx:765`) holding, top to bottom:
 
-  - a `nav` named **"Roster sections"** (`:759`) — **Roster**, **Waiting on
+  - a `nav` named **"Roster sections"** (`AgentCenterPane.tsx:779`) — **Roster**, **Waiting on
     you, N**, **In progress, N** (the counts ride the accessible names);
   - a group named **"Persona"** holding a `nav` named **"Persona sections"**
-    (`AgentCenterPane.tsx:815`) — **Voice**, **Away coverage, off**
-    (state in the name again), **Activity**;
+    (`AgentCenterPane.tsx:830`) — **Voice**, **Away coverage, off**
+    (state in the name again, `:454-468`; with no away snapshot after a load
+    has failed or finished it reads **Away coverage, status can't tell right
+    now** and the visible text **Can't tell**, which is what both the shell
+    and agent-center fixtures show at `6c15b0fb`), **Activity**;
   - a `nav` named **"Agents"** — **Open your om**, then one row per helper
     badge when any are seeded.
 
@@ -158,8 +161,8 @@ for the gated flows and their live-lane prerequisites.
   away" heading stays gone.
 
   **"Your voice" is the exception, and it is a diagnostic.** It survives in
-  `PersonaPanel.tsx` as the heading of exactly two states — loading (`:895`)
-  and load-failed (`:908`). It never appears over a loaded profile. So an `h1`
+  `PersonaPanel.tsx` as the heading of exactly two states — loading (`:911`)
+  and load-failed (`:924`). It never appears over a loaded profile. So an `h1`
   reading "Your voice" is not a stale heading to write down; it is the panel
   telling you the profile did not load, and on this lane that almost always
   means the route problem below.
@@ -182,14 +185,14 @@ for the gated flows and their live-lane prerequisites.
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:274`), supplied by `Shell.tsx:4561`. That is
+  remains (`UserSettings.tsx:274`), supplied by `Shell.tsx:4562`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
   `shell-fixture.html?view=settings&settingsPage=appearance` renders all
   twenty, OM Settings included (measured at `f7d7c987`). See
   [settings-and-appearance.md](settings-and-appearance.md).
-- **Remote Control `operation` verb (branch, pending release).** Beside turns and the session rail, an away session can run named persona/away operations on the selected device: `remoteOperation(name)` in `packages/chat-ui/src/lib/remote-operation.ts`. A device advertises `operation.v1` in `hello_ack`; the daemon answers `operation.accepted` then `operation.response` parts, and the client gives up after 8 s without an accept and re-checks the desk at most every 15 s. See persona-setup-and-editing.md "Hosted /chat/ over Remote Control" for the rig.
+- **Remote Control `operation` verb (on origin/main since `2a737b9e`).** Beside turns and the session rail, an away session can run named persona/away operations on the selected device: `remoteOperation(name)` in `packages/chat-ui/src/lib/remote-operation.ts`; the operator registry it reads (`registerRemoteOperator`) moved to `lib/remote-operator-registry.ts` and is re-exported. With no registered operator every call answers 503 `remote_offline`. A device advertises `operation.v1` in `hello_ack`; the daemon answers `operation.accepted` then `operation.response` parts, and the client gives up after 8 s without an accept and re-checks the desk at most every 15 s. See persona-setup-and-editing.md "Hosted /chat/ over Remote Control" for the rig.
 - **Remote control (away).** `RemoteHome` in `RemoteControlPane.tsx` is the om
   pane of an away session that drives a desktop's om over the relay. It
   reuses the session rail with **no Watches destination**
@@ -197,13 +200,13 @@ for the gated flows and their live-lane prerequisites.
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:5412-5413`),
+  composer with no lane toggle and no target (`Composer.tsx:5550-5551`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
   for the person) and fall back to `content` when it is missing or blank. Open
   **Expand tool activity** in `remote-home-fixture.html?state=live` to inspect
-  the shared presentation (`tool-result-text.ts:4`, `remote-control.ts:1579,
+  the shared presentation (`tool-result-text.ts:4`, `remote-control.ts:1908,
   1914`). That seed does not provide a `personText` comparison.
 
 ## How to get to it (user POV)
@@ -220,9 +223,9 @@ Three harnesses, and they reach different parts.
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=agent` | Your om — **only** the not-running empty state |
-| `shell-fixture.html?view=agent&omSessions=drafts` | Local Research A/B draft seed; the running-om presence gate still shows not-running on the source lane |
+| `shell-fixture.html?view=agent&omSessions=drafts` | Local Research A/B draft seed. A fresh browser session on the source lane shows the not-running gate; one 2026-10-27 session reached the rail (see [your-om-drafts.md](your-om-drafts.md)) |
 | `shell-fixture.html?view=agent&omSessions=daemon` | Real `OmSessionState` adapter for a daemon-served lane; it does not bypass presence or provide watch data |
-| `shell-fixture.html?view=agents` | The Agent Center roster — the first of two Agent pages |
+| `shell-fixture.html?view=agents` | The Agents page: h1 **Roster**, fleet cards, **+ Wire an agent**. The roster section (creator, Your agents) is not mounted here |
 | `shell-fixture.html?view=agent&panel=voice` | Agents → `#/agents/voice`, "Voice" / "Current", mocked and loaded |
 | `shell-fixture.html?view=agent&panel=away` | Agents → `#/agents/away`, "Research om is covering you" |
 | `shell-fixture.html?view=agent&panel=activity` | Agents → `#/agents/activity`, "Away activity" |
@@ -230,7 +233,7 @@ Three harnesses, and they reach different parts.
 | `shell-fixture.html#/agents/away` | **Not** the seeded coverage: reads "Away coverage unavailable". Use `?view=agent&panel=away` |
 | `shell-fixture.html?view=agents&panel=persona` | **Legacy.** Lands on `#/agents/voice` unmocked — see Gotchas |
 | `shell-fixture.html#/agent/voice` | **Legacy** singular hash. Same unmocked failure |
-| `agent-center-fixture.html` | The Agent Center standalone, with a seeded consent queue |
+| `agent-center-fixture.html` | The Agent Center standalone, with a seeded consent queue. Also takes `connections=none`, `identity=anonymous` and `roster=work-builder\|work-proof\|projects` (the creator states, [agent-creator.md](agent-creator.md)) |
 | `agent-center-fixture.html#/agents/badge/agcr_claude` | A helper's own page (`BadgeDetail`) — also `agcr_backtest`, `agcr_research` |
 | `agent-center-fixture.html?state=desk-off` | The same, still assembling ("assembling the roster…") |
 | `remote-home-fixture.html?state=<s>` | The away remote-control pane. `snapshot`, `older` (Load older), `recovering`, `approval` (Approve / Deny), `live` (Stop), `empty` (greeting and prompts), `unsupported` ("Conversation history is not supported by this device") |
@@ -267,7 +270,7 @@ agent-browser find role button click --name "Reject"
 
 Its header *looks* like `WAITING ON YOU · 4`, and that is the cheap
 observation that the queue seeded at all — but read it carefully. The DOM text
-is sentence case, `Waiting on you · 4` (`AgentCenterWork.tsx:392`); the
+is sentence case, `Waiting on you · 4` (`AgentCenterWork.tsx:393`); the
 capitals come from `text-transform: uppercase` on `.ac-section-h`
 (`agent-center.css:231`). `innerText` applies the transform and hands you the
 shouted version, while `textContent` and the accessibility tree hand you the
@@ -281,11 +284,18 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
   `omSessions=drafts` seeds Research A/B locally, while `omSessions=daemon`
   wires real session-list/history operations. Neither fakes `presence.running`,
   which still comes from `fetchOmHealth()`. The shell fixture can seed adapter
-  behavior but cannot show a running om without a daemon-served origin. Watches
+  behavior but cannot reliably show a running om without a daemon-served origin.
+  On 2026-10-27 one browser session on the source lane did pass the gate with
+  `omSessions=drafts` (frames 33-37 of `vomc-nightly-20261027/r01`). Fresh
+  sessions and replays of the same page sequence did not, `/healthz` answered
+  404 throughout, and no storage key was found, so the trigger is unknown. Do
+  not plan a proof on it. Watches
   additionally need daemon watch RPCs and QA watch data.
-- **Persona is unreachable from a `view=agents` page load — by any control,
-  not just the old query.** The fixture decides whether to mock persona
-  **once, at page load** (`shell-fixture.tsx:192-204`): it mocks when the query
+- **On `/rooms/`, persona is unreachable from a `view=agents` page load — by any control,
+  not just the old query.** (On `/chat/` the same Voice click reaches the hosted
+  page and reads the desk-offline copy; see
+  [persona-setup-and-editing.md](persona-setup-and-editing.md).) The fixture decides whether to mock persona
+  **once, at page load** (`shell-fixture.tsx:198-210`): it mocks when the query
   is `view=agent&panel=voice|away|activity` *or* the hash is already
   `#/agents/voice|away|activity`. Anything that only *arrives* at those hashes
   after load finds the real, un-mocked client and reads *"Your voice could not
@@ -327,4 +337,4 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** Agent Center **Waiting on you** → `#/agents/waiting`, the badge page showed `Live now`, and `desk-off` read "assembling the roster". In the shell, `?view=agents` **Wire an agent** opened Agent Settings, and `?view=agent&omSessions=drafts` still read "om isn't running". Away showed `1h 18m remaining · This Mac`, remote `approval` showed Approve/Deny, and `unsupported` showed the unsupported copy. **Limitations:** Authenticated roster actions, daemon sessions, watches and remote-control effects (parity stack down); the branch-only `operation` verb above is not on main. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `agent-center-fixture` default showed the Roster h1, **Waiting on you, 4** → `#/agents/waiting`, and `desk-off` read "assembling the roster". `#/agents/badge/agcr_claude` showed h1 **claude code**, **Live now** and a `role=img` badge. In the shell, `?view=agents` showed the Roster h1 and **+ Wire an agent**, with no roster section. Both fixtures named the persona row **Away coverage, status can't tell right now**. `away-panel-fixture` read `1h 18m remaining · This Mac`, and remote `approval` showed Approve / Deny. `settings-fixture.html?host=user&page=agent-access` rendered Agent Settings, Agents, Devices and Recent Logbook with no error. On `/chat/`, `?view=agents` showed **Agent management** with the local-app copy, and **Voice** / **Away coverage** showed the desk-offline copy. **Limitations:** The **Wire an agent** click was not re-driven. Authenticated roster actions, daemon sessions, watches and remote-control effects are pending. The `userFacingErrorText` toast copy in `6c15b0fb` is source-only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 04, 11-13, 30, 41-42). Previous record: 2026-10-26 at `5820fbea`.

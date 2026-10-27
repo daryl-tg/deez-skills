@@ -45,7 +45,7 @@ proof.
 - Result counts read `${count}${partial ? "+" : ""} results`, so a partial
   window shows `1+ results` (`SearchPanel.tsx:1287`, `:1295`). Empty states:
   "No results in #ops." (`:1777`) and "No results in your conversation with
-  @x." (`:2320`). Plus `Clear search`, `Clear search history` and the `Sort
+  @x." (`:2333`). Plus `Clear search`, `Clear search history` and the `Sort
   search results` menu.
 
 ## How to get to it (user POV)
@@ -162,4 +162,4 @@ partial-window warning remains visible.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** `?search=live`: the topic search requested `ops:cpi-print-aug:primary`, switching to the ETF topic re-ran `ops:etf-flows-week:primary`, and on a fresh load **From a specific user** → **@ana** left `from:@ana `. **Limitations:** `?panel=search`, the `Search in` menu, `searchState=error`, date filters, backend ranking and `/chat/`. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?view=topic&topic=cpi-print-aug&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** The scoped request ids, the **From a specific user** filter, `?panel=search`, `searchState=error`, date filters, ranking and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 23). Previous record: 2026-10-26 at `5820fbea`.

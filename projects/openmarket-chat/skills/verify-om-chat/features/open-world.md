@@ -27,7 +27,7 @@ fixture cannot reach.
   (measured at `f7d7c987`).
 - A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
   font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
-  home session (`Shell.tsx:4559`; lazy import at `:245`). Reach it through
+  home session (`Shell.tsx:4560`; lazy import at `:245`). Reach it through
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
@@ -151,4 +151,4 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-26. **Product commit:** `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; since `afabb11c` only `apps/cloud/Dockerfile.market` changed). **Scope:** On the wrapper lane, `mocks/world-solo/index.html?worldprobe=1` gave 2 canvases and "world offline, retrying", **Hide** → **Open chat**, and no invalid-hook error. **Limitations:** Follow player, fullscreen, movement, occupants, emotes, relay and the width drag. Previous record: 2026-10-23 at `afabb11c`, which this re-drive did not narrow.
+**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on the wrapper lane showed 2 canvases and "world offline, retrying". **Limitations:** **Hide** / **Open chat**, follow player, fullscreen, movement, occupants, emotes, relay and the width drag were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 31). Previous record: 2026-10-26 at `5820fbea`.

@@ -14,7 +14,7 @@ Open Your om and choose a recent conversation. Type without sending, choose anot
 
 ## Driving it with control-om-chat
 
-Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts` through an isolated daemon origin proxying that lane. The fixture seeds Research A/B at `shell-fixture.tsx:2442-2460` and binds local session switching/creation at `:2741-2793`. These are local synthetic threads, but the running-om presence gate still applies: direct source-lane access shows only "om isn't running".
+Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts` through an isolated daemon origin proxying that lane. The fixture seeds Research A/B at `shell-fixture.tsx:2449-2467` and binds local session switching/creation at `:2748-2800`. These are local synthetic threads, but the running-om presence gate still applies: direct source-lane access shows only "om isn't running".
 
 The fixture seeds `Research A` and `Research B` buttons and real Composer/AgentThread components. Type distinct text in the `Message ✦ om` textbox, switch via those buttons, and assert the textarea's exact value after each switch. Open `New session`, assert its visible textbox is empty, type new text, press Enter, and verify `New research` contains that exact text. Return to A and B to verify their drafts survived. Repeat session selection through mobile `Open om conversations` at 390px.
 
@@ -27,7 +27,14 @@ Capture paired screenshots and accessibility snapshots. During the new-session l
 - Private `om:` drafts deliberately do not persist across reload. Test session switches within one app instance; public room/DM/topic draft persistence follows a separate contract.
 - New-session preparation changes the active session before sending. Its draft owner must remain stable through that async transition.
 - Read both draft storage identity and conversation transition identity when diagnosing carry. Fixing only one leaves either shared storage or a textbox that never swaps.
+- **The fixture's New session path is stale.** The landing's first send calls
+  `session.startNewOmSession()` (`ChatPane.tsx`, `prepareSend`; since
+  `758ba4dd`), but the `omSessions=drafts` seed binds only `createOmSession`
+  (`tools/visual/shell-fixture.tsx:2793`). The unstubbed method resolves to INERT,
+  the active session never changes, and the send lands in the session that was
+  already open (Research A in the 2026-10-27 drive). That is a fixture gap, not
+  proof of a product carry bug. Prove the new-session send on a daemon origin.
 
 ### Verification record
 
-**Last attempted:** 2026-10-26 at `5820fbeaca9ded509b4369498f5946f32455c61a` (origin/main; previous attempts 2026-10-23 at `afabb11c` and 2026-10-22 at `cd9f8c72`): `?view=agent&omSessions=drafts` still stops at "om isn't running" with no session rail and no `Message ✦ om` composer. That is the reachability limit, not a proof. **Live verification pending.** It needs an isolated daemon origin, and the local parity services (4001, 3002) were down. Last real verification: none on main. The 2026-10-12 record named `a0916a25`, a feature-branch commit, and was also route-only.
+**Last verified (partial):** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** In one browser session on the source lane, `?view=agent&omSessions=drafts` passed the running-om gate and showed the rail (**New session**, **Watches**, **Research A**, **Research B**, "your om running") and the `Message ✦ om` composer. Typing into A, switching to B (empty), typing into B and returning to A restored "draft for A nightly", and B kept "draft for B nightly". **New session** showed an empty `.om-new-session-landing textarea`. At 390×844, **Open om conversations** switching kept the drafts, with no horizontal overflow. **Limitations:** Reachability is not reliable: fresh browser sessions and replays of the same page sequence all stopped at "om isn’t running" (`/healthz` 404), and the trigger was not identified. The new-session send landed in Research A (fixture gap above). Daemon persistence, model execution and delivery are not proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 33-36). Previous attempt: 2026-10-26 at `5820fbea` (gate only).
