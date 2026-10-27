@@ -4,11 +4,15 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was DRIVEN on 2026-10-23 against product tree `2a1ed750db` (real guest-JWT lane): bar set, chart type, interval, the v2 dialog and a symbol switch; guest coverage
-opened V2 search, attempted an ETHUSDT venue switch, changed interval, and
-selected Heikin Ashi. The ETHUSDT reload remained at zero candles because the
-backend was down. The hover quick-search result list and memecoin/Pulse rows
-were not independently driven in this pass.
+was last DRIVEN on 2026-10-27 against product tree `7290d33d10` (53 behind
+`origin/main` `df3fdcb62e`), lane `18103`, a real guest-JWT lane. Driven: the
+full bar set at `1440 900`, the V2 dialog (v2 22 testids, legacy 0), an `ETH`
+search and a one-click switch to BINANCE.F ETHUSDT (326 bars), the Equities scope
+tab, the interval chevron to `5m` (403 bars) and back to `1h`, the chart-type
+hover peek and Heikin Ashi, the layout hover peek and its `multi-chart` wall, the
+Panels menu, a CRYPTOCAP `BTC.D` main series, and a venue-rail restore to
+COINBASE BTC-USD. Not driven: the hover quick-search list and the memecoin and
+Pulse rows (signed-in only).
 
 ## Sub-features
 
@@ -21,17 +25,24 @@ were not independently driven in this pass.
 - `tb-layout` the layout picker changes the grid.
 - `tb-hover` the pickers peek on hover and pin on click.
 - `tb-more` the overflow menu opens once the bar has folded something.
-- `tb-bar-toggles` the right-hand cluster toggles its drawers (Objects, Journal,
-  Heatmap, Replay, News, Terminal, Editor, Super Search).
+- `tb-bar-toggles` the right-hand cluster toggles its panels and drawers
+  (Heatmap, Watchlist, Orderbook, News, Alerts, Editor by default; the rest
+  through Panels). What each panel shows is in
+  [right-side panels](./right-side-panels.md).
+- `sym-cryptocap` a CRYPTOCAP index (`BTC.D`, `TOTAL2`, ...) loads as the main
+  series.
 
 ## How to get to it (user POV)
 
-- Click the symbol button (`BINANCE.F BTCUSDT`), type, pick a result.
+- Click the symbol button (`tb-symbol-info-btn`; it reads the current market,
+  `COINBASE BTC-USD` on a default guest boot), type, pick a result.
 - Click `1m` / `1h` directly, or hover the interval chevron for the full list.
 - Hover or click `Candle` for chart type, `Layout` for the grid.
-- Click a right-cluster button (Objects, Journal, Heatmap, Replay, News, Terminal,
-  Editor) directly; at a narrow width the ones that no longer fit move into a
-  `⋯` overflow menu.
+- Click a right-cluster button (Heatmap, Watchlist, Orderbook, News, Alerts,
+  Editor) directly. Everything else, and anything that no longer fits, is in the
+  `Panels` menu; there is no `⋯` overflow button.
+- Type `BTC.D`, `TOTAL2` or `dominance` in the symbol dialog for a CRYPTOCAP
+  index.
 - Hover the visible symbol control to open `quick-search-dropdown`; its stable
   input is `quick-search-input` and its full-dialog hand-off is
   `quick-search-advanced-button`. V2 quick-search can expose memecoin/Pulse rows
@@ -44,11 +55,14 @@ Preconditions:
 - Baseline from [chart boot](./chart-boot-and-data-plane.md), guest modal dismissed.
 
 - **Open symbol search.** Run
-  `./control-kiyotaka browser find role button click --name "BINANCE.F BTCUSDT"`,
-  then `./control-kiyotaka browser snapshot -i -c`. On the guest lane this is the
-  LEGACY dialog (see Gotchas), whose category buttons are `button "All"`,
-  `Equities`, `CME`, `Crypto`, `Forex`, `Commodities`, `Macro`, `Predict`, beside
-  `Formula — combine symbols with ÷ − + ×` and `View options`.
+  `./control-kiyotaka browser find testid tb-symbol-info-btn click`; its
+  accessible name is the current market, so a `--name` handle breaks on every
+  switch. On the guest lane this is the V2 dialog (see Gotchas): a category tab
+  strip (`All`, `Crypto`, `Equities`, `Forex`, `Commodities`, `Indices`,
+  `Predict`, `CME`, `HIP-4`, `Economy`), a Browse rail (`All`, `Hyperliquid`,
+  `CME Group`, `Tokenized stocks`, `Predictions`), Refine (Exchange, Quote),
+  `Compare on chart`, and an Assets column with a Favorites tab
+  (`search-v2-assets-tab-favorites-btn`).
 - **Drive the search field by its testid, `symbol-selection-search-input`.** The
   placeholder is not stable and is CONDITIONAL on context: the ratio hint
   (`Search, or type a ratio like SPY/GLD`) renders only on the main-chart path with
@@ -154,23 +168,33 @@ Preconditions:
   2. **Width-fold**, the ladder in `src/composables/chart/useTickerBarFit.ts`,
      which sheds further rungs as the bar narrows.
 
-  Driven live at `1440 900`, the complete bar was:
+  Driven live at `1440 900` on 2026-10-27 (guest), the complete bar was:
 
   ```
-  tb-super-search-btn    tb-symbol-info-btn       tb-interval-pinned-1m-btn
-  tb-interval-pinned-1h-btn  tb-interval-chevron-btn  tb-chart-type-trigger-btn
-  tb-layout-trigger-btn  tb-indicators-btn        tb-heatmap-trigger-btn
-  tb-watchlist-toggle-btn  tb-orderbook-toggle-btn  tb-news-toggle-btn
-  tb-alerts-toggle-btn   tb-editor-toggle-btn     tb-panels-trigger-btn
+  tb-symbol-info-btn         tb-interval-pinned-1m-btn  tb-interval-pinned-1h-btn
+  tb-interval-chevron-btn    tb-chart-type-trigger-btn  tb-layout-trigger-btn
+  tb-indicators-btn          tb-options-btn             tb-heatmap-trigger-btn
+  tb-watchlist-toggle-btn    tb-orderbook-toggle-btn    tb-news-toggle-btn
+  tb-alerts-toggle-btn       tb-editor-toggle-btn       tb-panels-trigger-btn
   ```
 
-  **Three handles the map used to name are gone**: `tb-orderbook-toggle-btn` (the
-  Terminal toggle was retired and Orderbook took its seat),
-  `tb-news-toggle-btn` (News is now `tb-news-toggle-btn`), and
-  `tb-tweet-caller-trigger-btn`. `tb-objects-toggle-btn`, `tb-journal-toggle-btn`
-  and `tb-replay-toggle-btn` exist only once pinned; by default they are
-  `tb-panels-row-{objects,journal,replay}`. Panel seats are generated by one
-  component, so the pattern is `tb-<id>-toggle-btn`.
+  **`tb-super-search-btn` is gone** (`TBSuperSearchButton.vue` was deleted). Super
+  Search now opens from the top navbar capsule `global-nav-search-btn`
+  (`Ask anything ⌘K`); the ticker bar keeps only `tb-super-search-full-btn`, and
+  only in full-chart mode. `tb-options-btn` (`Options`) sits after Indicators and
+  was visible to a guest on this lane. `tb-terminal-*` and
+  `tb-tweet-caller-trigger-btn` are gone. `tb-objects-toggle-btn`,
+  `tb-journal-toggle-btn` and `tb-replay-toggle-btn` exist only once pinned; by
+  default they are `tb-panels-row-{objects,journal,replay}`. Panel seats are
+  generated by one component (`TBPanelToggle.vue`), so the pattern is
+  `tb-<id>-toggle-btn` and the ids never appear as literals in source.
+
+  **Opening a right-side panel narrows the bar and width-folds the toggles.**
+  Driven 2026-10-27: with Orderbook, Alerts, Objects or the ETF screener open,
+  the bar dropped every panel seat (`tb-heatmap-trigger-btn` through
+  `tb-editor-toggle-btn`) and kept only symbol, intervals, chart type, layout,
+  Indicators, Options and Panels. A `find testid tb-alerts-toggle-btn` then fails
+  with `No element found`. Close the panel, or use `tb-panels-row-<id>`.
 
     `ToolbarPanelId` is now **30 ids** (`etfScreener` joined — guest-reachable, no gate) (`src/constants/toolbar-panels.constants.ts`),
   most of them grid panels: `watchlist, scanner, markets, options, orderbook, tape,
@@ -187,14 +211,25 @@ Preconditions:
   seat until its real host arms; a click that early arms the host and replays itself, so an
   immediate assertion after the first click can read as a no-op.
 
-  **Driven and confirmed**: a guest boot at `1440 900` carried
-  `tb-panels-trigger-btn`, and the menu held `tb-panels-menu` plus rows for
-  `replay, heatmap, hlView, calls, watchlist, objects, journal, news, editor`,
-  each with its `tb-panels-pin-<id>-btn`, alongside `tb-panels-customize-btn`.
+  **Driven and confirmed 2026-10-27**: a guest boot at `1440 900` carried
+  `tb-panels-trigger-btn`, and the menu held `tb-panels-menu` plus 18 rows:
+  `replay, heatmap, watchlist, scanner, etfScreener, news, chat, orderbook, tape,
+  footprint, tradeAndLiquidations, alerts, objects, journal, editor,
+  marketStatsPanel, volumeStats, liquidityStats`, alongside
+  `tb-panels-customize-btn`. No `tb-panels-reason-*` rendered. (The 2026-10-23
+  pass listed `hlView` and `calls` rows; they were absent this time.)
   `goLive` was absent, as it is for any guest. Note the menu lists PINNED entries
   too — it is the full catalog, not only what was folded — so a row's presence
   says nothing about whether that panel is also in the bar.
   A blocked row carries `tb-panels-reason-<id>` explaining why.
+- **The chart-type popover stays mounted and hidden after its first open.**
+  Driven 2026-10-27: once opened, every `tb-chart-type-option-*` stays in the DOM
+  inside `.tb-panel-dropdown` with `visibility: hidden` and `opacity: 0`, so
+  `find testid tb-chart-type-option-candle-btn click` locates it and then fails
+  with `covered by <canvas.titan-charts-main-grid>`. A trigger `click` after a
+  hover-open TOGGLES it shut. Hover the trigger, poll until
+  `getComputedStyle(option.closest('.tb-panel-dropdown')).visibility` is
+  `visible`, then click the option.
 - **Chart-type and layout options are EAGER — wait for the hover peek, not a
   chunk.** A one-day-old note here said the bodies were lazy and told you to poll
   for a chunk; that lane was reverted on 2026-10-23 and `tb-chart-type-frame`,
@@ -203,25 +238,42 @@ Preconditions:
   `tb-chart-type-option-*` testids are present at once. What you are waiting on is
   the popover's hover-peek delay. A `click` on the trigger opens it just as well
   and is the more reliable door for a driver.
-- **New in the bar, and guest-reachable:** `tb-super-search-btn` opens Super
-  Search with no guest gate (proven live: `isSuperSearchOpen` went true with
+- **Guest reach of the bar, driven 2026-10-27:** `global-nav-search-btn` opens
+  Super Search with no guest gate (`super-search-overlay` mounted,
   `isAuthenticationDialogOpen` false). `tb-news-toggle-btn` (News) is
-  guest-WALLED through `handleGuestAccess(FeatureId.NEWS)`. `TBLayersButton`
+  guest-WALLED (`news`), and so are `tb-editor-toggle-btn` (`script-editor`) and
+  `tb-options-btn` (`terminal`). `tb-orderbook-toggle-btn` and
+  `tb-alerts-toggle-btn` OPEN their panels for a guest. `TBLayersButton`
   (`tb-layers-btn` plus a `tb-layers-*` panel) renders only when `layersEnabled()`
   passes, which is now a COMPOSED gate — the news-fire lane AND a runtime `layers`
   flag, with an anonymous-reader carve-out — so it is absent on a default local
   lane; do not record it missing as drift.
   `TBWatchlistToggle` (`tb-watchlist-toggle-btn`) is guest-WALLED through
   `handleGuestAccess(FeatureId.WATCHLIST)` but IS default-pinned, so it sits in
-  the bar on a default boot. The Objects row is walled through
-  `FeatureId.TERMINAL`, not an objects id — so a guest is walled there too, and
-  `guestLoginFeatureId` reads `terminal`, which looks like the wrong surface.
+  the bar on a default boot. **The Objects row is no longer walled.** Driven
+  2026-10-27: `tb-panels-row-objects` opened the Objects panel for a guest
+  (`Nothing on this chart yet`) with no wall; source dropped its
+  `guestFeature: FeatureId.TERMINAL`.
 - **Proof.** For each change: the accessible name of the control after the change,
   the engine read showing bars reloaded, and a screenshot. Restore the original
   symbol, interval and plot type afterwards.
 
 ## Gotchas
 
+- **A venue-rail row needs a real pointer click.** Driven 2026-10-27: a JS
+  `.click()` on a `.venue-row__identity` or `.venue-panel__row` did not commit,
+  and a rail row in the virtual list can sit below the dialog's visible bottom,
+  where a pointer click lands outside and just closes the dialog. Read the row's
+  rect, make sure it is on screen, then `browser mouse move <x> <y>`,
+  `mouse down`, `mouse up`. An `asset-row-*` click by JS does commit.
+- **`sym-cryptocap`, driven 2026-10-27.** Searching `BTC.D` lists
+  `symbol-row-CRYPTOCAP|BTC.D-btn` and `asset-row-CRYPTOCAP|BTC.D-btn` (Bitcoin
+  Dominance). Clicking the visible asset row switched the chart to `CRYPTOCAP
+  BTC.D`: 250 bars, a percent price axis, the title `60.45% ▲ BTC.D`, the VWAP
+  legend reading `not on crypto index charts` with a `1 indicator paused on crypto
+  index charts` card (`Remove all` / `Show`), and the counter at `0/3`. Source:
+  `src/utility/symbol-search-v2/crypto-index-search.util.ts`; the product doc is
+  `docs/features/data/cryptocap-indices.md`.
 - **A label change is not a symbol change.** The ticker bar updates optimistically;
   the engine reload is the real event. Always re-assert the candle predicate.
 - **An empty result list is usually the symbol DIRECTORY, not the search.** The
@@ -259,14 +311,12 @@ Preconditions:
   (`tb-layout-matrix-cell-1-1-btn`), which reliably reads `multi-chart`.
   `src/constants/authFeatures.constants.ts` is the registry of every surface that
   behaves this way — read it before mapping something as guest-reachable.
-- **`search-v2` is ON for guests now, so the guest lane exercises V2, not the
-  legacy dialog.** This inverts the previous rule and it inverts what
-  `sym-scope` costs: `GUEST_DEFAULT_FLAGS` in `src/store/feature-flags.ts` ships
-  `'search-v2': true` and ranks it above the (empty) fetched map for a guest, so
-  a plain guest desktop open runs `isSearchV2 = true`. Proven live: the dialog
-  rendered a `search-v2-category-strip` and **zero** `intent-filter-class-*`
-  elements. `sym-scope` therefore no longer needs an internal role — it is a
-  guest-lane proof.
+- **The guest lane exercises V2, not the legacy dialog, and no flag decides
+  it.** `search-v2` graduated: `GUEST_DEFAULT_FLAGS` is `{}`, and `isSearchV2` is
+  `useGroupedMode && !isMobile && !pairMode && screenerTokens === undefined &&
+  !isComparisonChart` (`SymbolSelectionDialog.vue`). Proven live 2026-10-27: the
+  dialog rendered 22 `search-v2-category-*` testids and **zero**
+  `intent-filter-class-*` elements, so `sym-scope` is a guest-lane proof.
 
   **Tell the dialogs apart by testid, not by category labels.** Legacy renders
   `intent-filter-class-<id>-btn`; v2 renders `search-v2-category-<id>-btn`. Check
@@ -286,7 +336,15 @@ Preconditions:
   the dialog falls back to legacy only when opened from a comparison chart, in
   pair mode, from the screener, or on mobile.
   The strip's own testid `search-v2-category-strip` appears **twice** in the DOM,
-  so match a specific category id rather than the strip. V2 also carries a views
+  and so does every category button — **the FIRST match is the hidden copy**
+  (zero-size rect). Driven 2026-10-27: `querySelector(...).click()` on
+  `search-v2-category-stocks-btn` marked the hidden twin selected and the visible
+  strip stayed on `All`. The buttons are `role=tab`, labelled by their text
+  (`Equities` for id `stocks`, `Predict` for `predictions`, `HIP-4` for `hip4`,
+  `Economy` for `economics`), so drive them with
+  `find role tab click --name "Equities" --exact`. A `--name` lookup with role
+  `button` finds nothing. Proof: the visible `[role=tab][aria-selected=true]` and
+  the rows (an `ETH` query narrowed to ETHA, ETHU, ETHE and the other ETH ETFs). V2 also carries a views
   rail — `search-v2-view-{all,hyperliquid,cme,tokenized,predictions}-btn` — which
   the map previously treated as internal-only and which a guest can drive.
 

@@ -6,9 +6,12 @@ overlay through the frontend adapter. Public and own scripts can run client-side
 marketplace (WRUN) scripts use the shared hosted-run path when their delivered
 source or published build requires it and return through the same pipeline. Run targets depend on delivered source, visibility, and published
 builds: editable and delivered read-only scripts can run in the browser, while
-protected or unavailable builds use the cloud lane. This entry was DRIVEN on 2026-10-23 against product tree `2a1ed750db`: ks-open through the
-ungated Super Search route on a guest lane; guest coverage confirmed the
-editor-toggle verification wall and no writable editor mount.
+protected or unavailable builds use the cloud lane. This entry was last DRIVEN
+on 2026-10-27 against product tree `7290d33d10` (53 behind `origin/main`
+`df3fdcb62e`), lane `18103`, a real guest-JWT lane: ks-open through Super Search
+(`global-nav-search-btn`, query `editor`, row `Script Editor`) gave a non-inert
+drawer with `kscript-run-btn`, no `kscript-save-btn`, no template picker and one
+read-only `.cm-editor`; `tb-editor-toggle-btn` raised the `script-editor` wall.
 WRUN launch-box/ring, Pine conversion, Kata hand-offs, and AI provenance remain
 authenticated coverage obligations.
 
@@ -28,8 +31,9 @@ silent no-op without first identifying the current tab and source-delivery state
 
 ## How to get to it (user POV)
 
-- Click the `</>` button in the ticker bar, or open Super Search (its own
-  ticker-bar button) and pick the `Indicator Editor` row.
+- Click the `</>` button in the ticker bar, or open Super Search (the
+  `Ask anything ⌘K` capsule in the top navbar) and pick the `Script Editor` row.
+- Close it with the drawer's own close button. `Escape` does not close it.
 - In an authenticated WRUN-capable lane, use the launch box/ring or Pine paste
   conversion affordance before asserting a hosted run or TypeScript draft. Pine
   conversion accepts up to 256 KB and can retain a failed conversion for review;
@@ -55,16 +59,17 @@ Preconditions:
   ./control-kiyotaka browser eval "(()=>{const d=document.querySelector('#tc-container-0').__vueParentComponent.setupState.dialogStore;return JSON.stringify({auth:d.isAuthenticationDialogOpen,feature:d.guestLoginFeatureId})})()"
   ```
 
-  **Super Search is the ungated route, and the ticker bar now has a button for
-  it.** `tb-super-search-btn` opens it with no guest gate — proven live,
-  `isSuperSearchOpen` true with `isAuthenticationDialogOpen` false — which is
-  simpler than setting the store flag by hand. **The row's label oscillates the
+  **Super Search is the ungated route, and it opens from the top navbar.**
+  `tb-super-search-btn` was deleted with `TBSuperSearchButton.vue`; the door is
+  now `global-nav-search-btn` (`Ask anything ⌘K`), proven live 2026-10-27 with
+  `super-search-overlay` mounted and `isAuthenticationDialogOpen` false. The
+  ticker bar's `tb-super-search-full-btn` exists only in full-chart mode. **The row's label oscillates the
   same way** (`superSearch.panels.editor` has been `Script Editor` and `Indicator Editor`
   within two weeks), so match either rather than pinning one: fill the query,
   then click whichever of the two the overlay actually rendered.
 
   ```bash
-  ./control-kiyotaka browser find testid tb-super-search-btn click
+  ./control-kiyotaka browser find testid global-nav-search-btn click
   ./control-kiyotaka browser find testid super-search-input fill "editor"
   # read the row's current wording rather than guessing which spelling shipped
   ./control-kiyotaka browser eval "(()=>{const o=document.querySelector('[data-testid=super-search-overlay]');return (o.innerText.match(/[A-Za-z ]*Editor/)||[''])[0].trim()})()"
@@ -123,9 +128,14 @@ Preconditions:
   tree still had the skeleton up past 105s with no console error, so treat the
   wait as unbounded on a dev lane and assert on the skeleton clearing rather than
   on a deadline.
-  **Do not wait on `.cm-editor` at all on the guest lane: it stays `0` forever**,
-  because a guest has no writable buffer to mount. It is not a timing signal and
-  not a failure.
+  **Do not wait on `.cm-editor` as the open-proof.** A guest has no writable
+  buffer, but CodeMirror still mounts read-only: driven 2026-10-27, a guest drawer
+  read `.cm-editor` `1` once the skeleton cleared (earlier passes read `0`).
+  Assert `inert`, the skeleton clearing and `kscript-run-btn` instead.
+- **Close the drawer with `kscript-close-editor-btn`.** `Escape` leaves it open,
+  and while it is open with focus in CodeMirror, app shortcuts such as `Meta+/`
+  go to the editor instead of the app. Blur first (`document.activeElement.blur()`)
+  before pressing an app shortcut.
 - **The template picker is authed-only — a guest never sees it.** It renders behind
   `canWriteKScript`, which is `useJwtStore().isLoggedIn`, and that getter excludes
   `ROLES.GUEST` by construction. On the guest lane

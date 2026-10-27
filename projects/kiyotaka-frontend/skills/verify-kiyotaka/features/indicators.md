@@ -3,12 +3,17 @@
 A user adds an indicator from the Indicators dialog; it mounts as an overlay with
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
-interest) or kScript-backed. This entry was DRIVEN on 2026-10-23 against product tree `2a1ed750db` on a real
-guest-JWT lane: ind-add, ind-legend and ind-limit were all proven for the first
-time. ind-catalog was not re-exercised this pass; guest coverage opened the V2 dialog, selected All,
-searched RSI, and recorded the current empty official-catalog state. The
-top-level Indicators/kScript strip, Pine paste offer, and WRUN catalog paths
-remain flag- or auth-dependent and were not driven here.
+interest) or kScript-backed. This entry was last DRIVEN on 2026-10-27 against
+product tree `7290d33d10` (53 behind `origin/main` `df3fdcb62e`), lane `18103`,
+a real guest-JWT lane whose `.env.local` proxies to the operator's remote
+backend. All five sub-features were driven: the dialog opened on its store
+landing, `RSI` listed `Official 4` / `Community 12` from a SEEDED catalog (`See
+all 241` official), a guest row Add raised the `indicators` wall, a programmatic
+`BITCOIN_DOMINANCE` add mounted in 967 ms, the counter read `5/3` after four
+bare adds, and the legend's settings, visibility and close controls all worked
+on a programmatic overlay. The Pine paste offer, the paid and Mine tabs, and a
+real cap REFUSAL (which needs the dialog path, so a signed-in session) were not
+driven.
 
 ## Sub-features
 
@@ -35,11 +40,20 @@ Preconditions:
   `textbox "Search official indicators"` and
   `textbox "Add a package by exact name (@scope/name)"`. It is a `.dialog-style`
   overlay, **not** a `.q-dialog`.
-  **Drift, driven 2026-10-12 on tree `1570b59d69` (the desktop parity sweep's `ind-dialog`, `ind-catalog` and
-  `ind-search`, in the shell and in Chromium):** that tree renders the WRUN registry panel, `indicator-panel-v2`. Its
-  search field is `indicator-search-bar-input` (`indicator-dialog-skeleton-input` while it loads), not the textbox
-  named above; the official list sits under `OPENMARKET INDICATORS <n>` with each group's count in
-  `indicator-list-group-count`, and the Technical chip is `indicator-category-chip-technical`. Drive these testids.
+  **Current handles, driven 2026-10-27 on `7290d33d10`.** The root is
+  `indicator-panel-v2` and the search field is `indicator-search-bar-input`
+  (`indicator-dialog-skeleton-input` while it loads), not the textboxes named
+  above. With no query the dialog opens on a store landing:
+  `indicator-store-landing`, an Ask block (`indicator-ask-block`,
+  `indicator-ask-question-<topic>`), the official shelf
+  (`indicator-store-official-shelf`, `indicator-shelf-card-<slug>`, and
+  `indicator-store-see-all-official-btn` reading `See all <n>`) and
+  `indicator-store-community`. A query switches to grouped results: group heads
+  are `indicator-list-head-<key>` with the count in `indicator-list-head-<key>-count`
+  (`official`, `community`), inside `indicator-results-list` /
+  `indicator-list-scroll`. `indicator-list-group-count` and
+  `indicator-category-chip-technical` are GONE (zero matches live and in source).
+  The guest strip showed `popular, trending, new, paid`.
 - **The dialog was rebuilt as a "store", and every tab handle this entry used is
   gone.** `indicator-control-bar-tab-indicators-btn`, `-tab-kscript-btn`,
   `-favorites-btn`, `-sort-btn`, `indicator-source-tab-official`/`-community`,
@@ -169,12 +183,20 @@ Preconditions:
   is wrong. Assert the over-limit reading, not a pinned one. The cap gate only
   runs when the caller passes `opts.recordUndo` or `opts.enforceIndicatorLimit`,
   which the dialog path does and a bare call does not.
-- **Legend handles — driven 2026-10-23.** All fourteen documented handles were
-  present on the programmatically added overlay, and `legends.closeBtn.click()`
-  removed it cleanly (four overlays torn down in sequence, counter falling back
-  to `1/3`). An older warning here said close was untrustworthy on a
-  programmatic overlay; that is no longer true. Still poll after the click — each
-  teardown took about a second.
+- **Legend handles — driven 2026-10-23 and again 2026-10-27.** All fourteen
+  documented handles were present on the programmatically added overlay, and
+  `legends.closeBtn.click()` removed it cleanly (four overlays torn down in
+  sequence, counter falling back to `1/3`). An older warning here said close was
+  untrustworthy on a programmatic overlay; that is no longer true. Still poll
+  after the click — each teardown took about a second. On 2026-10-27
+  `settingsBtn.click()` opened the overlay's settings dialog (`Template`, `Style`,
+  `Plot settings`, `Visibility`, `Pane`; `Escape` closes it), and
+  `toggleVisibilityBtn.click()` flipped the metadata row's `isHidden` from `false`
+  to `true` and back. The legend also exposes `copyBtns`, `moreBtn`,
+  `rowActionBtn`, `bylineBtn`, `errorChipBtn`, `seriesChips` and `overflowChip`.
+  One legend probe built from a shell variable holding an arrow-function filter
+  failed with `SyntaxError: Unexpected token ';'` under `browser eval` (cause not
+  isolated); the same probe written with `function` callbacks worked.
 
 
 - **Proof.** Screenshot the pane with the legend visible, plus the engine-state
@@ -183,13 +205,21 @@ Preconditions:
 
 ## Gotchas
 
+- **Whether the catalog is seeded depends on which backend the lane proxies.**
+  With the operator's `.env.local` the lane proxies to a remote dev backend that
+  IS seeded (2026-10-27: `See all 241` official, `RSI` gave four official rows,
+  `official-indicator-add-official-indicator-relative-strength-index-rsi-official-rsi-btn`
+  first). The unseeded case below applies to a lane pointed at a fresh local
+  stack.
 - **A fresh local stack lists NO official indicators.** The dialog renders only
   backend catalog rows; the FE registry never synthesizes them. An unseeded local
   mongo therefore shows zero official indicators — RSI, Open Interest, the whole
   options suite — which reads as a broken feature. Fix with
   `./control-kiyotaka cli -- node scripts/seed-official-catalog.mjs`. Dev builds
-  render a warning banner naming that command — but only under `Browse all
-  indicators`, never on the `Discover` tab the legacy view opens on.
+  render a warning banner naming that command
+  (`indicator-catalog-unseeded-notice`, dev builds only). `Browse all indicators`
+  and `Discover` are LEGACY names; the current dialog opens on the store landing,
+  so look for the notice in the results list, not under those tabs.
 - **A catalog endpoint that ERRORS looks nothing like an unseeded one, and doctor
   calls it green.** When the stack answers but fails, the LEGACY view renders
   `Couldn't load indicators / Check your connection, then try again. Retry` and

@@ -12,6 +12,12 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-10-27 on tree `7290d33d10` (lane `18103`, real guest JWT): still
+unreachable.** `window.__voiceControl`, `voice-control-mic-btn` and every
+`voice-control-chip*` were absent. Source on `df3fdcb62e` adds multi-chart
+targeting (`src/utility/voice-control/chart-target.util.ts`: "open eth on the
+second chart", "heikin ashi on chart 2"); it is not driven.
+
 **VERIFIED-UNREACHABLE on the guest lane as of 2026-10-23 (tree `2a1ed750db`).**
 The unmet prerequisite is a signed-in session; the route attempted was the
 standard `control-kiyotaka up` guest lane, which has no mic, no chip and no

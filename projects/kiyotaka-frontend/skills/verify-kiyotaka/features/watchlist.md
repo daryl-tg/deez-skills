@@ -8,7 +8,9 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-This entry was created on 2026-10-23 against product tree `2a1ed750db`. **Only
+This entry was created on 2026-10-23 against product tree `2a1ed750db`; the
+wall was re-driven on 2026-10-27 against `7290d33d10` (lane `18103`, real guest
+JWT: `tb-watchlist-toggle-btn` set `guestLoginFeatureId = "watchlist"`). **Only
 the guest-side is driven**: the three doors and the sign-in wall were proven
 live. Everything behind the wall is source-derived and UNVERIFIED, because this
 stack cannot be signed into by an agent — see Gotchas.
@@ -71,8 +73,10 @@ load; with the gateway down the rows render but every cell stays a dash.
   opacity-hidden until hover and absent on read-only lists, and it ignores
   double-clicks. Undo lives in an 8s toast with no testid — match the text.
 - **`wl-reorder` is real pointer events, not HTML5 drag.** Listeners are on
-  `document` and a drag starts after 6px of travel, so a synthetic `dragstart`
-  does nothing: press, several moves, release. It needs an owned list, no active
+  `document` and a drag starts after 6px of travel (`DRAG_START_PX`), so a
+  synthetic `dragstart` does nothing: press, several moves, release. The row's
+  hover handle is `watchlist-row-grip` (source, not driven): a click on it opens
+  the row menu, and Alt+Arrow also steps a row. It needs an owned list, no active
   filter or search, non-aggregated mode and 2+ rows. On drop the list flips to
   Manual sort — assert `watchlistPane.settings.sortByList[<id>].key === 'manual'`
   as well as the new order.
@@ -97,8 +101,11 @@ load; with the gateway down the rows render but every cell stays a dash.
 
 - **An agent cannot sign into this stack, so everything past the wall is
   unverified.** Driven 2026-10-23: submitting the login form for the local dev
-  account does NOT do password auth — it sends a **6-digit sign-in code by
-  email**, which the harness cannot read. The account named in the operator's
+  account does NOT do password auth by default — it sends a **6-digit sign-in
+  code by email**, which the harness cannot read. On 2026-10-27 the wall's form
+  also carried `login-signup-use-password-btn` and `login-signup-passkey-btn`, so
+  a password path exists; no agent-usable credentials do, so the blocker
+  stands. The account named in the operator's
   notes as the watchlist login behaves this way. Until someone supplies a code or
   an account that takes a password, `wl-lists`, `wl-add`, `wl-open-row`,
   `wl-remove`, `wl-reorder`, `wl-import` and `wl-limits` are all

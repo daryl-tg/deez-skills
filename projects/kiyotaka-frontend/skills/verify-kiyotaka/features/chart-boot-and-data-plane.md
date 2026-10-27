@@ -3,12 +3,15 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was DRIVEN on 2026-10-23 against product tree `2a1ed750db` on a real
-guest-JWT lane: 250 candles, two metadata rows, 1h, the COINBASE default, a
-clean worker console, and the absence of OI/funding on spot; coverage
-was boot to 250 candles, the two-row overlay set, interval, the default market,
-and a screenshot. The worker-death console grep and the live ticker values were
-NOT re-run this pass; their last live check was 2026-10-06.
+entry was last DRIVEN on 2026-10-27 against product tree `7290d33d10` (53 commits
+behind `origin/main` `df3fdcb62e`, which did not install; see Gotchas), lane
+`18103`, a real guest-JWT lane (`isGuest` true) with the operator's `.env.local`
+linked in. Proven: boot to 250 candles on COINBASE BTC-USD 1h with VWAP, a worker
+console with zero worker-death matches, the spot live edge (price and change, no
+OI or funding), the perp live edge on BINANCE.F ETHUSDT (`24H VOLUME $6.51B`,
+`OPEN INTEREST $5.46B`, `FUNDING +0.0066%`), and the wake chain from a 66 s
+visibility override. NOT driven this pass: the lone-bar heal verdict (last driven
+2026-10-23) and a real machine sleep.
 
 ## Sub-features
 
@@ -122,8 +125,20 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
 - **Read the verdict from the engine and the ring.** After the wake, count NaN
   closes in `tc[0].metadata[0].rawData` between the last real bar and the lone
   bar. With `window.__enableKiyoLazyLoadDebug()` on, `__dumpKiyoLazyLoadDebug()`
-  returns an ARRAY of `{event, details}`: `lifecycle-wake-emit` carries
-  `outageStartedAt`, and `wake-resync-pass` carries `mainStartMs` and `lastBarMs`.
+  returns a JSONL STRING, not an array: line one is a `{"kind":"kiyo-perf-dump",
+  "version":2,...}` header, and every later line is one `{seq, ms, event,
+  details}` entry. Parse it with
+  `__dumpKiyoLazyLoadDebug().split('\n').filter(Boolean).slice(1).map(JSON.parse)`.
+  `lifecycle-wake-emit` carries `outageStartedAt`, and `wake-resync-pass` carries
+  `mainStartMs` and `lastBarMs`. Driven 2026-10-27 on `7290d33d10`: a 66 s
+  visibility override (getter on `document.visibilityState` and `document.hidden`,
+  then `visibilitychange`) produced `lifecycle-wake-emit` with `outageStartedAt`
+  equal to the hide time and the chain `wake-received`, `wake-token-refreshed`,
+  `wake-sockets`, `wake-resync-live-drain`, `wake-resync-pass`,
+  `wake-resync-overlay-window`, `wake-resync-overlay-recheck`,
+  `wake-resync-awaited`, `wake-reconnected`. Its `reason` read `clock-skew`, not a
+  hidden-gap reason, on that override. No damage was synthesized, so that run
+  proves the wake fires, not the heal.
   Measured: base kept 2-4 blank slots (heal from `lastBar - 2 bars`); the fix
   left 0 (heal from the outage start).
 - **Frame it.** Wheel over the plot until the engine viewport
@@ -156,6 +171,12 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
 - Candles do **not** need the backend. `:3000` down still draws them **and still
   fills volume/OI/funding** (those ride the v2 gateway too); it removes login,
   workspaces, and the official catalog.
+  **`doctor`'s `backend :3000` line is not the backend this lane uses** when
+  `.env.local` sets `VITE_BACKEND_PROXY_TARGET` to a remote box. Driven
+  2026-10-27: doctor printed `:3000 DOWN — guest lane only` while the proxied
+  remote backend issued a real guest JWT and served a SEEDED catalog (241
+  official indicators). Probe the lane's own proxy instead, for example
+  `curl -s -X POST http://127.0.0.1:<lane>/api/v1/scripts/query -H 'Content-Type: application/json' -d '{"limit":1}'`.
 - Guest emits a benign `401`; `:3000` down adds `[refresh-token] 502` and
   `http proxy error: /api/v1/... ECONNREFUSED`. None of these are the bug.
 - The canvas is WebGL and invisible to the a11y tree — a snapshot alone can never
@@ -239,6 +260,11 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   Its card testids are `ink-tutorial`, `ink-tutorial-close` and
   `ink-tutorial-card-<tool>`. Two overlays in a row is the normal first boot, so
   re-read the overlay count after each dismissal rather than shooting.
+  **The order is not fixed.** Driven 2026-10-27 on a fresh profile: the SIGNUP
+  MODAL raised first, and the ink tutorial raised only after it was dismissed. A
+  loop that reads the top overlay's testids and dismisses whichever is there
+  (`ink-tutorial-close`, else `guest-signup-modal-close-btn`, else `Escape`)
+  handles both orders.
 - **The signup modal is time-gated, so an early screenshot is not proof it is
   gone.** It arms only after the first chart paint plus ~8s of visible time, then
   waits for ~2s idle. Poll past that window before deciding the coast is clear.
@@ -261,8 +287,15 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   return. Toggling the feed while hidden can never draw lone bars; synthesize the
   damage instead (see Driving the wake heal).
 - **A fresh worktree has no `.env.local`.** It is gitignored and lives only in the
-  main checkout, so a lane started from a new worktree boots with no gateway URLs
-  and reads "Retrying data request..." forever. Copy it in before `up`.
+  main checkout, so a lane started from a new worktree boots with no
+  `VITE_DEV_TOKEN` and no backend proxy target. Driven 2026-10-27: the chart reads
+  `Retrying data request...` and `Reconnecting…` forever, `rawData.length` stays
+  `0`, and the console carries `Backend error: unauthenticated` from the gateway
+  (`Error fetching main data`, `Initial candle fetch failed after chart wiring`)
+  plus `[refresh-token] all retries exhausted` 502s. `doctor` stays green through
+  all of it. Link or copy it in before `up`:
+  `ln -s <main checkout>/.env.local .env.local`, then restart the lane. With it,
+  the same lane drew 250 candles in about 30 s.
 - **A wake stalls at the token refresh when the backend is unreachable.** Every
   wake refreshes first; with `VITE_BACKEND_PROXY_TARGET` down (Tailscale off on
   this machine) the refresh 502s and retries, the ring stops at `wake-received`,
@@ -272,3 +305,17 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
 - **`control-kiyotaka` may be absent.** It is git-excluded tooling and a fresh
   clone or worktree lacks it; start the lane with
   `pnpm exec vite --host 127.0.0.1 --port <lane> --strictPort` and record the pid.
+  On 2026-10-27 it was missing from the main checkout too, and
+  `.git/info/exclude` no longer listed it. A copy of a wrapper that has the
+  current `freshness` line and 90 s / 20 s probe budgets resolves `REPO` from its
+  own directory, so copy it INTO the tree it drives rather than calling it from
+  elsewhere.
+- **The headless tab drifts to `visibilityState: hidden` mid-drive.** Driven
+  2026-10-27: with one tab in the session, the page went `hidden` twice within
+  ten minutes. `requestAnimationFrame` stopped, the footer UTC clock froze, and
+  the app ran its hidden path while every `eval` kept answering. Screenshots
+  still captured, which hides the problem. Read `document.visibilityState` before
+  a capture, and bring the tab back with
+  `./control-kiyotaka browser tab t1` (the tab id from `browser tab list`). A
+  return after more than 60 s hidden is a real wake, so expect the wake chain in
+  the ring.
