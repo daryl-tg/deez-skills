@@ -119,4 +119,6 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
 
 ### Verification record
 
-**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** At 390×844 the tab bar listed Home, Chats, Spaces, Library and om; `data-mobile-root` went `home` → `chats` after **Chats**. **Limitations:** The DM detail and **Back to Chats**, other widths, Spaces detail, takeovers and native Back were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 32). Previous record: 2026-10-26 at `5820fbea`.
+**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** At 390×844, `?view=home` showed the tab bar Home, Chats, Spaces, Library and om; **Chats** moved `data-mobile-root` from `home` to `chats`. **Limitations:** The DM detail and **Back to Chats**, other widths, Spaces detail, takeovers and native Back were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 35).
+
+**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** At 390×844 the tab bar listed Home, Chats, Spaces, Library and om; `data-mobile-root` went `home` → `chats` after **Chats**. **Limitations:** The DM detail and **Back to Chats**, other widths, Spaces detail, takeovers and native Back were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 32). Previous record: 2026-10-26 at `5820fbea`.

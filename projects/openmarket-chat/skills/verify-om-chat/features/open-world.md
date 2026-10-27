@@ -151,4 +151,6 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on the wrapper lane showed 2 canvases and "world offline, retrying". **Limitations:** **Hide** / **Open chat**, follow player, fullscreen, movement, occupants, emotes, relay and the width drag were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 31). Previous record: 2026-10-26 at `5820fbea`.
+**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on the wrapper lane showed 2 canvases and "world offline, retrying". **Limitations:** **Hide** / **Open chat**, follow player, fullscreen, movement, occupants, emotes, relay and the width drag were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 30).
+
+**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on the wrapper lane showed 2 canvases and "world offline, retrying". **Limitations:** **Hide** / **Open chat**, follow player, fullscreen, movement, occupants, emotes, relay and the width drag were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 31). Previous record: 2026-10-26 at `5820fbea`.

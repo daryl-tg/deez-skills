@@ -52,13 +52,10 @@ Assert the Info content through the drawer's text, e.g. walk up from
 - Blocking is not exercised: the fixture does not persist it, and the Blocked
   tab under Connections crashes (see
   [direct-messages-and-home.md](direct-messages-and-home.md)).
-- **Agent names follow the persona handle** (`DisplayName.tsx:56-150`, `01bf4481`).
-  For an agent, owner nicknames and display names no longer relabel it; a
-  degraded handle falls back to the account name, and the hover title is
-  `@persona`. Search hits, DM hits, Pins and the channel peek now pass
-  `isAgent`. No fixture seeds an agent entry with `isAgent`, so this is source
-  only.
+- **An agent's name is its owner's, with the persona beside it** (`DisplayName.tsx:52-158`, since `52a968b3`; this replaced the persona-handle-only rule of `01bf4481`). An agent row reads `<owner name> · <persona>`, for example "Daryl Boon · researcher" (`:121-125`; `test/ui/display-name-degraded.test.tsx:122`). With no picked persona it reads the owner's name alone. A degraded handle, the auto-wired badge's stock name `openmarket-chat` (`lib/wired-agent.ts:6`) and a name equal to the owner's name or account do not count as personas. If the owner has not loaded, the old handle-based name stays. Owner nicknames never relabel an agent, and the hover title keeps the handle. The shell fixture seeds one agent post, `#ops` seq 191 (`userId` `u-bot-4c81aa`, degraded handle `om-4c81aa`, `isAgent: true`; `tools/visual/shell-fixture.tsx:1228-1240`). It renders **om-mod-bot started a topic** with no ` · ` suffix on both hosts. No fixture seeds an agent with a picked persona, so the `Owner · persona` form is unit-test only.
 
 ### Verification record
 
-**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On ana's DM, the header **A Online ana** opened the drawer with Info selected (tabs Info / Media / Links / To-dos) and **Close profile** present. **Limitations:** Links selection, tab contents beyond Info, `?card=1`, the name popover, agent display names, block effects, real fetches and `/chat/`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 22). Previous record: 2026-10-26 at `5820fbea`.
+**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=dm&dm=ana&profile=1` opened the drawer with tabs Info (selected) / Media / Links / To-dos and **Close profile**. The seeded agent post `msg-ops-191` read "om-mod-bot started a topic" on `/rooms/` and `/chat/`, with no persona suffix (the degraded-handle path of `52a968b3`). **Limitations:** The `Owner · persona` form has no seed. Links selection, tab contents beyond Info, `?card=1`, the name popover, block effects and real fetches were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 03, 16).
+
+**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On ana's DM, the header **A Online ana** opened the drawer with Info selected (tabs Info / Media / Links / To-dos) and **Close profile** present. **Limitations:** Links selection, tab contents beyond Info, `?card=1`, the name popover, agent display names, block effects, real fetches and `/chat/`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 22). Previous record: 2026-10-26 at `5820fbea`.

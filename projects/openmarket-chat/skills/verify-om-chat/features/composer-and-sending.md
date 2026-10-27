@@ -48,8 +48,17 @@ Read the gotchas for where the line now falls.
 - Agents in the `@` menu (roster-gated, `01bf4481`): an agents group with
   `<owner> | <name>` rows, dimmed not-ready rows (`aria-disabled="true"`, the
   refusal reason in place of the detail) that cannot be committed, and an `om`
-  router row (`lib/composer-complete.ts:462-519`, `ComposerAutocomplete.tsx:178-215`).
+  router row (`lib/composer-complete.ts:467-524`, `ComposerAutocomplete.tsx:178-215`).
   No fixture reports roster support, so none of it renders on the fixture lane.
+- A bare `@` lists the whole server (`5e38077c`): every member in roster order,
+  then every role, in a scrolling `listbox` named **MEMBERS & ROLES** (or
+  **MEMBERS** with no role rows). `mentionCandidates` now defaults to no limit
+  (`lib/composer-complete.ts:416`). Before, a 10-row budget kept half for roles
+  (`:465-472`). The composer and the inline editor pass no budget; only the
+  OpenScape chat still passes 20 (`world/WorldChatPane.tsx:183`). On the shell
+  fixture's `#ops`, the list has 13 options: 5 members (ana, dax, kyle, mira, rho)
+  and 8 roles (admin, everyone, Full Stack, here, member, mod, owner, traders).
+  The old budget would have shown 10: 5 members plus 5 roles.
 - A code-fence panel behind the text. `#799` paints a full-width panel behind
   each fenced region of the draft, incomplete fences included, and dims the
   fence marker lines with `.composer-token-code-marker` (`color: var(--text-faint)`
@@ -325,6 +334,8 @@ In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** 
 
 ### Verification record
 
-**Last verified (Vim mode):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?view=settings&settingsPage=shortcuts` switch **Vim mode** set `om.chat.vimMode` to `"true"`. In `Message #ops`, `.composer-vim-mode[data-vim-mode]` read `insert`. After typing "hello world" and Escape it read `normal`, `0` `d` showed `.composer-vim-pending` "d", and `w` left "world". The key was cleared afterwards. **Limitations:** Enter-to-send in insert mode, doc `:q`, touch and IME were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 16).
+**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** On `/rooms/` and `/chat/`, a bare `@` in `Message #ops · $ for markets · /chart to post one` opened listbox **MEMBERS & ROLES** with 13 options (5 members, 8 roles). On `/rooms/`, a fenced 300-character send through the native value setter appended `msg-ops-116` (the id depends on how many sends the session has made) and cleared the composer. The Vim path read `insert` → Escape `normal` → `0` `d` pending "d" → `w` left "world", and the key was cleared. **Choose emoji or GIF** → **GIFs** opened **Choose a GIF** with **Search KLIPY**. **Limitations:** The roster-gated agent rows, video fallback, reply Escape, delivery, recovery, draft durability, staging, touch, IME and pref sync were not driven. `agent-browser keyboard type` with embedded newlines sends early, so fill multi-line drafts through the value setter. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 02, 05-07, 40).
 
-**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/`, a composer send from the `Message #ops · $ for markets · /chart to post one` textbox appended `msg-ops-117`, and the composer cleared. The seeded room video went poster (`Play …`) → player with Buffering → compact video file card with Download. **Limitations:** Vim mode, reply Escape, delivery, recovery, draft durability, staging, touch, IME, pref sync, the roster-gated `@` rows and `/chat/` sends were not driven this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 01, 14, 43-44). Previous record: 2026-10-26 at `5820fbea`.
+**Previous record (Vim mode):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?view=settings&settingsPage=shortcuts` switch **Vim mode** set `om.chat.vimMode` to `"true"`. In `Message #ops`, `.composer-vim-mode[data-vim-mode]` read `insert`. After typing "hello world" and Escape it read `normal`, `0` `d` showed `.composer-vim-pending` "d", and `w` left "world". The key was cleared afterwards. **Limitations:** Enter-to-send in insert mode, doc `:q`, touch and IME were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 16).
+
+**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/`, a composer send from the `Message #ops · $ for markets · /chart to post one` textbox appended `msg-ops-117`, and the composer cleared. The seeded room video went poster (`Play …`) → player with Buffering → compact video file card with Download. **Limitations:** Vim mode, reply Escape, delivery, recovery, draft durability, staging, touch, IME, pref sync, the roster-gated `@` rows and `/chat/` sends were not driven this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 01, 14, 43-44). Previous record: 2026-10-26 at `5820fbea`.

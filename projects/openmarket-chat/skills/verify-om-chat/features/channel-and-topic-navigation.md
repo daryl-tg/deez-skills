@@ -136,6 +136,13 @@ the navigation retargeted the *write* path, not only the read pane.
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 25).
 
+### Topic inbox panel and Resolve (added 2026-10-28)
+
+- **Topic inbox:** `shell-fixture.html?view=room&topics=on&panel=inbox&alerts=quiet` mounts an `aside` named **Inbox** with `data-right-panel="inbox"` (`RightPanels.tsx:381`). It reads "Inbox 9", with a `#OPS` group, a stream row (4), **ETF flows, week of the 28th** (2) and **CPI print — Aug** (3). Its buttons are **Close inbox**, **Mark #ops read**, **Topic <name>, followed** and **Mark <name> read**, and its footer hints `⌘⇧U inbox`, `⌥⇧↓ next unread` and `Esc close`. `?inbox=open` only sets `session.inboxOpen` (`shell-fixture.tsx:3117-3119`), and the fixture's `toggleInbox` flips only that flag (`:3419`). So neither `?inbox=open` nor the **Inbox: 9 unread** button opens the panel here: use `panel=inbox`. `TopicCatchUp` is only the keyboard host for those chords and renders nothing. Driven on `/rooms/` and `/chat/`. The mark-read effects are fixture no-ops.
+- **Resolve a topic:** open a topic row's menu as described in Gotchas (Mark As Unread), then choose **Resolve <topic> (closes the conversation; the history stays)** (`TopicPill.tsx:146-149`). It opens a `dialog` named **Resolve <topic>**, for example **Resolve Funding flipped negative on Hyperliquid**. The dialog has an optional "What settled it?" note and **Resolve Topic** (`TopicResolvePopover.tsx:113-114`). The fixture implements `openTopicResolvePrompt` (`shell-fixture.tsx:3551`). **Resolve Topic** itself was not pressed. Driven on `/rooms/` and `/chat/`. **Add People...** has no route, because the fixture sets `topicAddPicker: null` (`:3301`).
+
+Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 09, 36-37, 41, 43).
+
 ## Gotchas
 
 - **`?room=` is ignored on `?view=room`.** It only applies to
@@ -218,25 +225,24 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
   rotted unnoticed. Do not spend a run rediscovering this, and do not report it
   as caused by your change.
 
-  **The gate has moved twice and now explains itself.** `#731` lifted it out of
-  `Shell.tsx` into `ConversationRightRegion`; it is now back in `Shell.tsx`
-  (`:4213-4218`) and `topicPeek` appears nowhere in `RightPanels.tsx` any more.
-  More useful than the address is the condition it gained:
-
-  ```
-  !conversationRowOwnsRightRegion &&
-  session.topicPeek && session.active.kind === "room" &&
-  session.active.name === session.topicPeek.room && !panelOverlay
-  ```
-
-  Its own comment calls it a *"card-level fallback only where no conversation
-  row can own the right region"*, with the ownership predicate there to
-  "prevent a second live mount". So in the ordinary seeded channel route the
-  conversation row owns the region and the fallback is **correctly** skipped —
-  re-driven at `ea0ee262`, `?peek=` still mounts nothing, and that is now a
-  designed outcome rather than an open question. Reaching the pane means
-  finding a route where no conversation row owns the right region; do not plan
-  a proof that assumes `?peek=` alone is enough.
+  **Both mounts exist, and neither renders on the fixture.** An earlier pass read
+  the `Shell.tsx` fallback (`:4213-4221`, gated on
+  `!conversationRowOwnsRightRegion`) as the only mount and called the empty pane a
+  designed outcome. That was wrong. The row-owned mount has been in
+  `ConversationRightRegion` since `f190644c` (`RightPanels.tsx:293-300`: gated
+  on `session.topicPeek`, `active.kind === "room"`, a matching room and
+  `!panelOverlay`; the region itself returns null on mobile or outside a room or
+  DM, `:280-288`), and `ChatPane.tsx:1155` and `:1845` render that region. On
+  2026-10-28 at `2dd7aad1`, `?view=room&peek=cpi-print-aug`,
+  `?view=room&topics=on&peek=cpi-print-aug` and
+  `?view=topics&topics=on&peek=cpi-print-aug` at 1440×900 all left no
+  `role=region` and no `.topic-peek*` node. The fixture's `openTopicPeek`
+  (`shell-fixture.tsx:3354`) does set `topicPeek` and emit. Why the pane stays
+  empty was not traced; `TopicPeekPane` reads `session.topics.railViewFor` or
+  `inboxFor` (around `TopicPeekPane.tsx:123-128`), which is the next thing to
+  check. Clicking a message's topic pill (**Open topic CPI print — Aug, …**)
+  opened the topic in the main pane instead. Keep the row `live verification
+  pending`, and do not report it as a product bug until a real host is checked.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
   opens nothing — confirmed live. But that is a fact about the *control*, not
   about the surface: **`?switcher=open` mounts the quick-switcher**
@@ -263,6 +269,12 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
   seeded unread either: the fixture stubs `markRoomRead` and `markUnreadFrom`
   as `noop` (`shell-fixture.tsx:3431`, `:3562`). Prove the offer and its gating
   here, never the state change. That needs the daemon-pair lane.
+  A synthetic `contextmenu` dispatched on the `treeitem` itself opens nothing;
+  dispatch it on the row's inner `button`. The topic row menu then lists Unfollow,
+  Mute, Copy link, **Resolve <topic> (closes the conversation; the history
+  stays)**, Open Topic, Import Folder..., **Mark As Unread**, Rename, Create Doc
+  from Topic, Set topic index... and Delete Topic (re-driven 2026-10-28 on both
+  hosts).
 - **A panel button renames itself when open**, Library included: after the
   click, `Library` reads `Close Library` and `data-library-presentation` is
   `side`.
@@ -277,4 +289,6 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 
 ### Verification record
 
-**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug`, and **Back to #ops** gave `#/room/ops`; `aside[aria-label="Workspace navigation"]` held the rail `nav` with no role. `?switcher=open` mounted the switcher with its empty state; `#mac` then Enter reached `#/room/macro/topic/basis-desk-review`. `?view=topics` showed the primer at 52 px with 12 px padding on every side and both glyphs 12 px from the edges; dismissing it survived reload, and at 390×844 the dismiss hit box was 44×44. On `/chat/`, the primer had 12 px top and bottom padding, and the CPI topic reached `/chat/room/ops/topic/cpi-print-aug`. **Limitations:** Mark As Unread, the dock and the channel menu were not re-driven; Mark As Unread effects remain fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 02-03, 20, 38-39). Previous record: 2026-10-26 at `5820fbea`.
+**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug` and the composer **Message in CPI print — Aug**; **Back to #ops** gave `#/room/ops`. `?switcher=open` mounted `.quick-switcher` (`role=combobox`, placeholder "Search messages, or jump anywhere...", "Nowhere recent yet."), and `#mac` then Enter reached `#/room/macro/topic/basis-desk-review`. The deep link `#/room/ops/msg/105`, present at load, set `messageJump=105` and rewrote the hash to `#/room/ops`. `panel=topic-draft` mounted the **New topic** aside. `?view=topics` showed the primer with 12 px padding. The topic row menu offered **Mark As Unread** on the read topic, and the inbox panel and Resolve dialog rendered (section above), on both hosts. **Limitations:** The topic peek still renders nothing (Gotchas), the dock was not re-driven, and Mark As Unread effects are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 01, 04, 08-09, 36-37, 41, 43).
+
+**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug`, and **Back to #ops** gave `#/room/ops`; `aside[aria-label="Workspace navigation"]` held the rail `nav` with no role. `?switcher=open` mounted the switcher with its empty state; `#mac` then Enter reached `#/room/macro/topic/basis-desk-review`. `?view=topics` showed the primer at 52 px with 12 px padding on every side and both glyphs 12 px from the edges; dismissing it survived reload, and at 390×844 the dismiss hit box was 44×44. On `/chat/`, the primer had 12 px top and bottom padding, and the CPI topic reached `/chat/room/ops/topic/cpi-print-aug`. **Limitations:** Mark As Unread, the dock and the channel menu were not re-driven; Mark As Unread effects remain fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 02-03, 20, 38-39). Previous record: 2026-10-26 at `5820fbea`.

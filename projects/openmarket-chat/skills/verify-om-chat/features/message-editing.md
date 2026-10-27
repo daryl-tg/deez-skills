@@ -64,7 +64,11 @@ marked row into view in the marking eval (`r.scrollIntoView({block:"center"})`),
 run `agent-browser hover '[data-probe]'` once, wait about 0.6 s (`sleep 0.6`), then
 click. Measured 2026-10-26 on both the channel and the DM path. A control of
 two back-to-back hovers with no wait failed, so the earlier "hover twice" advice
-only worked when command latency happened to supply the wait.
+only worked when command latency happened to supply the wait. On 2026-10-28 that exact sequence still missed **Edit** on the first try,
+although `.msg-toolbar` already held the button and the row had grown to 81 px.
+When the role lookup misses, read the toolbar directly (`[data-probe]
+.msg-toolbar button[title="Edit"]`) and click it by selector, or hover once more
+after the wait; never conclude the control is gone.
 
 Full server persistence and other clients receiving the edit require the local auth/relay stack and daemon-pair lane. The fixture cannot prove those outcomes.
 - **The inline editor is a lazy surface since `01bf4481`.** After **Edit**, a
@@ -77,6 +81,8 @@ Full server persistence and other clients receiving the edit require the local a
   product failure.
 
 ### Verification record
+
+**Last verified (channel path):** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-104` → **Edit** opened the **Edit message** textbox; a changed value plus **save** closed the editor, and the row read "edited by nightly 1028 (edited)". The first `hover` plus 0.6 s plus `find role button --name Edit --exact` reported no **Edit**, although `.msg-toolbar` held `button[title="Edit"]` and the row had grown to 81 px. A second hover succeeded. **Limitations:** The DM path and `/chat/` were not re-driven; this is local fixture edit state only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 32).
 
 **Last verified (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3526`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3155`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:11858`, `:12237`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
 

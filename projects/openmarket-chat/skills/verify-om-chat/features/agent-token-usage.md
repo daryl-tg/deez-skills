@@ -43,4 +43,6 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`, and `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** `tokens=1250000`, `tokens=1`, `tokens=missing`, the input+output fallback and daemon accounting were not re-driven. Previous record: 2026-10-26 at `5820fbea`.
+**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`; `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** The other `tokens=` seeds, the input+output fallback and daemon accounting were not driven. Evidence: none captured for this row.
+
+**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`, and `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** `tokens=1250000`, `tokens=1`, `tokens=missing`, the input+output fallback and daemon accounting were not re-driven. Previous record: 2026-10-26 at `5820fbea`.

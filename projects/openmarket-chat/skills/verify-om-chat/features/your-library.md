@@ -53,7 +53,7 @@ stubs `session.libraryDaemon`, so the autofill proxy answers `INERT`
 `daemon?.fetchPersona()`, gets the truthy `INERT` back and takes the `ready`
 branch (`:6960`). `personaStatusPresentation` (`:6168-6188`) then matches no
 `status.state` and returns `undefined`, and `.tone` throws (`:6405`). The
-production client rejects unlisted states (`src/lib/om-daemon.ts:1548`), so
+production client rejects unlisted states (`src/lib/om-daemon.ts:1545`), so
 this is a fixture gap, not a product bug. Stubbing `libraryDaemon: null` would
 render the card's `unavailable` branch instead. Until the fixture changes, assert only
 the route for the Agents lens here, and report the crash rather than
@@ -240,4 +240,6 @@ artefact, not a failure.
 
 ### Verification record
 
-**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist", and `doc=server&docState=history` showed **Version history** at `9`. **Limitations:** The panel filter, full page, `lens=agents` (fixture crash), reconcile, read-only, doc Vim, select-all, `:w`, proposals and import/export/trash/move/restore were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 25). Previous record: 2026-10-26 at `5820fbea`.
+**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist"; `doc=server&docState=history` showed a `select` **Version history** at `9` (r9 · current · kyle, r8 · om); `panel=library&scope=server` mounted the **Library** aside (`data-right-panel=library`); `homeImport=open` opened **Import folder into Your Library**. `?panel=todos` showed the lazy-surface error "Todos could not load … Try again / Reload OM Chat", and `fixture.html?surface=conversation-qol` showed tabs **To-dos 4 / Bookmarks / Members / Pins** with "Audit the launch copy". **Limitations:** `lens=agents` (fixture crash), reconcile, read-only, doc Vim, select-all, `:w`, proposals and `/chat/` were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 20).
+
+**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist", and `doc=server&docState=history` showed **Version history** at `9`. **Limitations:** The panel filter, full page, `lens=agents` (fixture crash), reconcile, read-only, doc Vim, select-all, `:w`, proposals and import/export/trash/move/restore were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 25). Previous record: 2026-10-26 at `5820fbea`.

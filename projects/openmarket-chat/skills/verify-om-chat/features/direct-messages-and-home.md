@@ -138,6 +138,25 @@ agent-browser find role button click --name "Add someone"   # dialog "Add to gro
 
 `addGroupDmMember` and rename resolve to INERT no-ops, so a save proves nothing. The `/chat/` fixture has no **OM chatters** seed. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 20-21).
 
+### New DM, Create or join a server, Getting started (added 2026-10-28)
+
+- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:746`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:229`, `:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4459`); `NewDmModal` is used only from `Modals.tsx` and `QuickSwitcher.tsx`. The sidebar DMs header `+` (**New message**, `Sidebar.tsx:4676`) was not found by name on `?view=room`. Starting the DM needs the daemon-pair lane.
+- **Create or join a server:** the rail button **Create or join a server** (`Shell.tsx:4116`) opens a dialog named **Create or Join a Server**, with **Create a server** and **Join with invite link** (`Modals.tsx:119-160`). **Create a server** moves to **Create your server**, with **Server name**, **Back** and **Create server**. Creating a server, and the channel, topic and doc modals, were not driven.
+- **Getting started checklist:** the checklist shows only for an enrolled account or a first-run candidate with zero spaces and zero DMs (`HomeHub.tsx:620-624`, `:283`), and the fixture always has spaces. Seed it in the browser before loading Home:
+
+  ```bash
+  agent-browser eval 'localStorage.setItem("om.chat.gettingStarted", JSON.stringify({enrolled:true}))'
+  agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=home&alerts=quiet')"
+  # heading #getting-started-title "Getting started", "1 of 5 complete":
+  # Join or create a server (done), Send your first message (Open a room),
+  # Follow someone (Follow), Try the quick switcher (Open), Invite your agent (Learn how)
+  agent-browser eval 'localStorage.removeItem("om.chat.gettingStarted")'
+  ```
+
+  The key is sticky, like `message=cozy`, so remove it afterwards. The dismiss control is **Dismiss getting started**. "Start here" is a different surface: the `<h2>Start here</h2>` in Browse channels (`BrowseChannels.tsx:432`) shows only on a first run with no subscribed channels (`:257`, `:269`), and no fixture seeds that. `WelcomeToChat` needs zero spaces (`HomeHub.tsx:612`), and no seed gives that either.
+
+Verified 2026-10-28 at `2dd7aad1` on `/rooms/` and `/chat/` (nightly maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 10-12, 44).
+
 ## Gotchas
 
 - **Home renders one `<h1>` on desktop**, the unread summary
@@ -205,4 +224,6 @@ agent-browser find role button click --name "Add someone"   # dialog "Add to gro
 
 ### Verification record
 
-**Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home`; `view=dm` landed on `#/dm/ana` with 2 rows. **Limitations:** Connections, requests, `view=public`, the Blocked tab (fixture crash), presence and a real catalog were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 21). Previous record: 2026-10-26 at `5820fbea`.
+**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home`; `view=dm` landed on `#/dm/ana` with 2 rows; `dm=OM%20chatters` gave `#/dm/OM%20chatters`. **Rename group** opened **Rename group**, and **Add someone** opened **Add to group**. New DM, Create or join a server and the Getting started checklist rendered on both hosts (section above). **Limitations:** Connections, requests, `view=public`, the Blocked tab (fixture crash), presence, a real catalog and every create or send effect were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 10-12, 14, 44).
+
+**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home`; `view=dm` landed on `#/dm/ana` with 2 rows. **Limitations:** Connections, requests, `view=public`, the Blocked tab (fixture crash), presence and a real catalog were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 21). Previous record: 2026-10-26 at `5820fbea`.
