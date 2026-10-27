@@ -222,8 +222,8 @@ Three harnesses, and they reach different parts.
 
 | Route | State |
 |---|---|
-| `shell-fixture.html?view=agent` | Your om — **only** the not-running empty state |
-| `shell-fixture.html?view=agent&omSessions=drafts` | Local Research A/B draft seed. A fresh browser session on the source lane shows the not-running gate; one 2026-10-27 session reached the rail (see [your-om-drafts.md](your-om-drafts.md)) |
+| `shell-fixture.html?view=agent` | Your om — the not-running empty state, unless `/healthz*` is stubbed (see Gotchas) |
+| `shell-fixture.html?view=agent&omSessions=drafts` | Local Research A/B draft seed. Reaches the rail reproducibly with the `**/healthz*` route stub (see [your-om-drafts.md](your-om-drafts.md)) |
 | `shell-fixture.html?view=agent&omSessions=daemon` | Real `OmSessionState` adapter for a daemon-served lane; it does not bypass presence or provide watch data |
 | `shell-fixture.html?view=agents` | The Agents page: h1 **Roster**, fleet cards, **+ Wire an agent**. The roster section (creator, Your agents) is not mounted here |
 | `shell-fixture.html?view=agent&panel=voice` | Agents → `#/agents/voice`, "Voice" / "Current", mocked and loaded |
@@ -278,20 +278,23 @@ real one. Match the sentence-case string, or a screenshot, never the caps.
 
 ## Gotchas
 
-- **No query parameter bypasses the running-om gate.** `?view=agent` renders the empty
+- **No quer- **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
   state — `h1` *"om isn't running"*, *"No recent daemon snapshot is available on
-  this device"* on this lane. The fixture now has two distinct session modes:
-  `omSessions=drafts` seeds Research A/B locally, while `omSessions=daemon`
-  wires real session-list/history operations. Neither fakes `presence.running`,
-  which still comes from `fetchOmHealth()`. The shell fixture can seed adapter
-  behavior but cannot reliably show a running om without a daemon-served origin.
-  On 2026-10-27 one browser session on the source lane did pass the gate with
-  `omSessions=drafts` (frames 33-37 of `vomc-nightly-20261027/r01`). Fresh
-  sessions and replays of the same page sequence did not, `/healthz` answered
-  404 throughout, and no storage key was found, so the trigger is unknown. Do
-  not plan a proof on it. Watches
-  additionally need daemon watch RPCs and QA watch data.
-- **On `/rooms/`, persona is unreachable from a `view=agents` page load — by any control,
+  this device"* on this lane. The gate is `presence.running === false`
+  (`ChatPane.tsx:517`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
+  reads any 4xx except 429, or a non-JSON 200, as down. The fixture has two
+  session modes: `omSessions=drafts` seeds Research A/B locally, and
+  `omSessions=daemon` wires real session-list/history operations. Neither fakes
+  `presence.running`. Stub it in the browser instead: `agent-browser network
+  route "**/healthz*" --body '<health JSON>'` before the first open (the exact
+  body is in [your-om-drafts.md](your-om-drafts.md)). The `*` also covers the
+  `/healthz?lite=1` poll, which otherwise 404s and drops the gate about 30 s in.
+  Proved on 2026-10-27 (maintenance re-drive). The single nightly session that
+  passed without a stub was the `running === null` window, before the first
+  poll answer or while the tab is hidden (`ChatPane.tsx:270`). Do not plan a
+  proof on that window. The stub answers health only, so Watches still need
+  daemon watch RPCs and QA watch data, and unread still needs daemon events.
+oms/`, persona is unreachable from a `view=agents` page load — by any control,
   not just the old query.** (On `/chat/` the same Voice click reaches the hosted
   page and reads the desk-offline copy; see
   [persona-setup-and-editing.md](persona-setup-and-editing.md).) The fixture decides whether to mock persona

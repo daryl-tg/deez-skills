@@ -59,6 +59,7 @@ interaction end to end.
   transition. Since `06ee56bd` the dialog also closes on **browser Back**:
   `SettingsShell.tsx:192` calls `useOverlayHistoryDismiss`
   (`packages/chat-ui/src/lib/overlay-history.ts`), so Esc is no longer the only dismissal path.
+- The **Grammar & shortcuts** modal (`ShortcutsModal.tsx`; keymap `mod+/`, `lib/keymap.ts:145`), the **Log Out** confirmation, and the server **Invites** page's invite-link dialog (`InviteLinkDialog.tsx`).
 
 ## How to get to it (user POV)
 
@@ -130,6 +131,14 @@ agent-browser find role radio    click --name "Moss palette"
 agent-browser find role radio    click --name "Iris accent"
 agent-browser find role tab      click --name "Direct message"   # preview toggle, NOT density
 ```
+
+### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
+
+- **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4513`), so real logout stays pending.
+- **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
+
+Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
 
 ## Gotchas
 

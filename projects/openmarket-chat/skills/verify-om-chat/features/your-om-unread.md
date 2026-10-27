@@ -32,4 +32,4 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last attempted:** 2026-10-27 at `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main): `?view=agent&omSessions=daemon` on a fresh browser session stopped at "om isn’t running" (`/healthz` 404) with no session rail. That is the reachability limit, not a proof. **Live verification pending.** It needs an isolated daemon origin with a real AgentRuntime, and the local parity services were not used. Last real verification: none on main. Previous attempt: 2026-10-26 at `5820fbea`.
+**Last attempted:** 2026-10-27 at `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). Without a stub, `?view=agent&omSessions=daemon` stopped at "om isn’t running" (`/healthz` 404). The `**/healthz*` route stub from [your-om-drafts.md](your-om-drafts.md) now passes that gate. It does not help here, though: unread needs `conversation_updated` events and read cursors from a real AgentRuntime, which a stubbed health answer cannot supply. **Live verification pending.** It needs an isolated daemon origin with a real AgentRuntime. Last real verification: none on main.

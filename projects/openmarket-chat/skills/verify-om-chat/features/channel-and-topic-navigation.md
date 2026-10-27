@@ -70,6 +70,7 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   navigation** holding the `nav` **Workspaces, agents and people**, which no
   longer carries `role="toolbar"` (`Shell.tsx:3746`, `:3755`; `01bf4481`). Locate the rail
   by those names, not by a toolbar role.
+- Message deep links (`#/room/<name>/msg/<seq>`) jump to and flash the message; the **New topic** draft pane (`TopicDraftPane.tsx`, `panel=topic-draft`).
 
 ## How to get to it (user POV)
 
@@ -127,6 +128,13 @@ agent-browser snapshot -c | grep -i textbox             # "Message #ops" -> "Mes
 
 The composer's accessible name is the side effect worth capturing: it proves
 the navigation retargeted the *write* path, not only the read pane.
+
+### Message deep link and New topic pane (added 2026-10-27)
+
+- **Deep link:** load `shell-fixture.html?alerts=quiet#/room/ops/msg/105` with the hash present **at load**; the fixture only seeds a hash when it is empty (`shell-fixture.tsx:2408`). Afterwards `document.documentElement.dataset.messageJump` is `"105"` and the hash is rewritten to `#/room/ops`. On `/chat/`, `messageJump` was also `"105"` but the hash came back empty. An unknown seq should toast "Message link: that message is gone" (`src/lib/routing.ts:607-609`); that was not driven. Push-tap delivery needs the daemon-served rig.
+- **New topic pane:** `shell-fixture.html?view=room&alerts=quiet&panel=topic-draft` mounts an aside named **New topic**. Creating the topic was not driven.
+
+Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 25).
 
 ## Gotchas
 

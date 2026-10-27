@@ -14,7 +14,15 @@ Open Your om and choose a recent conversation. Type without sending, choose anot
 
 ## Driving it with control-om-chat
 
-Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts` through an isolated daemon origin proxying that lane. The fixture seeds Research A/B at `shell-fixture.tsx:2449-2467` and binds local session switching/creation at `:2748-2800`. These are local synthetic threads, but the running-om presence gate still applies: direct source-lane access shows only "om isn't running".
+Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2449-2467` and binds local session switching/creation at `:2748-2800`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:517` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
+
+```bash
+agent-browser network route "**/healthz*" --body '{"uptime_seconds":120,"pid":1,"version":"fixture","started_at":"2026-10-27T00:00:00Z","booting":false,"stalls":[],"channels":[],"loops":[]}'
+```
+
+The trailing `*` matters: the pane also polls `/healthz?lite=1`, which `**/healthz` does not match, and that 404 flips the gate to not-running about 30 s after load. `agent-browser network unroute` removes the stub. This proves the UI under a healthy-om answer; it is not a daemon.
+
+The composer's accessible name is `Message ✦ om`, but the textarea has no `aria-label`, so `type 'textarea[aria-label=…]'` fails. Fill it by role: `agent-browser find role textbox fill "<text>" --name "Message ✦ om"`.
 
 The fixture seeds `Research A` and `Research B` buttons and real Composer/AgentThread components. Type distinct text in the `Message ✦ om` textbox, switch via those buttons, and assert the textarea's exact value after each switch. Open `New session`, assert its visible textbox is empty, type new text, press Enter, and verify `New research` contains that exact text. Return to A and B to verify their drafts survived. Repeat session selection through mobile `Open om conversations` at 390px.
 
@@ -23,7 +31,8 @@ Capture paired screenshots and accessibility snapshots. During the new-session l
 ## Gotchas
 
 - This fixture seeds session selection and captures sends locally. It proves composer ownership and the real UI transitions; it does not prove daemon conversation persistence, model execution, or remote delivery.
-- The daemon origin supplies presence for Your om. Direct standalone fixture access may show the not-running surface.
+- The daemon origin supplies presence for Your om. On the bare vite lane the gate is a race: `running` starts `null`, so the rail renders until the first `/healthz` answer, and `poll()` returns early while `document.visibilityState === "hidden"` (`ChatPane.tsx:270`). A background tab therefore stays in the null state and shows the rail. That is why one nightly session passed the gate and replays did not. Use the `**/healthz*` route stub above instead of relying on it.
+- The `/chat/` shell fixture seeds om presence as running (its `?view=agent` lands on "your om running" with no stub) but has no `omSessions` seed, so the A/B draft recipe is `/rooms/`-only.
 - Private `om:` drafts deliberately do not persist across reload. Test session switches within one app instance; public room/DM/topic draft persistence follows a separate contract.
 - New-session preparation changes the active session before sending. Its draft owner must remain stable through that async transition.
 - Read both draft storage identity and conversation transition identity when diagnosing carry. Fixing only one leaves either shared storage or a textbox that never swaps.
@@ -37,4 +46,4 @@ Capture paired screenshots and accessibility snapshots. During the new-session l
 
 ### Verification record
 
-**Last verified (partial):** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** In one browser session on the source lane, `?view=agent&omSessions=drafts` passed the running-om gate and showed the rail (**New session**, **Watches**, **Research A**, **Research B**, "your om running") and the `Message ✦ om` composer. Typing into A, switching to B (empty), typing into B and returning to A restored "draft for A nightly", and B kept "draft for B nightly". **New session** showed an empty `.om-new-session-landing textarea`. At 390×844, **Open om conversations** switching kept the drafts, with no horizontal overflow. **Limitations:** Reachability is not reliable: fresh browser sessions and replays of the same page sequence all stopped at "om isn’t running" (`/healthz` 404), and the trigger was not identified. The new-session send landed in Research A (fixture gap above). Daemon persistence, model execution and delivery are not proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 33-36). Previous attempt: 2026-10-26 at `5820fbea` (gate only).
+**Last verified:** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` with the `**/healthz*` stub, the gate held for 76 s of polling (`/healthz` and `/healthz?lite=1` both 200). Research A took "draft for A maint"; B opened empty and took "draft for B maint"; A restored its text, and so did B. **New session** showed an empty `.om-new-session-landing textarea`, and A still held its draft afterwards. At 390×844, **Open om conversations** → **Research B** restored B's draft with no horizontal overflow. **Limitations:** The new-session send was not re-driven, and the fixture gap above still applies. Daemon persistence, model execution and delivery are not proved. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 01-05). Previous record: 2026-10-27 nightly (one session, reachability not reproducible), `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` frames 33-36.

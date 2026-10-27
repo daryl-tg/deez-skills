@@ -15,6 +15,7 @@ conversation, and the friends surfaces that feed it.
   empty states.
 - The public-channel browse board.
 - Inbox and message search openers — **mobile only**, see Gotchas.
+- Rename a group DM, and add a mutual connection to it (`RenameGroupDmModal.tsx`, `AddGroupMemberModal.tsx`).
 
 ## How to get to it (user POV)
 
@@ -122,6 +123,20 @@ agent-browser snapshot -c | grep -i textbox      # composer retargets to "Messag
 
 The DM header's presence string (`"A Online ana"`) is a real side effect of the
 seeded presence state — a good second observation alongside the route.
+
+### Group DM rename and add (added 2026-10-27)
+
+The shell fixture seeds a group DM named **OM chatters**, owned by the viewer `u1` (`shell-fixture.tsx:2037-2043`).
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=dm&dm=OM%20chatters&alerts=quiet')"
+agent-browser find title "Rename group" click          # header button; dialog "Rename group"
+agent-browser snapshot -i -c                             # textbox "Group name" (value "OM chatters"), "Save"
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=dm&dm=OM%20chatters&alerts=quiet&panel=members')"
+agent-browser find role button click --name "Add someone"   # dialog "Add to group", textbox "Search mutual connections"
+```
+
+`addGroupDmMember` and rename resolve to INERT no-ops, so a save proves nothing. The `/chat/` fixture has no **OM chatters** seed. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 20-21).
 
 ## Gotchas
 

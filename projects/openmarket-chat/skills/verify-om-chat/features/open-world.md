@@ -91,7 +91,7 @@ against a perfectly healthy rig. Use `.world-status` for liveness instead.
 
 **`.world-chat` and `.world-chat-empty` are gone.** The string *"Create a
 #world channel to talk here"* appears nowhere in the source; only an orphaned
-`.world-chat-empty` rule survives in `world.css:208`, which is why a grep for
+`.world-chat-empty` rule survives in `world.css:213`, which is why a grep for
 the class still finds something. The unbound state now reads **"No #world
 channel"** inside `.world-conversation`, beside a **Hide** control — `#960`
 removed its Expand button as redundant, so a recipe that clicks Expand now

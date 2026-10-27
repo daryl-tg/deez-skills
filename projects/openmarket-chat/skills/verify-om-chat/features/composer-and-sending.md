@@ -89,6 +89,7 @@ Read the gotchas for where the line now falls.
   mode. Escape belongs to Vim, so it no longer cancels a reply. Touch screens
   (coarse pointer) never get Vim. With the setting off none of this renders,
   and Enter and Escape behave as before.
+- The GIF picker: **Choose emoji or GIF** → **GIFs** opens dialog **Choose a GIF** with **Search KLIPY**; `?view=gif` is a standalone sizing harness.
 
 ## How to get to it (user POV)
 
@@ -215,6 +216,10 @@ removes it, which is the control. Verified on `/rooms/` and on the `/chat/`
 cloud fixture, which share the same Vim behavior (the `/chat/` route is
 path-based: `/chat/room/ops`).
 
+### GIF picker (added 2026-10-27)
+
+In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4483-4501`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
+
 ## Gotchas
 
 - **The composer is no longer read-only, and the two banners are gone.** For a
@@ -319,5 +324,7 @@ path-based: `/chat/room/ops`).
   bisecting a pinned bundle.
 
 ### Verification record
+
+**Last verified (Vim mode):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?view=settings&settingsPage=shortcuts` switch **Vim mode** set `om.chat.vimMode` to `"true"`. In `Message #ops`, `.composer-vim-mode[data-vim-mode]` read `insert`. After typing "hello world" and Escape it read `normal`, `0` `d` showed `.composer-vim-pending` "d", and `w` left "world". The key was cleared afterwards. **Limitations:** Enter-to-send in insert mode, doc `:q`, touch and IME were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 16).
 
 **Last verified:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/`, a composer send from the `Message #ops · $ for markets · /chart to post one` textbox appended `msg-ops-117`, and the composer cleared. The seeded room video went poster (`Play …`) → player with Buffering → compact video file card with Download. **Limitations:** Vim mode, reply Escape, delivery, recovery, draft durability, staging, touch, IME, pref sync, the roster-gated `@` rows and `/chat/` sends were not driven this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 01, 14, 43-44). Previous record: 2026-10-26 at `5820fbea`.

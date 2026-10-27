@@ -62,6 +62,7 @@ captioning it as the lens.
 Archive renders `data-home-library-archive` (`LibraryView.tsx:8706`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
 `data-home-archived-doc={docId}` (`:8756`).
+- Import a folder into Your Library (`ImportFolderModal.tsx`; `homeImport=open`), and the conversation To-dos panel (`TodosPanel.tsx`).
 
 ## How to get to it (user POV)
 
@@ -117,6 +118,13 @@ writes `localStorage["om.chat.libraryList"]` and the `else` branch at
 `:134-135` removes it, so the next load without the parameter clears it;
 measured live: `flat`, then `null`), `?note=long|wrapped`, and
 `?libraryState=error` (`:4208`, applied only while the active view is library).
+
+### Import folder and the To-dos panel (added 2026-10-27)
+
+- **Import folder:** `shell-fixture.html?view=home&alerts=quiet&homeImport=open` opens dialog **Import folder into Your Library** on `/rooms/`. On `/chat/` the same URL showed no dialog. `import=<phase>` (`shell-fixture.tsx:4157`) seeds later phases, which were not driven.
+- **To-dos panel:** the shell's `?panel=todos` crashes into the lazy-surface error **Todos could not load** with **Try again** and **Reload OM Chat** (`[data-lazy-surface-error="Todos"]`) on both hosts. The roster `members` seed has no `role`, and `TodosPanel.tsx:154` calls `member.role.toLocaleLowerCase()`. This is a fixture gap. The panel itself renders on the component gallery instead: `fixture.html?surface=conversation-qol` shows tabs **To-dos 4 / Bookmarks / Members / Pins**, the seeded row "Audit the launch copy" and **Add a to-do**. Promote (`todoPromote: null`) has no seed.
+
+Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 28-30).
 
 ## Doc pane states (`doc=server`)
 
@@ -202,7 +210,7 @@ artefact, not a failure.
   exactly `"Archived"` and a `Refresh` button: zero rows, no message, no
   failure text, and it stays that way. `session.archivedDocs` and
   `session.restoreDoc` are **not stubbed anywhere in the fixture**, so
-  `LibraryView.tsx:8693`'s `await session.archivedDocs(homeSpaceId)` resolves
+  `LibraryView.tsx:8702`'s `await session.archivedDocs(homeSpaceId)` resolves
   through the `INERT` proxy, which **answers instead of throwing**. `INERT`'s
   iterator is an empty generator, so the list renders empty and the `catch`
   never runs.
