@@ -2,6 +2,8 @@
 
 *Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: create (`lane-lifecycle-probe`, one `inbound` source, `spec_version 3`), list STATUS `steps judging paused · no model to run the AI filter on · om init`, then `working` after `accept_all`. Pause/resume printed slug lines and flipped `spec.enabled`, the card read `Lane Lifecycle Probe · paused`, and remove printed `history deleted (0 rows); journal files kept`. `event-journal list` kept the removed watch with `watch_id: null`, `journal-stats` counted one `live` row and `chapters` was empty. **`event-journal search pushed --format json` is now driven**: it returned `{query, total, results[{slug, file, matches}], newest_story_at, live_fetch}` with the pushed line in `matches`, while `total` read 0. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
+*Second-pass record: 2026-10-27, tree `8fe6a8432`, lane on 18143.* Re-driven: create → `accept_all` → `event push` (event `16ea1ec5ef28…`), with `watch_committed`/`watch_appended`/`watch_fired` on `/events/v1`. Also re-driven: the journal text, `watch list` `working`, pause/show/resume, `journal-stats`, `chapters`, `event-journal list`, and the door push (202, `578da9324d9c…`) with a rotated token. Maintenance verbs were added above. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261027/r1/` (`pending-rows.txt`).
+
 Watches are the alert engine's unit of work: a label, one or more sources, a
 classifier, and somewhere for the fires to go. A user creates one, lists what
 exists, reads one in detail, edits it, pauses and resumes it, and removes it.
@@ -22,6 +24,7 @@ whole lifecycle is provable on a guest lane.
 - `watch-edit` changes goal, group, filters, classifier mode and caps.
 - `watch-pause` / `watch-resume` stop and restart a watch and its sources.
 - `watch-remove` deletes a watch and its sources.
+- Guest-reachable maintenance verbs on a healthy watch: `retry`, `repair`, `source add/remove`, `unjudged`, the execute reads, the `/rpc/v1/watch/overview` roster; plus the refusals of `repair --rearm`, `lane retry`, `reclassify`, `backtest` and `arm-confirm`.
 
 ## How to get to it (user POV)
 
@@ -133,6 +136,30 @@ Preconditions:
   with `developments_folded: 0` on a fresh watch. Chapters need a summary
   fold, which needs a model. `event-journal search <query>` exists
   (`om event-journal search --help`) but was not driven.
+
+### Maintenance verbs on a guest lane (added 2026-10-27)
+
+Seed one timer watch with `control-om om -- watch create demo --every 1h --format json`, which needs no account or LLM. Then:
+
+| Call | Observed |
+|---|---|
+| `watch retry demo --format json` | status receipt, `status:"working"` |
+| `watch repair demo --format json` | `conditions:[]`, `repaired:[]`, `reseeded:[]`, `rearmed:[]`, `status:"working"` |
+| `watch repair demo --rearm` | exit 2: "watch 'demo' has no condition source; rearm re-arms a condition's evaluation" |
+| `watch lane retry demo` | exit 2: "Event watch 'demo' has no live stream lane, so there is nothing to retry." |
+| `watch unjudged --days 1 --format json` | `{"days":1,"since":…,"unjudged":[]}` |
+| `watch reclassify demo --format json` | exit 2 `watch_reclassify_daemon_running` (the check runs before the watch lookup) |
+| `watch source add demo --source every:2h --name t2 --format json`, then `watch source remove demo t2 --yes` | spec gains, then drops, source `t2` |
+| `execute history demo --format json` / `execute summary --format json` / `execute list` | `{"receipts":[]}`, a zeroed summary, "No execution receipts." |
+| `watch execute history demo` | `No money step on watch "demo". Nothing has executed for it.` |
+| `execute digest list` | `unknown command 'digest'`; the digest's CLI door is unresolved |
+| `backtest spec --format json` | exit 2 `invalid_backtest_spec_input` (needs `strategy_slug`, `candidate` or `wrun_strategy`) |
+| `backtest run nope --format json` | exit 2 `backtest_target_not_found`, listing the saved watches |
+| `POST /rpc/v1/watch/overview` `{}` | `{"ok":true,"data":{"daemon":…,"watches":[…]}}` |
+| `POST /rpc/v1/watch/resolve-attention` `{"issue_id":"x"}` | 409 `attention_changed` |
+| `POST /rpc/v1/watch/arm-confirm` with an unknown token | 400 `approval_expired` |
+
+These prove the verbs answer and refuse correctly on a healthy watch. They do not prove repairing a broken watch, a real backtest, or an approval.
 
 ## Gotchas
 

@@ -2,6 +2,8 @@
 
 *Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.466.0 with no stdout leak. `tools/list` returned 451 tools including `watch_list` and `order_place`, and `package_search`'s kind enum now includes `agent-plugin`. `watch_list` ran with no error. `order_place` (Hyperliquid, quote 10) was refused, but with **`capital_yolo_harness`, not `capital_not_armed`**, because this nightly session ran under `--permission-mode bypassPermissions` (see Gotchas). Not driven: hosted HTTP, `--catalog operator`, `--session merged`, `om mcp arm` and the fire bridge. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
+*Second-pass record: 2026-10-27, tree `8fe6a8432`, lane on 18143.* Hosted MCP over loopback HTTP was driven as above. The stdio handshake was re-driven (`openmarket` 0.466.0, 451 tools). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261027/r1/` (`pending-rows.txt`).
+
 An MCP client (Claude Desktop, Cursor, a coding agent) launches `om mcp serve
 --stdio` and gets the same registered actions the CLI and chat use, under the
 same schemas. Reads run directly. A call that moves capital is refused unless
@@ -18,6 +20,7 @@ mid-call never places an order on its own.
   naming `om mcp arm`, before the handler can reach a venue.
 - `mcp-validation`: invalid arguments come back as one compact `invalid_arguments`
   line (`Schema validation failed: <path>: <msg>`), not the SDK's verbose error.
+- Hosted MCP over loopback HTTP (`om mcp serve --http 127.0.0.1:<port>`): the same capability layer on `POST /mcp`, unauthenticated on loopback unless `OM_LOOPBACK_AUTH=1`.
 
 ## How to get to it (user POV)
 
@@ -52,6 +55,28 @@ home rather than the operator's.
 - **Proof.** Keep the transcript of the four responses. A tiny Bun script that
   spawns the wrapper and matches responses by `id` is enough; the shape to copy
   is `packages/cli/test/mcp-inspector-smoke.test.ts` in the product repo.
+
+### Hosted MCP over loopback HTTP (added 2026-10-27)
+
+```bash
+nohup control-om om -- mcp serve --http 127.0.0.1:<agent-port> > .control-om/mcp-http-<port>.log 2>&1 &
+curl -s -X POST http://127.0.0.1:<port>/mcp -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"t","version":"0"}}}'
+```
+
+Responses are SSE-framed (`data: {...}`), so strip `data: ` before parsing. In this pass no `mcp-session-id` header came back, and calls worked without one.
+
+- `initialize` returned `serverInfo` `openmarket` 0.466.0, `notifications/initialized` answered 202, and `tools/list` returned **441** tools. That is fewer than stdio's 451 on the same lane; the difference was not traced.
+- `GET /mcp` answered 405, and any other path answered 404.
+- **Memory round trip** (the actions are MCP-only apart from `om memory list`):
+  - `memory_save` with `{"slug":"preference-maint-probe","type":"preference",...}` returned the record.
+  - `memory_search` found it, and `om memory list --format json` listed it.
+  - `memory_forget` returned `forgotten: true` with no approval card, and the list was empty again.
+  - The slug prefix must match the type: `type:"user"` requires slug `user`, otherwise the call fails with `memory_invalid_slug`.
+- `watching_overview` returned the daemon and watches block. `watch_feedback` on a timer watch refused with `watch_feedback_not_openfeed`.
+
+**Teardown trap:** killing the backgrounded `control-om om --` pid leaves its `bun packages/cli/src/bootstrap.ts mcp serve --http …` child running with PPID 1, still holding the port. Check `lsof -nP -iTCP:<port> -sTCP:LISTEN` and kill that child by pid.
 
 ## Gotchas
 

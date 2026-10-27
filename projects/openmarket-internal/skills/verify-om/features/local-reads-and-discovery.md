@@ -2,6 +2,8 @@
 
 *Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: `config show` (`api_key_set`, a masked key), `config key-info` (`om_guest`, not expired) and `config get data.transport` (`source default`, `default auto`). `notis --since 7d` returned `fire` and `notice` rows. `enum --list` returned 26 domains, `enum --domain exchange_id --query BIN --limit 3` returned `total 3`, `schema read` returned 7 intents and `skill list` printed the bundled skills. `wrun list` returned `{packages, skipped}`, and **`wrun templates` returned 91, down from 97**: `5a03ffb43` removed six option recipes. Not driven: `config set`, `notis --after`, `schema read <intent>`, `skill show`, `wrun create`/`build` and `vault status`. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
 
+*Second-pass record: 2026-10-27, tree `8fe6a8432`, lane on 18143.* Re-driven: `enum --list`, `config show` (`api_key_set` true from the lane's own guest `credentials.json`), `wrun list`, `schema read`. Series, plans and secrets status were added above. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261027/r1/` (`pending-rows.txt`).
+
 The questions a user asks the install itself rather than the market: which key
 is in use and when it expires, what a setting is and where its value comes from,
 what the daemon has already told me, which values a flag accepts, which bundled
@@ -20,6 +22,7 @@ bundled constants. None needs an account or a model.
 - `skill-list`: the bundled skill files.
 - `wrun-list` / `wrun-templates`: installed indicator packages and scaffold
   templates.
+- Local series authoring (`om series create|list|show`), the plan table (`om upgrade --show`, `om usage plans`) and the sealed-secrets status read (`GET /secrets/status`).
 
 ## How to get to it (user POV)
 
@@ -52,6 +55,18 @@ decode.
   with `id`, `version` and `wasmSha256`. `wrun templates` returns `templates[]`.
 - **Proof.** Keep each command, its JSON and its exit code. Redact nothing: none
   of these prints a secret, which is itself the assertion for `config show`.
+
+### Series, plans and secrets status (added 2026-10-27)
+
+- **Series:**
+  - `series list` on a fresh lane returns `{"series":[]}`.
+  - `series create s1 --watch <watch> --key v --scope local --format json` creates `@local/s1` with version 0.1.0 and `rows: 0`. `list` and `show` then read it back.
+  - `series publish s1 --dry-run` exits 2 with `publish_rejected`: "the registry refused the pack: kind 'live-series' is not accepted by the v1 registry". So the dry run does reach the registry, using the lane's guest key.
+- **Plans:**
+  - `upgrade --show --format json` is static: the guest note is "Guest keys (no sign-in) get 600 weight per 60s window and 7 days of history…", followed by the plan list.
+  - `usage plans --format json` returns `{"providers":[]}`.
+  - `subscriptions --format json` exits 1 with `account_required`.
+- **Secrets status:** `GET /secrets/status` returns 200 `{"ok":true,"data":{"userId":"guest_…","readiness":"unminted","hasRecoveryBlob":false,"recoveryUnavailable":true,"alarms":[]}}`. It is not a 401, because the lane mints its own guest key.
 
 ## Gotchas
 
