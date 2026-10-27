@@ -1,6 +1,6 @@
 # Daemon lifecycle and health
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lanes on 18103 and 18104: `/healthz` 0.466.0, `auth: guest`, `last_error: null`, `exits_unmanaged: []`, `om_home` ending `/accounts/guest`, plus the new `memory`, `slow_sql: []` and `roster` keys. `?lite=1` was still exactly `pid`, `stalls`, `started_at`, `version`. Doctor ran 14 checks: binary, llm and agent_wiring warned, and contracts and stream were ok. `status` and `service status` (the INACTIVE Loops) were as mapped. The new profiler RPC answered 409 `not_started`, 400 `bad_request`, 200 on `start`, and samples on `stacks`. Not driven: the boot-time guest-mint failure, the 503 branch and a real slow statement (`OM_DB_SLOW_MS`). Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lanes on 18103 and 18104. `/healthz` returned 0.466.0, `auth: guest`, `last_error: null` and `exits_unmanaged: []`, with `om_home` ending `/accounts/guest` and the `memory`, `slow_sql: []` and `roster` keys. Doctor ran 14 checks: binary, llm and agent_wiring warned, and contracts and stream were ok. `status` and `service status` showed the INACTIVE Loops, including `paper-exits INACTIVE (no open paper lots)`. `logs --limit 5` printed the empty-file line. The profiler answered 409, 400 and 200; a second `start` returned the first `started_at` with `already: false` again. The wrapper refused `service install` (exit 1), and `~/Library/LaunchAgents` was unchanged. The lane log now carries the `[roster] om-skills defaults unavailable … retrying in Ns` ERROR (see Gotchas). Not driven: `?lite=1`, the boot-time guest-mint failure, the 503 branch, a real slow statement and the `counters.symbol_directory_*` keys (#2173, which need `OM_DATA_TRANSPORT=v3` on `up`). Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 The daemon is the product's spine: it boots, serves its HTTP doors, ticks, and
 reports what it is doing. A user starts it (`om run` in the foreground, or
@@ -156,6 +156,7 @@ Preconditions:
 - `[library] could not read the saved watches: registry answered 403` repeats
   every minute in the lane log. That is the guest session failing an
   authenticated registry read, not a fault in the change under test.
+- `[roster] om-skills defaults unavailable (registry lookup failed (404) … @om-skills/argue …); retrying in 30s` (then 60, 120 and so on, up to 30 min) is an ERROR on every fresh lane while the production registry does not list the default agents (driven 2026-10-28). `[roster-watcher] … room discovery failed` and `[roster-todo] roster todo rooms unavailable` repeat every 20 s on a guest. Neither is a fault in the change under test. See [agent creator](./agent-creator-lifecycle.md) for the install path.
 - The boot log prints the bind from `OM_BIND`, but the `run` command's own
   `--help` text still says `:31337`. The text is a default, not what this lane
   is serving.

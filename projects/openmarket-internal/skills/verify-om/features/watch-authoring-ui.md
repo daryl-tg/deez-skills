@@ -1,6 +1,6 @@
 # Watch authoring and management in the dashboard
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18104 with the loopback switch: `Create watch` opened `Create a watch` with eight kinds. RSS led through `Set up a feed` and `Review your watch` / `RSS or Atom feed` to `/alerts/ui-authored-feed`, and `watch list` read `paused never`. On the paused watch, the detail page showed `Resume`, `Edit watch`, the `Watch sections` buttons, `Start when you are ready`, `Sources and schedules` (`127.0.0.1` with `Edit source`) and `Connected steps`. History set `?tab=history` with `Events and step answers` / `What it kept` / `All sources`. Not driven: batch actions and the post-resume Setup state. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), fresh lane on 18104 with the loopback switch and the stub on 18111. `Create watch` opened `Create a watch` with the same eight kinds. RSS led through `Set up a feed` (Name, Feed address, `Which updates should count?`) and `Review your watch` / `RSS or Atom feed` to `/alerts/ui-authored-feed`. The detail page showed `Fetch now`, `Resume`, `Edit watch`, the four `Watch sections` buttons, `Start when you are ready` with `Review and resume`, `Sources and schedules` (`127.0.0.1` with `Edit source`, `Pause source` and `Remove source 127.0.0.1`) and `Connected steps` with `Add step`. `watch show` read `enabled: false` with a card `UI authored feed · paused`. `watch list` read `not read yet`, under a `syncing your watches from your account · 0 so far` header (see the confirm step). After `watch resume`, `requests.log` showed `ok GET /rss` at the resume and every minute after. Not driven: batch actions and the History filters (unchanged in source). Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 Since v0.400.0 a user can create a watch from the dashboard instead of the CLI.
 `Create watch` on `/alerts` opens a dialog that asks what to watch, collects the
@@ -51,12 +51,20 @@ Preconditions:
 - **Create.** Press `Create watch`. The dialog closes and the new watch's
   detail page opens. Return to `/alerts` to find it in the list.
 - **Confirm on the other surface.** `control-om om -- watch list` shows the new
-  watch under its slug with status `paused` — the UI and the CLI are writing the
-  same store. Driven: a watch named `UI authored feed` appeared as
-  `ui-authored-feed  1 source  paused  never`.
+  watch under its slug, so the UI and the CLI are writing the same store.
+  **Assert the pause on `watch show`, not on the list's STATUS cell.**
+  `watch show <slug> --format json` carries `spec.enabled: false` and a card
+  opening `<label> · paused`. The list's cell is `paused` only when no account
+  watch-sync is in flight. On 2026-10-27 it read `ui-authored-feed  1 source
+  paused  never`. On 2026-10-28 it read `not read yet`, under a header
+  `syncing your watches from your account · 0 so far`, while the JSON chip
+  still said `paused`. This is the transient sync indicator that
+  [watch lifecycle](./watch-lifecycle-cli.md) explains.
 - **Confirm it actually works.** `control-om om -- watch resume <slug>`, wait a
-  poll interval, and the stub's request log shows `ok GET /rss` — the authored
-  watch polls like any other.
+  poll interval, and the stub's `requests.log` (in the stub's working
+  directory, not its stdout) shows `ok GET /rss`. The authored watch polls like
+  any other. Once it is resumed, a guest's list row reads `summary stopped: the
+  credential was refused`, because the UI-authored feed carries a summary step.
 - **Proof.** Keep the review-step and post-create snapshots, the `watch list`
   output, and the stub log lines that follow the resume.
 

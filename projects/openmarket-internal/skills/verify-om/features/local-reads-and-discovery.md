@@ -1,6 +1,6 @@
 # Local reads and discovery
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: `config show` (`api_key_set`, a masked key), `config key-info` (`om_guest`, not expired) and `config get data.transport` (`source default`, `default auto`). `notis --since 7d` returned `fire` and `notice` rows. `enum --list` returned 26 domains, `enum --domain exchange_id --query BIN --limit 3` returned `total 3`, `schema read` returned 7 intents and `skill list` printed the bundled skills. `wrun list` returned `{packages, skipped}`, and **`wrun templates` returned 91, down from 97**: `5a03ffb43` removed six option recipes. Not driven: `config set`, `notis --after`, `schema read <intent>`, `skill show`, `wrun create`/`build` and `vault status`. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. Re-driven: `config show` (`api_key_set`, a masked key), `config key-info` (`om_guest`, not expired), `config get data.transport` (`source default`, `default auto`), `notis --since 7d` (`notice` and `fire` rows), `enum --list` (26 domains), `schema read` (7 intents), `skill list`, `wrun list` (`@om-core/accumulate` at 0.1.3) and `wrun templates` (still 91). Newly driven: the guest-lane reads below (approvals, nervous, follows, relay, research study, away). Not re-driven: series, plans and secrets status (2026-10-27). Not driven: `config set`, `notis --after`, `schema read <intent>`, `skill show`, `wrun create`/`build` and `vault status`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 *Second-pass record: 2026-10-27, tree `8fe6a8432`, lane on 18143.* Re-driven: `enum --list`, `config show` (`api_key_set` true from the lane's own guest `credentials.json`), `wrun list`, `schema read`. Series, plans and secrets status were added above. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261027/r1/` (`pending-rows.txt`).
 
@@ -67,6 +67,29 @@ decode.
   - `usage plans --format json` returns `{"providers":[]}`.
   - `subscriptions --format json` exits 1 with `account_required`.
 - **Secrets status:** `GET /secrets/status` returns 200 `{"ok":true,"data":{"userId":"guest_…","readiness":"unminted","hasRecoveryBlob":false,"recoveryUnavailable":true,"alarms":[]}}`. It is not a 401, because the lane mints its own guest key.
+
+### Guest-lane reads (added 2026-10-28)
+
+All were driven on a fresh guest lane at `a8fa10974`. Each answers or refuses
+with no account:
+
+| Call | Observed |
+|---|---|
+| `approvals list` / `--format json` | `No pending approvals.` / `[]`; `GET /rpc/v1/approvals` returned `{"ok":true,"data":{"approvals":[]}}` |
+| `nervous status --format json` | `{enabled:true, dailyBudgetPerSender:null, receipts:[…]}`. After an ingest fire it held a `watch_fired` receipt reading `no canvas resolved for (no symbol), stayed a notification` |
+| `follows --format json` | `{follows:[], summary:{… total:0}}` |
+| `follows show @nobody/nothing` | exit 2 `not_following` |
+| `relay trace @nobody/nothing` | exit 2 `relay_ref_unknown` (hint: `om watch list names the shares and the follows.`) |
+| `relay trace 'not-a-ref!!'` | exit 2 `relay_ref_invalid` |
+| `research study --watch <inbound-watch> --locate-only --format json` | `{watch, time_basis:"observed_at", occurrences:[…]}`, with no candle fetch |
+| `research study --watch nope --locate-only` | exit 2 `watch_not_found` |
+| `curl $(control-om url /api/away)` (and `/api/away/coverage`) | 401 `operator_required`: "Away access requires operator proof." |
+
+The away reads need the daemon GUI's per-boot session cookie, or a configured
+runner or desktop token, even on loopback. `/api/away/policy` is a `POST`. Do
+not drive `approvals approve|deny`, `follow review`, `research search-files` or
+`research make-image` from a lane: they need a human terminal or spend on a
+model.
 
 ## Gotchas
 

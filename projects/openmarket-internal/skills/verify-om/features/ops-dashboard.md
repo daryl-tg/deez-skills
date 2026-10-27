@@ -1,6 +1,6 @@
 # The ops dashboard
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lanes on 18103 and 18104: the Main navigation (nine links), `Your market, in view.`, `Watch activity`, `Workspace` with `Restart daemon`, and Watches at `/alerts` with the filter chips (`All watches 2`, `Enabled 2`, `Paused 0`, `Needs attention 1`), search, Folder and rows. The headings on `/news`, `/strategies`, `/channels`, `/venues`, `/receipts` and `/connections` were as mapped, and Connections was read-only. `/strategies/does-not-exist` again alternated between the 404 text and `Loading…` on a ~12 s cycle. Not re-driven: the fresh-lane onboarding block (both lanes already had watches), `/agent` and `/paper`. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), fresh lane on 18104. The Overview showed `Your market, in view.`, the onboarding block (`Welcome to OpenMarket`, `Dismiss welcome`, `Create your first watch`, `More setup options ▸`), `Watch activity` with `See all`, `Workspace` with `Restart daemon`, and the nine-link `Main navigation`. `Watches` → `/alerts` showed `Create watch`, the filter chips (`All watches 1`, `Enabled 1`, `Paused 0`, `Needs attention 1`), the search box, `Folder` and a row with `Pause`. The other routes' headings matched: `/news` (columns `AGE`/`HEADLINE`/`WATCH`/`OUTCOME`; `WATCH`/`GOAL`/`STATE`/`LAST ACCEPTED`), `/strategies`, `/channels` (`Connect webhook`), `/venues` and `/receipts` (`No receipts in the last 24 hours.`). `/connections` was read only: Claude Code, Codex and Claude Desktop `Installed, not connected`; Cursor and OpenClaw `Not detected on this machine`. `/strategies/does-not-exist` still flickered, with `Loading…` at 12 s and 24 s over 30 s of 3 s samples, and `money/show` returned 404 `money_not_found`. `apps/dashboard/src` is unchanged since `8fe6a8432`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 The daemon serves a React SPA at `/`. It **used** to be a read-leaning window
 onto daemon state; since v0.400.0 it also authors watches and embeds an agent
@@ -102,7 +102,7 @@ Preconditions:
   read every 3 s, `main` showed `No strategy named does-not-exist. Back to
   Strategies.` at 3, 6 and 9 s, `Loading…` at 12 s, the 404 text at 15 to 21 s,
   and `Loading…` again at 25 s. The ~12 s cadence looks like a refetch
-  clearing the error state, but the cause is not isolated. `POST
+  clearing the error state, but the cause is not isolated. The README's product-gap entry has a source hypothesis: a 3 s poll plus `retry: 1` resetting a no-data query to pending. `POST
   /rpc/v1/money/show` answers 404 `money_not_found` every time. The cycle
   explains 2026-10-23's slow `Loading…`, but not 2026-10-22's `Unavailable.`
   (a third branch, not seen since), with `apps/dashboard/src` unchanged across

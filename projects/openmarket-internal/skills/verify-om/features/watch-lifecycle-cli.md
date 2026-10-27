@@ -1,6 +1,6 @@
 # Watch lifecycle from the CLI
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: create (`lane-lifecycle-probe`, one `inbound` source, `spec_version 3`), list STATUS `steps judging paused · no model to run the AI filter on · om init`, then `working` after `accept_all`. Pause/resume printed slug lines and flipped `spec.enabled`, the card read `Lane Lifecycle Probe · paused`, and remove printed `history deleted (0 rows); journal files kept`. `event-journal list` kept the removed watch with `watch_id: null`, `journal-stats` counted one `live` row and `chapters` was empty. **`event-journal search pushed --format json` is now driven**: it returned `{query, total, results[{slug, file, matches}], newest_story_at, live_fetch}` with the pushed line in `matches`, while `total` read 0. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. The guide's whole sequence was driven: `create --inbound`, `edit --classifier-mode accept_all --label "Lane Lifecycle Probe"` (the result carries the new label), `list`, and `pause`, which printed `Paused event watch lane-lifecycle (lane-lifecycle)`. `watch show` gave `enabled false` with a card `Lane Lifecycle Probe · paused`. The list then read `paused`, since no sync was in flight on this lane. After that came `resume`, `history --kind level` (`No event-watch events`) and `remove --yes` (`history deleted (0 rows); journal files kept`). The journal reads were `event-journal list`, `journal-stats` (`accepted_total 2`) and empty `chapters`. Every row of the maintenance-verb table matched again, with exit 2 on `repair --rearm`, `lane retry` and `backtest`, and exit 1 on `execute digest list`. `watch create --label` is refused (see Pause and resume). Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 *Second-pass record: 2026-10-27, tree `8fe6a8432`, lane on 18143.* Re-driven: create → `accept_all` → `event push` (event `16ea1ec5ef28…`), with `watch_committed`/`watch_appended`/`watch_fired` on `/events/v1`. Also re-driven: the journal text, `watch list` `working`, pause/show/resume, `journal-stats`, `chapters`, `event-journal list`, and the door push (202, `578da9324d9c…`) with a rotated token. Maintenance verbs were added above. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261027/r1/` (`pending-rows.txt`).
 
@@ -90,7 +90,9 @@ Preconditions:
 - **Pause and resume.** Run `control-om om -- watch pause lane-lifecycle`. It
   prints `Paused event watch <id> (<slug>)` — **the parenthesised name is the
   SLUG, not the label** (`renderPaused`/`renderResumed` in `cmd/watch-engine-verbs.ts`). Use a label
-  that differs from its slug or the distinction stays invisible: label
+  that differs from its slug or the distinction stays invisible. Set it with
+  `watch edit <slug> --label "<label>"`, because `watch create … --label`
+  exits with `invalid_input` ("--label describe[s] a step"). Label
   `Lane Lifecycle Probe` prints
   `Paused event watch lane-lifecycle-probe (lane-lifecycle-probe)`. **Assert the
   pause on `watch show`, not on `watch list`**: `watch show <id> --format json`

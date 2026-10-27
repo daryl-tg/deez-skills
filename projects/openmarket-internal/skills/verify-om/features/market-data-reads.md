@@ -1,6 +1,6 @@
 # Market data reads
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: doctor `api_key`/`network` were ok. `enum` included `exchanges`, `types` and `intervals`. `exchanges --format json` returned `{exchanges, refusedTypes, unselectable}`, and `coins` returned `{coins}`. `points` returned one `series` entry of `{id, points}`, and `--type OHLCV` gave `is not a valid value`. Not re-driven this pass: `instruments` and `option-chain` (driven 2026-10-26 at `ee8e3a7ab`; no data-read source changed since). Not driven: the typed-door `HISTORICAL_RETURN`/`TOKEN_UNLOCKS` reads. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. `enum` returned the live lists. `coins` returned `{coins}`, and `exchanges` returned `{exchanges, refusedTypes, unselectable}` with 48 venues, including `LIGHTER`, `VARIATIONAL` and `VARIATIONAL_SWAP`. `points` returned one `series` of `{Point}` elements, and `--type OHLCV` gave `is not a valid value` (exit 2). With `OM_DATA_TRANSPORT=v3`: `instruments BINANCE BTCUSDT --limit 3` returned `{exchange, arm:"crypto", rows}`, `option-chain DERIBIT BTC --neighbor-strikes 1` returned `expiries`, and `exchanges` returned 30 venues. Newly driven: `resolve BTC`, `metric list`/`get`/`series`/`screen` and `markets` (see Resolve, metrics and markets). `tenors` returned `server_error` 500 three times. Not driven: the typed-door reads (fx/index candles, ETF flow, FRED) and the daemon's `counters.symbol_directory_*`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,
@@ -58,6 +58,27 @@ Preconditions:
   that pins a close is a test that fails tomorrow for the wrong reason. Assert
   the envelope, the id echo, the point count against the lookback, and that
   timestamps ascend.
+- **Resolve, metrics and markets** (driven 2026-10-28, guest lane):
+  - `control-om om -- resolve BTC --format json` binds `{venue:"hyperliquid",
+    exchange_id:"HYPERLIQUID_FUTURES", match:"exact"}` with order
+    `constraints`.
+  - `metric list --metric rsi --format json` is a local registry read
+    (`package @om-core/rsi`).
+  - `metric get --metric rsi --symbol BTCUSDT --exchange BINANCE --interval 1h
+    --format json` returns `values[{ok, value, data_age_seconds}]`.
+    `metric series … --bars 3` returns `series` as `[epoch, value]` pairs.
+    **These take `--symbol`, not `--raw-symbol`** (`points` takes
+    `--raw-symbol`), and leaving it out fails as `required option '--symbol
+    <sym>'`.
+  - `metric screen --metric rsi --top-n 3 --by VOLUME_24H --exchange
+    BINANCE_FUTURES --interval 1h --format json` returns `universe`, `scanned`
+    and `rows`. It needs `--exchange`, and `--by` takes the upper-case field
+    (`volume24h` fails as `universe.by: Invalid input`).
+  - `markets --symbol-filter BTC --page-size 3 --format json` returns
+    `symbols[]` with 24 h fields. `--exchange LIGHTER` also returns rows (see
+    Gotchas).
+  - `tenors` answered `server_error` (500) on 2026-10-28, a service fault, so
+    its shape stays unproven.
 - **Proof.** Keep the exact command and the JSON (truncated to the first point
   or two is fine, but keep the full `id` block) plus the exit code.
 
@@ -105,6 +126,15 @@ Preconditions:
   1` returned `expiries`. Per source (`runner/v2/url.ts`), a home that sets
   `OM_BASE_URL` without `OM_DATA_V3_URL` resolves no v3 endpoint and falls back
   to the same refusal. #2114 changed only the signed-in path.
+- **The `exchange_id` domain is narrower than `om exchanges`** (driven
+  2026-10-28). On `auto`, `exchanges` listed 48 venues. `enum --list`
+  reported `exchange_id` with 35, and `enum --domain exchange_id --query
+  LIGHTER` gave `total: 0`. The CLI `markets --exchange LIGHTER` returned rows,
+  but MCP `markets` with `exchanges:["LIGHTER"]` was refused with
+  `"LIGHTER" is not a valid exchange_id`. This is a product gap (README). Do
+  not take a venue from `exchanges` into an MCP call without checking the
+  domain. Under `OM_DATA_TRANSPORT=v3`, `exchanges` returned 30 venues, and
+  #2173 makes it refetch a cached directory that has no venue classes.
 - **Enum discovery has two more forms.** `om enum --list` is the domain index
   (`domains[]` with `name`, `count`, `dynamic`, `sample`). `om enum --domain
   exchange_id --query BIN --limit 3` pages one domain (`total`, `offset`,

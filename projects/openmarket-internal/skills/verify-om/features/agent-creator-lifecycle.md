@@ -1,6 +1,6 @@
 # Agent creator lifecycle and private-state isolation
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103, guest, no `OM_DEV` on the lane. `/healthz` `roster.capabilities` listed executors `coding`/`investigate`, delivery modes `chat-post`/`vault-doc`/`branch` and the operations list. `OM_DEV=1 om agent runs` returned `{"ok":true,"result":{"items":[],"next":null}}`. The refusals were `not_found` (proof, pause, cancel, `roster retry`, `project unlink`) and `malformed_body` (`agent runs --proof`). `roster list` printed only its header, and `roster measures` printed zeroed measures. `agent eval nobody` printed `Expected one installed agent named nobody; found 0.` `GET /rpc/v1/roster/projects` and `/instances` returned empty `items`. Not driven on main: create/import, Try, install, publish/adopt, runs, plan approval, steer, delivery, and every GUI step. They need an installed agent, an LLM credential or coding brain, and an account.*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103, guest, no `OM_DEV` on the lane. The guest-lane recipe below gave the same results as on 2026-10-27: empty `agent runs`, the `not_found`/`malformed_body` refusals, header-only `roster list`, zeroed `roster measures`, `agent eval nobody` → `found 0`, and empty `/rpc/v1/roster/projects` and `/instances`. New on this tree (#2167/#2169): the default agents install from `@om-skills` registry packages after boot. Production answered 404 for `@om-skills/argue`, and the lane log showed the retry doubling 30, 60, 120, 240 and 480 s. Not driven: a successful default install (no registry lists the packages yet), create/import, Try, install, publish/adopt, runs, plan approval, steer, delivery, and every GUI step. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 > **On main since `b50ca927d` (#1948), v0.465.0.** The daemon mechanisms now
 > live in `packages/roster/` (moved from `packages/cli/src/runner/roster`).
@@ -18,6 +18,7 @@ The daemon owns release, installation and account state. Shared text packages ha
 
 ## Sub-features
 
+- Install the eight default agents and skills (argue, debugger, explain, fact-check, feature, librarian, agent-builder, clanker) from `@om-skills` registry packages, live behind a notice, in the background after boot; keep them current every six hours and honour a registry withdrawal (#2167). The signed bundled snapshot is gone (#2169).
 - Stage supported definitions/skill directories, review provenance, omissions and access, and approve shadow installation.
 - Run private Try without durable conversation, memory, run or delivery writes.
 - Publish authenticated server versions without publisher-private state; adopt as a separate user and pin the reviewed digest.
@@ -54,7 +55,7 @@ OM_DEV=1 control-om om -- agent runs                 # {"ok":true,"result":{"ite
 OM_DEV=1 control-om om -- agent runs run_x --proof   # not_found "Work proof was not found.", exit 1
 OM_DEV=1 control-om om -- agent runs --proof         # malformed_body "Run read command is invalid.", exit 1
 OM_DEV=1 control-om om -- agent pause nope           # not_found "Work run was not found.", exit 1 (cancel likewise)
-OM_DEV=1 control-om om -- roster list                # header NAME ORIGIN VERSION BRAIN, no rows
+OM_DEV=1 control-om om -- roster list                # header NAME ORIGIN VERSION BRAIN; rows only for defaults that installed (none while the registry lists no @om-skills)
 OM_DEV=1 control-om om -- roster measures            # zeroed queueLatencyMs, orphanRate, spendUsd, ...
 OM_DEV=1 control-om om -- project unlink nope        # not_found "Project was not found.", exit 1
 curl -fsS "$(control-om url /rpc/v1/roster/projects)" # {"ok":true,"result":{"items":[]}}
@@ -66,6 +67,34 @@ Create/import, Try and install are HTTP routes the GUI calls (`imports/*`,
 and `POST .../plan/decision`. Anything past a refusal needs an installed agent,
 an LLM credential or coding brain, and an account. `roster drive --once` and
 `roster conformance` are a fake-brain dev harness, not product proof.
+
+### Default agents from `@om-skills` (driven 2026-10-28)
+
+After the roster starts, a background pass installs any of the eight
+`@om-skills/*` defaults the home lacks. It runs for a guest too, because a
+minted guest key resolves to an owner. Before the mint lands, the reason is
+`no owner is signed in`. Boot and `/healthz` never wait on this pass, and
+`/healthz` `roster` is still `{capabilities}` with no install state. Read
+the lane log:
+
+```sh
+grep '\[roster\] om-skills' .control-om/lane-<port>.log
+```
+
+- **Production, 2026-10-28:** `ERROR [roster] om-skills defaults unavailable
+  (registry lookup failed (404) for https://registry.openmarket.xyz/v1/packages/%40om-skills/argue/summary:
+  no such resource); retrying in 30s`, then 60, 120, 240 and 480 s (the cap
+  is 30 min). `roster list` stays header-only.
+- **Success line, per source:** `om-skills defaults installed N package(s)`.
+  A permanent refusal reads `om-skills default <coord> refused (<code>)` and is
+  not retried. A 403, 404 or 5xx is retried; only a 410 or a suspension is
+  permanent.
+- **Another registry (per source; not driven):** `OM_ROSTER_REGISTRY_URL` is read by the daemon, so pass
+  it on `up` (`--env`), not on the CLI call. Plain `http` is accepted only on a
+  loopback host. It falls back to production, not to `OM_REGISTRY_URL`.
+  `OM_ROSTER_OM_SKILLS_MAINTAIN_MS` (minimum 1000) shortens the six-hour
+  maintenance pass on a source lane.
+- The old `bundled snapshot installed N package(s)` line no longer exists.
 
 ### Historical branch closeout (not re-driven on main)
 

@@ -1,6 +1,6 @@
 # Paper trading accounts
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18103: `create` without `--yes` was refused with `confirmation_required`. With `--yes` it returned `verify-book`, cash 1000 and `desk: off`. `ls` rows carried the eight fields, and `paper list` suggested `ls`. The Paper tab showed the intro, six columns, the `verify-book` row and the empty equity, lots and decisions blocks. Not re-driven: `set`, `log` and `reset` (driven 2026-10-26). Not driven: `open`, `close`, `reset-all`, `digest` and the `target` money mode. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. `paper create verify-book` without `--yes` exited 2 `confirmation_required`; with it, it returned `{account:{id:"pa_…", cash:1000}, desk:"off"}`. `paper ls` returned the eight mapped fields, and `paper list` failed `unknown command 'list'; did you mean 'ls'?`. Newly driven: `paper show verify-book`, which returned `account` (with `generation`, `venue`, `holds`), `rules` and `lots: []`. The Paper tab showed the explanatory paragraph, the six columns and the row, plus `No equity recorded yet`, `No open lots.` and an empty Decisions table. Not driven: open, close, reset-all, digest, and the #2176 resting stop/limit on a lot (needs a target step). Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 A paper account is pretend money held locally: no venue, no credentials, no real
 order ever placed. A user opens one from the CLI, and it shows up in the
@@ -33,6 +33,15 @@ credential, no venue.
   `id`, `name`, `cash`, `starting_cash`, `open_lots`, `open_stakes`,
   `open_value`, `realized_pnl`. **The verb is `ls`, not `list`** — `om paper
   list` fails with `unknown command 'list'; did you mean 'ls'?`.
+- **Show one book.** `control-om om -- paper show verify-book --format json`
+  returns `account` (`id`, `name`, `cash`, `starting_cash`, `generation`,
+  `venue`, `holds`), `rules` (`ticket 25`, `ticket_cap 50`, `entries_per_day
+  4`, `open_stakes 250`, `one_position_per_market`), `lots: []` and `desk`
+  (driven 2026-10-28). Each lot carries its `exit`. Since #2176, a target
+  step rests the package's nearest closing stop and limit there
+  (`{"sl_price", "tp_price"}`), and the `paper-exits` loop fills them when the
+  mark crosses. That needs a target step, which a guest lane cannot drive (see
+  README).
 - **Cross-check the other surface.** Open `control-om url /strategies`, click
   `tab "Paper"`, and assert the table: a paragraph reading
   `Pretend money on local paper accounts. Nothing here is a venue account.`

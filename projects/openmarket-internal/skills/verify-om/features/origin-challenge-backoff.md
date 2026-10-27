@@ -1,6 +1,6 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-27, tree `8fe6a8432` (origin/main, v0.466.0), lane on 18104 with `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000` and the stub on 18111. `page-add --prefer feed --every 60s` returned `feed_created`, and the feed polled `ok GET /rss` every 60 s. The flip produced one daemon `challenge GET /rss` (02:01:08.357Z) and the lane line `reopen held until 2026-10-27T02:16:08.815Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` read `reconnecting`, `reconnect_count 0` and a `cooldown`. `watch show` gave `FAULT … feed 127.0.0.1: Origin stub: 127.0.0.1 is challenging this machine since … · Firecrawl can read it for you` (the row now carries the feed title) and `FIX om setup firecrawl`. The daemon then stayed silent for 15 minutes; the one other challenged request, at 02:01:39, was this run's own CLI `page-add` probe. With the stub flipped back to `ok` before the window ended, the daemon made exactly one `ok GET /rss` at 02:16:08.831Z, and the lane logged `reopened after the window`. `/healthz` lagged about 40 s, then read `open` with `cooldown` null, and the challenge sentence was gone from `watch show`. Not driven: a still-challenged probe at `until` and the doubling. Previous stamp `ee8e3a7ab` is an ancestor of this tree (15 commits).*
+*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18104 with `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000` and the stub on 18111, polled by a dashboard-authored feed (`ui-authored-feed`). After the flip, the daemon made one `challenge GET /rss` (19:24:05.818Z) and logged `reopen held until 2026-10-27T19:39:05.910Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` read `reconnecting`, `reconnect_count 0` and a `cooldown`. Newly driven, with the stub left challenged: exactly one probe at `until` (19:39:05.917Z), then a doubled hold `until 20:09:06.046Z`. The stub was flipped to `ok` before that window ended. There was exactly one `ok GET /rss` at 20:09:06.068Z, the lane logged `reopened after the window`, and `/healthz` read `open`, `cooldown null` and `reconnect_count 0`. `watch show` then read `source working` with no challenge sentence. **12 minutes into the first hold, the status rows no longer named the challenge** (Step 3, and a product gap in the README). Not driven: a 429 `Retry-After`, the AWS WAF and 405 shapes, and the 6 h cap. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -129,8 +129,27 @@ Steps:
    - **The offered fix changed.** The cooldown branch now returns
      `om setup firecrawl` where it used to return `om watch run now <slug>`. A
      recipe asserting the old fix string fails.
+   - **Read these rows early in the hold.** Once the held source is past its
+     expected interval, the staleness row displaces the challenge row. Driven
+     2026-10-28 on a dashboard-authored feed, 12 minutes into the hold:
+     - `watch show` FAULT read `source broken · 127.0.0.1`.
+     - The source row and `watch list` read `not checked since <time> ·
+       expected every 1 min · om watch run now <slug>`.
+     - The dashboard detail page read `broken · expected every 1 min`.
+     - Only the `Error:` / `Cause:` lines still carried `127.0.0.1 is
+       challenging this machine`.
+     This is a product gap (README). Assert the challenge sentence in the
+     first minutes of the hold, or on `Error:`, and do not take a missing
+     Firecrawl offer later in the hold as drift.
 4. Proof of the probe: at `until` (15 min after the challenge, plus jitter)
-   exactly one more `challenge GET /rss`, then silence again.
+   exactly one more `challenge GET /rss`, then silence again. **The window then
+   doubles.** Driven 2026-10-28 with the stub left challenged: the hold opened
+   at 19:24:05.825Z `until 19:39:05.910Z`. The stub logged exactly one
+   `challenge GET /rss` at 19:39:05.917Z, and the lane logged `reopen held until
+   2026-10-27T20:09:06.046Z: 127.0.0.1 is challenging this machine; next try …`.
+   That is 30 minutes, double the first window. A separate CLI cooldown,
+   recorded by a `page-add` probe of another loopback port at 19:35:50 (`next
+   try 19:50:51`), did not delay this stream's probe.
 5. Flip the mode file back to `ok` before the next `until`. Proof of recovery:
    one `ok GET /rss` at `until`, the lane log line ending `reopened after the
    window` (stream-id prefixed like the hold line), the held article fetches
