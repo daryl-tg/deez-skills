@@ -13,7 +13,10 @@ query `editor`, row `super-search-result-panels:Editor-btn`, label
 `Script Editor`) gave a non-inert drawer reading `No script open`, with
 `kscript-run-btn`, `kscript-close-editor-btn`, no `kscript-save-btn`, no
 template picker, and one `.cm-editor` that ignored typing; the Panels `editor`
-row raised the `script-editor` wall.
+row raised the `script-editor` wall. Re-driven 2026-10-29 on `78ec9625d9`, same
+lane and session, with the same result: the `editor` row opened one
+`.cm-editor` with no wall, pressed `x` and `y` left it empty, and the Panels
+`editor` row raised `script-editor`.
 WRUN launch-box/ring, Pine conversion, Kata hand-offs, and AI provenance remain
 authenticated coverage obligations.
 
@@ -220,6 +223,12 @@ Preconditions:
   2026-10-28: `.cm-content` carried `contenteditable="true"`, yet focusing it and
   pressing `x` and `y` left the document empty with no wall. The read-only state
   is CodeMirror's, not the attribute, so prove it by typing and reading the text.
+  **Read the text after a beat, not straight after the input.** Driven
+  2026-10-29: `document.execCommand('insertText', false, 'ZZZ')` on the focused
+  `.cm-content`, read in the same eval, showed `ZZZ` in the DOM; a read one
+  second later showed the document empty again, because CodeMirror reverts the
+  DOM edit it refuses. A same-tick read reports a guest edit that never
+  happened.
 - **OPRA data in user scripts is no longer flag-gated (source, `61f23cdf65`).**
   The `opra-user-scripts` flag is retired:
   `packages/wrun-chart-host/src/utility/chart/opra-user-scripts-gate.util.ts`

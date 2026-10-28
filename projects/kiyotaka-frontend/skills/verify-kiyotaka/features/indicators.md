@@ -3,20 +3,23 @@
 A user adds an indicator from the Indicators dialog; it mounts as an overlay with
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
-interest) or kScript-backed. This entry was last DRIVEN on 2026-10-28 against
-product tree `29c9cda0a2` (`origin/main`), lane `18103`, a guest lane with no JWT
-whose `.env.local` proxies to the operator's remote backend. All five
-sub-features were driven: the dialog opened on its store landing (`See all
-241`), `RSI` listed `Official 4` / `Community 12`, a guest row Add raised the
-`indicators` wall with `metadata` unchanged, a programmatic `BITCOIN_DOMINANCE`
-add mounted in 51 ms with the counter at `2/3`, and the legend's settings,
-visibility and close controls all worked on it. Also driven: an
-`OPEN_INTEREST_PROFILE` on BINANCE.F ETHUSDT whose settings carry the new
-`Display` section (`Display mode` reads `Net`), and the chartless `?wrunRef=`
-package link, which a guest meets as the `indicators` wall. The Pine paste
-offer, the paid and Mine tabs, a real cap REFUSAL (the dialog path, so a
-signed-in session), the `Split` display option, and the window doors of the
-built-in options indicators were not driven.
+interest) or kScript-backed. This entry was last DRIVEN on 2026-10-29 against
+product tree `78ec9625d9` (`origin/main`), lane `18103`, a guest lane with no JWT
+whose `.env.local` proxies to the operator's remote backend. Driven: the dialog
+on its store landing (`See all 241`, tabs `popular, trending, new, paid`) with
+the restyled Ask block and its hide and show controls, a programmatic
+`BITCOIN_DOMINANCE` add (it mounted, the counter read `2/3`, and its pane drew
+367 rows at 1h), and its settings card, whose rows now explain themselves
+(`setting-term` labels and a hover card). Earlier, 2026-10-28 on `29c9cda0a2`:
+`RSI` listing `Official 4` / `Community 12`, a guest row Add raising the
+`indicators` wall, the legend's visibility and close controls, the
+`OPEN_INTEREST_PROFILE` `Display` section (`Display mode` reads `Net`), and the
+chartless `?wrunRef=` package link, which a guest meets as the `indicators`
+wall. The Pine paste offer, the paid and Mine tabs, a real cap REFUSAL (the
+dialog path, so a signed-in session), the `Split` display option, the Options
+Heatmap's new node-size and ink sliders and its dealer-flow basis (OPRA or CME
+options data, signed-in), and the window doors of the built-in options
+indicators were not driven.
 
 ## Sub-features
 
@@ -212,9 +215,31 @@ Preconditions:
   (`data-testid=settings-panel`, with `indicator-<slug>-settings` inside, for
   example `indicator-open-interest-profile-settings`). The overlay union
   `.q-dialog, .dialog-style, [role=dialog].open` reads `0` while it is open, so
-  probe `[data-testid=settings-panel]` instead. `Escape` closes it. Since
+  probe `[data-testid=settings-panel]` instead. Close it with
+  `overlay-settings-close-btn`: on 2026-10-29 an `Escape` sent while a
+  `setting-term-card` was up left the panel open. Since
   `a3fde686d1` a frame shows on the click while the settings chunk loads, so
   poll for the card's own fields before you assert them.
+- **Every settings row explains itself — driven 2026-10-29.** Since
+  `899c3b1af2` a row label is a `setting-term` (`src/components/common/SettingTerm.vue`).
+  `BITCOIN_DOMINANCE`'s card carried 10 (`Width`, `Smoothing effect`,
+  `Color mode`, `All intervals`, `Axis label`, `Name label`, ...). Hover one
+  (`find testid setting-term hover` takes the first) and `setting-term-card`
+  opens with the explanation: `Width` read `How thick the line draws, from 1 to
+  10. Every line this indicator draws takes the same width.`
+  `setting-term-learn-more` shows only when a docs origin is configured (absent
+  on the lane) and `setting-term-staff` only for staff (absent). The form's own
+  testids are templated: `indicator-<slug>-settings`,
+  `-section-<group>`, `-<fieldKey>-row`, `-note-<fieldKey>`, `-<toggle>-toggle`.
+  The on and off controls are the app-wide pill since `8b8b211759`:
+  `[role=switch][data-testid=on-off-toggle-btn]` read by `aria-checked` (four on
+  this card).
+- **The Ask block — driven 2026-10-29.** The store landing's
+  `indicator-ask-block` now carries `indicator-ask-promise` (`Nothing is added
+  until you choose`), three `indicator-ask-question-<topic>` buttons
+  (`derivatives`, `order_book`, `delta_cvd`) and `indicator-ask-hide-btn`. Its
+  click left the block with `indicator-ask-show-btn` and no questions; the show
+  button brought all three back.
 - **Open Interest Profile `Display` — driven 2026-10-28.** On BINANCE.F
   ETHUSDT, `addIndicator('OPEN_INTEREST_PROFILE',{},0)` mounted and its settings
   `Source` tab showed a `Display` section: `Display mode` (`Net`), `Bar width`,

@@ -4,16 +4,18 @@ The right-hand cluster of the ticker bar and its `Panels` menu open market
 panels to the right of the chart: Orderbook, Alerts, Objects, the ETF screener,
 the heatmap switch and Options, among others. Some open for a guest and some
 stop at the sign-in wall, and a panel can open with no data when the backend has
-none. Created 2026-10-27; last DRIVEN on 2026-10-28 against product tree
-`29c9cda0a2` (`origin/main`), lane `18103`, a guest lane with no JWT. Driven:
-every one of the 18 guest Panels rows. Orderbook (now with live book levels),
-Tape, Trades and Liquidations, Market Stats, Volume Stats, Liquidity Stats,
-Journal, Objects, the ETF screener and Alerts open with no wall; Scanner,
-Footprint, Chat, News, Watchlist, Editor and Replay raise the wall; plus the
-alert create wall, the heatmap popover and its wall, and the Options button's
-wall. Not driven: any panel's signed-in content, Tape or Trades and
-Liquidations prints (none arrived within 20 s), and the Markets, Events,
-Earnings, Options flow tape and Polymarket panels, which a guest is not offered.
+none. Created 2026-10-27; last DRIVEN on 2026-10-29 against product tree
+`78ec9625d9` (`origin/main`), lane `18103`, a guest lane with no JWT. Driven:
+every one of the 18 guest Panels rows, with the same split as 2026-10-28. ETF
+screener, Orderbook, Tape, Trades and Liquidations, Alerts, Objects, Journal,
+Market Stats, Volume Stats and Liquidity Stats open with no wall. Replay,
+Watchlist, Scanner, News, Chat, Footprint and Editor raise the wall, and the
+`heatmap` row opens nothing. Also driven: Tape prints on BINANCE.F ETHUSDT,
+Orderbook live levels on BINANCE.F SOLUSDT, the heatmap popover's new switch
+and its wall, the Options button's wall, and the alert create wall. Not
+driven: any panel's signed-in content, Trades and Liquidations prints (none in
+10 s), and the Markets, Events, Earnings, Options flow tape and Polymarket
+panels, which a guest is not offered.
 
 ## Sub-features
 
@@ -59,7 +61,9 @@ an open panel.
 - **`rp-orderbook`.** `tb-orderbook-toggle-btn` opened `Orderbook` with
   `Book / Delta / DOM` and no wall. On 2026-10-28 (`tb-panels-row-orderbook`,
   COINBASE BTC-USD) it drew live levels on both sides and an imbalance line
-  (`48.1% bid · 51.9% ask`).
+  (`48.1% bid · 51.9% ask`). Re-driven 2026-10-29 on BINANCE.F SOLUSDT with
+  `tb-orderbook-toggle-btn`: live asks and bids on both sides with amount and
+  total columns, and the mid price with `Spread 0.01 · 0.010%`.
 - **`rp-alerts`.** `tb-alerts-toggle-btn` opened `Alerts` (`Active` and
   `History` tabs, `No alerts yet`). Its handles are `alert-list-search-input`,
   `alert-list-create-btn`, `alert-list-select-mode-btn`,
@@ -76,9 +80,15 @@ an open panel.
   `etf-screener-tab-{overview,performance,flows,dividends,holdings,risk,technicals}-btn`,
   `-add-filter-btn` and `etf-screener-sort-<column>-btn`. The rows come from
   `POST /api/v1/etf/screener`.
-- **`rp-heatmap`.** `tb-heatmap-trigger-btn` opens a `Heatmap` popover with
-  `tb-heatmap-toggle-btn` reading `OFF`. Turning it on as a guest raised the
-  `orderbook-heatmap` wall.
+- **`rp-heatmap`.** `tb-heatmap-trigger-btn` opens a `Heatmap` popover. Since
+  `8b8b211759` its `tb-heatmap-toggle-btn` is the app-wide pill: a
+  `<button role="switch">` read by `aria-checked` (`false`, text `OFF`, driven
+  2026-10-29), and a symbol with no heatmap marks it `aria-disabled="true"`
+  rather than `disabled`. Turning it on as a guest raised the
+  `orderbook-heatmap` wall. A signed-in popover also carries explainer terms
+  and `tb-heatmap-options-settings-btn`, `-denomination-<d>-btn`,
+  `-resolution-{hd,4k}-btn`, `-scheme-*`, `-display-*` and `-shape-*` (source,
+  not driven).
 - **`rp-options`.** `tb-options-btn` (`Options`) was visible to the guest. A
   click raised the `terminal` wall.
 - **`rp-tape`, driven 2026-10-28.** `tb-panels-row-tape` opened `Tape` on
@@ -87,6 +97,14 @@ an open panel.
   `tb-panels-row-tradeAndLiquidations` opened `Trade & Liquidations` on BINANCE
   BTCUSDT, not the chart's COINBASE market, reading `Waiting for trades...` and
   `Waiting for liquidations...` at 5 s. The panels open; prints were not proved.
+  **Re-driven 2026-10-29 on BINANCE.F ETHUSDT: Tape prints arrived.** Within
+  5 s the Tape read `ETHUSDT 132/s` with rows such as `2,361.39 SWEEP 7.2
+  20:18:06`, green and red by side, `SWEEP` tags on aggressive fills. So the
+  empty Tape of 2026-10-28 was the COINBASE BTC-USD market, not the panel.
+  Trades and Liquidations on the same market still read `Waiting for trades...`
+  and `Waiting for liquidations...` after 10 s. Its settings show size
+  thresholds (`TRADES VOLUME 50%`, `THRESHOLDS 4`), so it may list only prints
+  above them. Not proved either way.
 - **`rp-stats`, driven 2026-10-28.** `tb-panels-row-marketStatsPanel`,
   `-volumeStats` and `-liquidityStats` opened `Market Stats`, `Volume Stats` and
   `Liquidity Stats` with no wall. Liquidity Stats drew data

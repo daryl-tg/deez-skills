@@ -4,17 +4,19 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-10-28 against product tree `29c9cda0a2` (`origin/main`),
-lane `18103`, a guest lane with no JWT. Driven: the V2 dialog (v2 22 testids,
-legacy 0), an `ETH` search and a one-click switch to BINANCE.F ETHUSDT (351
-bars), the Equities scope tab, the interval chevron to `5m` (453 bars) and back
-to `1h`, the in-chart interval menu beside the legend, Heikin Ashi and back to
-candle, the layout hover peek and its `multi-chart` wall, the same 18 Panels
-rows, a CRYPTOCAP `BTC.D` main series, the input-method composition guard in the
-search field, and a restore to COINBASE BTC-USD. The hover quick-search opened
-on its own when the pointer rested on the symbol button, but its list was not
-driven. Not driven: the memecoin and Pulse rows (signed-in only) and the third
-interval menu in `ChartArea`.
+was last DRIVEN on 2026-10-29 against product tree `78ec9625d9` (`origin/main`),
+lane `18103`, a guest lane with no JWT. Driven: the V2 dialog (v2 20 testids,
+legacy 0, nine visible tabs with no `HIP-4`), the new Predict tab with its
+venue chips and a Polymarket event picked onto the chart, an `ETHUSDT` search
+and a one-click switch to BINANCE.F ETHUSDT (367 bars, OI and funding), the
+`1m` and `1h` pinned buttons, Heikin Ashi and back to candle, the layout hover
+peek (its sync toggles are now switches) and its `multi-chart` wall, a CRYPTOCAP
+`BTC.D` main series, the hover quick-search list (a pick switched to BINANCE.F
+SOLUSDT), and the input-method guard, whose composing `Escape` no longer closes
+the dialog. Earlier: 2026-10-28 on `29c9cda0a2` (the interval chevron to `5m`,
+the in-chart interval menu beside the legend, the Equities tab). Not driven:
+the memecoin and Pulse rows (signed-in only) and the third interval menu in
+`ChartArea`.
 
 ## Sub-features
 
@@ -37,6 +39,10 @@ interval menu in `ChartArea`.
   search field is left alone until it commits.
 - `sym-cryptocap` a CRYPTOCAP index (`BTC.D`, `TOTAL2`, ...) loads as the main
   series.
+- `sym-predict` the Predict tab lists Polymarket and Hyperliquid HIP-4
+  prediction markets behind venue chips, and a pick charts the event.
+- `sym-quick` hovering the symbol button opens a quick-search list, and a pick
+  switches the symbol without the full dialog.
 
 ## How to get to it (user POV)
 
@@ -49,6 +55,8 @@ interval menu in `ChartArea`.
   `Panels` menu; there is no `⋯` overflow button.
 - Type `BTC.D`, `TOTAL2` or `dominance` in the symbol dialog for a CRYPTOCAP
   index.
+- Open the symbol dialog, click `Predict`, pick a venue chip (All, Polymarket,
+  Hyperliquid) and a market to chart a prediction market.
 - Hover the visible symbol control to open `quick-search-dropdown`; its stable
   input is `quick-search-input` and its full-dialog hand-off is
   `quick-search-advanced-button`. V2 quick-search can expose memecoin/Pulse rows
@@ -65,7 +73,8 @@ Preconditions:
   accessible name is the current market, so a `--name` handle breaks on every
   switch. On the guest lane this is the V2 dialog (see Gotchas): a category tab
   strip (`All`, `Crypto`, `Equities`, `Forex`, `Commodities`, `Indices`,
-  `Predict`, `CME`, `HIP-4`, `Economy`), a Browse rail (`All`, `Hyperliquid`,
+  `Predict`, `CME`, `Economy`; the `HIP-4` tab is gone since `93b3a757c0` and
+  HIP-4 lives under `Predict`), a Browse rail (`All`, `Hyperliquid`,
   `CME Group`, `Tokenized stocks`, `Predictions`), Refine (Exchange, Quote),
   `Compare on chart`, and an Assets column with a Favorites tab
   (`search-v2-assets-tab-favorites-btn`).
@@ -115,6 +124,13 @@ Preconditions:
   `asset-row-Ether Continuous|1-btn` and `asset-row-Ether.fi|1-btn`. Each id kept the name's case and carried a number
   after the bar; none had the lowercased `<name>|<ticker>` form composed above. Click by prefix,
   `[data-testid^=asset-row-Ethereum]`, and fall back to the first `venue-row-` in the rail when the dialog stays open.
+  **Driven 2026-10-29 on `78ec9625d9`:** an `ETHUSDT` query listed
+  `asset-row-Ethereum|1-btn` (`ETH Ethereum · Crypto 2,369.10`) and, second, a
+  bare `asset-row-ETHUSDT|1-btn` (`ETHUSDT ETHUSDT · Crypto`, no price). That
+  second row is NOT the perp: its click charted `BINANCE.O ETH/USDT 31 Oct 2026
+  2,300 Put` (13 bars). Take the `Ethereum` row, which went straight to
+  BINANCE.F ETHUSDT (367 bars) with no rail step, and assert the ticker text
+  after every pick.
 - **Prove the switch reached the engine**, not just the label: poll the candle
   predicate again and read
   `./control-kiyotaka browser eval "(()=>JSON.stringify({title:document.title,bars:window.tc[0].metadata[0].rawData.length}))()"`.
@@ -150,7 +166,11 @@ Preconditions:
   matrix and the SYNC toggles all snapshot as unnamed `generic` nodes. Drive them
   by `data-testid` instead — `tb-layout-entry-2H-btn`, `tb-layout-entry-3x3-btn`,
   `tb-layout-matrix-cell-<col>-<row>-btn`, and up to five sync toggles —
-  `tb-layout-sync-{symbol,interval,crosshair,time,drawings}-btn`; `drawings`
+  `tb-layout-sync-{symbol,interval,crosshair,time,drawings}-btn`, which since
+  `8b8b211759` are `role=switch` pills read by `aria-checked` (driven
+  2026-10-29: `crosshair` `true`, the rest `false`), beside a
+  `tb-layout-sync-one-chart-hint` reading `Sync takes effect once the layout has
+  two or more charts.`; `drawings`
   renders only for a sub-workspace, so a default single-chart boot shows four (the full set is built in
   `src/composables/chart/useMonitorPicker.ts`). The matrix key is
   `${col}-${row}`, zero-indexed and **column-first**: the first row of cells reads
@@ -270,20 +290,62 @@ Preconditions:
   the engine read showing bars reloaded, and a screenshot. Restore the original
   symbol, interval and plot type afterwards.
 
+- **`sym-predict`, driven 2026-10-29 on `78ec9625d9`.** Open the dialog and
+  click the VISIBLE Predict tab (the first DOM match is the hidden twin):
+  `eval "[...document.querySelectorAll('[data-testid=search-v2-category-predictions-btn]')].find(e=>e.offsetParent).click()"`.
+  The venue chips are `intent-filter-predict-venues` holding
+  `intent-filter-predict-venue-{all,polymarket,hyperliquid}-btn` with
+  `aria-pressed` (`All` pressed on open). The chips render only when two or more
+  venues are offered. Rows are `prediction-row-pred:<slug>-btn` with a
+  `prediction-row-favorite-pred:<slug>-btn` star beside each. Polymarket rows
+  carry an event slug
+  (`prediction-row-pred:what-price-will-ethereum-hit-in-october-2026-btn`),
+  HIP-4 rows an outcome id (`prediction-row-pred:o19041-btn`, `ETH above 2,350.9
+  by Oct 29, 06:00 UTC`). The Hyperliquid chip pressed `true` and listed only
+  `o<id>` rows. A Polymarket row click closed the dialog and charted the event:
+  the ticker read `POLYMARKET What price will Ethereum hit in October?`, 101
+  bars, the title `71.0¢ Will Ethereum reach $2,400 in October?`, and the plot
+  head shows `Event view` plus one outcome chip per strike (`↑ 2,400 71.0¢`,
+  `↓ 2,300 46.5¢`, ... `More (10)`). No wall: nothing in the dialog, the row or
+  `src/utility/symbol-selection/prediction-preview.util.ts` is gated. A pick
+  hydrates the full event (bounded 1.5 s) before the chart switches; the list
+  itself comes from the gateway preview (`7d9aa13638`). The query box keeps
+  whatever was typed before, so clear it if the rows look narrowed.
+- **`sym-quick`, driven 2026-10-29 on `78ec9625d9`.** Hover `tb-symbol-info-btn`
+  (with the pointer first moved off it) and `quick-search-dropdown` opens: the
+  placeholder `Change symbol…`, the current-symbol pill
+  `quick-search-current-pill` (`quick-search-current-pill-clear-btn`), the
+  token row `quick-search-token-<id>-btn` (`futures`, `cme`, `usdc`, `forex`,
+  `hl`, `binance`, `spot`, `perp`, `stocks`, `usdt`, `commodities`, `bybit`,
+  `crypto`, then `quick-search-tokens-more-btn`) and the hand-off to the full
+  dialog, `quick-search-advanced-button`. Fill `quick-search-input` and the rows
+  are `quick-search-v2-group-<id>-btn` with an expander
+  `quick-search-v2-expander-<id>-btn`; `SOLUSDT` listed
+  `quick-search-v2-group-crypto:SOL-btn` (`SOLUSDT Solana · Perp +1.24% 13
+  markets`). Its click switched the chart to BINANCE.F SOLUSDT, 250 bars. The
+  dropdown node stays in the DOM after it closes, so assert the switch on the
+  engine and the title, not on the node's absence.
+
 ## Gotchas
 
-- **`sym-ime`, driven 2026-10-28 with synthetic events.** Focus the inner
-  `input` of `symbol-selection-search-input`, dispatch `compositionstart`, set
-  the value to `eth` and dispatch an `input` with `isComposing: true`: the box
-  stays `eth` (no uppercase, no caret reset). A composing `Enter`
-  (`isComposing: true`, `keyCode: 229`) picks nothing and the dialog stays
-  open. `compositionend` plus a plain `input` then uppercases the box to `ETH`
-  once. Source: `aebdcc68da`, `src/utility/dom/ime-composition.util.ts`.
-  **A composing `Escape` still closes the dialog.** The shared
-  `src/components/common/Dialog.vue` keydown handler (`handleDialogKeydown`,
-  about line 955) closes on `Escape` without reading `isComposing`, while the
-  symbol dialog's own handlers skip it. That is a product gap, reported to the
-  operator; it is proved with synthetic events only, not a real input method.
+- **`sym-ime`, driven 2026-10-29 on `78ec9625d9` with synthetic events.** The
+  testid sits on the `INPUT` itself, so dispatch on
+  `document.querySelector('[data-testid=symbol-selection-search-input]')` (there
+  is no inner `input`; a `... input` selector reads `null`). Focus it, dispatch
+  `compositionstart`, set the value to `eth` and dispatch an `input` with
+  `isComposing: true`: the box stays `eth`. A composing `Escape`
+  (`{key:'Escape', code:'Escape', keyCode:229, isComposing:true}`) now leaves the
+  dialog OPEN. `compositionend` plus a plain `input` then uppercases the box to
+  `ETH` once, and a plain `Escape` (`code:'Escape'`, no `isComposing`) closes it.
+  The fix is `f79e403616`: `installImeKeyFilter()` in `src/main.ts` adds a
+  capture-phase `window` keydown filter
+  (`src/utility/dom/ime-key-filter.util.ts`) that stops a composing key before
+  `Dialog.vue`'s `handleDialogKeydown` sees it. **Set `code` on the synthetic
+  event.** The filter returns early when `event.code` is empty, so a composing
+  `Escape` built without `code` still closes the dialog (driven). A real key
+  always carries a `code`, so that is a recipe trap, not a product gap. Earlier:
+  2026-10-28 on `29c9cda0a2`, where the composing `Escape` DID close the dialog.
+  A real input method was never driven.
 - **In-chart interval menu, driven 2026-10-28.** Click the interval chip beside
   the legend symbol (`5m ▾` at about `240,112` on a `1440 900` frame). It opens
   `.csb__dropdown-group` sections (`SECONDS`, `MINUTES`, `HOURS`, `DAYS`) with
@@ -362,9 +424,14 @@ Preconditions:
     "JSON.stringify({v2:document.querySelectorAll('[data-testid^=search-v2-category-]').length,legacy:document.querySelectorAll('[data-testid^=intent-filter-class-]').length})"
   ```
 
-  The v2 category ids are TWELVE — `all`, `crypto`, `memecoins`, `stocks`,
-  `forex`, `commodities`, `indices`, `predictions`, `cme`, `hip4`, `economics`,
-  `options` — but a guest sees TEN — driven live: `all, crypto, stocks, forex, commodities, indices, predictions, cme, hip4, economics`. `memecoins` and `options` are no longer
+  The v2 category tabs are ELEVEN — `all`, `crypto`, `memecoins`, `stocks`,
+  `forex`, `commodities`, `indices`, `predictions`, `cme`, `economics`,
+  `options` (`CATEGORY_ORDER` in `src/constants/symbol-search-v2.constants.ts`
+  plus `cme`, `economics` and `options` pushed in `CategoryStrip.vue`) — but a
+  guest sees NINE — driven 2026-10-29: `All, Crypto, Equities, Forex,
+  Commodities, Indices, Predict, CME, Economy`. `hip4` was removed by
+  `93b3a757c0` and its typed prefix with it; `search-v2-category-hip4-btn` reads
+  `0`. `memecoins` and `options` are no longer
   flag-gated: both now require a signed-in session, so their absence on a guest
   lane is correct rather than drift. v2 itself is structural, not flag-driven:
   the dialog falls back to legacy only when opened from a comparison chart, in
@@ -374,7 +441,7 @@ Preconditions:
   (zero-size rect). Driven 2026-10-27: `querySelector(...).click()` on
   `search-v2-category-stocks-btn` marked the hidden twin selected and the visible
   strip stayed on `All`. The buttons are `role=tab`, labelled by their text
-  (`Equities` for id `stocks`, `Predict` for `predictions`, `HIP-4` for `hip4`,
+  (`Equities` for id `stocks`, `Predict` for `predictions`,
   `Economy` for `economics`), so drive them with
   `find role tab click --name "Equities" --exact`. A `--name` lookup with role
   `button` finds nothing. Proof: the visible `[role=tab][aria-selected=true]` and

@@ -3,15 +3,15 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-10-28 against product tree `29c9cda0a2`
+entry was last DRIVEN on 2026-10-29 against product tree `78ec9625d9`
 (`origin/main`), lane `18103`, a guest lane with the operator's `.env.local`
-linked in and no JWT (`jwtStore` absent). Proven: boot to 250 candles on
-COINBASE BTC-USD 1h with VWAP in about 20 s, a worker console with zero
-worker-death matches, the spot live edge, the perp live edge on BINANCE.F
-ETHUSDT (`24H VOLUME $6.05B`, `OPEN INTEREST $5.57B`, `FUNDING +0.0100%`), and
-the lone-bar wake heal from a 414 s visibility override on 1m: 5 synthesized
-blank slots at the wake, 0 after it. NOT driven: the process-suspend lane and a
-real machine sleep.
+linked in and no JWT. Proven: boot to 250 candles on COINBASE BTC-USD 1h with
+VWAP, a worker console with zero worker-death matches, the spot live edge, the
+perp live edge on BINANCE.F ETHUSDT (`24H VOLUME $6.27B`, `OPEN INTEREST
+$5.65B`, `FUNDING +0.0100%`), and the lone-bar wake heal from a 405 s visibility
+override on BINANCE.F SOLUSDT 1m: 5 synthesized blank slots at the wake, 0 after
+it. Earlier: the same heal on 2026-10-28 on `29c9cda0a2` (COINBASE BTC-USD, 414
+s). NOT driven: the process-suspend lane and a real machine sleep.
 
 ## Sub-features
 
@@ -78,6 +78,21 @@ Preconditions:
   engine read is the side effect; the frame is the only proof pixels arrived.
 
 ## Driving the wake heal
+
+**Re-driven 2026-10-29 on `78ec9625d9`, same recipe.** Guest BINANCE.F
+SOLUSDT 1m with a `BITCOIN_DOMINANCE` pane mounted, lane `18103`. Hidden for 405
+s with the feed silenced; 5 NaN rows from the last real bar (20:24) to a lone
+bar at 20:30. After the visible flip the ring read `lifecycle-hidden-return`
+(`wasHiddenMs 405347`), `lifecycle-wake-emit` (`reason: clock-skew`,
+`outageStartedAt` the hide time), `wake-received`, `wake-token-refreshed`
+(151 ms), `wake-sockets`, `wake-resync-live-drain` (`none`), `wake-resync-pass`
+(`mainStartMs` 20:23, one bar before the last real bar), one
+`wake-resync-overlay-window` per overlay (VWAP `full`, `not-contiguous`;
+`BITCOIN_DOMINANCE` `narrowed`), `main-heal-commit` (`lane: period`,
+`mode: wholesale`, `reason: interior-change`), `wake-resync-awaited` and
+`wake-reconnected`. 78 s after the flip the hole held 0 blank and 5 real bars.
+The commit's `reason` differs run to run (`row-width` on 2026-10-28,
+`interior-change` here); assert the blank count, not the reason.
 
 **Driven 2026-10-28 on `29c9cda0a2`, with the visibility-override recipe
 below.** Guest COINBASE BTC-USD 1m, lane `18103`, headless Chromium. Hidden for
@@ -166,6 +181,13 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   `/chart/`: the title bar's `data:` view loads first).
 
 ## Gotchas
+
+- **The behind-pane catch-up is not the wake heal.** Since `1b9406ba56` a pane
+  that boot left behind a newer saved layout (an indicator's settings differ)
+  is caught up in place by `src/utility/chart/swr-behind-pane-heal.lazy.ts`, with
+  its own counter in the debug dump. It runs at boot reconciliation, not on a
+  wake, so do not read its events as `wake-*` evidence. Source only; it needs a
+  stale saved workspace, which a guest lane does not have.
 
 - **Never edit the lane's tree while a suspended run sleeps.** Vite pushes a
   `page reload` for a `.ts` edit; the stopped renderer takes it on its next

@@ -12,6 +12,11 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-10-29 on tree `78ec9625d9` (`origin/main`, lane `18103`, no
+JWT): still unreachable.** `window.__voiceControl` was `undefined` and no
+`voice-*` testid was in the DOM; `voice-control-gate.util.ts` still returns
+`isSignedInSession()` and no voice source changed since `29c9cda0a2`.
+
 **Re-driven 2026-10-28 on tree `29c9cda0a2` (`origin/main`, lane `18103`, no
 JWT): still unreachable.** `window.__voiceControl`, `voice-control-mic-btn` and
 every `voice-control-chip*` were absent. The opening paragraph's `⌥ Space` is

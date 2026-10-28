@@ -6,27 +6,37 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
-2026-10-28 against product tree `29c9cda0a2` (`origin/main`), lane `18103`, a
-guest lane with no JWT. Driven: the capsule, the new Ask command rows (the
-`candles` query hid and restored the main series), the `dark`, `SPY / GLD`,
-`orderbook`, `gex`, `0dte`, `options chain` and `polymarket` queries, `Meta+/`
-to Keyboard Shortcuts, Release Notes (81 versions, `4.49.0` newest), and the
-wall from the camera, Alt+W, the Replay, Scanner, Footprint, Chat, Watchlist,
-News and Editor Panels rows, and a package link. Not driven: the `Mod+J` key,
-the account settings pages (they need a signed-in session), Gray and Cream
-appearance (desktop shell only), the Ask plan cards (signed-in), and the
-per-provider gates on the other providers.
+2026-10-29 against product tree `78ec9625d9` (`origin/main`), lane `18103`, a
+guest lane with no JWT. Driven: the capsule and its empty box (directory groups
+and key hints, no Ask starters for a guest), the `volt` theme row (Volt applied,
+Percept restored), a how-to question (`No results found`: the dev backend's
+`/ask/config` answers `surface:false`, so no Guides section), the `candles`
+Ask command rows, the `editor` and `SPY / GLD` rows, `Meta+/` to Keyboard
+Shortcuts with the close corner clear of the title row, Release Notes (81
+versions, `4.49.0` newest, `4.0.0` now titled `OPENMARKET V4`), and the wall from
+the camera, `tb-layout-entry-2H-btn`, `tb-options-btn`, the heatmap switch,
+`alert-add-menu-price-btn`, `Alt+W` and the seven walled Panels rows. Earlier:
+2026-10-28 on `29c9cda0a2` (`dark`, `orderbook`, `gex`, `0dte`, `options chain`,
+`polymarket`, a package link). Not driven: the `Mod+J` key, the account
+settings pages (they need a signed-in session), Gray and Cream appearance
+(desktop shell only), the Guides section (needs `surface:true`), the Ask plan
+cards and command chips (signed-in), and the per-provider gates on the other
+providers.
 
 ## Sub-features
 
 - `ss-open` the capsule opens Super Search with no guest gate.
-- `ss-theme` a `dark` or `light` query toggles the theme.
+- `ss-theme` a `dark` or `light` query toggles the theme, and a theme name
+  (`volt`, `percept`, ...) applies that colour theme.
 - `ss-formula` a ratio query such as `SPY / GLD` plots a formula chart.
 - `set-shortcuts` `Meta+/` opens Settings on the Keyboard Shortcuts page.
 - `set-notes` the Release Notes page lists versions.
 - `ss-ask-commands` a query lists app commands as palette rows (hide candles,
   swap candle colours, and the rest) and a click runs them.
 - `guest-wall` a walled control raises the sign-in dialog and names its feature.
+- `ss-guides` a help question lists the best user-guide sections under `Guides`
+  (live verification pending: it needs the backend's `/ask/config` to answer
+  `surface:true`).
 
 The editor row is covered in [script editor](./script-editor-and-kscript.md)
 `ks-open`.
@@ -56,11 +66,35 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   are `super-search-result-<provider>` sections with buttons
   `super-search-result-<id>-btn`, under `super-search-section-toggle-<provider>-btn`
   headers.
+  **The empty box, driven 2026-10-29.** A guest's placeholder reads `Search the
+  platform`, and the empty box shows the directory groups
+  `super-search-directory-{market,orderflow,build,automate,learn}` under
+  `super-search-directory`, plus the foot line `super-search-key-hints` and
+  `super-search-key-hints-enter`. The Ask starters (`super-search-starters`,
+  `super-search-starter-{rsi,funding,alerts}-btn`), `super-search-ask-examples`
+  and `super-search-other-results` are absent for a guest: they need the Ask
+  lane, which needs a signed-in session (`askLaneOn` in
+  `src/composables/superSearch/useSuperSearch.ts`).
 - **`ss-theme`.** Fill `dark`. The `THEMES` section shows `Dark Mode` with an
   `on-off-toggle-btn`. Click it and read
   `document.body.className.match(/body--(light|dark)/)[0]`: driven, it went
   `body--light` to `body--dark` with no wall. Toggle it back afterwards.
-- **`ss-ask-commands`, driven 2026-10-28.** Fill `candles`. The `command`
+- **Colour themes, driven 2026-10-29.** Fill `volt`: the `THEMES` section
+  lists `super-search-result-themes:color:Kiyotaka-btn` titled `Volt` (theme id
+  `Kiyotaka`, English name Volt). Its click set the body class from
+  `theme-percept` to `theme-kiyotaka` with no wall. In light mode the frame
+  barely changes, so the class is the proof. Restore with `percept`,
+  `super-search-result-themes:color:Percept-btn`.
+- **`ss-guides`, attempted 2026-10-29: pending.** Fill
+  `how does the footprint work`. On the operator's dev backend a guest got `No
+  results found` and no `super-search-guides-section`, because
+  `GET /api/v1/ask/config` answered `{"enabled":false,"surface":false,...}`.
+  With `surface:true` the code-only Guides section should list up to three
+  `super-search-result-guides:<kbId>-btn` rows (source:
+  `useSuperSearch.ts`, the Guides block). Read the config first with
+  `eval "fetch('/api/v1/ask/config').then(r=>r.text())"`. The Apply card and the
+  command chips (`e21fa5b62c`) need the Ask lane, so a signed-in session.
+- **`ss-ask-commands`, re-driven 2026-10-29 with the same result.** Fill `candles`. The `command`
   section lists `super-search-result-askCommands:ask-command:candles-visible:off-btn`
   and its `:on` twin. A click closed the overlay and set
   `tc[0].metadata[0].isHidden` to `true` with no wall, and the frame shows only
@@ -99,6 +133,16 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   on Keyboard Shortcuts, and a second open and click switched it within 2 s.
   The nav ids are unchanged (`settings-pages-nav-{shortcuts,language,notes}-btn`)
   but the `language` row now reads `Preferences`.
+  Re-driven 2026-10-29: 81 rows, `4.49.0` newest. The `4.0.0` row now reads
+  `4.0.0 Spotlight OPENMARKET V4` (`dc9ed408ee`), and the page body carries no
+  `Kiyotaka`. Source holds 87 entries; `4.51.0` (`options`) and `4.50.0`
+  (`wrun-launch`) are filtered by audience, so a guest's count is a viewer's,
+  not the file's.
+- **The close corner, driven 2026-10-29.** Since `4f5cc1622e` every settings
+  page reserves the close button's gutter: `.settings-page-title-row` carries
+  `padding-right: 30px` and `settings-pages-close-btn` sits in it. A guest's
+  Keyboard Shortcuts page showed no `Reset all` button (it appears only with a
+  customised shortcut), so the overlap fix itself was not seen.
 - **`guest-wall`.** `find testid global-nav-screenshot-btn click` raised it with
   `guestLoginFeatureId = "screenshot"`. The form carries
   `login-signup-submit-btn`, `login-signup-use-password-btn`,
@@ -131,6 +175,13 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `multi-chart` from `tb-layout-entry-2H-btn` rather than the matrix cell; and
   `watchlist`, `news` and `script-editor` from their Panels rows
   (`tb-panels-row-<id>`) rather than the bar seats.
+  Re-driven 2026-10-29 on `78ec9625d9`, every id unchanged: `screenshot`,
+  `multi-chart` (`tb-layout-entry-2H-btn`), `terminal` (`tb-options-btn` and
+  the Scanner row), `orderbook-heatmap`, `alert`, `watchlist` (`Alt+W` and its
+  row), `news`, `community-chat`, `volume-footprint`, `script-editor` and
+  `chart-actions`. The wall needs a moment to render: an `Escape` sent straight
+  after the click can land first and leave the wall up, so read
+  `isAuthenticationDialogOpen` before clearing.
 
 - **Proof.** The store read, the overlay or page testid, and a screenshot.
 

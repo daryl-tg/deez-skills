@@ -13,7 +13,10 @@ wall was re-driven on 2026-10-27 against `7290d33d10` (lane `18103`, real guest
 JWT: `tb-watchlist-toggle-btn` set `guestLoginFeatureId = "watchlist"`). On
 2026-10-28 against `29c9cda0a2` (`origin/main`, lane `18103`, no JWT) the wall
 was re-driven from `tb-panels-row-watchlist` and, for the first time, from
-`Alt+W` with the chart focused; both set `guestLoginFeatureId = "watchlist"`. **Only
+`Alt+W` with the chart focused; both set `guestLoginFeatureId = "watchlist"`.
+Re-driven 2026-10-29 against `78ec9625d9` (`origin/main`, lane `18103`, no JWT)
+from the Panels row and `Alt+W`, with the same id; no `src/components/watchlist`
+handle changed in between. **Only
 the guest-side is driven**: the three doors and the sign-in wall were proven
 live. Everything behind the wall is source-derived and UNVERIFIED, because this
 stack cannot be signed into by an agent — see Gotchas.
