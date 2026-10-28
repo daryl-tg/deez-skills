@@ -1,10 +1,20 @@
 # Chat workspace TUI (`om chat --workspace`)
 
-*Verified: 2026-10-28, on main since #2182 (`a521e2fc9`) and #2187 (`705d67f2f`). For #2187 (tree `96c6ef3bd`): the sidebar's first row was blank and `▾ WATCHES` sat on row 2; a click on a watch row opened its card, a click on the card and a drag across the chat left it open, and a click in the chat closed it. For #2182 (tree `4a1b3b1e3`): the frame fills the screen: no top bar, the divider starts on row 1, and a muted `ctrl+x b hide sidebar` is the sidebar's bottom row. `ctrl+x b` hid the sidebar, so the rule above the composer ended in `ctrl+x b show sidebar` and the footer regained `95 watches (22 armed)`. Pressing it again restored the sidebar, and `ctrl+x q` typed `q`. With `watches fires`, `▾ FIRES 28+ today` listed two-line rows, and a click opened the fire card (Watch, When, Source, Kind, summary). A click on `▾ WATCHES` folded it to `▸ WATCHES` and stored `collapsed true`. Those checks used a copy of a real home with its daemon port pointed at a dead port. Earlier, on 2026-10-27 (tree `4734c802a`, lane 18122 at 140x36, fake model), follow-at-end, the go-to-recent pill, the 100-column hide, exit history, the `1 1`/`0 0` mode flags, the WATCHES row and card, `om sidebar set` and the PAPER wheel containment were driven. A live `anthropic/claude-sonnet-5-5` turn, "only show fired watches in my sidebar", called `sidebar_layout {show: fired}` once, and the chat redrew at once.*
+*Verified: 2026-10-28, on main since #2182 (`a521e2fc9`), #2187 (`705d67f2f`) and #2189 (`7cf1f4d40`).*
+
+For #2189, on copies of a real home at 140x36:
+
+- The foot hint read `ctrl+x for commands`, and ctrl+x opened a centered `ctrl+x commands` menu.
+- `b` hid the sidebar, and a click on `show sidebar` brought it back. ctrl+x then `q` typed `q`, and a click outside closed the menu.
+- With a card open, Esc closed the menu first.
+- A card opened from row 3 had its top on row 3; one opened from row 26 flipped to end on row 26.
+- A home with no stored layout showed `▾ FIRES` under WATCHES.
+
+For #2187 (tree `96c6ef3bd`): the sidebar's first row was blank and `▾ WATCHES` sat on row 2; a click on a watch row opened its card, a click on the card and a drag across the chat left it open, and a click in the chat closed it. For #2182 (tree `4a1b3b1e3`): the frame fills the screen: no top bar, the divider starts on row 1, and a muted `ctrl+x b hide sidebar` is the sidebar's bottom row. `ctrl+x b` hid the sidebar, so the rule above the composer ended in `ctrl+x b show sidebar` and the footer regained `95 watches (22 armed)`. Pressing it again restored the sidebar, and `ctrl+x q` typed `q`. With `watches fires`, `▾ FIRES 28+ today` listed two-line rows, and a click opened the fire card (Watch, When, Source, Kind, summary). A click on `▾ WATCHES` folded it to `▸ WATCHES` and stored `collapsed true`. Those checks used a copy of a real home with its daemon port pointed at a dead port. Earlier, on 2026-10-27 (tree `4734c802a`, lane 18122 at 140x36, fake model), follow-at-end, the go-to-recent pill, the 100-column hide, exit history, the `1 1`/`0 0` mode flags, the WATCHES row and card, `om sidebar set` and the PAPER wheel containment were driven. A live `anthropic/claude-sonnet-5-5` turn, "only show fired watches in my sidebar", called `sidebar_layout {show: fired}` once, and the chat redrew at once.
 
 `om chat --workspace` (or `om config set chat.workspace on`) opens chat as a
 split view on the terminal's alternate screen: transcript left, a sidebar of
-modules right (WATCHES by default, PAPER optional), today's composer, mode line
+modules right (WATCHES then FIRES by default, PAPER optional), today's composer, mode line
 and footer underneath. The person scrolls the transcript in the app, clicks a
 watch for its card, and asks om or runs `om sidebar` to change what the sidebar
 shows. Plain `om chat` is unchanged.
@@ -15,19 +25,20 @@ shows. Plain `om chat` is unchanged.
 - `follow-and-go-to-recent` — follow at the end; scrolled up, the last row is a `↓ Go to recent messages` pill that a click resolves.
 - `exit-history` — on quit the terminal history holds the transcript only.
 - `watches-module` — `N fired · M paused` header, `●` fired in 24 h with an age, `○` armed, `◌` paused, a chip aside for needs-you/broken; the footer drops its watch count while the sidebar shows.
-- `watch-card` — a click opens State, Source, Value, Chain, Recent fires; Esc or a click in the chat closes it, while a click on the card or a drag across the chat leaves it open.
+- `watch-card` — a click opens State, Source, Value, Chain, Recent fires beside the clicked row (its top level with the row, or ending on it near the bottom); Esc or a click in the chat closes it, while a click on the card or a drag across the chat leaves it open.
 - `sidebar-layout` — `om sidebar` / `set <module...> [--watches-show all|fired|attention]` / `reset`; the agent tool `sidebar_layout` (terminal chat only).
 - `paper-module` — one row per paper account (name, cash, realized P&L), `N accounts` header.
 - `contain-scroll` — a wheel over a sidebar section, its header or the hint row never moves the transcript.
-- `fires-module` — every watch's newest fires, two lines a fire (title and age, then the watch), `N today` header, a card per fire.
+- `fires-module` — on by default under WATCHES: every watch's newest fires, two lines a fire (title and age, then the watch), `N today` header, a card per fire. A home with a stored layout keeps it; `om sidebar reset` takes the default.
 - `collapse` — a click on `▾ NAME` folds a panel to `▸ NAME`, stored as `collapsed` in the layout.
-- `sidebar-toggle` — `ctrl+x b` hides or shows the sidebar for the session; the muted hint sits on the sidebar's bottom row, or on the closing rule while it is hidden.
+- `command-menu` — ctrl+x opens a centered `ctrl+x commands` menu of the keys it takes next (`b` hides or shows the sidebar). A listed key, enter or a click runs a row; esc, ctrl+x or a click outside closes it; any other key closes it and types. It scrolls past 8 rows.
+- `sidebar-toggle` — `b` in the ctrl+x menu hides or shows the sidebar for the session. The muted `ctrl+x for commands` hint sits on the sidebar's bottom row, or on the closing rule while it is hidden.
 
 ## How to get to it (user POV)
 
 - `om chat --workspace` in a terminal at least 110 columns wide.
 - `om sidebar set watches paper` (or `watches fires`) from any shell; the open chat redraws within 30 s.
-- `ctrl+x b` in the chat, and a click on a panel header.
+- ctrl+x in the chat for the command menu, and a click on a panel header.
 - In the chat: "only show fired watches in my sidebar".
 
 ## Driving it with control-om
@@ -107,8 +118,9 @@ nothing, and it streams long replies, which the scroll checks need.
   (add `-e` for colour, `-S -` for history).
   - Frame: there is no top bar. Row 1 is transcript text with `│` at column
     104. The sidebar's first row is blank, and row 2 reads `▾ WATCHES` with
-    `1 fired · 1 paused` on the right. The sidebar's last row (just above the `┴` rule) is a muted
-    `ctrl+x b hide sidebar`.
+    `1 fired · 1 paused` on the right. Under the watch rows, `▾ FIRES`
+    lists the seeded fire. The sidebar's last row (just above the `┴` rule)
+    is a muted `ctrl+x for commands`.
   - Rows: `● ws-fired <age>`, `◌ ws-paused paused`.
   - The footer's last line has no `N watches` count but keeps the `⚠` badge.
   - The transcript opens with a `🗞 While you were away` banner naming the
@@ -144,7 +156,10 @@ nothing, and it streams long replies, which the scroll checks need.
   the id once, `State fired just now`, `Source inbound · ws-fired`,
   `Value filing · new story`, `Chain no steps`, and `Recent fires` with
   `HH:MM filing · new story` rows. The row is inverse: `grep -cF $'\e[7m'` on the `-e` capture is at least 1.
-  Press Escape: the card closes.
+  The card's top border (`╭` between columns 40 and 104) is on row 4, level
+  with the clicked row. Press Escape: the card closes. The flip near the
+  bottom needs more rows than the lane seeds; `tui-workspace-mode.test.ts`
+  pins it at 140x28.
 - **Click to close.** Reopen the card. Click a line inside it
   (`grep -n 'Recent fires'` for its row; the card sits over the chat): it
   stays open. Drag across the chat, which a click never reports:
@@ -155,14 +170,15 @@ nothing, and it streams long replies, which the scroll checks need.
   It prints `Module 1: watches (show fired)` and an `Available: …` line.
   Within 30 s the running chat shows only `ws-fired`.
   `control-om om -- sidebar --format json` names `"show":"fired"`.
-  `control-om om -- sidebar reset --format text` restores it.
+  `control-om om -- sidebar reset --format text` prints
+  `Module 1: watches (show all)` and `Module 2: fires`, and restores both.
 - **Two modules.** Run `control-om om -- sidebar set watches paper` and
   restart the chat. WATCHES sits above `PAPER  2 accounts`, with the rows
   `○ lane-paper-a $5,000.00`. Send 10 wheel-ups at the PAPER row: the
   transcript columns (1-103) and WATCHES are unchanged. The control is the
   same wheel at column 40, which moves the transcript and shows the pill.
-- **Fires.** Run `control-om om -- sidebar set watches fires` and restart the
-  chat. Under WATCHES, `▾ FIRES  N today` lists the seeded fires newest first,
+- **Fires.** On by default (the lane home stores no layout). Under WATCHES,
+  `▾ FIRES  N today` lists the seeded fires newest first,
   two lines each: the title and its age, then the watch's name. Click the
   first line of a fire for its card (Watch, When, Source, Kind, and the
   summary when there is one); Escape closes it.
@@ -170,15 +186,21 @@ nothing, and it streams long replies, which the scroll checks need.
   into `▸ WATCHES`, its rows go, and the panel below takes the space.
   `control-om om -- sidebar --format text` prints `watches (show all,
   collapsed true)`. Click it again to open it.
-- **Toggle.** `tmux … send-keys -t ws C-x b`: no `│`, no `WATCHES`, and the
-  rule above the composer ends in `── ctrl+x b show sidebar ─`. The footer's
-  last line has its `N watches` count back. `C-x b` again restores the
-  sidebar and its foot hint. `C-x` then `q` puts `q` in the composer.
+- **Menu.** `tmux … send-keys -t ws C-x`: a centered box titled
+  `ctrl+x commands` with `esc close` on its title row, the row
+  `b          hide sidebar` (inverse, selected) and `↑↓ move · enter run`.
+  Escape closes it with nothing run. A click outside it closes it too.
+- **Toggle.** `C-x` then `b`: no `│`, no `WATCHES`, and the rule above the
+  composer ends in `── ctrl+x for commands ─`. The footer's last line has
+  its `N watches` count back. `C-x` again shows `show sidebar`; click that
+  row (`grep -n 'show sidebar'` for its row and column) and the sidebar
+  returns. `C-x` then `q` closes the menu and puts `q` in the composer.
 - **Narrow.** `tmux … resize-window -t ws -x 100 -y 36`: no `│` divider, no
-  `┴`, and no `ctrl+x b` hint. Resize back to 140 and they return.
+  `┴`, and no `ctrl+x for commands` hint; ctrl+x goes to the composer there.
+  Resize back to 140 and they return.
 - **Exit.** Press `C-c` twice. In `capture-pane -p -S -`, history holds the
   `shell-history-*` lines and the whole transcript (`reply N line 80`). It
-  holds no `Go to recent`, `┴`, `ctrl+x b` or `om running` rows.
+  holds no `Go to recent`, `┴`, `ctrl+x for commands` or `om running` rows.
 - **Mode flags.** `tmux … display -p -t ws '#{mouse_any_flag} #{alternate_on}'`
   reads `1 1` in workspace mode and `0 0` for plain `./launch.sh`.
 - **Cleanup.** Press `C-c` twice in the chat, run
@@ -202,6 +224,12 @@ nothing, and it streams long replies, which the scroll checks need.
   `sidebar_layout` tool result in the same chat redraws at once.
 - The pill's row moves when the chrome changes height (a queued message
   draining), so re-read its row right before clicking.
+- Driving a copy of a real home instead of a lane: point `OM_HOME` at a root
+  that holds `active` and `accounts/<name>/`, never at the account folder.
+  Given an account folder, om moves it into `accounts/` and plain chat opens
+  the setup walk. Copy `om.sqlite` with `sqlite3 -cmd ".timeout 15000" … ".backup …"`
+  and check that the copy has a `settings` table. The live daemon holds the
+  lock, and a failed backup leaves an empty file that reads as a fresh install.
 - The first capture after a push can predate the fire by about 1 s, because
   the daemon commits the event about a second after `event push` returns.
 - `curl` on the stream must open before the push; it is live, not a backlog.
