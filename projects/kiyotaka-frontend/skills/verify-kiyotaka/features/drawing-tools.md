@@ -6,7 +6,10 @@ clicks the chart to place it, and gets a floating toolbar for colour, width,
 lock, settings and delete. Created 2026-10-27 from a live drive on product tree
 `7290d33d10` (53 behind `origin/main` `df3fdcb62e`), lane `18103`, a real
 guest-JWT lane, on CRYPTOCAP BTC.D 1h. Driven: a guest placed a trend line and
-deleted it. Not driven: the other tools, favorites (`FAVORITES` wall), the
+deleted it. Re-driven 2026-10-28 on `29c9cda0a2` (`origin/main`, lane
+`18103`, no JWT) on COINBASE BTC-USD 1h: the same trend line placed, its
+floating toolbar rendered with `toolbar-item-delete-icon-btn` present, and
+`press Delete` removed it. Not driven: the other tools, favorites (`FAVORITES` wall), the
 drawing-sync scope, and whether a guest's drawing persists across a reload.
 
 ## Sub-features
@@ -42,7 +45,11 @@ the top overlay cleared.
 - **`dt-delete`.** `press Delete` removed the selected line.
 - **Proof.** A screenshot with the line and its floating toolbar, then one
   without it. The engine keeps drawings under `window.tc[0]._drawingManager`,
-  but this pass did not take a count from it, so the frames are the proof.
+  but no count has been read from it: on 2026-10-28 its `drawingSets`,
+  `drawingRenderSets` and `drawingHitBoxes` read `0` before the placement, with
+  the line on screen, and after the delete alike. The frames are the proof.
+  `toolbar-item-delete-icon-btn` is not a literal in source (the id is built at
+  runtime), but it resolved live on 2026-10-28.
 
 ## Gotchas
 

@@ -5,13 +5,17 @@ capsule in the top navbar. One query searches panels, commands, themes,
 formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
-where that shared wall is described. Created 2026-10-27 from a live drive on
-product tree `7290d33d10` (53 behind `origin/main` `df3fdcb62e`), lane `18103`,
-a real guest-JWT lane. Driven: the capsule, the `editor`, `dark` and `SPY / GLD`
-queries, `Meta+/` to Keyboard Shortcuts, Release Notes, and the wall from the
-camera button. Not driven: the `Mod+J` key, the account settings pages (they
-need a signed-in session), Gray and Cream appearance (desktop shell only), and
-the per-provider gates on the other providers.
+where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-10-28 against product tree `29c9cda0a2` (`origin/main`), lane `18103`, a
+guest lane with no JWT. Driven: the capsule, the new Ask command rows (the
+`candles` query hid and restored the main series), the `dark`, `SPY / GLD`,
+`orderbook`, `gex`, `0dte`, `options chain` and `polymarket` queries, `Meta+/`
+to Keyboard Shortcuts, Release Notes (81 versions, `4.49.0` newest), and the
+wall from the camera, Alt+W, the Replay, Scanner, Footprint, Chat, Watchlist,
+News and Editor Panels rows, and a package link. Not driven: the `Mod+J` key,
+the account settings pages (they need a signed-in session), Gray and Cream
+appearance (desktop shell only), the Ask plan cards (signed-in), and the
+per-provider gates on the other providers.
 
 ## Sub-features
 
@@ -20,6 +24,8 @@ the per-provider gates on the other providers.
 - `ss-formula` a ratio query such as `SPY / GLD` plots a formula chart.
 - `set-shortcuts` `Meta+/` opens Settings on the Keyboard Shortcuts page.
 - `set-notes` the Release Notes page lists versions.
+- `ss-ask-commands` a query lists app commands as palette rows (hide candles,
+  swap candle colours, and the rest) and a click runs them.
 - `guest-wall` a walled control raises the sign-in dialog and names its feature.
 
 The editor row is covered in [script editor](./script-editor-and-kscript.md)
@@ -29,7 +35,7 @@ The editor row is covered in [script editor](./script-editor-and-kscript.md)
 
 - Click `Ask anything ⌘K` in the top navbar, then type.
 - Press `⌘/` (`Meta+/`) for Keyboard Shortcuts; the same dialog's left nav has
-  Language and Release Notes.
+  Preferences (the old Language page) and Release Notes.
 - Click any walled control as a guest (the camera, a multi-chart layout, the
   watchlist seat) to meet the sign-in dialog.
 
@@ -54,6 +60,30 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `on-off-toggle-btn`. Click it and read
   `document.body.className.match(/body--(light|dark)/)[0]`: driven, it went
   `body--light` to `body--dark` with no wall. Toggle it back afterwards.
+- **`ss-ask-commands`, driven 2026-10-28.** Fill `candles`. The `command`
+  section lists `super-search-result-askCommands:ask-command:candles-visible:off-btn`
+  and its `:on` twin. A click closed the overlay and set
+  `tc[0].metadata[0].isHidden` to `true` with no wall, and the frame shows only
+  VWAP and volume; the `:on` row restored it. The rows come from
+  `src/composables/superSearch/providers/askCommands.ts` over the catalog in
+  `src/ask/commands/rows/`: only rows marked `palette: true` that take no
+  argument or a toggle are listed, and a row whose `available()` refuses (a
+  guest, a phone, one chart) is left out per build. `alert lines` listed nothing
+  for a guest. `zoom` listed only the older `commands:zoomIn` / `zoomOut` and
+  hover-lens rows: zoom-reset and go-to-date are Ask-only verbs, not palette
+  rows. The Ask plan cards (`super-search-ask-plan-card`) are absent for a guest.
+- **Options-panel words find nothing for a guest — driven 2026-10-28.** Since
+  `29c9cda0a2` the Options panel row carries extra names (`options chain`,
+  `0dte`, `options profile`, `options panel`, `the options` and variants). For a
+  guest `0dte` and `options chain` returned no rows at all, because the panels
+  provider lists only panels `canOpen` allows
+  (`src/composables/superSearch/providers/panels.ts:172`) and the Options panel
+  is signed-in. `orderbook` still lists `panels:OrderbookPanel`, and `gex` lists
+  the `OPTIONS_GEX`, `OPTIONS_HEATMAP` and `OPTIONS_GEX_CURVE` indicator rows.
+- **No Polymarket row for a guest — driven 2026-10-28.** `polymarket` returned
+  only `symbols:open-search`. The `Link Polymarket` command
+  (`providers/polymarket.ts`) is listed only when the `polymarket-execution`
+  flag is on and the session is signed in.
 - **`ss-formula`.** Fill `SPY / GLD`. The `FORMULA` section offers
   `super-search-result-formula:SPY/GLD-btn` (`Plot SPY ÷ GLD`). Driven, a click
   switched the chart to `NYSE SPY / GLD` with title `SPY / USD / GLD / USD` and
@@ -64,8 +94,11 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `settings-pages-nav-{shortcuts,language,notes}-btn`. Close with
   `settings-pages-close-btn`.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
-  `release-notes-version-<ver>-btn` rows (81 on the driven tree, `4.49.0`
-  newest).
+  `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  Poll for the rows: a nav click made straight after `Meta+/` once left the page
+  on Keyboard Shortcuts, and a second open and click switched it within 2 s.
+  The nav ids are unchanged (`settings-pages-nav-{shortcuts,language,notes}-btn`)
+  but the `language` row now reads `Preferences`.
 - **`guest-wall`.** `find testid global-nav-screenshot-btn click` raised it with
   `guestLoginFeatureId = "screenshot"`. The form carries
   `login-signup-submit-btn`, `login-signup-use-password-btn`,
@@ -86,6 +119,18 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   | `tb-options-btn` | `terminal` |
   | `tb-heatmap-toggle-btn` (turning the heatmap on) | `orderbook-heatmap` |
   | `alert-add-menu-price-btn` | `alert` |
+  | `Alt+W` with the chart focused (2026-10-28) | `watchlist` |
+  | `tb-panels-row-replay` (2026-10-28) | `chart-actions` |
+  | `tb-panels-row-scanner` (2026-10-28) | `terminal` |
+  | `tb-panels-row-footprint` (2026-10-28) | `volume-footprint` |
+  | `tb-panels-row-chat` (2026-10-28) | `community-chat` |
+  | a package link, `?indicator=` or `?wrunRef=` (2026-10-28) | `indicators` |
+
+  Re-driven 2026-10-28 with the same ids: the camera, an official row's Add,
+  `tb-options-btn`, `tb-heatmap-toggle-btn` and `alert-add-menu-price-btn`;
+  `multi-chart` from `tb-layout-entry-2H-btn` rather than the matrix cell; and
+  `watchlist`, `news` and `script-editor` from their Panels rows
+  (`tb-panels-row-<id>`) rather than the bar seats.
 
 - **Proof.** The store read, the overlay or page testid, and a screenshot.
 

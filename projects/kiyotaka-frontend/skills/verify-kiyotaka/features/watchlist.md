@@ -10,7 +10,10 @@ sit beside the user's own in the same picker.
 
 This entry was created on 2026-10-23 against product tree `2a1ed750db`; the
 wall was re-driven on 2026-10-27 against `7290d33d10` (lane `18103`, real guest
-JWT: `tb-watchlist-toggle-btn` set `guestLoginFeatureId = "watchlist"`). **Only
+JWT: `tb-watchlist-toggle-btn` set `guestLoginFeatureId = "watchlist"`). On
+2026-10-28 against `29c9cda0a2` (`origin/main`, lane `18103`, no JWT) the wall
+was re-driven from `tb-panels-row-watchlist` and, for the first time, from
+`Alt+W` with the chart focused; both set `guestLoginFeatureId = "watchlist"`. **Only
 the guest-side is driven**: the three doors and the sign-in wall were proven
 live. Everything behind the wall is source-derived and UNVERIFIED, because this
 stack cannot be signed into by an agent — see Gotchas.
@@ -28,6 +31,9 @@ stack cannot be signed into by an agent — see Gotchas.
 - `wl-import` the TradingView import sheet creates lists from pasted text or a
   `.txt` file.
 - `wl-limits` 250 symbols per list, 50 lists per account.
+- `wl-ask-add` Ask can add the chart's market to a list or create a list
+  (`src/ask/commands/rows/watchlist.ts`, `e973f00e50`); a guest gets the same
+  wall. Source only.
 
 ## How to get to it (user POV)
 
@@ -99,6 +105,15 @@ load; with the gateway down the rows render but every cell stays a dash.
 
 ## Gotchas
 
+- **Alt+W walls a guest — driven 2026-10-28.** Blur any field, click the chart,
+  then `press Alt+w`: the sign-in wall rises with `guestLoginFeatureId =
+  "watchlist"`. Alt+W now goes through the shared `addMarketToWatchlist`
+  (`addChartSymbolToWatchlist.ts`), which answers `added`, `exists`, `guest` or
+  `failed`.
+- **Undo can say it could not undo (source).** The remove toast's Undo now
+  returns a result (`watchlistRemoveUndo.ts`, `Watchlist.vue`): when the list
+  was deleted after the removal, Undo reports that it could not restore the row
+  rather than doing nothing. Not driven.
 - **An agent cannot sign into this stack, so everything past the wall is
   unverified.** Driven 2026-10-23: submitting the login form for the local dev
   account does NOT do password auth by default — it sends a **6-digit sign-in

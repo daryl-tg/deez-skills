@@ -12,6 +12,17 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-10-28 on tree `29c9cda0a2` (`origin/main`, lane `18103`, no
+JWT): still unreachable.** `window.__voiceControl`, `voice-control-mic-btn` and
+every `voice-control-chip*` were absent. The opening paragraph's `⌥ Space` is
+the 2026-10-12 key; see the corrections below, and note that the key is now
+user-changeable (`voice-key-change` in `VoiceKeyModeMenu.vue`), so read the
+current binding before you press one. Source on `29c9cda0a2` adds an Ask-only
+`runCommand` verb (it never runs on the mic path), a command grammar
+(`src/utility/voice-control/voice-command-grammar.util.ts`) with new readbacks,
+and the Options panel's asked-for names (`options chain`, `0dte`). None of it is
+driven.
+
 **Re-driven 2026-10-27 on tree `7290d33d10` (lane `18103`, real guest JWT): still
 unreachable.** `window.__voiceControl`, `voice-control-mic-btn` and every
 `voice-control-chip*` were absent. Source on `df3fdcb62e` adds multi-chart

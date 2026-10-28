@@ -3,15 +3,15 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-10-27 against product tree `7290d33d10` (53 commits
-behind `origin/main` `df3fdcb62e`, which did not install; see Gotchas), lane
-`18103`, a real guest-JWT lane (`isGuest` true) with the operator's `.env.local`
-linked in. Proven: boot to 250 candles on COINBASE BTC-USD 1h with VWAP, a worker
-console with zero worker-death matches, the spot live edge (price and change, no
-OI or funding), the perp live edge on BINANCE.F ETHUSDT (`24H VOLUME $6.51B`,
-`OPEN INTEREST $5.46B`, `FUNDING +0.0066%`), and the wake chain from a 66 s
-visibility override. NOT driven this pass: the lone-bar heal verdict (last driven
-2026-10-23) and a real machine sleep.
+entry was last DRIVEN on 2026-10-28 against product tree `29c9cda0a2`
+(`origin/main`), lane `18103`, a guest lane with the operator's `.env.local`
+linked in and no JWT (`jwtStore` absent). Proven: boot to 250 candles on
+COINBASE BTC-USD 1h with VWAP in about 20 s, a worker console with zero
+worker-death matches, the spot live edge, the perp live edge on BINANCE.F
+ETHUSDT (`24H VOLUME $6.05B`, `OPEN INTEREST $5.57B`, `FUNDING +0.0100%`), and
+the lone-bar wake heal from a 414 s visibility override on 1m: 5 synthesized
+blank slots at the wake, 0 after it. NOT driven: the process-suspend lane and a
+real machine sleep.
 
 ## Sub-features
 
@@ -79,7 +79,19 @@ Preconditions:
 
 ## Driving the wake heal
 
-Last driven 2026-10-23: `main` `034978a50f` (the lone-bar heal `8a7d91341a` on
+**Driven 2026-10-28 on `29c9cda0a2`, with the visibility-override recipe
+below.** Guest COINBASE BTC-USD 1m, lane `18103`, headless Chromium. Hidden for
+414 s with `__kiyoDropLiveSeriesFrames('.*')` on; 5 NaN rows written after the
+last real bar plus one lone bar one slot behind now. After the visible flip:
+`lifecycle-hidden-return`, `lifecycle-wake-emit` (`outageStartedAt` 4 ms after
+the hide, `reason: clock-skew`), `wake-received`, `wake-token-refreshed`,
+`wake-sockets`, `wake-resync-live-drain`, `wake-resync-pass`
+(`mainStartMs` equal to the last real bar before the hide, so the heal ran from
+the outage start), `wake-resync-overlay-window`, `main-heal-commit` with
+`reason: row-width`, `wake-resync-awaited`, `wake-reconnected`. The 5 blank
+slots read 0 blank 80 s after the flip.
+
+Earlier: 2026-10-23: `main` `034978a50f` (the lone-bar heal `8a7d91341a` on
 board) with the process-suspend lane below, guest COINBASE BTC-USD 1m, headless
 Chromium, 13-minute outage with two dark wakes (4 blank rows at wake, 0 after the
 heal) and, on `daryl/wake-outage-carry` `9da7dfbd5c`, a 29.6-minute outage with
@@ -129,6 +141,10 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   "version":2,...}` header, and every later line is one `{seq, ms, event,
   details}` entry. Parse it with
   `__dumpKiyoLazyLoadDebug().split('\n').filter(Boolean).slice(1).map(JSON.parse)`.
+  An entry's `ms` is page time (`performance.now()`, about `124767` on a lane
+  booted two minutes earlier), not epoch time. A filter such as
+  `e.ms >= hideAt` with an epoch `hideAt` drops every entry and reads as no wake
+  at all. Filter by event name, or compare against `performance.now()`.
   `lifecycle-wake-emit` carries `outageStartedAt`, and `wake-resync-pass` carries
   `mainStartMs` and `lastBarMs`. Driven 2026-10-27 on `7290d33d10`: a 66 s
   visibility override (getter on `document.visibilityState` and `document.hidden`,

@@ -4,15 +4,17 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-10-27 against product tree `7290d33d10` (53 behind
-`origin/main` `df3fdcb62e`), lane `18103`, a real guest-JWT lane. Driven: the
-full bar set at `1440 900`, the V2 dialog (v2 22 testids, legacy 0), an `ETH`
-search and a one-click switch to BINANCE.F ETHUSDT (326 bars), the Equities scope
-tab, the interval chevron to `5m` (403 bars) and back to `1h`, the chart-type
-hover peek and Heikin Ashi, the layout hover peek and its `multi-chart` wall, the
-Panels menu, a CRYPTOCAP `BTC.D` main series, and a venue-rail restore to
-COINBASE BTC-USD. Not driven: the hover quick-search list and the memecoin and
-Pulse rows (signed-in only).
+was last DRIVEN on 2026-10-28 against product tree `29c9cda0a2` (`origin/main`),
+lane `18103`, a guest lane with no JWT. Driven: the V2 dialog (v2 22 testids,
+legacy 0), an `ETH` search and a one-click switch to BINANCE.F ETHUSDT (351
+bars), the Equities scope tab, the interval chevron to `5m` (453 bars) and back
+to `1h`, the in-chart interval menu beside the legend, Heikin Ashi and back to
+candle, the layout hover peek and its `multi-chart` wall, the same 18 Panels
+rows, a CRYPTOCAP `BTC.D` main series, the input-method composition guard in the
+search field, and a restore to COINBASE BTC-USD. The hover quick-search opened
+on its own when the pointer rested on the symbol button, but its list was not
+driven. Not driven: the memecoin and Pulse rows (signed-in only) and the third
+interval menu in `ChartArea`.
 
 ## Sub-features
 
@@ -20,7 +22,9 @@ Pulse rows (signed-in only).
 - `sym-scope` the scope chips filter results (`search-v2`).
 - `sym-memecoins` the gated memecoin lane, liquidity-floor refinement, and Pulse
   rows load or report their explicit warning/empty state.
-- `tb-interval` quick buttons and the interval chevron change interval.
+- `tb-interval` quick buttons, the interval chevron and the in-chart interval
+  menu beside the legend change interval. Since `0011621cef` the three interval
+  menus share one look.
 - `tb-plot` the chart-type picker changes plot type.
 - `tb-layout` the layout picker changes the grid.
 - `tb-hover` the pickers peek on hover and pin on click.
@@ -29,6 +33,8 @@ Pulse rows (signed-in only).
   (Heatmap, Watchlist, Orderbook, News, Alerts, Editor by default; the rest
   through Panels). What each panel shows is in
   [right-side panels](./right-side-panels.md).
+- `sym-ime` an input-method composition (pinyin, romaji, an accent popup) in the
+  search field is left alone until it commits.
 - `sym-cryptocap` a CRYPTOCAP index (`BTC.D`, `TOTAL2`, ...) loads as the main
   series.
 
@@ -227,9 +233,15 @@ Preconditions:
   inside `.tb-panel-dropdown` with `visibility: hidden` and `opacity: 0`, so
   `find testid tb-chart-type-option-candle-btn click` locates it and then fails
   with `covered by <canvas.titan-charts-main-grid>`. A trigger `click` after a
-  hover-open TOGGLES it shut. Hover the trigger, poll until
-  `getComputedStyle(option.closest('.tb-panel-dropdown')).visibility` is
-  `visible`, then click the option.
+  hover-open TOGGLES it shut.
+  **Driven 2026-10-28, the visibility poll is not a reliable gate.** The poll
+  read `hidden` while the popover was on screen in the same second's frame, and
+  `find testid … click` failed with `covered by` even then. What worked: click
+  the trigger until the popover is on screen (take a screenshot), read the
+  option's rect, and click its centre with `browser mouse move <x> <y>`,
+  `mouse down`, `mouse up`. Then read `chartStore.plotTypeForChart`. A hover-open
+  followed by an immediate `find testid` click did work once (Heikin Ashi), so
+  try it first.
 - **Chart-type and layout options are EAGER — wait for the hover peek, not a
   chunk.** A one-day-old note here said the bodies were lazy and told you to poll
   for a chunk; that lane was reverted on 2026-10-23 and `tb-chart-type-frame`,
@@ -260,12 +272,34 @@ Preconditions:
 
 ## Gotchas
 
+- **`sym-ime`, driven 2026-10-28 with synthetic events.** Focus the inner
+  `input` of `symbol-selection-search-input`, dispatch `compositionstart`, set
+  the value to `eth` and dispatch an `input` with `isComposing: true`: the box
+  stays `eth` (no uppercase, no caret reset). A composing `Enter`
+  (`isComposing: true`, `keyCode: 229`) picks nothing and the dialog stays
+  open. `compositionend` plus a plain `input` then uppercases the box to `ETH`
+  once. Source: `aebdcc68da`, `src/utility/dom/ime-composition.util.ts`.
+  **A composing `Escape` still closes the dialog.** The shared
+  `src/components/common/Dialog.vue` keydown handler (`handleDialogKeydown`,
+  about line 955) closes on `Escape` without reading `isComposing`, while the
+  symbol dialog's own handlers skip it. That is a product gap, reported to the
+  operator; it is proved with synthetic events only, not a real input method.
+- **In-chart interval menu, driven 2026-10-28.** Click the interval chip beside
+  the legend symbol (`5m ▾` at about `240,112` on a `1440 900` frame). It opens
+  `.csb__dropdown-group` sections (`SECONDS`, `MINUTES`, `HOURS`, `DAYS`) with
+  the same heads and row style as the ticker-bar chevron menu. It has no testid;
+  read the groups by that class.
 - **A venue-rail row needs a real pointer click.** Driven 2026-10-27: a JS
   `.click()` on a `.venue-row__identity` or `.venue-panel__row` did not commit,
   and a rail row in the virtual list can sit below the dialog's visible bottom,
   where a pointer click lands outside and just closes the dialog. Read the row's
   rect, make sure it is on screen, then `browser mouse move <x> <y>`,
   `mouse down`, `mouse up`. An `asset-row-*` click by JS does commit.
+  On 2026-10-28 a JS `.click()` on `venue-row-COINBASE|BTC-USD-btn` did commit,
+  so try it first and fall back to the pointer. Which rows a query lists also
+  depends on what the dialog last previewed: the same `BTC-USD` query listed
+  `venue-row-COINBASE|BTC-USD-btn` once and only `asset-row-Bitcoin|1-btn` the
+  next time. Read the rows, never compose them.
 - **`sym-cryptocap`, driven 2026-10-27.** Searching `BTC.D` lists
   `symbol-row-CRYPTOCAP|BTC.D-btn` and `asset-row-CRYPTOCAP|BTC.D-btn` (Bitcoin
   Dominance). Clicking the visible asset row switched the chart to `CRYPTOCAP

@@ -3,17 +3,20 @@
 A user adds an indicator from the Indicators dialog; it mounts as an overlay with
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
-interest) or kScript-backed. This entry was last DRIVEN on 2026-10-27 against
-product tree `7290d33d10` (53 behind `origin/main` `df3fdcb62e`), lane `18103`,
-a real guest-JWT lane whose `.env.local` proxies to the operator's remote
-backend. All five sub-features were driven: the dialog opened on its store
-landing, `RSI` listed `Official 4` / `Community 12` from a SEEDED catalog (`See
-all 241` official), a guest row Add raised the `indicators` wall, a programmatic
-`BITCOIN_DOMINANCE` add mounted in 967 ms, the counter read `5/3` after four
-bare adds, and the legend's settings, visibility and close controls all worked
-on a programmatic overlay. The Pine paste offer, the paid and Mine tabs, and a
-real cap REFUSAL (which needs the dialog path, so a signed-in session) were not
-driven.
+interest) or kScript-backed. This entry was last DRIVEN on 2026-10-28 against
+product tree `29c9cda0a2` (`origin/main`), lane `18103`, a guest lane with no JWT
+whose `.env.local` proxies to the operator's remote backend. All five
+sub-features were driven: the dialog opened on its store landing (`See all
+241`), `RSI` listed `Official 4` / `Community 12`, a guest row Add raised the
+`indicators` wall with `metadata` unchanged, a programmatic `BITCOIN_DOMINANCE`
+add mounted in 51 ms with the counter at `2/3`, and the legend's settings,
+visibility and close controls all worked on it. Also driven: an
+`OPEN_INTEREST_PROFILE` on BINANCE.F ETHUSDT whose settings carry the new
+`Display` section (`Display mode` reads `Net`), and the chartless `?wrunRef=`
+package link, which a guest meets as the `indicators` wall. The Pine paste
+offer, the paid and Mine tabs, a real cap REFUSAL (the dialog path, so a
+signed-in session), the `Split` display option, and the window doors of the
+built-in options indicators were not driven.
 
 ## Sub-features
 
@@ -22,11 +25,16 @@ driven.
 - `ind-legend` the legend's settings / visibility / close controls work.
 - `ind-catalog` official indicators are listed when the catalog is seeded.
 - `ind-limit` the guest cap is enforced.
+- `ind-share-link` a package link opens the Indicators dialog on that package:
+  `?indicator=@scope/name`, and since `58903c3f75` also a chartless
+  `?wrunRef=@scope/name[@x.y.z]`, which the route rewrites to the share link.
 
 ## How to get to it (user POV)
 
 - Click `Indicators` in the ticker bar, search, and pick one.
 - The mounted overlay's legend sits at the top-left of its pane.
+- Open a package link someone shared (`?indicator=@scope/name`, or a chartless
+  `?wrunRef=@scope/name`); a guest is asked to sign in first.
 
 ## Driving it with control-kiyotaka
 
@@ -199,6 +207,34 @@ Preconditions:
   isolated); the same probe written with `function` callbacks worked.
 
 
+- **The settings open as a docked card, not a dialog — driven 2026-10-28.**
+  `settingsBtn.click()` now opens a card at the right of the chart
+  (`data-testid=settings-panel`, with `indicator-<slug>-settings` inside, for
+  example `indicator-open-interest-profile-settings`). The overlay union
+  `.q-dialog, .dialog-style, [role=dialog].open` reads `0` while it is open, so
+  probe `[data-testid=settings-panel]` instead. `Escape` closes it. Since
+  `a3fde686d1` a frame shows on the click while the settings chunk loads, so
+  poll for the card's own fields before you assert them.
+- **Open Interest Profile `Display` — driven 2026-10-28.** On BINANCE.F
+  ETHUSDT, `addIndicator('OPEN_INTEREST_PROFILE',{},0)` mounted and its settings
+  `Source` tab showed a `Display` section: `Display mode` (`Net`), `Bar width`,
+  `Hollow bars`, `Background`, `Behind candles`. The modes come from
+  `metricProfileDisplays` (`src/utility/chart/metric-profile.util.ts`); the
+  source adds `Split` for this member. A synthetic `click()` on the select did
+  not open its list, so `Split` is source-only. Mount it on a derivative: open
+  interest does not exist on spot.
+- **`ind-share-link` — driven 2026-10-28 as a guest.** Open
+  `http://127.0.0.1:<lane>/chart/?wrunRef=@om-core/trend-candles`. The address
+  bar ends at `/chart/` with both params stripped, the sign-in wall rises with
+  `guestLoginFeatureId=indicators`, and `sessionStorage` holds
+  `kiyotaka:indicator-share-link` = `{"package":"@om-core/trend-candles",...}`,
+  which the sign-in reload acts on. So a guest never sees the dialog open on the
+  package; that half needs a signed-in session. A link that names a chart keeps
+  its mount instead (`applyWrunRefDeepLink`). Source:
+  `src/router/guards/wrun-ref-root-link.guard.ts`,
+  `createIndicatorShareDeepLink` in
+  `src/utility/sharing/indicator-share-link.util.ts`, wired in
+  `src/pages/chart.vue`.
 - **Proof.** Screenshot the pane with the legend visible, plus the engine-state
   read naming the overlay. Capture the settings dialog as its own frame if the
   claim is about settings.
@@ -262,5 +298,18 @@ Preconditions:
 - Persisted overlay visibility is user intent only. Never assert on
   `overlay.isHidden` to prove an app-side hide; app-side hides are engine-side
   gates.
+- **A retired kScript row refuses to add (source, `58903c3f75`).** A row that
+  `isRetiredKscriptDoc` matches raises a 3 s warning toast
+  (`dialogs.indicatorDialog.kscriptRetire.cannotAdd`) and mounts nothing
+  (`src/composables/chart/useIndicatorCatalog.ts`). A missing overlay after such
+  an Add is the refusal, not a broken add.
+- **Not every legend shows the pin and window doors (source, `672415eaff`).**
+  `hasPinToChartDoor(type)` in `src/constants/indicator.constants.ts` hides the
+  pin button, `Move to price pane` and the Objects pin for foreign-domain and
+  on-chart types, and the nine built-in options indicators in
+  `WINDOW_NATIVE_OWNER_TYPES`
+  (`packages/wrun-chart-host/src/utility/chart/window-owner.leaf.ts`) now get
+  the window doors and skip the pane move. Check `shouldShowPinToChartBtn`
+  before asserting `pinToChartBtn`.
 - Some indicators are interval-sensitive: TPO sessions are daily, so at `1m` the
   profile is off-screen and the frame looks blank. Pin a sane interval first.

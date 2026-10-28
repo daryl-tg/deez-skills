@@ -7,11 +7,13 @@ marketplace (WRUN) scripts use the shared hosted-run path when their delivered
 source or published build requires it and return through the same pipeline. Run targets depend on delivered source, visibility, and published
 builds: editable and delivered read-only scripts can run in the browser, while
 protected or unavailable builds use the cloud lane. This entry was last DRIVEN
-on 2026-10-27 against product tree `7290d33d10` (53 behind `origin/main`
-`df3fdcb62e`), lane `18103`, a real guest-JWT lane: ks-open through Super Search
-(`global-nav-search-btn`, query `editor`, row `Script Editor`) gave a non-inert
-drawer with `kscript-run-btn`, no `kscript-save-btn`, no template picker and one
-read-only `.cm-editor`; `tb-editor-toggle-btn` raised the `script-editor` wall.
+on 2026-10-28 against product tree `29c9cda0a2` (`origin/main`), lane `18103`,
+a guest lane with no JWT: ks-open through Super Search (`global-nav-search-btn`,
+query `editor`, row `super-search-result-panels:Editor-btn`, label
+`Script Editor`) gave a non-inert drawer reading `No script open`, with
+`kscript-run-btn`, `kscript-close-editor-btn`, no `kscript-save-btn`, no
+template picker, and one `.cm-editor` that ignored typing; the Panels `editor`
+row raised the `script-editor` wall.
 WRUN launch-box/ring, Pine conversion, Kata hand-offs, and AI provenance remain
 authenticated coverage obligations.
 
@@ -214,6 +216,19 @@ Preconditions:
   a protected script that "loads forever" needs its `clientRequestId` from the
   in-app debug dump, grepped in the kscript-backend logs. Looking in the wrong
   place is the standard way this costs an hour.
+- **A guest's read-only editor still reads `contenteditable="true"`.** Driven
+  2026-10-28: `.cm-content` carried `contenteditable="true"`, yet focusing it and
+  pressing `x` and `y` left the document empty with no wall. The read-only state
+  is CodeMirror's, not the attribute, so prove it by typing and reading the text.
+- **OPRA data in user scripts is no longer flag-gated (source, `61f23cdf65`).**
+  The `opra-user-scripts` flag is retired:
+  `packages/wrun-chart-host/src/utility/chart/opra-user-scripts-gate.util.ts`
+  answers on in every context, so what still gates a user script on an OPRA chart
+  is a signed-in session and the OPRA entitlement and tier. Stale comments still
+  name the flag (`KScriptWorkspace.vue`, `useIndicatorCatalogV2.ts`). Not driven.
+- **The kScript stand-in paints on more charts (source, `f047751c9a`).** Stock,
+  forex, commodity, DEX, index and CME charts now get the stand-in candles
+  (`kscript-standin-chart.util.ts`). Not driven.
 - Protected and WRUN scripts need the authed lane and a real entitlement. On the
   guest lane they are unreachable — report that with the attempted path.
 - **`Engine analysis worker is paused; safe editing remains available.` is a lint
