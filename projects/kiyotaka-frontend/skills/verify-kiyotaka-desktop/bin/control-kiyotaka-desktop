@@ -191,10 +191,29 @@ cmd_capture() {
   # OPENMARKET_DESKTOP_URL is honoured by an unpackaged launch only; empty loads production.
   local target="${url}${path}"
   [ "$prod" -eq 1 ] && [ -z "$path" ] && target=''
-  (cd "$DESKTOP" && CAPTURE_OUT="$out" CAPTURE_REPORT="$report" CAPTURE_SETTLE_MS="${CAPTURE_SETTLE_MS:-60000}" \
-    OPENMARKET_DESKTOP_URL="$target" pnpm exec electron -r ./tools/verify/capture.js . --user-data-dir="$profile" \
-    | grep -E '^(desktop|capture): ') || true
-  [ -s "$out" ] && [ -f "$report" ] || die "no capture written to $out"
+  # capture.js has no deadline of its own: when capturePage() rejects ("Current display surface not available for
+  # capture", a hidden window on the idle mini, 2026-10-29) the shell never quits. Stop it past the settle plus
+  # CAPTURE_DEADLINE_S, matching only this capture's own profile, so another run's shell is never touched.
+  local settle_ms="${CAPTURE_SETTLE_MS:-60000}" shell_log="${out%.png}.shell.log" waited=0
+  (cd "$DESKTOP" && CAPTURE_OUT="$out" CAPTURE_REPORT="$report" CAPTURE_SETTLE_MS="$settle_ms" \
+    OPENMARKET_DESKTOP_URL="$target" pnpm exec electron -r ./tools/verify/capture.js . --user-data-dir="$profile") \
+    > "$shell_log" 2>&1 &
+  local launch=$!
+  local deadline=$(( settle_ms / 1000 + ${CAPTURE_DEADLINE_S:-180} ))
+  while kill -0 "$launch" 2>/dev/null; do
+    if [ "$waited" -ge "$deadline" ]; then
+      pkill -TERM -f "user-data-dir=$profile" 2>/dev/null || true
+      wait "$launch" 2>/dev/null || true
+      grep -E '^(desktop|capture): ' "$shell_log" || true
+      grep -q 'display surface not available' "$shell_log" \
+        && die "no capture after ${deadline}s: the window had no display surface (hidden or no unlocked display); log $shell_log"
+      die "no capture after ${deadline}s; the shell was stopped; log $shell_log"
+    fi
+    sleep 2; waited=$((waited + 2))
+  done
+  wait "$launch" 2>/dev/null || true
+  grep -E '^(desktop|capture): ' "$shell_log" || true
+  [ -s "$out" ] && [ -f "$report" ] || die "no capture written to $out; log $shell_log"
   node -e '
     const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
     const want = process.argv[2], withPath = process.argv[3] !== "";

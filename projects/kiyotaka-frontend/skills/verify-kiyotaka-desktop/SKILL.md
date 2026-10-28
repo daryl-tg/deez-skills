@@ -94,6 +94,12 @@ It builds the shell, launches it unpackaged on a fresh profile against the lane,
 `BTC - USD`. Add `--prod` for the deployed chart and `--path '?login=1'` for the sign-in screen. Prove Turnstile with
 `--prod`: the dev lane's env uses Cloudflare's test sitekey, which passes anywhere and says "For testing only".
 
+A capture needs an unlocked console session. On a locked screen (`ioreg -n Root -d1 -a | grep -A1
+CGSSessionScreenIsLocked` reads `<true/>`), `capturePage()` rejects with "Current display surface not available for
+capture", and `capture.js` never quits. The wrapper stops the shell that holds its own capture profile
+`CAPTURE_DEADLINE_S` (default 180) after the settle. It then fails with that reason and keeps the shell log beside the
+PNG path as `<name>.shell.log`.
+
 **Run the checkout's lanes.** `run` passes the lane URL as `OPENMARKET_DESKTOP_URL` and runs the lane from its home:
 
 ```bash
