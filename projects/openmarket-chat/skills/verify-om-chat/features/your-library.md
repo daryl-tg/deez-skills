@@ -57,7 +57,11 @@ production client rejects unlisted states (`src/lib/om-daemon.ts:1545`), so
 this is a fixture gap, not a product bug. Stubbing `libraryDaemon: null` would
 render the card's `unavailable` branch instead. Until the fixture changes, assert only
 the route for the Agents lens here, and report the crash rather than
-captioning it as the lens.
+captioning it as the lens. **The `/chat/` fixture does not crash.** There
+`?view=library&lens=agents` reaches `/chat/library/agents` and renders the
+Agents lens, with a count of 1 and the access text "Read access lets an agent
+inspect notes and queue proposals…". Driven 2026-10-28 at `07f7d04c`. Prove
+the lens content on `/chat/` and only the route on `/rooms/`.
 
 Archive renders `data-home-library-archive` (`LibraryView.tsx:8706`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
@@ -124,7 +128,9 @@ measured live: `flat`, then `null`), `?note=long|wrapped`, and
 - **Import folder:** `shell-fixture.html?view=home&alerts=quiet&homeImport=open` opens dialog **Import folder into Your Library** on `/rooms/`. On `/chat/` the same URL showed no dialog. `import=<phase>` (`shell-fixture.tsx:4157`) seeds later phases, which were not driven.
 - **To-dos panel:** the shell's `?panel=todos` crashes into the lazy-surface error **Todos could not load** with **Try again** and **Reload OM Chat** (`[data-lazy-surface-error="Todos"]`) on both hosts. The roster `members` seed has no `role`, and `TodosPanel.tsx:154` calls `member.role.toLocaleLowerCase()`. This is a fixture gap. The panel itself renders on the component gallery instead: `fixture.html?surface=conversation-qol` shows tabs **To-dos 4 / Bookmarks / Members / Pins**, the seeded row "Audit the launch copy" and **Add a to-do**. Promote (`todoPromote: null`) has no seed.
 
-Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 28-30).
+- **Library to-dos lens per host:** `?view=library&lens=todos` routes to `#/library/todos` on `/rooms/` with "Review the launch checklist". On `/chat/` it routes to `/chat/library/todos` and shows the cloud fixture's own seed instead: **Todos · 1 open** with "Share the customer notes". Both seeds are fine; assert the right one for each host.
+
+Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 28-30). Re-driven 2026-10-28 at `07f7d04c`, after the todos-lens batching fix in that commit, which changes no fixture-visible behaviour because both fixtures stub `todoBoards` and `ensureTodoBoard`. Results: the shell `?panel=todos` still fails with the `TodoRow` `toLocaleLowerCase` crash on both hosts, conversation-qol still shows **To-dos 4**, **Audit the launch copy** and **Add a to-do**, and the lens results are as above. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/`.
 
 ## Doc pane states (`doc=server`)
 
@@ -240,6 +246,6 @@ artefact, not a failure.
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist"; `doc=server&docState=history` showed a `select` **Version history** at `9` (r9 · current · kyle, r8 · om); `panel=library&scope=server` mounted the **Library** aside (`data-right-panel=library`); `homeImport=open` opened **Import folder into Your Library**. `?panel=todos` showed the lazy-surface error "Todos could not load … Try again / Reload OM Chat", and `fixture.html?surface=conversation-qol` showed tabs **To-dos 4 / Bookmarks / Members / Pins** with "Audit the launch copy". **Limitations:** `lens=agents` (fixture crash), reconcile, read-only, doc Vim, select-all, `:w`, proposals and `/chat/` were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 20).
+**Last verified:** 2026-10-28 (scheduled maintenance). **Product commit:** `07f7d04c` (origin/main). **Scope:** `lens=todos` on both hosts (per-host seeds above), `lens=agents` rendered on `/chat/` and crashed on `/rooms/`, `?panel=todos` crashed on both hosts, and conversation-qol showed **To-dos 4**. **Limitations:** history, the library panel filter, import and the doc pane were not re-driven at this tree. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/`.
 
-**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist", and `doc=server&docState=history` showed **Version history** at `9`. **Limitations:** The panel filter, full page, `lens=agents` (fixture crash), reconcile, read-only, doc Vim, select-all, `:w`, proposals and import/export/trash/move/restore were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 25). Previous record: 2026-10-26 at `5820fbea`.
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist"; `doc=server&docState=history` showed a `select` **Version history** at `9` (r9 · current · kyle, r8 · om); `panel=library&scope=server` mounted the **Library** aside (`data-right-panel=library`); `homeImport=open` opened **Import folder into Your Library**. `?panel=todos` showed the lazy-surface error "Todos could not load … Try again / Reload OM Chat", and `fixture.html?surface=conversation-qol` showed tabs **To-dos 4 / Bookmarks / Members / Pins** with "Audit the launch copy". **Limitations:** `lens=agents` (fixture crash), reconcile, read-only, doc Vim, select-all, `:w`, proposals and `/chat/` were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 20). Previous record: 2026-10-27 at `6c15b0fb`.

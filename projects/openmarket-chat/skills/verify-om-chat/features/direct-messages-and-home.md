@@ -157,6 +157,12 @@ agent-browser find role button click --name "Add someone"   # dialog "Add to gro
 
 Verified 2026-10-28 at `2dd7aad1` on `/rooms/` and `/chat/` (nightly maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 10-12, 44).
 
+### Create Category name prompt (added 2026-10-28)
+
+On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:37`) opens `NamePromptModal` (`Modals.tsx:162`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2852`, `:6596`) and was not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. The other display-name modals have no seed. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu), which the fixture leaves unstubbed with `nameEditPrompt: null` (`shell-fixture.tsx:3051`). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
+
+Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-create-category-name-prompt.png`).
+
 ## Gotchas
 
 - **Home renders one `<h1>` on desktop**, the unread summary

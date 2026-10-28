@@ -101,7 +101,7 @@ Routes:
 | `shell-fixture.html?view=topic&topic=cpi-print-aug` | One topic's own chat, entered directly |
 | `shell-fixture.html?view=room&channels=many` | Long channel list — sidebar overflow and scroll |
 | `shell-fixture.html?view=room&bulk=120` | A loaded tape, for scroll and virtualisation work |
-| `shell-fixture.html?view=room&topics=on&peek=cpi-print-aug` | Topic open in the right sidebar rather than the main pane — **not rendering today, see Gotchas** |
+| `shell-fixture.html?view=room&topics=on&peek=cpi-print-aug` (`/chat/`), plus `#/room/ops/topic/cpi-print-aug` on `/rooms/` | Topic peek beside the stream — see Gotchas for why `/rooms/` needs the hash |
 
 Handles that resolve today:
 
@@ -207,42 +207,36 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
   **method** the fixture never mentions, so it yields `INERT`. Stubbed field
   versus unstubbed method, same component, opposite outcomes: when half a
   control works and half does not, that is the first thing to check.
-- **The topic peek pane does not render right now.** `?peek=<topicId>` is read
-  (it seeds `session.topicPeek`), and the gate needs `active.kind ===
-  "room"`, a matching room, and a viewport wider than the `max-width: 1099px`
-  overlay query — all satisfied at 1440×900. `[data-topic-peek]` is still
-  absent. This is not a query you are getting wrong: the repo's own
-  `tools/visual/topic-peek-drop.visual.ts` drives the identical URL and fails
-  on `expect(pane).toBeVisible()`, and it fails on `main` as far back as
-  `25fe4e6b`, and still fails at `50a5b29f`. Do not read `#689` ("unify the peek
-  hover machine into PeekIntent") as a fix for it: that commit touches
-  `channel-peek.ts` and `dm-peek.ts`, the sidebar **hover popovers**, which are
-  a different mechanism from the topic side pane. This seam —
-  `?peek=` → `fixtureTopicPeek` → `session.topicPeek` → the gate →
-  `TopicPeekPane` — was not in its diff at all. The Playwright suite is not
-  part of the merge gate
-  (`lint && typecheck && build && check-dist && test-fast`), which is how it
-  rotted unnoticed. Do not spend a run rediscovering this, and do not report it
-  as caused by your change.
+- **The topic peek renders on both hosts, but each host needs its own URL.**
+  Found and driven 2026-10-28 (maintenance) at `07f7d04c`, 1440×900:
+  - **`/chat/`:** `shell-fixture.html?view=room&topics=on&peek=cpi-print-aug`
+    mounts `[data-topic-peek="cpi-print-aug"]`, a 440 px pane beside the
+    still-visible `Messages in stream` log, with its own log **Messages in CPI
+    print — Aug** (2 rows) and the buttons **Previous topic**, **Next topic**,
+    **Open topic and summon your om**, **Open full** and **Close the topic
+    peek**.
+  - **`/rooms/`:** the same query mounts nothing, because the hash router
+    wipes the seed at boot. The fixture writes `#/room/ops`, and
+    `src/lib/routing.ts:636-640` closes any open peek when the route equals the
+    current view (the Browser-Back rule). Put the peeked topic in the hash
+    instead: `shell-fixture.html?view=room&topics=on&peek=cpi-print-aug&alerts=quiet#/room/ops/topic/cpi-print-aug`.
+    `routing.ts:622-635` keeps a peek whose topic matches the hash, so the
+    pane mounts the same as on `/chat/`.
+  - **On both hosts:** Escape closes the pane and returns the route to the
+    parent room (`#/room/ops`, `/chat/room/ops`). **Open full** promotes it to
+    the full topic (heading `#ops/CPI print — Aug`).
 
-  **Both mounts exist, and neither renders on the fixture.** An earlier pass read
-  the `Shell.tsx` fallback (`:4213-4221`, gated on
-  `!conversationRowOwnsRightRegion`) as the only mount and called the empty pane a
-  designed outcome. That was wrong. The row-owned mount has been in
-  `ConversationRightRegion` since `f190644c` (`RightPanels.tsx:293-300`: gated
-  on `session.topicPeek`, `active.kind === "room"`, a matching room and
-  `!panelOverlay`; the region itself returns null on mobile or outside a room or
-  DM, `:280-288`), and `ChatPane.tsx:1155` and `:1845` render that region. On
-  2026-10-28 at `2dd7aad1`, `?view=room&peek=cpi-print-aug`,
-  `?view=room&topics=on&peek=cpi-print-aug` and
-  `?view=topics&topics=on&peek=cpi-print-aug` at 1440×900 all left no
-  `role=region` and no `.topic-peek*` node. The fixture's `openTopicPeek`
-  (`shell-fixture.tsx:3354`) does set `topicPeek` and emit. Why the pane stays
-  empty was not traced; `TopicPeekPane` reads `session.topics.railViewFor` or
-  `inboxFor` (around `TopicPeekPane.tsx:123-128`), which is the next thing to
-  check. Clicking a message's topic pill (**Open topic CPI print — Aug, …**)
-  opened the topic in the main pane instead. Keep the row `live verification
-  pending`, and do not report it as a product bug until a real host is checked.
+  Earlier passes recorded this as "renders nothing anywhere" because they only
+  tried the bare query on `/rooms/`. The repo's own
+  `tools/visual/topic-peek-drop.visual.ts` uses that bare URL, which explains
+  its old failure. It was not run this pass. **Clicks that no longer peek:** a
+  topic activity card in the stream, including its message count, always
+  opens the full topic (`TopicActivityCard.tsx:151-163`). So
+  `apps/cloud/tools/visual/topic-peek.visual.ts`, which clicks that count,
+  reads as stale against source. It was not run either. In the fixture, the
+  inbox panel's **Topic CPI print — Aug, followed** row did not open a peek on
+  either host. Dedicated peek callers are the inbox (`TopicInbox.tsx:51-67`)
+  and the to-dos panel.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
   opens nothing — confirmed live. But that is a fact about the *control*, not
   about the surface: **`?switcher=open` mounts the quick-switcher**
@@ -289,6 +283,6 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug` and the composer **Message in CPI print — Aug**; **Back to #ops** gave `#/room/ops`. `?switcher=open` mounted `.quick-switcher` (`role=combobox`, placeholder "Search messages, or jump anywhere...", "Nowhere recent yet."), and `#mac` then Enter reached `#/room/macro/topic/basis-desk-review`. The deep link `#/room/ops/msg/105`, present at load, set `messageJump=105` and rewrote the hash to `#/room/ops`. `panel=topic-draft` mounted the **New topic** aside. `?view=topics` showed the primer with 12 px padding. The topic row menu offered **Mark As Unread** on the read topic, and the inbox panel and Resolve dialog rendered (section above), on both hosts. **Limitations:** The topic peek still renders nothing (Gotchas), the dock was not re-driven, and Mark As Unread effects are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 01, 04, 08-09, 36-37, 41, 43).
+**Last verified:** 2026-10-28 (scheduled maintenance). **Product commit:** `07f7d04c` (origin/main). **Scope:** Topic peek on both hosts: `/chat/` `?view=room&topics=on&peek=cpi-print-aug` and `/rooms/` with `#/room/ops/topic/cpi-print-aug` mounted `[data-topic-peek="cpi-print-aug"]` beside the stream, with log **Messages in CPI print — Aug**; Escape closed it back to the parent room; **Open full** promoted it to `#ops/CPI print — Aug`. `?panel=inbox` rendered the inbox rows on both hosts. **Limitations:** Peek **Previous topic** / **Next topic**, the peek composer and drop target, and channel or DM hover peeks were not driven. The inbox topic row opened no peek in the fixture. The quick switcher, deep link, topic row menu and dock were not re-driven at this tree. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-topic-peek-*.png`).
 
-**Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug`, and **Back to #ops** gave `#/room/ops`; `aside[aria-label="Workspace navigation"]` held the rail `nav` with no role. `?switcher=open` mounted the switcher with its empty state; `#mac` then Enter reached `#/room/macro/topic/basis-desk-review`. `?view=topics` showed the primer at 52 px with 12 px padding on every side and both glyphs 12 px from the edges; dismissing it survived reload, and at 390×844 the dismiss hit box was 44×44. On `/chat/`, the primer had 12 px top and bottom padding, and the CPI topic reached `/chat/room/ops/topic/cpi-print-aug`. **Limitations:** Mark As Unread, the dock and the channel menu were not re-driven; Mark As Unread effects remain fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 02-03, 20, 38-39). Previous record: 2026-10-26 at `5820fbea`.
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug` and the composer **Message in CPI print — Aug**; **Back to #ops** gave `#/room/ops`. `?switcher=open` mounted `.quick-switcher` (`role=combobox`, placeholder "Search messages, or jump anywhere...", "Nowhere recent yet."), and `#mac` then Enter reached `#/room/macro/topic/basis-desk-review`. The deep link `#/room/ops/msg/105`, present at load, set `messageJump=105` and rewrote the hash to `#/room/ops`. `panel=topic-draft` mounted the **New topic** aside. `?view=topics` showed the primer with 12 px padding. The topic row menu offered **Mark As Unread** on the read topic, and the inbox panel and Resolve dialog rendered (section above), on both hosts. **Limitations:** The topic peek was recorded as rendering nothing (corrected above), the dock was not re-driven, and Mark As Unread effects are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 01, 04, 08-09, 36-37, 41, 43). Previous record: 2026-10-27 at `6c15b0fb`.
