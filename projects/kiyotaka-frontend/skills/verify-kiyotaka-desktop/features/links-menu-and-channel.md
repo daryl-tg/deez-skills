@@ -11,9 +11,13 @@ There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. On 2026-10-27 on tree `7290d33d10` it failed twice at its first
-click, before any check, and on 2026-10-28 on `5365748ef3` (`origin/main`) it failed the same way once: the first-run
-onboarding dialog's `.dialog-overlay` covers the chart (a product-lane gap). The context
-menu, downloads, permissions, mouse side buttons and the Windows and Linux menus are proved by unit tests only.
+click, before any check, on 2026-10-28 on `5365748ef3` it failed the same way once, and on 2026-10-29 on
+`30481b57f8` (`origin/main`) it failed the same way again (`locator.click: Timeout 30000ms exceeded`, the dialog's
+`.dialog-overlay` "intercepts pointer events"): the first-run onboarding dialog covers the chart (a product-lane gap).
+The context menu and the chart CSV download were driven live on 2026-10-29 on `30481b57f8` by the gaps lane's guest rows
+(`contextmenu-*` and `download-chart-csv` passed in both hosts; see [Electron gaps](./electron-gaps.md)). The
+permission prompts, a download collision or failure, mouse side buttons and the Windows and Linux menus are proved by
+unit tests only.
 
 ## Sub-features
 

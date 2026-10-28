@@ -5,10 +5,13 @@ a dev lane overrides it with `OPENMARKET_DESKTOP_URL`), takes a single-instance 
 first window, and remembers the window's position, size and maximized state across launches. The window has no system
 title bar: a 36 px bar view above the page carries Back, Forward, the page title and an update button, and draws its
 own tooltips; on Windows and Linux the menu bar stays hidden until Alt. A packaged release build shows a one-time
-"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-10-28 on product tree `5365748ef3`
-(`origin/main`, desktop 0.1.7): `capture` on the dev lane and with `--prod`, `capture --prod --path '?login=1'`, and the
-`window` scenario on production, 12 of 12. The dev-lane frame showed the boot splash at 23 percent again while its
-checks passed; the production frames showed candles and the sign-in screen. The title
+"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-10-29 on product tree `30481b57f8`
+(`origin/main`, desktop 0.1.7) with the console session locked. The `window` scenario on production passed 9 of 12: the
+first launch logged `desktop: loaded https://openmarket.xyz/chart/` with the title `80,950.0 ▼ BTC - USD` and a candle
+frame, and the second instance focused it. The three relaunch checks went red because the relaunch is a `capture.js`
+launch, which a locked screen leaves with no frame. Every `capture` that day got no frame for the same reason. The last
+captures were on 2026-10-28 on `5365748ef3`: the dev-lane frame showed the boot splash, and the production frames showed
+candles and the sign-in screen. The `window` scenario was last 12 of 12 that day. The title
 bar, the Alt menu bar and the beta notice have no live driver (unit tests in `desktop/tests/main/` only; the beta notice
 never shows on a dev lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
 
@@ -64,6 +67,13 @@ Preconditions:
   a dev-lane boot often does not, so on 2026-10-27 both dev-lane captures passed every check, with a priced title and
   15 canvases, while their PNGs showed the splash at 54 and 82 percent. Open the PNG. For a dev-lane frame, run with
   the console session awake and the window unobscured, or take the frame from `--prod`.
+- **A locked screen gives no frame at all.** With the console session locked (`ioreg -n Root -d1 -a | grep -A1
+  CGSSessionScreenIsLocked` reads `<true/>`), `capturePage()` rejects with "Current display surface not available for
+  capture". `capture.js` has no catch, so the shell logs `desktop: loaded` and then never quits, and `capture` hangs.
+  On 2026-10-29 this happened to every capture and to the `window` scenario's relaunch: `relaunchCapture` was `{}`, so
+  `relaunchBtcTitle`, `relaunchCanvas` and `relaunchMaximized` went red. Stop only your own shell, with `pkill -TERM -f
+  'user-data-dir=<checkout>/desktop/.verify-userdata/control/capture-profile'`. Report the frame as blocked on the
+  lock. It is not a product regression. Unlocking the screen is the operator's job.
 - **Turnstile is a soft gate now.** auth-service hides the widget for clean traffic, so the sign-in capture usually
   shows no widget at all. When a widget does show, only `--prod` proves it: the dev lane's env carries Cloudflare's
   test sitekey, which reads Success! over a red "For testing only" strip.

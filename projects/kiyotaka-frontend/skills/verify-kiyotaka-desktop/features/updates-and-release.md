@@ -9,9 +9,9 @@ shows its own "A new version of the OpenMarket app is ready." toast through `ope
 policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice in the title bar or block the site below a
 `minVersion`; both channel policies are `off`. A merge to `main` that changes `desktop/package.json`, or a hand-pushed
 `desktop-v*` tag, runs `desktop release` (macOS, with Windows unless `DESKTOP_SKIP_WINDOWS=1`), `desktop release
-linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `5365748ef3`
-(`origin/main`, 2026-10-28) is still 0.1.7. The update round trip was last driven 2026-10-28 by the `update` scenario on
-that tree: 14 of 15 checks, the same as on 2026-10-27, up to the
+linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `30481b57f8`
+(`origin/main`, 2026-10-29) is still 0.1.7. The update round trip was last driven 2026-10-29 by the `update` scenario on
+that tree: 14 of 15 checks, the same as on 2026-10-27 and 2026-10-28, up to the
 boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature). The red one, `launchCheckReadBetaFeed`, is a
 stale lane assertion: with a feed override the policy watcher now asks `GET /policy.json` before `GET /beta-mac.yml`.
 The title-bar button, the restart dialog, the page toast, the policy notice and block, and the internal build have no
@@ -59,7 +59,8 @@ Preconditions:
   `noDockBadge` and `noCopyLeft`.
 - **Unit level.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test` runs `updater`,
   `update-bridge`, `titlebar`, `policy`, `build-site`, `dev-lane`, and `tests/scripts/release-tag.test.ts`,
-  `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27; not a live proof.
+  `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27 and again on 2026-10-29
+  (`30481b57f8`); not a live proof.
 - **Upload set.** The publish script refuses unless every file it uploads exists and each feed file names the
   version, so a dry run needs a release build in `DIST_DIR` or placeholders. With placeholders, run:
 

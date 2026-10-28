@@ -6,8 +6,9 @@ a native notification. An installed build keeps its profile in `OpenMarket`; an 
 The shell also hands eight analytics events (`app-opened`, `update-installed`, `update-ready`, `signin-started`,
 `signin-completed`, `signin-failed`, `policy-shown`, `beta-notice-dismissed`) to the page through
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
-Last driven 2026-10-28 by the `notify` scenario on tree `5365748ef3` (`origin/main`): 13 of 17 checks, the same four
-reds as on 2026-10-27. Three reds are the known
+Last driven 2026-10-29 by the `notify` scenario on tree `30481b57f8` (`origin/main`): 12 of 17 checks. Four reds are
+the same as on 2026-10-27 and 2026-10-28. The fifth, `screenUnlocked`, is the lane reading a locked console session;
+a locked screen also blocks both captures, so it is an unmet precondition, not a regression. Three reds are the known
 ones, `osAuthorized`, `notificationCaptured` and `dockCaptured`: macOS never authorizes notifications for an ad-hoc
 build. The fourth, `bridgeUnchanged`, is the lane's stale two-member bridge assertion (see
 [returns](./return-channel-and-bridge.md)). A visible banner waits on a Developer ID build. The analytics hand-off has
@@ -40,7 +41,8 @@ Preconditions:
   and tries `screencapture` for the banner and then the dock.
 - **Pass on an ad-hoc build.** Every check true except `osAuthorized`, `notificationCaptured`, `dockCaptured`, and
   `bridgeUnchanged` until the lane learns the new bridge; `osAddedRequest` reads
-  `Added notification request: [ hasError: 0 ]`. Treat any other red as a regression.
+  `Added notification request: [ hasError: 0 ]`. `screenUnlocked` goes red too when the console session is locked;
+  report that run's captures as blocked on the lock. Treat any other red as a regression.
 - **Pass on a Developer ID build.** All 17 true. This needs the signed build installed and the lane pointed at it; the
   scenario packs its own ad-hoc build, so today the operator captures the banner by hand from the installed app.
 - **Proof.** The JSON summary, `unit-04-bundle-icon.png`, and `unit-04-notification.png` and `unit-04-dock.png` when

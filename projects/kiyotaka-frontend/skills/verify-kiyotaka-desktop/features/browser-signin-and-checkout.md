@@ -9,9 +9,11 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-28 on tree
-`5365748ef3` (`origin/main`): the return, checkout-return and signin pages in Chromium on the dev lane, the super-search
-command in Chromium, and the shell's production sign-in screen with no passkey row against Chromium's with one. The
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-29 on tree
+`30481b57f8` (`origin/main`): the return, checkout-return and signin pages in Chromium on the dev lane, the super-search
+command in Chromium, and Chromium's sign-in dialog with its Use a passkey row. The shell's production sign-in screen
+with no passkey row was last captured 2026-10-28 on `5365748ef3`; on 2026-10-29 the console session was locked and
+`capture` got no frame (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
 `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, a real orange and, for checkout, a Stripe session.
