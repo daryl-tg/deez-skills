@@ -1,5 +1,7 @@
 # Firecrawl recovery before whitelist
 
+*Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), no-key path only, lane on 18104, a challenged stub on 18112. During the hold on a `page-add` feed, `watch show` carried `… · Firecrawl can read it for you` with `FIX om setup firecrawl`, and `--format json` `.status.source.fix` was `{label: "Firecrawl can read it for you", command: "om setup firecrawl"}`. The dashboard detail showed the same sentence. The `page_origin_cooldown` refusal on a second `page-add` was not re-driven, and the configured path is still pending. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
+
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), no-key path only, lane on 18104 with `OM_FEED_ALLOW_LOOPBACK=1`, a challenged stub on 18124 and no Firecrawl key in the environment. `watch page-add http://127.0.0.1:18124/rss --prefer feed --every 60s` exited 2 with `page_origin_cooldown` (`127.0.0.1 is challenging this machine; next try …`) and the hint `Run om setup firecrawl to retry public pages this machine cannot read.`, with no `--allow`. The stub logged one `challenge GET /rss`. The configured path (fixture key plus vendor redirect) was not driven. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 A configured Firecrawl connection retries the first eligible direct-read failure or refusal automatically. A later refusal asks to allow that site. A home without a Firecrawl key continues to offer setup. The first recovery does not grant standing access to the site.

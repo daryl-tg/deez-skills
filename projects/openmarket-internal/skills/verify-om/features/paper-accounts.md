@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103. Newly driven: `paper digest`. After `paper create acct-a --cash 5000 --yes` and `acct-b --cash 1000`, the all-accounts digest opened with `Steps: none` (new with #2192) and then one block per account (`Cash`, `Equity`, `Open: 0 lots`, `Fills: none`, `Skips: none`). `paper digest acct-a` had no `Steps` paragraph. The Paper tab listed both rows and `Total $6,000.00`. Not driven: open, close, reset-all, `digest-set`, the scheduled edition, and the #2176/#2188/#2192 target-step rows (they need a target step). Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/` (`paper-digest.txt`, `07-paper-tab.png`).*
+
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `paper ls`, `paper create verify-book-1028 --yes` (cash 1000, `desk: off`) and `paper show`. `/paper` rendered only the shell, as documented. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
 
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. `paper create verify-book` without `--yes` exited 2 `confirmation_required`; with it, it returned `{account:{id:"pa_…", cash:1000}, desk:"off"}`. `paper ls` returned the eight mapped fields, and `paper list` failed `unknown command 'list'; did you mean 'ls'?`. Newly driven: `paper show verify-book`, which returned `account` (with `generation`, `venue`, `holds`), `rules` and `lots: []`. The Paper tab showed the explanatory paragraph, the six columns and the row, plus `No equity recorded yet`, `No open lots.` and an empty Decisions table. Not driven: open, close, reset-all, digest, and the #2176 resting stop/limit on a lot (needs a target step). Previous stamp `8fe6a8432` is an ancestor (10 commits).*
@@ -15,6 +17,7 @@ product's money-shaped surfaces, because none of it is money.
 - `paper-ls` lists accounts with cash, open lots, staked, open value and P&L.
 - `paper-tab` renders the same accounts in the dashboard.
 - `paper-desk` is the per-account automation switch, `off` on a new account.
+- `paper-digest` renders the digest now, without posting it. The all-accounts form opens with a `Steps:` paragraph: `Steps: none`, or the step count with `Holding` and `Realized`. Each account block may add `Step: <id> of <watch>` rows for target-step lots (#2192).
 
 ## How to get to it (user POV)
 
@@ -44,6 +47,13 @@ credential, no venue.
   (`{"sl_price", "tp_price"}`), and the `paper-exits` loop fills them when the
   mark crosses. That needs a target step, which a guest lane cannot drive (see
   README).
+- **Digest.** `control-om om -- paper digest --format text` prints
+  `Paper digest`, then `Steps: none`, then `Paper <name>` blocks with `Cash`,
+  `Equity`, `Open: N lots`, `Fills` and `Skips`. Without `--format` the call
+  outside a TTY prints `{"digests":[{"title","body"}]}`. `paper digest <name>`
+  renders one account, titled `Paper <name>`, with no `Steps` paragraph. Nothing
+  is posted or stored. The `Steps` paragraph appears only while the digest's
+  sections include positions or fills.
 - **Cross-check the other surface.** Open `control-om url /strategies`, click
   `tab "Paper"`, and assert the table: a paragraph reading
   `Pretend money on local paper accounts. Nothing here is a venue account.`
@@ -65,9 +75,8 @@ credential, no venue.
   changes, so a driver waiting for activity on a fresh book waits forever.
 - `log`, `set` and `reset` were driven at `db6e76ef5` (shapes in the stamp).
   `reset` without `--yes` is refused with `confirmation_required`. `open
-  [account] --signal <json>`, `close <account> <lot>`, `reset-all`, `digest` and
-  `digest-set` exist but were not driven; treat their output shapes as
-  unverified.
+  [account] --signal <json>`, `close <account> <lot>`, `reset-all` and `digest-set` exist but were
+  not driven; treat their output shapes as unverified.
 - **`desk` is not always `off`.** `paper create` from a human terminal or chat
   sets `desk: "on"` when the setting `paper.auto_arm` reads on (`on`, `true`, `1`
   or `yes`; `actions/paper/create.ts`, `runner/paper/desk.ts`). A fresh guest

@@ -1,5 +1,7 @@
 # Chart catalog reads
 
+*Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `chart indicator list --query rsi` (`indicators: []`, `scriptSubTypes: ["RSI"]`, and `packages` led by `wrun/@om-core/ichimoku/conversion`) and `chart drawing schema` (`anchorFormat`, `tools`). Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
+
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `chart indicator list --query rsi`, `chart indicator schema rsi` (`@om-core/rsi` 0.1.1) and `chart drawing schema`. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
 
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103 with no chart tab. `indicator schema rsi` returned `{target, spec, fields, paint, note}` with `target.kind stock` and `@om-core/rsi` 0.1.1. `nonsense` returned `indicator_unknown` (exit 2). `indicator list --query rsi` returned `{indicators, scriptSubTypes, packages}`, and `drawing schema` returned `{anchorFormat, tools}`. Not driven: the `--chart`/`--workspace` forms, metric ids and `TECHNICAL_SCRIPT --sub-type`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*

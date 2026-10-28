@@ -1,5 +1,7 @@
 # Agent creator lifecycle and private-state isolation
 
+*Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103, guest. **The default agents now install from production.** Since #2183 (`d79e522f4`) the coordinates are `@om-core/*`. About 5 s after boot the lane log read `INFO [roster] om-skills defaults installed 8 package(s)`. `OM_DEV=1 roster list` then listed six registry rows at `1.0.0`: `argue`, `explain`, `fact-check` and `librarian` with brain `om`, and `debugger` and `feature` with `-`. The two skill packages are not roster rows. `agent runs` was still empty. Not driven: the six-hour maintenance pass, a withdrawal, and everything past the guest refusals (create/import, Try, install, publish/adopt, runs and the GUI). Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
+
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `OM_DEV=1` `agent runs` (`{"ok":true,"result":{"items":[],"next":null}}`), `agent pause nope`, `agent runs --proof`, `agent runs run_x --proof`, `project unlink nope` (each with its documented refusal, exit 1) and `roster list`. `/healthz` executors were `["coding","investigate"]`. Without `OM_DEV`, `agent runs` fails with `unknown command 'runs'`, as documented. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
 
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103, guest, no `OM_DEV` on the lane. The guest-lane recipe below gave the same results as on 2026-10-27: empty `agent runs`, the `not_found`/`malformed_body` refusals, header-only `roster list`, zeroed `roster measures`, `agent eval nobody` → `found 0`, and empty `/rpc/v1/roster/projects` and `/instances`. New on this tree (#2167/#2169): the default agents install from `@om-skills` registry packages after boot. Production answered 404 for `@om-skills/argue`, and the lane log showed the retry doubling 30, 60, 120, 240 and 480 s. Not driven: a successful default install (no registry lists the packages yet), create/import, Try, install, publish/adopt, runs, plan approval, steer, delivery, and every GUI step. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
@@ -20,7 +22,7 @@ The daemon owns release, installation and account state. Shared text packages ha
 
 ## Sub-features
 
-- Install the eight default agents and skills (argue, debugger, explain, fact-check, feature, librarian, agent-builder, clanker) from `@om-skills` registry packages, live behind a notice, in the background after boot; keep them current every six hours and honour a registry withdrawal (#2167). The signed bundled snapshot is gone (#2169).
+- Install the eight default agents and skills (argue, debugger, explain, fact-check, feature, librarian, agent-builder, clanker) from `@om-core` registry packages (`@om-skills` until #2183), live behind a notice, in the background after boot; keep them current every six hours and honour a registry withdrawal (#2167). The signed bundled snapshot is gone (#2169).
 - Stage supported definitions/skill directories, review provenance, omissions and access, and approve shadow installation.
 - Run private Try without durable conversation, memory, run or delivery writes.
 - Publish authenticated server versions without publisher-private state; adopt as a separate user and pin the reviewed digest.
@@ -57,7 +59,7 @@ OM_DEV=1 control-om om -- agent runs                 # {"ok":true,"result":{"ite
 OM_DEV=1 control-om om -- agent runs run_x --proof   # not_found "Work proof was not found.", exit 1
 OM_DEV=1 control-om om -- agent runs --proof         # malformed_body "Run read command is invalid.", exit 1
 OM_DEV=1 control-om om -- agent pause nope           # not_found "Work run was not found.", exit 1 (cancel likewise)
-OM_DEV=1 control-om om -- roster list                # header NAME ORIGIN VERSION BRAIN; rows only for defaults that installed (none while the registry lists no @om-skills)
+OM_DEV=1 control-om om -- roster list                # header NAME ORIGIN VERSION BRAIN; one row per installed default agent (six on 2026-10-29: argue, debugger, explain, fact-check, feature, librarian)
 OM_DEV=1 control-om om -- roster measures            # zeroed queueLatencyMs, orphanRate, spendUsd, ...
 OM_DEV=1 control-om om -- project unlink nope        # not_found "Project was not found.", exit 1
 curl -fsS "$(control-om url /rpc/v1/roster/projects)" # {"ok":true,"result":{"items":[]}}
@@ -70,10 +72,10 @@ and `POST .../plan/decision`. Anything past a refusal needs an installed agent,
 an LLM credential or coding brain, and an account. `roster drive --once` and
 `roster conformance` are a fake-brain dev harness, not product proof.
 
-### Default agents from `@om-skills` (driven 2026-10-28)
+### Default agents from `@om-core` (driven 2026-10-28 and 2026-10-29)
 
 After the roster starts, a background pass installs any of the eight
-`@om-skills/*` defaults the home lacks. It runs for a guest too, because a
+`@om-core/*` defaults the home lacks (the scope was `@om-skills` before #2183; the log lines still say `om-skills`). It runs for a guest too, because a
 minted guest key resolves to an owner. Before the mint lands, the reason is
 `no owner is signed in`. Boot and `/healthz` never wait on this pass, and
 `/healthz` `roster` is still `{capabilities}` with no install state. Read
@@ -83,10 +85,12 @@ the lane log:
 grep '\[roster\] om-skills' .control-om/lane-<port>.log
 ```
 
-- **Production, 2026-10-28:** `ERROR [roster] om-skills defaults unavailable
+- **Production, 2026-10-29 (`@om-core`):** `INFO [roster] om-skills defaults installed 8 package(s)` about 5 s after boot, on the first pass. `roster list` showed the six agents.
+- **Production, 2026-10-28 (old `@om-skills` scope):** `ERROR [roster] om-skills defaults unavailable
   (registry lookup failed (404) for https://registry.openmarket.xyz/v1/packages/%40om-skills/argue/summary:
   no such resource); retrying in 30s`, then 60, 120, 240 and 480 s (the cap
-  is 30 min). `roster list` stays header-only.
+  is 30 min). `roster list` stayed header-only. A retry line like this now means
+  the registry is unreachable or no longer lists a default.
 - **Success line, per source:** `om-skills defaults installed N package(s)`.
   A permanent refusal reads `om-skills default <coord> refused (<code>)` and is
   not retried. A 403, 404 or 5xx is retried; only a 410 or a suspension is

@@ -1,5 +1,7 @@
 # Chat workspace TUI (`om chat --workspace`)
 
+*Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103 with a fake model on 18107, tmux at 140x36. Plain `om chat` on a fresh lane showed the What's new card (mode flags `1 0`); ctrl+x listed `w What's new: turn it on` and `x What's new: close this one` and no `b` row; `w` stored `chat.workspace = on` (`stored as tui.workspace`) and reopened the chat as a workspace (`1 1`). There: `▾ WATCHES 2 fired · 1 paused` on row 2, `▾ FIRES 3 today` and the `ctrl+x for commands` bottom row; ctrl+x listed only `b hide sidebar`; a click on `● ws-fired` (row 4) opened its card with its top on row 4; `om sidebar set watches paper` printed `Module 1: watches (show all)`, `Module 2: paper` and `Available: watches (show all|fired|attention), paper, fires`, and `▾ PAPER 2 accounts` appeared within 30 s; ctrl+x `b` left the rule reading `── ctrl+x for commands ─`; eight wheel-ups froze the stream at `reply 2 line 16` and the `Go to recent` pill jumped to `reply 2 line 40`; exit history held the `shell-history-*` lines and the transcript with no chrome; `om sidebar reset` restored `watches (show all)` then `fires`. Over MCP stdio `sidebar_layout` is not a tool (`Tool sidebar_layout not found`). Not re-driven: collapse, the 100-column resize, the live-row timing, the PAPER wheel containment, close-on-click, the near-bottom flip and a live model turn. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/` (`tui-*.txt`).*
+
 *Verified: 2026-10-28, on main since #2182 (`a521e2fc9`), #2187 (`705d67f2f`) and #2189 (`7cf1f4d40`).*
 
 For #2189, on copies of a real home at 140x36:
@@ -14,10 +16,11 @@ For #2187 (tree `96c6ef3bd`): the sidebar's first row was blank and `▾ WATCHES
 
 `om chat --workspace` (or `om config set chat.workspace on`) opens chat as a
 split view on the terminal's alternate screen: transcript left, a sidebar of
-modules right (WATCHES then FIRES by default, PAPER optional), today's composer, mode line
-and footer underneath. The person scrolls the transcript in the app, clicks a
-watch for its card, and asks om or runs `om sidebar` to change what the sidebar
-shows. Plain `om chat` is unchanged.
+modules right (WATCHES then FIRES by default, PAPER optional), today's composer,
+mode line and footer underneath. The person scrolls the transcript in the app,
+clicks a watch for its card, and asks om or runs `om sidebar` to change what the
+sidebar shows. Plain `om chat` keeps its layout, but advertises the workspace
+through a **What's new** card that turns it on in one press.
 
 ## Sub-features
 
@@ -32,11 +35,15 @@ shows. Plain `om chat` is unchanged.
 - `fires-module` — on by default under WATCHES: every watch's newest fires, two lines a fire (title and age, then the watch), `N today` header, a card per fire. A home with a stored layout keeps it; `om sidebar reset` takes the default.
 - `collapse` — a click on `▾ NAME` folds a panel to `▸ NAME`, stored as `collapsed` in the layout.
 - `command-menu` — ctrl+x opens a centered `ctrl+x commands` menu of the keys it takes next (`b` hides or shows the sidebar). A listed key, enter or a click runs a row; esc, ctrl+x or a click outside closes it; any other key closes it and types. It scrolls past 8 rows.
+- `whats-new-card` — in plain `om chat` only (never in a workspace), a 49-column `What's new` card above the composer. It holds one entry per recent CHANGELOG item. Today's only entry is `Workspace: chat with a live sidebar`, with `[ Turn it on ]` and `ctrl+x for commands`. The button, a click on it, or ctrl+x `w` sets `chat.workspace on` and reopens the chat as a workspace. ✕ or ctrl+x `x` dismisses it (stored in `tui.whats_new.dismissed`). An entry shows only within 60 days of its date, only while its setting is not already applied, and only at 110 columns or wider.
 - `sidebar-toggle` — `b` in the ctrl+x menu hides or shows the sidebar for the session. The muted `ctrl+x for commands` hint sits on the sidebar's bottom row, or on the closing rule while it is hidden.
 
 ## How to get to it (user POV)
 
-- `om chat --workspace` in a terminal at least 110 columns wide.
+- `om chat --workspace` in a terminal at least 110 columns wide, or
+  `om config set chat.workspace on` and plain `om chat`.
+- Plain `om chat` on a home that has not turned it on: the What's new card's
+  `[ Turn it on ]`, or ctrl+x then `w`.
 - `om sidebar set watches paper` (or `watches fires`) from any shell; the open chat redraws within 30 s.
 - ctrl+x in the chat for the command menu, and a click on a panel header.
 - In the chat: "only show fired watches in my sidebar".
@@ -113,6 +120,17 @@ nothing, and it streams long replies, which the scroll checks need.
   echo "EXITED-$?"; sleep 3600
   ```
 
+- **What's new card (plain chat, fresh lane).** It needs a home with
+  `chat.workspace` unset and no dismissals. Run `./launch.sh` with no flag and
+  wait about 15 s. A `╭─ What's new ── ✕ ╮` box with
+  `Workspace: chat with a live sidebar` and `[ Turn it on ]   ctrl+x for commands`
+  sits above the composer. `display -p '#{mouse_any_flag} #{alternate_on}'`
+  reads `1 0`: the card turns mouse reporting on. `C-x` opens a menu with
+  `w          What's new: turn it on` and `x          What's new: close this one`,
+  and no `b` row. Press `w`. The chat reopens on the alternate screen as a
+  workspace (`1 1`), and `control-om om -- config get chat.workspace` reads
+  `chat.workspace = on` / `source: config (stored as tui.workspace)`. Set it back
+  with `control-om om -- config set chat.workspace off` before the plain-mode checks.
 - **Start.** `tmux -L ws -f /dev/null new-session -d -s ws -x 140 -y 36 "./launch.sh --workspace"`,
   wait about 15 s. Capture with `tmux -L ws -f /dev/null capture-pane -t ws -p`
   (add `-e` for colour, `-S -` for history).
@@ -202,13 +220,27 @@ nothing, and it streams long replies, which the scroll checks need.
   `shell-history-*` lines and the whole transcript (`reply N line 80`). It
   holds no `Go to recent`, `┴`, `ctrl+x for commands` or `om running` rows.
 - **Mode flags.** `tmux … display -p -t ws '#{mouse_any_flag} #{alternate_on}'`
-  reads `1 1` in workspace mode and `0 0` for plain `./launch.sh`.
+  reads `1 1` in workspace mode. Plain `./launch.sh` reads `0 0` only once the
+  What's new card is gone (dismissed, applied or out of date); with the card up it
+  reads `1 0`.
 - **Cleanup.** Press `C-c` twice in the chat, run
   `tmux -L ws -f /dev/null kill-server`, `kill $(cat server.pid)`, then
   `OM_LANE_PORT=<lane-port> control-om down`. Confirm both ports have stopped
   listening.
 
 ## Gotchas
+
+- The footer drops its `N watches` count in favour of attention chips while
+  any watch is broken or needs you (`⚠ 1 broken · 2 need you · /watches`).
+  The chips read the same with the sidebar shown or hidden. So on a lane with
+  a `broken` `ws-armed` (see below), hiding the sidebar cannot prove the count
+  returns. Driven 2026-10-29.
+- The footer may also carry `data limit hit N ago · om usage` after a guest
+  market read was refused by the plan within the hour. It is a recorded
+  refusal, not a live limit (`om usage` showed 600 of 600 remaining).
+- Dismissing the card with ctrl+x `x` writes `tui.whats_new.dismissed`, which
+  is a raw settings row: `om config get` refuses that key. Use a fresh lane
+  home to see the card again.
 
 - The footer reads `no LLM connected · /setup` with the fake model. The model
   comes only from environment variables, which the footer's stored-config
