@@ -26,7 +26,7 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
   **"Agents, needs your om running"**. An armed count does not mask away: the
   desktop label states both, **"Agents, N armed, your om is not running"**,
   and only a connected, armed om reads the bare **"Agents, N armed"**
-  (`Shell.tsx:3054-3068`; mobile segments `Shell.tsx:3572-3624`). So an
+  (`Shell.tsx:3097-3112`; mobile segments `Shell.tsx:3625-3670`). So an
   `--exact` match on the bare name misses several different ways, and matching
   the mobile string on desktop misses too. Away is a whole-app state, a
   different thing from the daemon not running.
@@ -34,18 +34,18 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3748`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3798`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3059`, `:3064`). Two states is the old shape; matching on it
+  (`Shell.tsx:3103`, `:3108`). Two states is the old shape; matching on it
   during a flaky connect misses silently.
 
   **Away has a remote-control spelling too.** When the session is away and a
   remote device answers over the relay, the doors read
   **"Your om, connected remotely"** and **"Agents, connected remotely"**, or
   **"…, remote control off"** when a device is reachable but none is selected
-  (`Shell.tsx:1551`; accessible names at `:3066`, `:3585`, `:3610`,
-  `:3750`). The tooltips spell it with a colon instead, "Agents: connected
-  remotely" (`:3043`, `:3729`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
+  (`Shell.tsx:1550`; accessible names at `:3110`, `:3637`, `:3662`,
+  `:3800`). The tooltips spell it with a colon instead, "Agents: connected
+  remotely" (`:3087`, `:3782`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
   answers `remoteControl: () => null` (`shell-fixture.tsx:4144`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
@@ -76,8 +76,8 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:3994-4026` for spaces; the zone-1 feature folders use the same
-  markers at `Shell.tsx:3814-3842`).
+  (`Shell.tsx:4040-4083` for spaces; the zone-1 feature folders use the same
+  markers at `Shell.tsx:3860-3898`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -96,7 +96,7 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
   ```
 
   The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
-  **`u1`** (`shell-fixture.tsx:1055` maps the `kyle` handle to `u1`; every
+  **`u1`** (`shell-fixture.tsx:1068` maps the `kyle` handle to `u1`; every
   other handle becomes `u-<handle>`). Write it under the wrong id and nothing
   happens, silently. Proven end to end on lane 18118: after the reload one
   `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
@@ -185,7 +185,7 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:274`), supplied by `Shell.tsx:4562`. That is
+  remains (`UserSettings.tsx:274`), supplied by `Shell.tsx:4551`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
@@ -346,6 +346,8 @@ oms/`, persona is unreachable from a `view=agents` page load — by any control,
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `agent-center-fixture` default showed the Roster h1, **Waiting on you** and **+ Wire an agent**; `#/agents/badge/agcr_claude` showed **claude code**, **Live now** and a `role=img`. `away-panel-fixture` read "Research om is covering you" and `remaining · This Mac`. `remote-home-fixture` `approval` showed **Approve** / **Deny** / **Stop**, `live` showed **Stop** and **Add context** (both `aria-label`-named, so filter on the label, not `innerText`), and `unsupported` showed its copy. `settings-fixture.html?host=user&page=agent-access` rendered Agent Settings, Agents, Devices and Recent Logbook. **Invite agent** opened its no-badge dialog on both hosts. **Limitations:** `?view=agents`, `desk-off` and the `/chat/` Voice/Away copy were not re-driven. Roster shelf cards (`2dd7aad1`) have no fixture (see [agent-creator.md](agent-creator.md)). Authenticated roster actions, daemon sessions and remote-control effects are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 13, 26, 28, 42).
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `agent-center-fixture` default showed the Roster h1, **Waiting on you** and **+ Wire an agent**. `#/agents/badge/agcr_claude` showed **claude code**, **Live now** and a `role=img`. `away-panel-fixture` read "Research om is covering you" and `remaining · This Mac`. `remote-home-fixture` `approval` showed **Approve**, **Deny** and **Stop** (named by their text) and **Add context** (named by `aria-label`). `unsupported` showed its copy. **Limitations:** The rail label spellings (away, reconnecting, remote) cannot be seeded on the shell fixture; real relay and daemon actions are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 46–47, 69–70).
+
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `agent-center-fixture` default showed the Roster h1, **Waiting on you** and **+ Wire an agent**; `#/agents/badge/agcr_claude` showed **claude code**, **Live now** and a `role=img`. `away-panel-fixture` read "Research om is covering you" and `remaining · This Mac`. `remote-home-fixture` `approval` showed **Approve** / **Deny** / **Stop**, `live` showed **Stop** and **Add context** (both `aria-label`-named, so filter on the label, not `innerText`), and `unsupported` showed its copy. `settings-fixture.html?host=user&page=agent-access` rendered Agent Settings, Agents, Devices and Recent Logbook. **Invite agent** opened its no-badge dialog on both hosts. **Limitations:** `?view=agents`, `desk-off` and the `/chat/` Voice/Away copy were not re-driven. Roster shelf cards (`2dd7aad1`) have no fixture (see [agent-creator.md](agent-creator.md)). Authenticated roster actions, daemon sessions and remote-control effects are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 13, 26, 28, 42).
 
 **Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `agent-center-fixture` default showed the Roster h1, **Waiting on you, 4** → `#/agents/waiting`, and `desk-off` read "assembling the roster". `#/agents/badge/agcr_claude` showed h1 **claude code**, **Live now** and a `role=img` badge. In the shell, `?view=agents` showed the Roster h1 and **+ Wire an agent**, with no roster section. Both fixtures named the persona row **Away coverage, status can't tell right now**. `away-panel-fixture` read `1h 18m remaining · This Mac`, and remote `approval` showed Approve / Deny. `settings-fixture.html?host=user&page=agent-access` rendered Agent Settings, Agents, Devices and Recent Logbook with no error. On `/chat/`, `?view=agents` showed **Agent management** with the local-app copy, and **Voice** / **Away coverage** showed the desk-offline copy. **Limitations:** The **Wire an agent** click was not re-driven. Authenticated roster actions, daemon sessions, watches and remote-control effects are pending. The `userFacingErrorText` toast copy in `6c15b0fb` is source-only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 04, 11-13, 30, 41-42). Previous record: 2026-10-26 at `5820fbea`.

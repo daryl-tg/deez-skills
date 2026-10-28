@@ -68,7 +68,7 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   glyph both sit 12 px from the edges; on a phone the dismiss hit box is 44 px.
 - The desktop rail lives in a `complementary` landmark named **Workspace
   navigation** holding the `nav` **Workspaces, agents and people**, which no
-  longer carries `role="toolbar"` (`Shell.tsx:3746`, `:3755`; `01bf4481`). Locate the rail
+  longer carries `role="toolbar"` (`Shell.tsx:3735`, `:3744`; `01bf4481`). Locate the rail
   by those names, not by a toolbar role.
 - Message deep links (`#/room/<name>/msg/<seq>`) jump to and flash the message; the **New topic** draft pane (`TopicDraftPane.tsx`, `panel=topic-draft`).
 
@@ -131,7 +131,7 @@ the navigation retargeted the *write* path, not only the read pane.
 
 ### Message deep link and New topic pane (added 2026-10-27)
 
-- **Deep link:** load `shell-fixture.html?alerts=quiet#/room/ops/msg/105` with the hash present **at load**; the fixture only seeds a hash when it is empty (`shell-fixture.tsx:2408`). Afterwards `document.documentElement.dataset.messageJump` is `"105"` and the hash is rewritten to `#/room/ops`. On `/chat/`, `messageJump` was also `"105"` but the hash came back empty. An unknown seq should toast "Message link: that message is gone" (`src/lib/routing.ts:607-609`); that was not driven. Push-tap delivery needs the daemon-served rig.
+- **Deep link:** load `shell-fixture.html?alerts=quiet#/room/ops/msg/105` with the hash present **at load**; the fixture only seeds a hash when it is empty (`shell-fixture.tsx:2409`). Afterwards `document.documentElement.dataset.messageJump` is `"105"` and the hash is rewritten to `#/room/ops`. On `/chat/`, `messageJump` was also `"105"` but the hash came back empty. An unknown seq should toast "Message link: that message is gone" (`src/lib/routing.ts:607-609`); that was not driven. Push-tap delivery needs the daemon-served rig.
 - **New topic pane:** `shell-fixture.html?view=room&alerts=quiet&panel=topic-draft` mounts an aside named **New topic**. Creating the topic was not driven.
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 25).
@@ -142,6 +142,43 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 - **Resolve a topic:** open a topic row's menu as described in Gotchas (Mark As Unread), then choose **Resolve <topic> (closes the conversation; the history stays)** (`TopicPill.tsx:146-149`). It opens a `dialog` named **Resolve <topic>**, for example **Resolve Funding flipped negative on Hyperliquid**. The dialog has an optional "What settled it?" note and **Resolve Topic** (`TopicResolvePopover.tsx:113-114`). The fixture implements `openTopicResolvePrompt` (`shell-fixture.tsx:3551`). **Resolve Topic** itself was not pressed. Driven on `/rooms/` and `/chat/`. **Add People...** has no route, because the fixture sets `topicAddPicker: null` (`:3301`).
 
 Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 09, 36-37, 41, 43).
+
+### Mute and the sidebar row cluster (added 2026-10-29)
+
+- **Mute a channel:** hover a sidebar channel row and press **More options for
+  <name>**. The menu's **Mute** tile is named **Choose how long to mute
+  #<name>** (`Sidebar.tsx:414`). Clicking it (hover does not open it) opens a
+  submenu with 15m / 1h / 8h / 24h / **Until unmuted**; a muted channel also offers
+  **Unmute channel** (`:433`). The same verb sits in the channel header menu as
+  **Mute channel** with a **Mute for** chip row (`ChannelHeaderMenus.tsx:175`,
+  `:374`), as **Mute conversation** for a DM (`:336`), as **Mute <topic>** on a
+  topic pill (`TopicPill.tsx:126`) and on the server menu's quick bar
+  (`ServerMenu.tsx:90-95`).
+- **What the fixture can show:** only the offer. `session.setRoomAttention` is
+  unstubbed in both shell fixtures, so choosing a duration closes the menu with
+  no state change and no toast, and `roomAttentionFor` / `roomMuteUntilFor`
+  answer `null`. Since `4ca34c9a`, muting a room this socket never joined (an
+  alert channel never opened this session) retries over REST after the relay's
+  `NOT_IN_ROOM` refusal (`lib/session.ts:35619`, `:35714`). That path is
+  covered only by `packages/chat-ui/test/ui/mute-durations.test.ts`. The topic
+  pill's mute is stubbed (`tools/visual/shell-fixture.tsx:2950-2960`, writes
+  `data-fixture-topic-attention`), but it is a different code path.
+- **Topic chevron on hover (`357b2df5`):** a row's right-edge cluster (badge,
+  hover actions, topic chevron) is `shrink-0` (`Sidebar.tsx:3489`), so when the
+  hover actions **Invite people to <name>**, **Edit <name>** and **More options
+  for <name>** appear, the label truncates and the chevron stays put. No seeded
+  name is long enough at the default width. Narrow the sidebar first:
+
+  ```bash
+  agent-browser eval '(()=>{localStorage.setItem("om.chat.sidebarWidth","200");return 1})()'
+  agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&channels=many&topics=on')"
+  # read .topic-side-toggle getBoundingClientRect().left on the options-flow row,
+  # hover the row, read it again: equal before and after (x=232 on 2026-10-29)
+  agent-browser eval '(()=>{localStorage.removeItem("om.chat.sidebarWidth");return 1})()'
+  ```
+
+  The width key is sticky, like `message=cozy`; remove it before any other
+  capture. Hover-action names carry no `#`.
 
 ## Gotchas
 
@@ -223,8 +260,16 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
     `routing.ts:622-635` keeps a peek whose topic matches the hash, so the
     pane mounts the same as on `/chat/`.
   - **On both hosts:** Escape closes the pane and returns the route to the
-    parent room (`#/room/ops`, `/chat/room/ops`). **Open full** promotes it to
-    the full topic (heading `#ops/CPI print — Aug`).
+    parent room (`#/room/ops`, `/chat/room/ops`).
+  - **Open full works on `/chat/` only.** There it promotes the peek to the full
+    topic (heading `#ops/CPI print — Aug`, `/chat/room/ops/topic/cpi-print-aug`).
+    The button (`TopicPeekPane.tsx:742-750`, accessible name **Open full**, title
+    "Open this topic as the full view") calls `session.promoteTopicPeek`. Only
+    the `/chat/` fixture stubs that (`apps/cloud/tools/visual/shell-fixture.tsx:1855`).
+    The root fixture does not, so on `/rooms/` the call lands on `INERT`, and the
+    pane stays open with heading `#ops`. Measured 2026-10-29 at `cdfb1b0f`, by
+    role and by selector. This is a fixture gap, not a product fault; prove
+    promotion on `/chat/`.
 
   Earlier passes recorded this as "renders nothing anywhere" because they only
   tried the bare query on `/rooms/`. The repo's own
@@ -283,6 +328,8 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (scheduled maintenance). **Product commit:** `07f7d04c` (origin/main). **Scope:** Topic peek on both hosts: `/chat/` `?view=room&topics=on&peek=cpi-print-aug` and `/rooms/` with `#/room/ops/topic/cpi-print-aug` mounted `[data-topic-peek="cpi-print-aug"]` beside the stream, with log **Messages in CPI print — Aug**; Escape closed it back to the parent room; **Open full** promoted it to `#ops/CPI print — Aug`. `?panel=inbox` rendered the inbox rows on both hosts. **Limitations:** Peek **Previous topic** / **Next topic**, the peek composer and drop target, and channel or DM hover peeks were not driven. The inbox topic row opened no peek in the fixture. The quick switcher, deep link, topic row menu and dock were not re-driven at this tree. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-topic-peek-*.png`).
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Topic peek on `/rooms/` (`?view=room&topics=on&peek=cpi-print-aug&alerts=quiet#/room/ops/topic/cpi-print-aug`) mounted `[data-topic-peek="cpi-print-aug"]`, 440 px, with log **Messages in CPI print — Aug**. Escape returned `#/room/ops`. **Open full** did nothing on `/rooms/` (fixture gap, see Gotchas), and on `/chat/` it promoted the peek to `/chat/room/ops/topic/cpi-print-aug`, heading `#ops/CPI print — Aug`. Sidebar chevron (`357b2df5`): with `om.chat.sidebarWidth=200` and `?view=room&channels=many&topics=on`, hovering **options-flow** revealed **Invite people to options-flow**, **Edit options-flow** and **More options for options-flow**. The topic chevron stayed at x=232 while the label truncated (89→40 px on `/rooms/`, 86→40 px on `/chat/`). Channel row **More options for signals** → **Mute** (accessible name **Choose how long to mute #signals**) opened 15m / 1h / 8h / 24h / Until unmuted on both hosts. **Until unmuted** closed the menu with no visible state change and no toast. **Limitations:** Mark As Unread, the quick switcher, the deep link and the inbox were not re-driven. The mute effect, including the `4ca34c9a` REST fallback for never-joined rooms, is unit-test only, because `setRoomAttention` is unstubbed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 05, 20–23, 48).
+
+**Previous record:** 2026-10-28 (scheduled maintenance). **Product commit:** `07f7d04c` (origin/main). **Scope:** Topic peek on both hosts: `/chat/` `?view=room&topics=on&peek=cpi-print-aug` and `/rooms/` with `#/room/ops/topic/cpi-print-aug` mounted `[data-topic-peek="cpi-print-aug"]` beside the stream, with log **Messages in CPI print — Aug**; Escape closed it back to the parent room; **Open full** promoted it to `#ops/CPI print — Aug`. `?panel=inbox` rendered the inbox rows on both hosts. **Limitations:** Peek **Previous topic** / **Next topic**, the peek composer and drop target, and channel or DM hover peeks were not driven. The inbox topic row opened no peek in the fixture. The quick switcher, deep link, topic row menu and dock were not re-driven at this tree. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-topic-peek-*.png`).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** The CPI topic treeitem gave `#/room/ops/topic/cpi-print-aug` and the composer **Message in CPI print — Aug**; **Back to #ops** gave `#/room/ops`. `?switcher=open` mounted `.quick-switcher` (`role=combobox`, placeholder "Search messages, or jump anywhere...", "Nowhere recent yet."), and `#mac` then Enter reached `#/room/macro/topic/basis-desk-review`. The deep link `#/room/ops/msg/105`, present at load, set `messageJump=105` and rewrote the hash to `#/room/ops`. `panel=topic-draft` mounted the **New topic** aside. `?view=topics` showed the primer with 12 px padding. The topic row menu offered **Mark As Unread** on the read topic, and the inbox panel and Resolve dialog rendered (section above), on both hosts. **Limitations:** The topic peek was recorded as rendering nothing (corrected above), the dock was not re-driven, and Mark As Unread effects are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 01, 04, 08-09, 36-37, 41, 43). Previous record: 2026-10-27 at `6c15b0fb`.

@@ -140,8 +140,8 @@ agent-browser find role button click --name "Add someone"   # dialog "Add to gro
 
 ### New DM, Create or join a server, Getting started (added 2026-10-28)
 
-- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:746`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:229`, `:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4459`); `NewDmModal` is used only from `Modals.tsx` and `QuickSwitcher.tsx`. The sidebar DMs header `+` (**New message**, `Sidebar.tsx:4676`) was not found by name on `?view=room`. Starting the DM needs the daemon-pair lane.
-- **Create or join a server:** the rail button **Create or join a server** (`Shell.tsx:4116`) opens a dialog named **Create or Join a Server**, with **Create a server** and **Join with invite link** (`Modals.tsx:119-160`). **Create a server** moves to **Create your server**, with **Server name**, **Back** and **Create server**. Creating a server, and the channel, topic and doc modals, were not driven.
+- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:746`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:229`, `:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4448`); the old `NewDmModal` was deleted in `228c35f9`. The sidebar DMS header `+` (**New message**, `Sidebar.tsx:4680`) opens the same **New Message** dialog, and Escape returns focus to the `+`. It lives in the DMS group, which the sidebar shows on `?view=dm` and `?view=home`, not on `?view=room`. Driven on both hosts 2026-10-29. Starting the DM needs the daemon-pair lane.
+- **Create or join a server:** the rail button **Create or join a server** (`Shell.tsx:4105`) opens a dialog named **Create or Join a Server**, with **Create a server** and **Join with invite link** (`Modals.tsx:119-160`). **Create a server** moves to **Create your server**, with **Server name**, **Back** and **Create server**. Creating a server, and the channel, topic and doc modals, were not driven.
 - **Getting started checklist:** the checklist shows only for an enrolled account or a first-run candidate with zero spaces and zero DMs (`HomeHub.tsx:620-624`, `:283`), and the fixture always has spaces. Seed it in the browser before loading Home:
 
   ```bash
@@ -227,9 +227,17 @@ Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenan
 - **Chip clicks cannot switch tabs here.** Clicking **Requests** from the
   default view calls the argument-blind `openFriends` stub and stays on
   `#/connections/online`. Load `?view=friends&tab=requests` instead.
+- **A DM header can show "Join call (undefined in call)".** That is the
+  autofill proxy, not a live call: neither shell fixture stubs
+  `session.dmVoiceRosterFor`, so `DmLiveCallPill` (`ChannelToolbar.tsx:149-165`)
+  reads `.length` off `INERT` and renders the pill with `undefined`. Seen on
+  `?view=dm&dm=ana` on both hosts, 2026-10-29. Never caption it as a call in
+  progress, and never report it as a product bug.
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home`; `view=dm` landed on `#/dm/ana` with 2 rows; `dm=OM%20chatters` gave `#/dm/OM%20chatters`. **Rename group** opened **Rename group**, and **Add someone** opened **Add to group**. New DM, Create or join a server and the Getting started checklist rendered on both hosts (section above). **Limitations:** Connections, requests, `view=public`, the Blocked tab (fixture crash), presence, a real catalog and every create or send effect were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 10-12, 14, 44).
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home` and `/chat/home`. On **OM chatters**, **Rename group** opened **Rename group** (value `OM chatters`), and with `panel=members` **Add someone** opened **Add to group** (**Search mutual connections**). On `?view=dm&dm=ana`, the sidebar DMS header **New message** opened **New Message** (**Search connections**), and Escape returned focus to the `+`, on both hosts. **Limitations:** Starting a DM, rename and add are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 06, 24, 50–51, 61).
+
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home`; `view=dm` landed on `#/dm/ana` with 2 rows; `dm=OM%20chatters` gave `#/dm/OM%20chatters`. **Rename group** opened **Rename group**, and **Add someone** opened **Add to group**. New DM, Create or join a server and the Getting started checklist rendered on both hosts (section above). **Limitations:** Connections, requests, `view=public`, the Blocked tab (fixture crash), presence, a real catalog and every create or send effect were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 10-12, 14, 44).
 
 **Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home`; `view=dm` landed on `#/dm/ana` with 2 rows. **Limitations:** Connections, requests, `view=public`, the Blocked tab (fixture crash), presence and a real catalog were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 21). Previous record: 2026-10-26 at `5820fbea`.

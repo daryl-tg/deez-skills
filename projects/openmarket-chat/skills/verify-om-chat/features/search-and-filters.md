@@ -162,6 +162,8 @@ partial-window warning remains visible.
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=topic&topic=cpi-print-aug&alerts=quiet&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** The scoped request ids, **From a specific user**, `?panel=search`, `searchState=error`, date filters, ranking and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 19).
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=topic&topic=cpi-print-aug&alerts=quiet&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** Scoped requests, the user filter, date filters and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 15, 49).
+
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=topic&topic=cpi-print-aug&alerts=quiet&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** The scoped request ids, **From a specific user**, `?panel=search`, `searchState=error`, date filters, ranking and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 19).
 
 **Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?view=topic&topic=cpi-print-aug&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** The scoped request ids, the **From a specific user** filter, `?panel=search`, `searchState=error`, date filters, ranking and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 23). Previous record: 2026-10-26 at `5820fbea`.

@@ -58,6 +58,8 @@ rows, and capture the **Resolving topics** count after starting a cleanup.
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=room&alerts=quiet&quiet=on` showed the **Quiet topics 20** button. **Limitations:** The channel-menu absence was not re-checked. The sheet and the resolve job remain live verification pending (they need a daemon build with topic triage). Evidence: none captured for this row.
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=room&alerts=quiet&quiet=on` showed the **Quiet topics 20** button. **Limitations:** The cleanup sheet needs a daemon with topic triage. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 17, 41).
+
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=room&alerts=quiet&quiet=on` showed the **Quiet topics 20** button. **Limitations:** The channel-menu absence was not re-checked. The sheet and the resolve job remain live verification pending (they need a daemon build with topic triage). Evidence: none captured for this row.
 
 **Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?view=room&alerts=quiet&quiet=on` showed the **Quiet topics 20** button. **Limitations:** The channel-menu absence was not re-checked. The sheet and resolve job remain live verification pending (daemon build with topic triage). Previous record: 2026-10-26 at `5820fbea`.

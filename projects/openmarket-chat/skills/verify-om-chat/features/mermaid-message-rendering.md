@@ -47,7 +47,7 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ## Gotchas
 
-- `test/message-full-render.test.ts` mounts a room `MessageRow`. It does not prove the real `DmTape` path.
+- `packages/chat-ui/test/message/full-render.test.ts` mounts a room `MessageRow`. It does not prove the real `DmTape` path.
 - DOM presence alone misses clipped charts. Inspect a screenshot and assert content containment against the live SVG view box.
 - Mermaid rendering and the PNG preview are lazy. Wait for `.doc-mermaid svg` before taking refs or screenshots.
 - The shell fixture currently emits an existing React textarea `value` warning. Treat only that exact warning as baseline; new console errors still fail the visual recipe.
@@ -59,6 +59,8 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=room&alerts=quiet&mermaid=1`: `msg-ops-116` rendered `.doc-mermaid` with an `svg` and the control **Open Mermaid diagram as PNG**. **Limitations:** The preview region, the linked-message cards, the DM route, `/chat/`, unsafe or invalid diagrams and the PNG export were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 15).
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=room&alerts=quiet&mermaid=1` rendered `.doc-mermaid` with an `svg` and the control **Open Mermaid diagram as PNG**. **Limitations:** `/chat/` and the diagram cache not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 08, 37).
+
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=room&alerts=quiet&mermaid=1`: `msg-ops-116` rendered `.doc-mermaid` with an `svg` and the control **Open Mermaid diagram as PNG**. **Limitations:** The preview region, the linked-message cards, the DM route, `/chat/`, unsafe or invalid diagrams and the PNG export were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 15).
 
 **Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `?mermaid=1`: `msg-ops-116` rendered `.doc-mermaid` with the `role=button` control **Open Mermaid diagram as PNG**. **Limitations:** The preview region, the linked-message cards (seq 116/117), the DM route, `/chat/`, unsafe or invalid diagrams and the cache were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 28). Previous record: 2026-10-26 at `5820fbea`.

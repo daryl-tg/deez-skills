@@ -15,7 +15,7 @@ calls.
 
 ## Driving it with control-om-chat
 
-The standalone fixture mounts the real AgentPane with a completed turn. The markup lives in `AgentPresentation.tsx`, not `AgentPane.tsx`: `formatTokenUsage` (`:241-269`), `.agent-answer-meta` (`:392`) and `.agent-activity-summary-detail` (`:654`). The away remote-control pane renders the same presentation (`test/remote-agent-presentation-parity.test.tsx`), so `remote-home-fixture.html?state=live` is the second place to look. At `f8b68bf7` the default fixture's `.agent-answer-meta` reads `12:00 PM · 1 tool · 2.0s · 12.3k tokens`.
+The standalone fixture mounts the real AgentPane with a completed turn. The markup lives in `AgentPresentation.tsx`, not `AgentPane.tsx`: `formatTokenUsage` (`:241-269`), `.agent-answer-meta` (`:392`) and `.agent-activity-summary-detail` (`:654`). The away remote-control pane renders the same presentation (`packages/chat-ui/test/ui/remote-agent-presentation-parity.test.tsx`), so `remote-home-fixture.html?state=live` is the second place to look. At `f8b68bf7` the default fixture's `.agent-answer-meta` reads `12:00 PM · 1 tool · 2.0s · 12.3k tokens`.
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/agent-usage-fixture.html')"
@@ -43,6 +43,8 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`; `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** The other `tokens=` seeds, the input+output fallback and daemon accounting were not driven. Evidence: none captured for this row.
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`; `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** Daemon accounting and the input+output fallback not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 03, 38–39).
+
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`; `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** The other `tokens=` seeds, the input+output fallback and daemon accounting were not driven. Evidence: none captured for this row.
 
 **Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`, and `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** `tokens=1250000`, `tokens=1`, `tokens=missing`, the input+output fallback and daemon accounting were not re-driven. Previous record: 2026-10-26 at `5820fbea`.

@@ -19,7 +19,7 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4562` always does, so the **running app shows twenty**;
+  `Shell.tsx:4551` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
   product. To count twenty without a daemon, open Settings through the shell:
@@ -173,7 +173,7 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
   only the account-wide radiogroups ("Which to-dos appear in chat or topics",
   "Whether to-do status updates appear in chat"). Proving that sub-feature
   needs a fixture change, not a different query.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4560` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4549` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -204,6 +204,8 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and the **Vim mode** switch; `page=appearance` rendered **Appearance** / **Advanced**; `page=agent-access` rendered Agent Settings, Agents, Devices and Recent Logbook. In the shell, `Meta+/` opened **Grammar & shortcuts**; **Log Out** opened alertdialog **Log Out** ("Are you sure you want to log out?") over **Settings**; Invites → **Create invite link** opened **Invite link settings** once the page had loaded (about 2 s; a 1.2 s wait missed the button). **Limitations:** Page bodies without a recipe, palettes, Webhooks conversion, real logout and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 18, 33-34).
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and **Vim mode** on `/rooms/` and `/chat/`; `page=appearance` rendered **Appearance**. In the shell, `Meta+/` opened **Grammar & shortcuts**, and `?view=settings` → **Log Out** opened alertdialog **Log Out** ("Are you sure you want to log out?"). **Limitations:** Page bodies beyond these, and the invite link, were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 16, 32, 58, 68).
+
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and the **Vim mode** switch; `page=appearance` rendered **Appearance** / **Advanced**; `page=agent-access` rendered Agent Settings, Agents, Devices and Recent Logbook. In the shell, `Meta+/` opened **Grammar & shortcuts**; **Log Out** opened alertdialog **Log Out** ("Are you sure you want to log out?") over **Settings**; Invites → **Create invite link** opened **Invite link settings** once the page had loaded (about 2 s; a 1.2 s wait missed the button). **Limitations:** Page bodies without a recipe, palettes, Webhooks conversion, real logout and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 18, 33-34).
 
 **Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and the **Vim mode** switch; `page=agent-access` rendered without error. **Limitations:** The `vim` search, palettes, role-specific nav counts, Webhooks conversion, help pages and persisted preferences were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 24, 41). Previous record: 2026-10-26 at `5820fbea`.

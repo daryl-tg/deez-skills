@@ -113,12 +113,17 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
   You will meet neither in the fixture: Your om there is stuck on its
   not-running empty state ([om-and-agents.md](om-and-agents.md)), and reaching
   any of them needs a running daemon.
-- Chromium at a narrow viewport is not iOS WKWebView or Android WebView. A
-  green matrix here is a `web-bundle` claim only; native certification is
-  still open (`docs/mobile-native-release-checklist.md`).
+- This is the phone-width **web** UI, and a green matrix here is a
+  `web-bundle` claim only. Since `3c9cbf7b` this repo has no native app: the
+  Capacitor iOS/Android shell, `docs/mobile-native-release-checklist.md` and
+  (`e807aca7`) the `om:native-back` hardware-Back listener in `Shell.tsx` are
+  gone. The store app is the separate Expo app in `openmarket-chat-app`,
+  proved with `verify-openfloor`, not here. There is no native Back to drive.
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** At 390×844, `?view=home` showed the tab bar Home, Chats, Spaces, Library and om; **Chats** moved `data-mobile-root` from `home` to `chats`. **Limitations:** The DM detail and **Back to Chats**, other widths, Spaces detail, takeovers and native Back were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 35).
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** At 390×844 on `/rooms/` and `/chat/`: `?view=home` showed the tab bar Home, Chats, Spaces, Library and om. **Chats** moved `data-mobile-root` to `chats`. **Direct message with dax** gave `data-mobile-detail=dm` (`#/dm/dax`, `/chat/dm/dax`), with the tab bar hidden and exactly one Back, **Back to Chats**. Pressing it returned to the `chats` root with the tab bar. **Limitations:** Other widths, Spaces detail and takeovers not driven; there is no native Back any more (`e807aca7`). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 25–27, 65).
+
+**Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** At 390×844, `?view=home` showed the tab bar Home, Chats, Spaces, Library and om; **Chats** moved `data-mobile-root` from `home` to `chats`. **Limitations:** The DM detail and **Back to Chats**, other widths, Spaces detail, takeovers and native Back were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 35).
 
 **Previous record:** 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** At 390×844 the tab bar listed Home, Chats, Spaces, Library and om; `data-mobile-root` went `home` → `chats` after **Chats**. **Limitations:** The DM detail and **Back to Chats**, other widths, Spaces detail, takeovers and native Back were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frame 32). Previous record: 2026-10-26 at `5820fbea`.

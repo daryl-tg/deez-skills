@@ -53,7 +53,7 @@ stubs `session.libraryDaemon`, so the autofill proxy answers `INERT`
 `daemon?.fetchPersona()`, gets the truthy `INERT` back and takes the `ready`
 branch (`:6960`). `personaStatusPresentation` (`:6168-6188`) then matches no
 `status.state` and returns `undefined`, and `.tone` throws (`:6405`). The
-production client rejects unlisted states (`src/lib/om-daemon.ts:1545`), so
+production client rejects unlisted states (`src/lib/om-daemon.ts:1413`), so
 this is a fixture gap, not a product bug. Stubbing `libraryDaemon: null` would
 render the card's `unavailable` branch instead. Until the fixture changes, assert only
 the route for the Agents lens here, and report the crash rather than
@@ -63,9 +63,9 @@ Agents lens, with a count of 1 and the access text "Read access lets an agent
 inspect notes and queue proposals…". Driven 2026-10-28 at `07f7d04c`. Prove
 the lens content on `/chat/` and only the route on `/rooms/`.
 
-Archive renders `data-home-library-archive` (`LibraryView.tsx:8706`) with an
+Archive renders `data-home-library-archive` (`LibraryView.tsx:8715`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
-`data-home-archived-doc={docId}` (`:8756`).
+`data-home-archived-doc={docId}` (`:8765`).
 - Import a folder into Your Library (`ImportFolderModal.tsx`; `homeImport=open`), and the conversation To-dos panel (`TodosPanel.tsx`).
 
 ## How to get to it (user POV)
@@ -246,6 +246,8 @@ artefact, not a failure.
 
 ### Verification record
 
-**Last verified:** 2026-10-28 (scheduled maintenance). **Product commit:** `07f7d04c` (origin/main). **Scope:** `lens=todos` on both hosts (per-host seeds above), `lens=agents` rendered on `/chat/` and crashed on `/rooms/`, `?panel=todos` crashed on both hosts, and conversation-qol showed **To-dos 4**. **Limitations:** history, the library panel filter, import and the doc pane were not re-driven at this tree. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/`.
+**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist" on `/rooms/`, and to `/chat/library/todos` with "Share the customer notes" on `/chat/`. `lens=agents` still crashes on `/rooms/` (lazy-surface **Try again**) and renders on `/chat/`. `panel=library&scope=server` mounted the panel. **Limitations:** History, the panel filter, import and the doc pane were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 18, 35–36, 59–60).
+
+**Previous record:** 2026-10-28 (scheduled maintenance). **Product commit:** `07f7d04c` (origin/main). **Scope:** `lens=todos` on both hosts (per-host seeds above), `lens=agents` rendered on `/chat/` and crashed on `/rooms/`, `?panel=todos` crashed on both hosts, and conversation-qol showed **To-dos 4**. **Limitations:** history, the library panel filter, import and the doc pane were not re-driven at this tree. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/`.
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `lens=todos` routed to `#/library/todos` with "Review the launch checklist"; `doc=server&docState=history` showed a `select` **Version history** at `9` (r9 · current · kyle, r8 · om); `panel=library&scope=server` mounted the **Library** aside (`data-right-panel=library`); `homeImport=open` opened **Import folder into Your Library**. `?panel=todos` showed the lazy-surface error "Todos could not load … Try again / Reload OM Chat", and `fixture.html?surface=conversation-qol` showed tabs **To-dos 4 / Bookmarks / Members / Pins** with "Audit the launch copy". **Limitations:** `lens=agents` (fixture crash), reconcile, read-only, doc Vim, select-all, `:w`, proposals and `/chat/` were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 20). Previous record: 2026-10-27 at `6c15b0fb`.
