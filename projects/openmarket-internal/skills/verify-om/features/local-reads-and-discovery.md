@@ -1,6 +1,8 @@
 # Local reads and discovery
 
-*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. Re-driven: `config show` (`api_key_set`, a masked key), `config key-info` (`om_guest`, not expired), `config get data.transport` (`source default`, `default auto`), `notis --since 7d` (`notice` and `fire` rows), `enum --list` (26 domains), `schema read` (7 intents), `skill list`, `wrun list` (`@om-core/accumulate` at 0.1.3) and `wrun templates` (still 91). Newly driven: the guest-lane reads below (approvals, nervous, follows, relay, research study, away). Not re-driven: series, plans and secrets status (2026-10-27). Not driven: `config set`, `notis --after`, `schema read <intent>`, `skill show`, `wrun create`/`build` and `vault status`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
+*Verified: 2026-10-28 (scheduled maintenance), tree `186030b63` (origin/main), lane on 18143. Re-driven: `status`, `doctor`, `service status`, `logs`, `config show`, `config key-info` (that home's key had `expired: true`, see [market data reads](./market-data-reads.md)), `enum --list` (`exchange_id` still 35), `schema read`, `wrun list` (`@om-core/accumulate` 0.1.3) and `wrun templates` in JSON and text form (91 templates; the #2180 `runsOn` wording, see Gotchas). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/` (`cli/01-09.txt`, `cli/09-text.txt`).*
+
+*Nightly record: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. Re-driven: `config show` (`api_key_set`, a masked key), `config key-info` (`om_guest`, not expired), `config get data.transport` (`source default`, `default auto`), `notis --since 7d` (`notice` and `fire` rows), `enum --list` (26 domains), `schema read` (7 intents), `skill list`, `wrun list` (`@om-core/accumulate` at 0.1.3) and `wrun templates` (still 91). Newly driven: the guest-lane reads below (approvals, nervous, follows, relay, research study, away). Not re-driven: series, plans and secrets status (2026-10-27). Not driven: `config set`, `notis --after`, `schema read <intent>`, `skill show`, `wrun create`/`build` and `vault status`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 *Second-pass record: 2026-10-27, tree `8fe6a8432`, lane on 18143.* Re-driven: `enum --list`, `config show` (`api_key_set` true from the lane's own guest `credentials.json`), `wrun list`, `schema read`. Series, plans and secrets status were added above. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261027/r1/` (`pending-rows.txt`).
 
@@ -53,6 +55,10 @@ decode.
   skill name per line.
 - **Indicator packages.** `control-om om -- wrun list` returns `packages[]`
   with `id`, `version` and `wasmSha256`. `wrun templates` returns `templates[]`.
+  Each entry has `id` and `description`. Picker templates also carry `group`
+  and `runsOn`, which is where the template states its data reach. The text
+  form (`wrun templates --format text`) prints the latter as `[<group>]` after
+  the id and a `Runs on: …` line (`cmd/wrun.ts:583-594`).
 - **Proof.** Keep each command, its JSON and its exit code. Redact nothing: none
   of these prints a secret, which is itself the assertion for `config show`.
 
@@ -97,6 +103,14 @@ model.
   See [market data reads](./market-data-reads.md).
 - `wrun build` compiles and runs `bun install` by default, so it needs the package
   registry. Keep it out of a quick pass.
+- **The US options templates read OPRA at the viewer's own tier since #2180
+  (`f8b2ca3b4`).** Their `runsOn` reads "US stocks (OPRA) at your own tier;
+  CME futures through OpenMarket's official package", where it used to say
+  both went through the official package. Driven 2026-10-28 at `186030b63`:
+  91 templates, 83 `Runs on:` lines, 30 with "at your own tier" (the commit's
+  thirty sentences) and none with the old "US stocks (OPRA) and CME futures
+  through" wording. A JSON assertion that reads only `description` misses
+  this field.
 - **`wrun templates` lost six option recipes in v0.466.0** (`5a03ffb43`):
   `dealer-nodes`, `gamma-map`, `zero-dte-levels`, `vol-term-structure`,
   `vol-smile` and `iv-term-structure`. The list went from 97 to 91, and those

@@ -1,6 +1,8 @@
 # Market data reads
 
-*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. `enum` returned the live lists. `coins` returned `{coins}`, and `exchanges` returned `{exchanges, refusedTypes, unselectable}` with 48 venues, including `LIGHTER`, `VARIATIONAL` and `VARIATIONAL_SWAP`. `points` returned one `series` of `{Point}` elements, and `--type OHLCV` gave `is not a valid value` (exit 2). With `OM_DATA_TRANSPORT=v3`: `instruments BINANCE BTCUSDT --limit 3` returned `{exchange, arm:"crypto", rows}`, `option-chain DERIBIT BTC --neighbor-strikes 1` returned `expiries`, and `exchanges` returned 30 venues. Newly driven: `resolve BTC`, `metric list`/`get`/`series`/`screen` and `markets` (see Resolve, metrics and markets). `tenors` returned `server_error` 500 three times. Not driven: the typed-door reads (fx/index candles, ETF flow, FRED) and the daemon's `counters.symbol_directory_*`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
+*Verified: 2026-10-28 (scheduled maintenance), tree `186030b63` (origin/main), fresh lane home on 18145. `coins` returned 4,165 rows and `exchanges` 48 (BINANCE, HYPERLIQUID and LIGHTER present). `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h` returned one series of 3 points. A reused home on 18143 refused all market reads with an expired key, and a first fresh home on 18144 hit the guest-mint 429 (Gotchas). `metric`, `screen`, `markets`, `resolve` and `tenors` were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/` (`cli/m-*.txt`, `cli/13.txt`, `cli/14.txt`).*
+
+*Nightly record: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. `enum` returned the live lists. `coins` returned `{coins}`, and `exchanges` returned `{exchanges, refusedTypes, unselectable}` with 48 venues, including `LIGHTER`, `VARIATIONAL` and `VARIATIONAL_SWAP`. `points` returned one `series` of `{Point}` elements, and `--type OHLCV` gave `is not a valid value` (exit 2). With `OM_DATA_TRANSPORT=v3`: `instruments BINANCE BTCUSDT --limit 3` returned `{exchange, arm:"crypto", rows}`, `option-chain DERIBIT BTC --neighbor-strikes 1` returned `expiries`, and `exchanges` returned 30 venues. Newly driven: `resolve BTC`, `metric list`/`get`/`series`/`screen` and `markets` (see Resolve, metrics and markets). `tenors` returned `server_error` 500 three times. Not driven: the typed-door reads (fx/index candles, ETF flow, FRED) and the daemon's `counters.symbol_directory_*`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 The reason the daemon exists: `om` answers questions about markets from the
 OpenMarket Data API. A user lists what is available (coins, exchanges, symbols,
@@ -83,6 +85,24 @@ Preconditions:
   or two is fine, but keep the full `id` block) plus the exit code.
 
 ## Gotchas
+
+- **A reused lane home carries an expired guest key, and `doctor` still says
+  `api_key: ok`.** The lane home is `home-<port>`, so the same port on a later
+  day reuses yesterday's home. Guest keys last one hour. On 2026-10-28,
+  `home-18143` from the previous day answered `coins` and `exchanges` with
+  `api_key_invalid` (401, exit 2). `config key-info` showed `"expired": true`,
+  and the doctor check read `Data API key configured`. The credential keeper's
+  re-mint failed as well (`guest token refresh has failed for ~3m` in the lane
+  log). Before a market read, run `control-om om -- config key-info --format
+  json` and require `"expired": false`. Doctor's `api_key` line proves only
+  that a key is present. Otherwise use a port whose home does not exist yet.
+- **Guest sign-in is rate-limited.** A fresh home on 18144 failed to boot.
+  `coins` reported `missing_api_key … could not start guest mode (HTTP 429):
+  Too many guest sign-ins. Try again in 16 minute(s)`, and the daemon then
+  exited with `om: No OpenMarket API key configured`. Same-morning runs (the
+  nightly, other lanes) share the limit. Wait out the stated window and retry
+  on a fresh port. A fresh home on 18145 booted at 09:51 and every read below
+  passed.
 
 - `--type` takes API enum values. `OHLCV` and `OHLCV_AGG` are both rejected
   server-side with `parsing list "type": ... is not a valid value`; candles are

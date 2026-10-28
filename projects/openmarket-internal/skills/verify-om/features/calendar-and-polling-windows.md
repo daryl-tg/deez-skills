@@ -1,5 +1,7 @@
 # Calendar scheduling and polling windows
 
+*Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `calendar list` (empty) and `calendar links watch probe-1028` (`{"links":[]}`). The polling-window edit was not re-driven. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
+
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. A fresh `calendar list` returned empty arrays. A `calendar_candidate` push admitted `cocc_1f7db140…` (`scheduled`, `candidate`, revision 1). `show` carried `provider_occurrence_id vom-1028-occ`, `select` returned `selected` `change_seq 2`, `links watch` returned `[]`, `revise --status cancelled` returned `changed:true` revision 3, `list` then read `cancelled`, and `reject` returned `rejected` `change_seq 4`. Polling windows were driven on a public feed (`https://hnrss.org/frontpage`, `page-add --prefer feed --every 1h`). The `--polling-json` policy was stored, and `window set --every 60s` failed `every_sec … NaN`. `--every 60` scheduled `win_…`, `list` showed `scheduled`, and `cancel` by origin left the row `cancelled`. The window was not waited out. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 `om calendar` lists and manages scheduled occurrences, while `om watch window`

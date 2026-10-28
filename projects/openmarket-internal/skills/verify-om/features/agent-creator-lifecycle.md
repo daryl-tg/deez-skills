@@ -1,5 +1,7 @@
 # Agent creator lifecycle and private-state isolation
 
+*Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `OM_DEV=1` `agent runs` (`{"ok":true,"result":{"items":[],"next":null}}`), `agent pause nope`, `agent runs --proof`, `agent runs run_x --proof`, `project unlink nope` (each with its documented refusal, exit 1) and `roster list`. `/healthz` executors were `["coding","investigate"]`. Without `OM_DEV`, `agent runs` fails with `unknown command 'runs'`, as documented. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
+
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103, guest, no `OM_DEV` on the lane. The guest-lane recipe below gave the same results as on 2026-10-27: empty `agent runs`, the `not_found`/`malformed_body` refusals, header-only `roster list`, zeroed `roster measures`, `agent eval nobody` → `found 0`, and empty `/rpc/v1/roster/projects` and `/instances`. New on this tree (#2167/#2169): the default agents install from `@om-skills` registry packages after boot. Production answered 404 for `@om-skills/argue`, and the lane log showed the retry doubling 30, 60, 120, 240 and 480 s. Not driven: a successful default install (no registry lists the packages yet), create/import, Try, install, publish/adopt, runs, plan approval, steer, delivery, and every GUI step. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 > **On main since `b50ca927d` (#1948), v0.465.0.** The daemon mechanisms now

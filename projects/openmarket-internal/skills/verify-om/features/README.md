@@ -158,6 +158,20 @@ packages and the registry, and the execution/venue verbs.
 
 ## Surface inventory
 
+Scheduled maintenance, **2026-10-28**, against **origin/main `186030b63`**, five commits past `a8fa10974`. The delta changes nothing under `packages/cli/src` or `apps/`, so the command, action, RPC and dashboard-route counts below still hold. Its user-facing changes:
+
+- #2180 (`f8b2ca3b4`): thirty US options templates now say they read OPRA at the viewer's own tier (`runsOn`, `packages/sdk/src/wrun-sdk-sources.ts`).
+- #2171 (`edd772a4c`): the `spot-exposures` recipe moves to 0.7.0 and reads the server's strike kit fold. Its Expiry preset is removed.
+- `db59e1d65`: `expected-move` shades each band's far half with one gradient.
+- #2181 (`186030b63`): `requestTodosSnapshot` echoes board keys. This is a rooms-client wire change for OM Chat, unpublished and not a daemon surface.
+
+Live this pass:
+- every guide except Firecrawl and hosted chart MCP, at smoke depth on lanes 18143 and 18145 (each guide's stamp names what was driven);
+- market reads on a fresh home;
+- the origin-challenge hold, steps 1-3.
+
+No new outcome rows. The `wrun templates` wording was driven live (see [local reads](local-reads-and-discovery.md)). The two recipe changes render only on a chart host, and that host is outside this skill. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.
+
 Source discovery re-run **2026-10-28** against **origin/main `a8fa10974`
 (v0.466.0, no release cut since)**, 10 commits past `8fe6a8432` (an ancestor).
 Counts are unchanged: `main.ts` and `cmd/` have no diff, the registry still
@@ -267,7 +281,7 @@ removed with source evidence.
 | Backtest a strategy over historical bars | `actions/research/backtest*.ts` | [watch-lifecycle-cli.md](watch-lifecycle-cli.md) / Maintenance verbs (refusals) | `backtest spec` and `backtest run nope` refusals live verified 2026-10-28, main `a8fa10974` | A real run needs a watch with a strategy step (`watch create --from-candidate`); not driven. |
 | Browse paid news feeds and read Fast-alerts billing | `actions/news/{feeds,billing,brief,voice}.ts`; `runner/http/rpc/news.ts` | unmapped (dashboard shell only) | live verification pending | Catalog browsing may be guest-ok; billing and follow need an account and a funded vendor relationship. |
 | Agent memory: save, search and forget durable notes | `actions/memory/*.ts`; `cmd/memory.ts` | [mcp-stdio.md](mcp-stdio.md) / Hosted MCP | save → search → CLI `memory list` → forget live verified 2026-10-28, main `a8fa10974` over hosted MCP | The slug prefix must match the type (`memory_invalid_slug`). `memory_forget` ran with no approval card on loopback HTTP. |
-| Author and compile a custom WASM indicator | `actions/wrun/{create,author,build,source-set,list}.ts`; `cmd/wrun.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) (`wrun list`/`templates` only) | 2026-10-28, main `a8fa10974` (list; templates still 91; the stock `accumulate` 0.1.3 package listed) | `WRUN_SCAFFOLD_VERSION` is 104 since #2177 (polyline `gradient()`), which only a new scaffold shows. `wrun create`/`validate` are filesystem-only and undriven; `wrun build` compiles and installs deps, so it needs package-manager access. |
+| Author and compile a custom WASM indicator | `actions/wrun/{create,author,build,source-set,list}.ts`; `cmd/wrun.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) (`wrun list`/`templates` only) | 2026-10-28, main `186030b63` (list; templates still 91, 30 `runsOn` lines read OPRA "at your own tier" after #2180; the stock `accumulate` 0.1.3 package listed) | `WRUN_SCAFFOLD_VERSION` is 104 since #2177 (polyline `gradient()`), which only a new scaffold shows. `wrun create`/`validate` are filesystem-only and undriven; `wrun build` compiles and installs deps, so it needs package-manager access. |
 | Arm and tune a live managed-strategy wallet | `cmd/managed.ts` over `actions/managed/*.ts` factories (CLI-only: not in the action registry) | unmapped | live verification pending | Capital-reaching: funded venue wallet plus an explicit arm gate. Out of reach for a guest lane. |
 | Place and manage real venue orders; wallet and execution | `cmd/{order,execute,buy,hyperliquid,polymarket}.ts`; `actions/{execute,orders,hyperliquid,wallet,polymarket}/` (`actions/execution/` does not exist) | unmapped | live verification pending | Real money. Needs a funded account and a safe plan; nothing attempted. |
 | Reach the capability layer over MCP (stdio) | `cmd/mcp.ts`; `mcp/server.ts`; `mcp/capital-gate.ts` | [mcp-stdio.md](mcp-stdio.md) | 2026-10-28, main `a8fa10974` (handshake, 451 tools, a read, `capital_yolo_harness` under a bypass-mode driver) | `om mcp arm`, `--catalog operator` and `--session merged` undriven. |
@@ -302,6 +316,18 @@ removed with source evidence.
 
 ### Known product gaps (reported, not map drift)
 
+- **New 2026-10-28 (maintenance, `186030b63`):** `om doctor` reports
+  `api_key: ok` ("Data API key configured") for an expired guest key. On a
+  lane home from the previous day, `config key-info` said `"expired": true`
+  (`expireAt` an hour after issue) while `coins`, `exchanges` and `points`
+  returned `api_key_invalid` (401). The credential keeper's re-mint also failed
+  for the run (`guest token refresh has failed for ~3m`), during a guest
+  sign-in 429 window. The check reads presence, not validity, so a user whose
+  guest key lapsed is told everything is fine. `control-om doctor` now reads
+  the expiry itself (harness side).
+- **Also seen 2026-10-28:** on a 60 s feed the challenge row is displaced
+  after 3 minutes, not 12. See the next item and
+  [origin challenge](origin-challenge-backoff.md).
 - **New 2026-10-28:** the `exchange_id` domain lags the live venue set. `om
   exchanges` lists 48 venues on `auto`, including `LIGHTER`, `VARIATIONAL` and
   `VARIATIONAL_SWAP`, and `om markets --exchange LIGHTER` returns rows. But

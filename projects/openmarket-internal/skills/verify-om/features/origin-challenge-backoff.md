@@ -1,6 +1,8 @@
 # Origin challenge backoff
 
-*Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18104 with `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000` and the stub on 18111, polled by a dashboard-authored feed (`ui-authored-feed`). After the flip, the daemon made one `challenge GET /rss` (19:24:05.818Z) and logged `reopen held until 2026-10-27T19:39:05.910Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` read `reconnecting`, `reconnect_count 0` and a `cooldown`. Newly driven, with the stub left challenged: exactly one probe at `until` (19:39:05.917Z), then a doubled hold `until 20:09:06.046Z`. The stub was flipped to `ok` before that window ended. There was exactly one `ok GET /rss` at 20:09:06.068Z, the lane logged `reopened after the window`, and `/healthz` read `open`, `cooldown null` and `reconnect_count 0`. `watch show` then read `source working` with no challenge sentence. **12 minutes into the first hold, the status rows no longer named the challenge** (Step 3, and a product gap in the README). Not driven: a 429 `Retry-After`, the AWS WAF and 405 shapes, and the 6 h cap. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
+*Verified: 2026-10-28 (scheduled maintenance), tree `186030b63` (origin/main), fresh lane home on 18145 with `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000`, stub on 18111. Steps 1-3 only: `page-add` gave `feed_created`, the healthy polls landed, and the stub flipped to challenge at 01:51:56Z. The stub then logged exactly one `challenge GET /rss` (01:52:37Z) in three minutes. The lane logged `reopen held until 2026-10-28T02:07:37.125Z: 127.0.0.1 is challenging this machine; …` (15 min), and `/healthz` showed `reconnecting`, `reconnect_count` 0 and a `cooldown`. Steps 4 and on (the probe and the doubling) were not re-driven here; the nightly record below covers them. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/` (`cli/origin-stub-requests.log`, `dash_origin-challenge-detail.png`).*
+
+*Nightly record: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18104 with `OM_FEED_ALLOW_LOOPBACK=1 OM_FEED_POLL_INTERVAL_MS=60000` and the stub on 18111, polled by a dashboard-authored feed (`ui-authored-feed`). After the flip, the daemon made one `challenge GET /rss` (19:24:05.818Z) and logged `reopen held until 2026-10-27T19:39:05.910Z: 127.0.0.1 is challenging this machine; next try …`. `/healthz` read `reconnecting`, `reconnect_count 0` and a `cooldown`. Newly driven, with the stub left challenged: exactly one probe at `until` (19:39:05.917Z), then a doubled hold `until 20:09:06.046Z`. The stub was flipped to `ok` before that window ended. There was exactly one `ok GET /rss` at 20:09:06.068Z, the lane logged `reopened after the window`, and `/healthz` read `open`, `cooldown null` and `reconnect_count 0`. `watch show` then read `source working` with no challenge sentence. **12 minutes into the first hold, the status rows no longer named the challenge** (Step 3, and a product gap in the README). Not driven: a 429 `Retry-After`, the AWS WAF and 405 shapes, and the 6 h cap. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 When a site challenges the daemon's IP, every source on
 that host goes quiet together after the first challenged answer, one probe goes
@@ -141,6 +143,16 @@ Steps:
      This is a product gap (README). Assert the challenge sentence in the
      first minutes of the hold, or on `Error:`, and do not take a missing
      Firecrawl offer later in the hold as drift.
+     **"Early" is shorter than it sounds on a 60 s feed.** Driven 2026-10-28
+     at `186030b63` on a CLI `page-add --every 60s` watch, only 3 minutes into
+     the hold, the `watch list` row had already switched to `not checked since
+     09:51 · expected every 1 min · om watch run now`. At the same moment,
+     `watch show` still carried `waiting · 127.0.0.1 is challenging this
+     machine since … · next try … · Firecrawl can read it…` in its `words`,
+     plus `stream not delivering: 127.0.0.1 is challenging this machine` in
+     the source `error`. The dashboard detail page showed `broken` beside that
+     same `waiting · … challenging …` sentence. Assert on `watch show`, not on
+     `watch list`.
 4. Proof of the probe: at `until` (15 min after the challenge, plus jitter)
    exactly one more `challenge GET /rss`, then silence again. **The window then
    doubles.** Driven 2026-10-28 with the stub left challenged: the hold opened

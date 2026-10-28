@@ -1,5 +1,7 @@
 # Registry welcome page and personalised search
 
+*Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `welcome` still refused (`This registry does not offer the welcome page yet.`, exit 1), and `search "btc funding"` returned 3 rows. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
+
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. Against the real registry, `om welcome` still printed `This registry does not offer the welcome page yet.` (exit 1), and `search "btc funding"` returned rows of `name`, `kind`, `description` and `latest`, with no `served`. Against a loopback fixture on 18112, all three welcome branches matched: the guest `om login` hint (exit 1), the keyed `…/welcome?src=om-init` line (exit 0), and `does not offer` once `welcome` was dropped from health (exit 1). Search sent `mode=nl` with no bearer as a guest, and `mode=nl&rank=for-you` with a bearer when keyed. The rows carried `reasons` and `served:"jev"`. Not driven: receipt retraction and `om init --launch`. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 A signed-in user can open a registry page that personalises their watch feed:

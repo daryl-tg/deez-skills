@@ -1,5 +1,7 @@
 # Event ingest and fire
 
+*Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `event push probe-1028 --kind filing` returned `accepted:true`, `delivery:"daemon"`; `event-journal get --file events.md` then held the event with `outcome: update` and the watch runtime showed `rows: 1`. The SSE `watch_fired` stream was not re-read. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
+
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18103. `watch create lane-probe --inbound` gave `token_minted: false`. After `edit --classifier-mode accept_all` and `rotate-token --yes`, the door push returned `202 {accepted:true, event_id:"40f5835a…", deduped:false}`, and an unauthenticated push returned 401. The stream opened first carried `watch_committed`, `watch_appended` and `watch_fired`, all with that `event_id`, beside `tick_completed` and `subscription_metric`. `event-journal get lane-probe --file events.md` held `event-watch-event-id:<id>`, `outcome: update` and `verdict: new story`. The CLI `event push` returned `watch_id, event_id, accepted, deduped, delivery, notes`. Not re-driven: the dashboard row (ops-dashboard's lane showed the same row shape). Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 A user points a producer at a watch's inbound door and the daemon takes it from

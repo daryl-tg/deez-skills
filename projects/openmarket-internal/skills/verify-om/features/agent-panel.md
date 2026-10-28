@@ -1,5 +1,7 @@
 # The dashboard agent panel
 
+*Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `/agent` rendered **Conversations** and **What can I help with?**. No conversation was sent. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
+
 *Verified: 2026-10-28, tree `a8fa10974` (origin/main, v0.466.0), lane on 18104. `Ask your agent` on `/alerts` showed the region, `Ask OpenMarket`, `Open full conversation`, `Close agent panel`, the message box, a disabled `Send message`, the page-context buttons, and the `Explain watches` / `Help me get started here` suggestions. A send produced `article "Your message"` and the alert `No LLM API key configured. Run om init, or export OPENMARKET_LLM_KEY for this shell.` beside `Reload conversation` and `Check connections`. `/agent` showed `Agent conversations`, `Conversations`, `What can I help with?` and `Recent conversations`. A reply needs an LLM credential. Previous stamp `8fe6a8432` is an ancestor (10 commits).*
 
 Since v0.400.0 every dashboard page carries an `Ask your agent` button that
