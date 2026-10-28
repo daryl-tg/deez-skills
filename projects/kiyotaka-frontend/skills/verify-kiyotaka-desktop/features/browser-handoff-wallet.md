@@ -8,10 +8,15 @@ declined prompt, a wrong account or a wrong chain comes back as a refusal at onc
 `evm-sign-message`, `solana-sign-message` and `solana-connect`, and every request carries `issuedAt`, the app's clock
 when it opened the page; an old request reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent,
 approveBuilderFee, personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no
-transaction signing). Last driven 2026-10-27 on tree `7290d33d10`. The sign page's summary, expired and invalid
-states were proved by hand in Chromium. The `hl` scenario got the connect, approveAgent and wrong-chain round trips
-through the shell, then timed out at the `personal_sign` step twice. The sign-page lane and the `solana` scenario
-failed at their own preconditions (see Driving). The last fully green runs were 2026-10-12 (`hl` on `3a5f33b9a0`,
+transaction signing). Last driven 2026-10-28 on tree `5365748ef3` (`origin/main`). The sign page's summary, expired
+and invalid states were proved by hand in Chromium again. The `hl` scenario stopped earlier than on 2026-10-27, twice:
+the shell logged `desktop: loaded` on the testnet lane, but its title never matched `BTC` within `waitForChart`'s 90 s
+(`handoff.mjs:230`), so no request went out. The same lane in Chromium, tab in front, reached `BTC - USD` at about 50 s
+and a priced title at about 70 s, so the web app boots there. The suspected cause is the hidden-window stall in the
+[index](./README.md) (`requestAnimationFrame` stops in a hidden shell window); it is not confirmed. On 2026-10-27 on
+`7290d33d10` the same scenario got the connect, approveAgent and wrong-chain round trips through, then timed out at
+`personal_sign`. The sign-page lane and the `solana` scenario failed at their own preconditions again (see Driving).
+The last fully green runs were 2026-10-12 (`hl` on `3a5f33b9a0`,
 `solana` on `60e27509cc`, sign lane on `133c5af8ca`). Turn on trading, a relaunch with trading enabled, an order and the
 1-click link are blocked on a signed-in OpenMarket account; the order also needs a funded testnet account.
 
@@ -50,18 +55,21 @@ Preconditions:
   `desktop-sign-expired`; a truncated `r` shows `desktop-sign-invalid`. No wallet is asked in any of these.
 - **Sign page lane.** `control-kiyotaka-desktop run sign <dir>` signs with MetaMask, 16 checks when green, among them
   `the signature recovers to the requested account` and `a tampered request raises no MetaMask prompt`. On 2026-10-27
-  it onboarded MetaMask and then failed `desktop-sign-summary` after 60 s: `qa/tests/e2e/desktop-sign.mjs` builds its
-  request with no `issuedAt`, which `src/utility/desktop/sign-request.util.ts` rejects, so the page shows
-  `desktop-sign-invalid`. That is a product-lane gap.
+  and again on 2026-10-28 it onboarded MetaMask and then failed `desktop-sign-summary` after 60 s:
+  `qa/tests/e2e/desktop-sign.mjs` builds its request with no `issuedAt`, which
+  `src/utility/desktop/sign-request.util.ts` rejects, so the page shows `desktop-sign-invalid`. That is a product-lane
+  gap.
 - **EIP-1193 face.** `control-kiyotaka-desktop run handoff <dir> hl`. The shell logs
   `desktop: external http://127.0.0.1:<port>/chart/desktop/sign?r=...` for each request and `desktop: return <id>`
   for each answer. When green, all 16 checks pass, among them `pageHandsBackWrongChain`, `refusalSettlesAtOnce`,
   `personalSignatureRecoversToOwner`, and the silent relaunch with no `desktop: external` line. On 2026-10-27, twice,
   three requests went out and came back, then `timed out waiting for the shell to hand the sign page to the browser`
   at `handoff.mjs:645`, the `personal_sign` request; no summary checks beyond `completed: false`. Cause not isolated.
+  On 2026-10-28, twice, it stopped before the first request: `page.waitForFunction: Timeout 90000ms exceeded` in
+  `waitForChart` (`handoff.mjs:230`), `completed: false`.
 - **Wallet Standard face.** `control-kiyotaka-desktop run handoff <dir> solana`. When green, all 7 checks pass; the
-  wallet's features are exactly `solana:signMessage`, `standard:connect` and `standard:events`. On 2026-10-27 it
-  stopped at `Phantom CRX is not the pinned 26.32.0 build`.
+  wallet's features are exactly `solana:signMessage`, `standard:connect` and `standard:events`. On 2026-10-27 and
+  2026-10-28 it stopped at `Phantom CRX is not the pinned 26.32.0 build`.
 - **Proof.** The lane summaries and their PNGs, among them `unit-09-handoff-prompt.png` and
   `unit-09-oneclick-signmessage.png`; for the hand drive, one frame per state plus the testids read.
 

@@ -2,20 +2,20 @@
 
 Since 0.1.6 the packaged app signs in through the system browser. The login dialog shows "Sign in with your browser"
 (`login-signup-browser-btn`) when the bridge reports `browserSignIn`; the shell cancels the page's
-`/api/v1/auth-v2/browser`, `/google` or `/twitter` navigation, opens the same route in the browser with a PKCE
-challenge and `redirect_uri=openmarket://oauth/callback`, and covers the window with "Finish signing in in your browser"
-(Open the Browser Again, Cancel; it expires after ten minutes). The browser lands on `/chart/desktop/return#to=<callback>`,
-which opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`. Since 0.1.7 a desktop buyer pays
-in the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
+`/api/v1/auth-v2/browser`, `/google` or `/twitter` navigation, opens the same route in the browser with a PKCE challenge
+and `redirect_uri=openmarket://oauth/callback`, and covers the window with "Finish signing in in your browser" (Open the
+Browser Again, Cancel; it expires after ten minutes). The browser lands on `/chart/desktop/return#to=<callback>`, which
+opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`. Since 0.1.7 a desktop buyer pays in
+the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-27 on tree
-`7290d33d10`: the return, checkout-return and signin pages in Chromium on the dev lane, the super-search command in
-Chromium, and the shell's production sign-in screen with no passkey row against Chromium's with one. The shell half of
-sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and `openmarket://checkout`
-handling) has no live driver: it needs a packaged non-dev build or `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, a real
-orange and, for checkout, a Stripe session. `desktop/tests/main/browser-signin.test.ts` and `checkout-return.test.ts`
-cover it.
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-28 on tree
+`5365748ef3` (`origin/main`): the return, checkout-return and signin pages in Chromium on the dev lane, the super-search
+command in Chromium, and the shell's production sign-in screen with no passkey row against Chromium's with one. The
+shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
+`openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
+`OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, a real orange and, for checkout, a Stripe session.
+`desktop/tests/main/browser-signin.test.ts` and `checkout-return.test.ts` cover it.
 
 ## Sub-features
 

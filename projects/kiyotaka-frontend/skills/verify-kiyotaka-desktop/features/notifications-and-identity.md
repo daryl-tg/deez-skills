@@ -6,7 +6,8 @@ a native notification. An installed build keeps its profile in `OpenMarket`; an 
 The shell also hands eight analytics events (`app-opened`, `update-installed`, `update-ready`, `signin-started`,
 `signin-completed`, `signin-failed`, `policy-shown`, `beta-notice-dismissed`) to the page through
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
-Last driven 2026-10-27 by the `notify` scenario on tree `7290d33d10`: 13 of 17 checks. Three reds are the known
+Last driven 2026-10-28 by the `notify` scenario on tree `5365748ef3` (`origin/main`): 13 of 17 checks, the same four
+reds as on 2026-10-27. Three reds are the known
 ones, `osAuthorized`, `notificationCaptured` and `dockCaptured`: macOS never authorizes notifications for an ad-hoc
 build. The fourth, `bridgeUnchanged`, is the lane's stale two-member bridge assertion (see
 [returns](./return-channel-and-bridge.md)). A visible banner waits on a Developer ID build. The analytics hand-off has

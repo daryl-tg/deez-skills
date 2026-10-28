@@ -1,18 +1,19 @@
 # Connect dialog in the shell
 
 Since `72633c0a7a` (2026-10-23) the Hyperliquid connect dialog is a thin shell over the "Link Hyperliquid" sheet, one
-link flow for every broker, which reads the account before any signature. Inside the desktop shell its wallet step
-drops every open-in-wallet-app link, the install row and the rescan row, since no wallet app browser or extension
-exists there. With no extension found it leads with "Extensions don't run in the desktop app..." and lists WalletConnect
+link flow for every broker, which reads the account before any signature. Inside the desktop shell its wallet step drops
+every open-in-wallet-app link, the install row and the rescan row, since no wallet app browser or extension exists
+there. With no extension found it leads with "Extensions don't run in the desktop app..." and lists WalletConnect
 (`hl-connect-walletconnect`) first, then Sign in your browser (`hl-connect-desktop-handoff`), with the
 `hl-connect-signs-in-browser` line naming the browser approval and the in-app trading key. Choosing Sign in your browser
 opens a separate handoff screen (`hl-link-handoff`, "Finish in your browser, then come back here"). Choosing
 WalletConnect opens the pairing screen (`hl-link-pairing`, `hl-connect-wc-qr`). A browser window is unchanged. The
 signed-out step ("Turn on trading" reaching `signedOutStep` with `signInOffered`) was last proved by the parity sweep's
-`hl-enable` on `1570b59d69` (2026-10-12). On 2026-10-27, on tree `7290d33d10`, the step failed on a click timeout in
-both hosts. That is a sweep cascade, not a shell difference (see [parity](./parity-sweep.md)), so this pass proves
-nothing about the dialog. The signed-in rows, the handoff screen and the pairing screen have no live recipe through this
-wrapper; `tests/components/dialogs/HLConnectDialog.spec.ts` covers them.
+`hl-enable` on `1570b59d69` (2026-10-12). On 2026-10-27 (tree `7290d33d10`) and 2026-10-28 (`5365748ef3`), the step
+failed on a click timeout in both hosts. That is a sweep cascade, not a shell difference (see
+[parity](./parity-sweep.md)), so this pass proves nothing about the dialog. The signed-in rows, the handoff screen and
+the pairing screen have no live recipe through this wrapper; `tests/components/dialogs/HLConnectDialog.spec.ts` covers
+them.
 
 ## Sub-features
 

@@ -9,12 +9,14 @@ shows its own "A new version of the OpenMarket app is ready." toast through `ope
 policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice in the title bar or block the site below a
 `minVersion`; both channel policies are `off`. A merge to `main` that changes `desktop/package.json`, or a hand-pushed
 `desktop-v*` tag, runs `desktop release` (macOS, with Windows unless `DESKTOP_SKIP_WINDOWS=1`), `desktop release
-linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `7290d33d10` is 0.1.7. The
-update round trip was last driven 2026-10-27 by the `update` scenario on that tree: 14 of 15 checks, up to the
+linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `5365748ef3`
+(`origin/main`, 2026-10-28) is still 0.1.7. The update round trip was last driven 2026-10-28 by the `update` scenario on
+that tree: 14 of 15 checks, the same as on 2026-10-27, up to the
 boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature). The red one, `launchCheckReadBetaFeed`, is a
 stale lane assertion: with a feed override the policy watcher now asks `GET /policy.json` before `GET /beta-mac.yml`.
 The title-bar button, the restart dialog, the page toast, the policy notice and block, and the internal build have no
-live driver; the release jobs need the operator's runner, certificate, notary key and bucket.
+live driver; the release jobs need `mac-runner` (the office Mac mini, runner tag `macos`), the certificate, the notary
+key and the bucket.
 
 ## Sub-features
 
@@ -82,5 +84,8 @@ Preconditions:
   set rests on reading every rule, including the shared template's.
 - The macOS release job needs Rosetta 2: electron-builder's bundled `makensis` is x86_64, and the Windows pack fails
   `spawn Unknown system error -86` without it.
+- The macOS jobs run on `mac-runner`, the office Mac mini, with a root-owned mise in `/usr/local/bin`, not Homebrew's
+  (`desktop/README.md`, `.gitlab-ci.yml`, since `67c06d5b27`). Under `CI`, `scripts/check-toolchain.sh` fails a job
+  whose user can reach `/opt/homebrew`.
 - The lane deletes `desktop/dist-app` first and both builds at the end, so the next returns, notify or handoff run
   repacks.

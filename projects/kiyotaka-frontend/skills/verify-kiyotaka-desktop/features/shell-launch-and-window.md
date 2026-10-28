@@ -5,9 +5,10 @@ a dev lane overrides it with `OPENMARKET_DESKTOP_URL`), takes a single-instance 
 first window, and remembers the window's position, size and maximized state across launches. The window has no system
 title bar: a 36 px bar view above the page carries Back, Forward, the page title and an update button, and draws its
 own tooltips; on Windows and Linux the menu bar stays hidden until Alt. A packaged release build shows a one-time
-"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-10-27 on product tree `7290d33d10`
-(its `desktop/` is identical to `origin/main` `df3fdcb62e`; the web app is 53 commits behind): `capture` on the dev lane
-and with `--prod`, `capture --prod --path '?login=1'`, and the `window` scenario on production, 12 of 12. The title
+"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-10-28 on product tree `5365748ef3`
+(`origin/main`, desktop 0.1.7): `capture` on the dev lane and with `--prod`, `capture --prod --path '?login=1'`, and the
+`window` scenario on production, 12 of 12. The dev-lane frame showed the boot splash at 23 percent again while its
+checks passed; the production frames showed candles and the sign-in screen. The title
 bar, the Alt menu bar and the beta notice have no live driver (unit tests in `desktop/tests/main/` only; the beta notice
 never shows on a dev lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
 

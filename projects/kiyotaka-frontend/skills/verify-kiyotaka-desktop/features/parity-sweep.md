@@ -3,16 +3,18 @@
 The sweep replays the `verify-kiyotaka` recipes in the packaged dev build and in Playwright's headless Chromium on one
 dev lane, captures both hosts together at 1440 by 900, and diffs each pair with masks over live data. A pair fails when
 more than 0.5 percent of its unmasked pixels differ, when its masks cover more than a quarter of the frame, or when its
-plot region is blank in either capture; a step also fails when the hosts disagree on its state. It has a guest phase
-(26 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`) that
-signs in as the operator's real account on the deployed chart. Last driven 2026-10-27 on tree `7290d33d10`, guest steps
-only: 8 green (`ind-catalog`, `ind-search`, `ind-add`, `sym-dialog`, `sym-results`, `sym-scope`, `ks-super-search`,
-`ks-open`), 6 blocked at sign-in, 13 findings. Only `ind-dialog` (1.26 percent, in the indicator store's cards) is a
-pixel difference. `boot-candles` (`liveEdge` false) and `sym-switch` (`closed` false) failed the same check in both
-hosts. Every later step failed on a click or hover timeout in both hosts. `login-wall`'s Chromium half wrote no
-capture (exit 143). Two re-runs of the timed-out steps alone did not reach a verdict: once candles never arrived in
-180 s, once the shell never logged `desktop: loaded`. The signed-in phase has not been driven in this map. The Windows
-sweep needs a VM and has never run.
+plot region is blank in either capture; a step also fails when the hosts disagree on its state. It has a guest phase (26
+steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`) that signs in
+as the operator's real account on the deployed chart. Last driven 2026-10-28 on tree `5365748ef3` (`origin/main`), guest
+steps only: 9 green (`boot-candles`, `ind-dialog`, `ind-search`, `ind-add`, `sym-dialog`, `sym-results`, `sym-scope`,
+`ks-super-search`, `ks-open`), 6 blocked at sign-in, 12 findings. Against 2026-10-27 (`7290d33d10`: 8 green, 13
+findings), `boot-candles` and `ind-dialog` turned green, and `ind-catalog` turned to a finding in Chromium alone: it
+counted 0 unfiltered catalog rows where the shell counted 179, then 27 oscillators in both, so the browser read the list
+before it loaded. `sym-switch` failed `closed` in both hosts again, and every later step again failed on a click or
+hover timeout in both hosts; `pulse-page` failed on a 30 s `page.goto`. `login-wall` wrote no capture in either half:
+the shell's plain launch exited 0 with no `desktop: loaded` line (`loadedLane` false), and Chromium's headless shell was
+killed (exit 143) after "Unexpected renderer destruction". The signed-in phase has not been driven in this map. The
+Windows sweep needs a VM and has never run.
 
 ## Sub-features
 
@@ -56,7 +58,8 @@ Preconditions:
 ## Gotchas
 
 - **A finding in both hosts is not a shell finding.** Read `hosts.shell.checks` against `hosts.browser.checks` in the
-  summary. On 2026-10-27 every FINDING but `ind-dialog` failed the same way in both hosts. The likely chain is that
+  summary. On 2026-10-27 every FINDING but `ind-dialog` failed the same way in both hosts; on 2026-10-28 every FINDING
+  but `ind-catalog` (Chromium alone) did. The likely chain is that
   `sym-switch` left its dialog open (`closed: false`) and blocked every later click. That is unconfirmed, and it points
   at drift between the sweep and the web tree, to be recorded in the `verify-kiyotaka` map. It does not point at the
   shell.
