@@ -44,12 +44,12 @@ build never does.
 
 ## Launch
 
-The shell lives in the repo's main checkout, `/Users/dboon/gitlab/kiyotaka-frontend`, only once `daryl/desktop-shell`
-has landed on `main`. Before that, run from the feature worktree `/Users/dboon/gitlab/kiyotaka-frontend-desktop-shell`
-instead; any checkout that carries `desktop/` works.
+The shell is on `main`, so run from the repo's main checkout, `/Users/dboon/gitlab/kiyotaka-frontend`, or any worktree
+of it that carries `desktop/`. An unattended run uses its own detached worktree at `origin/main` and leaves the
+operator's checkout alone.
 
 ```bash
-cd /Users/dboon/gitlab/kiyotaka-frontend                    # or the pre-landing worktree named above
+cd /Users/dboon/gitlab/kiyotaka-frontend                    # or a worktree of it
 CTL=~/github/deez-skills/projects/kiyotaka-frontend/skills/verify-kiyotaka-desktop/bin/control-kiyotaka-desktop
 export KIYO_DESKTOP_LANE_PORT=18144                         # assigned from 18097-18197; record it for the run
 lsof -nP -iTCP:$KIYO_DESKTOP_LANE_PORT -sTCP:LISTEN || echo free   # preflight: must print free
@@ -97,7 +97,7 @@ It builds the shell, launches it unpackaged on a fresh profile against the lane,
 **Run the checkout's lanes.** `run` passes the lane URL as `OPENMARKET_DESKTOP_URL` and runs the lane from its home:
 
 ```bash
-$CTL run launch <out dir> window links channel      # production chart; window state, link policy, menu, channel
+$CTL run launch <out dir> window links              # production chart; window state, link policy, menu
 $CTL run launch <out dir> returns                   # dev lane, packaged dev build; scheme, bridge, returns
 $CTL run launch <out dir> notify update             # identity and notifications; update round trip on 18150
 $CTL run handoff <out dir> hl                       # needs lane up --testnet; MetaMask on a throwaway seed
@@ -121,13 +121,15 @@ for its verbs.
 - A shell claim needs the frame and the shell's own line: the `capture:` JSON, a `desktop:` log line, or the lane's
   check name. A screenshot of a chart proves it drew; the line proves which URL and which build.
 - Open every PNG. A capture of the "Draw by holding" tip over candles is a fresh guest and is fine; a capture of
-  "Retrying data request..." is a lane with no backend.
+  "Retrying data request..." is a lane with no backend. A capture of the boot splash proves nothing, even when
+  `capture` passed on a priced title: on the unattended mini the shell window goes hidden 30 to 40 s after launch, and
+  a hidden window stops `requestAnimationFrame`, so a slow dev-lane boot never drops the splash.
 - Never hand back an `18097`-`18197` URL as a review link; those ports are not tunnelled.
 
 ## Cleanup
 
 ```bash
-$CTL lane down                         # by pidfile, then sweeps only a listener this checkout owns on the port
+$CTL lane down                         # by pidfile, sweeps only a listener this checkout owns, waits for the port
 pgrep -fl 'capture.js|dist-app/.*/OpenMarket' || echo 'no shell left'
 ```
 

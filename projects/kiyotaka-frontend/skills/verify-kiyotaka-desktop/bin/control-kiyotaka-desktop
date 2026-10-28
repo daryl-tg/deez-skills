@@ -44,6 +44,7 @@ LANE_URL="http://127.0.0.1:$PORT/chart/"
 
 in_agent_range() { [ "$PORT" -ge 18097 ] && [ "$PORT" -le 18197 ]; }
 listener_pids() { lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true; }
+wait_port_free() { local _; for _ in $(seq 1 "$1"); do [ -z "$(listener_pids)" ] && return 0; sleep 1; done; [ -z "$(listener_pids)" ]; }
 pid_cwd() { lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -1; }
 http_code() { curl -s -o /dev/null -w '%{http_code}' --max-time "${2:-10}" "$1" || true; }
 
@@ -150,12 +151,15 @@ cmd_lane() {
       else
         printf 'lane down    no run-owned lane on %s\n' "$PORT"
       fi
-      sleep 2
+      # vite can hold the port for several seconds after SIGTERM, and a `lane up` straight after then refuses it
+      # (2026-10-28). Wait for the listener before sweeping, and again after, so `down` returns with the port free.
+      wait_port_free 20 || true
       # Sweep only a survivor this checkout owns, inside the agent range. Never by process name.
       for pid in $(listener_pids); do
         if in_agent_range && [ "$(pid_cwd "$pid")" = "$REPO" ]; then kill "$pid"; printf 'lane down    swept pid %s\n' "$pid"
         else printf 'lane down    pid %s on %s is not ours; left running\n' "$pid" "$PORT"; fi
       done
+      wait_port_free 20 || printf 'lane down    %s still has a listener after 20 s\n' "$PORT"
       ;;
     *) die 'usage: control-kiyotaka-desktop lane {up [--testnet]|down|url}' ;;
   esac
