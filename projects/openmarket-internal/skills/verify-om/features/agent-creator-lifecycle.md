@@ -16,6 +16,12 @@
 > checked here. The closeout record below was driven on the branch and remains
 > historical. Only the guest-lane section was driven on main.
 
+> **Work agents on 0.467.0 (driven 2026-10-28/29 on an isolated lane).** Under
+> launchd's PATH, Brains reports Claude Code "Not installed", the version pins
+> qualify no real machine, and several later steps fail silently. The fixes are
+> in PR #2199 (daemon) and openmarket-chat MR !136 (GUI), unmerged at this
+> writing; see "Running a work agent end to end" below.
+
 *Closeout verified 2026-10-12. GUI `194281a1dbe02b29ca6542170a704d1726884a09`, daemon `a3a81a5f5192a3786c46e0dc3e7e911c2cb86f7c`, binary `5085976c818d929c64fc9fec15efefc5f7a537d3cd7be3b6f221044dd378f8bb`. Native C6/X4/S2 executed on daemon `635441fb083971c1ff5143835521d5c8193e60c2`, binary `7e7f8ee1e25556d1cc75ad61e0d3f4f240dd0715331a52d4d33f8e71067af213`; current viewing and restart readback are distinct. Root-reviewed gallery `agent-creator-stress-20261007/r03` is operator-local evidence. Private registry installation is qualified. Review requests: https://gitlab.com/openmarketxyz/frontend/openmarket-chat/-/merge_requests/75 and https://github.com/openmarket-xyz/openmarket-internal/pull/1948. Local gates passed, but three daemon workflows received no runner or steps because GitHub Actions is blocked by account billing or spending limits. Ready for review, not merge-ready; no main merge, deployment or release.*
 
 The daemon owns release, installation and account state. Shared text packages have immutable digests. Recipients use their own credentials, notes and private memory. An invocation completes its task or clearly explains why it cannot run. Supported local text-agent/Agent Skills creation and sharing are distinct from arbitrary third-party runtime admission.
@@ -129,7 +135,29 @@ Historical source stamps: repeated selected-release skill reads used39e94a54f; D
 
 Earlier source-specific proofs remain historical: Codex261/Claude263 on d24bded8f read vaultrev1, edited only README, passed12tests/24assertions and build, committed locally, delivered Resultrev2/Historyrev3 and one reply. D4 sources272/274 returned forest cabin1005 as273/275; D5 source276 returned amber canoe1005 as277; revoked278 received279; rollback280 returned forest cabin1005 as281. D4/D5 six-file packages matched across profiles; publisher memory/overlay2/1 and recipient0/0 with different owners. These counts alone are not a complete authorization proof. Gallery agent-creator-20261002/r05 retains the original source stamps.
 
+## Running a work agent end to end (PR #2199, verified 2026-10-29)
+
+Verified live on lane 18124 with launchd's PATH, Claude Code 2.1.312 and Bun 1.4.3, signed in as a test account. A debugger agent fixed a one-line bug, committed only that file, passed the work proof and replied in its run topic. Each step below was a separate silent failure before #2199:
+
+- **Brains.** Detection searches PATH, then `~/.local/bin`, `~/.claude/local`, `~/.bun/bin`, `~/.npm-global/bin`, `/opt/homebrew/bin` and `/usr/local/bin` (`OM_BRAIN_SYSTEM_DIRS` replaces the last two; tests set it to ""). Rows are built from the detected CLI, not pinned versions. Executables up to 1 GiB are hashed.
+- **"Signed in"** means OM's own model credential resolves for the brain (`om llm status`, profile `anthropic:claude-cli` for "Use Claude Code login" from `om init`). Claude Code's own login alone shows "Signed out", and the Brains hint pointing at `claude` does not fix it.
+- **Sandbox.** The agent sandbox must allow reading `/private/var/db/timezone`. Without it, Claude Code 2.1.312 hangs at `sdk-initialize` and the run fails with `ACP session/new timed out after 30000ms`.
+- **Broker betas.** The Claude broker forwards every `anthropic-beta` the client sends (OAuth added once). A dropped beta whose body field remains gives a 400 on that field, and the owner sees "couldn't verify the model provider's usage report".
+- **Clean commits.** The ACP file helper runs with `BUN_RUNTIME_TRANSPILER_CACHE_PATH=0`; otherwise a `Library/Caches/bun/@t@/*.pile` lands in the worktree, and the proof refuses with "binary committed changes are unsupported".
+- **Checks.** `tests-pass` and `build-passes` apply only when the project records that command.
+- **Owner notices.**
+  - A debugger agent on a project with no test command is told to add one (`test_command_missing`).
+  - Linking a checkout with no `origin` is refused by name (`project_not_allowed`), and MR !136 shows that text in Projects.
+  - A work mention refused for an owner-fixable reason (`project_unlinked`, `no_grant`, `project_not_allowed`, `mode_off`) keeps waiting and retrying, but gets one threaded reply: "I can't start this yet: … I'll start once that's fixed." The reason and its sent marker live in `roster_idempotency` (routes `roster-intake-waiting-notice[-sent]`), because invocation correlation keys are fixed.
+  - A 403 `LIBRARY_UPLOAD_FORBIDDEN` on the task page becomes `no_grant`, naming the Upload to Server Library permission.
+
+Recipe: link a git repo that has an `origin` remote and a failing test command, create a work agent (Claude) and grant it the channel. Then mention it as the owner in a channel of the project's server. Read progress from `roster_agent_events` (read-only) and the run topic. On the first failure, check the run's correlation for `coding_preparation_failure`, `acp_failure` and `supervisor_usage_failure` before guessing.
+
+To capture a sandbox launch, log `prepareAgentSandbox`'s profile and parameters (diagnostic only). Then replay them with a stdio ACP probe, using a fake proxy for the gateway. Bisect allow rules (`--rule`) to find a missing read.
+
 ## Gotchas
+- On the final #2199 build, one of two runs failed after its commit with no recorded cause while the lane's roster-sweep was timing out; the rerun completed. Unexplained; under load the outbox also stalled about 5 minutes before publishing.
+- A test account hammered by restarts and a looping intake gets 429 "You're reading too fast". The /rooms server rail then never finishes loading. Open a channel directly with `/rooms/#/room/<roomId>`.
 
 - C5 ended cleanly in ACP but returned a new Plan without edits/current output. Its failure remains immutable. The prompt repair explicitly says the owner already approved and to execute now without replanning; C6/X4 prove that repair without weakening work_stage/work_commit/checks.
 - Cancelled old C4/X3 retain their original budgets, receipts and native commits. One readable timeout notice was delivered for each. X2 correctly refused a passing debugger baseline before native edits and delivered one actionable notice. A successful successor does not relabel these failures.
