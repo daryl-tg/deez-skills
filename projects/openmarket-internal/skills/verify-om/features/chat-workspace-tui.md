@@ -215,9 +215,11 @@ nothing, and it streams long replies, which the scroll checks need.
     From a FIRES card it opens the watch that fired.
   - Type `n` then `o` with the card open: the composer reads `❯ no` and the
     card stays.
-  - One Esc from that page lands on the `/watches` list, a second on the
-    chat. A typed `/watches <slug>` does the same; check where Esc landed
-    before the next click, or the click lands in the list.
+  - One Esc from the page `o` opened lands on the chat (since `fab6211db`;
+    before it, on the `/watches` list). A typed `/watches <slug>` still
+    steps back to the list on Esc, so after one, check where Esc landed
+    before the next click, or the click lands in the list. Evidence:
+    `http://127.0.0.1:8098/vom-sbcard/r2/`.
 - **Click to close.** Reopen the card. Click a line inside it
   (`grep -n 'Recent fires'` for its row; the card sits over the chat): it
   stays open. Drag across the chat, which a click never reports:
