@@ -8,6 +8,44 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 
 ## Sub-features
 
+**The Agents redesign (branch `daryl/agents-page-redesign`, pending MR).**
+Approved at `rev-910b018a` on 2026-10-29 and not on origin/main yet. On that
+branch the Agent Center above is replaced, and every handle in this section
+is branch-only until it lands. Re-verify on main afterwards and retire the old
+roster recipes then.
+
+- **Home.** h1 **"Agents"**, a **Map / Grid** segmented toggle, **Templates**
+  and **New agent**. The rail `nav` is **"Agents sections"**, with **All agents,
+  N**, **Needs you, N** and **Running, N** (counts in the names). PERSONA is
+  unchanged, and AGENTS lists every agent with om first (`Open <name>`).
+  Map is the default above the shell's inclusive 768px phone query, and Grid is
+  the default at or below it. The choice is device-local under
+  `om.chat.agentsView`. Search and the Map's **+N** cards show Grid without
+  writing it. Ready markers are `.agents-map.is-ready` and
+  `.agents-grid-view.is-ready`.
+- **Map.** Node ids sit on `data-node` (`you`, `b-om`, `cl-chat`, `ag-<id>`,
+  `r-<roomId>`, `ask-<key>`), and hover or focus traces one hop. Ask cards
+  carry only **Review** and decline. There is no approve on the Map by design.
+- **Agent page.** `#/agents/a/<id>` on `/rooms`, `/chat/agents/a/<id>` on cloud.
+  Old `#/agents/badge/<id>` addresses rewrite there. Its `tablist` holds
+  **Overview, Activity, Access, Settings**.
+- **New agent.** A modal on desktop and a bottom sheet on phone. Cloud shows a
+  hosted notice instead.
+
+**Recipe.** On `agent-center-fixture.html` (the roster host is seeded since that
+branch), use `?theme=light` for light. Media emulation alone does not switch the
+theme. The cloud host is
+`/chat/tools/visual/shell-fixture.html?view=agents&alerts=quiet` and shows om only.
+
+**Trap.** "Activity" names two controls on an agent page: the PERSONA rail row
+and the page tab. A text match clicks the rail row and lands on
+`#/agents/activity`. Use `find role tab click --name "Activity"`.
+
+**Trap.** `tools/visual/mobile-release-readiness.visual.ts` needs a live stack
+behind `/api`. On an agent lane with the parity stack down, `GET /api/away`
+502s from Shell and ChatPane, and the health contract fails the navigation case
+before the matrix runs. That is the environment, not the product.
+
 **Agent creation, import, sharing and guided work are on origin/main since
 `01bf4481`.** `AgentCenterSurface.tsx`, `components/roster/` and
 `lib/roster-*.ts` landed there; see [agent-creator.md](agent-creator.md) for
