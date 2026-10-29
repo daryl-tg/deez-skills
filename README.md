@@ -231,7 +231,7 @@ adapted from pstack.
 | principle | apply when |
 | --- | --- |
 | `prove-on-the-real-surface` | Apply after any change, before declaring done. Verify in the running product on the surface the change touches. Tests … |
-| `explain-the-number` | Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or … |
+| `explain-the-number` | Apply before you measure, and before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or … |
 | `visual-approval-gates-delivery` | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. … |
 | `failing-test-first` | Apply before writing production code. Write the failing check first, at the fastest level that expresses the behavior,… |
 | `test-behavior-not-implementation` | Apply when writing, changing, or keeping a test. Call the code the way its users do and assert the observed result aga… |
@@ -366,7 +366,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-encode-lessons-in-structure` | principle | claude, codex | Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a check, a type, a lint, or a sc… |
 | `principle-exhaust-the-design-space` | principle | claude, codex | Apply to a novel interaction or architectural decision with no precedent in the codebase. Build two or three competing sketches and compare before committing. |
 | `principle-experience-first` | principle | claude, codex | Apply to product, UX, and feature-scope tradeoffs. Choose user delight over implementation convenience; ship fewer polished things over more rough ones. |
-| `principle-explain-the-number` | principle | claude, codex | Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and … |
+| `principle-explain-the-number` | principle | claude, codex | Apply before you measure, and before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. F… |
 | `principle-failing-test-first` | principle | claude, codex | Apply before writing production code. Write the failing check first, at the fastest level that expresses the behavior, and watch it fail for the right reason. |
 | `principle-feature-branch-isolation` | principle | claude, codex | Apply before starting any change. Work happens on daryl/<kebab-words> in its own worktree, never on main, never in the primary worktree. |
 | `principle-finish-or-report` | principle | claude, codex | Apply at the end of any run. Never deliver a partial silently. Either the whole thing is done, or say precisely what is left and why. |
@@ -464,6 +464,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `hatch-pet` |  | codex | Create, repair, validate, visually QA, and package Codex-compatible v2 animated pets from character art, generated images, company or prospect brand cues, or v… |
 | `ivtg` |  | claude | Use when the user wants to queue up bugs, regressions, or issues one at a time and get each one investigated across one or more repos and written up as a fix p… |
 | `ketchup` |  | claude, codex | Catch the operator up on what changed since their last message, decisions first, in plain words and small visuals. Every call waiting on them must be decidable… |
+| `ketchup-video` |  | claude, codex | Catch the operator up like ketchup, with a short subtitled video of slides for what happened and the waiting calls as text under it. Use for /ketchup-video. |
 | `labiew` |  | claude, codex | GitLab MR review comments and response planning for the current branch. |
 | `llm-council` |  | claude, codex | Run any question, idea, or decision through a council of 5 AI advisors who independently analyze it, peer-review each other anonymously, and synthesize a final… |
 | `loop-me-in` |  | claude | Use when a fix plan, spec, or design doc needs to become a file that a fresh session can execute unattended and prove its own changes landed — "make this runna… |

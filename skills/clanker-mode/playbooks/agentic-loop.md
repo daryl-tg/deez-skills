@@ -23,6 +23,18 @@ validation step.
    per **principle-delegate-implementation-review-stays-here**. Resume only
    where that principle allows. Review the diff yourself. Run the inner-loop
    verification.
+   - **Start with one goal end to end** before running goals in parallel, so a
+     flaw in the handoff costs one delegate, not every one.
+   - **The handoff carries everything the goal depends on**, including each
+     earlier delegate's report pasted in full. Delegates cannot see each other.
+     It names the evidence that proves the goal done, the paths it may and may
+     not write, and the actions it must not take. If you cannot name the
+     evidence, the goal is not scoped yet.
+   - **Never message a delegate to check on it.** Judge a stalled one by its
+     diff and output, not its status text. Retry by cause: a smaller scope after
+     a context limit, the same handoff after a dropped connection, a different
+     approach after a tool error. After two retries, drop the goal and replan
+     around it.
 4. **Never deliver a goal.** No incremental push, review request, announcement,
    or promotion mid-loop. A partial candidate is not a deliverable.
 5. **When every goal is verified**, run the terminal gate once for the whole

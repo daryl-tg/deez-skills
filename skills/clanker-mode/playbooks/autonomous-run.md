@@ -22,7 +22,7 @@ instead. This is one predicate, driven.
    against the predicate, keep it if it advanced, discard it if it did not, per
    **principle-sequence-verifiable-units**. Anything that "might help" gets
    reverted, never left to ride.
-4. **Mid-run discoveries are yours.** Broken skills, flaky checks, related bugs,
+4. **Mid-run discoveries that support the goal are yours.** Broken skills, flaky checks, related bugs,
    tooling failures, drift. Fix them yourself and keep the predicate as the main
    drive, per **principle-never-block-on-reversible-work**. Out-of-band fixes go
    in their own commit. Surface only an irreversible action, a genuine

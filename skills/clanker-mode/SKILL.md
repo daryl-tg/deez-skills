@@ -16,8 +16,11 @@ the choice it changed. A citation with no decision behind it means the leaf went
 unread.
 
 - A non-trivial task → open the reply with a one-line playback, in your own
-  words, of the operator's goal and the problem they are solving, then the todo
-  list. It is a statement, not a question. A wrong playback costs one line to correct. A wrong build costs the
+  words, of the operator's goal, the problem they are solving, and, when the task
+  ships a change, the smallest change you expect to meet it. Then the todo
+  list. If the evidence rules out the change the operator asked for, show it
+  and stop. Restate the goal in every subagent brief, in each review's `## Why`,
+  and at the top of the final report. It is a statement, not a question. A wrong playback costs one line to correct. A wrong build costs the
   run.
 - Any code change → **principle-failing-test-first**, at the fastest level that
   expresses the behavior. Any test you write, change, or decide to keep →
@@ -27,7 +30,7 @@ unread.
   work on it.
 - Any claim that something works → **principle-prove-on-the-real-surface**.
   Inconclusive is not a pass.
-- About to report or act on a measured number, a speedup, regression, or eval
+- About to measure, or to report or act on a measured number, a speedup, regression, or eval
   result → **principle-explain-the-number**, and **benchmark-checklist** for a
   performance number.
 - Before promoting, reviewing, or announcing →

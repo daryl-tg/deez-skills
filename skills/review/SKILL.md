@@ -34,13 +34,22 @@ Redundancy finds the same thing twice; diversity finds what one lens cannot see.
 | Simplification | What is here that does not need to be |
 | Test integrity | Does the test prove the behavior, or restate the implementation |
 
+Each reviewer proves each finding with a run against the real code: a failing
+test, a repro script, or command output that shows the wrong behavior. It
+reports the exact command, what it printed, and what the intent requires.
+Rerun each command yourself before you sort the finding. Style, naming, and
+risks that need a future change to matter are not findings.
+
 For a second opinion, dispatch a fresh **code-reviewer** with a distinct lens.
 For a decision rather than a diff, **llm-council** is the right tool and this
 one is not.
 
 ## Categorize — every finding gets a verdict
 
-- **Act on.** Real, in scope, must change before this lands.
+- **Act on.** A problem you can show, with a failing run at the head or a line
+  the change made wrong, that must change before this lands. A defect the base
+  branch already has is Noted unless the change copies it or newly reaches it.
+  Only a bug a user would hit, a failed gate, or a wrong shipped doc blocks.
 - **Consider.** Real, defensible either way. State your recommendation.
 - **Noted.** True but out of scope. Record it; do not widen the diff.
 - **Dismissed.** Not a real problem. **Say why.** A dismissal without a reason

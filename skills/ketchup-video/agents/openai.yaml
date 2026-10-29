@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ketchup Video"
+  short_description: "Catch the operator up as a subtitled video"
+# Explicitly invoked, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false
