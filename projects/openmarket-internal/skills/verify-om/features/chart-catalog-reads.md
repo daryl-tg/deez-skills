@@ -1,5 +1,7 @@
 # Chart catalog reads
 
+*Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `chart indicator schema rsi --format json` returned `@om-core/rsi` 0.1.1 (`Relative Strength Index`) with one `period` field (`int`, default 14, min 1, max 2500). With no argument it exits 1 with `missing required argument 'type-or-id'`. Drawing schemas and `indicator list` were not re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
+
 *Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `chart indicator list` returned 65 indicators. `chart indicator schema RSI` resolved `@om-core/rsi` 0.1.1, and `chart drawing schema` returned `{anchorFormat, tools}`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
 
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `chart indicator list --query rsi` (`indicators: []`, `scriptSubTypes: ["RSI"]`, and `packages` led by `wrun/@om-core/ichimoku/conversion`) and `chart drawing schema` (`anchorFormat`, `tools`). Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*

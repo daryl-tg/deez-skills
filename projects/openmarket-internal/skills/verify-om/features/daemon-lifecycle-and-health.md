@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163, under a host load average near 150. `status --format json` read `daemon.running: false` and `doctor` returned `ok:false` with 14 checks. The `daemon` check failed with `not installed — 1 event watch is not being monitored`, while `/healthz` answered 200 in 2 to 3 s and the dashboard and stream worked. That misread is the CLI's daemon probe timing out (see Gotchas). The other non-ok checks were the expected guest warnings: `binary`, `llm` and `agent_wiring`. `contracts` read `the registry speaks contracts 5.43.0; this om speaks 5.43.0`. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
+
 *Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `status` (running, foreground `om run`), `doctor` (`ok:true`, binary warn for a dev checkout), `service status` (not installed) and `config show` (masked key). `logs` takes `--limit <n>` (default 5); `--lines` is refused as an unknown option. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
 
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `status`, and `doctor` with 14 checks (`binary`, `llm` and `agent_wiring` warn, as expected for a guest). `contracts` was ok with the detail `the registry speaks contracts 5.42.0; this om speaks 5.43.0`. Also `service status` (loops INACTIVE with reasons) and the `/healthz` keys, still including `memory`, `slow_sql` and `roster`. A profiler `start` sent twice still returned `already: false` with the first `started_at` (product gap). `{"action":"stop"}` is refused `bad_request`: the route takes only `start` and `stacks`. Other steps keep the record below. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
@@ -144,6 +146,7 @@ Preconditions:
 
 ## Gotchas
 
+- **On a busy host, the CLI reads a live lane as down.** `status` (`running:false`), `doctor` (`daemon: fail`), `notis` (`this home's daemon is unavailable`) and the chat footer (`om not running ✗`) all ask `/healthz` with a 200 ms plus 1 s budget (`runner/client.ts:87-91`). Driven 2026-10-30 at load average about 150, when `/healthz` took 2 to 3 s. Time `curl -w '%{time_total}' $(control-om url /healthz)` before reading any of those as a regression.
 - **The product no longer refuses service lifecycle on a lane.** Before the
   accounts refactor (`3a81eb478`) a non-default home shared the machine-global
   unit label and those verbs were refused with a note naming the unit. Now a

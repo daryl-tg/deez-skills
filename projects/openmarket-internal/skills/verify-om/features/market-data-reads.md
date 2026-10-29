@@ -1,5 +1,7 @@
 # Market data reads
 
+*Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163. `coins` returned 4,176 rows and `exchanges` returned **45**, down from 48 on 2026-10-29. `LIGHTER`, `VARIATIONAL` and `VARIATIONAL_SWAP` are still listed and `CRYPTOCAP` is not; which three venues dropped was not recorded. `enum --domain exchange_id` still holds 35 values. Not re-driven: `points`, `resolve`, `metric`, `markets`, `tenors` and v3. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
+
 *Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `coins` returned 4,170 rows and `exchanges` 48; `enum` still lists 35 `exchange_id` values. The mapped `points` recipe returned `{series}`. `points` without `--type` is refused with `required option '--type <data-type>'`, and without `--lookback` with `required option '--lookback <duration>'`. `resolve BTC` bound `HYPERLIQUID_FUTURES`, and `markets --exchange LIGHTER` returned rows. `metric list` returned `{metrics}`. `tenors` still returned a 500 `server_error`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
 
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), fresh lane home on 18103. `coins` returned 4,170 rows (`{coins}`), and `exchanges` returned 48. `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval MINUTE --lookback 10m` returned `{series}`; without `--lookback` it was refused before any request. `resolve BTC` bound `HYPERLIQUID_FUTURES`. `markets --exchange LIGHTER` returned rows, while `enum` still lists 35 `exchange_id` values. `metric list` returned `{metrics}`. `tenors` still returned a 500 `server_error`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
@@ -151,7 +153,7 @@ Preconditions:
   `OM_BASE_URL` without `OM_DATA_V3_URL` resolves no v3 endpoint and falls back
   to the same refusal. #2114 changed only the signed-in path.
 - **The `exchange_id` domain is narrower than `om exchanges`** (driven
-  2026-10-28). On `auto`, `exchanges` listed 48 venues. `enum --list`
+  2026-10-28). On `auto`, `exchanges` listed 48 venues. (45 on 2026-10-30, a service-side count that moves.) `enum --list`
   reported `exchange_id` with 35, and `enum --domain exchange_id --query
   LIGHTER` gave `total: 0`. The CLI `markets --exchange LIGHTER` returned rows,
   but MCP `markets` with `exchanges:["LIGHTER"]` was refused with

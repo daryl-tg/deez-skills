@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163. `config set agent.max_tool_calls 250` exited 2 with `om: agent.max_tool_calls must be a positive integer, at most 249.` (the cap fell with the 500-call run ceiling, #2206). `set … 249` printed `om: set agent.max_tool_calls=249`, and `config get agent.max_tool_calls` read `249`, `source: config`, `rule: positive integer, at most 249`, `default: 24`. `wrun templates` still lists 91. `notis --since 1d` was refused `request_failed` (`this home's daemon is unavailable`); that was the busy-host probe, not the verb (see [daemon lifecycle](./daemon-lifecycle-and-health.md)). Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
+
 *Re-driven 2026-10-29 (scheduled maintenance), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `wrun templates` returned 91 templates. The three Feeds starters (`feed-alert-line`, `feed-events`, `feed-status-card`) now say "set ref to a feed you published" (#2194). Driven for the first time: `wrun create @vommaint/feed-probe <dir> --template feed-alert-line --format json`, into a directory outside the product tree. It returned `{path, packageId, template, files[29], metricIds[3]}` and wrote `.wrun-scaffold` `{"scaffold_version": 106}`. `src/indicator.ts` reads `ref: "@you/your-feed"`. Also re-driven: `wrun list` (20 packages) and `skill list`. Not driven: `wrun validate` and `wrun build`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
 
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `config key-info` (`expired:false`), `config get chat.workspace` (new key: `unset (default: off)`, `stored as tui.workspace`), `notis --since 7d` (fire rows), `enum --list` (`exchange_id` count 35), `skill list` (one name per line; it takes no `--format`), `wrun templates` (still 91), `approvals list`, `nervous status`, and `search "funding rate"` (production result shape). `WRUN_SCAFFOLD_VERSION` is now 105 (#2184); only a new scaffold shows it. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
@@ -47,6 +49,8 @@ decode.
   `api_key_set` true and a masked key, never a raw one. `config key-info
   --format json`: assert `tier` `om_guest` and `expired` false. `config get
   data.transport --format json`: assert `source` `default` and `default` `auto`.
+  `config set agent.max_tool_calls 250` exits 2 (`at most 249`); a value
+  stored above 249 by an older build reads as 249.
 - **Notifications.** Produce one first: an inbound watch left on the default
   classifier emits a `notice` once judging fails on a guest. Then `control-om om
   -- notis --since 7d --json` returns `rows[]` with `at`, `kind`, `watch` and

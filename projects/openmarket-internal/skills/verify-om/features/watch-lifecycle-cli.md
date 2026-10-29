@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `watch create probe-1030 --inbound`, `edit --classifier-mode accept_all`, `show`, `pause`, `resume` and `list`. `watch pause --format json` now carries `held_lots: []` and `held_lots_error: null`, beside `held_position` and `held_position_error`. `watch remove rm-1030 --yes --format json` carries `paper_lots_left: []` and `paper_lots_left_error: null`. Those fields are new in v0.478.0 (#2208). Four backtest refusals each exited 2: the three new stop-breaker flag refusals and the bare `backtest spec`. Not re-driven: the other maintenance verbs and the journal reads. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
+
 *Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `watch create --inbound`, `watch edit --classifier-mode accept_all`, `watch pause` (`enabled:false`), `watch resume` (`enabled:true`) and `watch history` (`{watch_id, slug, group, query}`) on `lane-probe`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
 
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `watch create probe-1029 --inbound`, `edit --classifier-mode accept_all`, and `edit --label "Probe 1029"`. `pause` gave `enabled:false`, with a `watch show` card `Probe 1029 · paused → om watch resume probe-1029`. Then `resume`, `event-journal list` and `search probe`. `watch list --format json` keeps `{folders, revoked, skipped_specs, syncing, unreadable, watches}`. Maintenance verbs were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
@@ -116,6 +118,10 @@ Preconditions:
   `true`. A watch with attached steps takes an authorization door on resume and
   its receipt gains a `steps running` line, so a bare `--inbound` watch is the
   only shape whose resume output is this short.
+  In `--format json`, `watch pause` also reports the paper lots the watch's
+  money steps still hold: `held_lots` (`[]` for a watch with no money step)
+  and `held_lots_error` (`null` unless the lot read failed). It never reports
+  `[]` for a read that did not happen.
 - **Remove.** Run `control-om om -- watch remove lane-lifecycle --yes`. It
   prints `Removed event watch <id> (<slug>): history deleted (N rows); journal files kept` — slug again,
   not label. The count is the watch's stored-event count and inflects on exactly
@@ -130,6 +136,9 @@ Preconditions:
   (`removalDisclosure`/`renderRemoved` in `cmd/watch-engine-verbs.ts`). `watch list` is back to `No watches found.` and
   `.control-om/home-<port>/accounts/guest/watches/` is empty — but the journal
   is not gone, which is the point of the trailing clause.
+  `--format json` adds `paper_lots_left` (the paper lots the watch hands to
+  its accounts, read before they move; `[]` for a watch with no money step)
+  and `paper_lots_left_error`.
 - **Proof.** Keep the create/edit/show JSON, the `watch list` text before and
   after each transition, and a `ls` of the watches dir at the start and end.
 - **Read the journal surface.** With a watch that has accepted rows (the
@@ -163,6 +172,9 @@ Seed one timer watch with `control-om om -- watch create demo --every 1h --forma
 | `execute digest list` | `unknown command 'digest'`; the digest's CLI door is unresolved |
 | `backtest spec --format json` | exit 2 `invalid_backtest_spec_input` (needs `strategy_slug`, `candidate` or `wrun_strategy`) |
 | `backtest run nope --format json` | exit 2 `backtest_target_not_found`, listing the saved watches |
+| `backtest spec --window-secs 60 --format json` | exit 2 `invalid_backtest_spec_input`: "set --max-stops and/or --max-loss-usd; --window-secs needs --max-stops." Refused before any strategy or asset check |
+| `backtest spec --wrun-strategy @a/b --max-stops x --format json` | exit 2 `invalid_backtest_spec_input`: "--max-stops 'x' is not a finite number." |
+| `backtest run nope --window-secs 60 --format json` | exit 2 `invalid_backtest_run_input`, with the same message as `spec`. The flags are refused before the target lookup |
 | `POST /rpc/v1/watch/overview` `{}` | `{"ok":true,"data":{"daemon":…,"watches":[…]}}` |
 | `POST /rpc/v1/watch/resolve-attention` `{"issue_id":"x"}` | 409 `attention_changed` |
 | `POST /rpc/v1/watch/arm-confirm` with an unknown token | 400 `approval_expired` |

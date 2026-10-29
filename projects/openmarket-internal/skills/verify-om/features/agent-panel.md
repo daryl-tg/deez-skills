@@ -1,5 +1,7 @@
 # The dashboard agent panel
 
+*Re-driven 2026-10-30 (nightly, render only), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `/agent` rendered the H1 `What can I help with?`. The `Ask your agent` button was present on `/alerts`, but the refusal was not re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
+
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18104: `Ask your agent` → fill → `Send message` gave the alert `No LLM API key configured.` (it goes on to name `om init` and `OPENMARKET_LLM_KEY`) with `Reload conversation` and `Check connections`. `/agent` showed `Conversations` and `No conversations yet.` Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
 
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `/agent` rendered **Conversations** and **What can I help with?**. No conversation was sent. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*

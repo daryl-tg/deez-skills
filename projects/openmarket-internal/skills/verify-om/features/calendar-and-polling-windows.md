@@ -1,5 +1,7 @@
 # Calendar scheduling and polling windows
 
+*Re-driven 2026-10-30 (nightly, empty read only), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `calendar list --format json` returned `{occurrences:[], events:[], truncated:false}` on a fresh lane. Occurrences, select, revise, reject and the polling windows were not re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
+
 *Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `calendar list` returned `{occurrences:[], events:[], truncated:false}`. `calendar links` without its positional argument is refused with `missing required argument 'subject_kind'`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
 
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `calendar list` returned `{occurrences: [], events: [], truncated: false}`, and `calendar links probe-1029` returned `{links: []}`. Nothing else was re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
