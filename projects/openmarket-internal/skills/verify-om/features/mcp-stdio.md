@@ -1,5 +1,7 @@
 # The capability layer over MCP (stdio)
 
+*Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.467.0. `tools/list` returned 451 tools, and `tools/call watch_list` returned the lane's `lane-probe`. Loopback HTTP was not driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
+
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.467.0 with 451 tools and no banner leak. `watch_list` returned the lane's watches, and `order_place` gave `capital_yolo_harness` under this bypass-mode driver. The new registry action `sidebar_layout` is **not** an MCP tool (`Tool sidebar_layout not found`), as its terminal-chat-only scope says. Loopback HTTP was not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
 
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.466.0 and `tools/list` with 451 tools. Loopback HTTP and tool calls were not re-driven. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*

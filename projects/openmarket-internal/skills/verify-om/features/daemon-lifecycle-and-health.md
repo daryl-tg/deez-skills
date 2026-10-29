@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `status` (running, foreground `om run`), `doctor` (`ok:true`, binary warn for a dev checkout), `service status` (not installed) and `config show` (masked key). `logs` takes `--limit <n>` (default 5); `--lines` is refused as an unknown option. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
+
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `status`, and `doctor` with 14 checks (`binary`, `llm` and `agent_wiring` warn, as expected for a guest). `contracts` was ok with the detail `the registry speaks contracts 5.42.0; this om speaks 5.43.0`. Also `service status` (loops INACTIVE with reasons) and the `/healthz` keys, still including `memory`, `slow_sql` and `roster`. A profiler `start` sent twice still returned `already: false` with the first `started_at` (product gap). `{"action":"stop"}` is refused `bad_request`: the route takes only `start` and `stacks`. Other steps keep the record below. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
 
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `status`, `doctor`, `service status` and `logs --limit 5` on 18143, and boot on two more homes. The 18144 boot died at the guest-mint 429 (see [market data reads](./market-data-reads.md)); 18145 booted. The new `control-om doctor` `api key` line was driven on an expired and a valid home. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
@@ -157,6 +159,16 @@ Preconditions:
   one. Read the body.
 - A lane with nothing to evaluate does not tick on the interval, so
   `last_tick_at` stays at boot and the dashboard header reads `stale`. Expected.
+- **Fresh-lane log noise at `7ec575e55` (2026-10-29, scheduled maintenance,
+  lane 18161).** Neither of the next two entries' lines appeared in 109 log
+  lines. The roster logged `INFO [roster] om-skills defaults installed 8
+  package(s)` about 4 s after boot, and the library 403 line never showed.
+  Instead, each watch and each paper desk produces a repeating `ERROR [library]
+  library: where <slug> runs was not reported yet: 404: no such device`, 22 in
+  about 4 minutes for `lane-probe` and `paper-desk-<id>`. A guest lane has no
+  device record, so this is not a fault in the change under test. One `ERROR
+  [outbox] terminal prune failed: database is locked` also appeared once. It is
+  unexplained and recorded as an observation, not a gap.
 - `[library] could not read the saved watches: registry answered 403` repeats
   every minute in the lane log. That is the guest session failing an
   authenticated registry read, not a fault in the change under test.

@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `watch create --inbound`, `watch edit --classifier-mode accept_all`, `watch pause` (`enabled:false`), `watch resume` (`enabled:true`) and `watch history` (`{watch_id, slug, group, query}`) on `lane-probe`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
+
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103: `watch create probe-1029 --inbound`, `edit --classifier-mode accept_all`, and `edit --label "Probe 1029"`. `pause` gave `enabled:false`, with a `watch show` card `Probe 1029 · paused → om watch resume probe-1029`. Then `resume`, `event-journal list` and `search probe`. `watch list --format json` keeps `{folders, revoked, skipped_specs, syncing, unreadable, watches}`. Maintenance verbs were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
 
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `watch create probe-1028 --inbound`, `edit --classifier-mode accept_all`, `pause` (`enabled:false` on `watch show`), `resume`, `chapters` (empty), `edit --label "Probe 1028"`, `history` and `event-journal list`. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*

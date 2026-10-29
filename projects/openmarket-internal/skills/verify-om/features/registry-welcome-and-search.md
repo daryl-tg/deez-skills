@@ -1,5 +1,7 @@
 # Registry welcome page and personalised search
 
+*Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `search btc` returned registry `results[]`, and `welcome` still says "This registry does not offer the welcome page yet." (exit 1). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
+
 *Re-driven 2026-10-29 (nightly, smoke depth), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103 against the production registry: `welcome` still printed `This registry does not offer the welcome page yet.`, and `search "funding rate" --format json` returned `{results, total}` with no `reasons`. The fixture branches were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
 
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `welcome` still refused (`This registry does not offer the welcome page yet.`, exit 1), and `search "btc funding"` returned 3 rows. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*

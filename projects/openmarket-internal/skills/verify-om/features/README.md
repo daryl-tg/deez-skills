@@ -159,6 +159,21 @@ packages and the registry, and the execution/venue verbs.
 
 ## Surface inventory
 
+Scheduled maintenance, **2026-10-29**, against **origin/main `7ec575e55`**, one commit past the nightly's `32ca0d6c7`. #2194 moves the Indicator kit to scaffold 106. The three Feeds starters read a placeholder `@you/your-feed` (`@you/your-events` for `feed-events`) until `ref` is set. The kit build refuses internal notes in the texts it bundles (`packages/cli/scripts/gen-indicator-kit-bundle.ts:253`). The diff touches nothing under `cmd/`, `main.ts`, `actions/`, `rpc/` or `apps/dashboard/src`; only `runner/wrun/authoring.ts` changed under `packages/cli/src`. So the command, action, RPC and route counts below still hold, and no outcome row was added.
+
+Live this pass, on a fresh lane at 18161, at smoke depth:
+- **Driven for the first time:** `wrun create`.
+- **Re-proved:** the wrun templates.
+- **Re-driven:** the ingest → stream → journal fire chain, MCP stdio, the dashboard routes, paper, market reads, and the local, chart, calendar and registry reads.
+- **Not re-driven:**
+  - the chat workspace TUI and the What's new card;
+  - origin challenge and Firecrawl;
+  - hosted chart MCP;
+  - the agent creator and agent panel;
+  - watch authoring UI.
+
+Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.
+
 Nightly maintenance, **2026-10-29**, against **origin/main `32ca0d6c7` (v0.467.0)**, 16 commits past `186030b63` (an ancestor). The census:
 
 - **Commands:** one new top-level command, `sidebar` (`main.ts:63`). That makes 95 by this table's convention, or 98 quoted names in the `COMMAND_MODULES` `names:` arrays, against 97 before.
@@ -304,7 +319,7 @@ removed with source evidence.
 | Backtest a strategy over historical bars | `actions/research/backtest*.ts` | [watch-lifecycle-cli.md](watch-lifecycle-cli.md) / Maintenance verbs (refusals) | `backtest spec` and `backtest run nope` refusals live verified 2026-10-28, main `a8fa10974` | A real run needs a watch with a strategy step (`watch create --from-candidate`); not driven. |
 | Browse paid news feeds and read Fast-alerts billing | `actions/news/{feeds,billing,brief,voice}.ts`; `runner/http/rpc/news.ts` | unmapped (dashboard shell only) | live verification pending | Catalog browsing may be guest-ok; billing and follow need an account and a funded vendor relationship. |
 | Agent memory: save, search and forget durable notes | `actions/memory/*.ts`; `cmd/memory.ts` | [mcp-stdio.md](mcp-stdio.md) / Hosted MCP | save → search → CLI `memory list` → forget live verified 2026-10-28, main `a8fa10974` over hosted MCP | The slug prefix must match the type (`memory_invalid_slug`). `memory_forget` ran with no approval card on loopback HTTP. |
-| Author and compile a custom WASM indicator | `actions/wrun/{create,author,build,source-set,list}.ts`; `cmd/wrun.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) (`wrun list`/`templates` only) | 2026-10-29, main `32ca0d6c7` (templates still 91; scaffold now 105, #2184). Before that, 2026-10-28, main `186030b63` (list; templates still 91, 30 `runsOn` lines read OPRA "at your own tier" after #2180; the stock `accumulate` 0.1.3 package listed) | `WRUN_SCAFFOLD_VERSION` is 104 since #2177 (polyline `gradient()`), which only a new scaffold shows. `wrun create`/`validate` are filesystem-only and undriven; `wrun build` compiles and installs deps, so it needs package-manager access. |
+| Author and compile a custom WASM indicator | `actions/wrun/{create,author,build,source-set,list}.ts`; `cmd/wrun.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) (`wrun list`/`templates`/`create`) | 2026-10-29 scheduled maintenance, main `7ec575e55`: `wrun create --template feed-alert-line` scaffolded a workspace at scaffold 106 whose feed input reads `ref: "@you/your-feed"`, and the three Feeds starters' descriptions say "set ref to a feed you published" (#2194); templates still 91. Before that, 2026-10-29 nightly, main `32ca0d6c7` (templates still 91; scaffold 105, #2184). Before that, 2026-10-28, main `186030b63` (list; templates still 91, 30 `runsOn` lines read OPRA "at your own tier" after #2180; the stock `accumulate` 0.1.3 package listed) | `WRUN_SCAFFOLD_VERSION` is 106 since #2194 (`packages/sdk/src/wrun-sdk-sources.ts:1159`). A scaffold-105 workspace refreshes its kit texts once. Drive `wrun create` into a directory outside the product tree, because it writes wherever the positional `[dir]` points. `wrun validate` is undriven; `wrun build` compiles and installs deps, so it needs package-manager access. |
 | Arm and tune a live managed-strategy wallet | `cmd/managed.ts` over `actions/managed/*.ts` factories (CLI-only: not in the action registry) | unmapped | live verification pending | Capital-reaching: funded venue wallet plus an explicit arm gate. Out of reach for a guest lane. |
 | Place and manage real venue orders; wallet and execution | `cmd/{order,execute,buy,hyperliquid,polymarket}.ts`; `actions/{execute,orders,hyperliquid,wallet,polymarket}/` (`actions/execution/` does not exist) | unmapped | live verification pending | Real money. Needs a funded account and a safe plan; nothing attempted. |
 | Reach the capability layer over MCP (stdio) | `cmd/mcp.ts`; `mcp/server.ts`; `mcp/capital-gate.ts` | [mcp-stdio.md](mcp-stdio.md) | 2026-10-28, main `a8fa10974` (handshake, 451 tools, a read, `capital_yolo_harness` under a bypass-mode driver) | `om mcp arm`, `--catalog operator` and `--session merged` undriven. |
@@ -340,6 +355,15 @@ removed with source evidence.
 
 ### Known product gaps (reported, not map drift)
 
+- **New 2026-10-29 (`7ec575e55`), possible gap:** #2194's CHANGELOG says
+  every workspace's `scripts/wrun-prebuild.mjs` drops internal round and
+  program notes. A workspace scaffolded by `om wrun create` at scaffold 106
+  still carries nine of them, for example `WRUN-OFFCHART round 2 G`. They are
+  copied from `packages/sdk/src/wrun-slots.ts` and `wrun-style/widgets.ts`.
+  The new vocabulary gate (`assertNoInternalVocabulary`) scans only the
+  browser kit bundle's files (`gen-indicator-kit-bundle.ts:253-260`), not the
+  CLI's scaffold. Whether the CLI path is in #2194's scope is the operator's
+  call.
 - **New 2026-10-29 (`32ca0d6c7`):** the dashboard Overview's `Watch fires`
   tile (`Since the daemon started`) read `0` after two inbound fires landed on
   the lane, both on the stream and in the journal. The tile reads `/healthz`

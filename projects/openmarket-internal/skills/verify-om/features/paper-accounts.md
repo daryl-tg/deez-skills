@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `paper create maint1029` without `--yes` exited 2 `confirmation_required`; with it, it returned `{account:{id:"pa_…", name, cash:1000}, desk:"off"}`. `paper show` returned `{account, rules}`, and the text `paper digest` opened `Paper digest` / `Steps: none` / `Paper maint1029` / `Cash: $1,000.00`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
+
 *Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103. Newly driven: `paper digest`. After `paper create acct-a --cash 5000 --yes` and `acct-b --cash 1000`, the all-accounts digest opened with `Steps: none` (new with #2192) and then one block per account (`Cash`, `Equity`, `Open: 0 lots`, `Fills: none`, `Skips: none`). `paper digest acct-a` had no `Steps` paragraph. The Paper tab listed both rows and `Total $6,000.00`. Not driven: open, close, reset-all, `digest-set`, the scheduled edition, and the #2176/#2188/#2192 target-step rows (they need a target step). Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/` (`paper-digest.txt`, `07-paper-tab.png`).*
 
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `paper ls`, `paper create verify-book-1028 --yes` (cash 1000, `desk: off`) and `paper show`. `/paper` rendered only the shell, as documented. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
