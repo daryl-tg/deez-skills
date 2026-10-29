@@ -21,6 +21,8 @@ For #2189, on copies of a real home at 140x36:
 - A card opened from row 3 had its top on row 3; one opened from row 26 flipped to end on row 26.
 - A home with no stored layout showed `▾ FIRES` under WATCHES.
 
+For #2198 (merged as `8ae942fe0`, driven on `567d13ad5` at 140x36 against a copy of a real home on a dead daemon port): every panel header sits between dotted `┄` rules. Open: rule, `▾ WATCHES 19 fired · 73 paused`, rule, the watch rows, rule, `▾ FIRES 26+ today`, rule. Folded: rule, `▸ WATCHES`, rule, `▾ FIRES`, rule. The first rule took the blank top row, so `▾ WATCHES` stayed on row 2. The rows below therefore supersede #2187's blank first row.
+
 For #2187 (tree `96c6ef3bd`): the sidebar's first row was blank and `▾ WATCHES` sat on row 2; a click on a watch row opened its card, a click on the card and a drag across the chat left it open, and a click in the chat closed it. For #2182 (tree `4a1b3b1e3`): the frame fills the screen: no top bar, the divider starts on row 1, and a muted `ctrl+x b hide sidebar` is the sidebar's bottom row. `ctrl+x b` hid the sidebar, so the rule above the composer ended in `ctrl+x b show sidebar` and the footer regained `95 watches (22 armed)`. Pressing it again restored the sidebar, and `ctrl+x q` typed `q`. With `watches fires`, `▾ FIRES 28+ today` listed two-line rows, and a click opened the fire card (Watch, When, Source, Kind, summary). A click on `▾ WATCHES` folded it to `▸ WATCHES` and stored `collapsed true`. Those checks used a copy of a real home with its daemon port pointed at a dead port. Earlier, on 2026-10-27 (tree `4734c802a`, lane 18122 at 140x36, fake model), follow-at-end, the go-to-recent pill, the 100-column hide, exit history, the `1 1`/`0 0` mode flags, the WATCHES row and card, `om sidebar set` and the PAPER wheel containment were driven. A live `anthropic/claude-sonnet-5-5` turn, "only show fired watches in my sidebar", called `sidebar_layout {show: fired}` once, and the chat redrew at once.
 
 `om chat --workspace` (or `om config set chat.workspace on`) opens chat as a
@@ -34,7 +36,7 @@ through a **What's new** card that turns it on in one press.
 
 ## Sub-features
 
-- `workspace-frame` — full screen (no top bar), a divider from row 1, one blank row above the sidebar's first panel, the closing `┴` rule, the sidebar hidden under 110 columns.
+- `workspace-frame` — full screen (no top bar), a divider from row 1, a dotted `┄` rule above and below every panel header (the first panel's top rule is the sidebar's row 1; a folded panel keeps its top rule), the closing `┴` rule, the sidebar hidden under 110 columns.
 - `follow-and-go-to-recent` — follow at the end; scrolled up, the last row is a `↓ Go to recent messages` pill that a click resolves.
 - `exit-history` — on quit the terminal history holds the transcript only.
 - `watches-module` — `N fired · M paused` header, `●` fired in 24 h with an age, `○` armed, `◌` paused, a chip aside for needs-you/broken; the footer drops its watch count while the sidebar shows.
@@ -149,9 +151,10 @@ nothing, and it streams long replies, which the scroll checks need.
   wait about 15 s. Capture with `tmux -L ws -f /dev/null capture-pane -t ws -p`
   (add `-e` for colour, `-S -` for history).
   - Frame: there is no top bar. Row 1 is transcript text with `│` at column
-    104. The sidebar's first row is blank, and row 2 reads `▾ WATCHES` with
-    `1 fired · 1 paused` on the right. Under the watch rows, `▾ FIRES`
-    lists the seeded fire. The sidebar's last row (just above the `┴` rule)
+    104. The sidebar's row 1 is a dotted `┄┄┄` rule, row 2 reads `▾ WATCHES`
+    with `1 fired · 1 paused` on the right, and row 3 is another rule. Under
+    the watch rows, a rule, `▾ FIRES` and a rule, then the seeded fire.
+    Folded (click the header), a panel is its top rule and `▸` header. The sidebar's last row (just above the `┴` rule)
     is a muted `ctrl+x for commands`.
   - Rows: `● ws-fired <age>`, `◌ ws-paused paused`.
   - The footer's last line has no `N watches` count but keeps the `⚠` badge.
