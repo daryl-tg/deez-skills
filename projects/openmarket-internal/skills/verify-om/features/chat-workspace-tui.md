@@ -2,7 +2,16 @@
 
 *Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103 with a fake model on 18107, tmux at 140x36. Plain `om chat` on a fresh lane showed the What's new card (mode flags `1 0`); ctrl+x listed `w What's new: turn it on` and `x What's new: close this one` and no `b` row; `w` stored `chat.workspace = on` (`stored as tui.workspace`) and reopened the chat as a workspace (`1 1`). There: `▾ WATCHES 2 fired · 1 paused` on row 2, `▾ FIRES 3 today` and the `ctrl+x for commands` bottom row; ctrl+x listed only `b hide sidebar`; a click on `● ws-fired` (row 4) opened its card with its top on row 4; `om sidebar set watches paper` printed `Module 1: watches (show all)`, `Module 2: paper` and `Available: watches (show all|fired|attention), paper, fires`, and `▾ PAPER 2 accounts` appeared within 30 s; ctrl+x `b` left the rule reading `── ctrl+x for commands ─`; eight wheel-ups froze the stream at `reply 2 line 16` and the `Go to recent` pill jumped to `reply 2 line 40`; exit history held the `shell-history-*` lines and the transcript with no chrome; `om sidebar reset` restored `watches (show all)` then `fires`. Over MCP stdio `sidebar_layout` is not a tool (`Tool sidebar_layout not found`). Not re-driven: collapse, the 100-column resize, the live-row timing, the PAPER wheel containment, close-on-click, the near-bottom flip and a live model turn. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/` (`tui-*.txt`).*
 
-*Verified: 2026-10-28, on main since #2182 (`a521e2fc9`), #2187 (`705d67f2f`) and #2189 (`7cf1f4d40`).*
+*Verified: 2026-10-29, on main since #2182 (`a521e2fc9`), #2187 (`705d67f2f`), #2189 (`7cf1f4d40`) and #2195 (`26c96a0f5`).*
+
+For #2195, on a copy of a real home at 140x36 (branch tree `b8af912e7`):
+
+- ctrl+x listed `p          panels`; `p` opened `panels · 2 of 3 on` with `● WATCHES`, `● FIRES`, then `○ PAPER`, `○ POSITIONS`, `○ CALENDAR`, `○ USAGE`.
+- At `3 of 3 on` the off rows drew dim (SGR 2), the foot read `enter toggle · turn one off to add`, and Enter on a dim row changed nothing.
+- With one panel on, the foot read `enter toggle · one panel stays on` and Enter on it changed nothing.
+- Under 110 columns the picker drew nothing.
+- `▾ POSITIONS none open` and CALENDAR's empty state matched `polymarket_account_positions` (`[]`) and `calendar_list` (no occurrences); `▾ USAGE $54.20 · 24h` rows matched `usage_llm {since: 24h, by: model}`.
+- Evidence: `~/Documents/dev-notes/pi-tui-opencode-multipanel/run-artifacts/workspace-sidebar/more-panels/u9b-*`.
 
 For #2189, on copies of a real home at 140x36:
 
@@ -16,7 +25,8 @@ For #2187 (tree `96c6ef3bd`): the sidebar's first row was blank and `▾ WATCHES
 
 `om chat --workspace` (or `om config set chat.workspace on`) opens chat as a
 split view on the terminal's alternate screen: transcript left, a sidebar of
-modules right (WATCHES then FIRES by default, PAPER optional), today's composer,
+modules right (WATCHES then FIRES by default, up to 3 of WATCHES, FIRES, PAPER,
+POSITIONS, CALENDAR, USAGE), today's composer,
 mode line and footer underneath. The person scrolls the transcript in the app,
 clicks a watch for its card, and asks om or runs `om sidebar` to change what the
 sidebar shows. Plain `om chat` keeps its layout, but advertises the workspace
@@ -34,8 +44,12 @@ through a **What's new** card that turns it on in one press.
 - `contain-scroll` — a wheel over a sidebar section, its header or the hint row never moves the transcript.
 - `fires-module` — on by default under WATCHES: every watch's newest fires, two lines a fire (title and age, then the watch), `N today` header, a card per fire. A home with a stored layout keeps it; `om sidebar reset` takes the default.
 - `collapse` — a click on `▾ NAME` folds a panel to `▸ NAME`, stored as `collapsed` in the layout.
-- `command-menu` — ctrl+x opens a centered `ctrl+x commands` menu of the keys it takes next (`b` hides or shows the sidebar). A listed key, enter or a click runs a row; esc, ctrl+x or a click outside closes it; any other key closes it and types. It scrolls past 8 rows.
+- `command-menu` — ctrl+x opens a centered `ctrl+x commands` menu of the keys it takes next (`b` hides or shows the sidebar, `p` opens the panel picker). A listed key, enter or a click runs a row; esc, ctrl+x or a click outside closes it; any other key closes it and types. It scrolls past 8 rows.
 - `whats-new-card` — in plain `om chat` only (never in a workspace), a 49-column `What's new` card above the composer. It holds one entry per recent CHANGELOG item. Today's only entry is `Workspace: chat with a live sidebar`, with `[ Turn it on ]` and `ctrl+x for commands`. The button, a click on it, or ctrl+x `w` sets `chat.workspace on` and reopens the chat as a workspace. ✕ or ctrl+x `x` dismisses it (stored in `tui.whats_new.dismissed`). An entry shows only within 60 days of its date, only while its setting is not already applied, and only at 110 columns or wider.
+- `panel-picker` — ctrl+x `p` swaps the menu box for `panels · N of 3 on`: every module, the on ones first (`●`, layout order) then the off ones (`○`, registry order). Enter or a click toggles a row and the box stays open; turning one on appends it with its defaults. At 3 on the off rows dim and wait (`turn one off to add`); the last panel on stays on (`one panel stays on`). Each toggle stores the layout like `om sidebar set`. Under 110 columns it lists nothing.
+- `positions-module` — POSITIONS: open Polymarket then Hyperliquid positions, each by the size of its P&L; header the summed P&L or `none open`; a row's sub line `Polymarket · 120 sh @ 0.42` or `Hyperliquid · 0.5 @ 64,210 · 5x`. An unpaired venue is skipped (neither paired: `○ no venue paired  om setup`); a failing read is one red `Venue: cause` row. Polls every 60 s. Card: Venue, Size, Entry, Now or Value, P&L, Liq.
+- `calendar-module` — CALENDAR: scheduled occurrences from now, earliest first, with an `in 5m` / `in 2h` / `now` countdown; header `next in …` or `nothing scheduled`. Polls every 300 s.
+- `usage-module` — USAGE: model spend over the last 24 h, one row per provider/model by cost; header `$X · 24h`. Polls every 60 s.
 - `sidebar-toggle` — `b` in the ctrl+x menu hides or shows the sidebar for the session. The muted `ctrl+x for commands` hint sits on the sidebar's bottom row, or on the closing rule while it is hidden.
 
 ## How to get to it (user POV)
@@ -208,6 +222,7 @@ nothing, and it streams long replies, which the scroll checks need.
   `ctrl+x commands` with `esc close` on its title row, the row
   `b          hide sidebar` (inverse, selected) and `↑↓ move · enter run`.
   Escape closes it with nothing run. A click outside it closes it too.
+- **Panels.** `C-x` then `p`: a box titled `panels · 2 of 3 on` (fresh lane: WATCHES and FIRES on). The selected row is inverse; locate it with `grep -oE $'\e\\[[0-9;]*7m ?[●○] [A-Z]+'` on the `-e` capture (tmux writes it as `\e[0;7m`) rather than counting Down presses. Enter on `○ PAPER`: the title reads `3 of 3 on`, the remaining `○` rows carry SGR 2, the foot reads `enter toggle · turn one off to add`, and `control-om om -- sidebar --format text` lists three modules. Enter on a dim row changes nothing. Turn panels off down to one: the foot reads `enter toggle · one panel stays on`. Escape closes the box.
 - **Toggle.** `C-x` then `b`: no `│`, no `WATCHES`, and the rule above the
   composer ends in `── ctrl+x for commands ─`. The footer's last line has
   its `N watches` count back. `C-x` again shows `show sidebar`; click that
