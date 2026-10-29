@@ -69,7 +69,7 @@ plain `generic` there.
   true since at least `5820fbea`, so do not judge alert visuals from the shell;
   use `fixture.html?surface=alert-card` or the bundled app.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
-  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:385-395`
+  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:386-396`
   and opened in the product by `session.openAlertsTab`). The fixture's
   plain-object `alertsStub` (`shell-fixture.tsx:1435`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,

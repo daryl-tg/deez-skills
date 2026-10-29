@@ -137,7 +137,7 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 On `shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server`,
 right-click the **runbook.md** treeitem in the library panel, or focus it and
 press the ContextMenu key (`LibraryPanel.tsx:696`, `:1786`). Either one opens
-`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4593-4599`), a
+`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4594-4600`), a
 `menu` with no accessible name and 12 items: Open, Open in floating window,
 Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
 rename, Make read-only, Archive and Delete. Escape closes it. The full page's

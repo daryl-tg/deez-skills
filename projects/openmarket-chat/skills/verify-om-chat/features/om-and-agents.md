@@ -8,34 +8,80 @@ reachable from the fixture lane. Read the gotchas before planning a proof.
 
 ## Sub-features
 
-**The Agents redesign (branch `daryl/agents-page-redesign`, pending MR).**
-Approved at `rev-910b018a` on 2026-10-29 and not on origin/main yet. On that
-branch the Agent Center above is replaced, and every handle in this section
-is branch-only until it lands. Re-verify on main afterwards and retire the old
-roster recipes then.
+**The Agents page (on origin/main since `3e9c88f3`).** The Map and Grid
+redesign replaced the old Agent Center: `components/agents/*` and
+`lib/agents/*` are new, and `AgentCenterPane.tsx` was rewritten. The old
+**Roster** h1, the **Roster sections** nav and **Waiting on you** are gone from
+main. Driven on main at `47cb13bf` (2026-10-30).
 
-- **Home.** h1 **"Agents"**, a **Map / Grid** segmented toggle, **Templates**
-  and **New agent**. The rail `nav` is **"Agents sections"**, with **All agents,
-  N**, **Needs you, N** and **Running, N** (counts in the names). PERSONA is
-  unchanged, and AGENTS lists every agent with om first (`Open <name>`).
+- **Home.** h1 **"Agents"**, a **Map / Grid** segmented toggle (`aria-pressed`),
+  **Templates**, **New agent**, **How agents work** and **Inbox**. The sidebar
+  `aside` is **"Agents sidebar"** (`AgentCenterPane.tsx:1120`). Its `nav`
+  **"Agents sections"** (`:1167`) holds **All agents, N**, **Needs you, N** and
+  **Running, N** (counts in the names; 8 / 9 / 3 on the default
+  `agent-center-fixture`). PERSONA is unchanged, and AGENTS lists every agent
+  with om first (`Open <name>, <state>`, e.g. **Open argue, 2 need you**).
   Map is the default above the shell's inclusive 768px phone query, and Grid is
   the default at or below it. The choice is device-local under
   `om.chat.agentsView`. Search and the Map's **+N** cards show Grid without
   writing it. Ready markers are `.agents-map.is-ready` and
   `.agents-grid-view.is-ready`.
-- **Map.** Node ids sit on `data-node` (`you`, `b-om`, `cl-chat`, `ag-<id>`,
-  `r-<roomId>`, `ask-<key>`), and hover or focus traces one hop. Ask cards
-  carry only **Review** and decline. There is no approve on the Map by design.
+- **Map.** A region named **"Agents map"**. Node ids sit on `data-node` (`you`,
+  `b-om`, `cl-chat`, `ag-<id>`, `r-<roomId>`, `ask-<key>`), and hover or focus
+  traces one hop. Regions **House agents**, **Chat agents**, **Work agents**,
+  **Connected agents**, **Rooms** (`Open #<room>`), **Library** and
+  **Projects**. Ask cards carry only **Review** and a decline (**Deny**,
+  **Forget**, **Keep argue at 1.0.0**), each named for its ask, e.g.
+  **Review, claude code asks for access**. There is no approve on the Map by
+  design. **Show all 9 in Needs you** leads to the feed.
+- **Grid.** A region named **"Agents grid"**: a `your om` card, an h2 **Your
+  agents**, filter toggles **All / Chat / Work / Connected**, a combobox
+  **Sort agents** (default **Name**) and one card per agent with an h3 name.
+  The **Get work agents running** setup checklist sits above it.
+- **Needs you.** `#/agents/waiting`, h1 **"Needs you"**. A pending `@om-skills`
+  update renders here as a region **Update for <name>** with **Approve <name>
+  update** and **Keep <name> at <version>** (`agents/NeedsYou.tsx:872`). The
+  consent rows' labels are `Allow`, `Accept` and `Reject`
+  (`agents/NeedsYou.tsx:274-311`); on `?roster=none` the visible pair is
+  **Allow** / **Deny**.
 - **Agent page.** `#/agents/a/<id>` on `/rooms`, `/chat/agents/a/<id>` on cloud.
-  Old `#/agents/badge/<id>` addresses rewrite there. Its `tablist` holds
-  **Overview, Activity, Access, Settings**.
-- **New agent.** A modal on desktop and a bottom sheet on phone. Cloud shows a
-  hosted notice instead.
+  Old `#/agents/badge/<id>` addresses rewrite there (`src/lib/routing.ts:292-295`).
+  Top bar: **Back to agents**, h1 `<name>`, a `switch` **Run <name>** and a
+  **More actions for <name>** menu (**Review replies first**, **Check
+  routing**, **Review what it learned**). Its `tablist` holds **Overview,
+  Activity, Access, Settings**; every panel is in the DOM and the unselected
+  ones are `hidden`, so read the visible `tabpanel`. A region **Talk to <name>**
+  holds the textbox **Ask <name> something** and a disabled **Try it**.
+- **New agent.** A dialog named **New agent** on desktop and a bottom sheet on
+  phone. Groups **Agent type** (**Chat agent**, **Work agent**) and **Agent
+  templates** (explain, fact-check, argue, debugger, feature), **Start blank**
+  (chat only), **Cancel**, **Import** and **Continue**. Escape closes it and
+  returns focus to **New agent**. **Continue** opens the inline **Create an
+  agent** form ([agent-creator.md](agent-creator.md)). Cloud shows a hosted
+  notice instead.
 
-**Recipe.** On `agent-center-fixture.html` (the roster host is seeded since that
-branch), use `?theme=light` for light. Media emulation alone does not switch the
-theme. The cloud host is
-`/chat/tools/visual/shell-fixture.html?view=agents&alerts=quiet` and shows om only.
+**Recipe.** On `agent-center-fixture.html` (the roster host is seeded on main,
+`tools/visual/agent-center-fixture.tsx:803`), use `?theme=light` for light.
+Media emulation alone does not switch the theme. The cloud host is
+`/chat/tools/visual/shell-fixture.html?view=agents&alerts=quiet`. It routes to
+`/chat/agents` and shows the Map with om only, the Brains nodes reading
+"can't tell", and "Create and manage your agents in the local app. Agents
+connected to this server appear here."
+
+**Trap.** The phone sheet (New agent, an agent's details) drags only from
+`[data-sheet-grip]` or the dialog header (`lib/agents/sheet-drag.ts`).
+`agent-browser mouse down/move/up` on the grip did not move it at 390 px.
+In-page `PointerEvent`s did: `pointerdown` on the grip, then `pointermove` and
+`pointerup` on `window`. A pull of about half the sheet's height dismisses it,
+and a short pull springs back. Under host load the exit can take several
+seconds, so re-check before you call a dismiss failed.
+
+**Trap.** The Map / Grid choice is sticky, like `message=cozy`. Pressing
+**Grid** writes `om.chat.agentsView` to `localStorage`, and every later load on
+that origin opens on Grid. That includes `agent-center-fixture` with another
+query and the shell's `?view=agents`. Remove the key before you capture a
+default frame:
+`agent-browser eval 'localStorage.removeItem("om.chat.agentsView")'`.
 
 **Trap.** "Activity" names two controls on an agent page: the PERSONA rail row
 and the page tab. A text match clicks the rail row and lands on
@@ -49,10 +95,11 @@ before the matrix runs. That is the environment, not the product.
 **Agent creation, import, sharing and guided work are on origin/main since
 `01bf4481`.** `AgentCenterSurface.tsx`, `components/roster/` and
 `lib/roster-*.ts` landed there; see [agent-creator.md](agent-creator.md) for
-the creator, its fixture door (`agent-center-fixture.html?roster=…`) and the
-live-lane prerequisites. **+ Wire an agent** (`AgentCenterPane.tsx:963`) still
-opens Agent Settings; it is not the creator entry point. The shell fixture's
-`?view=agents` does not mount the roster section, so it shows no creator.
+the creator, its fixture door (`agent-center-fixture.html` → **New agent**)
+and the live-lane prerequisites. **+ Wire an agent** (`AgentCenterPane.tsx:1407`)
+still opens Agent Settings; it is not the creator entry point. The shell
+fixture's `?view=agents` scripts no roster host: it shows only the `your om`
+card, **+ Wire an agent** and "server apps live in server settings →".
 
 - The rail doors: `button` **"Your om"** and `button` **"Agents"**, joined by
   **"Browse features"** since `#846` added its feature-catalog tile — but both
@@ -64,7 +111,7 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
   **"Agents, needs your om running"**. An armed count does not mask away: the
   desktop label states both, **"Agents, N armed, your om is not running"**,
   and only a connected, armed om reads the bare **"Agents, N armed"**
-  (`Shell.tsx:3097-3112`; mobile segments `Shell.tsx:3625-3670`). So an
+  (`Shell.tsx:3098-3113`; mobile segments `Shell.tsx:3626-3671`). So an
   `--exact` match on the bare name misses several different ways, and matching
   the mobile string on desktop misses too. Away is a whole-app state, a
   different thing from the daemon not running.
@@ -72,18 +119,18 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3798`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3799`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3103`, `:3108`). Two states is the old shape; matching on it
+  (`Shell.tsx:3104`, `:3109`). Two states is the old shape; matching on it
   during a flaky connect misses silently.
 
   **Away has a remote-control spelling too.** When the session is away and a
   remote device answers over the relay, the doors read
   **"Your om, connected remotely"** and **"Agents, connected remotely"**, or
   **"…, remote control off"** when a device is reachable but none is selected
-  (`Shell.tsx:1550`; accessible names at `:3110`, `:3637`, `:3662`,
-  `:3800`). The tooltips spell it with a colon instead, "Agents: connected
-  remotely" (`:3087`, `:3782`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
+  (`Shell.tsx:1551`; accessible names at `:3111`, `:3638`, `:3663`,
+  `:3801`). The tooltips spell it with a colon instead, "Agents: connected
+  remotely" (`:3088`, `:3783`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
   answers `remoteControl: () => null` (`shell-fixture.tsx:4144`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
@@ -114,8 +161,8 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:4040-4083` for spaces; the zone-1 feature folders use the same
-  markers at `Shell.tsx:3860-3898`).
+  (`Shell.tsx:4041-4084` for spaces; the zone-1 feature folders use the same
+  markers at `Shell.tsx:3861-3899`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -170,26 +217,28 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
   creator, import, or catalog flow; those flows are absent from this product
   tree and are not covered here.
 
-  **Since `#978` persona lives inside Agents, not beside it.** The Agent
-  Center's context rail is an `aside` named **"Agent roster"**
-  (`AgentCenterPane.tsx:765`) holding, top to bottom:
+  **Since `#978` persona lives inside Agents, not beside it.** Since
+  `3e9c88f3` the context rail is an `aside` named **"Agents sidebar"**
+  (`AgentCenterPane.tsx:1120`) holding, top to bottom:
 
-  - a `nav` named **"Roster sections"** (`AgentCenterPane.tsx:779`) — **Roster**, **Waiting on
-    you, N**, **In progress, N** (the counts ride the accessible names);
-  - a group named **"Persona"** holding a `nav` named **"Persona sections"**
-    (`AgentCenterPane.tsx:830`) — **Voice**, **Away coverage, off**
-    (state in the name again, `:454-468`; with no away snapshot after a load
-    has failed or finished it reads **Away coverage, status can't tell right
-    now** and the visible text **Can't tell**, which is what both the shell
-    and agent-center fixtures show at `6c15b0fb`), **Activity**;
-  - a `nav` named **"Agents"** — **Open your om**, then one row per helper
-    badge when any are seeded.
+  - a `searchbox` **Search agents**;
+  - a `nav` named **"Agents sections"** (`:1167`) — **All agents, N**, **Needs
+    you, N**, **Running, N** (the counts ride the accessible names);
+  - a group named **"Persona"** (`:1212`) holding a `nav` named **"Persona
+    sections"** (`:1216`) — **Voice**, **Away coverage, off** (state in the
+    name again, `:258-272`; with no away snapshot after a load has failed or
+    finished it reads **Away coverage, status can't tell right now** and the
+    visible text **Can't tell**, which is what both the shell and agent-center
+    fixtures show at `47cb13bf`), **Activity**;
+  - the AGENTS list — **Open your om, <state>**, then one `Open <name>,
+    <state>` row per agent.
 
   The standalone **"Persona" button** that `#830` added is **gone**; the three
-  persona rows replaced it. Every roster section and every badge now has its
-  own route too: `#/agents/voice|away|activity`, and `#/agents/badge/<id>` for
-  a helper's own page with its full ledger (`BadgeDetail`). Read the trap in
-  the Gotchas before clicking any of it from a `?view=agents` load.
+  persona rows replaced it. Every section and every agent has its own route:
+  `#/agents`, `#/agents/waiting`, `#/agents/progress`,
+  `#/agents/voice|away|activity`, and `#/agents/a/<id>` for an agent's own page.
+  The older `#/agents/badge/<id>` still resolves there. Read the trap in the
+  Gotchas before clicking any of it from a `?view=agents` load.
 
   Routing is still what survives churn, but the hash moved: persona is now
   **`#/agents/<section>`**, plural, where it was `#/agent/<section>`. The
@@ -223,7 +272,7 @@ opens Agent Settings; it is not the creator entry point. The shell fixture's
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:274`), supplied by `Shell.tsx:4551`. That is
+  remains (`UserSettings.tsx:274`), supplied by `Shell.tsx:4552`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
@@ -263,7 +312,7 @@ Three harnesses, and they reach different parts.
 | `shell-fixture.html?view=agent` | Your om — the not-running empty state, unless `/healthz*` is stubbed (see Gotchas) |
 | `shell-fixture.html?view=agent&omSessions=drafts` | Local Research A/B draft seed. Reaches the rail reproducibly with the `**/healthz*` route stub (see [your-om-drafts.md](your-om-drafts.md)) |
 | `shell-fixture.html?view=agent&omSessions=daemon` | Real `OmSessionState` adapter for a daemon-served lane; it does not bypass presence or provide watch data |
-| `shell-fixture.html?view=agents` | The Agents page: h1 **Roster**, fleet cards, **+ Wire an agent**. The roster section (creator, Your agents) is not mounted here |
+| `shell-fixture.html?view=agents` | The Agents page, h1 **Agents**, with only the `your om` card and **+ Wire an agent**. No roster host is scripted, so no other agent and no creator |
 | `shell-fixture.html?view=agent&panel=voice` | Agents → `#/agents/voice`, "Voice" / "Current", mocked and loaded |
 | `shell-fixture.html?view=agent&panel=away` | Agents → `#/agents/away`, "Research om is covering you" |
 | `shell-fixture.html?view=agent&panel=activity` | Agents → `#/agents/activity`, "Away activity" |
@@ -271,9 +320,9 @@ Three harnesses, and they reach different parts.
 | `shell-fixture.html#/agents/away` | **Not** the seeded coverage: reads "Away coverage unavailable". Use `?view=agent&panel=away` |
 | `shell-fixture.html?view=agents&panel=persona` | **Legacy.** Lands on `#/agents/voice` unmocked — see Gotchas |
 | `shell-fixture.html#/agent/voice` | **Legacy** singular hash. Same unmocked failure |
-| `agent-center-fixture.html` | The Agent Center standalone, with a seeded consent queue. Also takes `connections=none`, `identity=anonymous` and `roster=work-builder\|work-proof\|projects` (the creator states, [agent-creator.md](agent-creator.md)) |
-| `agent-center-fixture.html#/agents/badge/agcr_claude` | A helper's own page (`BadgeDetail`) — also `agcr_backtest`, `agcr_research` |
-| `agent-center-fixture.html?state=desk-off` | The same, still assembling ("assembling the roster…") |
+| `agent-center-fixture.html` | The Agents page standalone with a scripted roster host: Map (default at 1440), Grid, **Needs you, 9**, agent pages, **New agent** and a pending update for argue. Also takes `connections=none`, `roster=none`, `identity=anonymous`, `theme=light` and `zoom=200`. The old `roster=work-builder\|work-proof\|projects` values are gone; any `roster=` other than `none` renders the default (see [agent-creator.md](agent-creator.md)) |
+| `agent-center-fixture.html#/agents/a/inst_argue` | An agent's own page: h1 **argue**, **Run argue**, **More actions for argue**, tabs Overview / Activity / Access / Settings. `#/agents/badge/<id>` rewrites to `#/agents/a/<id>` |
+| `agent-center-fixture.html?roster=none` | No roster host: **Needs you** (Allow / Deny rows), the `your om` card and the connected agents only |
 | `remote-home-fixture.html?state=<s>` | The away remote-control pane. `snapshot`, `older` (Load older), `recovering`, `approval` (Approve / Deny), `live` (Stop), `empty` (greeting and prompts), `unsupported` ("Conversation history is not supported by this device") |
 
 Handles that resolve today, in the shell at `?view=agents`:
@@ -293,26 +342,26 @@ And in the standalone `agent-center-fixture.html`, which is where the
 decision surface actually has content:
 
 ```bash
-agent-browser find role button click --name "Allow"     # consent card
-agent-browser find role button click --name "No"
-agent-browser find role button click --name "Accept"
-agent-browser find role button click --name "Reject"
+agent-browser find role button click --name "Grid" --exact
+agent-browser find role button click --name "Needs you, 9" --exact   # -> #/agents/waiting
+agent-browser find role button click --name "Open argue, 2 need you" --exact  # -> #/agents/a/inst_argue
+agent-browser find role tab    click --name "Access" --exact
+agent-browser find role button click --name "More actions for argue" --exact
+agent-browser find role button click --name "Back to agents" --exact
+agent-browser find role button click --name "New agent" --exact
 ```
 
-**The fixture now lands on Roster, not the queue.** Open
-`agent-center-fixture.html`, then click the sidebar button **Waiting on you, 4**
-(or load `#/agents/waiting`) before driving the consent controls. Driven at
-`cd9f8c72`, the queue shows **Allow**, **No**, **Accept** and **Reject**;
-**Review** and **Open om** are no longer there. The roster names its own doors
-`Open your om`, `Open claude code`, `Open backtest helper` and `Open research bot`.
+**The fixture lands on the Map, not the queue.** Open
+`agent-center-fixture.html`, then click the sidebar button **Needs you, 9**
+(or load `#/agents/waiting`) before driving the consent controls. The page's h1
+becomes **Needs you**. On the Map, each ask card offers only **Review** and a
+decline, named for the ask (**Review, claude code asks for access**, **Deny,
+claude code asks for access**). The AGENTS rail names its doors with their
+state: `Open your om, idle`, `Open claude code, 2 need you`, `Open backtest
+helper, connected`.
 
-Its header *looks* like `WAITING ON YOU · 4`, and that is the cheap
-observation that the queue seeded at all — but read it carefully. The DOM text
-is sentence case, `Waiting on you · 4` (`AgentCenterWork.tsx:393`); the
-capitals come from `text-transform: uppercase` on `.ac-section-h`
-(`agent-center.css:231`). `innerText` applies the transform and hands you the
-shouted version, while `textContent` and the accessibility tree hand you the
-real one. Match the sentence-case string, or a screenshot, never the caps.
+The old `Waiting on you · 4` header and its uppercase trap are gone with the
+Roster page; nothing under `components/` renders that string at `47cb13bf`.
 
 ### Invite an agent to a channel (added 2026-10-28)
 
@@ -322,7 +371,7 @@ In a channel, open **More channel actions** (the header `…`). Its menu has 14 
 
 ## Gotchas
 
-- **No quer- **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
+- **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
   state — `h1` *"om isn't running"*, *"No recent daemon snapshot is available on
   this device"* on this lane. The gate is `presence.running === false`
   (`ChatPane.tsx:517`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
@@ -384,7 +433,9 @@ oms/`, persona is unreachable from a `view=agents` page load — by any control,
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `agent-center-fixture` default showed the Roster h1, **Waiting on you** and **+ Wire an agent**. `#/agents/badge/agcr_claude` showed **claude code**, **Live now** and a `role=img`. `away-panel-fixture` read "Research om is covering you" and `remaining · This Mac`. `remote-home-fixture` `approval` showed **Approve**, **Deny** and **Stop** (named by their text) and **Add context** (named by `aria-label`). `unsupported` showed its copy. **Limitations:** The rail label spellings (away, reconnecting, remote) cannot be seeded on the shell fixture; real relay and daemon actions are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 46–47, 69–70).
+**Last verified:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0), the first main tree with the `3e9c88f3` Agents redesign. **Scope (fixture lane):** On `/rooms/` `agent-center-fixture.html`, the Map showed **Agents map** with its House, Chat, Work and Connected agent regions, Rooms, Library, Projects and the named ask cards. **Grid** showed **Agents grid**, **Your agents**, **Sort agents** and seven agent h3s. **Needs you, 9** led to `#/agents/waiting` (h1 **Needs you**) with region **Update for argue** (**Approve argue update**, **Keep argue at 1.0.0**). **Open argue, 2 need you** led to `#/agents/a/inst_argue` (h1 **argue**, **Run argue** checked, **More actions for argue** → Review replies first / Check routing / Review what it learned). All four tabs switched. **Back to agents** returned to `#/agents`. **New agent** opened its dialog (Agent type, Agent templates, Start blank, Import, Continue), and Escape returned focus to **New agent**. `?roster=none` showed the Allow / Deny feed with om and the connected agents only. `?state=desk-off` read "Loading agents" and "your desk · not answering". `shell-fixture.html?view=agents` showed h1 **Agents** with `your om` and **+ Wire an agent** (on Grid, the view stored earlier in the session). On `/chat/` it routed to `/chat/agents` and showed the Map with om only and the local-app copy. At 390 px the **New agent** sheet followed in-page pointer drags, sprang back from a short pull and dismissed from a long one. **Limitations:** Allow, Accept and Reject were not pressed. The Voice, Away and Activity rows, `away-panel-fixture` and `remote-home-fixture` were not re-driven tonight; the host load averaged 170-350. Real relay and daemon actions are pending. Evidence is local only (the `8098` renderer was unreachable): `artifacts/vomc-nightly-20261030/r1/` in the product worktree, frames 01-06, 11-15.
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `agent-center-fixture` default showed the Roster h1, **Waiting on you** and **+ Wire an agent**. `#/agents/badge/agcr_claude` showed **claude code**, **Live now** and a `role=img`. `away-panel-fixture` read "Research om is covering you" and `remaining · This Mac`. `remote-home-fixture` `approval` showed **Approve**, **Deny** and **Stop** (named by their text) and **Add context** (named by `aria-label`). `unsupported` showed its copy. **Limitations:** The rail label spellings (away, reconnecting, remote) cannot be seeded on the shell fixture; real relay and daemon actions are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 46–47, 69–70).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `agent-center-fixture` default showed the Roster h1, **Waiting on you** and **+ Wire an agent**; `#/agents/badge/agcr_claude` showed **claude code**, **Live now** and a `role=img`. `away-panel-fixture` read "Research om is covering you" and `remaining · This Mac`. `remote-home-fixture` `approval` showed **Approve** / **Deny** / **Stop**, `live` showed **Stop** and **Add context** (both `aria-label`-named, so filter on the label, not `innerText`), and `unsupported` showed its copy. `settings-fixture.html?host=user&page=agent-access` rendered Agent Settings, Agents, Devices and Recent Logbook. **Invite agent** opened its no-badge dialog on both hosts. **Limitations:** `?view=agents`, `desk-off` and the `/chat/` Voice/Away copy were not re-driven. Roster shelf cards (`2dd7aad1`) have no fixture (see [agent-creator.md](agent-creator.md)). Authenticated roster actions, daemon sessions and remote-control effects are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 13, 26, 28, 42).
 

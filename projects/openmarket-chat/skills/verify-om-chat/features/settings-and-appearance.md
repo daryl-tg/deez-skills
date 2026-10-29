@@ -19,7 +19,7 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4551` always does, so the **running app shows twenty**;
+  `Shell.tsx:4552` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
   product. To count twenty without a daemon, open Settings through the shell:
@@ -165,7 +165,7 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 |---|---|
 | Privacy | **Privacy** — "Control who can follow you, who can message you…" |
 | Sealed Messages | **Sealed Messages** — "Sealed messages are managed by the OM app on the device that holds your keys" |
-| Notifications | crashes in the shell fixture; renders in `settings-fixture.html?host=user&page=notifications` (**Notifications**, THIS DEVICE, IN THE CHANNEL **Ringing strip at the top**, NOTIFY ME FOR) |
+| Notifications | crashes in the shell fixture; renders in `settings-fixture.html?host=user&page=notifications` (**Notifications**, THIS DEVICE, a **Sound** group with the range **Notification volume**, IN THE CHANNEL **Ringing strip at the top**, NOTIFY ME FOR) |
 | Audio | **Audio** — "Choose the microphone, speakers, and processing…" (DEVICES) |
 | To-dos | **To-dos** — "Choose which to-do rows appear in chat and topics by default." |
 | Accessibility | **Accessibility** — MOTION AND FEEDBACK, **Enable reduced motion** |
@@ -191,10 +191,29 @@ effects.
 
 Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`settings-*`, `server-settings-*`, `settings-fixture-notifications-*`).
 
+### Notification volume (added 2026-10-30)
+
+`3306463a` adds a per-device **Notification volume** to Settings →
+Notifications, in a **Sound** group between push enrollment and the tones
+(`NotificationSettings.tsx:191`, `NotificationVolume.tsx`). It is a range
+`#om-notification-volume`, 0-100 in steps of 1, default 100, with a `NN%`
+readout. It is stored on this device only under
+`om.chat.notificationVolume` (`lib/notification-volume.ts:22`). `7a1b8a10`
+gives every `.slider` a visible track and a fill, set through
+`--slider-pct`; the Audio page's **Call volume** carries it too.
+
+Drive it on `settings-fixture.html?host=user&page=notifications`; the shell
+fixture's Notifications page crashes (Gotchas). Focus `#om-notification-volume`
+and press ArrowLeft five times. The value and readout go to 95 / `95%`,
+`--slider-pct` to `95%`, and `localStorage["om.chat.notificationVolume"]` to
+`"95"`. Reload and all three still read 95. Remove the key afterwards; it is
+sticky. The audio preview needs a real browser with sound and is not proved
+here. Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 20-21).
+
 ## Gotchas
 
 - **Notifications crashes the shell fixture's whole User settings surface.**
-  `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:604`),
+  `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:609`),
   and neither fixture's plain-object `alertsStub` has it
   (`shell-fixture.tsx:1435`, `apps/cloud/tools/visual/shell-fixture.tsx:537`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
@@ -245,7 +264,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
   only the account-wide radiogroups ("Which to-dos appear in chat or topics",
   "Whether to-do status updates appear in chat"). Proving that sub-feature
   needs a fixture change, not a different query.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4549` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4550` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -276,7 +295,9 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (scheduled maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Every user and server settings page body was opened from the shell fixture on `/rooms/` and `/chat/`; see Settings page bodies. Notifications crashed there (`alerts.stripEnabled`), but rendered in `settings-fixture.html` on both hosts. Server Moderation crashed (`spaceModerationState`). **Limitations:** Toggles, saves and the channel Access page were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/`.
+**Last verified:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope (`/rooms/`, `settings-fixture.html`):** **Notification volume** moved 100 → 95 with ArrowLeft, wrote `om.chat.notificationVolume`, and survived a reload. **Sound** was the group heading. The Audio page's **Call volume** carried `.slider` with `--slider-pct: 100%`. **Limitations:** Only the delta was driven tonight; the rest of this guide keeps its 2026-10-29 proof. `/chat/` and the sound preview were not driven. Evidence is local only: `artifacts/vomc-nightly-20261030/r1/` (frames 20-21).
+
+**Previous record:** 2026-10-29 (scheduled maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Every user and server settings page body was opened from the shell fixture on `/rooms/` and `/chat/`; see Settings page bodies. Notifications crashed there (`alerts.stripEnabled`), but rendered in `settings-fixture.html` on both hosts. Server Moderation crashed (`spaceModerationState`). **Limitations:** Toggles, saves and the channel Access page were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/`.
 
 **Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and **Vim mode** on `/rooms/` and `/chat/`; `page=appearance` rendered **Appearance**. In the shell, `Meta+/` opened **Grammar & shortcuts**, and `?view=settings` → **Log Out** opened alertdialog **Log Out** ("Are you sure you want to log out?"). **Limitations:** Page bodies beyond these, and the invite link, were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 16, 32, 58, 68).
 

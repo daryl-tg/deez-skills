@@ -46,6 +46,14 @@ rows, and capture the **Resolving topics** count after starting a cleanup.
   capabilities to the source fixture. Its visible proof is the bottom-rail
   button **Quiet topics 20** (`shell-fixture.tsx:2242-2247`; `showQuiet=1` also
   seeds the shown state). Assert that, not only the missing menu item.
+- **The Quiet topics toggle now persists across reloads** (`47cb13bf`): it
+  writes the synced pref `om.chat.sidebarQuietTopics` (`"1"` while shown, key
+  absent while hidden; `lib/prefs.ts`, `lib/quiet-topics.ts`). The shell
+  fixture swaps `session.quietTopics` for a plain object that never reads or
+  writes the pref (`shell-fixture.tsx:2253-2260`), so a reload there cannot
+  prove it. Use a real session: press **Quiet topics N**
+  (`[data-quiet-topics-row]`, `aria-pressed`), read the key, reload. Source
+  discovery 2026-10-30; live verification pending.
 - The fixture does stub a sweep start (it sets
   `document.documentElement.dataset.fixtureTopicSweep`), but nothing in the
   source lane can reach it, because the menu entry needs `daemonFeatures`

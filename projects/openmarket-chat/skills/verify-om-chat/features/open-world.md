@@ -27,7 +27,7 @@ fixture cannot reach.
   (measured at `f7d7c987`).
 - A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
   font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
-  home session (`Shell.tsx:4549`; lazy import at `:244`). Reach it through
+  home session (`Shell.tsx:4550`; lazy import at `:245`). Reach it through
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
