@@ -1,7 +1,6 @@
 ---
 name: recall
-description: "Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap."
-disable-model-invocation: true
+description: "Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap, or for 'what did we do last time', 'find the session where', or 'what did we decide about X'."
 ---
 
 # Recall

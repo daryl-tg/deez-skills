@@ -474,7 +474,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `pi-development` |  | claude, codex | Pi asset development: extensions, skills, prompts, themes, packages, providers, models, TUI, or SDK integrations. |
 | `product-video` |  | claude, codex | Turn a product journey or feature into a continuous UI motion film with faithful product states, a human cursor, musical timing and deterministic rendering. Us… |
 | `prompt-ready` |  | claude | Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persist… |
-| `recall` |  | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap. |
+| `recall` |  | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap, or for 'wh… |
 | `reviewer` |  | claude, codex | Code, diff, PR, or MR review; dead-code checks, behavior drift, or REVIEW.txt notes. |
 | `show-me` |  | claude, codex | Explain the current topic visually, picking the smallest view that makes the point: pseudocode, a call tree, a component or file tree, a Mermaid diagram, a sha… |
 | `show-me-your-work` |  | claude, codex | Keep an auditable decision trail as a committed TSV during long or unattended runs. Use when the operator will review after stepping away, or when the reasonin… |

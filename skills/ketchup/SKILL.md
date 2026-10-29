@@ -1,7 +1,6 @@
 ---
 name: ketchup
-description: "Catch the operator up on what changed since their last message, decisions first, in plain words and small visuals. Every call waiting on them must be decidable from the reply alone. Use for /ketchup."
-disable-model-invocation: true
+description: "Catch the operator up on what changed since their last message, decisions first, in plain words and small visuals. Every call waiting on them must be decidable from the reply alone. Use for /ketchup, 'catch me up', 'catch up', 'what happened', 'where are we', or when the operator returns after being away."
 ---
 
 # Ketchup
