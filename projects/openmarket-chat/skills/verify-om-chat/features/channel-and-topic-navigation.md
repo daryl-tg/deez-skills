@@ -180,6 +180,33 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
   The width key is sticky, like `message=cozy`; remove it before any other
   capture. Hover-action names carry no `#`.
 
+### Channel and DM hover peeks (added 2026-10-29)
+
+A hover peek previews a conversation without opening it or marking it read. It
+is desktop only. The fetch starts at 440 ms, the popover shows at 500 ms, and
+it closes 120 ms after the pointer leaves (`lib/channel-peek.ts:26-28`).
+Keyboard focus on the row opens it too. While a row menu is open, or during a
+drag, peeks are off (`Sidebar.tsx:2561-2564`).
+
+- **Channel peek:** on `shell-fixture.html?view=room&alerts=quiet`, run
+  `agent-browser find role treeitem hover --name "channel signals, 4 unread, 5 unread in topics"`
+  and wait about 1.5 s. This mounts a `dialog` named **Preview of signals**
+  (`ChannelPeekPopover.tsx`) with an **Open** head (title "Open the channel"),
+  **You're caught up**, the three topic rows and the footer "Peeking never
+  marks as read". That is on `/rooms/`, where `peekChannel` is stubbed
+  (`shell-fixture.tsx:2826`). The `/chat/` fixture has no `peekChannel`, so the
+  same hover leaves the popover on its **Loading preview** skeleton.
+- **DM peek:** hover the rail face **Direct message with ana, 2 unread**. This
+  mounts dialog **Conversation with ana** (`DmPeekPopover.tsx`) with the two
+  seeded messages, a textbox **Reply to ana** and the footer "Enter sends · Esc
+  closes · Open marks read". Escape closes it. The head **Open** (title "Open
+  the conversation") routes to `#/dm/ana` on `/rooms/` and `/chat/dm/ana` on
+  `/chat/`. Driven on both hosts. To reopen it, move the pointer off the face
+  and back: hovering the same element again does nothing. Sending from the
+  reply box is unproved, because `sendDmTo` is unstubbed.
+
+Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`peek-*`).
+
 ## Gotchas
 
 - **`?room=` is ignored on `?view=room`.** It only applies to

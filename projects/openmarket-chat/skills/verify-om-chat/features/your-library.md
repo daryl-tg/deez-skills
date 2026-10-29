@@ -132,6 +132,26 @@ measured live: `flat`, then `null`), `?note=long|wrapped`, and
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 28-30). Re-driven 2026-10-28 at `07f7d04c`, after the todos-lens batching fix in that commit, which changes no fixture-visible behaviour because both fixtures stub `todoBoards` and `ensureTodoBoard`. Results: the shell `?panel=todos` still fails with the `TodoRow` `toLocaleLowerCase` crash on both hosts, conversation-qol still shows **To-dos 4**, **Audit the launch copy** and **Add a to-do**, and the lens results are as above. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/`.
 
+### Doc menu (added 2026-10-29)
+
+On `shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server`,
+right-click the **runbook.md** treeitem in the library panel, or focus it and
+press the ContextMenu key (`LibraryPanel.tsx:696`, `:1786`). Either one opens
+`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4593-4599`), a
+`menu` with no accessible name and 12 items: Open, Open in floating window,
+Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
+rename, Make read-only, Archive and Delete. Escape closes it. The full page's
+**More note actions** button and doc links in messages open the same menu
+(`LibraryView.tsx:5522`, `MessageText.tsx:1756`).
+
+The verbs are not proved: `setDocReadOnly` and `setDocRestriction` are
+unstubbed. The `/chat/` fixture stubs `openDocMenu` as a no-op
+(`apps/cloud/tools/visual/shell-fixture.tsx:2398`), so no menu opens there.
+The **Set topic index...** picker (`DocIndexPicker.tsx`) has no fixture route
+(`docIndexPicker: null`, `shell-fixture.tsx:4145`).
+
+Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, absence on `/chat/`). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`doc-menu-*`).
+
 ## Doc pane states (`doc=server`)
 
 Three fixture seeds render doc-pane states that no other guide covers. Each needs

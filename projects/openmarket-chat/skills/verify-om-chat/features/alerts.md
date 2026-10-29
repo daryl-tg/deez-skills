@@ -68,6 +68,16 @@ plain `generic` there.
   `alerts=board` the strip and board render as unstyled text. That has been
   true since at least `5820fbea`, so do not judge alert visuals from the shell;
   use `fixture.html?surface=alert-card` or the bundled app.
+- **`?panel=alerts` blanks the whole shell on both hosts.** It is the
+  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:385-395`
+  and opened in the product by `session.openAlertsTab`). The fixture's
+  plain-object `alertsStub` (`shell-fixture.tsx:1435`) lacks members the
+  panel reads, among them `feedViewClaimed`, `selectedFeedId`,
+  `setSelectedFeed`, `tapeFeedFilter` and `setTapeFeedFilter`. Which one throws
+  first was not isolated. No error boundary wraps the panel, so `#root`
+  unmounts to an empty page, with only React's "An error occurred in the
+  <AlertsPanel> component" warning in the console (2026-10-29, `cdfb1b0f`).
+  The Alerts tab is live verification pending.
 - **The board popover starts `visibility: hidden` until it has measured its
   anchor.** A role query fired right after load finds nothing. Wait about a
   second, or poll for the **Alerts board** dialog's computed visibility.

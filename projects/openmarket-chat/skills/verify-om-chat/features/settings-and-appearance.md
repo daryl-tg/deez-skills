@@ -140,7 +140,79 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
 
+### Settings page bodies (added 2026-10-29)
+
+Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
+`?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
+page's nav button. `?settingsPage=<id>` lands on a page directly
+(`shell-fixture.tsx:2440-2445`; the `/chat/` fixture reads the same param). Ids:
+`privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
+`draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
+`slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
+`moderation`, `invites`, `integrations`, `library`, `recovery`, `danger`.
+Reload between pages that crash (see Gotchas).
+
+The user nav lists 20 entries in the shell: My Account, Profiles, Privacy, Sealed
+Messages, Appearance, Notifications, Audio, To-dos, Keyboard Shortcuts,
+Accessibility, Doc Editing, Recovered Drafts, Agent Settings, OM Settings, How
+Agents Work, How the Library Works, How Apps Work, Slash Commands, Moderating
+Servers, Log Out. The server nav lists 10: Overview, Roles, Members,
+Moderation, Invites, Integrations, Library, Recovery, Import Vault, Danger.
+
+What each body opens with, identical on `/rooms/` and `/chat/`:
+
+| Page | First text |
+|---|---|
+| Privacy | **Privacy** — "Control who can follow you, who can message you…" |
+| Sealed Messages | **Sealed Messages** — "Sealed messages are managed by the OM app on the device that holds your keys" |
+| Notifications | crashes in the shell fixture; renders in `settings-fixture.html?host=user&page=notifications` (**Notifications**, THIS DEVICE, IN THE CHANNEL **Ringing strip at the top**, NOTIFY ME FOR) |
+| Audio | **Audio** — "Choose the microphone, speakers, and processing…" (DEVICES) |
+| To-dos | **To-dos** — "Choose which to-do rows appear in chat and topics by default." |
+| Accessibility | **Accessibility** — MOTION AND FEEDBACK, **Enable reduced motion** |
+| Doc Editing | **Doc Editing** — AUTO-PUBLISH WHILE EDITING |
+| Recovered Drafts | **Recovered Drafts** (an h2, no h1) — the empty state |
+| Help guides | **How agents work**, **How the library works**, **How apps work**, **Slash commands**, **Moderating servers** |
+| Server Overview | **Server Overview** — SERVER NAME, SERVER ICON |
+| Roles | **Roles** — traders, Full Stack, @everyone |
+| Members | **Members** — "5 members", kyle OWNER, ana ADMIN |
+| Moderation | crashes (see Gotchas) |
+| Invites | **Invites** — **Create invite link** |
+| Integrations | **Integrations** — APPS |
+| Library | **Library** — "This server's backend predates library governance…" |
+| Recovery | **Library Recovery** |
+| Import Vault | **Import Vault** |
+| Danger | **Danger** — TRANSFER OWNERSHIP |
+
+There is no server **Access** page. Access is a channel page
+(`ChannelSettings.tsx:791`), reached only through
+`settings-fixture.html?host=channel&perms=owner`. Toggles and saves on these
+pages call unstubbed session methods, so only the bodies are proved, not their
+effects.
+
+Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`settings-*`, `server-settings-*`, `settings-fixture-notifications-*`).
+
 ## Gotchas
+
+- **Notifications crashes the shell fixture's whole User settings surface.**
+  `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:604`),
+  and neither fixture's plain-object `alertsStub` has it
+  (`shell-fixture.tsx:1435`, `apps/cloud/tools/visual/shell-fixture.tsx:537`).
+  `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
+  settings could not load** / **Try again**. Any further page click finds no
+  button, and **Try again** returns to My Account. Reload before driving the
+  next page. Server **Moderation** fails the same way, as **Server settings
+  could not load**, because `session.spaceModerationState(...).then` hits
+  `INERT`. Both crash on both hosts.
+- **`settings-fixture.html` talks to production for some pages.** Its
+  `socialConfig` points at `https://api.openmarket.xyz` with key `k-fixture`
+  (`settings-fixture.tsx:562`). Notifications and Integrations there can send
+  real requests. This pass opened Notifications there once per host and saw no
+  such request in the network log. Prefer the shell fixture, and do not drive
+  Integrations in `settings-fixture.html`.
+- **On `/chat/`, `find role button --name "Members"` hits the dock's Members
+  button**, which the open settings dialog covers. Click the nav entry inside
+  the dialog instead:
+  `[...document.querySelectorAll("[role=dialog] nav button")].find(b => b.textContent.trim() === "Members").click()`.
 
 - **The accessible name carries the selected state**: the checked radio is
   `"Light theme (selected)"`, not `"Light theme"`. An `--exact` match on the
@@ -204,7 +276,9 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and **Vim mode** on `/rooms/` and `/chat/`; `page=appearance` rendered **Appearance**. In the shell, `Meta+/` opened **Grammar & shortcuts**, and `?view=settings` → **Log Out** opened alertdialog **Log Out** ("Are you sure you want to log out?"). **Limitations:** Page bodies beyond these, and the invite link, were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 16, 32, 58, 68).
+**Last verified:** 2026-10-29 (scheduled maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Every user and server settings page body was opened from the shell fixture on `/rooms/` and `/chat/`; see Settings page bodies. Notifications crashed there (`alerts.stripEnabled`), but rendered in `settings-fixture.html` on both hosts. Server Moderation crashed (`spaceModerationState`). **Limitations:** Toggles, saves and the channel Access page were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/`.
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and **Vim mode** on `/rooms/` and `/chat/`; `page=appearance` rendered **Appearance**. In the shell, `Meta+/` opened **Grammar & shortcuts**, and `?view=settings` → **Log Out** opened alertdialog **Log Out** ("Are you sure you want to log out?"). **Limitations:** Page bodies beyond these, and the invite link, were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 16, 32, 58, 68).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `settings-fixture.html?host=user&page=shortcuts` showed 19 nav entries and the **Vim mode** switch; `page=appearance` rendered **Appearance** / **Advanced**; `page=agent-access` rendered Agent Settings, Agents, Devices and Recent Logbook. In the shell, `Meta+/` opened **Grammar & shortcuts**; **Log Out** opened alertdialog **Log Out** ("Are you sure you want to log out?") over **Settings**; Invites → **Create invite link** opened **Invite link settings** once the page had loaded (about 2 s; a 1.2 s wait missed the button). **Limitations:** Page bodies without a recipe, palettes, Webhooks conversion, real logout and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 18, 33-34).
 
