@@ -1,6 +1,6 @@
 # 3. Principles
 
-Thirty-seven principles, each a leaf skill with one rule. Playbooks **cite** them;
+Thirty-eight principles, each a leaf skill with one rule. Playbooks **cite** them;
 they never restate them.
 
 ## The problem they solve

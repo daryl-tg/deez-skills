@@ -1,0 +1,7 @@
+interface:
+  display_name: "Code Speaks For Itself"
+  short_description: "Apply whenever you write or edit code"
+# Routed to explicitly, never matched. The Codex counterpart of
+# disable-model-invocation in the frontmatter.
+policy:
+  allow_implicit_invocation: false

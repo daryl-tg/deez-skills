@@ -1,12 +1,31 @@
 ## The Rule
 
-Comment the *why*, never the *what*. If a comment restates the
-code, delete it. If the code needs a comment to explain what it
-does, fix the code.
+Never write a comment that explains code or your work on it. Every
+explanatory comment is a defect: delete it and make the code say
+it. The rule and its narrow exceptions (tool directives, required
+license headers, shdoc tags) live in
+**principle-code-speaks-for-itself**.
 
 ---
 
 ## Comments to Kill on Sight
+
+### Work Narration
+
+The habit this rule exists for. An agent finishes a change and
+annotates it, as if the source were a report to the reviewer. It
+is true for one commit and wrong forever after. The commit message
+and the review request carry this, attached to the change that
+made it true.
+
+**Delete comments like:**
+```ts
+// Added a null check to handle the empty-cart case
+// Fixed: now uses the cached client instead of a new one
+// Changed from forEach to map so the result is returned
+// Moved from utils.ts
+```
+
 
 ### Narrating the Obvious
 
@@ -131,132 +150,6 @@ better. If you know it's wrong, fix it now or file a ticket.
 ```
 
 The FIXME without a ticket number is a prayer, not a plan.
-
----
-
-## Comments Worth Writing
-
-### The Why Comment
-
-Explains a decision that isn't obvious from the code. Without
-it, someone will "fix" correct code or repeat a mistake.
-
-**Good:**
-```c
-// Sync twice: the third-party API sometimes drops the first
-// ack. See #42.
-sync(handle);
-sync(handle);
-```
-
-```c
-// Set property to nil before calling the handler to prevent
-// reentrancy from triggering the callback again.
-handler = self.completion_handler;
-self.completion_handler = NULL;
-handler();
-```
-
-### The Warning Comment
-
-Prevents future breakage. Points out non-obvious coupling,
-ordering constraints, or consequences.
-
-**Good:**
-```c
-// Do not reorder: the database driver deadlocks if
-// disconnect() runs before flush().
-flush(conn);
-disconnect(conn);
-```
-
-```c
-// Intentional truncation to 32-bit for hash distribution.
-// Do not "fix" to 64-bit.
-hash &= hash;
-```
-
-### The Workaround Comment
-
-Documents why code deviates from the obvious approach. Links
-to the external cause so the workaround can be removed later.
-
-**Good:**
-```c
-// Work around glibc bug #98765: sendmmsg returns EINVAL on
-// msg_controllen > 4096 with kernel < 6.2.
-if (controllen > 4096) {
-    controllen = 4096;
-}
-```
-
-### The Public API Doc Comment
-
-Every exported function, type, and constant gets a doc comment.
-Non-negotiable. The comment describes:
-
-- What it does (one sentence).
-- Parameters that aren't obvious from name + type.
-- Return values, especially error conditions.
-- Thread safety, if not obvious from context.
-- Ownership or lifetime, where applicable.
-
-**Good:**
-```c
-// Read up to `len` bytes from the file into `buf`. Returns
-// the number of bytes read, or -1 on error with errno set.
-// Returns 0 at end of file.
-ssize_t file_read(file_t *f, void *buf, size_t len);
-```
-
-```go
-// Lookup returns the data associated with key.
-//
-// This operation is not safe for concurrent use.
-func (*Cache) Lookup(key string) (data []byte, ok bool)
-```
-
-A doc comment that merely restates the signature in English
-fails this test. It must add something the signature alone
-doesn't carry.
-
-### Struct and Config Field Comments
-
-Fields whose meaning or valid range isn't obvious from name +
-type. Optional fields should state the default.
-
-**Good:**
-```go
-type Options struct {
-    // Points to the directory containing the manifest and
-    // per-chapter text files.
-    //   {BaseDir}/manifest.json
-    //   {BaseDir}/{name}/{name}-part{number}.txt
-    BaseDir string
-
-    WelcomeMessage  string // shown at login
-    ProtocolVersion string // checked against incoming requests
-    PageLength      int    // lines per page; default: 20
-}
-```
-
-### TODOs with a Trail
-
-A TODO without a ticket reference is a wish. Attach a bug
-number so it can be tracked, prioritized, and eventually
-closed.
-
-**Good:**
-```c
-// TODO: github.com/org/repo/issues/42 - Remove after the
-// v3 migration window closes.
-```
-
-**Bad:**
-```c
-// TODO: clean this up later
-// TODO(john): refactor
-```
 
 ---
 

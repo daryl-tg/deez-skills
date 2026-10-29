@@ -5,7 +5,7 @@ and Codex on every machine. Skills live here once and are symlinked into both
 runtimes, so there is no second copy to drift.
 
 The architecture is [pstack](https://github.com/cursor/plugins/tree/main/pstack),
-adapted for two runtimes instead of one. Thirty-seven principles, twenty-five
+adapted for two runtimes instead of one. Thirty-eight principles, twenty-five
 playbooks, one router.
 
 ```mermaid
@@ -26,7 +26,7 @@ flowchart TB
   subgraph work["what one request runs"]
     router["$clanker-mode<br/>the router. used from Claude Code"]
     pb["1 of 25 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
-    prin["37 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
+    prin["38 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
     role["5 roles<br/>explore, executor, test-engineer,<br/>code-reviewer, verifier"]
     craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, show-me"]
     ship["opening-a-review, then landing<br/>evidence approved before anything ships"]
@@ -188,7 +188,7 @@ when you want one directly.
 
 ## principles
 
-Thirty-seven rules, one per skill. Playbooks **cite** them by name and never
+Thirty-eight rules, one per skill. Playbooks **cite** them by name and never
 restate them, which is what stops the same rule drifting across five files. Each
 one is invisible until something routes to it, so they cost nothing at session
 start.
@@ -197,7 +197,7 @@ About half come from rules my own skills already asserted. The rest are
 adapted from pstack.
 
 <details>
-<summary>all thirty-seven principles</summary>
+<summary>all thirty-eight principles</summary>
 
 **Core**
 
@@ -224,6 +224,7 @@ adapted from pstack.
 | `make-operations-idempotent` | Apply when designing commands, lifecycle steps, or loops that run amid crashes, restarts, and retries. Converge to the… |
 | `migrate-callers-then-delete-legacy-apis` | Apply when introducing a new internal API while old callers still exist. Migrate the callers and delete the old API in… |
 | `separate-before-serializing-shared-state` | Apply when concurrent workers might write the same file, branch, port, or object. Eliminate the sharing first; seriali… |
+| `code-speaks-for-itself` | Apply whenever you write or edit code. Never add a comment that explains the code or your work on it. Say it with names, t… |
 
 **Verification**
 
@@ -360,6 +361,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-bind-assigned-ports` | principle | claude, codex | Apply whenever starting a server, choosing a port, or handing back a URL. Ports are assigned, never chosen. Bind 127.0.0.1 explicitly. Anything the operator op… |
 | `principle-boundary-discipline` | principle | claude, codex | Apply when wiring validation, error handling, or framework adapters. Concentrate guards at system boundaries; trust internal types and keep business logic pure. |
 | `principle-build-the-lever` | principle | claude, codex | Apply to any non-trivial work: edits, migrations, analyses, checks. Build the tool that does or proves it rather than doing it by hand. The tool is the artifac… |
+| `principle-code-speaks-for-itself` | principle | claude, codex | Apply whenever you write or edit code. Never add a comment that explains the code or your work on it. Say it with names, types, smaller functions, and tests; y… |
 | `principle-delegate-implementation-review-stays-here` | principle | claude, codex | Apply when handing work to a subagent. Implementation delegates; design, review, verification, and git mutations stay with the lead. |
 | `principle-encode-lessons-in-structure` | principle | claude, codex | Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a check, a type, a lint, or a sc… |
 | `principle-exhaust-the-design-space` | principle | claude, codex | Apply to a novel interaction or architectural decision with no precedent in the codebase. Build two or three competing sketches and compare before committing. |
@@ -492,7 +494,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | --- | --- | --- | --- |
 | `humanize` |  | claude | Use when Claude-authored text (design doc, MR description, README section, chat/message draft) needs to read like Ryan wrote it — before pasting into Discord o… |
 | `unslop` |  | claude, codex | Cut AI tells from any writing. Applies to every prose surface, including your own replies. |
-| `writing-comments` |  | claude, codex | Explicit comment, docstring, commented-out code, or public API documentation work. |
+| `writing-comments` |  | claude, codex | Removing explanatory comments, docstrings, or commented-out code, and reviewing a diff for comments that explain code or the agent's own work. |
 | `writing-docs` |  | claude, codex | Pick the document's audience and mode first, then apply the matching standard: STE for agent-facing docs, developer style for human-facing ones. Use for docs, … |
 | `writing-instructions` |  | claude, codex | Agent-facing instruction edits: skills, AGENTS.md, guidelines, or prompt docs. Not prose style. |
 | `writing-simplified-technical-english` |  | claude, codex | Rewrite an agent-facing document in ASD-STE100 when it is too long, gets truncated, or reads as dense prose: SKILL.md, AGENTS.md, CLAUDE.md, subagent definitio… |

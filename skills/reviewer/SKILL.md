@@ -59,6 +59,8 @@ context, then review the code itself in this style.
      semantics. If needed and the user wants proof,
      add a failing test first.
 4. Hunt the kinds of problems this style cares about.
+   - any added comment that explains the code or the
+     author's work (principle-code-speaks-for-itself)
    - dead code, stale logs, stale comments, obsolete
      compatibility paths
    - behavior drift from the previous version

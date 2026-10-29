@@ -40,6 +40,8 @@ Scope guard:
   stay in the verification lane.
 - Each test verifies exactly one behavior. No mega-tests.
 - Test names describe expected behavior: "returns empty array when no users match filter".
+- Never add a comment that explains a test or your work on it
+  (`principle-code-speaks-for-itself`). The test name and its assertions say it.
 - Always run tests after writing or changing them to verify they work. Show fresh output.
 - Match the existing test patterns in the codebase: framework, structure, naming, setup
   and teardown.

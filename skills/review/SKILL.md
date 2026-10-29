@@ -50,6 +50,9 @@ A list of concerns with no verdicts is not a review.
 
 For each security finding, trace the input path from where it enters.
 
+An added comment that explains the code or the author's work is an Act-on
+finding under **principle-code-speaks-for-itself**.
+
 ## Skepticism about automated findings
 
 Bots catch real bugs and also file non-issues. Assess each on merit and dismiss

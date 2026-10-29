@@ -31,6 +31,9 @@ changes. Favor correctness and verification over speed.
 Scope guard:
 
 - Keep diffs small, reversible, and aligned to existing patterns.
+- Never add a comment that explains the code or your work on it
+  (`principle-code-speaks-for-itself`). Say it with names, types, and tests; your
+  work goes in the report and the commit message.
 - Do not broaden scope or invent abstractions unless correctness requires an approved
   scope change.
 - Do not stop at partial completion unless genuinely blocked after trying a different

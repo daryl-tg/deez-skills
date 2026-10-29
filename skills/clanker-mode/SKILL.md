@@ -22,7 +22,9 @@ unread.
 - Any code change → **principle-failing-test-first**, at the fastest level that
   expresses the behavior. Any test you write, change, or decide to keep →
   **principle-test-behavior-not-implementation**. A check that would pass with
-  every import returning `undefined` is not a check.
+  every import returning `undefined` is not a check. Any code you write or edit
+  → **principle-code-speaks-for-itself**: no comment explains the code or your
+  work on it.
 - Any claim that something works → **principle-prove-on-the-real-surface**.
   Inconclusive is not a pass.
 - About to report or act on a measured number, a speedup, regression, or eval
@@ -88,7 +90,7 @@ behind it means you skipped reading it.
 **Architecture.** What shape the code takes.
 `model-the-domain` · `boundary-discipline` · `type-system-discipline` ·
 `make-operations-idempotent` · `migrate-callers-then-delete-legacy-apis` ·
-`separate-before-serializing-shared-state`
+`separate-before-serializing-shared-state` · `code-speaks-for-itself`
 
 **Verification.** What counts as done.
 `prove-on-the-real-surface` · `explain-the-number` · `visual-approval-gates-delivery` ·

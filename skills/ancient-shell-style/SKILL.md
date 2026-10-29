@@ -110,6 +110,9 @@ them into a script.
   them into the script.
 - If a file sources local shell files, prefer
   `shellcheck -x` with the actual shell.
+- shdoc tags are the only comments allowed
+  (**principle-code-speaks-for-itself**). No other
+  comment explains the script or your work on it.
 - Treat `shdoc` as required verification for
   maintained scripts and shell libraries.
 - Add file-level shdoc docs to maintained script and

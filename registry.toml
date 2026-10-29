@@ -240,6 +240,11 @@ layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]
 
+[skills.principle-code-speaks-for-itself]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]
+
 [skills.principle-subtract-before-you-add]
 layer    = "principle"
 category = "core"

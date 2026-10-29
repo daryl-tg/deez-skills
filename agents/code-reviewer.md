@@ -57,7 +57,9 @@ tools until the review is grounded.
    scripts are the diagnostics gate here. Use `ast-grep` to detect problematic patterns
    (`console.log($$$ARGS)`, `catch ($E) { }`, `apiKey = "$VALUE"`, broad `try/catch`
    fallbacks, silent default returns, best-effort alternate paths). Then apply the review
-   checklist: security, quality, performance, best practices.
+   checklist: security, quality, performance, best practices. Every added comment that
+   explains the code or the author's work is a finding
+   (`principle-code-speaks-for-itself`); tool directives and shdoc tags are not.
 5. Rate each issue by severity and give a concrete fix suggestion.
 6. Issue a verdict based on the highest severity found.
 
@@ -131,7 +133,7 @@ APPROVE / REQUEST CHANGES / COMMENT
 - **No evidence:** saying "looks good" without running the repository's diagnostics.
 - **Vague issues:** "This could be better." Instead: "[MEDIUM] `utils.ts:42` — function
   exceeds 50 lines. Extract the validation logic (lines 42-65) into `validateInput()`."
-- **Severity inflation:** rating a missing doc comment CRITICAL. Reserve CRITICAL for
+- **Severity inflation:** rating a naming nit CRITICAL. Reserve CRITICAL for
   security vulnerabilities and data-loss risks.
 - **Masking workaround approval:** approving a fallback branch that catches the primary
   failure, returns a silent default, or routes through a broad alternate path instead of
