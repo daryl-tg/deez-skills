@@ -37,6 +37,15 @@ the matching feature file as the recipe. The contract the recipes prove is the w
   `window` relaunch, parity's `login-wall` shell half, `notify`'s `screenUnlocked` and the gaps lane's key rows.
   Playwright-attached frames still draw. Report those boxes as blocked on the lock, and stop only the shell holding your
   own `capture-profile`.
+- **A machine far over its cores fails the shell lanes before their checks.** Read `uptime` and `sysctl -n hw.ncpu`
+  first. On 2026-10-30 the mini ran at a load average of 55 to 185 on 10 cores, from other agents' sessions. Under that
+  load, `window`, `links` and `returns` each died on a Playwright launch or `firstWindow()` 30 s timeout with no
+  summary. One `pnpm package:dev` took about 45 minutes, most of it ad-hoc codesigning. A cold vite took 166 s once
+  and longer than 180 s the next time, so `lane up` gave up at its wait and doctor then read `/chart/` as `000`. The
+  desktop unit suite's subprocess tests timed out even when run alone. In Chromium, the chart route reached the guest
+  button only after several minutes, then showed "Taking a bit longer than usual..." with no candles. Report those
+  boxes as blocked on load with the load figures. Never stop another run's processes to make room; stop only your own
+  sequence and its builder.
 - **Name the parity steps.** `run parity <dir>` with no steps runs the signed-in phase too, which signs in as the
   operator's real account and writes layouts. An unattended run names the guest steps; see [parity](./parity-sweep.md).
 - **A lane red in both hosts, or against a moved contract, is a lane gap.** Several checks in `desktop/tools/verify/`
@@ -77,15 +86,16 @@ remains unverified), then exactly four H2s in order: `Sub-features`, `How to get
 
 ## Surface inventory
 
-Rediscovered 2026-10-29 from `desktop/src/main/`, `desktop/src/preload/`, `desktop/tools/verify/`, `desktop/policy/`,
+Rediscovered 2026-10-30 from `desktop/src/main/`, `desktop/src/preload/`, `desktop/tools/verify/`, `desktop/policy/`,
 `.gitlab-ci.yml`, the web app's `src/pages/desktop/`, `src/utility/desktop/` and their callers, and
-`docs/features/desktop/desktop-shell.md`, on product tree `30481b57f8` (`origin/main`). Since the 2026-10-28 discovery on
-`5365748ef3` there are 62 commits. In `desktop/`, only the signed-in workspace-export rows of `parity.mjs` and `gaps.mjs`
-changed (and their test): they now expect `openmarket_workspace_<name>.json` (`dc9ed408ee`). The same commit retitled
-the sign page's link summary to "OpenMarket: link Hyperliquid wallet". `.gitlab-ci.yml` changed only the web image jobs
-(memory sampling, the R2 upload script, sourcemaps), not the desktop jobs. The connect sheet's wallet rows were
-restyled (`a0e3a2306d`), with the same rows and testids. Every path below exists on `origin/main`. "Live" names the run
-that last drove the outcome; a row that is pending says so.
+`docs/features/desktop/desktop-shell.md`, on product tree `849fb08e95` (`origin/main`). There are 132 commits since the
+2026-10-29 discovery on `30481b57f8`, and none of them touched `desktop/`, `docs/features/desktop/` or a web-side
+desktop surface. In `.gitlab-ci.yml`, `desktop check` (the desktop unit suite, typecheck and lint) now runs only in a
+merge-request pipeline that changes `desktop/`, the lockfile, the workspace file or the CI file. An unprotected source
+branch runs `desktop check office` on the office runner; a protected one runs `desktop check` on cloud `amd64`. Neither
+runs on a push to `main` any more (`e985c5d898` dropped `main`, `3da241d113` added the office runner). The release
+jobs keep the same rules. Their R2 and Production-access settings moved into shared `.r2-credentials` and
+`.production-access` blocks (`3ed5f40455`). Every path below exists on `origin/main`. "Live" names the run that last drove the outcome; a row that is pending says so.
 
 | User outcome | Product source path | Guide / sub-feature | Live verification | Prerequisite or gap |
 |---|---|---|---|---|
@@ -104,12 +114,12 @@ that last drove the outcome; a row that is pending says so.
 | Updates download, stage and offer Restart to Update | `desktop/src/main/updater.ts`, `desktop/src/main/update-bridge.ts` | [updates](./updates-and-release.md) `update-*` | 2026-10-29, `30481b57f8`, `update` 14 of 15, to the Squirrel.Mac refusal | `launchCheckReadBetaFeed` is stale; staging needs a Developer ID build |
 | Title-bar update button, restart dialog and the page's update toast | `desktop/src/main/titlebar.ts`, `desktop/src/main/index.ts`, `src/utility/desktop/shell-version.util.ts` | [updates](./updates-and-release.md) `update-titlebar`, `update-prompt` | live verification pending | no lane drives the bar; ready needs a Developer ID build |
 | Emergency switch: policy notice and block screen | `desktop/src/main/policy.ts`, `desktop/policy/` | [updates](./updates-and-release.md) `policy-notice-block` | live verification pending | no lane serves a policy; an unpackaged launch never reads one |
-| Release on merge or tag publishes macOS, Windows and Linux builds, feeds and policies | `desktop/scripts/release-tag.mjs`, `desktop/scripts/publish-r2.sh`, `desktop/scripts/policy.mjs`, `.gitlab-ci.yml` | [updates](./updates-and-release.md) `release-*` | unit tests 2026-10-29 (422 of 422); dry run 2026-10-12 | the real jobs need `mac-runner` (the office Mac mini), the certificate, notary key and bucket; the dry run's `rm` recipe is refused in an unattended session |
+| Release on merge or tag publishes macOS, Windows and Linux builds, feeds and policies | `desktop/scripts/release-tag.mjs`, `desktop/scripts/publish-r2.sh`, `desktop/scripts/policy.mjs`, `.gitlab-ci.yml` | [updates](./updates-and-release.md) `release-*` | unit tests 2026-10-29 (422 of 422; on 2026-10-30 the subprocess tests in `release-tag`, `policy` and `publish-r2` timed out under machine load, on a `desktop/` identical to 2026-10-29's); dry run 2026-10-12 | the real jobs need `mac-runner` (the office Mac mini), the certificate, notary key and bucket; the dry run's `rm` recipe is refused in an unattended session |
 | OpenMarket Internal QA build on the internal chart | `desktop/src/main/build-site.ts`, `desktop/electron-builder.internal.yml` | [updates](./updates-and-release.md) (Gotchas) | live verification pending | its CI job was removed; a hand-packed build is needed |
 | Sign in with your browser: button, waiting screen, PKCE exchange | `desktop/src/main/browser-signin.ts`, `src/components/dialogs/login-signup-dialog/DesktopBrowserSignIn.vue` | [sign-in](./browser-signin-and-checkout.md) `signin-button`, `signin-waiting`, `signin-exchange` | live verification pending | a packaged non-dev build or `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, and a real orange |
-| Browser sign-in pages `/desktop/return` and `/desktop/signin` | `src/pages/desktop/return.page.vue`, `src/pages/desktop/signin.page.vue` | [sign-in](./browser-signin-and-checkout.md) `signin-return-page`, `signin-start-page` | 2026-10-29, `30481b57f8`, Chromium on the dev lane | none |
+| Browser sign-in pages `/desktop/return` and `/desktop/signin` | `src/pages/desktop/return.page.vue`, `src/pages/desktop/signin.page.vue` | [sign-in](./browser-signin-and-checkout.md) `signin-return-page`, `signin-start-page` | 2026-10-30, `849fb08e95`, Chromium on the dev lane (return valid and invalid; signin's "Checking your sign-in…", then `/auth`) | none |
 | Desktop checkout pays in the browser and comes back | `desktop/src/main/checkout-return.ts`, `src/utility/billing/stripe-handoff.util.ts` | [sign-in](./browser-signin-and-checkout.md) `checkout-shell` | live verification pending | a Stripe session, and a packaged build for `openmarket://checkout` |
-| Checkout return page: paid, cancelled, portal, invalid | `src/pages/desktop/checkout-return.page.vue`, `src/utility/desktop/checkout-return.util.ts` | [sign-in](./browser-signin-and-checkout.md) `checkout-return-page` | 2026-10-29, `30481b57f8`, Chromium on the dev lane | none |
+| Checkout return page: paid, cancelled, portal, invalid | `src/pages/desktop/checkout-return.page.vue`, `src/utility/desktop/checkout-return.util.ts` | [sign-in](./browser-signin-and-checkout.md) `checkout-return-page` | 2026-10-30, `849fb08e95`, Chromium on the dev lane, all four states | none |
 | "Download the OpenMarket desktop app" in a browser, hidden in the shell | `src/utility/desktop/desktop-download-gate.util.ts`, `src/composables/superSearch/providers/featureCommands.ts`, `src/components/GlobalNav/ProfilePanel.vue` | [sign-in](./browser-signin-and-checkout.md) `download-door` | 2026-10-29, `30481b57f8`, super search in Chromium | the profile row is signed-in only; absence in the shell not driven |
 | Connect dialog in the shell: no deep links, WalletConnect first, Sign in your browser | `src/components/dialogs/HLConnectDialog.vue`, `src/components/hyperliquid/link/HLLinkWalletStep.vue`, `src/components/hyperliquid/link/useHLLinkSheet.ts` | [connect dialog](./connect-dialog-in-the-shell.md) | signed-out step 2026-10-12, `1570b59d69`; parity `hl-enable` red in both hosts 2026-10-27, 2026-10-28 and 2026-10-29 | the rows need a signed-in account |
 | Sign page shows the request, signs, returns or refuses | `src/pages/desktop/sign.page.vue`, `src/utility/desktop/sign-request.util.ts` | [handoff](./browser-handoff-wallet.md) `sign-page` | 2026-10-29, `30481b57f8`, summary, expired and invalid by hand in Chromium | the MetaMask lane is red: its request lacks `issuedAt` |

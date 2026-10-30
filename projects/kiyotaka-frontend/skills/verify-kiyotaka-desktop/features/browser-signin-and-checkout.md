@@ -9,11 +9,12 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-29 on tree
-`30481b57f8` (`origin/main`): the return, checkout-return and signin pages in Chromium on the dev lane, the super-search
-command in Chromium, and Chromium's sign-in dialog with its Use a passkey row. The shell's production sign-in screen
-with no passkey row was last captured 2026-10-28 on `5365748ef3`; on 2026-10-29 the console session was locked and
-`capture` got no frame (see [launch](./shell-launch-and-window.md)). The
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-30 on tree
+`849fb08e95` (`origin/main`): the return, checkout-return and signin pages in Chromium on the dev lane. The
+super-search command and Chromium's sign-in dialog with its Use a passkey row were last driven 2026-10-29 on
+`30481b57f8`. On 2026-10-30 the chart route never settled under machine load (see the [index](./README.md)). The
+shell's production sign-in screen with no passkey row was last captured 2026-10-28 on `5365748ef3`; on 2026-10-29 and
+2026-10-30 the console session was locked and `capture` got no frame (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
 `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, a real orange and, for checkout, a Stripe session.
@@ -27,7 +28,8 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   `auth/login?error=<provider>_auth_failed`. Live verification pending.
 - `signin-return-page` `/desktop/return#to=<openmarket://oauth/callback...>` reads "Signed in. Open OpenMarket to
   finish" with `desktop-return-open` and wipes the hash; any other `#to` shows `desktop-return-invalid`.
-- `signin-start-page` `/desktop/signin` sends a signed-out visitor to `/auth?redirect=/desktop/signin`.
+- `signin-start-page` `/desktop/signin` reads "Sign in to the OpenMarket app" and "Checking your sign-in…" while it
+  checks the account, then sends a signed-out visitor to `/auth?redirect=/desktop/signin`.
 - `signin-no-passkey` the shell's sign-in screen has no Use a passkey row; Chromium's does.
 - `checkout-return-page` `/desktop/checkout-return` reads "Payment received" (`?product=<p>&session_id=cs_...`),
   "Checkout cancelled" (`?product=<p>`) or "Billing updated" (`?flow=portal`) with `desktop-checkout-return-open`, wipes
@@ -61,7 +63,9 @@ Preconditions:
   - `.../desktop/checkout-return?product=plus`: "Checkout cancelled".
   - `.../desktop/checkout-return?flow=portal`: "Billing updated".
   - `.../desktop/checkout-return?kind=bogus`: `desktop-checkout-return-invalid` "This link is not valid".
-  - `.../desktop/signin`: lands on `/chart/auth?redirect=/desktop/signin`, "Sign in or create an account".
+  - `.../desktop/signin`: lands on `/chart/auth?redirect=/desktop/signin`, "Sign in or create an account". A read
+    before the account check settles sees the page itself, with no `desktop-` testids, so read again before calling
+    it a miss.
 - **No passkey in the shell.** `control-kiyotaka-desktop capture <dir>/shell-login-prod.png --prod --path '?login=1'`
   shows no Use a passkey row; the same dialog in Chromium (`browser ... click '[data-testid="profile-guest-mode-btn"]'`)
   shows one.
