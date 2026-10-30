@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. The first `up` of the night died: the guest sign-in was rate-limited (429) and the daemon exited after its banner with `om: No OpenMarket API key configured` (see the settle bullet below and the README's product gaps); 52 minutes later `up` booted in 2 s. `/healthz` read 0.480.2, `auth: guest`; `doctor --format json` `ok: true`; `status` read `✓ running (PID …) (foreground om run)`; `service status` read `running (foreground om run)`, `Service: not installed`; `logs --limit 3` printed `No log lines yet`; the wrapper refused `service install` (exit 1); `POST /rpc/v1/system/profile` with `action: stacks` before any start answered 409 `not_started`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/20-26`, `cli/89f`).*
+
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `doctor --format json` passed 14 checks; `status` read `running:true`; `/healthz` read 0.478.0 with `om_home` ending `/accounts/guest`; `logs --limit 3` printed `No log lines yet (…/runner.log is empty or missing)`, because the foreground lane writes `.control-om/lane-<port>.log`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/` (`cli/31-doctor.json`).*
 *Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163, under a host load average near 150. `status --format json` read `daemon.running: false` and `doctor` returned `ok:false` with 14 checks. The `daemon` check failed with `not installed — 1 event watch is not being monitored`, while `/healthz` answered 200 in 2 to 3 s and the dashboard and stream worked. That misread is the CLI's daemon probe timing out (see Gotchas). The other non-ok checks were the expected guest warnings: `binary`, `llm` and `agent_wiring`. `contracts` read `the registry speaks contracts 5.43.0; this om speaks 5.43.0`. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
 
@@ -102,7 +104,14 @@ Preconditions:
   `ok: true`. This is the designed path, not a fault: boot makes exactly one
   bounded mint attempt and, per its own source comment, logs and continues
   rather than crash-looping the supervisor, leaving `ensureCredential()` on a
-  later pass to retry. **Nothing bounds how long that takes** — there is no
+  later pass to retry. **That recovery no longer happens on a keyless home:**
+  driven 2026-10-31 at `dfefe0a21` and at `3cb50a821`, a lane whose boot mint
+  was refused (guest sign-in 429) printed the start banner and then exited 1
+  with `om: No OpenMarket API key configured`, because the roster's start
+  needs the rooms config (README, known product gaps). `control-om up` reports
+  `lane died during boot`; the only recovery is to wait out the window and
+  `up` again. The v0.434.0 observation below describes a boot whose mint
+  failed but the roster did not throw. **Nothing bounds how long that takes** — there is no
   backoff or SLA constant; recovery lands whenever a background pass retries and
   the auth service answers. So 99s is one observation, not a budget: poll until
   it settles rather than asserting at any fixed moment.

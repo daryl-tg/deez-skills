@@ -1,5 +1,7 @@
 # Registry welcome page and personalised search
 
+*Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. Real registry only: `welcome` exit 1 `This registry does not offer the welcome page yet.`; `search rsi --format json` led with `@om-core/autocorrelation`. The fixture branches were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/76-77`).*
+
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. Real registry only: `welcome` printed "This registry does not offer the welcome page yet."; `search rsi --format json` returned results led by `@om-core/autocorrelation`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/`.*
 *Re-driven 2026-10-30 (nightly, real registry only), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `welcome` printed `This registry does not offer the welcome page yet.` and exited 1. It takes no `--format` (`unknown option '--format'`). The fixture branches and `search` were not re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
 

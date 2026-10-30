@@ -1,5 +1,7 @@
 # Chat transcript layout (`om chat`)
 
+*Re-driven on main 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6, fake model on 18164 (`FAKE_MODE=tool`), tmux 140x36 then 90x36, `chat.sounds off`. Plain `om chat`: the What's new card, then after ctrl+x `x` a tool turn: the user panel's `┃` at column 3 with `watches` at column 5; `✓ watch_list → 5 watches` and the reply (`Here is what I found:`, a list, a tinted code block) at column 6, that is a 5-column gutter; no `Worked for` row; the `While you were away · 3 events, 3 stories` band with aligned story rows above the turn; the footer's `om running ✓`. At 90 columns the same rows re-wrapped. Exit history held the shell lines and the transcript. Not driven: the approval card, replay, spinner timing, notice strips and the chimes. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`tui-A1`…`tui-A7`, `tui-A-history.txt`).*
+
 *Verified: 2026-10-30, branch `daryl/tui-readability` at `af153e835` (before its rebase onto origin/main `3cb50a821`), lane 18113, fake model 18114, tmux at 140x40 and 71x40. Driven: `turn`, `tool-row`, `approval-card`, `fire-band`, `away-band`, `catchup-band`, `replay`, `spinner` (plain and workspace), `narrow`. Not driven live: the notice strips (unit-tested), the chimes (unit-tested; one real Tink played during a red check), the OSC 11 reply from a real terminal (tmux answers it). Evidence: Artifact gallery `https://claude.ai/artifact/3jtQoAsFm8DcfxUH2BSekd`, frames under the worktree's `artifacts/vom-tui-readability/r1/`.*
 
 *Re-verified for #2219: 2026-10-30, branch `daryl/watch-status-dots` (off origin/main `cbe10ee19`), lane 18113, fake model 18114, tmux at 160x36 then 90x30. A long reply wrapped at column 119 of a 124-column workspace pane and rewrapped at 90; the user panel ran to the divider; footer codes read `36` mode and model, `31` badge, `32` om running, `90` separators. Evidence: `http://127.0.0.1:8098/vom-dots/r2/`.*
@@ -9,7 +11,7 @@ frame itself (sidebar, cards, ctrl+x) is `chat-workspace-tui.md`.
 
 ## Sub-features
 
-- `turn` — your message is a clay `┃` bar on a raised tint, one padded row above and below. om's reply has no label, starts at column 5 and wraps at the pane's width less a 2-column margin (the 100-column cap was removed in #2219). No `▣ om` footer and no `Worked for` row.
+- `turn` — your message is a clay `┃` bar on a raised tint, one padded row above and below; the panel spans the pane less a 2-column margin on each side, so it stops two columns short of the divider (`tui-user-panel.ts:27-31`). om's reply has no label, starts after a 5-column gutter (1-based column 6 in a `capture-pane` read) and wraps at the pane's width less the gutter and a 2-column margin (`turnRowWidth`, `tui-turn-row.ts:15-18`; the 100-column cap was removed in #2219). No `▣ om` footer and no `Worked for` row.
 - `tool-row` — one row per call, arguments truncated first; the result hangs on its own `→` row.
 - `hanging-wrap` — every wrapped row hangs under its own text, never back at column 0.
 - `code-block` — a muted tint, no fences, no bar.

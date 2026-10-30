@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. `paper create verify-book --yes` → `cash: 1000`, `desk: off`; `paper ls` listed it with `starting_cash`, `open_lots: 0`; `paper digest --format text` printed `Paper digest`, `Steps: none`, `Paper verify-book`, `Cash: $1,000.00`, `Fills: none`, `Skips: none`. The Strategies Paper tab showed the paragraph and the `verify-book` row. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/70-72`, `dash-strategies-paper*`).*
+
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `paper create maint1030 --yes` gave `cash: 1000` and `desk: off`; `paper ls` listed it; `paper digest` read `Steps: none` with `Cash: $1,000.00`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/`.*
 *Re-driven 2026-10-30 (nightly, empty read only), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `paper ls --format json` returned `{accounts:[]}` on a fresh lane. Nothing else was re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
 

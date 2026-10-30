@@ -1,5 +1,7 @@
 # Calendar scheduling and polling windows
 
+*Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. A `calendar_candidate` push on `calendar-probe` was `accepted` (`delivery: daemon`); `calendar list` returned the minted `cocc_…` with `status: scheduled`, `event_status: candidate`; `calendar show` carried `provider_occurrence_id: verify-1-occ` and `revision: 1`; `calendar select` → `decision: selected`, `change_seq: 2`; `calendar revise --status cancelled` → `changed: true`, `revision: 3`, `status: cancelled`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/81-86`).*
+
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `calendar list --format json` returned no occurrences or events. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/`.*
 *Re-driven 2026-10-30 (nightly, empty read only), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `calendar list --format json` returned `{occurrences:[], events:[], truncated:false}` on a fresh lane. Occurrences, select, revise, reject and the polling windows were not re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
 

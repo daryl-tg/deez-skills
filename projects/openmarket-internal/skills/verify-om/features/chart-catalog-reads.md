@@ -1,5 +1,7 @@
 # Chart catalog reads
 
+*Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6: `chart indicator schema rsi` (`@om-core/rsi` 0.1.1, `period` int 14, 1..2500) and `schema nonsense` (exit 2 `indicator_unknown` listing the stock names). `indicator list` and `drawing schema` were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/74-75`).*
+
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `chart indicator list` 65; `indicator schema rsi` names `@om-core/rsi` 0.1.1; `drawing schema` reads `anchorFormat` `role=<epochSeconds>:<price>`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/`.*
 *Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `chart indicator schema rsi --format json` returned `@om-core/rsi` 0.1.1 (`Relative Strength Index`) with one `period` field (`int`, default 14, min 1, max 2500). With no argument it exits 1 with `missing required argument 'type-or-id'`. Drawing schemas and `indicator list` were not re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
 

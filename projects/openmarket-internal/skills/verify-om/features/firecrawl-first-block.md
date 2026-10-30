@@ -12,7 +12,7 @@ A configured Firecrawl connection retries the first eligible direct-read failure
 - An eligible direct read can recover after one automatic vendor retry, without a whitelist prompt.
 - Repeated refusal makes the site eligible for the existing whitelist offer; paid fetch count stays at one.
 - Restarting the daemon preserves the retry history and the site's refusal status.
-- A missing key offers `om setup firecrawl`. A configured key after repeated refusal makes the row read `Firecrawl can read it if you allow it`, with the fix label `allow Firecrawl to read <host>` (`status-sentence.ts:2550`). The command it points at is still `om setup firecrawl`; the explicit `om setup firecrawl --allow <host>` appears in the `page-add` CLI hint.
+- A missing key offers `om setup firecrawl`. A configured key after repeated refusal makes the row read `Firecrawl can read it if you allow it`, with the fix label `allow Firecrawl to read <host>` (`status-sentence.ts:2562`). The command it points at is still `om setup firecrawl`; the explicit `om setup firecrawl --allow <host>` appears in the `page-add` CLI hint.
 - Existing allowed sites continue to use their standing Firecrawl permission.
 
 ## How to get to it (user POV)

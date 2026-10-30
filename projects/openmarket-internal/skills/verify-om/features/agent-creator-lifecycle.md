@@ -1,5 +1,7 @@
 # Agent creator lifecycle and private-state isolation
 
+*Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. About 4 s after boot the lane log read `[roster] om-skills defaults installed 8 package(s)`; `OM_DEV=1 roster list` listed six registry rows at 1.0.0 (`argue`, `debugger`, `explain`, `fact-check`, `feature`, `librarian`). The runs, project and GUI paths were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/78-79`).*
+
 *Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103, guest. **The default agents now install from production.** Since #2183 (`d79e522f4`) the coordinates are `@om-core/*`. About 5 s after boot the lane log read `INFO [roster] om-skills defaults installed 8 package(s)`. `OM_DEV=1 roster list` then listed six registry rows at `1.0.0`: `argue`, `explain`, `fact-check` and `librarian` with brain `om`, and `debugger` and `feature` with `-`. The two skill packages are not roster rows. `agent runs` was still empty. Not driven: the six-hour maintenance pass, a withdrawal, and everything past the guest refusals (create/import, Try, install, publish/adopt, runs and the GUI). Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
 
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `OM_DEV=1` `agent runs` (`{"ok":true,"result":{"items":[],"next":null}}`), `agent pause nope`, `agent runs --proof`, `agent runs run_x --proof`, `project unlink nope` (each with its documented refusal, exit 1) and `roster list`. `/healthz` executors were `["coding","investigate"]`. Without `OM_DEV`, `agent runs` fails with `unknown command 'runs'`, as documented. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
@@ -135,7 +137,7 @@ Historical source stamps: repeated selected-release skill reads used39e94a54f; D
 
 Earlier source-specific proofs remain historical: Codex261/Claude263 on d24bded8f read vaultrev1, edited only README, passed12tests/24assertions and build, committed locally, delivered Resultrev2/Historyrev3 and one reply. D4 sources272/274 returned forest cabin1005 as273/275; D5 source276 returned amber canoe1005 as277; revoked278 received279; rollback280 returned forest cabin1005 as281. D4/D5 six-file packages matched across profiles; publisher memory/overlay2/1 and recipient0/0 with different owners. These counts alone are not a complete authorization proof. Gallery agent-creator-20261002/r05 retains the original source stamps.
 
-## Running a work agent end to end (PR #2199, verified 2026-10-29)
+### Running a work agent end to end (PR #2199, verified 2026-10-29)
 
 Verified live on lane 18124 with launchd's PATH, Claude Code 2.1.312 and Bun 1.4.3, signed in as a test account. A debugger agent fixed a one-line bug, committed only that file, passed the work proof and replied in its run topic. Each step below was a separate silent failure before #2199:
 

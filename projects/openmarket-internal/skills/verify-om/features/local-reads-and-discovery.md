@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. `config key-info` (`om_guest`, `key_set: true`); the new `chat.sounds` key (set/get/refusal, below); `set agent.max_tool_calls 250` exit 2; `setup default` read and refusals (Guest-lane reads); `enum --list` (26 domains), `enum --domain exchange_id` (35, no `BYBIT_FUTURES`), `schema read`, `skill list`, `wrun templates` (91), `upgrade --show`; `notis --since 7d --json` (`fire` rows); `vault status` (`mode: none`, `keyring: macOS Keychain (available)`; it takes no `--format`); `GET /openapi.json` (200, 137 paths, `info.version` 0.480.2); `research study --watch lane-probe --locate-only` (one occurrence); `nervous status` (`enabled: true`, a `watch_fired` receipt); `GET /secrets/status` (`readiness: unminted`); `GET /api/away` 401 `operator_required`; `approvals list` `[]`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/26-29c`, `cli/40-43`, `cli/51`, `cli/60-67`, `cli/89-89h`, `cli/93`).*
+
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `config key-info` (`expired: false`, `tier: om_guest`), `enum --list` (`exchange_id` 35), `skill list`, `notis --since 1d` (the lane's own fires), `wrun templates` 91, `approvals list` (`No pending approvals.`), `nervous status` (`enabled: true`), `sidebar`. New this pass: `vault status` (`mode: none`, `keyring: macOS Keychain (available)`; it takes no `--format`), `terms --format json` (`not_applicable: true`, `accepted: false` for a guest), `unsubscribe nope` (`confirmation_required`), and `GET /openapi.json` (200, 137 paths including `/healthz`). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/` (`cli/10`, `cli/11`, `cli/13`).*
 *Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163. `config set agent.max_tool_calls 250` exited 2 with `om: agent.max_tool_calls must be a positive integer, at most 249.` (the cap fell with the 500-call run ceiling, #2206). `set … 249` printed `om: set agent.max_tool_calls=249`, and `config get agent.max_tool_calls` read `249`, `source: config`, `rule: positive integer, at most 249`, `default: 24`. `wrun templates` still lists 91. `notis --since 1d` was refused `request_failed` (`this home's daemon is unavailable`); that was the busy-host probe, not the verb (see [daemon lifecycle](./daemon-lifecycle-and-health.md)). Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
 
@@ -51,7 +53,11 @@ decode.
   --format json`: assert `tier` `om_guest` and `expired` false. `config get
   data.transport --format json`: assert `source` `default` and `default` `auto`.
   `config set agent.max_tool_calls 250` exits 2 (`at most 249`); a value
-  stored above 249 by an older build reads as 249.
+  stored above 249 by an older build reads as 249. `config get chat.sounds`
+  (new in #2217) reads `unset (default: on)`, stored as `tui.sounds`;
+  `config set chat.sounds off` prints `om: set chat.sounds=off` and silences
+  the chat chimes and bells; any value but `on`/`off` exits 2 with
+  `chat.sounds must be on or off.` (driven 2026-10-31).
 - **Notifications.** Produce one first: an inbound watch left on the default
   classifier emits a `notice` once judging fails on a guest. Then `control-om om
   -- notis --since 7d --json` returns `rows[]` with `at`, `kind`, `watch` and
@@ -91,6 +97,8 @@ with no account:
 | Call | Observed |
 |---|---|
 | `approvals list` / `--format json` | `No pending approvals.` / `[]`; `GET /rpc/v1/approvals` returned `{"ok":true,"data":{"approvals":[]}}` |
+| `setup default` (driven 2026-10-31, `dfefe0a21`) | `{"default":null,"routing":"none","targets":[]}`; the verb's default `--format` is `json`, so a text read needs `--format text` |
+| `setup default nope`, also with `--force` (#2220) | exit 2 `channel_not_found`: `unknown channel 'nope' — no channels are configured`, hint `Run \`om setup list\` …`, `details.channels: []`. The `channel_failing` refusal and the `routing_note` line need a paired channel |
 | `nervous status --format json` | `{enabled:true, dailyBudgetPerSender:null, receipts:[…]}`. After an ingest fire it held a `watch_fired` receipt reading `no canvas resolved for (no symbol), stayed a notification` |
 | `follows --format json` | `{follows:[], summary:{… total:0}}` |
 | `follows show @nobody/nothing` | exit 2 `not_following` |

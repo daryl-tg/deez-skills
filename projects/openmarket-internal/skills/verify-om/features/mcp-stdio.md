@@ -1,5 +1,7 @@
 # The capability layer over MCP (stdio)
 
+*Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane home 18163 with the daemon down (a guest sign-in 429 kept it from booting; none of these calls needs it). `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.480.2 and `tools/list` returned **454** tools: `file_create` and `channel_default_set` are new (#2221, #2220), `document_draft` is gone (`Tool document_draft not found`, as the changelog says). `watch_list` read `watches: []`. `file_create` (`scratch`) wrote `…/accounts/guest/documents/vom-probe-20261031.md` and then `(2).md`; `filename:"../escape"` → `invalid_filename`. `channel_default_set {name:"nope"}` → `channel_not_found` (`unknown channel 'nope' — no channels are configured`, hint `details.channels names the configured channels`). `order_place` → `capital_yolo_harness`. **`file_create` with `destination:"downloads"` never answered**: 120 s of silence, and every call queued behind it timed out too, so run it last or not at all (README, known product gaps). Once the lane was up: `points` with `exchanges:["BYBIT_FUTURES"]` plus `rawSymbol` answered `id.exchange: BYBIT` (#2202's alias holds on the MCP schema), `metric_series`/`metric_get` with `selector:{symbol:"BTC"}` carried `listing_note`, `metric_get` with an unknown param → `invalid_query`, `markets {exchanges:["LIGHTER"]}` → `invalid_arguments` with the new `This input cannot address a venue outside the set` sentence, and `watch_show {id_or_slug:"nope"}` → `watch_not_found` with no `kind`. Loopback HTTP and the capital gate's `capital_not_armed` form were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/90-mcp-pre*`, `cli/91-mcp-downloads*`).*
+
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.478.0; `tools/list` returned 452 tools including `doc_patch`; `tools/call watch_list` returned `maint-1030`. `watch_show` takes `id_or_slug` (or `group`), not `id`: `{"id":…}` is refused `invalid_arguments` ("pass exactly one of `id_or_slug` … or `group`"). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/` (`cli/32-mcp.jsonl`).*
 *Re-driven 2026-10-30 (nightly, smoke depth), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163. `mcp serve --stdio --no-fire-bridge` answered `initialize` as `openmarket` 0.478.0. `tools/list` returned **452** tools, one more than before: the new `doc_patch` (#2191). `backtest_spec` was listed. `tools/call watch_list` returned `probe-1030`. `watch_show` with an unknown id returned `isError:true`, and its `structuredContent.data` held only `error: watch_not_found`, `message` and `hint`. The typed `kind` from #1702 is deliberately kept off the MCP payload, so do not assert on it. Loopback HTTP and the capital gate were not re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
 
@@ -64,6 +66,19 @@ home rather than the operator's.
 - **Proof.** Keep the transcript of the four responses. A tiny Bun script that
   spawns the wrapper and matches responses by `id` is enough; the shape to copy
   is `packages/cli/test/mcp-inspector-smoke.test.ts` in the product repo.
+- **`file_create` over stdio (added 2026-10-31).** `tools/call` `file_create`
+  with `{"content":"# probe\n","filename":"vom-probe"}` answers
+  `{path, bytes, format:"md", destination:"scratch"}`, the path under the
+  lane home's `accounts/guest/documents/`; the same call again takes
+  `vom-probe (2).md`; a filename with a separator is refused `invalid_filename`.
+  Keep `destination:"downloads"` out of a stdio drive: it answered nothing in
+  120 s and the server answered nothing after it either. A driver's
+  `proc.kill()` on the wrapper's pid leaves the `exec`'d `bun … mcp serve
+  --stdio` child alive with PPID 1 when a call is wedged (it exits on stdin
+  EOF only while it is reading); find it by its cwd and kill that pid.
+- **`channel_default_set` over stdio (added 2026-10-31).** `{"name":"nope"}`
+  on a home with no channels is `isError` with `error: channel_not_found`,
+  `details.channels: []`; the happy path needs a paired channel.
 
 ### Hosted MCP over loopback HTTP (added 2026-10-27)
 
