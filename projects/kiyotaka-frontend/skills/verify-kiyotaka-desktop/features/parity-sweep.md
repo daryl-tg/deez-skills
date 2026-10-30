@@ -5,18 +5,21 @@ dev lane, captures both hosts together at 1440 by 900, and diffs each pair with 
 more than 0.5 percent of its unmasked pixels differ, when its masks cover more than a quarter of the frame, or when its
 plot region is blank in either capture; a step also fails when the hosts disagree on its state. It has a guest phase (26
 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`) that signs in
-as the operator's real account on the deployed chart. Last driven 2026-10-29 on tree `30481b57f8` (`origin/main`), guest
-steps only, with the console session locked: 9 green (`boot-candles`, `ind-catalog`, `ind-search`, `ind-add`,
-`sym-dialog`, `sym-results`, `sym-scope`, `ks-super-search`, `ks-open`), 6 blocked at sign-in, 12 findings. Against
-2026-10-28 (`5365748ef3`), `ind-catalog` is green again, so that day's Chromium-only miss was timing. `ind-dialog` is a
-finding again, with every check true in both hosts: 1.6 percent of unmasked pixels differ, all inside the dialog's
-suggestion and catalog cards, which drew different content in the two hosts. That is content, not the shell.
-`sym-switch` failed `closed` in both hosts again, and every later step again failed on a click or hover timeout in both
-hosts. `pulse-page` timed out waiting for the Pulse page. `login-wall` wrote no shell capture
-(`captured` and `loadedLane` false): its shell half is a `capture.js` launch, and a locked screen gives it no frame (see
-[launch](./shell-launch-and-window.md)). Chromium's half wrote its frame. On 2026-10-28 neither half wrote one. The
-signed-in phase has not been driven in this map. The
-Windows sweep needs a VM and has never run.
+as the operator's real account on the deployed chart. Last driven 2026-10-31 on tree `5475ab32d5` (`origin/main`), guest
+steps only, with the console session locked and the machine at a load average of 3 to 6: the same split as 2026-10-29
+on `30481b57f8`, in 8 min 23 s with its pack. 9 green (`boot-candles`, `ind-catalog`, `ind-search`, `ind-add`,
+`sym-dialog`, `sym-results`, `sym-scope`, `ks-super-search`, `ks-open`), 6 blocked at sign-in (`ind-legend`,
+`tb-layout-apply`, `ks-run`, `hl-order`, `cex-order`, `oneclick-link`), 12 findings. `ind-dialog` is a finding with
+every check true in both hosts (`searchBox`, `dialogStyleOverlay`, `guestCapShown`): 1.7 percent of the unmasked
+pixels differ (1.6 on 2026-10-29), inside the dialog's suggestion and catalog cards, which draw different content in
+the two hosts. That is content, not the shell. `sym-switch` failed `closed` in both hosts again (`ethTitle` and
+`barsOver50` true in both), and every later step failed on a click or hover timeout in both hosts (`tb-interval` a 15 s
+click, the peeks a 30 s hover, `hl-enable` and `cex-connect` a 15 s click plus a failed restore). `pulse-page` timed out
+waiting for the Pulse page. `login-wall` wrote no shell capture (`captured` and `loadedLane` false): its shell half is a
+`capture.js` launch, and a locked screen gives it no frame (see [launch](./shell-launch-and-window.md)). Chromium's half
+wrote its frame. The runs of 2026-10-27, 2026-10-28, 2026-10-29 and 2026-10-31, at very different loads, give the same
+cascade, so it is drift between the sweep and the web tree, not load. The signed-in phase has not been driven in this
+map. The Windows sweep needs a VM and has never run.
 
 ## Sub-features
 

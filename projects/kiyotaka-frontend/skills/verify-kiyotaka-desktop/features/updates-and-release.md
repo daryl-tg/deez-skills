@@ -9,11 +9,14 @@ shows its own "A new version of the OpenMarket app is ready." toast through `ope
 policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice in the title bar or block the site below a
 `minVersion`; both channel policies are `off`. A merge to `main` that changes `desktop/package.json`, or a hand-pushed
 `desktop-v*` tag, runs `desktop release` (macOS, with Windows unless `DESKTOP_SKIP_WINDOWS=1`), `desktop release
-linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `30481b57f8`
-(`origin/main`, 2026-10-29) is still 0.1.7. The update round trip was last driven 2026-10-29 by the `update` scenario on
-that tree: 14 of 15 checks, the same as on 2026-10-27 and 2026-10-28, up to the
-boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature). The red one, `launchCheckReadBetaFeed`, is a
-stale lane assertion: with a feed override the policy watcher now asks `GET /policy.json` before `GET /beta-mac.yml`.
+linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `5475ab32d5`
+(`origin/main`, 2026-10-31) is still 0.1.7. The update round trip was last driven 2026-10-31 by the `update` scenario on
+that tree: 14 of 15 checks in 99 s including both packs, the same split as on 2026-10-27, 2026-10-28 and 2026-10-29, up
+to the boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature: `desktop: update check
+http://127.0.0.1:18150/ beta`, `desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`, `code
+failed to satisfy specified code requirement(s)`, `desktop: update not staged 0.1.0-beta.2`). The red one,
+`launchCheckReadBetaFeed`, is a stale lane assertion: with a feed override the policy watcher asks `GET /policy.json`
+before `GET /beta-mac.yml`, and `launchRequests` read exactly those two again.
 The title-bar button, the restart dialog, the page toast, the policy notice and block, and the internal build have no
 live driver; the release jobs need `mac-runner` (the office Mac mini, runner tag `macos`), the certificate, the notary
 key and the bucket.
@@ -59,8 +62,9 @@ Preconditions:
   `noDockBadge` and `noCopyLeft`.
 - **Unit level.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test` runs `updater`,
   `update-bridge`, `titlebar`, `policy`, `build-site`, `dev-lane`, and `tests/scripts/release-tag.test.ts`,
-  `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27 and again on 2026-10-29
-  (`30481b57f8`); not a live proof.
+  `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27, 2026-10-29 (`30481b57f8`) and
+  2026-10-31 (`5475ab32d5`, in 2.2 s); on 2026-10-30 the subprocess tests timed out under machine load. Not a live
+  proof.
 - **Upload set.** The publish script refuses unless every file it uploads exists and each feed file names the
   version, so a dry run needs a release build in `DIST_DIR` or placeholders. With placeholders, run:
 

@@ -9,16 +9,21 @@ registers, and the offline and online events fire. A download saves to Downloads
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-The guest rows were first driven through this map on 2026-10-29, on tree `30481b57f8` (`origin/main`). The run had the
-console session locked:
+The guest rows were last driven through this map on 2026-10-31, on tree `5475ab32d5` (`origin/main`), straight after
+the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 103 s. The run had the console session locked:
 
-- 15 rows passed in both hosts: the five `contextmenu-*` rows, `drop-chart`, `clipboard-text-read`, `navigator-share`,
-  `online-offline`, `service-worker`, the two gesture rows, `upload-image-picker`, `drop-image-dialog` and
-  `download-chart-csv`.
-- `device-pixel-ratio` was the allowed not-run, because one display was attached.
-- The eight `keys-*` rows were not run, because the console was locked.
+- 16 rows passed in both hosts: the five `contextmenu-*` rows, `drop-chart`, `clipboard-text-read`, `navigator-share`,
+  `online-offline`, `service-worker`, `device-pixel-ratio`, the two gesture rows, `upload-image-picker`,
+  `drop-image-dialog` and `download-chart-csv`.
+- `device-pixel-ratio` ran for the first time, because two displays were attached (both 1920 by 1080 at scale 1): the
+  shell moved the window and read `dpr 1, engine 1` after the move, and the browser side is "not moved: headless
+  Chromium has no window". On 2026-10-29 one display was attached and the row was the allowed not-run. Two displays at
+  the same scale prove the move, not a scale change.
+- The eight `keys-*` rows were not run, because the console was locked ("the macOS console is locked: no app can
+  become active, so the shell window is never key and a posted key reaches no page").
 
-On 2026-10-28, on `5365748ef3`, the lane threw twice before any row. The signed-in rows have not been driven through
+On 2026-10-29, on `30481b57f8`, the same 15 non-key rows passed. On 2026-10-28, on `5365748ef3`, the lane threw twice
+before any row. The signed-in rows have not been driven through
 this map. Those rows are the `window-open-*` rows, `download-workspace-json` and `download-screenshot-png`. They write
 to the operator's real account. Windows and Linux are unprobed.
 

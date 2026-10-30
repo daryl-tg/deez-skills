@@ -8,14 +8,19 @@ declined prompt, a wrong account or a wrong chain comes back as a refusal at onc
 `evm-sign-message`, `solana-sign-message` and `solana-connect`, and every request carries `issuedAt`, the app's clock
 when it opened the page; an old request reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent,
 approveBuilderFee, personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no
-transaction signing). Last driven 2026-10-29 on tree `30481b57f8` (`origin/main`). The sign page's summary, expired
-and invalid states were proved by hand in Chromium again. The `hl` scenario ran once, with the console session locked.
-It matched 2026-10-27 (`7290d33d10`): the connect, approveAgent and wrong-chain round trips went through, three
-`desktop: external` lines each answered by `desktop: return <id>`. Then it timed out at `personal_sign`
-(`timed out waiting for the shell to hand the sign page to the browser`, `handoff.mjs:645`). The cause is not
-isolated. On 2026-10-28 (`5365748ef3`) it stopped earlier, twice, at `waitForChart` (`handoff.mjs:230`) before any
-request. That stall did not recur on 2026-10-29 with the screen locked, so the hidden-window explanation suggested
-then is weaker. The sign-page lane and the `solana` scenario failed at their own preconditions again (see Driving).
+transaction signing). Last driven 2026-10-31 on tree `5475ab32d5` (`origin/main`), with the console session locked
+and the machine at a load average of 3 to 6. The sign page's summary, expired and invalid states were proved by hand in
+Chromium again: a fresh `hl-approve-agent` request drew `desktop-sign-page-title` "Authorize a trading key", the
+summary (key name, agent address, Valid until, Hyperliquid Testnet), `desktop-sign-origin` and
+`desktop-sign-no-wallet`; a day-old `issuedAt` drew `desktop-sign-expired` "This signing request has expired"; a
+truncated `r` drew `desktop-sign-invalid` "This signing link isn't valid". The `hl` scenario ran once and matched
+2026-10-27 (`7290d33d10`) and 2026-10-29 (`30481b57f8`): the connect and two approveAgent round trips went through,
+three `desktop: external` lines each answered by `desktop: return <id>`, then it timed out at the `personal_sign`
+request (`timed out waiting for the shell to hand the sign page to the browser`, `waitFor` at `handoff.mjs:226` from
+`nextSignPage` at 238 from `hlScenario` at 645), after 3 min 6 s. Three runs at very different loads stop at the same
+line, so the cause is in the lane or the page, not load; it is not isolated. On 2026-10-28 (`5365748ef3`) it stopped
+earlier, twice, at `waitForChart` (`handoff.mjs:230`) before any request; that stall has not recurred. The sign-page
+lane and the `solana` scenario failed at their own preconditions again (see Driving).
 The last fully green runs were 2026-10-12 (`hl` on `3a5f33b9a0`,
 `solana` on `60e27509cc`, sign lane on `133c5af8ca`). Turn on trading, a relaunch with trading enabled, an order and the
 1-click link are blocked on a signed-in OpenMarket account; the order also needs a funded testnet account.
@@ -55,7 +60,8 @@ Preconditions:
   `desktop-sign-expired`; a truncated `r` shows `desktop-sign-invalid`. No wallet is asked in any of these.
 - **Sign page lane.** `control-kiyotaka-desktop run sign <dir>` signs with MetaMask, 16 checks when green, among them
   `the signature recovers to the requested account` and `a tampered request raises no MetaMask prompt`. On 2026-10-27
-  and again on 2026-10-28 and 2026-10-29 it onboarded MetaMask and then failed `desktop-sign-summary` after 60 s:
+  and again on 2026-10-28, 2026-10-29 and 2026-10-31 it onboarded MetaMask and then failed `desktop-sign-summary` after
+  60 s:
   `qa/tests/e2e/desktop-sign.mjs` builds its request with no `issuedAt`, which
   `src/utility/desktop/sign-request.util.ts` rejects, so the page shows `desktop-sign-invalid`. That is a product-lane
   gap.
@@ -66,10 +72,11 @@ Preconditions:
   three requests went out and came back, then `timed out waiting for the shell to hand the sign page to the browser`
   at `handoff.mjs:645`, the `personal_sign` request; no summary checks beyond `completed: false`. Cause not isolated.
   On 2026-10-28, twice, it stopped before the first request: `page.waitForFunction: Timeout 90000ms exceeded` in
-  `waitForChart` (`handoff.mjs:230`), `completed: false`. On 2026-10-29 it was back to the `handoff.mjs:645` stop.
+  `waitForChart` (`handoff.mjs:230`), `completed: false`. On 2026-10-29 and 2026-10-31 it was back to the
+  `handoff.mjs:645` stop.
 - **Wallet Standard face.** `control-kiyotaka-desktop run handoff <dir> solana`. When green, all 7 checks pass; the
-  wallet's features are exactly `solana:signMessage`, `standard:connect` and `standard:events`. On 2026-10-27 and
-  2026-10-28 and 2026-10-29 it stopped at `Phantom CRX is not the pinned 26.32.0 build`.
+  wallet's features are exactly `solana:signMessage`, `standard:connect` and `standard:events`. On 2026-10-27,
+  2026-10-28, 2026-10-29 and 2026-10-31 it stopped at `Phantom CRX is not the pinned 26.32.0 build`.
 - **Proof.** The lane summaries and their PNGs, among them `unit-09-handoff-prompt.png` and
   `unit-09-oneclick-signmessage.png`; for the hand drive, one frame per state plus the testids read.
 

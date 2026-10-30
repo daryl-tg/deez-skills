@@ -6,12 +6,14 @@ The main process tries three parsers in order, sign-in (`openmarket://oauth/call
 (`openmarket://checkout`) and return; anything none of them takes is dropped as `desktop: dropped openmarket://<host>`.
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
 window shows a chart page. The bridge's members are `version`, `onReturn`, `updates` and `analytics`, plus
-`browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last driven 2026-10-29
-by the `returns` scenario on tree `30481b57f8` (`origin/main`) against the dev lane: 20 of 21 checks, the same as on
-2026-10-27 and 2026-10-28. The red one, `bridgeTwoMembers`,
-still expects `onReturn, version` and read `analytics, browserSignIn, onReturn, updates, version`; that is a stale lane
-assertion, not a regression. Windows registration and delivery are unproven on a real machine. The sign-in and checkout
-links are covered in [browser sign-in and checkout](./browser-signin-and-checkout.md).
+`browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last driven 2026-10-31
+by the `returns` scenario on tree `5475ab32d5` (`origin/main`) against the dev lane: 20 of 21 checks in 71 s including
+the `pnpm package:dev` pack, the same split as on 2026-10-27, 2026-10-28 and 2026-10-29. The shell logged `desktop:
+dropped openmarket://elsewhere`, a `desktop: return <id>` line for `abc`, `second`, the handoff's uuid,
+`before-subscribe`, `held` and `cold`, and `desktop: external .../desktop/sign?r=...` for the handoff step. The red one,
+`bridgeTwoMembers`, still expects `onReturn, version` and read `analytics, browserSignIn, onReturn, updates, version`;
+that is a stale lane assertion, not a regression. Windows registration and delivery are unproven on a real machine. The
+sign-in and checkout links are covered in [browser sign-in and checkout](./browser-signin-and-checkout.md).
 
 ## Sub-features
 

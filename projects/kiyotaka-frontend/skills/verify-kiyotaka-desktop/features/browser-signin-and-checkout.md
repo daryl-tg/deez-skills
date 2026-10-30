@@ -9,12 +9,16 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-30 on tree
-`849fb08e95` (`origin/main`): the return, checkout-return and signin pages in Chromium on the dev lane. The
-super-search command and Chromium's sign-in dialog with its Use a passkey row were last driven 2026-10-29 on
-`30481b57f8`. On 2026-10-30 the chart route never settled under machine load (see the [index](./README.md)). The
-shell's production sign-in screen with no passkey row was last captured 2026-10-28 on `5365748ef3`; on 2026-10-29 and
-2026-10-30 the console session was locked and `capture` got no frame (see [launch](./shell-launch-and-window.md)). The
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-31 on tree
+`5475ab32d5` (`origin/main`) in Chromium on the dev lane: the return page (valid and invalid), the four checkout-return
+states, the signin page's redirect to `/chart/auth?redirect=/desktop/signin`, the super-search command
+(`super-search-result-featureCommands:desktop-app-btn`, "Download the OpenMarket desktop app") and the sign-in dialog
+with its `login-signup-passkey-btn` "Use a passkey" row. The chart route settled in about five seconds that day; on
+2026-10-30 it never settled under machine load (see the [index](./README.md)). On 2026-10-31 `ProfilePanel.vue` changed
+(`6dd6aa43de`, the Plus tier label became a mark) and its `desktop-app` row, behind `isDesktopDownloadEntryVisible()`,
+was not touched. The shell's production sign-in screen with no passkey row was last captured 2026-10-28 on
+`5365748ef3`; on 2026-10-29, 2026-10-30 and 2026-10-31 the console session was locked, so `capture` got no frame or was
+not attempted (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
 `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, a real orange and, for checkout, a Stripe session.
@@ -79,7 +83,10 @@ Preconditions:
   `openmarket://checkout` link the page builds. `?kind=portal` alone is invalid.
 - `open` of the same route with only a new hash does not remount the page. Go through `about:blank` between URLs.
 - agent-browser's headless tab drifts to `hidden`, and the boot splash waits on `requestAnimationFrame`, so a page read
-  too early sees no testids and a splash frame. Re-front the tab and wait for `#skeleton-loader` to disappear.
+  too early sees no testids and a splash frame. Re-front the tab and wait for `#skeleton-loader` to disappear. A DOM
+  read can succeed while the frame still comes out blank: on 2026-10-31 two of seven page PNGs were a 3.7 KB white
+  frame with every testid read correctly. Run `browser --session <s> tab 1` right before `screenshot`, not only between
+  waits; the re-shot frames drew.
 - The pages wipe their hash or query on mount, so read `location.href` after the wipe to prove it and keep the URL you
   opened in the run notes.
 - No lane signs in through the browser end to end. `open 'openmarket://oauth/callback?...'` with no pending sign-in only
