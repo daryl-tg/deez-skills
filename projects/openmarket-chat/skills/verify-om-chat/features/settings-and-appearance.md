@@ -48,7 +48,7 @@ interaction end to end.
   alert cards in that channel's tape (`WebhooksPage.tsx:600`,
   `ConvertWebhooksStepper.tsx:342,419`).
 - Keyboard Shortcuts carries an **Editing** group with one switch, **Vim mode**
-  (`UserSettings.tsx:1278-1296`, `878049d8`/`b1ed7135`). It is off by default and
+  (`UserSettings.tsx:1290`, `878049d8`/`b1ed7135`). It is off by default and
   stored as `localStorage["om.chat.vimMode"]` (`"true"`/`"false"`). It is synced and
   scoped per account (`lib/prefs.ts`) and turns on Vim keys in the message box
   ([composer-and-sending.md](composer-and-sending.md)) and the doc editor
@@ -191,6 +191,36 @@ effects.
 
 Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`settings-*`, `server-settings-*`, `settings-fixture-notifications-*`).
 
+### Appearance switches, Profiles, Privacy and To-dos handles (added 2026-10-31)
+
+- **Appearance** (`settings-fixture.html?host=user&page=appearance`) carries
+  three switches above the radiogroups: **Show link previews** (on by default;
+  clicking it writes `localStorage["om.chat.linkPreviews"]="false"`, clicking
+  again `"true"`; `UserSettings.tsx:1806`, `lib/prefs.ts`), **Underline links**
+  and **High contrast mode**. The radiogroups read **Theme** (Dark theme /
+  Light theme / Sync with OS theme), **Palette** (five), **Chat layout**
+  (Bubbles / Streamlined / Custom; the fixture starts on Custom), **Server
+  channel layout** and **Direct message layout** (Bubbles / Streamlined) and
+  **Message display** (Cozy / Compact). The layout radios carry no
+  `aria-label`; read their `label` text. Remove the key afterwards.
+- **Profiles** (`?page=profiles`): heading **Profiles**, the display-name field
+  (`justintg`), a custom-status field (`long $BTC`) with **Clear custom status
+  after**, **Tell people who you are**, **Change avatar**, and the presence
+  choices **Online** / **Idle** / **Do not disturb** (`UserSettings.tsx:1242-1244`).
+  The presence radios have no accessible name, and clicking **Idle** changed
+  nothing in the fixture (no setter is stubbed).
+- **To-dos** (`?page=todos`): two radiogroups, **Which to-dos appear in chat or
+  topics** (All to-dos / Only mine / None) and **Whether to-do status updates
+  appear in chat** (Show updates / Hide updates) (`UserSettings.tsx:636-668`).
+- **Privacy**: `settings-fixture.html?host=user&page=privacy` renders a blank
+  page (no nav, no body) on this lane; use the shell route
+  `shell-fixture.html?view=settings&settingsPage=privacy&alerts=quiet`, which
+  shows heading **Privacy** and the switch **Private account**. The
+  who-can-message choices Everyone / People you follow / No one
+  (`UserSettings.tsx:1005-1019`) are a select, not radios.
+
+Driven 2026-10-31 on `/rooms/` (18135) at `936f5b64`.
+
 ### Notification volume (added 2026-10-30)
 
 `3306463a` adds a per-device **Notification volume** to Settings →
@@ -299,7 +329,9 @@ maintenance, 2026-10-30).
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `?view=settings` dialog **Settings** and the **Log Out** alertdialog; settings fixture **Light theme** (`data-theme=light`); server **Roles** with `perms=owner`; the **Slash commands** guide page; **Notification volume** renders. `/chat/`: the settings dialog nav (20 entries) and the Notification volume set and persisted (49). **Limitations:** Most page bodies were not re-driven this pass (2026-10-29 stands); Notifications still crashes the shell fixture. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 09, 21).
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): **Light theme** → `data-theme=light` (restored); Notifications `#om-notification-volume` ArrowLeft ×5 → 95 / `95%` / `om.chat.notificationVolume="95"` (removed); **Vim mode** switch → `om.chat.vimMode="true"` (reset); **Log Out** alertdialog; Meta+/ → **Grammar & shortcuts**; Invites → **Invite link settings**; channel Webhooks → **Convert webhooks to alerts · bitcoin**; Appearance switches and radiogroups, Profiles, To-dos and Privacy as above. `/chat/` (18136): **Light theme**, volume 95 kept in storage, **Log Out**, Meta+/, and the shell settings nav with 20 entries. **Limitations:** Effects of every toggle beyond local storage; Notifications and server Moderation still crash the shell fixture; Help and guide bodies not re-read; tones and audio preview. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `?view=settings` dialog **Settings** and the **Log Out** alertdialog; settings fixture **Light theme** (`data-theme=light`); server **Roles** with `perms=owner`; the **Slash commands** guide page; **Notification volume** renders. `/chat/`: the settings dialog nav (20 entries) and the Notification volume set and persisted (49). **Limitations:** Most page bodies were not re-driven this pass (2026-10-29 stands); Notifications still crashes the shell fixture. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 09, 21).
 
 **Previous record:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope (`/rooms/`, `settings-fixture.html`):** **Notification volume** moved 100 → 95 with ArrowLeft, wrote `om.chat.notificationVolume`, and survived a reload. **Sound** was the group heading. The Audio page's **Call volume** carried `.slider` with `--slider-pct: 100%`. **Limitations:** Only the delta was driven tonight; the rest of this guide keeps its 2026-10-29 proof. `/chat/` and the sound preview were not driven. Evidence is local only: `artifacts/vomc-nightly-20261030/r1/` (frames 20-21).
 

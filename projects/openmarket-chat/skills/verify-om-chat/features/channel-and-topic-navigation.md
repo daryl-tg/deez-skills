@@ -138,8 +138,8 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 
 ### Topic inbox panel and Resolve (added 2026-10-28)
 
-- **Topic inbox:** `shell-fixture.html?view=room&topics=on&panel=inbox&alerts=quiet` mounts an `aside` named **Inbox** with `data-right-panel="inbox"` (`RightPanels.tsx:382`). It reads "Inbox 9", with a `#OPS` group, a stream row (4), **ETF flows, week of the 28th** (2) and **CPI print — Aug** (3). Its buttons are **Close inbox**, **Mark #ops read**, **Topic <name>, followed** and **Mark <name> read**, and its footer hints `⌘⇧U inbox`, `⌥⇧↓ next unread` and `Esc close`. `?inbox=open` only sets `session.inboxOpen` (`shell-fixture.tsx:3117-3119`), and the fixture's `toggleInbox` flips only that flag (`:3419`). So neither `?inbox=open` nor the **Inbox: 9 unread** button opens the panel here: use `panel=inbox`. `TopicCatchUp` is only the keyboard host for those chords and renders nothing. Driven on `/rooms/` and `/chat/`. The mark-read effects are fixture no-ops.
-- **Resolve a topic:** open a topic row's menu as described in Gotchas (Mark As Unread), then choose **Resolve <topic> (closes the conversation; the history stays)** (`TopicPill.tsx:146-149`). It opens a `dialog` named **Resolve <topic>**, for example **Resolve Funding flipped negative on Hyperliquid**. The dialog has an optional "What settled it?" note and **Resolve Topic** (`TopicResolvePopover.tsx:113-114`). The fixture implements `openTopicResolvePrompt` (`shell-fixture.tsx:3551`). **Resolve Topic** itself was not pressed. Driven on `/rooms/` and `/chat/`. **Add People...** has no route, because the fixture sets `topicAddPicker: null` (`:3301`).
+- **Topic inbox:** `shell-fixture.html?view=room&topics=on&panel=inbox&alerts=quiet` mounts an `aside` named **Inbox** with `data-right-panel="inbox"` (`TopicInbox.tsx:376`, mounted from the `rightPanel === "inbox"` branch at `RightPanels.tsx:382`). It reads "Inbox 9", with a `#OPS` group, a stream row (4), **ETF flows, week of the 28th** (2) and **CPI print — Aug** (3). Its buttons are **Close inbox**, **Mark #ops read**, **Topic <name>, followed** and **Mark <name> read**, and its footer hints `⌘⇧U inbox`, `⌥⇧↓ next unread` and `Esc close`. `?inbox=open` only sets `session.inboxOpen` (`shell-fixture.tsx:3117-3119`), and the fixture's `toggleInbox` flips only that flag (`:3419`). So neither `?inbox=open` nor the **Inbox: 9 unread** button opens the panel here: use `panel=inbox`. `TopicCatchUp` is only the keyboard host for those chords and renders nothing. Driven on `/rooms/` and `/chat/`. The mark-read effects are fixture no-ops.
+- **Resolve a topic:** open a topic row's menu as described in Gotchas (Mark As Unread), then choose **Resolve <topic> (closes the conversation; the history stays)** (`TopicPill.tsx:146-149`). It opens a `dialog` named **Resolve <topic>**, for example **Resolve Funding flipped negative on Hyperliquid**. The dialog has an optional "What settled it?" note and **Resolve Topic** (`TopicResolvePopover.tsx:113-114`). The fixture implements `openTopicResolvePrompt` (`shell-fixture.tsx:3551`). **Resolve Topic** was pressed on 2026-10-31: the dialog closes with no toast and no row change, because the fixture's resolve is local. Driven on `/rooms/` and `/chat/`. **Add People...** has no route, because the fixture sets `topicAddPicker: null` (`:3301`).
 
 Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 09, 36-37, 41, 43).
 
@@ -244,6 +244,53 @@ the member menu item **Remove from Topic** (`UserContextMenu.tsx:644`). Since
 
 Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 16-19).
 
+### Sidebar context menus (added 2026-10-31)
+
+Right-click (a `contextmenu` event dispatched on the row's
+`.channel-row-identity`) opens the menus below. The permission gate hides the
+destructive verbs for the fixture viewer, so these lists are what a member
+without manage rights sees. Driven on `/rooms/` (18135) and `/chat/` (18136)
+at `936f5b64`.
+
+- **Channel row** (`Sidebar.tsx:6058-6262`), 10 items on `signals`: a
+  notification tile named **Notification settings for #signals (Use server
+  default)** (a submenu), **Link** (**Copy link to #signals**), **Mute**
+  (**Choose how long to mute #signals**, a submenu with 15m / 1h / 8h / 24h /
+  **Until unmuted**), **Browse Topics**, **Create Topic**, **Convert to
+  alerts...**, **Edit Channel**, **Mark As Read**, **Import folder...** and
+  **Copy channel ID**. **Archive Channel**, **Delete Channel...** and **Move
+  to** / **Move up** / **Move down** need manage rights and do not render.
+  **Create Topic** opens the dialog **Create Topic in #signals** with a
+  **Make topic private** switch and **Create Topic** (`Modals.tsx:370`).
+- **Category header** (`Sidebar.tsx:6290-6381`), 3 items on **category Desk,
+  5 channels**: **Mark As Read**, **Collapse Category** and **Create Channel in
+  Desk**. **Rename Category** and **Delete Category** need manage rights on
+  every room in the category and do not render.
+- **Server header** (`.sidebar-server-menu-trigger`, `aria-haspopup="menu"`,
+  `ServerMenu.tsx:81-267`), 16 items on `/rooms/`: **Read** (**Mark every
+  channel in Thanefield Capital as read · ⇧Esc**), **Mute** (**Mute Thanefield
+  Capital until you turn it back on**), **Invite**, **Server Settings**,
+  **Create Channel**, **Create Category**, **Server Library**, **Open World**,
+  **Clean up topics**, **Notification Settings** (a submenu), the flat timed
+  mutes **15m** / **1h** / **8h** / **24h** (named **Mute Thanefield Capital
+  for 15 minutes** and so on), **Leave Server** and **Copy server ID**. On
+  `/chat/` the same menu has 15 items: **Clean up topics** is daemon-only
+  ([topic-cleanup.md](topic-cleanup.md)). **Create Channel** opens the dialog
+  **Create channel** with a **Private channel** switch.
+- **DM row**: see [direct-messages-and-home.md](direct-messages-and-home.md).
+- **Topics primer → New topic** (`[data-topic-primer-new]`,
+  `TopicListView.tsx:222`) opens the same create dialog, titled **Create Topic
+  in ##ops**: `TopicListView.tsx:1372` passes a `label` that already carries
+  `#`, and the modal title prefixes another (`Create ${noun} in #${label}`).
+  The sidebar path passes a bare `roomLabel` and reads **Create Topic in
+  #signals**. A product nit, reported 2026-10-31.
+
+Every verb here that changes state (`applyRoomPositions`, the archive and
+category writes, leave, the mute writes) is unstubbed in both fixtures, so the
+offer is proved and the effect is pending. Sidebar drag-and-drop
+(`text/om-channel`, `text/om-server`, `Sidebar.tsx:5338-5716`) is not
+driveable with synthetic `DragEvent`s.
+
 ## Gotchas
 
 - **`panel=members` on a public topic blanks the whole shell, on both hosts.**
@@ -289,7 +336,7 @@ Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 16-19).
   in both states at desktop width, because `#715` hoisted the dock into
   `ConversationRightRegion` where it renders unconditionally. The bare `nav`
   without its wrapper appears only under the mobile overlay
-  (`RightPanels.tsx:161`), which is a viewport distinction, not an open one.
+  (`RightPanels.tsx:212`), which is a viewport distinction, not an open one.
   Drive the stable hooks —
   `[data-slot-tab="members"]` and `[data-slot-tab="library"]`, reading
   `aria-pressed` for which panel is open. That pair still works: clicking
@@ -404,7 +451,9 @@ Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 16-19).
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18153): CPI treeitem → `#/room/ops/topic/cpi-print-aug` and **Message in CPI print — Aug**, **Back to #ops** → `#/room/ops`; **Hide this channel's topics** flipped to **Show**; topic row menu (11 items) via `contextmenu` on `.channel-row-identity`; Delete Topic copy; **Resolve Funding flipped negative on Hyperliquid** dialog; **Choose how long to mute #signals** → 15m/1h/8h/24h; **Remove from private topic?** on `basis-desk-review`; deep link `messageJump=105`; topic peek with the hash; `panel=inbox` (**Close inbox**, **Mark #ops read**); `switcher=open`; `panel=pins|bookmarks|topic-draft` asides. `/chat/` (18154): topic navigation and Back, the 11-item topic row menu and Delete Topic. **Limitations:** The `/chat/` fixture has no private `basis-desk-review` topic (the route lands on `#ops` Members). Effects of mute, unread, resolve and delete are fixture no-ops. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 05-07, 10-13).
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): CPI treeitem → `#/room/ops/topic/cpi-print-aug` and **Message in CPI print — Aug**, **Back to #ops** → `#/room/ops`; **Hide this channel's topics** → **Show this channel's topics** (16 level-2 rows); dock **Members** → **Close Members** with `aria-pressed=true` and `.right-panel-drawer`; topic row menu (11 items), **Resolve Funding flipped negative on Hyperliquid** and **Resolve Topic** pressed (closes, no change), **Delete ⌗ …** alertdialog; switcher `#mac` → `#/room/macro/topic/basis-desk-review`; deep link `msg/105` → `data-message-jump=105`; channel-row **Mute** submenu (five durations); **Preview of signals** and **Conversation with ana** hover peeks; topic peek with the hash and Escape back to `#/room/ops`; **Remove from private topic?**; primer **New topic** → **Create Topic in ##ops**; the channel row, category and server menus and **Create Topic** / **Create Channel** dialogs. `/chat/` (18136): topic → `/chat/room/ops/topic/cpi-print-aug` and back; `peek=cpi-print-aug` plus **Open full** → the full topic; DM peek; the channel peek stays **Loading preview**; switcher → `/chat/room/macro/topic/basis-desk-review`; `panel=inbox` aside **Inbox**; `panel=topic-draft` aside **New topic**; the three sidebar menus (server 15 items). **Limitations:** Every menu verb's effect, public-topic removal, the dock collapse toggle and **Add People...**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18153): CPI treeitem → `#/room/ops/topic/cpi-print-aug` and **Message in CPI print — Aug**, **Back to #ops** → `#/room/ops`; **Hide this channel's topics** flipped to **Show**; topic row menu (11 items) via `contextmenu` on `.channel-row-identity`; Delete Topic copy; **Resolve Funding flipped negative on Hyperliquid** dialog; **Choose how long to mute #signals** → 15m/1h/8h/24h; **Remove from private topic?** on `basis-desk-review`; deep link `messageJump=105`; topic peek with the hash; `panel=inbox` (**Close inbox**, **Mark #ops read**); `switcher=open`; `panel=pins|bookmarks|topic-draft` asides. `/chat/` (18154): topic navigation and Back, the 11-item topic row menu and Delete Topic. **Limitations:** The `/chat/` fixture has no private `basis-desk-review` topic (the route lands on `#ops` Members). Effects of mute, unread, resolve and delete are fixture no-ops. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 05-07, 10-13).
 
 **Previous record:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope (`/rooms/`):** On the private topic `basis-desk-review` with `panel=members`, **Remove ana from this topic** opened **Remove from private topic?**, and **Remove** closed it with no change. The topic row menu's **Delete Topic** showed the new `edbb7153` body. `panel=members` on the public `cpi-print-aug` blanked the shell on `/rooms/` and `/chat/` with the `topicFollowers` error in Gotchas. **Limitations:** Only the delta above was driven tonight; the rest of this guide keeps its 2026-10-29 proof. Public-topic removal, the member menu and the glyph are source-only. Evidence is local only: `artifacts/vomc-nightly-20261030/r1/` (frames 16-19).
 

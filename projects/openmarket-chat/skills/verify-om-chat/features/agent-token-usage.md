@@ -6,6 +6,9 @@
 - Counts use lowercase `k` and uppercase `M`, with at most one decimal.
 - Hover titles preserve the exact total. Missing usage omits the count.
 - Expanding tool activity preserves the usage summary.
+- The `failed` state of `agent-presentation-fixture.html` reads **Tool activity
+  1 failed** above the tool rows (`room_list`, `watch_list`, `market_resolve`);
+  the failed call shows `ok:false` on its row.
 
 ## How to get to it (user POV)
 
@@ -43,7 +46,9 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `agent-usage-fixture`: `12.3k tokens`, `?tokens=1250000` → `1.3M tokens`, `?tokens=missing` → no count; **Expand tool activity** → **Collapse tool activity**; `agent-presentation-fixture?state=collapsed` toggled the same way. **Limitations:** Daemon accounting. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/`.
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `agent-usage-fixture`: **Expand tool activity** → **Collapse tool activity**, `.agent-answer-meta` **12:00 PM · 1 tool · 2.0s · 12.3k tokens**; `?tokens=1250000` → **1.3M tokens**; `agent-presentation-fixture?state=failed` → **Tool activity 1 failed**. **Limitations:** Daemon accounting; the input+output fallback; the hover title was not read. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `agent-usage-fixture`: `12.3k tokens`, `?tokens=1250000` → `1.3M tokens`, `?tokens=missing` → no count; **Expand tool activity** → **Collapse tool activity**; `agent-presentation-fixture?state=collapsed` toggled the same way. **Limitations:** Daemon accounting. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/`.
 
 **Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`; `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** Daemon accounting and the input+output fallback not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 03, 38–39).
 

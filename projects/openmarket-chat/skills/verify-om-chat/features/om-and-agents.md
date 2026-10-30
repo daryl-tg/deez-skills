@@ -320,7 +320,7 @@ Three harnesses, and they reach different parts.
 | `shell-fixture.html?view=agent` | Your om — the not-running empty state, unless `/healthz*` is stubbed (see Gotchas) |
 | `shell-fixture.html?view=agent&omSessions=drafts` | Local Research A/B draft seed. Reaches the rail reproducibly with the `**/healthz*` route stub (see [your-om-drafts.md](your-om-drafts.md)) |
 | `shell-fixture.html?view=agent&omSessions=daemon` | Real `OmSessionState` adapter for a daemon-served lane; it does not bypass presence or provide watch data |
-| `shell-fixture.html?view=agents` | The Agents page, h1 **Agents**, with only the `your om` card and **+ Wire an agent**. No roster host is scripted, so no other agent and no creator |
+| `shell-fixture.html?view=agents` | The Agents page in the shell, h1 **Agents**, `#/agents`: **Map** / **Grid**, **Templates**, **New agent**, the **All agents** / **Needs you** / **Running** filters, PERSONA nodes **Voice**, **Away coverage** and **Activity**, and under AGENTS `your om`, with **OM daemon**, **Claude Code** and **Codex** each reading "can't tell" (no roster host, so no other agent; measured 2026-10-31) |
 | `shell-fixture.html?view=agent&panel=voice` | Agents → `#/agents/voice`, "Voice" / "Current", mocked and loaded |
 | `shell-fixture.html?view=agent&panel=away` | Agents → `#/agents/away`, "Research om is covering you" |
 | `shell-fixture.html?view=agent&panel=activity` | Agents → `#/agents/activity`, "Away activity" |
@@ -377,6 +377,26 @@ In a channel, open **More channel actions** (the header `…`). Its menu has 14 
 
 `find role menuitem click --name "Invite agent"` missed the item once while the menu was still opening. Take a snapshot and click the item by its ref instead. Driven on `/rooms/` and `/chat/` 2026-10-28 at `2dd7aad1` (frames 13, 42). The wired-badge state, the consent card and the **Channel agents** panel need a daemon with a wired badge.
 
+### Agent page panels and Fleet health (added 2026-10-31)
+
+On `agent-center-fixture.html`, **Grid** ends in a `details.agents-health`
+whose `summary` reads **Fleet health · last 24 hours** (`agents/FleetHealth.tsx:22-28`).
+It is closed by default; clicking the summary opens eleven measures: duplicate
+posts, recovered runs, completed per recovery, posts refused by checks, queue
+wait (typical and 95%), runs interrupted, time to cancel, owner interventions
+per run, updates rolled back, suggestions accepted ("not measured yet") and an
+estimated API-equivalent cost.
+
+An agent page (`#/agents/a/inst_argue`) has four tabs, **Overview**,
+**Activity**, **Access** and **Settings** (there is no Sessions tab), and its
+boxes are `h2.agent-box-h` (`agents/AgentPanels.tsx`): **About** (`:131`) on
+Overview, **Today** (`:345`) added on Activity, and **Memory** (`:166`) with a
+progressbar named **Memory used** (`:181`) added on Settings. **This hour**,
+**Sessions**, **Agent settings** and **Full access** (`:203`, `:317-390`) and
+the **Stop access to <label>** chips (`:253`) did not render for `argue`. Use
+`find role tab`, because **Activity** is also a rail row. Driven 2026-10-31 on
+`/rooms/` (18135) at `936f5b64`.
+
 ## Gotchas
 
 - **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
@@ -395,7 +415,7 @@ In a channel, open **More channel actions** (the header `…`). Its menu has 14 
   poll answer or while the tab is hidden (`ChatPane.tsx:270`). Do not plan a
   proof on that window. The stub answers health only, so Watches still need
   daemon watch RPCs and QA watch data, and unread still needs daemon events.
-oms/`, persona is unreachable from a `view=agents` page load — by any control,
+- **On `/rooms/`, persona is unreachable from a `view=agents` page load — by any control,
   not just the old query.** (On `/chat/` the same Voice click reaches the hosted
   page and reads the desk-offline copy; see
   [persona-setup-and-editing.md](persona-setup-and-editing.md).) The fixture decides whether to mock persona
@@ -441,7 +461,9 @@ oms/`, persona is unreachable from a `view=agents` page load — by any control,
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `agent-center-fixture`: **Needs you, 9** → `#/agents/waiting`, the consent buttons pressed as listed under Needs you (9 → 8 → 6 → 5; **Accept** no-op); **Grid** wrote `om.chat.agentsView=grid`; **Open argue** → `#/agents/a/inst_argue` with **Run argue**, Overview / Activity / Access / Settings and **Ask argue something**. `/chat/` `?view=agents`: **Persona sections** → **Voice** (`/chat/agents/voice`) and **Away coverage** (`/chat/agents/away`) read the desk-offline copy. **Limitations:** Authenticated roster actions. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 04, 30-33).
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `agent-center-fixture`: Map ready; **Grid** ready with **Fleet health · last 24 hours** opened; **Needs you, 9** → `#/agents/waiting` (Approve argue update, Keep argue at 1.0.0, Allow, Yes, remember it, No, forget it, Dismiss, Accept, Reject present); **Open argue, 2 need you** → `#/agents/a/inst_argue`, h1 **argue**, tabs, **Run argue**, **More actions for argue** (3 items), the About / Today / Memory boxes; **New agent** (groups **Agent type**, **Agent templates**; Escape returns focus); `?roster=none` Allow / Deny; `?state=desk-off` **Loading agents**; **Update for argue**. Shell: `?view=agent&panel=voice|away|activity` → `#/agents/voice|away|activity` with their copy; `?view=agents` as in the route table; `remote-home-fixture` approval / live / unsupported; `omSessions=drafts` with the `**/healthz*` stub. `/chat/` (18136): `?view=agents` → `/chat/agents`, Map with om only and the local-app copy; **Voice** → `/chat/agents/voice` and **Away coverage** → `/chat/agents/away`, both desk-offline. **Limitations:** Consent buttons not pressed this pass (pressed 2026-10-30); authenticated roster actions; the rail spellings for away, reconnecting and remote; the 390 px sheet drag. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `agent-center-fixture`: **Needs you, 9** → `#/agents/waiting`, the consent buttons pressed as listed under Needs you (9 → 8 → 6 → 5; **Accept** no-op); **Grid** wrote `om.chat.agentsView=grid`; **Open argue** → `#/agents/a/inst_argue` with **Run argue**, Overview / Activity / Access / Settings and **Ask argue something**. `/chat/` `?view=agents`: **Persona sections** → **Voice** (`/chat/agents/voice`) and **Away coverage** (`/chat/agents/away`) read the desk-offline copy. **Limitations:** Authenticated roster actions. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 04, 30-33).
 
 **Previous record:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0), the first main tree with the `3e9c88f3` Agents redesign. **Scope (fixture lane):** On `/rooms/` `agent-center-fixture.html`, the Map showed **Agents map** with its House, Chat, Work and Connected agent regions, Rooms, Library, Projects and the named ask cards. **Grid** showed **Agents grid**, **Your agents**, **Sort agents** and seven agent h3s. **Needs you, 9** led to `#/agents/waiting` (h1 **Needs you**) with region **Update for argue** (**Approve argue update**, **Keep argue at 1.0.0**). **Open argue, 2 need you** led to `#/agents/a/inst_argue` (h1 **argue**, **Run argue** checked, **More actions for argue** → Review replies first / Check routing / Review what it learned). All four tabs switched. **Back to agents** returned to `#/agents`. **New agent** opened its dialog (Agent type, Agent templates, Start blank, Import, Continue), and Escape returned focus to **New agent**. `?roster=none` showed the Allow / Deny feed with om and the connected agents only. `?state=desk-off` read "Loading agents" and "your desk · not answering". `shell-fixture.html?view=agents` showed h1 **Agents** with `your om` and **+ Wire an agent** (on Grid, the view stored earlier in the session). On `/chat/` it routed to `/chat/agents` and showed the Map with om only and the local-app copy. At 390 px the **New agent** sheet followed in-page pointer drags, sprang back from a short pull and dismissed from a long one. **Limitations:** Allow, Accept and Reject were not pressed. The Voice, Away and Activity rows, `away-panel-fixture` and `remote-home-fixture` were not re-driven tonight; the host load averaged 170-350. Real relay and daemon actions are pending. Evidence is local only (the `8098` renderer was unreachable): `artifacts/vomc-nightly-20261030/r1/` in the product worktree, frames 01-06, 11-15.
 

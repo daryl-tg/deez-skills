@@ -7,14 +7,22 @@ says about them.
 
 - **Profile drawer** (`packages/chat-ui/src/components/ProfilePanel.tsx`): a
   right-panel drawer with **Close profile** (`:320`, `:337`, `:423`), the avatar,
-  the display name and handle, and three action buttons.
+  the display name and handle, and the action buttons **Message** (`:735`),
+  **Mention** (`:744`), **Follow** / **Following** / **Requested**, **Cancel
+  request** (`:849`), **Report** (`:804`), **Block** / **Unblock** (`:823-834`),
+  **Copy username** (`:445`) and, on your own profile, **Edit profile**.
 - **Profile sections** tablist (`:532`): **Info** (selected by default),
   **Media**, **Links** and **To-dos**.
 - **Info** content: About, Mutual servers with a count and chips, Member since,
   Connections (follower count), and **Block user** / **Unblock user** (`:793`).
 - The DM header's identity button (`A Online ana`) opens the same drawer.
-- The floating identity card (`?card=1`) and the name popover
-  (`ProfilePopover.tsx`) exist in source. Neither was driven here.
+- The floating identity card (`?card=1`, `shell-fixture.tsx:3042`): a `dialog`
+  named **Profile for ana** (`.profile-popover`) with the avatar, name, the
+  about line, ROLES (traders), `2 mutual servers · 128 followers` and the
+  buttons **View ana (ops)'s full profile**, **Message**, **Mention**,
+  **Follow**, **Block ana** and **Send to ana**. Driven 2026-10-31 on
+  `/rooms/` (`?view=dm&dm=ana&alerts=quiet&card=1`). The name popover
+  (`ProfilePopover.tsx`) is source-only.
 
 ## How to get to it (user POV)
 
@@ -55,12 +63,16 @@ Assert the Info content through the drawer's text, e.g. walk up from
 - **An agent's name is its owner's, with the persona beside it** (`DisplayName.tsx:52-158`, since `52a968b3`; this replaced the persona-handle-only rule of `01bf4481`). An agent row reads `<owner name> · <persona>`, for example "Daryl Boon · researcher" (`:121-125`; `test/ui/display-name-degraded.test.tsx:122`). With no picked persona it reads the owner's name alone. A degraded handle, the auto-wired badge's stock name `openmarket-chat` (`lib/wired-agent.ts:6`) and a name equal to the owner's name or account do not count as personas. If the owner has not loaded, the old handle-based name stays. Owner nicknames never relabel an agent, and the hover title keeps the handle. The shell fixture seeds one agent post, `#ops` seq 191 (`userId` `u-bot-4c81aa`, degraded handle `om-4c81aa`, `isAgent: true`; `tools/visual/shell-fixture.tsx:1228-1240`). It renders **om-mod-bot started a topic** with no ` · ` suffix on both hosts. No fixture seeds an agent with a picked persona, so the `Owner · persona` form is unit-test only.
 - **`profile=1` is a `/rooms/` seed only.** The `/chat/` shell fixture never
   reads `profile`, so `?view=dm&dm=ana&profile=1` there opens the DM with no
-  drawer (measured 2026-10-29). Open it from the DM header on `/chat/`, or prove
+  drawer (measured 2026-10-29). The DM header button **ana Online ana** does not open it there either
+  (2026-10-31): the cloud fixture sets `profilePanel: null` and stubs no
+  `openProfilePanel` (`apps/cloud/tools/visual/shell-fixture.tsx:1627`). Prove
   the drawer on `/rooms/`.
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `?view=dm&dm=ana&profile=1`: tab **Media** selected with the hash still `#/dm/ana`; **Close profile** removed the **Profile** aside and its four tabs (check after about 0.6 s). **Limitations:** Name popover, user menu and `/chat/`. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 27-28).
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `?view=dm&dm=ana&alerts=quiet&profile=1`: tab **Media** selected, hash stayed `#/dm/ana`, **Close profile** present; `&card=1` mounted the **Profile for ana** dialog with its six buttons. `/chat/` (18136): the header button **ana Online ana** opened nothing (no **Close profile**, no **Profile sections**). **Limitations:** Block, Follow, Message and Report effects; the name popover; `/chat/` drawer (fixture gap). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `?view=dm&dm=ana&profile=1`: tab **Media** selected with the hash still `#/dm/ana`; **Close profile** removed the **Profile** aside and its four tabs (check after about 0.6 s). **Limitations:** Name popover, user menu and `/chat/`. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 27-28).
 
 **Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** On `/rooms/`, `?view=dm&dm=ana&profile=1` opened the drawer with tabs Info / Media / Links / To-dos and **Close profile**. On `/chat/` the same URL opens no drawer: the cloud fixture never reads `profile` (see Gotchas). **Limitations:** Name popover, user context menu and tab contents beyond Info. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 14, 34, 63).
 

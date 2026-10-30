@@ -130,6 +130,18 @@ transport searches seeded text by case-insensitive substring. It does not prove
 production full-text ranking, permissions or backend coverage. The existing
 partial-window warning remains visible.
 
+### Sort menu (added 2026-10-31)
+
+On `shell-fixture.html?view=room&alerts=quiet&panel=search`, the results header
+carries a **Sort** button. Clicking it opens a `menu` named **Sort search
+results** (`SearchPanel.tsx:556`) with **Newest**, **Oldest** and, because the
+seeded run has query text, **Most relevant** (`SearchPanel.tsx:520-556`, the
+third option is gated on `ranked`). The scope picker (**Search in: This
+channel**) listed **This channel**, **This server**, **Library** and
+**Everywhere** on both hosts; **This thread** appears only inside a topic.
+Driven 2026-10-31 on `/rooms/` (18135); the scope picker also on `/chat/`
+(18136).
+
 ## Gotchas
 
 - Default fixture results are canned. Use `?search=live` to prove query and
@@ -162,7 +174,9 @@ partial-window warning remains visible.
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `panel=search` **1 results**; `searchState=error` reads "The search service is unavailable"; **Search this topic: CPI print — Aug** on `search=live`; **Search #ops** with `from:` lists @kyle, @ana, @dax, @mira. `/chat/`: `panel=search` **1 results** and the topic search box. **Limitations:** Date filters and backend ranking. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 22).
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): combobox **Search #ops** → **From a specific user** → **@ana** gave `from:@ana `; `panel=search` **1 results**; the scope picker; the **Sort** menu. `/chat/` (18136): `panel=search` **1 results** and the scope picker. **Limitations:** Date filters, backend ranking, the topic live-search request (2026-10-29 stands), and `/chat/` grammar. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `panel=search` **1 results**; `searchState=error` reads "The search service is unavailable"; **Search this topic: CPI print — Aug** on `search=live`; **Search #ops** with `from:` lists @kyle, @ana, @dax, @mira. `/chat/`: `panel=search` **1 results** and the topic search box. **Limitations:** Date filters and backend ranking. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 22).
 
 **Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=topic&topic=cpi-print-aug&alerts=quiet&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** Scoped requests, the user filter, date filters and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 15, 49).
 

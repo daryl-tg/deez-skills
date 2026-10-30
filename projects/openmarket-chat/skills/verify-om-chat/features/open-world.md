@@ -103,6 +103,14 @@ two `.world-view-control` buttons named **"Follow player"** and **"Enter
 fullscreen"**, and five `.world-look` swatches — **Wayfarer, Ranger,
 Surveyor, Violet, Rust** (`packages/chat-ui/src/world/scene/characterModel.ts`, Wayfarer at `:11`).
 
+**Hide** collapses the chat pane and the control then reads **Open chat**
+(`WorldChatPane.tsx:400`); **Enter fullscreen** reads **Exit fullscreen** only
+once the browser grants fullscreen, which the headless lane did not
+(2026-10-31). Open the harness under the lane's `/rooms/` base, as
+`control-om-chat url` does: a bare `/mocks/world-solo/index.html` answers with
+vite's base-URL notice ("did you mean to visit /rooms/mocks/…") and no canvas,
+and a smoke that reads only the HTTP status calls that a mount.
+
 The shared renderer's scripted Agent activity study is a second local harness:
 run `bun x vite --config tools/openscape-preview/vite.config.ts --port <assigned-free-port> --strictPort --host 127.0.0.1`, then open
 `http://127.0.0.1:<assigned-free-port>/rooms/tools/openscape-preview/activity.html`.
@@ -151,7 +159,9 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `mocks/world-solo/index.html?worldprobe=1`: two canvases, `.world-status` "world offline, retrying", "Chat: reconnecting", "No #world channel", `[data-world-channel-resize]`, **Follow player**, **Enter fullscreen** and **Hide**. **Limitations:** Movement, occupants, relay. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 41).
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `mocks/world-solo/index.html?worldprobe=1` (under the `/rooms/` base): 2 canvases, `.world-status` **world offline, retrying**, `.world-chat-connection` **Chat: reconnecting**, **No #world channel**, `[data-world-channel-resize]`, `.world-minimap`, five `.world-look` swatches, **Follow player**, **Enter fullscreen** (label unchanged after the click) and **Hide** → **Open chat**. **Limitations:** Movement, occupants, nameplates, the emote wheel, relay and transport, and the `tools/openscape-preview/` HUD harness (not driven). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `mocks/world-solo/index.html?worldprobe=1`: two canvases, `.world-status` "world offline, retrying", "Chat: reconnecting", "No #world channel", `[data-world-channel-resize]`, **Follow player**, **Enter fullscreen** and **Hide**. **Limitations:** Movement, occupants, relay. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 41).
 
 **Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on the wrapper lane showed 2 canvases and "world offline, retrying". **Limitations:** Movement, occupants and relay. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 10, 40).
 

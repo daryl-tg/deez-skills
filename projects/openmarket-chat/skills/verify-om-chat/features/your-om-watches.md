@@ -36,6 +36,8 @@ Drive accessible names: `Watches`, `Refresh`, `Show details for <label>`, `Close
 
 ### Verification record
 
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `?view=agent&alerts=quiet&omSessions=drafts` with the `**/healthz*` stub: **Watches** → `.om-watches-surface` with **Refresh**, `[data-testid="om-recent-fires"]`, zero `[data-om-watch-id]` rows and the error branch **Watches are out of reach**. **Limitations:** Rows, details, pause/resume, attention cards and recent fires need a daemon origin with a real AgentRuntime. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
 **Last attempted:** 2026-10-30 (scheduled maintenance) at `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). With the `**/healthz*` stub on `?view=agent&omSessions=drafts` at 1440, **Watches** mounted with **Refresh** and `[data-testid="om-recent-fires"]` (RECENT FIRES) and zero `[data-om-watch-id]` rows. Watch rows and actions still need a daemon with QA watches. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 39).
 
 **Previous attempt:** 2026-10-29 (nightly maintenance) at `cdfb1b0f` (origin/main; rooms-client 0.108.0). With the `**/healthz*` stub at 390×844, **Open om conversations** → **Watches** mounted `.om-watches-surface` ("Everything your om is evaluating, when it runs, and what it does next.", **Refresh**, RECENT FIRES) with no horizontal overflow and zero `[data-om-watch-id]` rows. Watch rows and actions still need a daemon with QA watches. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frame 56).

@@ -270,6 +270,15 @@ authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
 ## Gotchas
 
+- **The connection strip waits out a grace delay.** `?connection=reconnecting`
+  (`shell-fixture.tsx:2716`) renders **Reconnecting...** in the
+  `.ui-connection-strip` (`role=status`, `shared/ui/ConnectionStrip.tsx:93`),
+  but only after `CONNECTION_GRACE_MS`: a read 2 s after load finds an empty
+  `.ui-connection-strip-slot`, a read at 8 s finds the text (2026-10-31,
+  `/rooms/`). `offline` and `degraded` are not `ConnectionStatus` values; the
+  type is `live | reconnecting | failed`. The `failed` escalation with its
+  **Retry** needs a real flap.
+
 - **The composer is no longer read-only, and the two banners are gone.** For a
   long while the fixture left `session.composerLaneOwnedElsewhere` and
   `session.composerDeliveryRecovery` unstubbed, so the `INERT` proxy answered
@@ -373,7 +382,9 @@ authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: local send (rows 16 → 17), bare `@` (13 options), chart URI card (BTC / 15m / LIVE, Copy link), `$BTC` cashtag pill, `reply=1` **Cancel reply**, **Choose emoji or GIF** → **GIFs** → **Choose a GIF** with **Search KLIPY**, 390 **Send message** disabled when empty, the `/` command list (29) and `/shrug` filter, and the typed role pill. `/chat/`: the typed role pill, and `?draft=` loading an empty composer. **Limitations:** Delivery, attachments, Vim mode and slash-command execution were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 01-03, 14-16, 51).
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): local send (16 → 17 rows, box cleared); bare `@` → **MEMBERS & ROLES** with 13 options; `/` → 29 commands, `/shr` → `/shrug`; `@traders hi` → `.mention-pill.role-mention.role-colored` in `rgb(209, 154, 58)` with `--role-color: #d19a3a`; `om://chart/BTC?i=15m` → **BTC 15m LIVE** with **Copy link**; `$BTC looks strong` → one `.cashtag-pill`; `?draft=` code fence → one `[data-code-panel]`, three regions, two markers; **Choose emoji or GIF** → **GIFs** → **Choose a GIF** with **Search KLIPY**; `?reply=1` strip and the toolbar **Reply** retarget; `?connection=reconnecting` → **Reconnecting...** after 8 s. `/chat/` (18136): send, bare `@` (13), `/` (29) and `/shr`, the role pill, the chart card, the reply strip and retarget. **Limitations:** Delivery and recovery banners, staged attachments, agent rows in the `@` menu, sending a GIF, slash execution, Vim touch/IME, durable drafts, unfurl and webhook cards. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: local send (rows 16 → 17), bare `@` (13 options), chart URI card (BTC / 15m / LIVE, Copy link), `$BTC` cashtag pill, `reply=1` **Cancel reply**, **Choose emoji or GIF** → **GIFs** → **Choose a GIF** with **Search KLIPY**, 390 **Send message** disabled when empty, the `/` command list (29) and `/shrug` filter, and the typed role pill. `/chat/`: the typed role pill, and `?draft=` loading an empty composer. **Limitations:** Delivery, attachments, Vim mode and slash-command execution were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 01-03, 14-16, 51).
 
 **Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** On `/rooms/` `?view=room&alerts=quiet`, typing "nightly 1029 probe" and Enter grew `[data-message-row]` 16→17 with that text. A bare `@` listed 13 options (ana, dax, kyle, … plus roles) on `/rooms/` and `/chat/`, and a `/chat/` send landed too. **Limitations:** Delivery, Vim mode, attachments, GIF and the chart card were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 28–29, 64).
 

@@ -9,7 +9,8 @@ who reacted.
   option, named `<option>\n<votes> · <percent>`, plus **Show results** and
   **Close poll**.
 - **Poll composer** (`PollComposer.tsx`): a `Create poll in #<channel>` form with
-  **Add option**, **Post poll** and **Create another poll**.
+  **Add option** and **Post poll**. (**Create another poll** is a gallery
+  control in `tools/visual/fixture.tsx:1318`, not part of the composer.)
 - **Closed-poll results** (`PollResultsDialog.tsx`): `Final results · N votes`
   with per-option percentages.
 - **Roster cache** (`#752`): reopening results in the same session does not
@@ -142,7 +143,9 @@ listed.
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `poll-results-fixture` **Final results · 14 votes**; `poll-cache-fixture` **Show results** twice with `roster loads: 1`; `fixture.html?surface=poll-ux` **Create poll in #chat**; on `reaction-polish`, after hovering **Message from Mira Chen**, **See who reacted** → **Reactions** and **Add a reaction** → **Choose an emoji** (1,870 buttons); `reaction-scene-integration` mounted its chips. **Limitations:** Vote and reaction persistence. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 29).
+**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): `poll-results-fixture` **Final results · 14 votes** (57% / 29% / 14% / 0%); `poll-cache-fixture` **Show results** twice → `roster loads: 1`; `fixture.html?surface=poll-ux` **ye 8 · 80%** → **ye 9 · 82%**; `surface=reaction-polish` **See who reacted** → **Reactions** (🔥 6 / 🐐 1 / 🤍 4) and **Add a reaction** → **Choose an emoji** (1,870 buttons, **Search emoji**). `/chat/` (18136): the `poll-ux` vote settle and the **Reactions** dialog. **Limitations:** Vote and reaction persistence; the themed scenes were not re-driven (2026-10-27 stands); to-do event reactions. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+
+**Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `poll-results-fixture` **Final results · 14 votes**; `poll-cache-fixture` **Show results** twice with `roster loads: 1`; `fixture.html?surface=poll-ux` **Create poll in #chat**; on `reaction-polish`, after hovering **Message from Mira Chen**, **See who reacted** → **Reactions** and **Add a reaction** → **Choose an emoji** (1,870 buttons); `reaction-scene-integration` mounted its chips. **Limitations:** Vote and reaction persistence. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 29).
 
 **Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `poll-results-fixture` read `Final results · 14 votes`; `poll-cache-fixture` `roster loads: 0`. On `fixture.html?surface=poll-ux`, the **Create poll in #chat** dialog covers the card until Escape; then **ye 8 · 80%** settled to **ye Selected 9 · 82%** (nay **2 · 18%**). On `surface=reaction-polish`, **See who reacted** opened **Reactions** (🔥 6 / 🐐 1 / 🤍 4, six reactors) and **Add a reaction** opened **Choose an emoji** (DOM click by label). **Limitations:** Vote persistence and reaction toggles need the daemon-pair lane. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 12–13, 43–44, 66–67).
 
