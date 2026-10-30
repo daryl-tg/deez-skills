@@ -1,7 +1,5 @@
 # Chat workspace TUI (`om chat --workspace`)
 
-*Re-driven 2026-10-30 (nightly), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163 with a fake model on 18164, tmux at 140x36, under a host load average near 150. These ran on main for the first time on a lane: #2195, #2198 and #2207. The frame put a `┄` rule above and below each panel header (`▾ WATCHES 1 fired · 0 paused`, `▾ FIRES 2 today`). ctrl+x listed `b hide sidebar` and `p panels`. `p` opened `panels · 2 of 3 on` (`● WATCHES`, `● FIRES`, then `○ PAPER`, `○ POSITIONS`, `○ CALENDAR`, `○ USAGE`, foot `enter toggle`). Three Downs and Enter turned POSITIONS on: the box read `3 of 3 on`, POSITIONS moved up among the on rows, PAPER, CALENDAR and USAGE drew dim (SGR 2), and the foot read `enter toggle · turn one off to add`. The new panel read `▾ POSITIONS none open` and `○ no venue paired  om setup`. A click on `● probe-1030` opened its card with the foot `esc close · o open · [om watch show probe-1030]`. `o` opened `👀 probe-1030` on its LATEST tab, and one Esc returned to the workspace. `n` then `o` left `❯ no` with the card open. Exit history held the `shell-history-*` lines and the transcript. Not driven: the 20-fire card scroll and the containment wheel (the seed was two fires), the FIRES and USAGE cards' `o`, the one-panel floor, collapse, resize, go-to-recent and a model turn. Evidence is local only, because the `8098` renderer did not answer: `artifacts/vom-nightly-20261030/r1/tui-*.txt` in the run's product worktree.*
-
 *Verified: 2026-10-29, branch `daryl/sidebar-card-scroll-open` at `7a16b5e0b` (off origin/main `d14955d8e`), lane 18103, fake model 18108, tmux 140x36: `card-scroll` and `card-open-page` only. A watch card with 20 fires scrolled to its end in five wheel-downs with the foot pinned; twelve wheel-ups over it left transcript columns 1-49 identical while the control wheel over the chat moved it two lines; `o` opened `👀 basis-blowout`, `o` on a FIRES card opened `👀 funding-flip`, and `n o` left `❯ no` with the card open. Not driven live: the USAGE card's `o` (unit-tested only). Evidence: `http://127.0.0.1:8098/vom-sbcard/r1/`.*
 
 *Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103 with a fake model on 18107, tmux at 140x36. Plain `om chat` on a fresh lane showed the What's new card (mode flags `1 0`); ctrl+x listed `w What's new: turn it on` and `x What's new: close this one` and no `b` row; `w` stored `chat.workspace = on` (`stored as tui.workspace`) and reopened the chat as a workspace (`1 1`). There: `▾ WATCHES 2 fired · 1 paused` on row 2, `▾ FIRES 3 today` and the `ctrl+x for commands` bottom row; ctrl+x listed only `b hide sidebar`; a click on `● ws-fired` (row 4) opened its card with its top on row 4; `om sidebar set watches paper` printed `Module 1: watches (show all)`, `Module 2: paper` and `Available: watches (show all|fired|attention), paper, fires`, and `▾ PAPER 2 accounts` appeared within 30 s; ctrl+x `b` left the rule reading `── ctrl+x for commands ─`; eight wheel-ups froze the stream at `reply 2 line 16` and the `Go to recent` pill jumped to `reply 2 line 40`; exit history held the `shell-history-*` lines and the transcript with no chrome; `om sidebar reset` restored `watches (show all)` then `fires`. Over MCP stdio `sidebar_layout` is not a tool (`Tool sidebar_layout not found`). Not re-driven: collapse, the 100-column resize, the live-row timing, the PAPER wheel containment, close-on-click, the near-bottom flip and a live model turn. Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/` (`tui-*.txt`).*
@@ -40,13 +38,13 @@ through a **What's new** card that turns it on in one press.
 
 ## Sub-features
 
-- `workspace-frame` — full screen (no top bar), a divider from row 1, a dotted `┄` rule above and below every panel header (the first panel's top rule is the sidebar's row 1; a folded panel keeps its top rule), the closing `┴` rule, the sidebar hidden under 110 columns.
+- `workspace-frame` — full screen (no top bar), a divider from row 1, a dotted `┄` rule above and below every panel header (the first panel's top rule is the sidebar's row 1; a folded panel keeps its top rule), the divider meets the composer's top rule at a `┴` junction (no separate closing rule since `daryl/tui-readability`), the spinner and queue as the transcript pane's last rows, the sidebar hidden under 110 columns.
 - `follow-and-go-to-recent` — follow at the end; scrolled up, the last row is a `↓ Go to recent messages` pill that a click resolves.
 - `exit-history` — on quit the terminal history holds the transcript only.
 - `watches-module` — `N fired · M paused` header, `●` fired in 24 h with an age, `○` armed, `◌` paused, a chip aside for needs-you/broken; the footer drops its watch count while the sidebar shows.
 - `watch-card` — a click opens State, Source, Value, Chain, Recent fires beside the clicked row (its top level with the row, or ending on it near the bottom); Esc or a click in the chat closes it, while a click on the card or a drag across the chat leaves it open.
-- `card-scroll` — (on main since #2207) the card fits the body's rows; the wheel over it scrolls its body under a pinned foot with a `┃` thumb and never moves the chat. A watch card lists 20 recent fires.
-- `card-open-page` — (on main since #2207) the foot reads `esc close · o open · [om …]` on watch, fire and usage cards; `o` on an empty composer opens the watch page (a fire: its watch) or `/usage`; with a draft `o` types. Paper, positions and calendar read `esc close · [om …]`.
+- `card-scroll` — (branch `daryl/sidebar-card-scroll-open`, not on main yet) the card fits the body's rows; the wheel over it scrolls its body under a pinned foot with a `┃` thumb and never moves the chat. A watch card lists 20 recent fires.
+- `card-open-page` — (same branch) the foot reads `esc close · o open · [om …]` on watch, fire and usage cards; `o` on an empty composer opens the watch page (a fire: its watch) or `/usage`; with a draft `o` types. Paper, positions and calendar read `esc close · [om …]`.
 - `sidebar-layout` — `om sidebar` / `set <module...> [--watches-show all|fired|attention]` / `reset`; the agent tool `sidebar_layout` (terminal chat only).
 - `paper-module` — one row per paper account (name, cash, realized P&L), `N accounts` header.
 - `contain-scroll` — a wheel over a sidebar section, its header or the hint row never moves the transcript.
@@ -58,7 +56,7 @@ through a **What's new** card that turns it on in one press.
 - `positions-module` — POSITIONS: open Polymarket then Hyperliquid positions, each by the size of its P&L; header the summed P&L or `none open`; a row's sub line `Polymarket · 120 sh @ 0.42` or `Hyperliquid · 0.5 @ 64,210 · 5x`. An unpaired venue is skipped (neither paired: `○ no venue paired  om setup`); a failing read is one red `Venue: cause` row. Polls every 60 s. Card: Venue, Size, Entry, Now or Value, P&L, Liq.
 - `calendar-module` — CALENDAR: scheduled occurrences from now, earliest first, with an `in 5m` / `in 2h` / `now` countdown; header `next in …` or `nothing scheduled`. Polls every 300 s.
 - `usage-module` — USAGE: model spend over the last 24 h, one row per provider/model by cost; header `$X · 24h`. Polls every 60 s.
-- `sidebar-toggle` — `b` in the ctrl+x menu hides or shows the sidebar for the session. The muted `ctrl+x for commands` hint sits on the sidebar's bottom row, or on the closing rule while it is hidden.
+- `sidebar-toggle` — `b` in the ctrl+x menu hides or shows the sidebar for the session. The muted `ctrl+x for commands` hint sits on the sidebar's bottom row, or on the composer's top rule while it is hidden.
 
 ## How to get to it (user POV)
 
@@ -201,7 +199,7 @@ nothing, and it streams long replies, which the scroll checks need.
   with the clicked row. Press Escape: the card closes. The flip near the
   bottom needs more rows than the lane seeds; `tui-workspace-mode.test.ts`
   pins it at 140x28.
-- **Card scroll and `o` (on main since #2207).** Seed a
+- **Card scroll and `o` (branch `daryl/sidebar-card-scroll-open`).** Seed a
   second accept_all watch with 20 pushes (`event push … --text "<run> Story NN …"`
   from a script file; the worktree guard refuses a computed loop inline).
   Click its row: the card fills the body, shows a `┃` thumb in its right
@@ -275,9 +273,6 @@ nothing, and it streams long replies, which the scroll checks need.
 
 ## Gotchas
 
-- Every CLI call in a seed step runs its own `om` from source. On a host near load average 150, each one took 1 to 3 minutes, and `/healthz` took 2 to 3 s to answer. Past its 1.2 s probe budget the chat reads the daemon as down: the footer said `om not running ✗` and the sidebar chip said `broken` while the dashboard and `watch show` read `working`. Check `uptime` before treating either as a product fault. Driven 2026-10-30.
-- On a busy host the card can draw its border and foot a few seconds before its body. Capture again before reading the rows. Driven 2026-10-30.
-- A row that opens no card, such as POSITIONS' `○ no venue paired`, CALENDAR's `nothing scheduled` or USAGE's `no model calls in 24 h`, has no foot. Only rows that open a card show one, and a card with neither a page nor a command reads just `esc close` (source, `sidebar/contract.ts:93-96`).
 - The footer drops its `N watches` count in favour of attention chips while
   any watch is broken or needs you (`⚠ 1 broken · 2 need you · /watches`).
   The chips read the same with the sidebar shown or hidden. So on a lane with
