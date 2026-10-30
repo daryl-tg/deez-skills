@@ -1,5 +1,6 @@
 # Chat workspace TUI (`om chat --workspace`)
 
+*Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. Fake model on 18167, tmux 140x36. Plain `om chat` on the lane showed the What's new card with `1 0` mouse and alternate flags. Ctrl+X listed `w What's new: turn it on` and `x What's new: close this one`, and `x` removed the card (`0 0`). In `--workspace`, ctrl+x `p` opened `panels · 2 of 3 on`; turning CALENDAR on gave `3 of 3 on` with `enter toggle · turn one off to add`, and the sidebar showed `▾ CALENDAR nothing scheduled`. `om sidebar set watches calendar usage` gave `▾ USAGE $0 · 24h` with `no model calls in 24 h`, then `$0.00 · 24h` and an `○ openai-compatible/fake` row after one fake turn. `om sidebar reset` restored watches and fires. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/` (`cli/51-53`).*
 *Re-driven 2026-10-30 (nightly), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163 with a fake model on 18164, tmux at 140x36, under a host load average near 150. These ran on main for the first time on a lane: #2195, #2198 and #2207. The frame put a `┄` rule above and below each panel header (`▾ WATCHES 1 fired · 0 paused`, `▾ FIRES 2 today`). ctrl+x listed `b hide sidebar` and `p panels`. `p` opened `panels · 2 of 3 on` (`● WATCHES`, `● FIRES`, then `○ PAPER`, `○ POSITIONS`, `○ CALENDAR`, `○ USAGE`, foot `enter toggle`). Three Downs and Enter turned POSITIONS on: the box read `3 of 3 on`, POSITIONS moved up among the on rows, PAPER, CALENDAR and USAGE drew dim (SGR 2), and the foot read `enter toggle · turn one off to add`. The new panel read `▾ POSITIONS none open` and `○ no venue paired  om setup`. A click on `● probe-1030` opened its card with the foot `esc close · o open · [om watch show probe-1030]`. `o` opened `👀 probe-1030` on its LATEST tab, and one Esc returned to the workspace. `n` then `o` left `❯ no` with the card open. Exit history held the `shell-history-*` lines and the transcript. Not driven: the 20-fire card scroll and the containment wheel (the seed was two fires), the FIRES and USAGE cards' `o`, the one-panel floor, collapse, resize, go-to-recent and a model turn. Evidence is local only, because the `8098` renderer did not answer: `artifacts/vom-nightly-20261030/r1/tui-*.txt` in the run's product worktree.*
 
 *Verified: 2026-10-29, branch `daryl/sidebar-card-scroll-open` at `7a16b5e0b` (off origin/main `d14955d8e`), lane 18103, fake model 18108, tmux 140x36: `card-scroll` and `card-open-page` only. A watch card with 20 fires scrolled to its end in five wheel-downs with the foot pinned; twelve wheel-ups over it left transcript columns 1-49 identical while the control wheel over the chat moved it two lines; `o` opened `👀 basis-blowout`, `o` on a FIRES card opened `👀 funding-flip`, and `n o` left `❯ no` with the card open. Not driven live: the USAGE card's `o` (unit-tested only). Evidence: `http://127.0.0.1:8098/vom-sbcard/r1/`.*
@@ -274,6 +275,14 @@ nothing, and it streams long replies, which the scroll checks need.
   listening.
 
 ## Gotchas
+
+- **The panel picker re-sorts after every toggle.** Lit panels move to the
+  top and the cursor stays on its row number, so a blind `Down … Enter`
+  sequence toggles the wrong panel. On 2026-10-30, turning FIRES off from row
+  3 relisted WATCHES, CALENDAR, PAPER, POSITIONS, FIRES, USAGE. Read the
+  reverse-video row (`capture-pane -e`, `\e[0;7m`) before each Enter. To show
+  a fixed set without the picker, use `om sidebar set <module…>` and
+  `om sidebar reset` afterwards.
 
 - Every CLI call in a seed step runs its own `om` from source. On a host near load average 150, each one took 1 to 3 minutes, and `/healthz` took 2 to 3 s to answer. Past its 1.2 s probe budget the chat reads the daemon as down: the footer said `om not running ✗` and the sidebar chip said `broken` while the dashboard and `watch show` read `working`. Check `uptime` before treating either as a product fault. Driven 2026-10-30.
 - On a busy host the card can draw its border and foot a few seconds before its body. Capture again before reading the rows. Driven 2026-10-30.

@@ -1,5 +1,6 @@
 # Paper trading accounts
 
+*Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `paper create maint1030 --yes` gave `cash: 1000` and `desk: off`; `paper ls` listed it; `paper digest` read `Steps: none` with `Cash: $1,000.00`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/`.*
 *Re-driven 2026-10-30 (nightly, empty read only), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163: `paper ls --format json` returned `{accounts:[]}` on a fresh lane. Nothing else was re-driven. Evidence is local only (the `8098` renderer did not answer): `artifacts/vom-nightly-20261030/r1/`.*
 
 *Re-driven 2026-10-29 (scheduled maintenance, smoke depth), tree `7ec575e55` (origin/main, v0.467.0 plus #2194), fresh lane on 18161. `paper create maint1029` without `--yes` exited 2 `confirmation_required`; with it, it returned `{account:{id:"pa_…", name, cash:1000}, desk:"off"}`. `paper show` returned `{account, rules}`, and the text `paper digest` opened `Paper digest` / `Steps: none` / `Paper maint1029` / `Cash: $1,000.00`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261029/r1/`.*
