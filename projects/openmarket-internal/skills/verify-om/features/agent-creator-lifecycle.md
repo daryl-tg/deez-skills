@@ -1,6 +1,5 @@
 # Agent creator lifecycle and private-state isolation
 
-*Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. Guest reads: the lane log carried `om-skills defaults installed 8 package(s)` about 5 s after boot; `OM_DEV=1 roster list` showed argue, debugger, explain, fact-check, feature and librarian at 1.0.0; `agent runs` returned an empty page; `agent runs run_x --proof` returned `not_found` ("Work proof was not found."); `/healthz` `roster.capabilities.executors` read `coding`, `investigate`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/` (`cli/20-roster-list.txt`, `cli/43`).*
 *Verified: 2026-10-29 (nightly), tree `32ca0d6c7` (origin/main, v0.467.0), lane on 18103, guest. **The default agents now install from production.** Since #2183 (`d79e522f4`) the coordinates are `@om-core/*`. About 5 s after boot the lane log read `INFO [roster] om-skills defaults installed 8 package(s)`. `OM_DEV=1 roster list` then listed six registry rows at `1.0.0`: `argue`, `explain`, `fact-check` and `librarian` with brain `om`, and `debugger` and `feature` with `-`. The two skill packages are not roster rows. `agent runs` was still empty. Not driven: the six-hour maintenance pass, a withdrawal, and everything past the guest refusals (create/import, Try, install, publish/adopt, runs and the GUI). Evidence: `http://127.0.0.1:8098/vom-nightly-20261029/r1/`.*
 
 *Re-driven 2026-10-28 (scheduled maintenance, smoke depth), tree `186030b63` (origin/main): `OM_DEV=1` `agent runs` (`{"ok":true,"result":{"items":[],"next":null}}`), `agent pause nope`, `agent runs --proof`, `agent runs run_x --proof`, `project unlink nope` (each with its documented refusal, exit 1) and `roster list`. `/healthz` executors were `["coding","investigate"]`. Without `OM_DEV`, `agent runs` fails with `unknown command 'runs'`, as documented. Steps not named here keep the record below. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261028/r1/`.*
@@ -156,7 +155,19 @@ Recipe: link a git repo that has an `origin` remote and a failing test command, 
 
 To capture a sandbox launch, log `prepareAgentSandbox`'s profile and parameters (diagnostic only). Then replay them with a stdio ACP probe, using a fake proxy for the gateway. Bisect allow rules (`--rule`) to find a missing read.
 
+### Re-proved 2026-10-30 on main fe18809be (0.478.0), GUI 936f5b64
+
+Lane 18124, test account, launchd PATH, compiled with Bun 1.4.3, Claude Code 2.1.314.
+
+- Brains: Claude Code 2.1.314 signed in, verified, coding ready. Claude auto-updated from 2.1.312 overnight and still qualified, with no version pin.
+- GUI creation: New agent > Work agent > debugger template, then project, brain and name, then Review agent > Add. The card says "Installed in shadow mode", and the Run switch is on. Access > channel > Allow grants it.
+- Work run: a new agent's first mention completed in 482 s. Its commit changed only `math.mjs`, the work proof passed, and the reply was threaded under the mention. The two `doc_write` effects took 142 s and 130 s, more than half the run. That run started 3 minutes after lane boot, inside the worktree-sweep relearn window.
+- Chat agent: `@argue` completed in 36 s. Round 1 failed only `max-chars:1500`, and the retry passed all four checks.
+- Waiting notice: it posts only where the agent's credential has `canPost` in that room (`waitingInvocationTarget` in `provider-limit-notice.ts`). Mentioning your own agent in a channel it has no grant for gives no reply, no Inbox item and no Needs you entry. The mention retries on the 1–5 minute backoff indefinitely. After a grant, the notice posted about 7 s later.
+- The Access tab cannot remove a single channel, and the picker disappears once every channel is granted. Revoke with `om agent grants revoke <agcr_…> room:<roomId>` (the credential id is in `om agent grants list`).
+
 ## Gotchas
+- Main pins Bun 1.4.3 (`.bun-version`). An `om` compiled with Bun 1.3.14 under `OM_SKIP_BUN_CHECK=1` dies with SIGTRAP when `__roster-acp <brain> --version` runs inside the probe sandbox. Brains then reads "not set up" (`support: unverified`, `signIn: unknown`) for both brains. Build with the pinned Bun; the release binary passes the same probe.
 - On the final #2199 build, one of two runs failed after its commit with no recorded cause while the lane's roster-sweep was timing out; the rerun completed. Unexplained; under load the outbox also stalled about 5 minutes before publishing.
 - A test account hammered by restarts and a looping intake gets 429 "You're reading too fast". The /rooms server rail then never finishes loading. Open a channel directly with `/rooms/#/room/<roomId>`.
 
