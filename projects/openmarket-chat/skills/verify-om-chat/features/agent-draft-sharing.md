@@ -64,7 +64,9 @@ session methods.
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Filled `Message #agents-lab` by role with "nightly shared draft 1029" and pressed **Share with agent**. The page read "Shared revision 1 with the agent.", with `fixtureSharedRevision=1` and `fixtureSharedText` equal to the typed text. **Limitations:** Fixture-local revision only; daemon delivery not proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frame 52).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `agent-draft-share-fixture`: filled **Message #agents-lab**, **Share with agent** → "Shared revision 1 with the agent." and `fixtureSharedRevision=1`. **Limitations:** Daemon delivery. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 45).
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Filled `Message #agents-lab` by role with "nightly shared draft 1029" and pressed **Share with agent**. The page read "Shared revision 1 with the agent.", with `fixtureSharedRevision=1` and `fixtureSharedText` equal to the typed text. **Limitations:** Fixture-local revision only; daemon delivery not proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frame 52).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** Filled `Message #agents-lab` by role with "nightly shared draft 1028" and pressed **Share with agent**. The page read "Shared revision 1 with the agent.", with `fixtureSharedRevision=1` and `fixtureSharedText` equal to the typed text. **Limitations:** Daemon delivery. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 29).
 

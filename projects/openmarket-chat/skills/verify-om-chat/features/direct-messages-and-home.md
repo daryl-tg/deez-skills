@@ -102,7 +102,13 @@ once `tab === "connections"` or a real request filter is active, and the
 fixture's tab normalisation (below) never gets there. Measured live: three
 `.cx-chip`, zero `.cx-chip.is-mini`, no tablist. There is **no Friends chip** — `#697` cut the surface
 down to three (`FriendsPane.tsx:105-109`). Opening Requests adds two more chips
-beside them, `"Incoming"` and `"Sent"`.
+beside them, `"Incoming"` and `"Sent"`. Requests (`?view=friends&tab=requests`)
+also renders the **Request type** tablist (**All**, **Followers NaN**,
+**Messages 0**) and the headers **FOLLOWER REQUESTS — NAN** and **MESSAGE
+REQUESTS — 0**. The NaN is fixture seeding: `session.pendingIncomingRequests`
+and `pendingOutgoingRequests` are unstubbed (`FriendsPane.tsx:241-242`), so two
+`INERT` lengths add to NaN. Do not report it as a product bug (re-measured
+2026-10-30 on `/rooms/`).
 
 `#697` renamed the friend vocabulary to follow vocabulary throughout, and the
 map's old handles went with it: **"Add Friend" is now "Follow someone"**,
@@ -236,7 +242,9 @@ Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenan
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home` and `/chat/home`. On **OM chatters**, **Rename group** opened **Rename group** (value `OM chatters`), and with `panel=members` **Add someone** opened **Add to group** (**Search mutual connections**). On `?view=dm&dm=ana`, the sidebar DMS header **New message** opened **New Message** (**Search connections**), and Escape returned focus to the `+`, on both hosts. **Limitations:** Starting a DM, rename and add are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 06, 24, 50–51, 61).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: Home `#/home` with **New DM**, **Follow someone**, **Create or Join Server**, **See connections**; **New DM** → **New Message** with **Search connections**; **Create or Join a Server**; `#/dm/ana`; DMS **New message** → **New Message**; **Rename group** (found with `find title`); **Add someone** → **Add to group**; `tab=requests` chips, tablist and NaN counts; **Browse channels**. **Limitations:** Rename and add are no-ops; `/chat/` DMs were driven only through the hover peek and the mobile path. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 17-19).
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home` and `/chat/home`. On **OM chatters**, **Rename group** opened **Rename group** (value `OM chatters`), and with `panel=members` **Add someone** opened **Add to group** (**Search mutual connections**). On `?view=dm&dm=ana`, the sidebar DMS header **New message** opened **New Message** (**Search connections**), and Escape returned focus to the `+`, on both hosts. **Limitations:** Starting a DM, rename and add are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 06, 24, 50–51, 61).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** Home h1 `2 unread across 1 conversation.` at `#/home`; `view=dm` landed on `#/dm/ana` with 2 rows; `dm=OM%20chatters` gave `#/dm/OM%20chatters`. **Rename group** opened **Rename group**, and **Add someone** opened **Add to group**. New DM, Create or join a server and the Getting started checklist rendered on both hosts (section above). **Limitations:** Connections, requests, `view=public`, the Blocked tab (fixture crash), presence, a real catalog and every create or send effect were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 10-12, 14, 44).
 

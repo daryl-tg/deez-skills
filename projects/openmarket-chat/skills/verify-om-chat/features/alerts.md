@@ -9,9 +9,14 @@ in [settings-and-appearance.md](settings-and-appearance.md).
 - **Alert strip** (`packages/chat-ui/src/components/AlertStrip.tsx`): an app-wide
   bar above the content card. It renders `name · actionLine` with a timestamp and
   the buttons **I'm on it** and **Open**.
-- **Alerts beacon** in the channel header (`AlertsBeacon.tsx:58-61`). Its name
-  carries the state: `Alerts: nothing firing`, `Alerts: N feeds are ringing`, or
-  `Alerts: N feeds need an answer`.
+- **No channel-header beacon since `dc6a9a47`** (2026-10-01). `ChatPane.tsx`
+  stopped mounting `AlertsBeacon`; the file survives only for the board's
+  `BOARD_WIDTH`. A channel with a live alert feed gets an **Alerts** door on
+  the right-edge dock instead (`RightPanels.tsx:178-199`, gated by
+  `rightSlotTabsFor`), and the sidebar carries the ringing count. The fixture's
+  `#ops` has no live feed, so its dock shows Library, Bookmarks, Members and
+  Pins only, and the door is live verification pending (re-measured
+  2026-10-30 on both hosts: no `[aria-label^="Alerts:"]` element anywhere).
 - **Alerts board** (`AlertsBoard.tsx`): a dialog named **Alerts board** with Ring
   feeds and Log feeds, one button per feed, plus **New alert...** and **All
   alerts**.
@@ -24,9 +29,10 @@ in [settings-and-appearance.md](settings-and-appearance.md).
 ## How to get to it (user POV)
 
 A feed fires and a strip appears across the top of the app naming it. You
-click **I'm on it** to claim it, or **Open** to read it. In the channel header,
-the Alerts beacon says how many feeds are ringing, and the board lists every
-feed in the channel so you can open one or start a new alert.
+click **I'm on it** to claim it, or **Open** to read it. In a channel with a
+live feed, the **Alerts** door on the right-edge dock opens that channel's
+alerts, and the board lists every feed so you can open one or start a new
+alert.
 
 ## Driving it with control-om-chat
 
@@ -53,9 +59,9 @@ plain `generic` there.
 
 ## Gotchas
 
-- The beacon count and the board disagree, and both are fixture seeding: the
-  beacon hardcodes three ringing feeds, and the board renders the two seeded
-  rows. Do not report the gap, and do not caption a frame with the beacon count.
+- Do not look for the old `Alerts: N feeds are ringing` beacon or caption a
+  frame with its count. It has not rendered since `dc6a9a47`; the board's two
+  seeded rows are the only feed list in the fixture.
 - **I'm on it** on the strip changes nothing in the fixture, and **New alert...**
   opens no create dialog. Both are fixture no-ops. Prove the controls render;
   claiming and creating need a daemon lane. Live verification pending.
@@ -84,7 +90,9 @@ plain `generic` there.
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=room&alerts=board` showed the strip `store-5xx · check pods` and the board with **Ring store-5xx**, **Log relay-latency**, **New alert...** and **All alerts**, on `/rooms/` and `/chat/`. On `/chat/` the board is an `aside` named **Alerts board**; that name is not in `innerText`, so a text search for it misses. Query the label. **Limitations:** Claim, create and the alerts home are fixture no-ops; the fixture stylesheet gap still applies. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 04, 33, 62).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: strip `store-5xx · check pods` with **I'm on it**; `alerts=board` **Alerts board** with **Ring store-5xx…**, **Log relay-latency#ops**, **New alert...** and **All alerts**; `fixture.html?surface=alert-card` **Discuss**, **I'm on it**, **Mark fixed**, **Flag noisy**. `/chat/`: strip and board. On neither host does any element carry an `Alerts:` name, so the beacon sub-feature was rewritten from `dc6a9a47`. **Limitations:** The dock **Alerts** door needs a channel with a live feed. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 46-47).
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=room&alerts=board` showed the strip `store-5xx · check pods` and the board with **Ring store-5xx**, **Log relay-latency**, **New alert...** and **All alerts**, on `/rooms/` and `/chat/`. On `/chat/` the board is an `aside` named **Alerts board**; that name is not in `innerText`, so a text search for it misses. Query the label. **Limitations:** Claim, create and the alerts home are fixture no-ops; the fixture stylesheet gap still applies. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 04, 33, 62).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=room&alerts=board` showed the strip `store-5xx · check pods` and the **Alerts board** dialog with **Ring store-5xx**, **Log relay-latency**, **New alert...** and **All alerts**. **Limitations:** `surface=alert-card`, claiming, creation and the alerts home were not driven; the fixture still lacks `alerts.css`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 17).
 

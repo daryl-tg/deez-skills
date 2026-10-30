@@ -233,10 +233,40 @@ In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** 
 
 - **Chart card:** send a message that is only a chart URI, such as `om://chart/BTC?i=15m`. The grammar is `CHART_URI_RE` (`lib/message-preview.ts:16`). The sent row renders a chart card reading **BTC · 15m · LIVE** with **Copy link**.
 - **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2603-2606`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3070`), so the peek cannot be proved here.
-- **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture ignores `?draft=`, so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
+- **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture parses `?draft=` (`apps/cloud/tools/visual/shell-fixture.tsx:1239-1242`), but its composer still loads empty on a room or a DM (re-measured 2026-10-30), so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
 - **Not seeded:** `UnfurlCard` (no fixture seeds `entry.unfurls`, and a send never adds one) and `WebhookEmbedBlock` (it needs `metadata.embeds` on a webhook sender; the gallery's webhook rows have none, `tools/visual/fixture.tsx:1430-1490`).
 
 Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-sent-*.png`).
+
+### Typed role mention pill (added 2026-10-30)
+
+Since `389f414e` a role name typed as `@traders` is painted like its
+`om://role` pill (`Markdown.tsx:496`, `:2000`, `:2088`). Both shell fixtures
+name the role `traders` and colour it `#d19a3a` (`shell-fixture.tsx:3207-3208`;
+cloud `:1739`). Click the composer textbox (its name starts **Message #ops**;
+the full name is **Message #ops · $ for markets · /chart to post one**), type
+`@traders hi` so the space closes the autocomplete, and press Enter. The new
+`[data-message-row]` holds a `.mention-pill.role-mention.role-colored` reading
+`@traders`, with `style="--role-color: #d19a3a;"` and a computed colour of
+`rgb(209, 154, 58)`. Neither fixture stubs `roleIdByMentionName`, so the pill
+takes the `no-target` branch (`data-handle="traders"`), not the role link.
+Clicking it calls `session.openRoleCard`, which no fixture stubs (see the
+@role popover row in the README inventory). Driven 2026-10-30 at `47cb13bf` on
+`/rooms/` and `/chat/` (frames 01-03).
+
+### Slash commands (added 2026-10-30)
+
+Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
+(`lib/slash-commands.ts:71`): 29 options on the root fixture, starting
+`/dm`, `/help`, `/topic`, `/channel-invite`, `/invite`, `/join`, `/leave`,
+`/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
+Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
+renders the guide page **Slash commands**. Running a command is pending: the
+real handler is `ChatSession.handleSlash` (`lib/session.ts:43079`, called at
+`:15130`, `:15355` and `:15687`), and the fixture's send only appends the text, so `/nick`,
+`/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
+`/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
+authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
 ## Gotchas
 
@@ -343,7 +373,9 @@ Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenan
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** On `/rooms/` `?view=room&alerts=quiet`, typing "nightly 1029 probe" and Enter grew `[data-message-row]` 16→17 with that text. A bare `@` listed 13 options (ana, dax, kyle, … plus roles) on `/rooms/` and `/chat/`, and a `/chat/` send landed too. **Limitations:** Delivery, Vim mode, attachments, GIF and the chart card were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 28–29, 64).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: local send (rows 16 → 17), bare `@` (13 options), chart URI card (BTC / 15m / LIVE, Copy link), `$BTC` cashtag pill, `reply=1` **Cancel reply**, **Choose emoji or GIF** → **GIFs** → **Choose a GIF** with **Search KLIPY**, 390 **Send message** disabled when empty, the `/` command list (29) and `/shrug` filter, and the typed role pill. `/chat/`: the typed role pill, and `?draft=` loading an empty composer. **Limitations:** Delivery, attachments, Vim mode and slash-command execution were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 01-03, 14-16, 51).
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** On `/rooms/` `?view=room&alerts=quiet`, typing "nightly 1029 probe" and Enter grew `[data-message-row]` 16→17 with that text. A bare `@` listed 13 options (ana, dax, kyle, … plus roles) on `/rooms/` and `/chat/`, and a `/chat/` send landed too. **Limitations:** Delivery, Vim mode, attachments, GIF and the chart card were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 28–29, 64).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** On `/rooms/` and `/chat/`, a bare `@` in `Message #ops · $ for markets · /chart to post one` opened listbox **MEMBERS & ROLES** with 13 options (5 members, 8 roles). On `/rooms/`, a fenced 300-character send through the native value setter appended `msg-ops-116` (the id depends on how many sends the session has made) and cleared the composer. The Vim path read `insert` → Escape `normal` → `0` `d` pending "d" → `w` left "world", and the key was cleared. **Choose emoji or GIF** → **GIFs** opened **Choose a GIF** with **Search KLIPY**. **Limitations:** The roster-gated agent rows, video fallback, reply Escape, delivery, recovery, draft durability, staging, touch, IME and pref sync were not driven. `agent-browser keyboard type` with embedded newlines sends early, so fill multi-line drafts through the value setter. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 02, 05-07, 40).
 

@@ -234,7 +234,7 @@ the member menu item **Remove from Topic** (`UserContextMenu.tsx:644`). Since
   `userMenu: null` and never stubs `openUserMenu`, so a right-click on a
   roster row opens nothing. **Remove from Topic** and its glyph are
   source-only there.
-- **Delete Topic:** dispatch `contextmenu` on the topic row's inner `button`
+- **Delete Topic:** dispatch `contextmenu` on the topic row's `.channel-row-identity`
   (e.g. **Funding flipped negative on Hyperliquid**), then pick **Delete
   Topic**. The `alertdialog` **Delete ⌗ <topic>** now reads "The topic and all
   of its messages are deleted. This cannot be undone." (`edbb7153`; it used to
@@ -383,7 +383,9 @@ Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 16-19).
   as `noop` (`shell-fixture.tsx:3431`, `:3562`). Prove the offer and its gating
   here, never the state change. That needs the daemon-pair lane.
   A synthetic `contextmenu` dispatched on the `treeitem` itself opens nothing;
-  dispatch it on the row's inner `button`. The topic row menu then lists Unfollow,
+  dispatch it on the row's `.channel-row-identity` span. A topic `treeitem` is a
+  `div` whose only `button` is the hover **More options for <topic>** control
+  (re-measured 2026-10-30 on both hosts). The topic row menu then lists Unfollow,
   Mute, Copy link, **Resolve <topic> (closes the conversation; the history
   stays)**, Open Topic, Import Folder..., **Mark As Unread**, Rename, Create Doc
   from Topic, Set topic index... and Delete Topic (re-driven 2026-10-28 on both
@@ -402,7 +404,9 @@ Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 16-19).
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope (`/rooms/`):** On the private topic `basis-desk-review` with `panel=members`, **Remove ana from this topic** opened **Remove from private topic?**, and **Remove** closed it with no change. The topic row menu's **Delete Topic** showed the new `edbb7153` body. `panel=members` on the public `cpi-print-aug` blanked the shell on `/rooms/` and `/chat/` with the `topicFollowers` error in Gotchas. **Limitations:** Only the delta above was driven tonight; the rest of this guide keeps its 2026-10-29 proof. Public-topic removal, the member menu and the glyph are source-only. Evidence is local only: `artifacts/vomc-nightly-20261030/r1/` (frames 16-19).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18153): CPI treeitem → `#/room/ops/topic/cpi-print-aug` and **Message in CPI print — Aug**, **Back to #ops** → `#/room/ops`; **Hide this channel's topics** flipped to **Show**; topic row menu (11 items) via `contextmenu` on `.channel-row-identity`; Delete Topic copy; **Resolve Funding flipped negative on Hyperliquid** dialog; **Choose how long to mute #signals** → 15m/1h/8h/24h; **Remove from private topic?** on `basis-desk-review`; deep link `messageJump=105`; topic peek with the hash; `panel=inbox` (**Close inbox**, **Mark #ops read**); `switcher=open`; `panel=pins|bookmarks|topic-draft` asides. `/chat/` (18154): topic navigation and Back, the 11-item topic row menu and Delete Topic. **Limitations:** The `/chat/` fixture has no private `basis-desk-review` topic (the route lands on `#ops` Members). Effects of mute, unread, resolve and delete are fixture no-ops. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 05-07, 10-13).
+
+**Previous record:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope (`/rooms/`):** On the private topic `basis-desk-review` with `panel=members`, **Remove ana from this topic** opened **Remove from private topic?**, and **Remove** closed it with no change. The topic row menu's **Delete Topic** showed the new `edbb7153` body. `panel=members` on the public `cpi-print-aug` blanked the shell on `/rooms/` and `/chat/` with the `topicFollowers` error in Gotchas. **Limitations:** Only the delta above was driven tonight; the rest of this guide keeps its 2026-10-29 proof. Public-topic removal, the member menu and the glyph are source-only. Evidence is local only: `artifacts/vomc-nightly-20261030/r1/` (frames 16-19).
 
 **Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Topic peek on `/rooms/` (`?view=room&topics=on&peek=cpi-print-aug&alerts=quiet#/room/ops/topic/cpi-print-aug`) mounted `[data-topic-peek="cpi-print-aug"]`, 440 px, with log **Messages in CPI print — Aug**. Escape returned `#/room/ops`. **Open full** did nothing on `/rooms/` (fixture gap, see Gotchas), and on `/chat/` it promoted the peek to `/chat/room/ops/topic/cpi-print-aug`, heading `#ops/CPI print — Aug`. Sidebar chevron (`357b2df5`): with `om.chat.sidebarWidth=200` and `?view=room&channels=many&topics=on`, hovering **options-flow** revealed **Invite people to options-flow**, **Edit options-flow** and **More options for options-flow**. The topic chevron stayed at x=232 while the label truncated (89→40 px on `/rooms/`, 86→40 px on `/chat/`). Channel row **More options for signals** → **Mute** (accessible name **Choose how long to mute #signals**) opened 15m / 1h / 8h / 24h / Until unmuted on both hosts. **Until unmuted** closed the menu with no visible state change and no toast. **Limitations:** Mark As Unread, the quick switcher, the deep link and the inbox were not re-driven. The mute effect, including the `4ca34c9a` REST fallback for never-joined rooms, is unit-test only, because `setRoomAttention` is unstubbed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 05, 20–23, 48).
 

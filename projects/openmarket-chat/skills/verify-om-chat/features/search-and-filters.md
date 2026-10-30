@@ -162,7 +162,9 @@ partial-window warning remains visible.
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=topic&topic=cpi-print-aug&alerts=quiet&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** Scoped requests, the user filter, date filters and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 15, 49).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `panel=search` **1 results**; `searchState=error` reads "The search service is unavailable"; **Search this topic: CPI print — Aug** on `search=live`; **Search #ops** with `from:` lists @kyle, @ana, @dax, @mira. `/chat/`: `panel=search` **1 results** and the topic search box. **Limitations:** Date filters and backend ranking. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 22).
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=topic&topic=cpi-print-aug&alerts=quiet&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** Scoped requests, the user filter, date filters and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 15, 49).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=topic&topic=cpi-print-aug&alerts=quiet&search=live` showed the **Search this topic: CPI print — Aug** box. **Limitations:** The scoped request ids, **From a specific user**, `?panel=search`, `searchState=error`, date filters, ranking and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 19).
 

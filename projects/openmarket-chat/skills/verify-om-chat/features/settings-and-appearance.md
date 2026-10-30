@@ -208,7 +208,11 @@ and press ArrowLeft five times. The value and readout go to 95 / `95%`,
 `--slider-pct` to `95%`, and `localStorage["om.chat.notificationVolume"]` to
 `"95"`. Reload and all three still read 95. Remove the key afterwards; it is
 sticky. The audio preview needs a real browser with sound and is not proved
-here. Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 20-21).
+here. Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 20-21). The same
+page on `/chat/` (`/chat/tools/visual/settings-fixture.html?host=user&page=notifications`)
+renders without a crash; a click on the track set 50, ArrowLeft set 49, and
+`om.chat.notificationVolume` kept `"49"` across a reload (scheduled
+maintenance, 2026-10-30).
 
 ## Gotchas
 
@@ -295,7 +299,9 @@ here. Driven 2026-10-30 at `47cb13bf` on `/rooms/` (frames 20-21).
 
 ### Verification record
 
-**Last verified:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope (`/rooms/`, `settings-fixture.html`):** **Notification volume** moved 100 → 95 with ArrowLeft, wrote `om.chat.notificationVolume`, and survived a reload. **Sound** was the group heading. The Audio page's **Call volume** carried `.slider` with `--slider-pct: 100%`. **Limitations:** Only the delta was driven tonight; the rest of this guide keeps its 2026-10-29 proof. `/chat/` and the sound preview were not driven. Evidence is local only: `artifacts/vomc-nightly-20261030/r1/` (frames 20-21).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `?view=settings` dialog **Settings** and the **Log Out** alertdialog; settings fixture **Light theme** (`data-theme=light`); server **Roles** with `perms=owner`; the **Slash commands** guide page; **Notification volume** renders. `/chat/`: the settings dialog nav (20 entries) and the Notification volume set and persisted (49). **Limitations:** Most page bodies were not re-driven this pass (2026-10-29 stands); Notifications still crashes the shell fixture. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 09, 21).
+
+**Previous record:** 2026-10-30 (nightly maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope (`/rooms/`, `settings-fixture.html`):** **Notification volume** moved 100 → 95 with ArrowLeft, wrote `om.chat.notificationVolume`, and survived a reload. **Sound** was the group heading. The Audio page's **Call volume** carried `.slider` with `--slider-pct: 100%`. **Limitations:** Only the delta was driven tonight; the rest of this guide keeps its 2026-10-29 proof. `/chat/` and the sound preview were not driven. Evidence is local only: `artifacts/vomc-nightly-20261030/r1/` (frames 20-21).
 
 **Previous record:** 2026-10-29 (scheduled maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** Every user and server settings page body was opened from the shell fixture on `/rooms/` and `/chat/`; see Settings page bodies. Notifications crashed there (`alerts.stripEnabled`), but rendered in `settings-fixture.html` on both hosts. Server Moderation crashed (`spaceModerationState`). **Limitations:** Toggles, saves and the channel Access page were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/`.
 

@@ -36,7 +36,9 @@ Drive accessible names: `Watches`, `Refresh`, `Show details for <label>`, `Close
 
 ### Verification record
 
-**Last attempted:** 2026-10-29 (nightly maintenance) at `cdfb1b0f` (origin/main; rooms-client 0.108.0). With the `**/healthz*` stub at 390×844, **Open om conversations** → **Watches** mounted `.om-watches-surface` ("Everything your om is evaluating, when it runs, and what it does next.", **Refresh**, RECENT FIRES) with no horizontal overflow and zero `[data-om-watch-id]` rows. Watch rows and actions still need a daemon with QA watches. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frame 56).
+**Last attempted:** 2026-10-30 (scheduled maintenance) at `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). With the `**/healthz*` stub on `?view=agent&omSessions=drafts` at 1440, **Watches** mounted with **Refresh** and `[data-testid="om-recent-fires"]` (RECENT FIRES) and zero `[data-om-watch-id]` rows. Watch rows and actions still need a daemon with QA watches. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 39).
+
+**Previous attempt:** 2026-10-29 (nightly maintenance) at `cdfb1b0f` (origin/main; rooms-client 0.108.0). With the `**/healthz*` stub at 390×844, **Open om conversations** → **Watches** mounted `.om-watches-surface` ("Everything your om is evaluating, when it runs, and what it does next.", **Refresh**, RECENT FIRES) with no horizontal overflow and zero `[data-om-watch-id]` rows. Watch rows and actions still need a daemon with QA watches. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frame 56).
 
 **Previous attempt:** 2026-10-28 (nightly maintenance) at `2dd7aad1` (origin/main). With the `**/healthz*` stub at 390×844, **Open om conversations** → **Watches** mounted `.om-watches-surface` with no horizontal overflow. `[data-testid="om-recent-fires"]` showed "Recent fires could not be loaded", and there were no `[data-om-watch-id]` rows. As before, this proves the destination and the fires error branch only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 25).
 

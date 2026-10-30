@@ -49,7 +49,10 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 - `packages/chat-ui/test/message/full-render.test.ts` mounts a room `MessageRow`. It does not prove the real `DmTape` path.
 - DOM presence alone misses clipped charts. Inspect a screenshot and assert content containment against the live SVG view box.
-- Mermaid rendering and the PNG preview are lazy. Wait for `.doc-mermaid svg` before taking refs or screenshots.
+- Mermaid rendering and the PNG preview are lazy, and the diagram renders only
+  once its row is on screen: before scrolling, `.doc-mermaid` is absent and
+  **Open Mermaid diagram as PNG** cannot be found. Scroll `#msg-ops-116` into
+  view first (re-measured 2026-10-30). Then wait for `.doc-mermaid svg` before taking refs or screenshots.
 - The shell fixture currently emits an existing React textarea `value` warning. Treat only that exact warning as baseline; new console errors still fail the visual recipe.
 - Mermaid accessibility directives belong inside the diagram declaration, after `flowchart LR` for this fixture.
 - **The `/chat/` fixture has no `?mermaid=1` seed** (`apps/cloud/tools/visual/shell-fixture.tsx` has no mermaid branch). On that host a linked-message card renders, but it resolves seq 116 to a plain message, so the diagram-in-card proof is `/rooms/`-only until the cloud fixture gains the seed.
@@ -59,7 +62,9 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=room&alerts=quiet&mermaid=1` rendered `.doc-mermaid` with an `svg` and the control **Open Mermaid diagram as PNG**. **Limitations:** `/chat/` and the diagram cache not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 08, 37).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `?mermaid=1`: after scrolling `#msg-ops-116` into view, `.doc-mermaid` named **Open Mermaid diagram as PNG** opened the region **Mermaid diagram PNG preview. Right-click or press Shift+F10 for actions.** **Limitations:** The DM route, `mermaid=labels` and `/chat/` were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 20, 23).
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `?view=room&alerts=quiet&mermaid=1` rendered `.doc-mermaid` with an `svg` and the control **Open Mermaid diagram as PNG**. **Limitations:** `/chat/` and the diagram cache not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 08, 37).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `?view=room&alerts=quiet&mermaid=1`: `msg-ops-116` rendered `.doc-mermaid` with an `svg` and the control **Open Mermaid diagram as PNG**. **Limitations:** The preview region, the linked-message cards, the DM route, `/chat/`, unsafe or invalid diagrams and the PNG export were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 15).
 

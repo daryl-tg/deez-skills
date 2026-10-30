@@ -151,7 +151,9 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on the wrapper lane showed 2 canvases and "world offline, retrying". **Limitations:** Movement, occupants and relay. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 10, 40).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `mocks/world-solo/index.html?worldprobe=1`: two canvases, `.world-status` "world offline, retrying", "Chat: reconnecting", "No #world channel", `[data-world-channel-resize]`, **Follow player**, **Enter fullscreen** and **Hide**. **Limitations:** Movement, occupants, relay. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 41).
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on the wrapper lane showed 2 canvases and "world offline, retrying". **Limitations:** Movement, occupants and relay. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 10, 40).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on the wrapper lane showed 2 canvases and "world offline, retrying". **Limitations:** **Hide** / **Open chat**, follow player, fullscreen, movement, occupants, emotes, relay and the width drag were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 30).
 

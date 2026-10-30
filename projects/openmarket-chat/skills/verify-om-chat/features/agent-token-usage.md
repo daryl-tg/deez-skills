@@ -43,7 +43,9 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`; `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** Daemon accounting and the input+output fallback not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 03, 38–39).
+**Last verified:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `agent-usage-fixture`: `12.3k tokens`, `?tokens=1250000` → `1.3M tokens`, `?tokens=missing` → no count; **Expand tool activity** → **Collapse tool activity**; `agent-presentation-fixture?state=collapsed` toggled the same way. **Limitations:** Daemon accounting. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/`.
+
+**Previous record:** 2026-10-29 (nightly maintenance). **Product commit:** `cdfb1b0f` (origin/main; rooms-client 0.108.0). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`; `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** Daemon accounting and the input+output fallback not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261029/r1/` (frames 03, 38–39).
 
 **Previous record:** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** `agent-usage-fixture` `.agent-answer-meta` title `12,345 tokens`; `agent-presentation-fixture?state=expanded` showed **Collapse tool activity**. **Limitations:** The other `tokens=` seeds, the input+output fallback and daemon accounting were not driven. Evidence: none captured for this row.
 
