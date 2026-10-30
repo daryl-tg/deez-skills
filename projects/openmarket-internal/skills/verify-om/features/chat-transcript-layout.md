@@ -2,12 +2,14 @@
 
 *Verified: 2026-10-30, branch `daryl/tui-readability` at `af153e835` (before its rebase onto origin/main `3cb50a821`), lane 18113, fake model 18114, tmux at 140x40 and 71x40. Driven: `turn`, `tool-row`, `approval-card`, `fire-band`, `away-band`, `catchup-band`, `replay`, `spinner` (plain and workspace), `narrow`. Not driven live: the notice strips (unit-tested), the chimes (unit-tested; one real Tink played during a red check), the OSC 11 reply from a real terminal (tmux answers it). Evidence: Artifact gallery `https://claude.ai/artifact/3jtQoAsFm8DcfxUH2BSekd`, frames under the worktree's `artifacts/vom-tui-readability/r1/`.*
 
+*Re-verified for #2219: 2026-10-30, branch `daryl/watch-status-dots` (off origin/main `cbe10ee19`), lane 18113, fake model 18114, tmux at 160x36 then 90x30. A long reply wrapped at column 119 of a 124-column workspace pane and rewrapped at 90; the user panel ran to the divider; footer codes read `36` mode and model, `31` badge, `32` om running, `90` separators. Evidence: `http://127.0.0.1:8098/vom-dots/r2/`.*
+
 What the transcript looks like, in plain and workspace mode. The workspace
 frame itself (sidebar, cards, ctrl+x) is `chat-workspace-tui.md`.
 
 ## Sub-features
 
-- `turn` — your message is a clay `┃` bar on a raised tint, one padded row above and below. om's reply has no label, starts at column 5 and wraps at 100 columns. No `▣ om` footer and no `Worked for` row.
+- `turn` — your message is a clay `┃` bar on a raised tint, one padded row above and below. om's reply has no label, starts at column 5 and wraps at the pane's width less a 2-column margin (the 100-column cap was removed in #2219). No `▣ om` footer and no `Worked for` row.
 - `tool-row` — one row per call, arguments truncated first; the result hangs on its own `→` row.
 - `hanging-wrap` — every wrapped row hangs under its own text, never back at column 0.
 - `code-block` — a muted tint, no fences, no bar.
@@ -18,7 +20,7 @@ frame itself (sidebar, cards, ctrl+x) is `chat-workspace-tui.md`.
 - `replay` — `om chat --resume` replays the conversation exactly as it looked live, under a faint `resuming from N prior turns · M earlier messages not shown` marker.
 - `spinner` — only while om works, directly above the composer; idle has no status row. In `--workspace` it is the transcript pane's last row, left of the divider.
 - `chimes` — macOS local: Tink when an approval card opens, Glass when a turn over 3 s ends; SSH and other systems ring BEL. `om config set chat.sounds off` silences all of it.
-- `palette` — clay accent `#d97757`, muted `#8b9198`, up, down, warn; tints blend over the terminal's real background (OSC 11, first frame held up to 100 ms). `OM_TUI_ACCENT` overrides the accent.
+- `palette` — clay accent `#d97757`, muted `#8b9198`, up, down, warn; tints blend over the terminal's real background (OSC 11, first frame held up to 100 ms). `OM_TUI_ACCENT` overrides the accent. The footer, mode line and watch attention badge are the exception (#2219): the terminal's own cyan, green, red, yellow and gray, with `OM_TUI_ACCENT` replacing the cyan.
 
 ## How to get to it (user POV)
 
