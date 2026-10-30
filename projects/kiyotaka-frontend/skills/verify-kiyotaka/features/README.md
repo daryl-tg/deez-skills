@@ -3,7 +3,17 @@
 The maintained source for verifying user-facing chart behavior. Read this index
 before driving, then use the matching feature file as the recipe.
 
-Maintenance pass: 2026-10-29 (nightly). Source read and live drive on the same
+Maintenance pass: 2026-10-30 (nightly). Source read on `origin/main`
+`849fb08e95` (135 commits past the 2026-10-29 tree `78ec9625d9`); the inventory
+and the guides carry what that read found, each labelled source. **The live
+pass was blocked**: with the machine's load average between 100 and 220 on 10
+cores from other sessions, lane `18103` passed `doctor` five times but the
+guest page never drew a candle in five boots over two and a half hours (see the
+load bullet in Baseline preconditions). Nothing on `849fb08e95` was driven, so
+every "last driven" stamp below is still the 2026-10-29 drive on `78ec9625d9`.
+Logs (no frames): `~/dev-notes-artifacts/maintain-verification-skill/run-artifacts/vk-nightly-20261030/r1/`.
+
+Previous pass: 2026-10-29 (nightly). Source read and live drive on the same
 tree, `origin/main` `78ec9625d9` (56 commits past the 2026-10-28 tree
 `29c9cda0a2`). Lane `18103` in a detached worktree with the operator's
 `.env.local` linked in, a guest lane with no JWT whose backend proxy is a remote
@@ -37,6 +47,21 @@ passed): `~/dev-notes-artifacts/maintain-verification-skill/run-artifacts/vk-nig
   [chart boot](./chart-boot-and-data-plane.md) Gotchas). With it, `doctor`'s
   `backend :3000 DOWN` line is about `:3000` only; the lane talks to whatever
   `VITE_BACKEND_PROXY_TARGET` names.
+- **Read `uptime` before you plan a pass. A loaded machine cannot boot a dev
+  lane, and nothing in `doctor` says so.** On 2026-10-30, with the load average
+  between 100 and 220 on 10 cores from other sessions, every `doctor` passed while the page
+  showed `Startup is taking longer than expected` (the chart route never marked
+  itself booted, `window.__BOOT_ERRORS__` empty), the guest's
+  `POST /api/v1/auth-v2/refresh-token` through the lane took 18 to 50 s against
+  the app's 15 s timeout (`[refresh-token] all retries exhausted`), the data
+  worker died with an empty `Error initializing worker:` and parked, and
+  `agent-browser` wedged with `os error 35` three times. The same request
+  straight to the backend took under 2 s. Exporting the backend's IP as
+  `VITE_BACKEND_PROXY_TARGET` before `up` (the process env overrides
+  `.env.local`) cut the lane's proxy time to under 4 s, because Node's own
+  lookup of the tailnet hostname took about 4 s under that load, but the boot
+  still stalled. When the load average is far above the core count, report the
+  pass blocked rather than reading those failures as product regressions.
 - **Keep the tab visible.** A headless tab drifts to `visibilityState: hidden`
   mid-drive, which freezes rAF and runs the app's hidden path. Check
   `document.visibilityState` before each capture, and re-front with
@@ -132,6 +157,15 @@ passed): `~/dev-notes-artifacts/maintain-verification-skill/run-artifacts/vk-nig
   surface can only ever be proven as far as its wall. Ask the operator for a code
   or a password-capable account before planning an authed run; do not burn a pass
   discovering this again.
+  Since `906df31d1b` (2026-10-29) the product repo's own project-local skill
+  (`.claude/skills/verify-kiyotaka/SKILL.md` and `sign-in.md`) describes a
+  signed-in route: `agent-browser --restore kiyo-verify-auth-<target>` carries a
+  saved login per target (`local`, `int`, `prod`), and `local` re-signs in from
+  an `agent-browser auth` profile named `kiyo-local`. That profile is bound to
+  port `8097`, the operator's port, which this map never drives, and on
+  2026-10-30 `agent-browser auth list` printed `No auth profiles saved` and no
+  `kiyo-verify-auth-*` file existed. So the route does not reach an agent lane
+  yet; an operator-saved profile for an agent port would open it.
 - Never drive an instance this verification run did not start.
 
 ## Driving conventions
@@ -250,30 +284,34 @@ symbol run:
 
 ## Surface inventory
 
-Re-discovered 2026-10-29 from kiyotaka-frontend source on `origin/main`
-`78ec9625d9`; live column from the 2026-10-29 drive on the same tree unless a
-row says otherwise. The rows come from the router (`src/router/routes.ts`), the
-Super Search providers (34 files), the 45 gate ids in
-`src/constants/authFeatures.constants.ts`, the panel registry
-(`src/constants/panels.constants.ts`), the flag registry
-(`src/constants/feature-flags.constants.ts`) and the 56 commits in
-`29c9cda0a2..78ec9625d9`, not from the guides. None of those registries changed
-in that range; the new rows come from the commits. Every source path was
-checked with `git cat-file -e 78ec9625d9:<path>`. Gates were read from those
-registries and a usage grep, not from each component; "gate not checked" says
-so where nothing was found. "Live" names the run that last drove the outcome.
-An `unmapped` row has no recipe yet and has never been driven by this map. Most
-of them stop at a sign-in wall, and no agent can sign in on this stack (see
-Baseline preconditions).
+Re-discovered 2026-10-30 from kiyotaka-frontend source on `origin/main`
+`849fb08e95` (135 commits past `78ec9625d9`). The live column is unchanged from
+the 2026-10-29 drive on `78ec9625d9` unless a row says otherwise: the
+2026-10-30 live pass was blocked by machine load (see the run note at the top),
+so no row gained live proof on `849fb08e95`. The rows come from the router
+(`src/router/routes.ts`), the Super Search providers (35 files; `rithmic.ts`
+is new), the 45 gate ids in `src/constants/authFeatures.constants.ts`, the
+panel registry (`src/constants/panels.constants.ts`), the flag registry
+(`src/constants/feature-flags.constants.ts`; `GUEST_DEFAULT_FLAGS` lives in
+`src/store/feature-flags.ts` and is still `{}`) and the commits in
+`78ec9625d9..849fb08e95`, not from the guides. The router, gate ids, panel
+registry and flag constants did not change in that range; new runtime flags
+(`us-equities-full`, `cme-user-scripts`, `kscript-sunset`) are read by their own
+predicates, not the constants file. Every source path was checked against
+`849fb08e95`. Gates were read from those registries and a usage grep, not from
+each component; "gate not checked" says so where nothing was found. "Live"
+names the run that last drove the outcome. An `unmapped` row has no recipe yet
+and has never been driven by this map. Most of them stop at a sign-in wall, and
+no agent can sign in on this stack (see Baseline preconditions).
 
 | User outcome | Product source path | Guide / sub-feature | Live verification | Prerequisite or gap |
 |---|---|---|---|---|
 | Chart opens and draws candles from the worker-owned feed | `src/pages/chart.vue`, `src/workers/worker-manager.ts`, `src/workers/services/websocket.worker.service.ts` | [boot](./chart-boot-and-data-plane.md) `boot-mount`, `boot-candles`, `boot-worker` | 2026-10-29, `78ec9625d9`, no-JWT guest lane, 250 bars, worker console grep clean | the operator's `.env.local` in the lane's tree |
 | Ticker shows live price, 24h volume, OI and funding | `src/services/live-feed.service.ts`, `src/components/TickerBar/TBMarketStats.vue` | [boot](./chart-boot-and-data-plane.md) `boot-live` | 2026-10-29, `78ec9625d9` (spot COINBASE BTC-USD; perp BINANCE.F ETHUSDT with OI $5.65B and funding) | OI and funding exist only on derivatives; a tab that drifts `hidden` freezes the slots |
 | A woken tab backfills the candles it missed | `src/composables/chart/useVisiblityChanges.ts`, `src/utility/chart/wake-resync-overlay-plan.util.ts` | [boot](./chart-boot-and-data-plane.md) `wake-heal` | 2026-10-29, `78ec9625d9`, the lone-bar heal on BINANCE.F SOLUSDT 1m from a 405 s visibility override (5 blank slots to 0, `main-heal-commit` `interior-change`); 2026-10-28 on `29c9cda0a2` likewise | the wake's token refresh needs the backend proxy reachable; a real sleep and the process-suspend lane not driven |
-| Indicators dialog opens, searches and adds an overlay | `src/components/dialogs/IndicatorDialogV2.vue`, `src/store/chart.add-indicator.ts` | [indicators](./indicators.md) `ind-dialog`, `ind-add` | 2026-10-29, `78ec9625d9`; the store landing and the Ask block's hide and show; a guest row Add walls on `indicators` (2026-10-28), so the mount is programmatic | a dialog-path mount needs a signed-in session; a retired kScript row refuses with a toast (source) |
+| Indicators dialog opens, searches and adds an overlay | `src/components/dialogs/IndicatorDialogV2.vue`, `src/store/chart.add-indicator.ts` | [indicators](./indicators.md) `ind-dialog`, `ind-add` | 2026-10-29, `78ec9625d9`; the store landing and the Ask block's hide and show; a guest row Add walls on `indicators` (2026-10-28), so the mount is programmatic | a dialog-path mount needs a signed-in session; a retired kScript row refuses with a toast (source); the favourite star works on every row that can take one and reads disabled, with its reason in the title, on the rest (`f6ba61116e`); a guest's favourite write is walled |
 | The legend's settings, visibility and close controls work | `src/components/chart/ChartLegends.vue`, `src/store/chart.indicator-mgmt.ts` | [indicators](./indicators.md) `ind-legend` | 2026-10-29, `78ec9625d9`; the settings card's rows explain themselves (`setting-term`, hover card); visibility and close 2026-10-28 | pin and window doors depend on the type (source); close the card with `overlay-settings-close-btn` |
-| Indicator settings rows explain themselves | `src/components/common/SettingTerm.vue`, `src/components/common/IndicatorSettingsForm.vue` | [indicators](./indicators.md) `ind-legend` | 2026-10-29, `78ec9625d9`, 10 terms and a hover card on `BITCOIN_DOMINANCE` | `setting-term-learn-more` needs a docs origin; the ticker-bar heatmap popover's terms need a signed-in session |
+| Indicator settings rows explain themselves | `src/components/common/SettingTerm.vue`, `src/components/common/IndicatorSettingsForm.vue` | [indicators](./indicators.md) `ind-legend` | 2026-10-29, `78ec9625d9`, 10 terms and a hover card on `BITCOIN_DOMINANCE` | `setting-term-learn-more` needs a docs origin; the ticker-bar heatmap popover's terms need a signed-in session; a row now hides only while its value has no effect (`d9727ce894`, `0c0f2ec4e5`, `587939bdaa`), not driven |
 | Official indicators are listed | `src/services/indicator-catalog.service.ts`, `src/composables/chart/useIndicatorCatalogV2.ts` | [indicators](./indicators.md) `ind-catalog` | 2026-10-29, `78ec9625d9`, seeded remote dev backend (`See all 241`) | a seeded backend; a fresh local stack needs `node scripts/seed-official-catalog.mjs`; the builtin seen marks (`e491d0feb9`) are a network side effect with no surface |
 | The indicators-per-chart cap holds | `src/store/chart.add-indicator.ts`, `src/composables/chart/useSuiteApplication.ts`, `packages/wrun-chart-host/src/constants/feature-limits.constants.ts` | [indicators](./indicators.md) `ind-limit` | 2026-10-29, `78ec9625d9`, display only (`2/3`) | the cap is per tier (free 3, plus 10), and enforcement runs only on the dialog path, which a guest cannot take |
 | Symbol search finds and switches a market; scope chips filter | `src/components/symbolSelection/SymbolSelectionDialog.vue`, `src/components/symbolSearchV2/CategoryStrip.vue` | [symbol search](./symbol-search-and-ticker-bar.md) `sym-search`, `sym-scope` | 2026-10-29, `78ec9625d9`; the `Ethereum` row to BINANCE.F ETHUSDT (367 bars); Equities tab 2026-10-28 | a bare `ETHUSDT · Crypto` asset row opens a BINANCE.O ETH put, not the perp (product gap, likely catalog data) |
@@ -281,7 +319,7 @@ Baseline preconditions).
 | Browse and chart prediction markets: the Predict tab with Polymarket and HIP-4 venue chips | `src/components/symbolSearchV2/CategoryStrip.vue`, `src/components/symbolSelection/component/IntentFilter.vue`, `src/utility/symbol-selection/prediction-preview.util.ts`, `src/utility/symbol-selection/discovery-category.util.ts` | [symbol search](./symbol-search-and-ticker-bar.md) `sym-predict` | 2026-10-29, `78ec9625d9`, both chips; a Polymarket event charted (101 bars) | none for a guest; the `HIP-4` tab was folded into Predict by `93b3a757c0` |
 | Hover quick-search switches the symbol without the full dialog | `src/components/TickerBar/QuickSymbolSearchDropdown.vue` | [symbol search](./symbol-search-and-ticker-bar.md) `sym-quick` | 2026-10-29, `78ec9625d9`, `SOLUSDT` to BINANCE.F SOLUSDT (250 bars) | the memecoin and Pulse rows need a signed-in session |
 | Memecoin lane, liquidity floor and Pulse rows | `src/components/symbolSelection/component/MemecoinRow.vue`, `src/components/symbolSearchV2/RefineControls.vue`, `src/components/pulse/PulseRow.vue` | [symbol search](./symbol-search-and-ticker-bar.md) `sym-memecoins` | live verification pending | a signed-in session (the `memecoins` tab and Pulse need it) |
-| Interval, chart type and layout pickers re-drive the chart | `src/components/TickerBar/TBIntervalSelector.vue`, `src/components/TickerBar/TBChartTypeSelector.vue`, `src/components/TickerBar/TBLayoutPicker.vue` | [ticker bar](./symbol-search-and-ticker-bar.md) `tb-interval`, `tb-plot`, `tb-layout` | 2026-10-29, `78ec9625d9` (`1m` and `1h`, Heikin Ashi and back, the `multi-chart` wall); `5m` and the in-chart interval menu 2026-10-28 | a multi-chart grid needs a signed-in session; the `ChartArea` interval menu not opened |
+| Interval, chart type and layout pickers re-drive the chart | `src/components/TickerBar/TBIntervalSelector.vue`, `src/components/TickerBar/TBChartTypeSelector.vue`, `src/components/TickerBar/TBLayoutPicker.vue` | [ticker bar](./symbol-search-and-ticker-bar.md) `tb-interval`, `tb-plot`, `tb-layout` | 2026-10-29, `78ec9625d9` (`1m` and `1h`, Heikin Ashi and back, the `multi-chart` wall); `5m` and the in-chart interval menu 2026-10-28 | a multi-chart grid needs a signed-in session; the `ChartArea` interval menu not opened; since `7118982415` and `b975aaa639` each change records an undo step (see the undo row) |
 | Pickers peek on hover; the bar folds into the Panels menu | `src/components/TickerBar/TBChartTypeSelector.vue`, `src/composables/chart/useTickerBarFoldedControl.ts`, `src/composables/chart/useTickerBarFit.ts` | [ticker bar](./symbol-search-and-ticker-bar.md) `tb-hover`, `tb-more` | 2026-10-29, `78ec9625d9` (chart-type and layout peeks; the layout sync toggles are now `role=switch`) | there is no `⋯` button; a narrow viewport was not driven |
 | The right-hand cluster toggles its panels | `src/components/TickerBar/TBPanelToggle.vue`, `src/components/TickerBar/TBPanelsMenu.vue` | [ticker bar](./symbol-search-and-ticker-bar.md) `tb-bar-toggles` | 2026-10-29, `78ec9625d9` | Watchlist, News and Editor wall a guest |
 | The script editor drawer opens | `src/components/scriptEditor/shell/EditorDrawer.vue`, `src/components/TickerBar/TBEditorToggle.vue` | [editor](./script-editor-and-kscript.md) `ks-open` | 2026-10-29, `78ec9625d9`, through Super Search, read-only (typed keys left it empty) | the ticker-bar toggle and the Panels row raise the sign-in wall for a guest |
@@ -300,18 +338,18 @@ Baseline preconditions).
 | Release notes | `src/pages/settings/ReleaseNotes.vue` | [Super Search](./super-search-and-settings.md) `set-notes` | 2026-10-29, `78ec9625d9`, 81 versions, `4.0.0` titled `OPENMARKET V4` | announcements are not rendered (`src/store/announcements.ts`) |
 | Guest sign-in wall and feature-aware signup prompt | `src/components/dialogs/LoginSignupDialog.vue`, `src/store/dialog.ts`, `src/store/guest-prompt.ts` | [Super Search](./super-search-and-settings.md) `guest-wall` | 2026-10-29, `78ec9625d9`, thirteen doors with unchanged ids | none for a guest lane |
 | Sign in, sign up, code request with Turnstile, reset and verify | `src/pages/auth/auth.page.vue` | unmapped | live verification pending | no agent-readable sign-in code or password; Turnstile fails under Playwright |
-| First-run onboarding: look and ask steps | `src/components/onboarding/FirstRunOnboarding.vue`, `src/components/onboarding/FirstRunLook.vue`, `src/components/onboarding/FirstRunAsk.vue` | unmapped | live verification pending | runs for a new account; a guest gets a light look (source) |
+| First-run onboarding: look and ask steps | `src/components/onboarding/FirstRunOnboarding.vue`, `src/components/onboarding/FirstRunLook.vue`, `src/components/onboarding/FirstRunAsk.vue` | unmapped | live verification pending | runs for a new account; a guest gets a light look (source); a Watchlist step joined as step 4 and after every Ask end (`243b283433`, `95596540de`, `src/components/onboarding/FirstRunWatchlist.vue`) |
 | Delete and restore account | `src/pages/DeleteAccount.vue`, `src/components/dialogs/RestoreAccountDialog.vue` | unmapped | live verification pending | a signed-in throwaway account |
 | Settings dialog: profile, security, appearance, timezone, trade and workspace settings | `src/components/dialogs/SettingsPagesDialog.vue` | unmapped (the guest pages are `set-shortcuts`, `set-notes`) | live verification pending | `ACCOUNT_SETTINGS` wall; 2FA needs `TWO_FACTOR` |
 | Guided tour | `src/components/tour/GuidedTour.vue`, `src/store/guidedTour.ts` | unmapped | live verification pending | excludes guests; the Super Search command needs a verified email |
 | Referrals | `src/pages/settings/Referral.vue` | unmapped | live verification pending | `REFERRALS` wall |
 | Support center and contact | `src/components/dialogs/ReachOutPopoverContent.vue`, `src/components/dialogs/SupportInboxDialog.vue` | unmapped | live verification pending | `SUPPORT_CENTER` wall |
-| Plus subscription, upgrade, trial and payment status | `src/pages/console/ConsoleSubscription.vue`, `src/components/dialogs/UpgradeDialog.vue`, `src/pages/PaymentStatus.vue` | unmapped | live verification pending | signed-in; `BILLING`; flags `free-trial`, `prepaid-plus-cn`, `plus-usdc-autopay` |
+| Plus subscription, upgrade, trial and payment status | `src/pages/console/ConsoleSubscription.vue`, `src/components/dialogs/UpgradeDialog.vue`, `src/pages/PaymentStatus.vue` | unmapped | live verification pending | signed-in; `BILLING`; flags `free-trial`, `prepaid-plus-cn`, `plus-usdc-autopay`; a purchase refusal now names its reason (`849fb08e95`, `src/utility/billing/purchase-refusal.util.ts`), a failed renewal says paid access is paused (`bbb391f233`), and a partner discount badge follows the term (`b3a3ee935d`) |
 | Developer console: plans, API keys, agents, usage | `src/pages/console/ConsoleLayout.vue` | unmapped | live verification pending | signed-in; `API_KEY`; flag `api-console` |
 | Connect an AI agent | `src/components/dialogs/ConnectAgentDialog.vue`, `src/components/footer/FooterAgents.vue` | unmapped | live verification pending | `AGENTS`; flag `agents-surface` |
 | Alerts panel opens; creating an alert | `src/components/alert/AlertSidebar.vue`, `src/components/alert/AddAlertMenu.vue` | [panels](./right-side-panels.md) `rp-alerts` | 2026-10-29, `78ec9625d9`, the panel and the create wall | creating, listing and delivery need a signed-in session; OPRA alerts need flag `opra-alerts` (not re-verified) |
-| Notifications panel | `src/components/GlobalNav/NotificationPanel.vue` | unmapped | live verification pending | `NOTIFICATION` wall |
-| Drawing tools and the floating toolbar | `src/components/toolsSidebar/ToolsSidebar.vue`, `src/components/toolsSidebar/FloatingToolbar.vue` | [drawing tools](./drawing-tools.md) `dt-*` | 2026-10-29, `78ec9625d9`, trend line, the colour popover's keep and revert, a cancelled creation, delete | favorites need `FAVORITES`; drawing sync (`drawings-sync:<scope>`) not driven |
+| Notifications panel | `src/components/GlobalNav/NotificationPanel.vue` | unmapped | live verification pending | `NOTIFICATION` wall; a fired alert opens its market from its toast, notification row and web push (`9f12f38b7d`, `src/components/notification/content/fired-alert-open.util.ts`) |
+| Drawing tools and the floating toolbar | `src/components/toolsSidebar/ToolsSidebar.vue`, `src/components/toolsSidebar/FloatingToolbar.vue` | [drawing tools](./drawing-tools.md) `dt-*` | 2026-10-29, `78ec9625d9`, trend line, the colour popover's keep and revert, a cancelled creation, delete | favorites need `FAVORITES`; drawing sync (`drawings-sync:<scope>`) not driven; the Fibonacci retracement and trend-based extension gained `Fib levels based on log scale` in their settings Appearance section (`679091780e`, `levelsOnLogScale`, no testid), not driven |
 | Object tree | `src/components/objects/ObjectsLayout.vue` | [panels](./right-side-panels.md) `rp-objects` | 2026-10-29, `78ec9625d9`, opens with no wall | none |
 | Replay | `src/components/replay/ReplayOverlay.vue`, `src/composables/chart/useReplayToggle.ts` | [panels](./right-side-panels.md) `rp-walled` (the wall only) | 2026-10-29, `78ec9625d9`, the Panels row raises the `chart-actions` wall | a signed-in session, then the tier budget in `useReplayToggle` |
 | Multi-chart grid, monitors and Trinity layouts | `src/composables/chart/useMonitorPicker.ts`, `src/components/chart/TrinityBar.vue` | unmapped (the picker is `tb-layout`) | live verification pending | `MULTI_CHART`, `MONITOR` walls; Trinity is a Super Search command |
@@ -324,16 +362,16 @@ Baseline preconditions).
 | Option chain browser page | `src/pages/options/OptionsChainPage.vue` | unmapped | live verification pending | signed-in route |
 | Options flow tape | `src/components/options/OptionsFlowTape.vue` | unmapped | live verification pending | a launch needs a resolved chain (`launchable`) |
 | ETF screener | `src/components/etf-screener/EtfScreenerPanel.vue` | [panels](./right-side-panels.md) `rp-etf` | 2026-10-29, `78ec9625d9`, opens with no wall; 0 rows | the dev backend's ETF universe was empty again; saving a screen needs an account |
-| OPRA and CME data purchase, registration and terms | `src/components/options/CmeTermsDoor.vue`, `src/components/options/OpraDelayDoor.vue`, `src/components/options/OpraRealtimeCard.vue`, `src/components/dialogs/market-data/MarketDataPurchaseFlow.vue` | unmapped | live verification pending | `BILLING`; flag `opra`; a purchase |
+| OPRA and CME data purchase, registration and terms | `src/components/options/CmeTermsDoor.vue`, `src/components/options/OpraDelayDoor.vue`, `src/components/options/OpraRealtimeCard.vue`, `src/components/dialogs/market-data/MarketDataPurchaseFlow.vue` | unmapped | live verification pending | `BILLING`; flag `opra`; a purchase; the real-time US stocks add-on is priced at $19 a month (`a0a6189c82`) |
 | Tape mode and the 1s interval | `src/composables/chart/useTapeMode.ts` | unmapped | live verification pending | `ONE_SECOND_INTERVAL`; `TAPE_MODE` on mobile |
-| Footprint and TPO, including the TPO outline display mode | `src/composables/chart/chartTypePick.ts`, `src/components/dialogs/TimePriceOpportunityDialog.vue`, `src/indicators/controls/tpoSettingsTabs.ts` | unmapped (the Footprint panel's wall is `rp-walled`) | live verification pending | `VOLUME_FOOTPRINT` (the Panels row raised it 2026-10-29), `TIME_PRICE_OPPORTUNITY` walls |
-| Trades and liquidations; market, volume and liquidity stats | `src/components/tradeAndLiquidations/TradeAndLiquidations.vue`, `src/components/tradingVolume/Stats.vue` | [panels](./right-side-panels.md) `rp-tape`, `rp-stats` | 2026-10-29, `78ec9625d9`, every panel opens with no wall; Tape printed on BINANCE.F ETHUSDT | Trades and Liquidations showed no prints in 10 s (size thresholds may filter them); COINBASE BTC-USD Tape was empty 2026-10-28 |
-| News feed and synoptic streams | `src/components/topic-feed/TopicFeedPanel.vue` | unmapped (the wall is `rp-walled`) | live verification pending | `NEWS` wall (driven 2026-10-29); flags `feeds`, `synoptic-streams` |
+| Footprint and TPO, including the TPO outline display mode | `src/composables/chart/chartTypePick.ts`, `src/components/dialogs/TimePriceOpportunityDialog.vue`, `src/indicators/controls/tpoSettingsTabs.ts` | unmapped (the Footprint panel's wall is `rp-walled`) | live verification pending | `VOLUME_FOOTPRINT` (the Panels row raised it 2026-10-29), `TIME_PRICE_OPPORTUNITY` walls; the regular TPO now marks each profile's open and close block (`cb070d70a5`, `src/indicators/controls/tpo-open-close.util.ts`, Color tab `highlightOpen` / `highlightClose`) |
+| Trades and liquidations; market, volume and liquidity stats | `src/components/tradeAndLiquidations/TradeAndLiquidations.vue`, `src/components/tradingVolume/Stats.vue` | [panels](./right-side-panels.md) `rp-tape`, `rp-stats` | 2026-10-29, `78ec9625d9`, every panel opens with no wall; Tape printed on BINANCE.F ETHUSDT | Trades and Liquidations showed no prints in 10 s (size thresholds may filter them); COINBASE BTC-USD Tape was empty 2026-10-28; source on `849fb08e95`: the Trades and Liquidations panel filters by its own size thresholds times its multiplier (`TradeAndLiquidations.vue`), unchanged in the range; the trades commits there are the Big Trades indicator's |
+| News feed and synoptic streams | `src/components/topic-feed/TopicFeedPanel.vue` | unmapped (the wall is `rp-walled`) | live verification pending | `NEWS` wall (driven 2026-10-29); flags `feeds`, `synoptic-streams`; Synoptic posts can be pinned on a chart, chosen per chart (`eb8c278a1d`) |
 | Market events, earnings calendar and the chart event lane | `src/components/earnings/EarningsPanel.vue`, `src/components/chart/ChartEventLane.vue` | unmapped | live verification pending | a signed-in session |
 | Tweet callers bar | `src/components/tweet-callers/TweetCallerBar.vue` | unmapped | live verification pending | `TWEET_CALLERS` wall |
 | Journal | `src/components/journal/JournalLayout.vue` | [panels](./right-side-panels.md) `rp-journal` | 2026-10-29, `78ec9625d9`, opens with no wall | writes are gated on a guest session (source); entries need an account |
-| Hyperliquid account dock, trade rail and order ticket | `src/components/hyperliquid/trade/HLTradeTicketPanel.vue`, `src/components/hyperliquid/account-panel/HLAccountDock.vue`, `src/components/trading-hub/AccountMenu.vue` | unmapped (the desktop map covers the shell's wallet handoff) | live verification pending | flag `ems-hyperliquid`; a funded testnet wallet; the account menu now reaches HIP-3 (`40a1989b6e`) and is signed-in only |
-| Trading hub, CEX connect, paper trading and new venues | `src/components/trading-hub/TradingHubDialog.vue`, `src/components/dialogs/CexConnectDialog.vue`, `src/components/cex/link/` | unmapped | live verification pending | flags `trading-hub`, `paper-trading`, `robinhood-trading`, `lighter-execution`, `variational-markets` |
+| Hyperliquid account dock, trade rail and order ticket | `src/components/hyperliquid/trade/HLTradeTicketPanel.vue`, `src/components/hyperliquid/account-panel/HLAccountDock.vue`, `src/components/trading-hub/AccountMenu.vue` | unmapped (the desktop map covers the shell's wallet handoff) | live verification pending | flag `ems-hyperliquid`; a funded testnet wallet; the account menu now reaches HIP-3 (`40a1989b6e`) and is signed-in only; each TP/SL leg shows its estimated p&l on every venue (`9c4f8d1354`, `src/utility/trading/leg-pnl.util.ts`) and the desktop positions strip hides from its X or the bottom bar (`42e5d7bb2d`, `src/components/footer/FooterPositionsToggle.vue`) |
+| Trading hub, CEX connect, paper trading and new venues | `src/components/trading-hub/TradingHubDialog.vue`, `src/components/dialogs/CexConnectDialog.vue`, `src/components/cex/link/` | unmapped | live verification pending | flags `trading-hub`, `paper-trading`, `robinhood-trading`, `lighter-execution`, `variational-markets`; CME futures order entry with live-quote paper fills and fill markers (`d0017347a8`, `eb57b298b1`) |
 | Trading Volume page | `src/components/trading-hub/VolumePage.vue`, `src/composables/tradingVolume/useTradingVolume.ts` | unmapped | live verification pending | flag `TradingVolume` (dark in production) |
 | Pulse board, token overview and onchain swap | `src/pages/pulse/PulsePage.vue`, `src/components/tokenOverview/TokenOverviewPanel.vue` | unmapped | live verification pending | a signed-in session |
 | Marketplace store, purchases and seller hub | `src/components/marketplace/MarketplaceStoreLayout.vue` | unmapped | live verification pending | signed-in route |
@@ -357,7 +395,15 @@ Baseline preconditions).
 | The symbol search leaves an input-method composition alone | `src/utility/dom/ime-composition.util.ts`, `src/components/symbolSelection/SymbolSelectionDialog.vue` | [symbol search](./symbol-search-and-ticker-bar.md) `sym-ime` | 2026-10-29, `78ec9625d9`, synthetic composition events; a composing `Escape` with `code` set now keeps the dialog open (`f79e403616`) | a real input method not driven; a synthetic composing `Escape` without `code` still closes the dialog (the filter skips an empty `code`) |
 | Built-in options indicators open as window cells | `packages/wrun-chart-host/src/utility/chart/window-owner.leaf.ts`, `src/composables/chart/useIndicatorMenu.ts` | unmapped (a source note in [indicators](./indicators.md) Gotchas) | live verification pending | options data needs a signed-in session |
 | Saved chart themes: delete from the theme row with Undo | `src/components/dialogs/ChartThemeRow.vue`, `src/store/my-themes.ts` | unmapped | live verification pending | a saved theme, probably account-only (source not read far enough) |
-| Trade prediction markets through a Polymarket lane | `src/composables/superSearch/providers/polymarket.ts`, `src/components/dialogs/PolymarketConnectDialog.vue`, `src/components/polymarket/trade/PredictionTicketPanel.vue`, `src/components/polymarket/account/PredictionAccountPanel.vue`, `src/utility/polymarket/pm-venue-flag.util.ts` | unmapped | live verification pending; no `Link Polymarket` row for a guest (2026-10-28); a guest can chart Polymarket events through the Predict tab (`sym-predict`) | flag `polymarket-execution` and a signed-in session; a linked Polymarket account |
+| Trade prediction markets through a Polymarket lane | `src/composables/superSearch/providers/polymarket.ts`, `src/components/dialogs/PolymarketConnectDialog.vue`, `src/components/polymarket/trade/PredictionTicketPanel.vue`, `src/components/polymarket/account/PredictionAccountPanel.vue`, `src/utility/polymarket/pm-venue-flag.util.ts` | unmapped | live verification pending; no `Link Polymarket` row for a guest (2026-10-28); a guest can chart Polymarket events through the Predict tab (`sym-predict`) | flag `polymarket-execution` and a signed-in session; a linked Polymarket account; since `004429d11c` a user links with a wallet and trades through a session key, `10c9c26834` redeems a resolved market from Positions, `95330816c9` makes market orders one field |
 | "What should we build next" feedback banner | `src/components/banners/BuildNextBanner.vue`, `src/utility/feedback/prompted-question-schedule.util.ts` | unmapped | live verification pending; absent for a guest (2026-10-28) | a signed-in account past its signup day, then the prompt schedule |
+| Undo and redo chart changes from the footer: symbol switches and compares, interval, chart type, chart settings, session, price scale and the Volume row, each step named in the button | `src/components/footer/FooterUndoRedo.vue`, `src/composables/chart/useUndoRedoControls.ts`, `src/store/undo-redo.ts`, `src/store/undo-redo-swap.ts`, `src/utility/undo/undo-step-label.ts` | [ticker bar](./symbol-search-and-ticker-bar.md) `tb-undo` | live verification pending; attempted 2026-10-30 on `849fb08e95`, blocked by machine load before the chart drew | none found for a guest (`Footer.vue` mounts the pair with no gate); the phone drawing bar has its own pair (`a7cc3ed7e6`) |
+| Moving average ribbon built-in | `src/indicators/controls/ma-ribbon/index.ts`, `src/indicators/controls/ma-ribbon/MaRibbonSettings.vue` | [indicators](./indicators.md) `ind-add` | live verification pending | a dialog-path add needs a signed-in session; a guest mount is programmatic (`MA_RIBBON`, chart-schema `0.8.1`) |
+| A late indicator read says why in its legend row, with a counter and Retry | `src/utility/chart/indicator-status-chips.util.ts`, `src/utility/chart/legend-chip-label.util.ts` | [indicators](./indicators.md) `ind-legend` | live verification pending | needs a stalled read (5 s with evidence, 15 s without); no deterministic guest trigger found |
+| A stale cached frame paints dimmed at its true time until the fresh rows land | `src/utility/chart/cached-paint-dim.util.ts`, `src/components/chart/ChartArea.vue` | [boot](./chart-boot-and-data-plane.md) `boot-candles` | live verification pending | a cached tail more than 3 bars old (`PAINT_WALL_AGE_BARS`); handles `cached-paint-veil`, `cached-paint-updating-chip` |
+| kScript sunset: retires 2026-11-02; legend chip, toast and card on a kScript row; the editor's frozen bar names the date | `src/constants/kscript-retired-at.constants.ts`, `src/components/chart/KscriptSunsetNotice.vue`, `src/components/chart/LegendDiagnosticCard.vue`, `src/components/scriptEditor/shell/KScriptLegacyNotice.vue` | [editor](./script-editor-and-kscript.md) Gotchas | live verification pending | a signed-in session with a saved kScript row; flag `kscript-sunset` (on while unminted) |
+| US stocks consolidated tape: Live price or Trades feed chip, the stock tape panel and its overlays | `src/components/chart/StockFeedChip.vue`, `src/components/trades/StockTapePanel.vue`, `src/utility/stocks/us-equities-flag.util.ts` | unmapped | live verification pending | dark runtime flag `us-equities-full`; a signed-in session |
+| CME and Rithmic futures order entry; Rithmic order routing from the chart | `src/components/futures/FuturesTradeTicketPanel.vue`, `src/store/rithmic-trading.ts`, `src/composables/superSearch/providers/rithmic.ts` | unmapped | live verification pending | Rithmic is dark (`aaf4fec58c`); a signed-in session and a venue account |
+| CME user-authored chart studies (browser only) | `packages/wrun-chart-host/src/utility/chart/cme-user-scripts-gate.util.ts`, `src/utility/chart/cme-user-scripts-entitlement.util.ts` | unmapped (the CME twin of the OPRA row) | live verification pending | dark flag `cme-user-scripts`, an entitlement and a signed-in session |
 | Desktop sign page | `src/pages/desktop/sign.page.vue` | [desktop map](../../verify-kiyotaka-desktop/features/browser-handoff-wallet.md) `sign-page` | 2026-10-12, `133c5af8ca`, in the desktop map | none |
 | Desktop browser sign-in and checkout returns | `src/pages/desktop/signin.page.vue`, `src/pages/desktop/return.page.vue`, `src/pages/desktop/checkout-return.page.vue` | unmapped (belongs with the desktop map) | live verification pending | the desktop shell |

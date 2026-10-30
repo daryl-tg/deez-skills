@@ -176,6 +176,27 @@ Preconditions:
   `isKscriptAuthoringFrozen()` is hard-coded true, so kScript authoring is frozen
   for everyone and frozen tabs show `kscript-frozen-bar` (with `-copy` and
   `-port`).
+- **kScript retires on 2026-11-02 (source, `c246ec3c43`, read on
+  `849fb08e95`).** `KSCRIPT_RETIRED_AT_ISO` is `2026-11-02T00:00:00.000Z`
+  (`src/constants/kscript-retired-at.constants.ts`; rigs override it with
+  `VITE_KSCRIPT_RETIRED_AT`). The flag `kscript-sunset` is on for everyone
+  while unminted; a minted `enabled:false` is the kill. Before the date the
+  frozen bar reads `kScript is read-only and retires on {date}. Indicators are
+  now written in TypeScript.`; from the date it reads `kScript is retired. This
+  code is read-only. Indicators are now written in TypeScript.`; under the kill
+  it falls back to the old wrun sentence. Its Port button reads `Port to
+  Indicator`. A kScript row on the chart gets a legend chip (`Retires in {n}
+  days`, `Retires tomorrow`, `Retired`), a once-per-chart-per-session toast
+  `kscript-sunset-notice` (`-show-btn`, `-dismiss-btn`, `-remove-all-btn`,
+  `-keep-btn`) and a legend card `legend-diagnostic-card-sunset`
+  (`-sunset-line`, `-sunset-learn-more`). A guest has no kScript rows, so none
+  of it is guest-reachable; it needs a signed-in session with a saved kScript
+  row. The ledger is the product repo's `docs/features/indicators/kscript-retirement.md`.
+  Not driven.
+- **A run-target menu sits in the toolbar for a writer (source).**
+  `kscript-run-target-menu-btn` with `-backend-btn`, `-frontend-btn` and
+  `-backend-hint` renders only when the user can write kScript and a non-library
+  tab is open, so it is signed-in only.
 - **A no-JWT lane raises a VERIFY prompt, not the sign-in wall.**
   `handleGuestAccess` gates on `isGuest() || !isEmailVerified()`, and on a lane
   with no `jwtMetadata` the second term fires: `isAuthenticationDialogOpen` stays
@@ -247,9 +268,13 @@ Preconditions:
   lane is authed.
 - **`New indicator` does not open an empty kScript buffer.** It is guest-walled,
   and when it does run it opens a prefilled **TypeScript Indicator** starter.
-  TypeScript is now the primary language — a guest drawer reads `kScript is the
-  legacy indicator language. New indicators are written in TypeScript.` and the
-  sidebar offers `New kScript (legacy)` beside it. A recipe that assumes kScript is
+  TypeScript is now the primary language. The old notice `kScript is the legacy
+  indicator language. New indicators are written in TypeScript.` and the
+  `New kScript (legacy)` label are gone from source (removed by `09b0189a9b`;
+  absent on `849fb08e95`): the sidebar string is `New kScript`, and the
+  dismissible `kscript-legacy-notice` reads `New indicators are written in
+  wrun.`. A guest drawer reads `No script open`, so neither may show there; read
+  the drawer's text before asserting wording. A recipe that assumes kScript is
   the only language is describing the old editor.
 - kScript output reaches the engine **only** through the frontend adapter. If an
   overlay mounts with the wrong shape, the claim belongs to the adapter contract,

@@ -84,6 +84,15 @@ the top overlay cleared.
 
 ## Gotchas
 
+- **Fib levels can follow a log scale (source, `679091780e`, read on
+  `849fb08e95`, never driven).** The Fibonacci retracement and the trend-based
+  fib extension carry a `Fib levels based on log scale` switch in their settings
+  dialog's Appearance section, beside Reverse (key `levelsOnLogScale`, off by
+  default; Reset turns it off). The row has no testid, so match its label. Reach
+  it by placing `toolbar-item-fibonacciretracement:tool-icon-btn` with two
+  clicks and opening `tqb-settings-btn`; compare the level prices before and
+  after the switch. No settings gate was found for a guest.
+
 - **Tools have no accessible names.** Every tool reads `More tools` in the a11y
   tree. Use the testids.
 - **A guest's drawing is not proof of persistence.** Guests have no saved

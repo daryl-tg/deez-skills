@@ -182,6 +182,15 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
 
 ## Gotchas
 
+- **A stale cached frame paints dimmed until the fresh rows land (source,
+  `e33ea4c250`, read on `849fb08e95`, never driven).** When the cached tail is
+  more than 3 bars behind (`PAINT_WALL_AGE_BARS`), the chart draws it at its
+  true time under `cached-paint-veil` with an `Updating` chip
+  (`cached-paint-updating-chip`), and the debug ring logs `cache-paint-dim`
+  `armed` then `cleared`. To see it, switch away from a 1m chart and back after
+  more than 3 minutes and poll both testids; the veil is short-lived on a fast
+  backend.
+
 - **The behind-pane catch-up is not the wake heal.** Since `1b9406ba56` a pane
   that boot left behind a newer saved layout (an indicator's settings differ)
   is caught up in place by `src/utility/chart/swr-behind-pane-heal.lazy.ts`, with

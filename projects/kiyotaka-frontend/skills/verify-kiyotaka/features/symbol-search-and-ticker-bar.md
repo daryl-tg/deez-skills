@@ -43,6 +43,10 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   prediction markets behind venue chips, and a pick charts the event.
 - `sym-quick` hovering the symbol button opens a quick-search list, and a pick
   switches the symbol without the full dialog.
+- `tb-undo` the footer's undo and redo buttons put back a symbol switch, a
+  compare, an interval, a chart type, a chart setting, the session, the price
+  scale or the Volume row, and name the step they will undo. Source only so far
+  (`b975aaa639`, `7118982415`, read on `849fb08e95`); see Gotchas.
 
 ## How to get to it (user POV)
 
@@ -130,7 +134,19 @@ Preconditions:
   second row is NOT the perp: its click charted `BINANCE.O ETH/USDT 31 Oct 2026
   2,300 Put` (13 bars). Take the `Ethereum` row, which went straight to
   BINANCE.F ETHUSDT (367 bars) with no rail step, and assert the ticker text
-  after every pick.
+  after every pick. **Likely fixed by `50d301f61f` (source, read on
+  `849fb08e95`):** option contracts are never venues of an asset now. Every
+  scoped request carries the venue include-list (`VENUE_CATEGORIES` in
+  `src/utility/symbol-selection/venue-categories.util.ts`, every wire category
+  minus OPTION, COMBO and UTA), and `transformMarketAssets` drops an option row
+  where rows become venues. Options enter through the Options tab. Re-drive the
+  `ETHUSDT` query before you call the gap closed.
+- **The dialog opens through a loading frame (source, `4ee72fc314`,
+  `dd3daa34c6`).** While the dialog's code loads, a `symbol-selection-frame`
+  (`aria-busy="true"`) stands in and grows into the dialog, and presses made
+  then are queued and answered. A `find testid symbol-selection-search-input`
+  sent at once can meet the frame. Wait until the frame is gone or a
+  `search-v2-category-*` tab exists, then fill.
 - **Prove the switch reached the engine**, not just the label: poll the candle
   predicate again and read
   `./control-kiyotaka browser eval "(()=>JSON.stringify({title:document.title,bars:window.tc[0].metadata[0].rawData.length}))()"`.
@@ -327,6 +343,26 @@ Preconditions:
   engine and the title, not on the node's absence.
 
 ## Gotchas
+
+- **Undo and redo live in the footer, not the ticker bar (source, read on
+  `849fb08e95`, never driven).** `footer-undo-redo` holds `footer-undo-btn` and
+  `footer-redo-btn`; `Footer.vue` mounts them with no guest gate. Each button's
+  `aria-label` names its step (`Undo <step>`), or reads a bare `Undo` / `Redo`
+  while the history is empty or the step namer is still loading; a button that
+  cannot act carries `aria-disabled="true"` and stays in the DOM. Keys:
+  `Ctrl+Z` / `⌘Z` for undo, the `redo` command for redo (`⌘Y` under the
+  TradingView preset), both rebindable. The store is Pinia `undoRedo`
+  (`src/store/undo-redo.ts`); the swap steps are `chartSettings`,
+  `chartSession`, `chartType`, `chartInterval`, `priceScale` and `volumeRow`
+  (`src/store/undo-redo-swap.ts`), and a symbol switch or compare records
+  `chartSymbol`. Two interval changes inside 1.5 s merge into one step. A
+  `?symbol=` launch and an agent switch record nothing by design. The phone
+  drawing bar has its own pair, `mobile-drawing-tools-undo` and
+  `mobile-drawing-tools-redo`. Proposed recipe: read `document.title`, switch
+  the symbol through the dialog, read
+  `$pinia._s.get('undoRedo').undoStack.at(-1)?.action` (expect `chartSymbol`)
+  and the button's label, click `footer-undo-btn`, then poll `document.title`
+  and the candle predicate back to the first symbol; the replay is async.
 
 - **`sym-ime`, driven 2026-10-29 on `78ec9625d9` with synthetic events.** The
   testid sits on the `INPUT` itself, so dispatch on

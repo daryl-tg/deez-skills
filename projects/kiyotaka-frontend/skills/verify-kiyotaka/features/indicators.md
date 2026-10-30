@@ -266,6 +266,29 @@ Preconditions:
 
 ## Gotchas
 
+- **New on `849fb08e95`, source only, never driven:**
+  - The moving average ribbon is a built-in, `MA_RIBBON` (`dedda2c7bf`,
+    `src/indicators/controls/ma-ribbon/`, chart-schema `0.8.1`). It needs no
+    catalog row and never fetches history. Mount it the way the other guest
+    recipes do, `chartStore.addIndicator('MA_RIBBON', {}, 0)`; a fresh mount
+    should draw four SMA lines (20, 50, 100, 200) with four EMA slots off, and
+    the legend names each line (`SMA 20`).
+  - A late read now says why in its legend row (`c4dbe3d045`):
+    the chip's words (class `.kiyo-legend-chip-label`, not a testid) read
+    `Waiting on network`, `Slow network` or `Still loading` with a seconds
+    counter, `.kiyo-legend-chip-retry` retries, and the testid
+    `pane-footer-slow-network` adds `· Slow network` to the footer. The words
+    appear at 5 s with evidence of a stall, 15 s without. No deterministic guest
+    trigger was found.
+  - A settings row now hides only while its value has no effect (`d9727ce894`,
+    `0c0f2ec4e5`, `587939bdaa`); toggle the controlling switch and assert the
+    `-<fieldKey>-row` testid comes and goes.
+  - The regular TPO marks each profile's open and close block (`cb070d70a5`),
+    with Color-tab switches `highlightOpen` and `highlightClose`.
+  - The Indicators dialog's favourite star reads disabled, with its reason in
+    the title, on a row that cannot take one (`f6ba61116e`); a guest's
+    favourite write is walled.
+
 - **Whether the catalog is seeded depends on which backend the lane proxies.**
   With the operator's `.env.local` the lane proxies to a remote dev backend that
   IS seeded (2026-10-27: `See all 241` official, `RSI` gave four official rows,
