@@ -1,7 +1,11 @@
 # Chat workspace TUI (`om chat --workspace`)
 
+<<<<<<< ours
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. Fake model on 18167, tmux 140x36. Plain `om chat` on the lane showed the What's new card with `1 0` mouse and alternate flags. Ctrl+X listed `w What's new: turn it on` and `x What's new: close this one`, and `x` removed the card (`0 0`). In `--workspace`, ctrl+x `p` opened `panels · 2 of 3 on`; turning CALENDAR on gave `3 of 3 on` with `enter toggle · turn one off to add`, and the sidebar showed `▾ CALENDAR nothing scheduled`. `om sidebar set watches calendar usage` gave `▾ USAGE $0 · 24h` with `no model calls in 24 h`, then `$0.00 · 24h` and an `○ openai-compatible/fake` row after one fake turn. `om sidebar reset` restored watches and fires. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/` (`cli/51-53`).*
 *Re-driven 2026-10-30 (nightly), tree `3cb50a821` (origin/main, v0.478.0), lane on 18163 with a fake model on 18164, tmux at 140x36, under a host load average near 150. These ran on main for the first time on a lane: #2195, #2198 and #2207. The frame put a `┄` rule above and below each panel header (`▾ WATCHES 1 fired · 0 paused`, `▾ FIRES 2 today`). ctrl+x listed `b hide sidebar` and `p panels`. `p` opened `panels · 2 of 3 on` (`● WATCHES`, `● FIRES`, then `○ PAPER`, `○ POSITIONS`, `○ CALENDAR`, `○ USAGE`, foot `enter toggle`). Three Downs and Enter turned POSITIONS on: the box read `3 of 3 on`, POSITIONS moved up among the on rows, PAPER, CALENDAR and USAGE drew dim (SGR 2), and the foot read `enter toggle · turn one off to add`. The new panel read `▾ POSITIONS none open` and `○ no venue paired  om setup`. A click on `● probe-1030` opened its card with the foot `esc close · o open · [om watch show probe-1030]`. `o` opened `👀 probe-1030` on its LATEST tab, and one Esc returned to the workspace. `n` then `o` left `❯ no` with the card open. Exit history held the `shell-history-*` lines and the transcript. Not driven: the 20-fire card scroll and the containment wheel (the seed was two fires), the FIRES and USAGE cards' `o`, the one-panel floor, collapse, resize, go-to-recent and a model turn. Evidence is local only, because the `8098` renderer did not answer: `artifacts/vom-nightly-20261030/r1/tui-*.txt` in the run's product worktree.*
+=======
+*Verified: 2026-10-30, branch `daryl/tui-fire-card-open` at `b667e914b` (off origin/main `0e7929feb`, v0.480.2), lane 18112, fake model 18108, tmux 140x36: `fire-card-click` only. Three `om event push` fires on an inbound `accept_all` watch; a click on the first card's headline row opened the fire card level with that row at the transcript pane's right edge (Watch, When, Source, Kind, `esc close · o open · [om watch history ws-fired]`), esc closed it, and a click on the sidebar FIRES row drew the same card lines. On the folded `2 updates since` card a click on the first story line opened that fire with its summary and a click on the title opened the newest; `o` opened the watch page; with the sidebar hidden the card sat two columns from the screen's edge. Not on main yet.*
+>>>>>>> theirs
 
 *Verified: 2026-10-29, branch `daryl/sidebar-card-scroll-open` at `7a16b5e0b` (off origin/main `d14955d8e`), lane 18103, fake model 18108, tmux 140x36: `card-scroll` and `card-open-page` only. A watch card with 20 fires scrolled to its end in five wheel-downs with the foot pinned; twelve wheel-ups over it left transcript columns 1-49 identical while the control wheel over the chat moved it two lines; `o` opened `👀 basis-blowout`, `o` on a FIRES card opened `👀 funding-flip`, and `n o` left `❯ no` with the card open. Not driven live: the USAGE card's `o` (unit-tested only). Evidence: `http://127.0.0.1:8098/vom-sbcard/r1/`.*
 
@@ -46,8 +50,14 @@ through a **What's new** card that turns it on in one press.
 - `exit-history` — on quit the terminal history holds the transcript only.
 - `watches-module` — `N fired · M paused` header in plain ink. The dot's colour is health (#2219): green ok, yellow `late` or `needs you`, red `broken`, no colour `◌` paused. Its fill is recency: `●` fired in 24 h with an ink age, `○` quiet. A watch whose only broken rows are late source clocks (`source_stale`, `source_never_checked`) reads `late` in yellow and shows under `show attention`; that state is unit-tested only (a lane cannot stage a source overdue while om runs). The FIRES `N today` header is ink. The footer drops its watch count while the sidebar shows.
 - `watch-card` — a click opens State, Source, Value, Chain, Recent fires beside the clicked row (its top level with the row, or ending on it near the bottom); Esc or a click in the chat closes it, while a click on the card or a drag across the chat leaves it open.
+<<<<<<< ours
 - `card-scroll` — (on main since #2207) the card fits the body's rows; the wheel over it scrolls its body under a pinned foot with a `┃` thumb and never moves the chat. A watch card lists 20 recent fires.
 - `card-open-page` — (on main since #2207) the foot reads `esc close · o open · [om …]` on watch, fire and usage cards; `o` on an empty composer opens the watch page (a fire: its watch) or `/usage`; with a draft `o` types. Paper, positions and calendar read `esc close · [om …]`.
+=======
+- `card-scroll` — (branch `daryl/sidebar-card-scroll-open`, not on main yet) the card fits the body's rows; the wheel over it scrolls its body under a pinned foot with a `┃` thumb and never moves the chat. A watch card lists 20 recent fires.
+- `card-open-page` — (same branch) the foot reads `esc close · o open · [om …]` on watch, fire and usage cards; `o` on an empty composer opens the watch page (a fire: its watch) or `/usage`; with a draft `o` types. Paper, positions and calendar read `esc close · [om …]`.
+- `fire-card-click` — (branch `daryl/tui-fire-card-open`, not on main yet) a left click on a fire card in the transcript opens the sidebar's fire card (one `fireDetailCard` for both entry points) level with the clicked line at the transcript pane's right edge: beside the sidebar, or two columns from the screen's edge with the sidebar hidden; it needs 110 columns either way. On a folded card a story line opens that story; the title and the `+N earlier` line open the newest. Esc closes it, `o` opens the watch page, press-and-drag still selects text, and plain `om chat` (no mouse) is unchanged.
+>>>>>>> theirs
 - `sidebar-layout` — `om sidebar` / `set <module...> [--watches-show all|fired|attention]` / `reset`; the agent tool `sidebar_layout` (terminal chat only).
 - `paper-module` — one row per paper account (name, cash, realized P&L), `N accounts` header.
 - `contain-scroll` — a wheel over a sidebar section, its header or the hint row never moves the transcript.
@@ -273,6 +283,18 @@ nothing, and it streams long replies, which the scroll checks need.
   `tmux -L ws -f /dev/null kill-server`, `kill $(cat server.pid)`, then
   `OM_LANE_PORT=<lane-port> control-om down`. Confirm both ports have stopped
   listening.
+- **Fire card click (`fire-card-click`).** Seed `watch create ws-fired --inbound --format json` and
+  `watch edit ws-fired --classifier-mode accept_all --format json` through the wrapper, then push with
+  `event push ws-fired --text "<run-unique>" --title "<headline>" --summary "<one line>" --kind filing --format json`;
+  the card lands in the transcript within 5 s (`capture-pane -p`, grep the headline for its row). Click it with
+  `raw $'\e[<0;COL;ROWM'; raw $'\e[<0;COL;ROWm'` (1-based) and expect a `╭─╮` box whose foot reads
+  `esc close · o open · [om watch history ws-fired]`, its top border on the clicked row and its right border at the
+  divider. A push with no `--title` draws `filing · new story` as the fire's words, so title the pushes you need to
+  tell apart. Two pushes a few seconds apart fold into `N updates since HH:MM` with one story row each (a `wake` or
+  hint band between them starts a new card instead); click a story row for that fire, the title row for the newest.
+  `o` opens the watch page (esc returns). ctrl+x then `b` hides the sidebar; the same click then puts the box at
+  column 138 of 140. `capture-pane -e` keeps the colours for a PNG render.
+
 
 ## Gotchas
 
