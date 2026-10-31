@@ -9,14 +9,16 @@ shows its own "A new version of the OpenMarket app is ready." toast through `ope
 policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice in the title bar or block the site below a
 `minVersion`; both channel policies are `off`. A merge to `main` that changes `desktop/package.json`, or a hand-pushed
 `desktop-v*` tag, runs `desktop release` (macOS, with Windows unless `DESKTOP_SKIP_WINDOWS=1`), `desktop release
-linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `5475ab32d5`
-(`origin/main`, 2026-10-31) is still 0.1.7. The update round trip was last driven 2026-10-31 by the `update` scenario on
-that tree: 14 of 15 checks in 99 s including both packs, the same split as on 2026-10-27, 2026-10-28 and 2026-10-29, up
-to the boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature: `desktop: update check
-http://127.0.0.1:18150/ beta`, `desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`, `code
-failed to satisfy specified code requirement(s)`, `desktop: update not staged 0.1.0-beta.2`). The red one,
-`launchCheckReadBetaFeed`, is a stale lane assertion: with a feed override the policy watcher asks `GET /policy.json`
-before `GET /beta-mac.yml`, and `launchRequests` read exactly those two again.
+linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `2646a76a83`
+(`origin/main`, 2026-11-01) is still 0.1.7. The update round trip was last driven 2026-11-01 by the `update` scenario on
+that tree: 14 of 15 checks in 97 s including both packs, the same split as on every run since 2026-10-27, up to the
+boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature: `desktop: update check
+http://127.0.0.1:18150/ beta`, `desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`, `Code
+signature at URL file://.../ShipIt/update.../OpenMarket.app/ did not pass validation: code failed to satisfy specified
+code requirement(s)`, `desktop: update error ...`, `desktop: update not staged 0.1.0-beta.2`; the feed served
+`GET /policy.json`, `GET /beta-mac.yml`, `GET /beta-mac.yml`, `GET /OpenMarket-0.1.0-beta.2-mac-arm64.zip`). The red
+one, `launchCheckReadBetaFeed`, is a stale lane assertion: with a feed override the policy watcher asks
+`GET /policy.json` before `GET /beta-mac.yml`, and `launchRequests` read exactly those two again.
 The title-bar button, the restart dialog, the page toast, the policy notice and block, and the internal build have no
 live driver; the release jobs need `mac-runner` (the office Mac mini, runner tag `macos`), the certificate, the notary
 key and the bucket.
@@ -62,9 +64,9 @@ Preconditions:
   `noDockBadge` and `noCopyLeft`.
 - **Unit level.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test` runs `updater`,
   `update-bridge`, `titlebar`, `policy`, `build-site`, `dev-lane`, and `tests/scripts/release-tag.test.ts`,
-  `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27, 2026-10-29 (`30481b57f8`) and
-  2026-10-31 (`5475ab32d5`, in 2.2 s); on 2026-10-30 the subprocess tests timed out under machine load. Not a live
-  proof.
+  `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27, 2026-10-29 (`30481b57f8`),
+  2026-10-31 (`5475ab32d5`, in 2.2 s) and 2026-11-01 (`2646a76a83`, in 2.2 s); on 2026-10-30 the subprocess tests
+  timed out under machine load. Not a live proof.
 - **Upload set.** The publish script refuses unless every file it uploads exists and each feed file names the
   version, so a dry run needs a release build in `DIST_DIR` or placeholders. With placeholders, run:
 

@@ -6,12 +6,14 @@ a native notification. An installed build keeps its profile in `OpenMarket`; an 
 The shell also hands eight analytics events (`app-opened`, `update-installed`, `update-ready`, `signin-started`,
 `signin-completed`, `signin-failed`, `policy-shown`, `beta-notice-dismissed`) to the page through
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
-Last driven 2026-10-31 by the `notify` scenario on tree `5475ab32d5` (`origin/main`): 12 of 17 checks in 47 s, the
-same split as 2026-10-29. Four reds are the same as on 2026-10-27, 2026-10-28 and 2026-10-29. The fifth,
-`screenUnlocked`, is the lane reading a locked console session (`screenLocked: true` in the summary);
-a locked screen also blocks both captures, so it is an unmet precondition, not a regression. Three reds are the known
-ones, `osAuthorized`, `notificationCaptured` and `dockCaptured`: macOS never authorizes notifications for an ad-hoc
-build. The fourth, `bridgeUnchanged`, is the lane's stale two-member bridge assertion (see
+Last driven 2026-11-01 by the `notify` scenario on tree `2646a76a83` (`origin/main`, `desktop/` unchanged since
+`30481b57f8`): 12 of 17 checks in 56 s, the same split as 2026-10-29 and 2026-10-31. The bundle read `OpenMarket`,
+`xyz.openmarket.desktop`, `icon.icns` and `Signature=adhoc` (`unit-04-bundle-icon.png` is the mascot icon), and the OS
+answered `Added notification request: [ hasError: 0 hasCompletionHandler: 1 ]`. Four reds are the same as on every run
+since 2026-10-27. The fifth, `screenUnlocked`, is the lane reading a locked console session (`screenLocked: true` in the
+summary); a locked screen also blocks both captures, so it is an unmet precondition, not a regression. Three reds are
+the known ones, `osAuthorized`, `notificationCaptured` and `dockCaptured`: macOS never authorizes notifications for an
+ad-hoc build. The fourth, `bridgeUnchanged`, is the lane's stale two-member bridge assertion (see
 [returns](./return-channel-and-bridge.md)). A visible banner waits on a Developer ID build. The analytics hand-off has
 no live driver; `desktop/tests/main/analytics.test.ts` covers it.
 

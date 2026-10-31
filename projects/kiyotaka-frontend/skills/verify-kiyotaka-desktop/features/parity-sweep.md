@@ -5,8 +5,15 @@ dev lane, captures both hosts together at 1440 by 900, and diffs each pair with 
 more than 0.5 percent of its unmasked pixels differ, when its masks cover more than a quarter of the frame, or when its
 plot region is blank in either capture; a step also fails when the hosts disagree on its state. It has a guest phase (26
 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`) that signs in
-as the operator's real account on the deployed chart. Last driven 2026-10-31 on tree `5475ab32d5` (`origin/main`), guest
-steps only, with the console session locked and the machine at a load average of 3 to 6: the same split as 2026-10-29
+as the operator's real account on the deployed chart. Last attempted 2026-11-01 on tree `2646a76a83` (`origin/main`),
+guest steps named, with the console session locked and the machine at a load average of 3 to 6: the sweep packed the
+app, then threw `page.waitForFunction: Timeout 180000ms exceeded` in `waitForCandles` (`parity.mjs:457`) before any
+step, with no summary and no frame. The dev lane had no candles in any host that day: the chart's v2 streaming socket
+(`VITE_V2_WEB_SOCKET_DOMAIN`, `tsdb-gateway.int.ore.kiyotaka.ai`, an internal `10.1.1.x` address over the Tailscale
+route) was unreachable from the machine while the lane's REST health read `ok`, so every host read "Can't reach live
+data. Retrying..." (see the [index](./README.md)). That is an environment block, not a shell or sweep finding; the
+2026-10-31 results below stand as the last driven split. Last driven 2026-10-31 on tree `5475ab32d5`, guest steps
+only, locked and at the same load: the same split as 2026-10-29
 on `30481b57f8`, in 8 min 23 s with its pack. 9 green (`boot-candles`, `ind-catalog`, `ind-search`, `ind-add`,
 `sym-dialog`, `sym-results`, `sym-scope`, `ks-super-search`, `ks-open`), 6 blocked at sign-in (`ind-legend`,
 `tb-layout-apply`, `ks-run`, `hl-order`, `cex-order`, `oneclick-link`), 12 findings. `ind-dialog` is a finding with
@@ -73,6 +80,11 @@ Preconditions:
 - A re-run on a reused package can fail before any step: `waitForCandles` timed out at 180 s once and
   `desktop: loaded` never came once, with `doctor` green both times. Check for leftover shells and Chromiums after a
   throw (none were left on 2026-10-27), and repack rather than reuse.
+- **`doctor` green is not candles.** `doctor` reads the lane's REST health, and the chart's candles come over the v2
+  streaming socket to another host. On 2026-11-01 health was `ok` and the sweep still threw in `waitForCandles` on a
+  fresh pack, because that socket's host was unreachable. Before a sweep, open the lane in a browser and look for a
+  priced title, or read the lane log for `v2 Streaming socket error`; with no candles, report the sweep as blocked on
+  the environment and name the host.
 - Steps that would raise the sign-in dialog are reported BLOCKED and close Turnstile at once if it ever appears; the
   sign-in pair is two plain launches, `capture.js` in the unpackaged shell and Chromium's headless shell with
   `--screenshot`. Read that pair by eye.

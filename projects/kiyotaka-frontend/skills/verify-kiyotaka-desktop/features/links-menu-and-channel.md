@@ -12,15 +12,17 @@ edit menu, downloads save to Downloads without a prompt, and only chart pages ho
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. On 2026-10-27 on tree `7290d33d10` it failed twice at its first
 click, before any check, on 2026-10-28 on `5365748ef3` it failed the same way once, on 2026-10-29 on
-`30481b57f8` it failed the same way again, and on 2026-10-31 on `5475ab32d5` (`origin/main`), with the machine at a
-load average of 3 to 6, it failed the same way once more (`locator.click: Timeout 30000ms exceeded` at `launch.mjs:230`,
-the dialog's `.dialog-overlay` "intercepts pointer events", after `desktop: loaded https://openmarket.xyz/chart/`): the
-first-run onboarding dialog covers the chart (a product-lane gap, not load).
-The context menu and the chart CSV download were driven live on 2026-10-31 on `5475ab32d5` by the gaps lane's guest rows
-(`contextmenu-*` and `download-chart-csv` passed in both hosts, as on 2026-10-29; see
-[Electron gaps](./electron-gaps.md)). The
-permission prompts, a download collision or failure, mouse side buttons and the Windows and Linux menus are proved by
-unit tests only.
+`30481b57f8` it failed the same way again, on 2026-10-31 on `5475ab32d5`, with the machine at a load average of 3 to 6,
+it failed the same way once more, and on 2026-11-01 on `2646a76a83` (`origin/main`) it failed the same way again in
+64 s (`locator.click: Timeout 30000ms exceeded` at `launch.mjs:230`, the `dialog-style dialog-overlay backdrop-dim`
+element "intercepts pointer events" over `chart-watermark-link`, after `desktop: loaded https://openmarket.xyz/chart/`):
+the first-run onboarding dialog covers the chart (a product-lane gap, not load). `GuestSignupPromptDialog.vue` and
+`ChartWatermark.vue` did not change between `5475ab32d5` and `2646a76a83`.
+The context menu and the chart CSV download were last driven live on 2026-10-31 on `5475ab32d5` by the gaps lane's
+guest rows (`contextmenu-*` and `download-chart-csv` passed in both hosts, as on 2026-10-29; see
+[Electron gaps](./electron-gaps.md)); on 2026-11-01 that lane threw before any row because the dev lane had no candles.
+The permission prompts, a download collision or failure, mouse side buttons and the Windows and Linux menus are proved
+by unit tests only.
 
 ## Sub-features
 

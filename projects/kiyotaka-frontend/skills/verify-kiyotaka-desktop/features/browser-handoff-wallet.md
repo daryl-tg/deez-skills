@@ -5,30 +5,38 @@
 and navigates to `openmarket://return?id=<id>&payload=<base64url>`, which resolves the waiting request in the app. A
 declined prompt, a wrong account or a wrong chain comes back as a refusal at once. Request kinds are `connect`,
 `hl-approve-agent` (with an optional `revoke` worded as a throwaway agent), `hl-approve-builder-fee`,
-`evm-sign-message`, `solana-sign-message` and `solana-connect`, and every request carries `issuedAt`, the app's clock
-when it opened the page; an old request reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent,
-approveBuilderFee, personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no
-transaction signing). Last driven 2026-10-31 on tree `5475ab32d5` (`origin/main`), with the console session locked
-and the machine at a load average of 3 to 6. The sign page's summary, expired and invalid states were proved by hand in
-Chromium again: a fresh `hl-approve-agent` request drew `desktop-sign-page-title` "Authorize a trading key", the
-summary (key name, agent address, Valid until, Hyperliquid Testnet), `desktop-sign-origin` and
-`desktop-sign-no-wallet`; a day-old `issuedAt` drew `desktop-sign-expired` "This signing request has expired"; a
-truncated `r` drew `desktop-sign-invalid` "This signing link isn't valid". The `hl` scenario ran once and matched
-2026-10-27 (`7290d33d10`) and 2026-10-29 (`30481b57f8`): the connect and two approveAgent round trips went through,
-three `desktop: external` lines each answered by `desktop: return <id>`, then it timed out at the `personal_sign`
-request (`timed out waiting for the shell to hand the sign page to the browser`, `waitFor` at `handoff.mjs:226` from
-`nextSignPage` at 238 from `hlScenario` at 645), after 3 min 6 s. Three runs at very different loads stop at the same
-line, so the cause is in the lane or the page, not load; it is not isolated. On 2026-10-28 (`5365748ef3`) it stopped
-earlier, twice, at `waitForChart` (`handoff.mjs:230`) before any request; that stall has not recurred. The sign-page
-lane and the `solana` scenario failed at their own preconditions again (see Driving).
+`hl-usd-class-transfer` (since `b0d7a91522`, 2026-11-01: USDC between the account's own spot and perps balances, the
+page titled "Transfer USDC" with Transfer "Spot to perps" or "Perps to spot", Amount and Network rows; the amount must
+read exactly as the trading store writes it, at most six fraction digits), `evm-sign-message`, `solana-sign-message`
+and `solana-connect`, and every request carries `issuedAt`, the app's clock when it opened the page; an old request
+reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent, approveBuilderFee, usdClassTransfer,
+personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no transaction
+signing). Last driven 2026-11-01 on tree `2646a76a83` (`origin/main`), with the console session locked
+and the machine at a load average of 3 to 6. The sign page was proved by hand in Chromium on the dev lane: a fresh
+`hl-approve-agent` request drew `desktop-sign-page-title` "Authorize a trading key", the summary (key name, agent
+address, Valid until, Hyperliquid Testnet, Account), `desktop-sign-origin` and `desktop-sign-no-wallet`; a day-old
+`issuedAt` drew `desktop-sign-expired` "This signing request has expired"; a truncated `r` drew `desktop-sign-invalid`
+"This signing link isn't valid"; and the new `hl-usd-class-transfer` kind drew "Transfer USDC" with Transfer "Spot to
+perps", Amount "25.5 USDC", Network "Hyperliquid Testnet" and Account (`toPerp: false` and `100` read "Perps to spot"
+and "100 USDC"), while an amount of `1.2345678` drew `desktop-sign-invalid`. The `hl` scenario on the testnet lane
+stopped before any request at `waitForChart` (`handoff.mjs:230`, a 90 s `page.waitForFunction` timeout, `completed:
+false`), because the dev lane had no candles that day (the chart's v2 streaming host was unreachable; see the
+[index](./README.md)); that is the same stop as 2026-10-28 (`5365748ef3`), which points at the same cause there,
+unproven. On 2026-10-27 (`7290d33d10`), 2026-10-29 (`30481b57f8`) and 2026-10-31 (`5475ab32d5`) the connect and two
+approveAgent round trips went through, three `desktop: external` lines each answered by `desktop: return <id>`, then it
+timed out at the `personal_sign` request (`timed out waiting for the shell to hand the sign page to the browser`,
+`waitFor` at `handoff.mjs:226` from `nextSignPage` at 238 from `hlScenario` at 645), after about 3 min; three runs at
+very different loads stop at the same line, so that cause is in the lane or the page, not load, and it is not
+isolated. The sign-page lane and the `solana` scenario failed at their own preconditions again (see Driving).
 The last fully green runs were 2026-10-12 (`hl` on `3a5f33b9a0`,
 `solana` on `60e27509cc`, sign lane on `133c5af8ca`). Turn on trading, a relaunch with trading enabled, an order and the
 1-click link are blocked on a signed-in OpenMarket account; the order also needs a funded testnet account.
 
 ## Sub-features
 
-- `sign-page` the page decodes the request, shows its summary before any wallet, signs, and returns; a tampered
-  request offers no wallet, and an old one reads "This signing request has expired".
+- `sign-page` the page decodes the request, shows its summary before any wallet (a trading key, a builder fee, a USDC
+  transfer between spot and perps, a message, or a connect), signs, and returns; a tampered request offers no wallet,
+  and an old one reads "This signing request has expired".
 - `sign-refusals` `rejected`, `wrong-account` and `wrong-chain` go back on the return URL and settle the app's call.
 - `handoff-hl-connect` the registry's `desktop-handoff:browser` row connects through the page, and a relaunch
   restores it with no browser trip.
@@ -58,6 +66,16 @@ Preconditions:
   `desktop-sign-page-title` "Authorize a trading key", `desktop-sign-summary` (key name, agent address, Valid until,
   network), `desktop-sign-origin`, and with no extension `desktop-sign-no-wallet`. `issuedAt` a day old shows
   `desktop-sign-expired`; a truncated `r` shows `desktop-sign-invalid`. No wallet is asked in any of these.
+- **The transfer kind by hand.** Build `{ kind: 'hl-usd-class-transfer', id, issuedAt: Date.now(), address, amount:
+  '25.5', toPerp: true, nonce: issuedAt, hyperliquidChain: 'Testnet', signatureChainId: '0x1' }` the same way. It
+  shows `desktop-sign-page-title` "Transfer USDC" and `desktop-sign-summary` with Transfer "Spot to perps", Amount
+  "25.5 USDC", Network "Hyperliquid Testnet" and Account; `toPerp: false` reads "Perps to spot". An amount the trading
+  store would not write (`'1.2345678'`, seven fraction digits) shows `desktop-sign-invalid`. The page draws these on
+  any lane; the request's `hyperliquidChain` names the network.
+- **Re-front before each read.** agent-browser's tab drifts to hidden and the boot splash waits on
+  `requestAnimationFrame`, so a read that finds `#skeleton-loader` still present after a minute is the hidden tab, not
+  the page. Run `browser --session <s> tab 1` before every poll (on 2026-11-01 the expired state read empty for 60 s
+  on the first pass and after two polls once re-fronted).
 - **Sign page lane.** `control-kiyotaka-desktop run sign <dir>` signs with MetaMask, 16 checks when green, among them
   `the signature recovers to the requested account` and `a tampered request raises no MetaMask prompt`. On 2026-10-27
   and again on 2026-10-28, 2026-10-29 and 2026-10-31 it onboarded MetaMask and then failed `desktop-sign-summary` after
@@ -73,7 +91,11 @@ Preconditions:
   at `handoff.mjs:645`, the `personal_sign` request; no summary checks beyond `completed: false`. Cause not isolated.
   On 2026-10-28, twice, it stopped before the first request: `page.waitForFunction: Timeout 90000ms exceeded` in
   `waitForChart` (`handoff.mjs:230`), `completed: false`. On 2026-10-29 and 2026-10-31 it was back to the
-  `handoff.mjs:645` stop.
+  `handoff.mjs:645` stop. On 2026-11-01 it was the `waitForChart` stop again, on a lane with no candles: check the
+  lane for a priced title before reading that stop as the scenario's.
+- **Sign lane and `hl` on 2026-11-01.** `run sign` onboarded MetaMask 13.50.0 and failed `desktop-sign-summary`
+  after 60 s as before (no `issuedAt`); `run handoff hl` stopped at `waitForChart`; `run handoff solana` stopped at
+  the Phantom pin. None of the three reached a wallet prompt.
 - **Wallet Standard face.** `control-kiyotaka-desktop run handoff <dir> solana`. When green, all 7 checks pass; the
   wallet's features are exactly `solana:signMessage`, `standard:connect` and `standard:events`. On 2026-10-27,
   2026-10-28, 2026-10-29 and 2026-10-31 it stopped at `Phantom CRX is not the pinned 26.32.0 build`.
@@ -94,3 +116,10 @@ Preconditions:
   the pin is bumped. Onboarding stops before Phantom's username screen, which would register a name with Phantom.
 - A closed browser tab sends nothing back. The app's sign budget is the backstop for a sign request, and the caller's
   connect budget for a connect.
+- `docs/features/desktop/desktop-shell.md`'s request-kind table and its `eth_signTypedData_v4` row (around lines 250
+  to 260 and 401) still name five kinds and two typed-data types; `hl-usd-class-transfer` and
+  `HyperliquidTransaction:UsdClassTransfer` are described in `docs/features/hyperliquid/account-panel.md` (around line
+  914) instead. The product doc is stale there; this guide follows the source.
+- The transfer's door in the app is the Balances sheet's Transfer (`hl-balances-transfer`, `hl-transfer-amount`,
+  `hl-transfer-max`), signed-in with trading on, so the trip from the shell to the page is pending; only the page's
+  states are proved.

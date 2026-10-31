@@ -9,16 +9,20 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-10-31 on tree
-`5475ab32d5` (`origin/main`) in Chromium on the dev lane: the return page (valid and invalid), the four checkout-return
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-01 on tree
+`2646a76a83` (`origin/main`) in Chromium on the dev lane: the return page (valid and invalid), the four checkout-return
 states, the signin page's redirect to `/chart/auth?redirect=/desktop/signin`, the super-search command
-(`super-search-result-featureCommands:desktop-app-btn`, "Download the OpenMarket desktop app") and the sign-in dialog
-with its `login-signup-passkey-btn` "Use a passkey" row. The chart route settled in about five seconds that day; on
-2026-10-30 it never settled under machine load (see the [index](./README.md)). On 2026-10-31 `ProfilePanel.vue` changed
-(`6dd6aa43de`, the Plus tier label became a mark) and its `desktop-app` row, behind `isDesktopDownloadEntryVisible()`,
-was not touched. The shell's production sign-in screen with no passkey row was last captured 2026-10-28 on
-`5365748ef3`; on 2026-10-29, 2026-10-30 and 2026-10-31 the console session was locked, so `capture` got no frame or was
-not attempted (see [launch](./shell-launch-and-window.md)). The
+(`super-search-result-featureCommands:desktop-app-btn`, "Download the OpenMarket desktop app", the only result for
+"desktop app") and the sign-in dialog with its `login-signup-passkey-btn` "Use a passkey" row among
+`login-signup-submit-btn`, `-use-password-btn`, `-google-btn` and `-twitter-btn`. The chart route reached the guest
+button in about ten seconds that day, though agent-browser's Chromium then read "Can't reach live data. Retrying..."
+with no candles; none of these proofs needs candles. On 2026-10-30 the route never settled under machine load (see the
+[index](./README.md)). Between 2026-10-31 and 2026-11-01 `AuthFormView.vue` changed (`10655335c4`, `e3e96bf360`: the
+field collapse clips with `min-width: 0`, so the form no longer runs past the card) and the dialog's rows were not
+touched; on 2026-10-31 `ProfilePanel.vue` changed (`6dd6aa43de`) and its `desktop-app` row, behind
+`isDesktopDownloadEntryVisible()`, was not touched. The shell's production sign-in screen with no passkey row was last
+captured 2026-10-28 on `5365748ef3`; from 2026-10-29 to 2026-11-01 the console session was locked, so `capture` got no
+frame or was not attempted (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
 `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, a real orange and, for checkout, a Stripe session.
@@ -73,8 +77,9 @@ Preconditions:
 - **No passkey in the shell.** `control-kiyotaka-desktop capture <dir>/shell-login-prod.png --prod --path '?login=1'`
   shows no Use a passkey row; the same dialog in Chromium (`browser ... click '[data-testid="profile-guest-mode-btn"]'`)
   shows one.
-- **Download door.** In Chromium, click `global-nav-search-btn`, type `desktop app`, and read
-  `super-search-result-featureCommands:desktop-app-btn`.
+- **Download door.** In Chromium, click `global-nav-search-btn`, then `browser ... fill
+  '[data-testid="super-search-input"]' 'desktop app'`, wait about three seconds, and read
+  `super-search-result-featureCommands:desktop-app-btn`. Fill the input; see Gotchas.
 - **Proof.** One PNG per page plus the read testids and href; the two sign-in frames side by side.
 
 ## Gotchas
@@ -89,5 +94,13 @@ Preconditions:
   waits; the re-shot frames drew.
 - The pages wipe their hash or query on mount, so read `location.href` after the wipe to prove it and keep the URL you
   opened in the run notes.
+- `browser ... keyboard type 'desktop app'` after the search click left `super-search-input` empty on 2026-11-01, with
+  the input focused, so the panel kept its default shortcuts and showed no `desktop-app` row. `fill` on the input's
+  testid put the words in and the row came. A missing row after `keyboard type` is the driver, not the door: read the
+  input's value before calling it a miss.
+- A page read that returns no `desktop-` testid with `#skeleton-loader` still present after a minute is a hidden tab,
+  not the page: on 2026-11-01 the invalid return page and the expired sign request both read empty that way on the
+  first pass, and read correctly after two polls when `tab 1` ran before every poll. Re-front before each read, not only
+  before the screenshot.
 - No lane signs in through the browser end to end. `open 'openmarket://oauth/callback?...'` with no pending sign-in only
   logs `desktop: sign-in return dropped, none-pending`.

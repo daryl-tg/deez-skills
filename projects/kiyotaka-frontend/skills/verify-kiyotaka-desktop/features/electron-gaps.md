@@ -9,8 +9,14 @@ registers, and the offline and online events fire. A download saves to Downloads
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-The guest rows were last driven through this map on 2026-10-31, on tree `5475ab32d5` (`origin/main`), straight after
-the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 103 s. The run had the console session locked:
+The guest rows were last attempted on 2026-11-01, on tree `2646a76a83` (`origin/main`, `desktop/` unchanged since
+`30481b57f8`), with `GAPS_REUSE_PACKAGE=1` on the package the parity sweep had just made: the lane threw
+`page.waitForFunction: Timeout 180000ms exceeded` in `waitForCandles` (`gaps.mjs:505`) from `bootHosts`
+(`gaps.mjs:1695`) before any row, with no table and no frame, because the dev lane had no candles in either host that
+day (the chart's v2 streaming host was unreachable from the machine; see [parity](./parity-sweep.md) and the
+[index](./README.md)). That is an environment block, not a row result. The guest rows were last driven on 2026-10-31,
+on tree `5475ab32d5`, straight after the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 103 s. That run
+had the console session locked:
 
 - 16 rows passed in both hosts: the five `contextmenu-*` rows, `drop-chart`, `clipboard-text-read`, `navigator-share`,
   `online-offline`, `service-worker`, `device-pixel-ratio`, the two gesture rows, `upload-image-picker`,
@@ -23,7 +29,8 @@ the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 103 s. The run
   become active, so the shell window is never key and a posted key reaches no page").
 
 On 2026-10-29, on `30481b57f8`, the same 15 non-key rows passed. On 2026-10-28, on `5365748ef3`, the lane threw twice
-before any row. The signed-in rows have not been driven through
+before any row in `bootHosts` (`page.goto`), and on 2026-11-01 once, in `waitForCandles`. The signed-in rows have not
+been driven through
 this map. Those rows are the `window-open-*` rows, `download-workspace-json` and `download-screenshot-png`. They write
 to the operator's real account. Windows and Linux are unprobed.
 
