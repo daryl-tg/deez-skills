@@ -14,8 +14,19 @@ lane `18103`, no JWT) on CRYPTOCAP BTC.D 1h: a trend line placed, its colour set
 from the custom colour popover by typing a hex and clicking outside (kept), a
 second typed hex dropped by `Escape` (reverted), a creation cancelled with
 `Escape` after one click (no line, no console `TypeError`), and `Delete`
-removing the line. Not driven: the other tools, favorites (`FAVORITES` wall), the
-drawing-sync scope, and whether a guest's drawing persists across a reload.
+removing the line. Re-driven 2026-11-01 on `120d5d5d32` (`origin/main`, lane
+`18103`, no JWT) on BINANCE.F BTCUSDT 1h: the trend line placed with the
+`.tool-quick-bar` and all its `tqb-*` handles, the custom colour popover
+(`.cpk-hex` read `4DA3FF`; `FF00AA` kept on an outside click, `00FF00` dropped by
+`Escape`, the swatch read `rgb(255, 0, 170)` both times), `Delete` removing the
+line, a creation cancelled with `Escape` (no line; the console's one `TypeError`
+was the guest's `[wrun-registry] package listing unavailable: Failed to fetch`
+warning, not the cancel), and a Fibonacci retracement whose settings card
+carried the `Fib levels based on log scale` row reading `aria-checked="false"`.
+Not driven: the other tools (the vertical line's new axis label from titan 1214
+included: `toolbar-item-trendline:tool-submenu-arrow` opened no visible
+submenu on a click), favorites (`FAVORITES` wall), the drawing-sync scope, and
+whether a guest's drawing persists across a reload.
 
 ## Sub-features
 
@@ -84,14 +95,35 @@ the top overlay cleared.
 
 ## Gotchas
 
-- **Fib levels can follow a log scale (source, `679091780e`, read on
-  `849fb08e95`, never driven).** The Fibonacci retracement and the trend-based
-  fib extension carry a `Fib levels based on log scale` switch in their settings
-  dialog's Appearance section, beside Reverse (key `levelsOnLogScale`, off by
-  default; Reset turns it off). The row has no testid, so match its label. Reach
-  it by placing `toolbar-item-fibonacciretracement:tool-icon-btn` with two
-  clicks and opening `tqb-settings-btn`; compare the level prices before and
-  after the switch. No settings gate was found for a guest.
+- **Fib levels can follow a log scale (source, `679091780e`; the row driven
+  2026-11-01).** The Fibonacci retracement and the trend-based fib extension
+  carry a `Fib levels based on log scale` switch in their settings card (key
+  `levelsOnLogScale`, off by default, `offWhenAbsent` so old fibs show it too;
+  Reset turns it off). The row has no testid, so match its label. Reach it by
+  placing `toolbar-item-fibonacciretracement:tool-icon-btn` with two clicks and
+  opening `tqb-settings-btn`: the card is a floating panel, not a `.q-dialog`
+  (the overlay union read `0`), headed `FIBONACCI RETRACEMENT` with `Templates`
+  and `Reset`, sections `FILL`, `STROKE`, `TEXT`, `CORNER`, `Levels`,
+  `POSITION` and `SHOW ON`; the log-scale row's switch read
+  `aria-checked="false"`. Flipping it and comparing level prices is still
+  undriven. No settings gate was found for a guest.
+- **Vertical and cross lines keep their axis labels at rest (source, titan
+  1214 via `612ec349cf`; not driven).** A `highlight` flag, on by default, draws
+  the vertical line's time label (settings row `Time label`) and the cross
+  line's `Price and time labels` when the drawing is not selected; host markers
+  such as session breaks stay `readOnly` with no label. The tools sit in the
+  trend-line submenu; `toolbar-item-trendline:tool-submenu-arrow` needs a
+  hover-intent pass (`useHoverIntent`), and a bare click on it listed nothing
+  on 2026-11-01.
+- **The hover quick search can cover the toolbar's top tools.** After a pick in
+  `quick-search-dropdown`, its `scope-token-line` stayed in the DOM and
+  `find testid "toolbar-item-trendline:tool-icon-btn" click` failed with
+  `covered by <div.scope-token-line.v2-tokens>`. Move the pointer onto the chart
+  and press `Escape` before the tool click; the retry then placed the line.
+- **The settings card is not the colour popover.** `tqb-settings-btn` opens
+  the floating card above; `tqb-swatch-color-custom-btn` opens `.cpk-popover`.
+  Close the card with `Escape` before reading swatches, or the popover probe
+  reads the card.
 
 - **Tools have no accessible names.** Every tool reads `More tools` in the a11y
   tree. Use the testids.

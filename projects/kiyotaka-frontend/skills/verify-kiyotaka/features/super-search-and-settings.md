@@ -6,8 +6,24 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
-2026-10-29 against product tree `78ec9625d9` (`origin/main`), lane `18103`, a
-guest lane with no JWT. Driven: the capsule and its empty box (directory groups
+2026-11-01 against product tree `120d5d5d32` (`origin/main`), lane `18103`, a
+guest lane with no JWT. Driven: the empty box (placeholder `Search the
+platform`, directory sections `market, orderflow, build, automate, learn`, no
+`trade`, no starters), `volt` (`theme-kiyotaka`) and back to `Percept`, whose
+row is now titled **Terracotta** (`theme-percept`), the `Dark Mode` toggle
+(`body--light` to `body--dark` and back), `gray` raising the `light-mode` wall,
+`SPY / GLD` (it now charts Solana tokenized `SPYx/USDC` and `GLDx/USDC`, see
+Gotchas), `candles-visible:off` and `:on` (`metadata[0].isHidden`), a how-to
+question (still `No results found`, `surface:false`), `Meta+/` to Keyboard
+Shortcuts, Release Notes (81 versions, `4.49.0` newest, `4.0.0` `OPENMARKET
+V4`), the Preferences page (13 `language-option-*`, appearance modes `dark,
+gray, light, cream`, 8 `preferences-theme-*`), and the wall from the camera
+(`screenshot`), the matrix cell (`multi-chart`), `tb-watchlist-toggle-btn` and
+`Alt+W` (`watchlist`), `tb-editor-toggle-btn` (`script-editor`),
+`tb-options-btn` (`terminal`), the heatmap switch (`orderbook-heatmap`),
+`alert-add-menu-price-btn` (`alert`), a `?wrunRef=` link (`indicators`) and
+the seven walled Panels rows. Earlier, 2026-10-29 on `78ec9625d9`
+(`origin/main`, lane `18103`, no JWT): the capsule and its empty box (directory groups
 and key hints, no Ask starters for a guest), the `volt` theme row (Volt applied,
 Percept restored), a how-to question (`No results found`: the dev backend's
 `/ask/config` answers `surface:false`, so no Guides section), the `candles`
@@ -18,10 +34,13 @@ the camera, `tb-layout-entry-2H-btn`, `tb-options-btn`, the heatmap switch,
 `alert-add-menu-price-btn`, `Alt+W` and the seven walled Panels rows. Earlier:
 2026-10-28 on `29c9cda0a2` (`dark`, `orderbook`, `gex`, `0dte`, `options chain`,
 `polymarket`, a package link). Not driven: the `Mod+J` key, the account
-settings pages (they need a signed-in session), Gray and Cream appearance
-(desktop shell only), the Guides section (needs `surface:true`), the Ask plan
-cards and command chips (signed-in), and the per-provider gates on the other
-providers.
+settings pages (they need a signed-in session), a Gray or Cream pick past its
+wall, the Guides section (needs `surface:true`), the Ask plan cards and command
+chips (signed-in), a Gray or Cream pick past its wall, and the per-provider
+gates on the other providers. Also driven 2026-11-01: the new `Explore` row
+(`super-search-result-featureCommands:layout-templates-btn`, the rebuilt
+Layouts window's template catalogue, `5db5e38f15`) raises the wall with
+`guestLoginFeatureId = "workspace"` for a guest.
 
 ## Sub-features
 
@@ -63,9 +82,10 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `[data-testid=super-search-overlay]` before typing. The input is
   `super-search-input`. The overlay also carries
   `super-search-bubble-{indicators,tools,settings,shortcuts}-btn`. Result rows
-  are `super-search-result-<provider>` sections with buttons
-  `super-search-result-<id>-btn`, under `super-search-section-toggle-<provider>-btn`
-  headers.
+  are sections with buttons `super-search-result-<id>-btn`, under
+  `super-search-section-toggle-<category>-btn` headers keyed by the row
+  CATEGORY, not the provider (`SuperSearchDialog.vue`; driven 2026-11-01:
+  `orderbook` listed `-orderbook-`, `-panel-` and `-indicator-` toggles).
   **The empty box, driven 2026-10-29.** A guest's placeholder reads `Search the
   platform`, and the empty box shows the directory groups
   `super-search-directory-{market,orderflow,build,automate,learn}` under
@@ -79,12 +99,22 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `on-off-toggle-btn`. Click it and read
   `document.body.className.match(/body--(light|dark)/)[0]`: driven, it went
   `body--light` to `body--dark` with no wall. Toggle it back afterwards.
-- **Colour themes, driven 2026-10-29.** Fill `volt`: the `THEMES` section
-  lists `super-search-result-themes:color:Kiyotaka-btn` titled `Volt` (theme id
-  `Kiyotaka`, English name Volt). Its click set the body class from
+- **Colour themes, driven 2026-10-29 and 2026-11-01.** Fill `volt`: the `THEMES`
+  section lists `super-search-result-themes:color:Kiyotaka-btn` titled `Volt`
+  (theme id `Kiyotaka`, English name Volt). Its click set the body class from
   `theme-percept` to `theme-kiyotaka` with no wall. In light mode the frame
-  barely changes, so the class is the proof. Restore with `percept`,
-  `super-search-result-themes:color:Percept-btn`.
+  barely changes, so the class is the proof. Restore with `percept` or
+  `terracotta`: the row `super-search-result-themes:color:Percept-btn` is now
+  titled **Terracotta** (`en.json` renamed the display name; the id and the
+  `theme-percept` class did not change, and the alias still matches `percept`).
+  The other colour ids are Seoul, Shanghai, Classic, Sourgum, Carbon and Quartz,
+  plus `themes:shuffle`. **Modes, driven 2026-11-01:** `dark` lists one row,
+  `themes:mode:dark` titled `Dark Mode OFF`; its click flipped `body--light` to
+  `body--dark` and a second click back. There is no `themes:mode:light` row.
+  `gray` lists `themes:mode:gray`, whose click raised the wall with
+  `guestLoginFeatureId = "light-mode"`; Cream is the same door. Both are
+  offered on every desktop (`canPickAppearanceModes()` is `!isMobileDevice()`),
+  not only in the desktop shell.
 - **`ss-guides`, attempted 2026-10-29: pending.** Fill
   `how does the footprint work`. On the operator's dev backend a guest got `No
   results found` and no `super-search-guides-section`, because
@@ -169,6 +199,9 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   | `tb-panels-row-footprint` (2026-10-28) | `volume-footprint` |
   | `tb-panels-row-chat` (2026-10-28) | `community-chat` |
   | a package link, `?indicator=` or `?wrunRef=` (2026-10-28) | `indicators` |
+  | `tb-panels-row-watchlist`, `-news`, `-editor` (2026-10-28) | `watchlist`, `news`, `script-editor` |
+  | `themes:mode:gray` or `themes:mode:cream` (2026-11-01) | `light-mode` |
+  | `featureCommands:layout-templates`, the `Explore` row (2026-11-01) | `workspace` |
 
   Re-driven 2026-10-28 with the same ids: the camera, an official row's Add,
   `tb-options-btn`, `tb-heatmap-toggle-btn` and `alert-add-menu-price-btn`;
@@ -182,6 +215,12 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `chart-actions`. The wall needs a moment to render: an `Escape` sent straight
   after the click can land first and leave the wall up, so read
   `isAuthenticationDialogOpen` before clearing.
+  Re-driven 2026-11-01 on `120d5d5d32`, every id unchanged, plus `light-mode`
+  from the Gray row and `watchlist` from `tb-watchlist-toggle-btn` itself (the
+  seat is in the bar while no panel is open). The store's JSON comes back from
+  `browser eval` with escaped quotes (`{\"open\":true}`), so a shell match
+  on `"open":true` never fires; strip the backslashes or match `open\":true`.
+  One pass lost its first seven wall drives to that.
 
 - **Proof.** The store read, the overlay or page testid, and a screenshot.
 
@@ -199,8 +238,36 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 - **`Meta+/` goes to CodeMirror while the editor drawer has focus.** The first
   press on 2026-10-27 did nothing for that reason.
 - **Light mode is open to guests.** An older inventory note said it raises
-  `LIGHT_MODE`. Driven, dark and light toggled freely. Source gates only Gray and
-  Cream (`canPickAppearanceModes`, desktop), and a guest choosing those raises
-  `LIGHT_MODE`.
+  `LIGHT_MODE`. Driven, dark and light toggled freely. Gray and Cream are listed
+  for every desktop guest and their pick raises `light-mode` (driven
+  2026-11-01), so a frame after a Gray pick is a frame of the wall.
+- **`SPY / GLD` no longer charts the ETFs (driven 2026-11-01 on
+  `120d5d5d32`).** The formula row `formula:SPY/GLD` resolved to Solana
+  tokenized stocks: the ticker read `SOLANA SPYx/USDC:4pCZ…` and the title
+  `SPYx / USDC · 4pCZCV…iNXhRw / GLDx / USDC · 5tGLud…fzETV9` (440 bars). On
+  2026-10-29 the same row charted `SPY / USD / GLD / USD` (252 bars). The ranking
+  change `528a31b434` is the suspect; product gap, reported, not a map error.
+  The frame also showed `Connection lost. Reconnecting…` from that chart on,
+  which turned out to be the gateway outage below, not the formula.
+- **The wall's visible title is the feature's name.** The camera's wall is
+  headed `Share Your Chart`, Replay's `Chart Actions`, then `Sign in or create
+  an account / One email. We send you a code, no password.` with `Email me a
+  code`, `Sign in with a password instead`, `Use a passkey`, `Google` and `X`.
+  The `login-signup-*` ids are unchanged (`-submit-btn`, `-use-password-btn`,
+  `-passkey-btn`, `-google-btn`, `-twitter-btn`, `-forgot-password-btn`,
+  `-tos-link`), and a hidden `Back to log in / Forgot your password?` pane
+  (`forgot-password-back-btn`, `forgot-password-send-btn`) sits first in the
+  same overlay, so a testid listing starts with those two. `Escape` clears
+  every state of it (driven 2026-11-01 from the camera, Replay and the
+  forgot-password pane).
+- **A gateway outage reads as `Reconnecting…` in `connection-status-chip`
+  (seen 2026-11-01).** From about 21:55 UTC the tailnet-only name
+  `tsdb-gateway.int.ore.kiyotaka.ai` stopped resolving on the mini (public DNS
+  answers NXDOMAIN; only `100.100.100.100` knows it), the console filled with
+  `v2 Streaming socket error` and `v2 Orderbook socket error`, OI and funding
+  read `—`, Tape and Orderbook stayed empty, and `doctor`'s `v2 gateway` line
+  flipped to `UNREACHABLE`. A reload still drew 440 candles from the OHLCV
+  cache (`main-cache-painted-marked` in the ring). Read `doctor` and the chip
+  before calling an empty live panel a regression.
 - **Super Search mounts lazily.** `isSuperSearchOpen` goes true before the
   overlay is in the DOM, so poll for `super-search-overlay`.

@@ -3,9 +3,25 @@
 A user adds an indicator from the Indicators dialog; it mounts as an overlay with
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
-interest) or kScript-backed. This entry was last DRIVEN on 2026-10-29 against
-product tree `78ec9625d9` (`origin/main`), lane `18103`, a guest lane with no JWT
-whose `.env.local` proxies to the operator's remote backend. Driven: the dialog
+interest) or script-backed (TypeScript Indicators; kScript rows are retired and
+leave the chart at restore). This entry was last DRIVEN on 2026-11-01 against
+product tree `120d5d5d32` (`origin/main`), lane `18103`, a guest lane with no
+JWT whose `.env.local` proxies to the operator's remote backend. Driven: the
+dialog on its store landing (`See all 243`, tabs `popular, trending, new,
+paid`, three shelf cards, the Ask block's families `derivatives, order_book,
+delta_cvd` and its hide and show), an `RSI` query (`Official 4`, `Community
+12`, the first row `official-indicator-add-official-indicator-relative-strength-index-rsi-official-rsi-btn`
+with the new plain-words subtitle `Oscillator 14, close`), a guest row Add
+raising the `indicators` wall, programmatic `BITCOIN_DOMINANCE` and `MA_RIBBON`
+adds (both mounted with 440 rows, the counter read `Indicators 3/3`), the
+docked settings card (`settings-panel`, 10 `setting-term` rows, the Float/Dock
+toggle `settings-panel-mode-btn`, `overlay-settings-close-btn`), the legend's
+visibility and close controls, and a `?wrunRef=@om-core/trend-candles` link
+(URL stripped, `indicators` wall, the package stashed). Attempted, not proven:
+the pane move (`Move to new pane` was reached once through the legend's more
+menu but the ribbon stayed on the price pane; a dispatched `contextmenu` on
+the canvas opened no menu). Earlier, 2026-10-29 on `78ec9625d9`
+(`origin/main`, lane `18103`, no JWT): the dialog
 on its store landing (`See all 241`, tabs `popular, trending, new, paid`) with
 the restyled Ask block and its hide and show controls, a programmatic
 `BITCOIN_DOMINANCE` add (it mounted, the counter read `2/3`, and its pane drew
@@ -346,11 +362,37 @@ Preconditions:
 - Persisted overlay visibility is user intent only. Never assert on
   `overlay.isHidden` to prove an app-side hide; app-side hides are engine-side
   gates.
-- **A retired kScript row refuses to add (source, `58903c3f75`).** A row that
-  `isRetiredKscriptDoc` matches raises a 3 s warning toast
+- **A retired kScript row refuses to add, and a saved one leaves the chart
+  (source, `58903c3f75`, `d7500721fc`, `722911b50f`; read on `120d5d5d32`).** A
+  row that `isRetiredKscriptDoc` matches raises a 3 s warning toast
   (`dialogs.indicatorDialog.kscriptRetire.cannotAdd`) and mounts nothing
-  (`src/composables/chart/useIndicatorCatalog.ts`). A missing overlay after such
-  an Add is the refusal, not a broken add.
+  (`src/composables/chart/useIndicatorCatalog.ts`). A saved kScript row that
+  reads `retired` is taken out of the restore and the workspace document once
+  (`src/utility/chart/kscript-retired-rows.util.ts`); the `Retires in {n}
+  days` chips, the sunset toast and the `legend-diagnostic-card-sunset` card
+  are gone, and `KscriptSunsetNotice.vue` now only toasts a lossy twin
+  conversion's settings reset (`kscript-sunset-settings-reset`). A missing
+  overlay after such an Add, or after a restore, is the retirement, not a
+  broken add. A guest has no saved rows, so none of it is guest-reachable.
+- **An indicator can move between the price pane and its own pane (source,
+  `66450484c2`, `fbb32ff5c2`; attempted 2026-11-01).** `OWN_PANE_MOVABLE_TYPES`
+  is `VWAP` and `MA_RIBBON` (`src/composables/chart/useIndicatorMenu.ts`): on
+  the price pane their legend menu and the chart right-click menu (after Hide)
+  offer `Move to new pane`, and in their own pane `Move to price pane`. Live,
+  the legend's `moreBtn.click()` surfaced a `Move to new pane` entry and the
+  click was accepted, but the Objects panel and the frame still showed the
+  ribbon under the price source; a synthetic `contextmenu` on the canvas opened
+  nothing. Drive it with a real pointer right-click (`mouse down --button
+  right` is not an agent-browser verb; use `mouse down`/`up` with the engine's
+  own menu) before claiming it, and prove it from the Objects panel's `PANE n`
+  badges.
+- **The settings card docks, and floats on a toggle (driven 2026-11-01).**
+  `settings-panel` opened docked at the right (`union 0`, 10 `setting-term`
+  rows, header `Bitcoin Dominance Template No template Style …`);
+  `settings-panel-mode-btn` switched it to floating and back without closing
+  it; `overlay-settings-close-btn` closed it. The ticker reads `Indicators
+  n/3` with the word in front again (`Indicators 3/3` with three overlays,
+  `Indicators 1/3` after their close).
 - **Not every legend shows the pin and window doors (source, `672415eaff`).**
   `hasPinToChartDoor(type)` in `src/constants/indicator.constants.ts` hides the
   pin button, `Move to price pane` and the Objects pin for foreign-domain and

@@ -16,10 +16,21 @@ was re-driven from `tb-panels-row-watchlist` and, for the first time, from
 `Alt+W` with the chart focused; both set `guestLoginFeatureId = "watchlist"`.
 Re-driven 2026-10-29 against `78ec9625d9` (`origin/main`, lane `18103`, no JWT)
 from the Panels row and `Alt+W`, with the same id; no `src/components/watchlist`
-handle changed in between. **Only
-the guest-side is driven**: the three doors and the sign-in wall were proven
-live. Everything behind the wall is source-derived and UNVERIFIED, because this
-stack cannot be signed into by an agent — see Gotchas.
+handle changed in between. Re-driven 2026-11-01 against `120d5d5d32`
+(`origin/main`, lane `18103`, no JWT) from all three doors —
+`tb-watchlist-toggle-btn` (the seat is in the bar while no panel is open),
+`tb-panels-row-watchlist` and `Alt+W` with the chart focused — each setting
+`guestLoginFeatureId = "watchlist"` with no `watchlist-pane` in the DOM; the
+range's watchlist commits (`4f5e7b9d94`, `28ca756386` the shared type list for
+CRYPTOCAP rows; `42b2a5dbac`, `9f3c7d9288`, `5f48e3fb4a` ink only) changed no
+handle, and the limits are still 250 symbols per list and 50 lists. **Only
+the guest-side is driven**: the doors and the sign-in wall were proven live.
+Source names more doors that wall the same way (read on `120d5d5d32`): Super
+Search's `panels:WatchlistPane` row (not even listed to a guest, since the
+provider uses `canOpen`), the chart context menu, the Pulse board, the Earnings
+panel and Ask's watchlist rows (`watchlistGuestGate`); the Space and Arrow
+stepper is inert for a guest. Everything behind the wall is source-derived and
+UNVERIFIED, because this stack cannot be signed into by an agent — see Gotchas.
 
 ## Sub-features
 

@@ -4,9 +4,23 @@ The right-hand cluster of the ticker bar and its `Panels` menu open market
 panels to the right of the chart: Orderbook, Alerts, Objects, the ETF screener,
 the heatmap switch and Options, among others. Some open for a guest and some
 stop at the sign-in wall, and a panel can open with no data when the backend has
-none. Created 2026-10-27; last DRIVEN on 2026-10-29 against product tree
-`78ec9625d9` (`origin/main`), lane `18103`, a guest lane with no JWT. Driven:
-every one of the 18 guest Panels rows, with the same split as 2026-10-28. ETF
+none. Created 2026-10-27; last DRIVEN on 2026-11-01 against product tree
+`120d5d5d32` (`origin/main`), lane `18103`, a guest lane with no JWT. Driven:
+every one of the 18 guest Panels rows with the same split as before (Replay
+`chart-actions`, Watchlist `watchlist`, Scanner `terminal`, News `news`, Chat
+`community-chat`, Footprint `volume-footprint`, Editor `script-editor`; the
+other eleven open with their `panel-header-title`, Objects without one), Tape
+prints on BINANCE.F ETHUSDT (`2,253.00 SWEEP 4.5 21:46:23` rows), Orderbook
+live levels on BINANCE.F ETHUSDT (`2253.18 ▲ Spread 0.20 · 0.009%`), the
+heatmap popover's `role=switch` and its `orderbook-heatmap` wall, the Options
+button's `terminal` wall, the alert create wall (`alert-list-create-btn` opens
+`alert-add-menu`, then `alert-add-menu-price-btn` raises `alert`), and the ETF
+screener (0 rows again). Not proven: Tape and Orderbook on BINANCE.F SOLUSDT
+(both empty after 30 s, first with the tab hidden and then visible, before the
+gateway outage below), Trades and Liquidations prints (`Waiting for trades` and
+`Waiting for liquidations` after 15 s on ETHUSDT while the Tape printed). Earlier,
+2026-10-29 on `78ec9625d9` (`origin/main`, lane `18103`, no JWT): every one of
+the 18 guest Panels rows, with the same split as 2026-10-28. ETF
 screener, Orderbook, Tape, Trades and Liquidations, Alerts, Objects, Journal,
 Market Stats, Volume Stats and Liquidity Stats open with no wall. Replay,
 Watchlist, Scanner, News, Chat, Footprint and Editor raise the wall, and the
@@ -63,7 +77,15 @@ an open panel.
   COINBASE BTC-USD) it drew live levels on both sides and an imbalance line
   (`48.1% bid · 51.9% ask`). Re-driven 2026-10-29 on BINANCE.F SOLUSDT with
   `tb-orderbook-toggle-btn`: live asks and bids on both sides with amount and
-  total columns, and the mid price with `Spread 0.01 · 0.010%`.
+  total columns, and the mid price with `Spread 0.01 · 0.010%`. Re-driven
+  2026-11-01 on BINANCE.F ETHUSDT (`tb-panels-row-orderbook`): asks and bids
+  with amount and total, `2253.18 ▲`, `Spread 0.20 · 0.009%`. **The book is a
+  canvas**: the panel's handles are `orderbook-source-btn` (the venue picker,
+  `22a2ad32d4`) and `orderbook-canvas`, so `innerText` holds no levels; prove
+  it from the frame, or from the mid-price line, which is DOM text. On
+  BINANCE.F SOLUSDT the same day the book stayed blank for 25 s with the tab
+  visible; it was live there on 2026-10-29, so treat an empty SOL book as
+  unproven rather than broken until re-driven on a healthy gateway.
 - **`rp-alerts`.** `tb-alerts-toggle-btn` opened `Alerts` (`Active` and
   `History` tabs, `No alerts yet`). Its handles are `alert-list-search-input`,
   `alert-list-create-btn`, `alert-list-select-mode-btn`,
@@ -104,7 +126,23 @@ an open panel.
   Trades and Liquidations on the same market still read `Waiting for trades...`
   and `Waiting for liquidations...` after 10 s. Its settings show size
   thresholds (`TRADES VOLUME 50%`, `THRESHOLDS 4`), so it may list only prints
-  above them. Not proved either way.
+  above them. Not proved either way. Re-driven 2026-11-01 on BINANCE.F ETHUSDT
+  (`120d5d5d32`): the Tape printed within 20 s (`SWEEP` rows, header `2.0/s`)
+  while Trades and Liquidations still read both `Waiting for …` lines after
+  15 s. Source on `849fb08e95` and `120d5d5d32`: the panel filters by its own
+  size thresholds times its multiplier, unchanged. On BINANCE.F SOLUSDT the
+  Tape read `Waiting for trades...` for 30 s (tab hidden, then fronted); on
+  2026-10-29 it printed there, so re-drive SOL on a healthy gateway before
+  calling it. Read `document.body.innerText` for the `Waiting for` lines: the
+  `panel-header-title`'s container text is only the title.
+- **The whole order-flow family goes quiet in a gateway outage (seen
+  2026-11-01, ~21:55 UTC on).** When `tsdb-gateway.int.ore.kiyotaka.ai` stops
+  resolving, Tape, Orderbook and Trades and Liquidations all sit on their
+  waiting states, `connection-status-chip` reads `Reconnecting…`, and the
+  console carries `v2 Orderbook socket error` and `v2 Streaming socket error`.
+  `doctor`'s `v2 gateway` line says `UNREACHABLE`; check it before reading an
+  empty panel as a regression. See [chart boot](./chart-boot-and-data-plane.md)
+  Gotchas for the DNS detail.
 - **`rp-stats`, driven 2026-10-28.** `tb-panels-row-marketStatsPanel`,
   `-volumeStats` and `-liquidityStats` opened `Market Stats`, `Volume Stats` and
   `Liquidity Stats` with no wall. Liquidity Stats drew data
@@ -127,7 +165,17 @@ an open panel.
 
 - **An open panel width-folds the ticker bar.** With any of these panels open,
   every panel seat leaves the bar and `find testid tb-alerts-toggle-btn` fails.
-  Use `tb-panels-row-<id>`, or close the panel first.
+  Use `tb-panels-row-<id>`, or close the panel first. With no panel open the
+  seats are back: on 2026-11-01 `[data-testid$="-toggle-btn"]` listed
+  `tb-watchlist-`, `tb-orderbook-`, `tb-news-`, `tb-alerts-` and
+  `tb-editor-toggle-btn` (plus the unrelated `chart-symbol-interval-toggle-btn`
+  and `footer-chat-toggle-btn`), and `tb-watchlist-toggle-btn` raised the
+  `watchlist` wall.
+- **Read the wall through the store, and unescape it.** `browser eval` returns
+  the dialog store's JSON with escaped quotes; a shell `case` on `"open":true`
+  never matches and the Escape is skipped, after which every later row click
+  lands on the previous wall and reads as walled by the wrong id. Strip the
+  backslashes before matching. One 2026-11-01 pass misread six rows that way.
 - **The ETF screener can open empty for a data reason.** On 2026-10-27 and
   again on 2026-10-28 the
   proxied dev backend answered `{"total":0,"universe":0,...}`, and the panel read

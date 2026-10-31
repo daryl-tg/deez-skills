@@ -1,14 +1,20 @@
 # Script editor and kScript
 
 The script editor is a drawer docked alongside the terminal, never a dockview
-tab, where a user writes kScript, runs it, and sees the result mount as an
-overlay through the frontend adapter. Public and own scripts can run client-side in the browser; protected and
-marketplace (WRUN) scripts use the shared hosted-run path when their delivered
-source or published build requires it and return through the same pipeline. Run targets depend on delivered source, visibility, and published
-builds: editable and delivered read-only scripts can run in the browser, while
-protected or unavailable builds use the cloud lane. This entry was last DRIVEN
-on 2026-10-28 against product tree `29c9cda0a2` (`origin/main`), lane `18103`,
-a guest lane with no JWT: ks-open through Super Search (`global-nav-search-btn`,
+tab, where a user writes a TypeScript Indicator, runs it in the browser or the
+cloud lane, and sees the result mount as an overlay through the frontend
+adapter. **kScript is retired on this tree:** since `722911b50f` (2026-10-31)
+the browser kScript engine and the kScript authoring lane are deleted, a kScript
+document opens read-only under a frozen bar, and it has no Run (source, read on
+`120d5d5d32`). This entry was last DRIVEN on 2026-11-01 against product tree
+`120d5d5d32` (`origin/main`), lane `18103`, a guest lane with no JWT: ks-open
+through Super Search (the drawer read `New indicator No indicators yet. Manage
+groups No script open`, `kscript-run-btn` present, no `kscript-save-btn`, no
+template picker, no `kscript-frozen-bar`, one `.cm-editor`), the ticker-bar
+toggle `tb-editor-toggle-btn` raising the `script-editor` wall, and the retired
+handles (`kscript-sunset-notice`, `legend-diagnostic-card-sunset`,
+`kscript-legacy-notice`) absent from the DOM. Earlier, 2026-10-28 on
+`29c9cda0a2` (`origin/main`, lane `18103`, no JWT): ks-open through Super Search (`global-nav-search-btn`,
 query `editor`, row `super-search-result-panels:Editor-btn`, label
 `Script Editor`) gave a non-inert drawer reading `No script open`, with
 `kscript-run-btn`, `kscript-close-editor-btn`, no `kscript-save-btn`, no
@@ -23,9 +29,11 @@ authenticated coverage obligations.
 ## Sub-features
 
 - `ks-open` the Editor panel opens (guest: **via Super Search only**).
-- `ks-run` an own script compiles and mounts as an overlay (authed).
-- `ks-lint` the editor reports a syntax error rather than mounting (authed).
-- `ks-protected` a protected / WRUN script returns from the backend lane (authed).
+- `ks-run` an own TypeScript Indicator compiles and mounts as an overlay
+  (authed). A kScript document no longer runs anywhere: its tab has no Run.
+- `ks-lint` the editor reports a TypeScript problem rather than mounting (authed).
+- `ks-protected` a protected / WRUN script returns from the backend lane (authed);
+  a protected kScript document shows only the docs link under the frozen bar.
 - `ks-wrun-launch` the WRUN launch box/ring and Pine conversion hand-offs create
   the appropriate hosted or TypeScript draft, including retained conversion
   failures and the shared hosted-run path (authed, entitlement-dependent).
@@ -172,27 +180,40 @@ Preconditions:
   `kscript-template-blank-btn`, `kscript-template-blank-legacy-btn` is gone from
   source entirely, and "TypeScript is primary" is simply how the editor works.
   The picker region is now titled `New indicator`, not `Start with a template`.
-  `script-explorer-new-legacy-btn` still exists in markup but can never render:
-  `isKscriptAuthoringFrozen()` is hard-coded true, so kScript authoring is frozen
-  for everyone and frozen tabs show `kscript-frozen-bar` (with `-copy` and
-  `-port`).
-- **kScript retires on 2026-11-02 (source, `c246ec3c43`, read on
-  `849fb08e95`).** `KSCRIPT_RETIRED_AT_ISO` is `2026-11-02T00:00:00.000Z`
-  (`src/constants/kscript-retired-at.constants.ts`; rigs override it with
-  `VITE_KSCRIPT_RETIRED_AT`). The flag `kscript-sunset` is on for everyone
-  while unminted; a minted `enabled:false` is the kill. Before the date the
-  frozen bar reads `kScript is read-only and retires on {date}. Indicators are
-  now written in TypeScript.`; from the date it reads `kScript is retired. This
-  code is read-only. Indicators are now written in TypeScript.`; under the kill
-  it falls back to the old wrun sentence. Its Port button reads `Port to
-  Indicator`. A kScript row on the chart gets a legend chip (`Retires in {n}
-  days`, `Retires tomorrow`, `Retired`), a once-per-chart-per-session toast
-  `kscript-sunset-notice` (`-show-btn`, `-dismiss-btn`, `-remove-all-btn`,
-  `-keep-btn`) and a legend card `legend-diagnostic-card-sunset`
-  (`-sunset-line`, `-sunset-learn-more`). A guest has no kScript rows, so none
-  of it is guest-reachable; it needs a signed-in session with a saved kScript
-  row. The ledger is the product repo's `docs/features/indicators/kscript-retirement.md`.
-  Not driven.
+  `script-explorer-new-legacy-btn` and `isKscriptAuthoringFrozen()` are gone
+  from source (`722911b50f`): the frozen rule is now `isTabAuthoringFrozen`
+  in `src/store/editor-shell.ts`, true for any tab whose language is not
+  `wrun-ts` or whose load is still pending.
+- **kScript is retired, with no date and no flag (source, `722911b50f` and
+  `d7500721fc`, read on `120d5d5d32`; the retired handles' absence driven
+  2026-11-01).** `src/constants/kscript-retired-at.constants.ts`,
+  `VITE_KSCRIPT_RETIRED_AT`, the `kscript-sunset` and `kscript-twin-convert`
+  flags, the browser kScript engine (`src/workers/kscript-engine.worker.ts`),
+  the editor analysis worker, the kScript grammar and
+  `src/services/protected-kscript-cache.service.ts` are all deleted. A kScript
+  document opens in a plain read-only textarea (`kscript-plain-editor`; a
+  withheld source shows `kscript-readonly-locked`), never mounts CodeMirror, and
+  has no Run, run-target chip, lint or Problems rows. Above it the frozen bar
+  `kscript-frozen-bar` reads `kScript is retired. This code is read-only.
+  Indicators are now written in TypeScript.` (withheld: `kScript is retired. The
+  source of this script is not available to copy.`) with `-copy`, `-port`
+  (`Port to Indicator`, which opens a TypeScript draft seeded with the source as
+  a comment), `-port-kata` (when Kata is available and the source is not
+  withheld), `-docs` (`Indicator docs`) and `-author` for someone else's script.
+  On the chart a saved kScript row that reads `retired` leaves the workspace at
+  its restore (`src/utility/chart/kscript-retired-rows.util.ts`, ring events
+  `kscript-sunset-row-removed` and `kscript-sunset-row-held`); a built-in with a
+  twin route converts instead, and a lossy conversion shows the
+  `kscript-sunset-settings-reset` toast (`-dismiss-<indicatorId>`), which is all
+  `KscriptSunsetNotice.vue` renders now. The countdown chips, the
+  `kscript-sunset-notice` toast with its `-show-btn`, `-dismiss-btn`,
+  `-remove-all-btn` and `-keep-btn`, and the legend card
+  `legend-diagnostic-card-sunset` are gone; the only chip key left is
+  `kscriptSunset.chip.retired`, mapped from the cloud's `KSCRIPT_RETIRED` answer.
+  Alerts on a retired script read `Paused: kScript is retired`. A guest has no
+  kScript rows, so a guest lane can prove only the absence of the old handles
+  (2026-11-01: all three absent). The ledger is the product repo's
+  `docs/features/indicators/kscript-retirement.md`.
 - **A run-target menu sits in the toolbar for a writer (source).**
   `kscript-run-target-menu-btn` with `-backend-btn`, `-frontend-btn` and
   `-backend-hint` renders only when the user can write kScript and a non-library
@@ -226,20 +247,23 @@ Preconditions:
 - **Syntax-check a file without the UI**, when the claim is only that a source
   compiles: `curl -s -o /dev/null -w '%{http_code}' "$(./control-kiyotaka url)src/<path>"`.
   `200` compiled, `500` compile error. The `/chart/` base prefix is required.
-- **Grammar and lint gates** are terminal work:
-  `./control-kiyotaka cli -- pnpm run test:kscript-grammar` and
-  `./control-kiyotaka cli -- pnpm run test:kscript-editor`.
+- **The kScript gates are gone with the engine.** `test:kscript-grammar` and
+  `test:kscript-editor` are no longer in `package.json` on `120d5d5d32`; what
+  remains is `./control-kiyotaka cli -- pnpm run test:kscript-roles` (the mount
+  plan, run result and lazy merge specs) and
+  `tests/utility/chart/no-kscript-engine.spec.ts`, which pins the deletion.
 - **Proof.** The editor frame, the engine read naming the mounted `ovType`, and a
   screenshot of the drawn overlay. For a lint claim, capture the error surface in
   the editor, not the console.
 
 ## Gotchas
 
-- **Public and own scripts fail in the browser; protected ones fail on the
-  server.** A client-side script error is in `./control-kiyotaka browser console`;
-  a protected script that "loads forever" needs its `clientRequestId` from the
-  in-app debug dump, grepped in the kscript-backend logs. Looking in the wrong
-  place is the standard way this costs an hour.
+- **A browser-run Indicator fails in the browser; a cloud-run one fails on the
+  server.** A client-side error is in `./control-kiyotaka browser console`; a
+  cloud run that "loads forever" needs its `clientRequestId` from the in-app
+  debug dump, grepped in the kscript-backend logs. Looking in the wrong place is
+  the standard way this costs an hour. A kScript document fails nowhere now: it
+  has no Run.
 - **A guest's read-only editor still reads `contenteditable="true"`.** Driven
   2026-10-28: `.cm-content` carried `contenteditable="true"`, yet focusing it and
   pressing `x` and `y` left the document empty with no wall. The read-only state
@@ -261,24 +285,25 @@ Preconditions:
   (`kscript-standin-chart.util.ts`). Not driven.
 - Protected and WRUN scripts need the authed lane and a real entitlement. On the
   guest lane they are unreachable — report that with the attempted path.
-- **`Engine analysis worker is paused; safe editing remains available.` is a lint
-  fallback, not a guest state.** It is the `.catch()` of the analysis service,
-  surfaced as a line-1 warning diagnostic; its gate carries no guest term. Do not
-  read it as the bug you are chasing, and do not treat its absence as proof the
-  lane is authed.
+- **`Engine analysis worker is paused; safe editing remains available.` no
+  longer exists.** The analysis service and its worker were deleted with the
+  kScript engine (`722911b50f`); the string is absent from `src/` on
+  `120d5d5d32`. A recipe that waits for it is describing the old editor.
 - **`New indicator` does not open an empty kScript buffer.** It is guest-walled,
   and when it does run it opens a prefilled **TypeScript Indicator** starter.
   TypeScript is now the primary language. The old notice `kScript is the legacy
   indicator language. New indicators are written in TypeScript.` and the
-  `New kScript (legacy)` label are gone from source (removed by `09b0189a9b`;
-  absent on `849fb08e95`): the sidebar string is `New kScript`, and the
-  dismissible `kscript-legacy-notice` reads `New indicators are written in
-  wrun.`. A guest drawer reads `No script open`, so neither may show there; read
-  the drawer's text before asserting wording. A recipe that assumes kScript is
+  `New kScript (legacy)` label are gone from source (removed by `09b0189a9b`),
+  and so are the `New kScript` sidebar string and the dismissible
+  `kscript-legacy-notice` (`722911b50f`): the only New button is
+  `explorer.newIndicator` = `New indicator`, which creates a TypeScript draft.
+  A guest drawer reads `No script open`; read the drawer's text before
+  asserting wording. A recipe that assumes kScript is
   the only language is describing the old editor.
-- kScript output reaches the engine **only** through the frontend adapter. If an
-  overlay mounts with the wrong shape, the claim belongs to the adapter contract,
-  not the editor.
-- The editor grammar is subordinate to the engine. A syntax behavior that
+- Indicator output reaches the engine **only** through the frontend adapter. If
+  an overlay mounts with the wrong shape, the claim belongs to the adapter
+  contract, not the editor.
+- The editor's diagnostics are subordinate to the engine. A behavior that
   disagrees with the engine is an editor bug, so never "fix" it by asserting the
-  editor's version in a proof.
+  editor's version in a proof. The kScript grammar (`kscript.grammar`) and the
+  `test:kscript-grammar` lane went with the engine.

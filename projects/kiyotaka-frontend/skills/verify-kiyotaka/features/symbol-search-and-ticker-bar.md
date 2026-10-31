@@ -4,8 +4,24 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-10-29 against product tree `78ec9625d9` (`origin/main`),
-lane `18103`, a guest lane with no JWT. Driven: the V2 dialog (v2 20 testids,
+was last DRIVEN on 2026-11-01 against product tree `120d5d5d32` (`origin/main`),
+lane `18103`, a guest lane with no JWT, on a quiet machine (load 3 on 10 cores).
+Driven: the V2 dialog (v2 20 testids, legacy 0, the same nine tabs), an
+`ETHUSDT` search whose `Ethereum` row went to BINANCE.F ETHUSDT (440 bars, OI
+`$5.31B`, funding) and whose bare `ETHUSDT` row STILL charted a BINANCE.O put
+(the gap is not fixed, see below), the Equities tab narrowing `ETH` to 24 ETF
+rows, `BTC.D` (250 bars), the Predict tab (chips `all` pressed, a Polymarket
+Senate event charted, 119 bars), the hover quick search to BINANCE.F SOLUSDT,
+the `1m` pin, the chevron to `5m` (17 options under four sections), the in-chart
+interval menu back to `1h` (its `chart-symbol-interval-*` testids), Heikin Ashi
+and back, the layout picker (four `role=switch` sync rows, the matrix cell's
+`multi-chart` wall), the Panels menu (18 rows, no `tb-panels-reason-*`), the
+Options button's `terminal` wall, the input-method guard, and, for the first
+time, **the footer undo and redo** (`Undo Change symbol` put COINBASE BTC-USD
+back and `Redo Change symbol` re-charted ETHUSDT; an interval step read `Undo
+Change interval`) and **the one-menu rule** (opening the layout picker closed a
+click-pinned chart-type menu). Earlier, 2026-10-29 on `78ec9625d9` (`origin/main`,
+lane `18103`, no JWT): the V2 dialog (v2 20 testids,
 legacy 0, nine visible tabs with no `HIP-4`), the new Predict tab with its
 venue chips and a Polymarket event picked onto the chart, an `ETHUSDT` search
 and a one-click switch to BINANCE.F ETHUSDT (367 bars, OI and funding), the
@@ -30,11 +46,17 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
 - `tb-plot` the chart-type picker changes plot type.
 - `tb-layout` the layout picker changes the grid.
 - `tb-hover` the pickers peek on hover and pin on click.
-- `tb-more` the overflow menu opens once the bar has folded something.
+- `tb-more` the `Panels` menu (`tb-panels-trigger-btn`) is the bar's only
+  overflow: every seat the bar folds away is reached as a `tb-panels-row-<id>`
+  row there. There is no `⋯` button.
 - `tb-bar-toggles` the right-hand cluster toggles its panels and drawers
   (Heatmap, Watchlist, Orderbook, News, Alerts, Editor by default; the rest
   through Panels). What each panel shows is in
   [right-side panels](./right-side-panels.md).
+- `tb-one-menu` only one chrome menu is open at a time (`1082148171`,
+  `src/composables/useOneOpenMenu.ts`): chart type, layout, interval, Panels,
+  heatmap, quick search and the top-bar menus register, and the one that opens
+  closes the rest.
 - `sym-ime` an input-method composition (pinyin, romaji, an accent popup) in the
   search field is left alone until it commits.
 - `sym-cryptocap` a CRYPTOCAP index (`BTC.D`, `TOTAL2`, ...) loads as the main
@@ -139,8 +161,13 @@ Preconditions:
   scoped request carries the venue include-list (`VENUE_CATEGORIES` in
   `src/utility/symbol-selection/venue-categories.util.ts`, every wire category
   minus OPTION, COMBO and UTA), and `transformMarketAssets` drops an option row
-  where rows become venues. Options enter through the Options tab. Re-drive the
-  `ETHUSDT` query before you call the gap closed.
+  where rows become venues. Options enter through the Options tab. **Re-driven
+  2026-11-01 on `120d5d5d32`: NOT fixed.** The same `ETHUSDT` query listed the
+  same two rows, and the bare `asset-row-ETHUSDT|1-btn` click charted
+  `BINANCE.O ETH/USDT 2 Nov 2026 2,250 Put` (36 bars after 60 s, title
+  `16.4000 ▲ ETH - 261102 - 2250 - P`). `50d301f61f` guards the venue lists, but
+  this bare-ticker asset id resolves through another path. Product gap, open;
+  take the `Ethereum` row and assert the ticker text after every pick.
 - **The dialog opens through a loading frame (source, `4ee72fc314`,
   `dd3daa34c6`).** While the dialog's code loads, a `symbol-selection-frame`
   (`aria-busy="true"`) stands in and grows into the dialog, and presses made
@@ -344,8 +371,19 @@ Preconditions:
 
 ## Gotchas
 
-- **Undo and redo live in the footer, not the ticker bar (source, read on
-  `849fb08e95`, never driven).** `footer-undo-redo` holds `footer-undo-btn` and
+- **Undo and redo live in the footer, not the ticker bar. Driven 2026-11-01 on
+  `120d5d5d32`, guest, no JWT.** On a fresh boot `footer-undo-btn` read
+  `aria-label="Undo"` with `aria-disabled="true"` and the store's `undoStack`
+  was empty. After the `Ethereum` row switched COINBASE BTC-USD to BINANCE.F
+  ETHUSDT the stack held one `chartSymbol` entry and the label read `Undo
+  Change symbol`; the click put the title back to `… BTC - USD` (250 bars) and
+  the redo button read `Redo Change symbol` with `aria-disabled="false"`; its
+  click re-charted ETHUSDT (440 bars). A `1m` pin then recorded `chartInterval`
+  (`Undo Change interval`), and its undo returned `activeInterval` to `1h`. The
+  undo of the option-put switch above also restored ETHUSDT. Read the store as
+  `document.querySelector('#app').__vue_app__.config.globalProperties.$pinia._s.get('undoRedo')`
+  (fields `undoStack`, `redoStack`, `hasUndo`, `canUndo`,
+  `isUndoingOrRedoing`). `footer-undo-redo` holds `footer-undo-btn` and
   `footer-redo-btn`; `Footer.vue` mounts them with no guest gate. Each button's
   `aria-label` names its step (`Undo <step>`), or reads a bare `Undo` / `Redo`
   while the history is empty or the step namer is still loading; a button that
@@ -353,16 +391,35 @@ Preconditions:
   `Ctrl+Z` / `⌘Z` for undo, the `redo` command for redo (`⌘Y` under the
   TradingView preset), both rebindable. The store is Pinia `undoRedo`
   (`src/store/undo-redo.ts`); the swap steps are `chartSettings`,
-  `chartSession`, `chartType`, `chartInterval`, `priceScale` and `volumeRow`
-  (`src/store/undo-redo-swap.ts`), and a symbol switch or compare records
-  `chartSymbol`. Two interval changes inside 1.5 s merge into one step. A
+  `chartSession`, `chartType`, `chartInterval`, `priceScale`, `volumeRow`,
+  `drawingsLocked`, `drawingsHidden` and `chartSymbol`
+  (`src/store/undo-redo-swap.ts`); a symbol switch or compare records
+  `chartSymbol`. Since `973144b2c7` a window cell drops the interval, session
+  and chart-type steps recorded before it became a window (`'lost'`), so the
+  next Undo reaches the step under them; a guest never reaches a window. Two interval changes inside 1.5 s merge into one step. A
   `?symbol=` launch and an agent switch record nothing by design. The phone
   drawing bar has its own pair, `mobile-drawing-tools-undo` and
-  `mobile-drawing-tools-redo`. Proposed recipe: read `document.title`, switch
-  the symbol through the dialog, read
-  `$pinia._s.get('undoRedo').undoStack.at(-1)?.action` (expect `chartSymbol`)
-  and the button's label, click `footer-undo-btn`, then poll `document.title`
-  and the candle predicate back to the first symbol; the replay is async.
+  `mobile-drawing-tools-redo`. Recipe (driven): read `document.title`, switch
+  the symbol through the dialog, poll
+  `$pinia._s.get('undoRedo').undoStack.at(-1)?.action` for `chartSymbol` and the
+  button's label, click `footer-undo-btn`, then poll `document.title` and the
+  candle predicate back to the first symbol (about 3 s); then read
+  `footer-redo-btn`'s label, click it, and poll the title forward again. Wait
+  2 s between interval clicks when counting steps (the 1.5 s merge).
+- **One chrome menu at a time, driven 2026-11-01.** A click on
+  `tb-chart-type-trigger-btn` showed 15 `tb-chart-type-option-*` rows; a click
+  on `tb-layout-trigger-btn` closed them (0 visible) while the 16
+  `tb-layout-matrix-cell-*` cells showed. A recipe that opens one picker and
+  then hovers or clicks another must re-open the first. The source also says a
+  focused quick-search box (`held`) blocks hover-opens elsewhere; on
+  2026-11-01 a hover on the chart-type trigger while `quick-search-input` held
+  a typed query still showed its options, so that half is not proven; drive
+  the dropdown's pick before touching another trigger.
+- **The hover quick search stays open and can cover the left toolbar.** After a
+  pick from `quick-search-dropdown` the dropdown's `scope-token-line` was still
+  in the DOM, and a later `find testid "toolbar-item-trendline:tool-icon-btn"
+  click` failed with `covered by <div.scope-token-line.v2-tokens>`. Move the
+  pointer onto the chart and press `Escape` before clicking a tool.
 
 - **`sym-ime`, driven 2026-10-29 on `78ec9625d9` with synthetic events.** The
   testid sits on the `INPUT` itself, so dispatch on
@@ -385,8 +442,18 @@ Preconditions:
 - **In-chart interval menu, driven 2026-10-28.** Click the interval chip beside
   the legend symbol (`5m ▾` at about `240,112` on a `1440 900` frame). It opens
   `.csb__dropdown-group` sections (`SECONDS`, `MINUTES`, `HOURS`, `DAYS`) with
-  the same heads and row style as the ticker-bar chevron menu. It has no testid;
-  read the groups by that class.
+  the same heads and row style as the ticker-bar chevron menu. **Driven
+  2026-11-01: it has testids after all.** The chip is
+  `chart-symbol-interval-toggle-btn`, the sections
+  `chart-symbol-interval-section-<id>` and the rows
+  `chart-symbol-interval-<interval>-btn` (21 interactive nodes on
+  `120d5d5d32`); `chart-symbol-interval-1h-btn` put the interval back to `1h`
+  (`chartStore.activeInterval`). The ticker-bar chevron menu has the same
+  shape: `tb-interval-chevron-btn` opens `tb-interval-section-{seconds,minutes,
+  hours,days}` (each with a `-toggle-btn`) and `tb-interval-option-<interval>-btn`
+  rows (17 visible); `tb-interval-option-5m-btn` switched to `5m` (273 bars).
+  The `ChartArea` menu, a third copy, still uses the `pm-csb__dropdown-group`
+  class.
 - **A venue-rail row needs a real pointer click.** Driven 2026-10-27: a JS
   `.click()` on a `.venue-row__identity` or `.venue-panel__row` did not commit,
   and a rail row in the virtual list can sit below the dialog's visible bottom,

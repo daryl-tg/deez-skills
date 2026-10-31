@@ -3,9 +3,19 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-10-29 against product tree `78ec9625d9`
+entry was last DRIVEN on 2026-11-01 against product tree `120d5d5d32`
 (`origin/main`), lane `18103`, a guest lane with the operator's `.env.local`
-linked in and no JWT. Proven: boot to 250 candles on COINBASE BTC-USD 1h with
+linked in and no JWT, on a quiet machine (load 3 on 10 cores; the lane
+answered `up` in 5 s and drew candles in under 30 s). Proven: boot to 250
+candles on COINBASE BTC-USD 1h with VWAP, `#skeleton-loader` gone and no
+`chart-loading-overlay` once candles existed, `window.__BOOT_ERRORS__` `[]`, a
+worker console with zero death matches, the spot live edge (`24H VOLUME
+$201.58M`, no OI) and the perp live edge on BINANCE.F ETHUSDT (`OPEN INTEREST
+$5.31B`, `FUNDING / COUNTDOWN -0.0104% · 02:41:46`). NOT driven this pass: the
+wake heal, because the v2 gateway name stopped resolving on the machine at
+about 21:55 UTC, before the heal's turn (see Gotchas); the heal's last proof
+is 2026-10-29. Earlier, 2026-10-29 on `78ec9625d9` (`origin/main`, lane
+`18103`, no JWT): boot to 250 candles on COINBASE BTC-USD 1h with
 VWAP, a worker console with zero worker-death matches, the spot live edge, the
 perp live edge on BINANCE.F ETHUSDT (`24H VOLUME $6.27B`, `OPEN INTEREST
 $5.65B`, `FUNDING +0.0100%`), and the lone-bar wake heal from a 405 s visibility
@@ -250,8 +260,12 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   ```
 - **The signup modal is not the only overlay that blocks a mid-drive click.** Any
   guest-walled control (`promptGuestLogin`) raises the sign-in dialog in the same
-  `.dialog-style.dialog-overlay` shell, and it reads as "Back to log in / Forgot
-  your password?". Identify what is on top before dismissing: a
+  `.dialog-style.dialog-overlay` shell. Its visible heading is the walled
+  feature's name (`Chart Actions`, `Share Your Chart`) over `Sign in or create
+  an account`; a testid listing of the overlay starts with
+  `forgot-password-back-btn` and `forgot-password-send-btn` because a hidden
+  "Back to log in / Forgot your password?" pane sits first in the same shell
+  (driven 2026-11-01). Identify what is on top before dismissing: a
   `[data-testid=guest-signup-modal-close-btn]` probe tells the two apart — it is
   absent on the wall, present on the signup modal.
   **The wall has no close button, but `Escape` clears it.** It carries no close
@@ -349,20 +363,73 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   and no heal ever runs. Check
   `curl -X POST http://127.0.0.1:<lane>/api/v1/auth-v2/refresh-token` returns
   200 before any wake recipe.
-- **`control-kiyotaka` may be absent.** It is git-excluded tooling and a fresh
-  clone or worktree lacks it; start the lane with
-  `pnpm exec vite --host 127.0.0.1 --port <lane> --strictPort` and record the pid.
-  On 2026-10-27 it was missing from the main checkout too, and
-  `.git/info/exclude` no longer listed it. A copy of a wrapper that has the
-  current `freshness` line and 90 s / 20 s probe budgets resolves `REPO` from its
-  own directory, so copy it INTO the tree it drives rather than calling it from
-  elsewhere.
+- **`control-kiyotaka` is not in the product tree.** It is git-excluded there
+  and a fresh clone or worktree lacks it; on 2026-11-01 the only copy outside
+  the hub (`dev-notes/openmarket-landing-revamp/capture-app/`) hung on an
+  iCloud read, so the wrapper was regenerated as the hub's tracked
+  `bin/control-kiyotaka` beside this map (its delivery is the ordinary review
+  path, not the map sync). It resolves the checkout from `KIYO_REPO` or the
+  caller's `git rev-parse --show-toplevel`, takes `KIYO_LANE_PORT` and
+  `KIYO_SESSION`, launches `node node_modules/vite/bin/vite.js --config
+  qa/verification/vite.config.ts --host 127.0.0.1 --port <lane> --strictPort`
+  with `VITE_BACKEND_PROXY_ORIGIN=http://localhost:8080`, and its `doctor`
+  adds a `load` line and probes the backend through the lane's own `/api/v1`
+  proxy instead of `:3000`. Without it, start the lane by that `node` command
+  and record the pid.
 - **The headless tab drifts to `visibilityState: hidden` mid-drive.** Driven
   2026-10-27: with one tab in the session, the page went `hidden` twice within
   ten minutes. `requestAnimationFrame` stopped, the footer UTC clock froze, and
   the app ran its hidden path while every `eval` kept answering. Screenshots
   still captured, which hides the problem. Read `document.visibilityState` before
   a capture, and bring the tab back with
-  `./control-kiyotaka browser tab t1` (the tab id from `browser tab list`). A
-  return after more than 60 s hidden is a real wake, so expect the wake chain in
-  the ring.
+  `./control-kiyotaka browser tab t1` (the tab id from `browser tab list`;
+  `tab 1` is rejected, the id must be `t1`). A return after more than 60 s hidden
+  is a real wake, so expect the wake chain in the ring. Re-confirmed 2026-11-01:
+  the tab was `hidden` within a minute of `open`, the footer clock froze at
+  `21:20:54` across three panel frames, and `tab t1` brought it back; the ring
+  then logged 13 `lifecycle-hidden-return` rows over the pass.
+- **The v2 gateway is a tailnet-only name; when it stops resolving, every live
+  surface goes quiet while candles still paint (seen 2026-11-01).** From about
+  21:55 UTC `tsdb-gateway.int.ore.kiyotaka.ai` returned NXDOMAIN from the
+  system resolver and from `1.1.1.1` and `8.8.8.8`; only `100.100.100.100`
+  answered (`10.1.1.10`), and `tailscale dns status` listed no split route for
+  it. The lane then logged `v2 Streaming socket error` and `v2 Orderbook socket
+  error` by the hundred, the ring filled with `v2-socket-error`, `-redial` and
+  `-flip`, three wakes ended in `wake-failed`, `connection-status-chip` read
+  `Reconnecting…`, OI and funding read `—`, and Tape and Orderbook stayed
+  empty; the forming candle still ticked on the socket that survived. A reload
+  drew 440 candles from the OHLCV cache (`ohlcv-cache-read`,
+  `main-cache-painted-marked`) with no `cached-paint-veil`, because the cached
+  tail was the current bar. `doctor`'s `v2 gateway` line flipped to
+  `UNREACHABLE`, so run `doctor` before reading an empty live panel as a
+  regression, and never drive the wake heal during it: the heal needs the
+  backfill.
+- **Boot shows one loader now (source, `d4c822292e`, `c798f8a110`; driven
+  2026-11-01).** The `index.html` start screen (`#skeleton-loader`) stays up
+  until the first candles paint (`skeleton-loader:route-painted`, `.sk-cut`
+  removes the fade), `ChartLoadingOverlay` leaves the DOM in the same update,
+  and the strips whose input lands after the first paint keep their boxes. Live:
+  by the time `rawData.length` passed 50 the skeleton was gone and no
+  `chart-loading-overlay` existed. A frame with the skeleton over drawn candles
+  is a bug, not timing.
+- **Table reads can route to the v3 gateway with a v2 fallback (source,
+  `5acf997da4`, read on `120d5d5d32`).** A refused or hung v3 dial falls back
+  to v2 and cools down for 60 s (ring `gateway-v3-lane-fallback` with
+  `dial-failed`, `did-not-open` or `cool-down`; `v3-read-bounced` on a re-send),
+  and a lane that never reopens fails after 50 s with `data plane unavailable
+  (gate acquire timeout on <lane>)`. Whether a guest rides v3 depends on
+  `gatewayProtocolFor`; do not assert v3 on a guest lane, and read a `—` in the
+  live edge as either lane's silence.
+- **Left pans after a symbol switch keep loading (source, `47056ca94c`,
+  `7268a45a6c`, `bf5f78f037`, `120d5d5d32`; not driven).** The engine's
+  lazy-load boundary resets on every switch (`lazy-load-left-boundary-reset`),
+  a pan swallowed behind a switch's held gate slots is replayed
+  (`lazy-load-round-unsent`), and the left-exhaustion latch is shared by index-
+  and time-mode rounds (`lazy-load-left-exhausted`, 60 s TTL, released by a
+  socket reopen or a wake). Proof would be `rawData.length` growing on a wheel
+  pan left after a same-interval switch; the gateway outage took the slot.
+- **A guest boot may show no overlay at all for a while.** On 2026-11-01 the
+  first candles arrived with the overlay union at `0`; the signup modal came up
+  about two minutes in (`guestVisitCount` 1, `modalShownThisSession` false until
+  then) and the ink tutorial AFTER it, during the first dialog drive. Read the
+  top overlay before every click; `dismiss` nothing on faith.

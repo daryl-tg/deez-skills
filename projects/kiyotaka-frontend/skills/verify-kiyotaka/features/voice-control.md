@@ -12,6 +12,21 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-01 on tree `120d5d5d32` (`origin/main`, lane `18103`, no
+JWT): still unreachable.** `typeof window.__voiceControl` read `undefined`, and
+`voice-control-mic-btn` and `voice-control-chip` were absent after the full
+guest pass. `voiceControlEnabled()` still returns `isSignedInSession()`
+(`src/utility/voice-control/voice-control-gate.util.ts`); the only voice-area
+commits in `849fb08e95..120d5d5d32` touched the grammar (`88a347d270`,
+`217811fe2c`, `bef0abfb94`: short names, go-to-date, the Ask feature
+registry), and every `voice-*` testid still exists in source. New, source only:
+the Settings dialog's Keyboard Shortcuts page hides the `voiceControlPushToTalk`
+row for a session that is not signed in (`KeyboardShortcuts.vue`), and the
+Super Search row `Hold to talk (Voice control key)` is listed only while
+`useVoiceControlStore().available`, so a guest's shortcuts page and palette
+carry no voice row either (the page was opened 2026-11-01; its text held no
+`voice`).
+
 **Re-driven 2026-10-29 on tree `78ec9625d9` (`origin/main`, lane `18103`, no
 JWT): still unreachable.** `window.__voiceControl` was `undefined` and no
 `voice-*` testid was in the DOM; `voice-control-gate.util.ts` still returns
