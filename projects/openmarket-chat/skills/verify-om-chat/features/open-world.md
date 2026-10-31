@@ -14,6 +14,12 @@ fixture cannot reach.
   the shared book controller. `tools/openscape-preview/activity.html` exercises
   scripted renderer states; authenticated activity still needs live observations.
 - The bound channel for a location, including the "No #world channel" state.
+- The chat pane and HUD: **Hide** / **Open chat**, the channel nav, the
+  composer and its delivery ladder (pending → confirmed, failed → **Retry** /
+  **Discard**), **Earlier messages**, the pane resize handle, nameplates with
+  role titles, the emote wheel, and the camera controls. Driveable only in
+  `tools/openscape-preview/` (see below); the solo harness shows the shell of
+  the pane with no occupants.
 - The unavailable-world refusal when there is no connected daemon: show
   "Open World requires a connected daemon" and leave the canvas unmounted
   (`WorldView.tsx:158,289-297,709-714`).
@@ -123,6 +129,107 @@ title and `data-kind` marking agents — but they draw over *occupants*, and the
 solo harness has none, so it renders zero nameplates. That is the harness, as
 below: proving them needs the relay and a second occupant.
 
+### The chat pane and HUD in `tools/openscape-preview/` (added 2026-11-01)
+
+The solo walk harness above has no occupants and no transport, so it never
+shows the chat pane doing anything. `tools/openscape-preview/` does: it mounts
+`WorldCanvas`, `WorldSim` and `WorldChatPane` over local fixtures with 32
+occupants, five seeded rows and a scripted delivery ladder. It is a separate
+Vite config whose server block pins **port 8098, the review renderer's port**
+(`tools/openscape-preview/vite.config.ts:38`), so always pass a port:
+
+```bash
+world_port=18139                                   # a free agent slot, preflighted
+bun x vite --config tools/openscape-preview/vite.config.ts \
+  --host 127.0.0.1 --port "$world_port" --strictPort
+# base is already /rooms/; / and /rooms/ 302 to the harness, keeping the query
+agent-browser open "http://127.0.0.1:${world_port}/rooms/tools/openscape-preview/index.html?worldprobe=1"
+```
+
+It runs only under the dev server (`entry.tsx` throws outside `import.meta.env.DEV`),
+needs no daemon and no `@cli/*`, and `?worldprobe=1` exposes `window.__omWorld3D`
+(`characters()`, `camera()`, `project()`, `render()`, `roofs()`;
+`packages/chat-ui/src/world/WorldCanvas.tsx:207-249`). Wait for
+`[data-world-renderer][data-world-ready="true"]`; headless Chromium renders the
+WebGL town here, and `characters().length` reads 32 (driven 2026-11-01 at `936f5b64`).
+
+**Harness controls** (section **Preview scenarios**): selects **Reading crowd**,
+**Character look**, **Movement mode** and **Preview state**; toggles **Preview
+titles** and **Role colors** (`aria-pressed`); buttons **Toggle Rowan agent
+snapshot**, **Nearby / Shared / Roof / Distant speech** and **Confirm locally**.
+Drive the selects with `agent-browser select 'select[aria-label="Preview state"]'
+<value>`, not `find role combobox` (which has no `select` action). The
+**Preview state** values and what each does to the pane's `role="status"` line:
+`conversation` (default, **History loaded**), `channels` (80 channels,
+`#world` plus `#channel-1` to `#channel-79`), `delivery` (one **Awaiting
+confirmation** row and one **Not sent** row with **Retry** and **Discard**),
+`loading` (**Loading history**), `error` (**History unavailable**), `offline`
+(**Showing saved history**), `empty` (**No messages yet.**), `missing` (**No
+#world channel**, no composer) and `readonly` (the textarea is `disabled`).
+Every status line ends in the `<strong>` **Simulated chat**.
+
+**The pane** is `section.world-conversation[aria-label="#world conversation"]`:
+
+- **Hide** collapses it (class `is-collapsed`, `aria-expanded="false"`, the
+  `role="log"` and the resize handle unmount) and the control reads **Open
+  chat**; clicking that restores both.
+- The composer is `textarea[data-testid="world-chat-input"]` named **Message
+  #world** (`maxLength` 200), with a **Send** button (`title` **Send
+  message**) that is disabled while the draft is empty. Enter sends. A send
+  appends `article.world-conversation-message[data-delivery="pending"]`
+  reading **Awaiting confirmation** under `You:`, clears the draft and disables
+  Send again; the harness's **Confirm locally** flips it to
+  `data-delivery="confirmed"` and raises a `.world-speech[data-speaker="solo"]`
+  bubble with the same text over the player's nameplate.
+- **Earlier messages** appends 18 older rows after about 500 ms (5 → 24).
+- `nav[aria-label="OpenMarket chat channels"]` holds one
+  `button.world-conversation-channel` per channel with `aria-current="page"` on
+  the selected one. Under the `channels` state, clicking **#channel-2** moves
+  `aria-current`, renames the section **#channel-2 conversation**, the log
+  **#channel-2 message history** and the composer **Message #channel-2**; the
+  rows do not change, because the harness shares one row list.
+- The pane resizes from `button.world-chat-resize` (**Resize chat**, `title`
+  **Drag to resize · Arrow keys adjust size · Home or double-click resets**).
+  Arrow keys move 16 px: two **ArrowUp** presses wrote
+  `--world-chat-width: 420px; --world-chat-height: 212px` on the section and
+  `om.chat.world.paneSize` `{"width":420,"height":212}`; **Home** cleared both.
+  The channel-column divider is the `role="separator"` **Resize the channel
+  list** from the solo harness; at 1440×900 it reads `aria-valuenow` 96 with
+  `aria-valuemin` 76 and `aria-valuemax` **238** (the 280 constant is clamped
+  by the pane's width).
+- Under `delivery`, **Retry** moves the failed row to `data-delivery="retrying"`
+  (**Retrying**) and **Discard** removes it.
+
+**Nameplates and titles.** All 32 `span.world-nameplate[data-player][data-kind]`
+render here: `solo` is **Town_Visitor** with the subtitle **Builder**, the two
+agents are `data-kind="agent"` with the six-hex name (**aaaaaa**, **bbbbbb**),
+the owner as subtitle and a `.world-agent-marker` whose screen-reader text is
+**Agent**. **Preview titles** adds **Blacksmith** under Rowan and **Echelon IX**
+under agent `bbbbbb`.
+
+**Emote wheel.** It arms in this harness because the sim is "connected". Focus
+`.world-renderer` (`tabIndex` 0), dispatch `keydown` `{key:"e", code:"KeyE"}`
+on it, and `div.world-emote-wheel[role="dialog"][aria-modal="true"][aria-label="Emotes"]`
+opens with `.world-emote-choice` buttons **Read**, **Write**, **Search**,
+**Greet** and **Sit** and the help line **Release E or click to select · Center
+to cancel**. Click the option's `.world-emote-label` while E is still "held",
+then dispatch `keyup` E on `document` or `window`: the wheel closes,
+`__omWorld3D.characters()` shows `solo` with `emote: "read"` and
+`animation.bookVisible`, and the next wheel lists a sixth option, **Stop**.
+Escape closes an open wheel. Typing E into the composer does nothing, by design.
+
+**Camera and look.** `button[aria-label="Follow player"]` toggles
+`aria-pressed` (true → false on click); `button[aria-label="Enter fullscreen"]`
+keeps its label in the headless lane. The **Character look** select (values
+`0`–`4`) writes `characters()[solo].preset`; it is the harness's substitute for
+the real **Your look** `role="group"` in `WorldView.tsx:822-833`.
+
+**Not here:** the `.world-minimap`, the real **Your look** swatches, the
+sidebar **Open World** row, mention warnings, and anything over a relay. Those
+stay with the solo harness or the authenticated rig. `tools/openscape-preview/
+check.ts` is the repo's own agent-browser driver for this harness and a good
+template for its waits.
+
 ## Gotchas
 
 - **The solo harness has no transport.** It comes up reading *"world offline,
@@ -133,6 +240,10 @@ below: proving them needs the relay and a second occupant.
 - The solo route has a stub world endpoint, so it exercises offline/retry.
   The distinct no-daemon-URL refusal hides the canvas and requires a connected
   daemon; do not infer it from the offline banner.
+- **Emotes and nameplates need the preview harness.** In the solo harness
+  the wheel never arms and no nameplate renders; in `tools/openscape-preview/`
+  both work (section above). The rest of this bullet describes the solo
+  harness.
 - **Emotes are unreachable here, twice over.** The wheel offers Read, Write,
   Search, Greet, Sit and Stop, and opens by **holding `E`** (a menu named "Emotes";
   releasing picks the highlighted one — `WorldEmoteWheel.tsx`). The wheel only
@@ -159,7 +270,9 @@ below: proving them needs the relay and a second occupant.
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `mocks/world-solo/index.html?worldprobe=1` (under the `/rooms/` base): 2 canvases, `.world-status` **world offline, retrying**, `.world-chat-connection` **Chat: reconnecting**, **No #world channel**, `[data-world-channel-resize]`, `.world-minimap`, five `.world-look` swatches, **Follow player**, **Enter fullscreen** (label unchanged after the click) and **Hide** → **Open chat**. **Limitations:** Movement, occupants, nameplates, the emote wheel, relay and transport, and the `tools/openscape-preview/` HUD harness (not driven). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `tools/openscape-preview/` on its own Vite lane (18139, `--host 127.0.0.1 --port 18139 --strictPort`): the `/` → `/rooms/tools/openscape-preview/index.html` redirect, `data-world-ready="true"` with 32 `characters()`; the chat pane end to end (send → **Awaiting confirmation** → **Confirm locally** → confirmed with a `.world-speech` bubble; **Earlier messages** 5 → 24; **Hide** ↔ **Open chat**; keyboard resize to 420×212 with `om.chat.world.paneSize` and **Home** reset; the **Resize the channel list** separator 96 in 76–238); **Preview state** `channels` (80 channels; **#channel-2** retargets the nav, section, log and composer), `delivery` (**Retry** → retrying, **Discard** removes), `offline`, `readonly` (disabled textarea), `empty`, `error`, `loading` and `missing` status lines; 32 nameplates with agent markers and **Preview titles** (**Blacksmith**, **Echelon IX**); the emote wheel (**Emotes** dialog, five options, **Read** selected → `emote: "read"`, **Stop** on the next open); **Follow player** toggled; **Character look** preset 0 → 2. Solo harness `mocks/world-solo/index.html?worldprobe=1` load-smoked under the `/rooms/` base on the wrapper lane (18137). **Limitations:** the minimap, the real **Your look** group, movement sync, mention warnings, the sidebar row and anything over a relay; the solo harness was not re-driven beyond the smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`world-01` to `world-11`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `mocks/world-solo/index.html?worldprobe=1` (under the `/rooms/` base): 2 canvases, `.world-status` **world offline, retrying**, `.world-chat-connection` **Chat: reconnecting**, **No #world channel**, `[data-world-channel-resize]`, `.world-minimap`, five `.world-look` swatches, **Follow player**, **Enter fullscreen** (label unchanged after the click) and **Hide** → **Open chat**. **Limitations:** Movement, occupants, nameplates, the emote wheel, relay and transport, and the `tools/openscape-preview/` HUD harness (not driven). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `mocks/world-solo/index.html?worldprobe=1`: two canvases, `.world-status` "world offline, retrying", "Chat: reconnecting", "No #world channel", `[data-world-channel-resize]`, **Follow player**, **Enter fullscreen** and **Hide**. **Limitations:** Movement, occupants, relay. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 41).
 

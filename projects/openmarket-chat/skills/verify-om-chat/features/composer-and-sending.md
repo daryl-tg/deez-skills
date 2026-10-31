@@ -268,6 +268,41 @@ real handler is `ChatSession.handleSlash` (`lib/session.ts:43079`, called at
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
 authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
+### Paste: a link over a selection, an image into the composer (added 2026-11-01)
+
+Both paths are pure client code behind `Composer.tsx:6012-6097`, so a
+synthetic `ClipboardEvent` drives them on either host (driven 2026-11-01 on
+`/rooms/` and `/chat/` at `936f5b64`):
+
+```bash
+# select "docs" in "see docs here", paste a lone URL over it
+agent-browser eval '(()=>{const t=document.querySelector("textarea[data-composer-input]");t.focus();
+  const set=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,"value").set;
+  set.call(t,"see docs here");t.dispatchEvent(new Event("input",{bubbles:true}));t.setSelectionRange(4,8);
+  const dt=new DataTransfer();dt.setData("text/plain","https://example.com/x");
+  const ev=new ClipboardEvent("paste",{clipboardData:dt,bubbles:true,cancelable:true});t.dispatchEvent(ev);
+  return JSON.stringify({prevented:ev.defaultPrevented,value:t.value,sel:[t.selectionStart,t.selectionEnd]})})()'
+#   {"prevented":true,"value":"see [docs](https://example.com/x) here","sel":[11,32]}
+```
+
+`planLinkPaste` (`lib/composer-format.ts:267-299`) needs a lone `http(s)://`
+URL and a single-line, non-empty selection; the selection lands on the URL
+span afterwards. With a file in the clipboard the link branch is skipped:
+
+```bash
+agent-browser eval '(()=>{const t=document.querySelector("textarea[data-composer-input]");t.focus();
+  const dt=new DataTransfer();dt.items.add(new File([new Uint8Array([137,80,78,71])],"probe.png",{type:"image/png"}));
+  t.dispatchEvent(new ClipboardEvent("paste",{clipboardData:dt,bubbles:true,cancelable:true}));
+  return document.documentElement.dataset.fixtureAttachment})()'
+#   "probe.png", and the region named "Message attachments" reads "probe.png Ready · 1 KB"
+```
+
+That staged card is the fixture's `acceptFile` stub (`shell-fixture.tsx:4108-4128`)
+pushing a pending attachment and stamping `data-fixture-attachment`; no upload
+or scan runs. OS drops onto the tape, the topic list or the library
+(`useFileDropZone.tsx`) still need a real file through `setInputFiles` or a CDP
+drop, and stay pending.
+
 ## Gotchas
 
 - **The connection strip waits out a grace delay.** `?connection=reconnecting`
@@ -382,7 +417,9 @@ authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): local send (16 → 17 rows, box cleared); bare `@` → **MEMBERS & ROLES** with 13 options; `/` → 29 commands, `/shr` → `/shrug`; `@traders hi` → `.mention-pill.role-mention.role-colored` in `rgb(209, 154, 58)` with `--role-color: #d19a3a`; `om://chart/BTC?i=15m` → **BTC 15m LIVE** with **Copy link**; `$BTC looks strong` → one `.cashtag-pill`; `?draft=` code fence → one `[data-code-panel]`, three regions, two markers; **Choose emoji or GIF** → **GIFs** → **Choose a GIF** with **Search KLIPY**; `?reply=1` strip and the toolbar **Reply** retarget; `?connection=reconnecting` → **Reconnecting...** after 8 s. `/chat/` (18136): send, bare `@` (13), `/` (29) and `/shr`, the role pill, the chart card, the reply strip and retarget. **Limitations:** Delivery and recovery banners, staged attachments, agent rows in the `@` menu, sending a GIF, slash execution, Vim touch/IME, durable drafts, unfurl and webhook cards. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): a bare `@` lists 13 options and `/` 29 (`/shr` → **/shrug**) on both; `@traders hi` renders `.mention-pill.role-mention.role-colored` at `rgb(209, 154, 58)` on both; `om://chart/BTC?i=15m` renders the chart card (**BTC 15m LIVE**, **Copy link**) on `/rooms/`; `?connection=reconnecting` reads **Reconnecting...** after 8 s; `failed=room` shows kyle's failed row; the link-over-selection paste and the image paste (**Message attachments**: **probe.png Ready · 1 KB**) on both hosts; Vim in the composer with `om.chat.vimMode` (**INSERT** → Escape **NORMAL**, `0` `x` → `ello world`, `d` pending then `w` → `world`, `v l l` → **VISUAL** with selection 0–3). **Limitations:** the cashtag pill and the GIF send were not re-read (the chart card selector in the script missed and the text was read instead); delivery and draft durability still need the daemon-pair lane. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`composer-01` to `composer-04`, `paste-01`/`02`, `vim-01`, `chat-09`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): local send (16 → 17 rows, box cleared); bare `@` → **MEMBERS & ROLES** with 13 options; `/` → 29 commands, `/shr` → `/shrug`; `@traders hi` → `.mention-pill.role-mention.role-colored` in `rgb(209, 154, 58)` with `--role-color: #d19a3a`; `om://chart/BTC?i=15m` → **BTC 15m LIVE** with **Copy link**; `$BTC looks strong` → one `.cashtag-pill`; `?draft=` code fence → one `[data-code-panel]`, three regions, two markers; **Choose emoji or GIF** → **GIFs** → **Choose a GIF** with **Search KLIPY**; `?reply=1` strip and the toolbar **Reply** retarget; `?connection=reconnecting` → **Reconnecting...** after 8 s. `/chat/` (18136): send, bare `@` (13), `/` (29) and `/shr`, the role pill, the chart card, the reply strip and retarget. **Limitations:** Delivery and recovery banners, staged attachments, agent rows in the `@` menu, sending a GIF, slash execution, Vim touch/IME, durable drafts, unfurl and webhook cards. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: local send (rows 16 → 17), bare `@` (13 options), chart URI card (BTC / 15m / LIVE, Copy link), `$BTC` cashtag pill, `reply=1` **Cancel reply**, **Choose emoji or GIF** → **GIFs** → **Choose a GIF** with **Search KLIPY**, 390 **Send message** disabled when empty, the `/` command list (29) and `/shrug` filter, and the typed role pill. `/chat/`: the typed role pill, and `?draft=` loading an empty composer. **Limitations:** Delivery, attachments, Vim mode and slash-command execution were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 01-03, 14-16, 51).
 

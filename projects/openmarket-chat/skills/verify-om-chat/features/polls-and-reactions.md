@@ -98,11 +98,23 @@ agent-browser eval 'JSON.stringify(window.__life)'
 #   (the first 😭 is the lazy-chunk miss: three scenes for four rises)
 ```
 
-In this row 😭 and 😴 fall, 🤬 and 😱 shake, and 🤔 and 😄 pulse. The same
+In this row 😭 and 😴 fall, 🤬 and 😱 shake, 🤔 and 😄 pulse, and 👏🏽
+**bursts** (`family-burst`, 1594 ms measured 2026-11-01). The same
 controller and timings hold on the `/chat/` cloud gallery
 (`apps/cloud/tools/visual/fixture.tsx`). To try an emoji outside the row
-(🏆 bursts, ✨ shimmers), edit the fixture: `rise` only raises chips already
-listed.
+(✨ shimmers, 🎈 rises), edit the fixture: `rise` only raises chips already
+listed, so rise and shimmer stay unproved here.
+
+**An empty `__life` usually means a hidden page, not a missing scene.** When
+several `agent-browser` sessions share one headless browser, only the page
+created last is visible; the others report `document.hidden === true` and
+`requestAnimationFrame` never fires there, so the runner never mounts a layer
+and the observer records nothing. Two sessions on 2026-11-01 read an empty
+`__life` after eight rises for that reason, while a fresh session recorded
+fall 1178 / shake 1229 / pulse 1062 with this exact recipe. Check
+`document.visibilityState` (or count rAF ticks) before reading an empty
+result as a product fault, and give motion proofs their own freshly opened
+session.
 
 ## Gotchas
 
@@ -143,7 +155,9 @@ listed.
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): `poll-results-fixture` **Final results · 14 votes** (57% / 29% / 14% / 0%); `poll-cache-fixture` **Show results** twice → `roster loads: 1`; `fixture.html?surface=poll-ux` **ye 8 · 80%** → **ye 9 · 82%**; `surface=reaction-polish` **See who reacted** → **Reactions** (🔥 6 / 🐐 1 / 🤍 4) and **Add a reaction** → **Choose an emoji** (1,870 buttons, **Search emoji**). `/chat/` (18136): the `poll-ux` vote settle and the **Reactions** dialog. **Limitations:** Vote and reaction persistence; the themed scenes were not re-driven (2026-10-27 stands); to-do event reactions. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `poll-results-fixture` **Final results · 14 votes** (57% / 29% / 14% / 0%); `poll-cache-fixture` **roster loads: 0**; `surface=poll-ux` Escape closed **Create poll in #chat** and **ye 8 · 80%** settled to **ye 9 · 82%**; `surface=reaction-polish` **See who reacted** → **Reactions** (🔥 6 / 🐐 1 / 🤍 4) and **Add a reaction** → **Choose an emoji**; `surface=reaction-scene-integration` with `reduced-motion` removed: fall 1178–1195 ms, shake 1210–1237, pulse 1013–1062 and, new, 👏🏽 **burst** 1594 ms. `/chat/` (18138): the `poll-ux` vote settle and the scene families. **Limitations:** rise and shimmer need a chip outside the seeded row; vote persistence and a scene from a real in-shell reaction stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`polls-01` to `polls-03`, `gallery-01-rooms`, `gallery-01-chat`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): `poll-results-fixture` **Final results · 14 votes** (57% / 29% / 14% / 0%); `poll-cache-fixture` **Show results** twice → `roster loads: 1`; `fixture.html?surface=poll-ux` **ye 8 · 80%** → **ye 9 · 82%**; `surface=reaction-polish` **See who reacted** → **Reactions** (🔥 6 / 🐐 1 / 🤍 4) and **Add a reaction** → **Choose an emoji** (1,870 buttons, **Search emoji**). `/chat/` (18136): the `poll-ux` vote settle and the **Reactions** dialog. **Limitations:** Vote and reaction persistence; the themed scenes were not re-driven (2026-10-27 stands); to-do event reactions. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: `poll-results-fixture` **Final results · 14 votes**; `poll-cache-fixture` **Show results** twice with `roster loads: 1`; `fixture.html?surface=poll-ux` **Create poll in #chat**; on `reaction-polish`, after hovering **Message from Mira Chen**, **See who reacted** → **Reactions** and **Add a reaction** → **Choose an emoji** (1,870 buttons); `reaction-scene-integration` mounted its chips. **Limitations:** Vote and reaction persistence. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 29).
 

@@ -14,6 +14,8 @@ web bundle at a narrow viewport.
 - Session-owned restoration: reopening a detail restores its tape position and
   its draft.
 - Touch-target floor (44px) and control reachability inside scroll clips.
+- Takeovers: the doc pane, the settings shell and the om session list open as
+  `[data-mobile-takeover]` dialogs with one Close or Back control each.
 - Keyboard-inset behavior when the on-screen keyboard is up.
 
 ## How to get to it (user POV)
@@ -67,6 +69,23 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
 `?text=200` doubles the root font size, `?bulk=120` loads a long tape,
 `?draft=<text>` seeds a composer draft so restoration is observable.
 
+### Takeovers: doc pane, settings shell, om conversations (added 2026-11-01)
+
+Below 768 px (`lib/viewport.ts:10`, `MOBILE_QUERY`) three surfaces leave the
+one-pane detail path and open as a `[data-mobile-takeover]` dialog instead.
+Each was driven at 390×844 on `/rooms/` at `936f5b64`:
+
+| Route | Takeover | Proof |
+|---|---|---|
+| `shell-fixture.html?view=room&doc=journal&alerts=quiet` | The doc pane (`DocPane.tsx:1029-1045`) | `[role=dialog][aria-modal=true][data-mobile-takeover][data-mobile-presentation="takeover"]` named after the note (**2026-08-07**), a `[data-doc-pane-header]` with **Close document**, the tab bar gone. **Close document** removes the dialog and the room stays the `[data-mobile-detail]`. |
+| `shell-fixture.html?view=settings&settingsPage=account&alerts=quiet` | The settings shell (`settings/SettingsShell.tsx:215-255`) | `[data-settings-presentation="takeover"][data-mobile-takeover]`, role `dialog` **Settings**, class `is-page` with heading **My Account** and a **Back to settings** button. **Back to settings** flips the class to `is-index`, shows the 20-item nav and the `.settings-mobile-header` with **Close settings**, which closes the dialog back to `#/room/ops`. The room's own **Back to Spaces** is also on screen, so match **Back to settings** exactly. |
+| `shell-fixture.html?view=agent&omSessions=drafts&alerts=quiet` with the `**/healthz*` route stub installed first | The om session rail (`AgentSessionRail.tsx:1143-1152`) | The header button **Open om conversations** (`title` **Chats**) appears only on the `om` root with the rail closed. It opens a dialog whose header reads **Chat** / **Shared with your om TUI**, class `ui-mobile-surface om-session-mobile`, leading control `[data-mobile-surface-leading="close"]` named **Back to conversation**, listing the seeded sessions. **Back to conversation** removes it. |
+
+Without the health stub the om root renders its not-running state and the
+opener never mounts; with it, the session list is the one Your om takeover the
+fixture lane reaches. The om **settings** and **watches** variant of **Back to
+conversation** (not a takeover) still needs the same stub plus the rail.
+
 ## Gotchas
 
 - Viewport is `agent-browser set viewport <w> <h>`. There is no bare
@@ -110,9 +129,11 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
     icon rather than to visible text (`AgentSessionRail.tsx` via
     `MobileTakeover`).
 
-  You will meet neither in the fixture: Your om there is stuck on its
-  not-running empty state ([om-and-agents.md](om-and-agents.md)), and reaching
-  any of them needs a running daemon.
+  Without the `**/healthz*` route stub Your om is stuck on its not-running
+  empty state ([om-and-agents.md](om-and-agents.md)) and neither mounts. With
+  the stub, the session-list takeover is reachable in the fixture (see the
+  Takeovers section); the settings/watches variant still needs the stub and
+  then **Watches** from inside that takeover ([your-om-watches.md](your-om-watches.md)).
 - This is the phone-width **web** UI, and a green matrix here is a
   `web-bundle` claim only. Since `3c9cbf7b` this repo has no native app: the
   Capacitor iOS/Android shell, `docs/mobile-native-release-checklist.md` and
@@ -122,7 +143,9 @@ Useful modifiers: `?keyboard=<px>` raises a simulated keyboard inset,
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** 390×844 on `/rooms/` (18135) and `/chat/` (18136): `?view=home` → **Chats** gave `data-mobile-root="chats"` with the five-tab **Mobile navigation**; **Direct message with ana, 2 unread** → `#/dm/ana` (`/chat/dm/ana`), one `[data-mobile-detail]`, the bar gone and one **Back to Chats**; **Back to Chats** restored `chats` and the bar. **Limitations:** Other widths, Spaces detail, the om root detail and the takeovers (`MobileSurface.tsx`). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** 390×844 on `/rooms/` (18137) and `/chat/` (18138): `?view=home` → **Chats** (`data-mobile-root="chats"`, five tabs) → **Direct message with ana, 2 unread** (`#/dm/ana` and `/chat/dm/ana`, one `[data-mobile-detail]`, bar gone, one **Back to Chats**) → back to `chats`. The three takeovers on `/rooms/`: the doc pane dialog **2026-08-07** with **Close document**; the settings shell `is-page` **My Account** → **Back to settings** → `is-index` → **Close settings**; and, with the `**/healthz*` stub, **Open om conversations** → the **Chat** / **Shared with your om TUI** dialog → **Back to conversation**. **Limitations:** other widths, Spaces detail, the takeovers on `/chat/`, the om settings/watches **Back to conversation** variant. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`mobile-01` to `mobile-05`, `chat-16`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** 390×844 on `/rooms/` (18135) and `/chat/` (18136): `?view=home` → **Chats** gave `data-mobile-root="chats"` with the five-tab **Mobile navigation**; **Direct message with ana, 2 unread** → `#/dm/ana` (`/chat/dm/ana`), one `[data-mobile-detail]`, the bar gone and one **Back to Chats**; **Back to Chats** restored `chats` and the bar. **Limitations:** Other widths, Spaces detail, the om root detail and the takeovers (`MobileSurface.tsx`). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/chat/` at 390×844 on `?view=home`: **Chats** / **Spaces** / **Library** / **om** tabs, **Chats** → **Direct message with ana, 2 unread** → `/chat/dm/ana` with `[data-mobile-detail]` and no tab bar, **Back to Chats** → `[data-mobile-root]`. **Limitations:** `/rooms/` mobile was not re-driven this pass (nightly 2026-10-29 stands). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 08).
 

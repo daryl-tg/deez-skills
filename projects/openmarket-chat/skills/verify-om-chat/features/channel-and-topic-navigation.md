@@ -291,6 +291,45 @@ offer is proved and the effect is pending. Sidebar drag-and-drop
 (`text/om-channel`, `text/om-server`, `Sidebar.tsx:5338-5716`) is not
 driveable with synthetic `DragEvent`s.
 
+### Resize handles and the sidebar lens (added 2026-11-01)
+
+Two keyboard-driveable `role="separator"` handles sit in the shell, and a
+third demo lives in the gallery (driven 2026-11-01 on `/rooms/` at `936f5b64`):
+
+- **Resize channel sidebar** (`.sidebar-resize`): `aria-valuenow` 240 by
+  default, `aria-valuemin` 200, `aria-valuemax` 400. Focus it and press
+  **ArrowLeft** three times → 210, written to `om.chat.sidebarWidth`; **Home**
+  → 200 (the minimum, not the default). This is the key the chevron recipe
+  above seeds by hand.
+- **Resize the side panel** (`.column-resize`, `RightPanels.tsx:612`,
+  `ColumnResize`): present only while a right panel is open and not in overlay
+  mode (`panel=pins` read 304, `panel=members` 324, `panel=search` 364; min
+  224, max 464). The commit persists to `om.chat.rightPanelWidth`
+  (`RightPanels.tsx:61`, `:101`).
+- `fixture.html?surface=resizable-panel` mounts the same `ColumnResize` as
+  **Resize the side panel** (280–520, starts at 320) over a `#research` mock,
+  with the gallery's `reduced-motion` class removed (`fixture.tsx:1567`).
+
+**The sidebar lens renders from prefs, and only from prefs, in this lane.**
+`sidebarLensMode` reads `om.chat.sidebarFocus` (a JSON array of space ids) and
+`om.chat.sidebarTodos` (`{"home":bool,"spaces":[…]}`) on every render
+(`lib/prefs.ts:507`, `:572`, `:812-816`; `Sidebar.tsx:3832-3844`). Seed one and
+reload at a desktop width (the lens is off below 768 px):
+
+```bash
+agent-browser eval '(()=>{localStorage.setItem("om.chat.sidebarFocus",JSON.stringify(["s1"]));return 1})()'
+agent-browser reload
+#   [data-focus-toggle] reads aria-pressed="true", "Focus on: show all channels"; 26 treeitems → 16
+agent-browser eval '(()=>{localStorage.removeItem("om.chat.sidebarFocus");localStorage.setItem("om.chat.sidebarTodos",JSON.stringify({home:false,spaces:["s1"]}));return 1})()'
+agent-browser reload
+#   "To-dos on: show all channels" pressed; the tree shrinks to the Open World row
+```
+
+Clicking **Focus: only what needs you** (`Sidebar.tsx:4820`) or pressing ⌘⇧F
+changes nothing: `setSidebarFocus` and `cycleSidebarLens` are unstubbed, so
+they resolve to `INERT` and write no pref. Clear both keys before any frame
+that should show the full tree.
+
 ## Gotchas
 
 - **`panel=members` on a public topic blanks the whole shell, on both hosts.**
@@ -451,7 +490,9 @@ driveable with synthetic `DragEvent`s.
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): CPI treeitem → `#/room/ops/topic/cpi-print-aug` and **Message in CPI print — Aug**, **Back to #ops** → `#/room/ops`; **Hide this channel's topics** → **Show this channel's topics** (16 level-2 rows); dock **Members** → **Close Members** with `aria-pressed=true` and `.right-panel-drawer`; topic row menu (11 items), **Resolve Funding flipped negative on Hyperliquid** and **Resolve Topic** pressed (closes, no change), **Delete ⌗ …** alertdialog; switcher `#mac` → `#/room/macro/topic/basis-desk-review`; deep link `msg/105` → `data-message-jump=105`; channel-row **Mute** submenu (five durations); **Preview of signals** and **Conversation with ana** hover peeks; topic peek with the hash and Escape back to `#/room/ops`; **Remove from private topic?**; primer **New topic** → **Create Topic in ##ops**; the channel row, category and server menus and **Create Topic** / **Create Channel** dialogs. `/chat/` (18136): topic → `/chat/room/ops/topic/cpi-print-aug` and back; `peek=cpi-print-aug` plus **Open full** → the full topic; DM peek; the channel peek stays **Loading preview**; switcher → `/chat/room/macro/topic/basis-desk-review`; `panel=inbox` aside **Inbox**; `panel=topic-draft` aside **New topic**; the three sidebar menus (server 15 items). **Limitations:** Every menu verb's effect, public-topic removal, the dock collapse toggle and **Add People...**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): **CPI print — Aug, 2 mentions, 3 unread** → `#/room/ops/topic/cpi-print-aug` with the composer **Message in CPI print — Aug** → **Back to #ops**; dock **Members**; the topic row menu (10 items: Following, Mute, Link, Resolve, Open Topic, Import Folder..., Rename, Create Doc from Topic, Set topic index..., Delete Topic); the channel-row menu (10) and its **Create Topic** → **Create Topic in #signals** with **Make topic private**; the **Desk** category menu (3); the server menu (16, with **Clean up topics**) → **Create Category** and **Create Channel** → **Create channel**; the topic peek under the hash (**Topic CPI print — Aug (peek)**, **Open full**), the DM hover peek (**Conversation with ana**) and the channel hover peek (**Preview of signals**, caught up); the switcher (`#mac` → `#/room/macro/topic/basis-desk-review`); the deep link `#/room/ops/msg/105` flashing row 105; the inbox, New topic, Pinned and Bookmarks panels; the two resize separators and the seeded Focus and To-dos lenses. `/chat/` (18138): topic open and **Back to #ops**, the channel-row menu (10), the server menu (15, no **Clean up topics**), **Create Category**, the DM row menu, the DM hover peek, the topic peek's **Open full** promoting to `/chat/room/ops/topic/cpi-print-aug`, the four panels and the switcher. **Limitations:** **Hide this channel's topics**, Mark As Unread (the `topic in ops` row's menu tonight listed no such entry), **Resolve Topic**, Mute durations and the remove/delete confirms were not re-driven; their 2026-10-31 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`nav-01` to `nav-10`, `peek-01` to `peek-03`, `panels-01`, `lens-01`/`02`, `census-04`, `chat-01` to `chat-05`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): CPI treeitem → `#/room/ops/topic/cpi-print-aug` and **Message in CPI print — Aug**, **Back to #ops** → `#/room/ops`; **Hide this channel's topics** → **Show this channel's topics** (16 level-2 rows); dock **Members** → **Close Members** with `aria-pressed=true` and `.right-panel-drawer`; topic row menu (11 items), **Resolve Funding flipped negative on Hyperliquid** and **Resolve Topic** pressed (closes, no change), **Delete ⌗ …** alertdialog; switcher `#mac` → `#/room/macro/topic/basis-desk-review`; deep link `msg/105` → `data-message-jump=105`; channel-row **Mute** submenu (five durations); **Preview of signals** and **Conversation with ana** hover peeks; topic peek with the hash and Escape back to `#/room/ops`; **Remove from private topic?**; primer **New topic** → **Create Topic in ##ops**; the channel row, category and server menus and **Create Topic** / **Create Channel** dialogs. `/chat/` (18136): topic → `/chat/room/ops/topic/cpi-print-aug` and back; `peek=cpi-print-aug` plus **Open full** → the full topic; DM peek; the channel peek stays **Loading preview**; switcher → `/chat/room/macro/topic/basis-desk-review`; `panel=inbox` aside **Inbox**; `panel=topic-draft` aside **New topic**; the three sidebar menus (server 15 items). **Limitations:** Every menu verb's effect, public-topic removal, the dock collapse toggle and **Add People...**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18153): CPI treeitem → `#/room/ops/topic/cpi-print-aug` and **Message in CPI print — Aug**, **Back to #ops** → `#/room/ops`; **Hide this channel's topics** flipped to **Show**; topic row menu (11 items) via `contextmenu` on `.channel-row-identity`; Delete Topic copy; **Resolve Funding flipped negative on Hyperliquid** dialog; **Choose how long to mute #signals** → 15m/1h/8h/24h; **Remove from private topic?** on `basis-desk-review`; deep link `messageJump=105`; topic peek with the hash; `panel=inbox` (**Close inbox**, **Mark #ops read**); `switcher=open`; `panel=pins|bookmarks|topic-draft` asides. `/chat/` (18154): topic navigation and Back, the 11-item topic row menu and Delete Topic. **Limitations:** The `/chat/` fixture has no private `basis-desk-review` topic (the route lands on `#ops` Members). Effects of mute, unread, resolve and delete are fixture no-ops. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 05-07, 10-13).
 

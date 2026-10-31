@@ -32,7 +32,9 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `?view=agent&alerts=quiet&omSessions=daemon` with the `**/healthz*` stub: the gate passed, then **Conversations are out of reach** with zero `[data-om-session-unread]` rows. **Limitations:** Everything else: unread rows and their actions need an isolated daemon origin with real sessions. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=agent&alerts=quiet&omSessions=daemon` with the `**/healthz*` stub: the gate passed and, about eight seconds after load, **Conversations are out of reach** with **Try again** and zero `[data-om-session-unread]` rows. **Limitations:** unread rows and their actions need an isolated daemon origin with real sessions; a read at 3.5 s saw neither the gate text nor the error, so wait. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`om-05`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `?view=agent&alerts=quiet&omSessions=daemon` with the `**/healthz*` stub: the gate passed, then **Conversations are out of reach** with zero `[data-om-session-unread]` rows. **Limitations:** Everything else: unread rows and their actions need an isolated daemon origin with real sessions. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Last attempted:** 2026-10-30 (scheduled maintenance) at `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). With the `**/healthz*` stub, `?view=agent&omSessions=daemon` passed the gate and read "Conversations are out of reach", with zero `[data-om-session-unread]` rows. Unread still needs a daemon origin. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 40).
 

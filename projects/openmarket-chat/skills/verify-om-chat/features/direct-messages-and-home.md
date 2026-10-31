@@ -182,6 +182,19 @@ follow verbs, `closeDm`, `confirmBlockUserById` and `unblockUserById` are
 unstubbed, so the offer is proved and every effect is pending. Driven on
 `/rooms/` (18135) and `/chat/` (18136) at `936f5b64`.
 
+### Message requests row (added 2026-11-01)
+
+`?requests=N` (`shell-fixture.tsx:2733-2744`, 0–9) knocks N strangers onto
+the pinned **Message requests** row above the DMs. On
+`shell-fixture.html?view=dm&requests=3&alerts=quiet` the sidebar shows a
+`treeitem` named **3 message requests** (`Sidebar.tsx:4612`); clicking it
+changes nothing (`openMessageRequests`, `lib/session.ts:37929`, is unstubbed,
+so the click resolves to `INERT`), and the hash stays `#/dm/ana`. The
+Connections **Requests** tab's **Messages 0** tab (`FriendsPane.tsx:1171`) is
+the other door and renders **No message requests waiting.** without the seed.
+Driven 2026-11-01 on `/rooms/` at `936f5b64`. Opening the inbox, accepting or
+declining a request need a stub or a daemon.
+
 ## Gotchas
 
 - **Home renders one `<h1>` on desktop**, the unread summary
@@ -255,7 +268,9 @@ unstubbed, so the offer is proved and every effect is pending. Driven on
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): `?view=home` **New DM** → **New Message** (ana, dax, mira, rho); rail **Create or join a server** → **Create or Join a Server**; server menu **Create Category** → **Create Category** and **Create Channel** → **Create channel**; `?view=dm&dm=OM%20chatters` **Rename group** dialog; `?view=friends&tab=requests` → `#/connections/requests` with the **Request type** tablist (All / Followers NaN / Messages 0); `?view=channels&directory=empty` "This workspace has no public channels yet." and `&directory=loading&connection=offline` "The channel directory is out of reach."; the DM row menu. `/chat/` (18136): **New Message**, **Create or Join a Server**, **Create Category**, the DM row menu, and 390×844 Chats → `/chat/dm/ana` → **Back to Chats**. **Limitations:** Sending, creation, rename and add effects; Blocked tab crash; Start here and WelcomeToChat seeds. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): Home (**2 unread across 1 conversation.**) → **New DM** → **New Message** with **Search connections** and ana / dax / mira / rho; **Create or join a server** → **Create or Join a Server**; the Getting started checklist (5 items) with the `om.chat.gettingStarted` seed; **Requests** tab (**Followers NaN** still); the DM row menu (Follow, Invite to Server, Add to Desk, Close DM, Block, Copy @ana, Copy user ID); **Rename group** on OM chatters; Browse channels (9 public · 4 subscribed) and `directory=empty`; the **3 message requests** row from `?requests=3`. `/chat/` (18138): **New Message**, **Create or Join a Server**, the DM row menu and the DM hover peek. **Limitations:** **Add someone**, **See connections**, **Follow someone** and the blocked tab were not re-driven; every menu verb and the requests inbox stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`home-01` to `home-06`, `census-01`/`02`, `chat-04`, `chat-06`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): `?view=home` **New DM** → **New Message** (ana, dax, mira, rho); rail **Create or join a server** → **Create or Join a Server**; server menu **Create Category** → **Create Category** and **Create Channel** → **Create channel**; `?view=dm&dm=OM%20chatters` **Rename group** dialog; `?view=friends&tab=requests` → `#/connections/requests` with the **Request type** tablist (All / Followers NaN / Messages 0); `?view=channels&directory=empty` "This workspace has no public channels yet." and `&directory=loading&connection=offline` "The channel directory is out of reach."; the DM row menu. `/chat/` (18136): **New Message**, **Create or Join a Server**, **Create Category**, the DM row menu, and 390×844 Chats → `/chat/dm/ana` → **Back to Chats**. **Limitations:** Sending, creation, rename and add effects; Blocked tab crash; Start here and WelcomeToChat seeds. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/`: Home `#/home` with **New DM**, **Follow someone**, **Create or Join Server**, **See connections**; **New DM** → **New Message** with **Search connections**; **Create or Join a Server**; `#/dm/ana`; DMS **New message** → **New Message**; **Rename group** (found with `find title`); **Add someone** → **Add to group**; `tab=requests` chips, tablist and NaN counts; **Browse channels**. **Limitations:** Rename and add are no-ops; `/chat/` DMs were driven only through the hover peek and the mobile path. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 17-19).
 

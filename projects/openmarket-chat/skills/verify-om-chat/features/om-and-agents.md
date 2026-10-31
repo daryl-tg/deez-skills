@@ -391,11 +391,38 @@ An agent page (`#/agents/a/inst_argue`) has four tabs, **Overview**,
 **Activity**, **Access** and **Settings** (there is no Sessions tab), and its
 boxes are `h2.agent-box-h` (`agents/AgentPanels.tsx`): **About** (`:131`) on
 Overview, **Today** (`:345`) added on Activity, and **Memory** (`:166`) with a
-progressbar named **Memory used** (`:181`) added on Settings. **This hour**,
+`role="meter"` named **Memory used** (`:181`; `aria-valuenow` 29 for argue,
+re-read 2026-11-01; it is not a progressbar) added on Settings. **This hour**,
 **Sessions**, **Agent settings** and **Full access** (`:203`, `:317-390`) and
 the **Stop access to <label>** chips (`:253`) did not render for `argue`. Use
 `find role tab`, because **Activity** is also a rail row. Driven 2026-10-31 on
 `/rooms/` (18135) at `936f5b64`.
+
+At 390×844 the agent page is full-screen (header **argue · Idle · Chat agent**,
+composer **Message argue**) and its side panels live behind the kebab
+**Details for argue** (`aria-haspopup="dialog"`, `AgentPage.tsx:128-146`),
+which raises the **argue details** sheet: `role="dialog"` with
+`.agent-sheet-head[data-sheet-grip]` and **Close details**, 591 px tall. The
+sheet drags with synthetic pointer events (`lib/agents/sheet-drag.ts`):
+`pointerdown` on the grip, then `pointermove` and `pointerup` on `window` with
+the same `pointerId`, paced with short awaits. A 60 px pull sprang home
+(`translateY(60px)` → 52.7 → 17.5 → 2.6 → `""`) and a pull past half the
+height left the screen (531 → 578 → unmounted). Driven 2026-11-01 at
+`936f5b64` on `/rooms/` (18137).
+
+**The spring needs a visible page.** The settle runs on
+`requestAnimationFrame`, and a page that is not the most recently created one
+in the shared headless browser reports `document.hidden === true` with no rAF
+ticks: there the sheet followed the finger and then froze mid-air on release.
+Open a fresh session for the drag, or check `document.visibilityState` first.
+The fixture also forces the `reduced-motion` class on `<html>`.
+
+**Update for argue** is the `RosterUpdateNotice` section (`roster/RosterUpdateNotice.tsx:78`)
+and mounts only in the **Needs you** feed (`agents/NeedsYou.tsx:872`), not on
+the Grid card or the agent page; the fixture drops it once **Approve argue
+update** or **Keep argue at 1.0.0** is pressed (`agent-center-fixture.tsx:716`).
+**More actions for argue** listed two items tonight, **Check routing** and
+**Review what it learned**; the 2026-10-30 record counted three.
 
 ## Gotchas
 
@@ -461,7 +488,9 @@ the **Stop access to <label>** chips (`:253`) did not render for `argue`. Use
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `agent-center-fixture`: Map ready; **Grid** ready with **Fleet health · last 24 hours** opened; **Needs you, 9** → `#/agents/waiting` (Approve argue update, Keep argue at 1.0.0, Allow, Yes, remember it, No, forget it, Dismiss, Accept, Reject present); **Open argue, 2 need you** → `#/agents/a/inst_argue`, h1 **argue**, tabs, **Run argue**, **More actions for argue** (3 items), the About / Today / Memory boxes; **New agent** (groups **Agent type**, **Agent templates**; Escape returns focus); `?roster=none` Allow / Deny; `?state=desk-off` **Loading agents**; **Update for argue**. Shell: `?view=agent&panel=voice|away|activity` → `#/agents/voice|away|activity` with their copy; `?view=agents` as in the route table; `remote-home-fixture` approval / live / unsupported; `omSessions=drafts` with the `**/healthz*` stub. `/chat/` (18136): `?view=agents` → `/chat/agents`, Map with om only and the local-app copy; **Voice** → `/chat/agents/voice` and **Away coverage** → `/chat/agents/away`, both desk-offline. **Limitations:** Consent buttons not pressed this pass (pressed 2026-10-30); authenticated roster actions; the rail spellings for away, reconnecting and remote; the 390 px sheet drag. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `agent-center-fixture.html`: **Needs you, 9** → `#/agents/waiting`; **Allow**, **Approve argue update**, **Yes, remember it**, **Dismiss: stayed quiet in #trading…** and **Accept** settled the count 9 → 8 → 7 → 6 → 5 (**Accept** is the fixture no-op); **Grid** → **Fleet health · last 24 hours** opened to its measures; `#/agents/a/inst_argue` → **argue**, four tabs, **About**, then **Memory** with the **Memory used** meter (29) on Settings; at 390 **Details for argue** raised the **argue details** sheet, which sprang back from a 60 px pull and left on a far pull; **New agent** at 390 as a sheet (**Chat agent**, **Work agent**, templates, **Start blank**, **Import**). Shell: `?view=agents` on both hosts (smoke), `/chat/` **Voice** and **Away coverage** desk-offline copy; `remote-home-fixture` `approval` (**Approve**, **Deny**, **Stop**, **Add context**), `live` (**Stop**, **Add context**) and `unsupported`; `away-panel-fixture` (**1h 18m remaining · This Mac**, 20 controls); `agent-presentation-fixture?state=failed` (**1 failed**). **Limitations:** authenticated roster actions, the daemon-served roster, real touch; **Invite agent** was not re-driven (2026-10-28 stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`agents-01` to `agents-14`, `away-01`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `agent-center-fixture`: Map ready; **Grid** ready with **Fleet health · last 24 hours** opened; **Needs you, 9** → `#/agents/waiting` (Approve argue update, Keep argue at 1.0.0, Allow, Yes, remember it, No, forget it, Dismiss, Accept, Reject present); **Open argue, 2 need you** → `#/agents/a/inst_argue`, h1 **argue**, tabs, **Run argue**, **More actions for argue** (3 items), the About / Today / Memory boxes; **New agent** (groups **Agent type**, **Agent templates**; Escape returns focus); `?roster=none` Allow / Deny; `?state=desk-off` **Loading agents**; **Update for argue**. Shell: `?view=agent&panel=voice|away|activity` → `#/agents/voice|away|activity` with their copy; `?view=agents` as in the route table; `remote-home-fixture` approval / live / unsupported; `omSessions=drafts` with the `**/healthz*` stub. `/chat/` (18136): `?view=agents` → `/chat/agents`, Map with om only and the local-app copy; **Voice** → `/chat/agents/voice` and **Away coverage** → `/chat/agents/away`, both desk-offline. **Limitations:** Consent buttons not pressed this pass (pressed 2026-10-30); authenticated roster actions; the rail spellings for away, reconnecting and remote; the 390 px sheet drag. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `agent-center-fixture`: **Needs you, 9** → `#/agents/waiting`, the consent buttons pressed as listed under Needs you (9 → 8 → 6 → 5; **Accept** no-op); **Grid** wrote `om.chat.agentsView=grid`; **Open argue** → `#/agents/a/inst_argue` with **Run argue**, Overview / Activity / Access / Settings and **Ask argue something**. `/chat/` `?view=agents`: **Persona sections** → **Voice** (`/chat/agents/voice`) and **Away coverage** (`/chat/agents/away`) read the desk-offline copy. **Limitations:** Authenticated roster actions. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 04, 30-33).
 

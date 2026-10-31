@@ -64,7 +64,9 @@ session methods.
 
 ### Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `agent-draft-share-fixture`: **History**, a new draft text, **Share with agent** → "Shared revision 1 with the agent.", `fixtureSharedRevision=1`, `fixtureSharedText` equal to the typed text and the composer still holding it. **Limitations:** Daemon delivery and the Send path; **Share update** (revision 2) not pressed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `agent-draft-share-fixture.html`: filling **Message #agents-lab** revealed **Share with agent**; pressing it recorded **Shared revision 1 with the agent.**, and **History** lists revision 1. **Limitations:** daemon delivery. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`share-01`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `agent-draft-share-fixture`: **History**, a new draft text, **Share with agent** → "Shared revision 1 with the agent.", `fixtureSharedRevision=1`, `fixtureSharedText` equal to the typed text and the composer still holding it. **Limitations:** Daemon delivery and the Send path; **Share update** (revision 2) not pressed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` `agent-draft-share-fixture`: filled **Message #agents-lab**, **Share with agent** → "Shared revision 1 with the agent." and `fixtureSharedRevision=1`. **Limitations:** Daemon delivery. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frame 45).
 

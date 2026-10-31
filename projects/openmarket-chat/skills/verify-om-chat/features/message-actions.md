@@ -91,6 +91,49 @@ textarea takes focus. Driven on `/rooms/` and `/chat/` at `936f5b64`.
 offer (the buttons render by `title`) and leave the effect pending. The quick
 reactions **React 👍 / 🔥 / 😂** were not pressed.
 
+### Touch: long-press sheet and swipe to reply (added 2026-11-01)
+
+`MessageTouchRow` (`MessageTouchRow.tsx:41-145`) spreads `useRowTouch`'s
+pointer handlers onto every `[data-message-row]` that is not pending
+(`MessageRow.tsx:2293`), and those handlers act only on `pointerType ===
+"touch"` (`lib/touch.ts:108-200`). There is no coarse-pointer or
+`maxTouchPoints` gate, so a synthetic `PointerEvent` with `pointerType:
+"touch"` drives both gestures, **provided the dispatches are paced**: React
+flushes a `pointermove` update after the event, not inside it, so read the
+row after an `await`, and keep one `pointerId` across the sequence. Driven
+2026-11-01 at 390×844 on `/rooms/` (`936f5b64`):
+
+```bash
+agent-browser eval '(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));const r=document.getElementById("msg-ops-104");
+  const b=r.getBoundingClientRect();const x=b.left+40,y=b.top+b.height/2;
+  const p=(t,cx)=>r.dispatchEvent(new PointerEvent(t,{pointerType:"touch",pointerId:6,isPrimary:true,bubbles:true,cancelable:true,clientX:cx,clientY:y,button:0,buttons:1}));
+  p("pointerdown",x);await w(30);p("pointermove",x+20);await w(30);p("pointermove",x+45);await w(80);
+  const mid=r.style.transform;p("pointermove",x+70);await w(80);const far=r.style.transform;p("pointerup",x+70);await w(500);
+  return JSON.stringify({mid,far,after:r.style.transform})})()'
+#   {"mid":"translateX(45px)","far":"translateX(60.9px)","after":"translateX(0px)"}
+#   with .swipe-reply-hint visible mid-swipe and the composer strip reading
+#   "Replying to kyle: @ana the alert fired twice…" plus a Cancel reply button
+```
+
+Past `SWIPE_COMMIT_PX` (56) the pull gains resistance (70 → 60.9), and the
+release past the commit calls `session.setReplyTarget`, which the fixture
+implements (`shell-fixture.tsx:3443`). A long press is `pointerdown`, a 700 ms
+wait, `pointerup` on the same row: it opens the row menu as a sheet,
+`div.msg-sheet[role=menu][data-mobile-sheet]` behind `.msg-sheet-backdrop`,
+22 menu items for `msg-ops-104`; Escape closes it.
+
+**Pull to refresh did not fire.** `usePullToRefresh` (`lib/touch.ts:227-290`)
+listens for native `touchstart`/`touchmove` on the `[data-tape-scroller]` and
+calls `history.backfill` when the pull passes 56 px. Synthetic `TouchEvent`s
+reached that element (a capturing listener on `document` saw `touches.length`
+1 with the scroller as target, `scrollTop` 0 throughout), but the hook's
+`touchmove` never called `preventDefault` and no `.ptr-pull` spacer rendered,
+on three attempts including a synchronous one. Pending: either the hook is not
+bound (its effect reads `scrollerRef.current` once, keyed on `[enabled,
+scrollerRef]`, so a scroller that mounts after the first commit never binds)
+or the lane needs real touch emulation. Drive it on a device or with CDP touch
+before calling it a product gap.
+
 ## Gotchas
 
 - **The toolbar buttons have no `aria-label`.** Their names come from
@@ -109,6 +152,8 @@ reactions **React 👍 / 🔥 / 😂** were not pressed.
 
 ## Verification record
 
-**Last verified:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): hover `msg-ops-104` → toolbar **React 👍 / 🔥 / 😂**, **Add reaction**, **Reply**, **Edit**, **Turn into topic**, **Add to Channel To-dos**, **More**; **More** → 11 items; a right-click on the row → 19 items; **Agent** → **Copy for Agent**, **Mark for agent** ⌥M, **Ask about this...**, **Capture to doc from here**; `?reply=1` strip and **Reply** retarget; **Turn into topic** inert. `?view=dm&dm=ana`: `#dm-msg-m2` **More** → 13 items. `/chat/` (18136): the same toolbar, **More** → 11, **Agent** submenu (4), DM **More** → 13, `?reply=1` and the **Reply** retarget. **Limitations:** Every verb is a fixture no-op; the clipboard was not read back; **File as source**, **Summarize thread** and **Remove Link Previews** have no seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
+**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) on `msg-ops-104`: a right-click lists 19 items (the four quick emoji, React, Reply, Topic, To-do, then the eleven verbs through **Copy Message ID**) and the hover toolbar's **More** lists the eleven verbs; the **Agent** submenu (Copy for Agent, Mark for agent, Ask about this..., Capture to doc from here); the toolbar (React 👍 / 🔥 / 😂, Add reaction, Reply, Edit, Turn into topic, Add to Channel To-dos, More); toolbar **Reply** → **Replying to kyle: …** with the composer focused and **Cancel reply**; `?reply=1` → **Replying to dax**; at 390 a long press opened the 22-item sheet and a swipe past 56 px set the same reply target (section above). `/chat/` (18138): the right-click and **More** menus, the **Agent** submenu and the toolbar **Reply**. **Limitations:** every verb is still a fixture no-op; **Turn into topic** and **Add to Channel To-dos** stay inert; pull to refresh did not fire. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`actions-01` to `actions-06`, `touch-01`, `touch-02`, `chat-10`, `chat-11`).
+
+**Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): hover `msg-ops-104` → toolbar **React 👍 / 🔥 / 😂**, **Add reaction**, **Reply**, **Edit**, **Turn into topic**, **Add to Channel To-dos**, **More**; **More** → 11 items; a right-click on the row → 19 items; **Agent** → **Copy for Agent**, **Mark for agent** ⌥M, **Ask about this...**, **Capture to doc from here**; `?reply=1` strip and **Reply** retarget; **Turn into topic** inert. `?view=dm&dm=ana`: `#dm-msg-m2` **More** → 13 items. `/chat/` (18136): the same toolbar, **More** → 11, **Agent** submenu (4), DM **More** → 13, `?reply=1` and the **Reply** retarget. **Limitations:** Every verb is a fixture no-op; the clipboard was not read back; **File as source**, **Summarize thread** and **Remove Link Previews** have no seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
 **Previous record:** 2026-10-30 (scheduled maintenance). **Product commit:** `47cb13bf` (GitLab origin/main; rooms-client 0.108.0). **Scope (`/rooms/`, fixture lane):** On `#ops` `msg-ops-104`, the hover toolbar showed its nine title-named buttons, and **More** opened the 19-item menu listed above. Hovering **Agent** opened the submenu with **Copy for Agent**, **Mark for agent ⌥M**, **Ask about this...** and **Capture to doc from here**. On `#/dm/ana`, `dm-msg-m2`'s **More** opened the 13-item DM menu, and **Edit Message** opened the focused editor. **Limitations:** No verb was pressed for its effect (every one is a fixture no-op), the clipboard was not read, and `/chat/` was not driven. **File as source**, **Summarize thread** and **Remove Link Previews** have no seed. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261030/r1/` (frames 49-50, 52).
