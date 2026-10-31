@@ -11,11 +11,12 @@ Worker. This skill is the executable half of verification: how to get a
 driveable instance up, how to drive it by accessible name and engine state, and
 how to turn what you saw into evidence.
 
-Everything goes through `control-kiyotaka`, which lives in the repo it drives
-(`/Users/dboon/Gitlab/kiyotaka-frontend/control-kiyotaka`) so it versions with
-the app. It is operator tooling, not app source: it is excluded via
-`.git/info/exclude`, so a fresh clone will not have it — regenerate it with
-`create-verification-skill` rather than committing it.
+Everything goes through `control-kiyotaka`, the tracked wrapper beside this
+file at `bin/control-kiyotaka` in the hub (the project-verification contract's
+canonical place). It is operator tooling, not app source: the product repo
+never carries it. It resolves the checkout it drives from `KIYO_REPO`, or from
+`git rev-parse --show-toplevel` of the directory you call it from, so run it
+from inside the kiyotaka-frontend checkout or worktree you mean to drive.
 
 ## Which skill is this
 
@@ -39,9 +40,9 @@ The guest lane draws real candles with the backend down, because candles ride
 the v2 gateway websocket directly from the worker, not the `/api` proxy. Do not
 start the operator's stack to prove something the guest lane already proves.
 
-Guest costs you: a `Guest Mode` badge, an indicator cap (the ticker reads a bare
-`2/3` — the `Indicators` prefix is gone), Replay reading `Market Replay is a Plus
-feature`, and no persistence.
+Guest costs you: a `Guest Mode` badge, an indicator cap (the ticker's
+`tb-indicators-btn` reads `Indicators 1/3` at boot and counts up as overlays
+mount), Replay stopping at the `chart-actions` sign-in wall, and no persistence.
 
 Guest does NOT cost you the V2 symbol dialog any more: `search-v2` resolves true
 for guests, so the guest lane drives V2 and its scope surfaces.
@@ -49,15 +50,22 @@ for guests, so the guest lane drives V2 and its scope surfaces.
 ## Launch
 
 ```bash
-cd /Users/dboon/Gitlab/kiyotaka-frontend
-./control-kiyotaka up                       # default port 18097
-KIYO_LANE_PORT=18099 ./control-kiyotaka up  # take another slot if 18097 is busy
+CK=~/.claude/skills/verify-kiyotaka/bin/control-kiyotaka
+cd /Users/dboon/gitlab/kiyotaka-frontend            # or the worktree you drive
+$CK up                                              # default port 18097
+KIYO_LANE_PORT=18099 KIYO_SESSION=my-run $CK up     # another slot, own browser session
 # -> http://127.0.0.1:18097/chart/
 ```
 
-`up` binds `127.0.0.1` explicitly with `--strictPort`, records a pidfile under
-`.control-kiyotaka/`, and blocks until `/chart/` answers. It refuses a port held
-by another checkout rather than stealing a neighbour's lane.
+`up` binds `127.0.0.1` explicitly with `--strictPort`, launches
+`node node_modules/vite/bin/vite.js --config qa/verification/vite.config.ts`
+with `VITE_BACKEND_PROXY_ORIGIN=http://localhost:8080`, records a pidfile under
+`.control-kiyotaka/` in the checkout, and blocks until `/chart/` answers (300 s
+budget, progress every 30 s). It refuses a port held by another checkout rather
+than stealing a neighbour's lane, and refuses to start without the checkout's
+`.env.local` (link the operator's in first). Export the same `KIYO_LANE_PORT`
+and `KIYO_SESSION` for every later command of the run. The examples below
+write `./control-kiyotaka` for short; read it as `$CK`.
 
 Ports are **assigned**: `18097`–`18197` is the agent range and is deliberately
 not tunnelled, so a lane URL is never a review link. Never bind, target, or stop
@@ -87,10 +95,13 @@ One read-only command, before you drive anything:
 ./control-kiyotaka doctor
 ```
 
-It reports the working tree, whether the lane is yours or foreign, whether the
-tree actually compiles on demand, the chart-schema seam, backend availability,
-v2 gateway reachability, and the harness. It exits non-zero when the instance is
-not worth driving.
+It reports the working tree, its freshness against `origin/main`, the machine
+load against its core count, whether the lane is yours or foreign, whether the
+tree actually compiles on demand, the chart-schema seam, the backend's health
+through the lane's own `/api/v1` proxy (so it follows
+`VITE_BACKEND_PROXY_TARGET`, not `:3000`), v2 gateway reachability, the catalog
+endpoint, and the harness. It exits non-zero when the instance is not worth
+driving.
 
 **Two of those lines are reachability, not health, and a degraded stack passes
 both.** `backend :3000 up` accepts ANY HTTP status from `/`, and `v2 gateway
@@ -120,13 +131,15 @@ seconds later untouched. The budgets are now 90s and 20s, but a loaded machine
 can still outrun them, and the failure text accuses the tree rather than the
 clock.
 
-**A regenerated wrapper ships the old budgets.** `control-kiyotaka` is
-git-excluded, so a fresh clone rebuilds it from `create-verification-skill` with
-`--max-time 25` on the transform probe and `--max-time 5` on the catalog probe,
-and the false cold failure comes back. Raise them to `90` and `20`, and replace
-each probe's `|| echo 000` with `|| true` — `curl -w '%{http_code}'` already
-prints `000` on a timeout, so the fallback concatenates and doctor reports a
-six-digit `000000` that reads as garbage rather than as a timeout.
+**The tracked wrapper carries the 90 s and 20 s budgets and `|| true` on its
+probes.** If you ever rebuild it from `create-verification-skill`'s template,
+keep them: `--max-time 25` on the transform probe and `--max-time 5` on the
+catalog probe bring the false cold failure back, and a probe ending in
+`|| echo 000` concatenates with curl's own `000` into a six-digit `000000`.
+The `v2 gateway` line is a TCP probe of the tailnet-only host named by
+`VITE_V2_WEB_SOCKET_DOMAIN`; when that name stops resolving on the machine the
+line reads `UNREACHABLE` while candles still paint from the cache, so read it
+before blaming an empty live panel on the product.
 
 **The `chart-schema` line is the one that silently burns a run.** `vite.config.ts`
 aliases `@orangecharts/chart-schema` to the *sibling* `orange-shared` checkout's
@@ -241,7 +254,7 @@ saw is a manifest nobody can trust twice.
 
 ```bash
 ./control-kiyotaka down          # by pidfile, never by name
-agent-browser close --session verify-kiyotaka
+agent-browser close --session "${KIYO_SESSION:-verify-kiyotaka}"
 ```
 
 **Never `pkill vite`** — it takes out the operator's `8080` server and every

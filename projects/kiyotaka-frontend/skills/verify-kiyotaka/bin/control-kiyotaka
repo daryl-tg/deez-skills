@@ -1,0 +1,216 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PORT="${KIYO_LANE_PORT:-18097}"
+SESSION="${KIYO_SESSION:-verify-kiyotaka}"
+GL_ARGS='--use-angle=swiftshader,--enable-unsafe-swiftshader'
+USAGE='usage: control-kiyotaka {up|down|url|doctor|browser <verb> [args...]|cli -- <command...>|evidence check <run-id> <revision>}
+  env: KIYO_LANE_PORT (default 18097, agent range 18097-18197), KIYO_SESSION (default verify-kiyotaka),
+       KIYO_REPO (default: the kiyotaka-frontend checkout containing $PWD), ARTIFACTS (default <repo>/artifacts)'
+
+die() { printf 'control-kiyotaka: %s\n' "$*" >&2; exit 1; }
+
+repo_root() {
+  local root
+  if [ -n "${KIYO_REPO:-}" ]; then root="$KIYO_REPO"
+  else root="$(git rev-parse --show-toplevel 2>/dev/null)" || die 'run from a kiyotaka-frontend checkout or set KIYO_REPO'
+  fi
+  [ -f "$root/package.json" ] && grep -q '"name": "kiyotaka-chart"' "$root/package.json" \
+    || die "$root is not a kiyotaka-frontend checkout (package.json name kiyotaka-chart)"
+  printf '%s' "$root"
+}
+
+REPO="$(repo_root)"
+STATE="$REPO/.control-kiyotaka"
+PIDFILE="$STATE/lane-$PORT.pid"
+LOGFILE="$STATE/lane-$PORT.log"
+LANE_URL="http://127.0.0.1:$PORT/chart/"
+API_URL="http://127.0.0.1:$PORT/api/v1"
+ARTIFACTS="${ARTIFACTS:-$REPO/artifacts}"
+ENV_FILE="$REPO/.env.local"
+
+in_agent_range() { [ "$PORT" -ge 18097 ] && [ "$PORT" -le 18197 ]; }
+listener_pids() { lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true; }
+pid_cwd() { lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -1; }
+http_code() { curl -s -o /dev/null -w '%{http_code}' --max-time "${2:-10}" "$1" || true; }
+env_value() { sed -n "s/^$1=//p" "$ENV_FILE" 2>/dev/null | tail -1 | tr -d '"' | tr -d "'"; }
+host_of() { printf '%s' "$1" | sed -E 's#^[a-z]+://##; s#[/:].*$##'; }
+
+cmd_url() { printf '%s\n' "$LANE_URL"; }
+
+cmd_up() {
+  in_agent_range || die "port $PORT is outside the agent range 18097-18197; set KIYO_LANE_PORT"
+  local held; held="$(listener_pids | head -1)"
+  [ -z "$held" ] || die "port $PORT is held by pid $held (cwd $(pid_cwd "$held")); take another KIYO_LANE_PORT, never stop a neighbour's lane"
+  [ -f "$ENV_FILE" ] || die "no $ENV_FILE; a lane without it boots to 'Backend error: unauthenticated' and zero candles. Link the operator's: ln -s ~/gitlab/kiyotaka-frontend/.env.local $ENV_FILE"
+  [ -f "$REPO/node_modules/vite/bin/vite.js" ] || die "no node_modules in $REPO; run pnpm install --frozen-lockfile first"
+  mkdir -p "$STATE"
+  local config=()
+  [ -f "$REPO/qa/verification/vite.config.ts" ] && config=(--config qa/verification/vite.config.ts)
+  { cd "$REPO" && exec env VITE_PORT="$PORT" VITE_BACKEND_PROXY_ORIGIN=http://localhost:8080 \
+      nohup node node_modules/vite/bin/vite.js ${config[@]+"${config[@]}"} --host 127.0.0.1 --port "$PORT" --strictPort; } \
+      >"$LOGFILE" 2>&1 </dev/null &
+  echo $! >"$PIDFILE"
+  local code='' i
+  for i in $(seq 1 150); do
+    code="$(http_code "$LANE_URL" 5)"; [ "$code" = 200 ] && break
+    kill -0 "$(cat "$PIDFILE")" 2>/dev/null || die "vite exited before answering; see $LOGFILE"
+    [ $((i % 15)) -eq 0 ] && printf 'up           waiting (%ss): %s\n' "$((i * 2))" "$(tail -1 "$LOGFILE" | cut -c1-120)"
+    sleep 2
+  done
+  [ "$code" = 200 ] || die "the lane did not answer 200 in 300 s (last log line: $(tail -1 "$LOGFILE" | cut -c1-160)); the process is still up, check $LOGFILE and re-run doctor"
+  printf 'up           %s (pid %s, log %s)\n' "$LANE_URL" "$(cat "$PIDFILE")" "$LOGFILE"
+}
+
+cmd_down() {
+  local pid
+  if [ -f "$PIDFILE" ]; then
+    pid="$(cat "$PIDFILE")"; kill "$pid" 2>/dev/null || true; rm -f "$PIDFILE"
+    printf 'down         stopped pid %s\n' "$pid"
+  else
+    printf 'down         no run-owned lane on %s\n' "$PORT"
+  fi
+  sleep 2
+  for pid in $(listener_pids); do
+    if in_agent_range && [ "$(pid_cwd "$pid")" = "$REPO" ]; then kill "$pid" 2>/dev/null || true; printf 'down         swept pid %s (this checkout)\n' "$pid"
+    else printf 'down         pid %s on %s is not ours (cwd %s); left running\n' "$pid" "$PORT" "$(pid_cwd "$pid")"; fi
+  done
+}
+
+cmd_doctor() {
+  local fail=0
+  printf 'repo         %s\n' "$REPO"
+  printf 'working tree %s (%s)\n' "$(git -C "$REPO" rev-parse --short=10 HEAD)" \
+    "$( [ -z "$(git -C "$REPO" status --porcelain --untracked-files=no)" ] && echo clean || echo dirty)"
+  local behind
+  behind="$(git -C "$REPO" rev-list --count HEAD..origin/main 2>/dev/null || echo '?')"
+  if [ "$behind" = 0 ]; then printf 'freshness    at origin/main as last fetched\n'
+  else printf 'freshness    %s commits behind origin/main as last fetched%s\n' "$behind" \
+    "$( [ "$behind" != '?' ] && [ "$behind" -gt 50 ] && echo ' (BEHIND: label every finding with this tree)')"; fi
+  local load cores
+  load="$(sysctl -n vm.loadavg 2>/dev/null | awk '{print $2}')"; cores="$(sysctl -n hw.ncpu 2>/dev/null || echo '?')"
+  printf 'load         %s on %s cores%s\n' "${load:-?}" "$cores" \
+    "$( [ -n "$load" ] && [ "$cores" != '?' ] && awk -v l="$load" -v c="$cores" 'BEGIN{exit !(l > 3*c)}' && echo ' (OVERLOADED: a dev lane may never draw a candle; report blocked, not regressions)')"
+
+  in_agent_range || { printf 'lane         port %s is outside 18097-18197\n' "$PORT"; fail=1; }
+  local pids; pids="$(listener_pids)"
+  if [ -z "$pids" ]; then
+    printf 'lane         DOWN on %s: run control-kiyotaka up\n' "$PORT"; fail=1
+  else
+    local pid cwd mine=0 minepid=''
+    for pid in $pids; do cwd="$(pid_cwd "$pid")"; [ "$cwd" = "$REPO" ] && { mine=1; minepid="$pid"; }; done
+    if [ "$mine" -eq 1 ]; then
+      local chart; chart="$(http_code "$LANE_URL" 90)"
+      printf 'lane         %s %s (pid %s, this tree%s)\n' "$LANE_URL" "$( [ "$chart" = 200 ] && echo ok || echo "answered $chart")" "$minepid" \
+        "$( [ -f "$PIDFILE" ] && echo ', run-owned' || echo ', no pidfile: not started by this wrapper')"
+      [ "$chart" = 200 ] || fail=1
+      local transform; transform="$(http_code "${LANE_URL}src/workers/worker.ts" 90)"
+      if [ "$transform" = 200 ]; then printf 'transform    ok (src compiles on demand)\n'
+      else printf 'transform    %s on src/workers/worker.ts: the tree does not compile, or a cold transform outran 90 s (re-run doctor once)\n' "$transform"; fail=1; fi
+    else
+      printf 'lane         FOREIGN on %s (pid %s, cwd %s): take another KIYO_LANE_PORT and KIYO_SESSION\n' "$PORT" "$pid" "$cwd"; fail=1
+    fi
+  fi
+
+  local pin sibling_pkg sibling
+  pin="$(sed -n 's/.*"@orangecharts\/chart-schema": "\([^"]*\)".*/\1/p' "$REPO/package.json" | head -1)"
+  sibling_pkg="$REPO/../orange-shared/packages/chart-schema/package.json"
+  if [ -f "$sibling_pkg" ]; then
+    sibling="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$sibling_pkg" | head -1)"
+    if [ "$sibling" = "$pin" ]; then printf 'chart-schema ok (dev aliases the sibling orange-shared at %s)\n' "$sibling"
+    else printf 'chart-schema MISMATCH pinned=%s sibling=%s\n             Fix: cd %s/../orange-shared && git checkout main && git pull --rebase\n' "$pin" "$sibling" "$REPO"; fail=1; fi
+  else
+    printf 'chart-schema not-aliased %s (dev serves node_modules)\n' "${pin:-?}"
+  fi
+
+  local target; target="$(env_value VITE_BACKEND_PROXY_TARGET)"
+  if [ -n "$pids" ] && [ "${mine:-0}" -eq 1 ]; then
+    local health; health="$(curl -s --max-time 20 "$API_URL/health/services" 2>/dev/null | grep -o '"status":"[a-z]*"' | head -1 || true)"
+    printf 'backend      proxy -> %s: health %s%s\n' "$(host_of "${target:-http://localhost:3000}")" "${health:-UNREACHABLE}" \
+      "$( [ -z "$health" ] && echo ' (guest lane only: candles still load from the gateway; no login, no catalog)')"
+  else
+    printf 'backend      proxy -> %s (not probed: no lane)\n' "$(host_of "${target:-http://localhost:3000}")"
+  fi
+  local gw; gw="$(host_of "$(env_value VITE_V2_WEB_SOCKET_DOMAIN)")"
+  if [ -n "$gw" ]; then
+    if nc -z -w 5 "$gw" 443 >/dev/null 2>&1; then printf 'v2 gateway   %s reachable (TCP only; a timing-out gateway still passes)\n' "$gw"
+    else printf 'v2 gateway   %s UNREACHABLE\n' "$gw"; fail=1; fi
+  else
+    printf 'v2 gateway   VITE_V2_WEB_SOCKET_DOMAIN not set in %s\n' "$ENV_FILE"
+  fi
+  if [ -n "$pids" ] && [ "${mine:-0}" -eq 1 ]; then
+    local cat; cat="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -X POST -H 'content-type: application/json' -d '{}' "$API_URL/scripts/query" || true)"
+    case "$cat" in
+      2*) printf 'catalog      /scripts/query serves (%s; SERVES is not SEEDED: an empty official shelf in the dialog means an unseeded backend)\n' "$cat" ;;
+      000) printf 'catalog      /scripts/query timed out (20 s; re-run doctor once, the first transform is cold)\n' ;;
+      5*) printf 'catalog      /scripts/query answered %s\n' "$cat"; fail=1 ;;
+      *) printf 'catalog      /scripts/query answered %s (the endpoint serves)\n' "$cat" ;;
+    esac
+  fi
+
+  if command -v agent-browser >/dev/null 2>&1; then
+    printf 'harness      agent-browser %s (session %s, args %s)\n' "$(agent-browser --version 2>/dev/null | head -1)" "$SESSION" "$GL_ARGS"
+  else printf 'harness      agent-browser MISSING\n'; fail=1; fi
+  [ "$fail" -eq 0 ] || die 'doctor failed. Do not drive this instance.'
+  printf 'doctor       ok\n'
+}
+
+cmd_browser() {
+  command -v agent-browser >/dev/null 2>&1 || die 'agent-browser not installed'
+  exec agent-browser --session "$SESSION" --args "$GL_ARGS" "$@"
+}
+
+cmd_cli() {
+  [ "${1:-}" = "--" ] || die 'usage: control-kiyotaka cli -- <command...>'
+  shift
+  local code=0
+  (cd "$REPO" && "$@") || code=$?
+  printf 'exit %d\n' "$code" >&2
+  return "$code"
+}
+
+cmd_evidence() {
+  [ "${1:-}" = "check" ] || die 'usage: control-kiyotaka evidence check <run-id> <revision>'
+  local run="${2:?run-id required}" rev="${3:?revision required}"
+  local dir="$ARTIFACTS/$run/$rev"
+  [ -f "$dir/evidence-manifest.json" ] || die "no evidence-manifest.json in $dir (helpers/new-evidence-manifest.sh scaffolds one)"
+  python3 - "$dir" <<'PY'
+import json, pathlib, sys
+d = pathlib.Path(sys.argv[1])
+m = json.loads((d / "evidence-manifest.json").read_text())
+bad = []
+caps = m.get("captures") or []
+if not caps:
+    bad.append("captures[] is empty")
+for c in caps:
+    p = c.get("path", "")
+    f = d / p
+    if not p or not f.is_file():
+        bad.append(f"missing file: {p or '<no path>'}")
+    elif f.stat().st_size == 0:
+        bad.append(f"empty file: {p}")
+    state = (c.get("state") or "").strip()
+    if not state or state.startswith("TODO"):
+        bad.append(f"no caption for {p}")
+for key in ("goal", "engineState", "observations"):
+    v = (m.get(key) or "").strip() if isinstance(m.get(key), str) else m.get(key)
+    if not v or (isinstance(v, str) and v.startswith("TODO")):
+        bad.append(f"{key} not filled in")
+for b in bad:
+    print(f"FAIL         {b}")
+print(f"{'FAIL' if bad else 'ok'}           {d} ({len(caps)} capture(s), tree {m.get('tree', {}).get('head', '?')})")
+sys.exit(1 if bad else 0)
+PY
+}
+
+case "${1:-}" in
+  up)       shift; cmd_up "$@" ;;
+  down)     shift; cmd_down "$@" ;;
+  url)      shift; cmd_url "$@" ;;
+  doctor)   shift; cmd_doctor "$@" ;;
+  browser)  shift; cmd_browser "$@" ;;
+  cli)      shift; cmd_cli "$@" ;;
+  evidence) shift; cmd_evidence "$@" ;;
+  -h|--help|help) printf '%s\n' "$USAGE" ;;
+  *) die "$USAGE" ;;
+esac
