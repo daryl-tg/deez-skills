@@ -1,5 +1,7 @@
 # Registry welcome page and personalised search
 
+*Re-driven 2026-11-01 (nightly), tree `7ce379c45` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.9. Real registry only: `welcome` exit 1 `This registry does not offer the welcome page yet.`; `search rsi --format json` returned `{results, total: 42}` led by `@om-core/autocorrelation`, with no `hidden` key (no retired row was dropped); `search rsi --kind wrun-indicator --limit 3` three rows. New for #2234: `search rsi --kind kscript-indicator` and `search demo --kind kscript-library` exit 2 `kind_retired` with no request sent (see [kScript retirement](./kscript-retirement.md)). `terms --format json` exited 1 `registry_unreachable` twice (`https://registry-staging.openmarket.xyz/v1/me: The operation timed out.`), while search, welcome and `om open` answered within a second: the staging registry the terms door reads was unreachable from this host tonight. The fixture branches were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261101/r1/` (`cli/32-35b`, `cli/60`, `cli/13*`).*
+
 *Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. Real registry only: `welcome` exit 1 `This registry does not offer the welcome page yet.`; `search rsi --format json` led with `@om-core/autocorrelation`. The fixture branches were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/76-77`).*
 
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. Real registry only: `welcome` printed "This registry does not offer the welcome page yet."; `search rsi --format json` returned results led by `@om-core/autocorrelation`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/`.*
@@ -96,3 +98,16 @@ so they are driven against a loopback fixture on an assigned agent port
 - The `Welcome to OpenMarket` block on the dashboard Overview is the
   onboarding checklist ([the ops dashboard](./ops-dashboard.md)), unrelated to
   `om welcome`.
+- **A default `search` drops retired kScript rows and counts them.** Since
+  #2234 (`4f4903ab9`) a registry row whose `kind` is `kscript-indicator` or
+  `kscript-library` is left out; `--format json` carries `hidden: N` only when
+  N is above 0 (`cmd/search.ts:129`), and the text form then ends `N shown (K
+  retired kScript package(s) left out)`. `--kind kscript-indicator` is refused
+  `kind_retired` before any request. `hidden > 0` is source-only: production
+  returned no retired row for `rsi` on 2026-11-01. See
+  [kScript retirement](./kscript-retirement.md).
+- `om terms` reads the registry's terms door, which resolved to
+  `registry-staging.openmarket.xyz` on this checkout and timed out
+  (`registry_unreachable`, exit 1) on 2026-11-01 while `search` and `welcome`
+  answered. Treat a `terms` timeout as the staging registry, not the verb,
+  until `search` fails too.

@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-01 (nightly), tree `7ce379c45` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.9. `config show` (masked key), `config key-info` (`om_guest`, `expired: false`), `config get chat.sounds` (`value: null`, `default: on`, `stored_as: tui.sounds`), `config get data.transport` (`default: auto`), `set agent.max_tool_calls 250` exit 2; `enum --list` (26 domains; `indicator_template` now counts **92**), `enum --domain indicator_template` lists `flow-vwap`, `enum --domain exchange_id --query BIN --limit 3`; `schema read` (7 intents); `skill list` (16 names, one per line; it takes no `--format`); `wrun list` (`@om-core/accumulate` 0.1.3); `wrun templates` **92** (new with #2235: `flow-vwap` in group `Order flow`, `runsOn` naming OPRA at the viewer's own tier; 84 `runsOn` entries, 31 with "at your own tier"); `wrun create @vommaint/flow-vwap <dir> --template flow-vwap` scaffolded a workspace whose `.wrun-scaffold` reads `scaffold_version 107` and whose `src/indicator.ts` reads `options_flow.*` inputs with `underlying: "@chain"`; `upgrade --show`; `notis --since 7d --json` (`notice` and `fire` rows); `vault status`; `GET /openapi.json` (200, 137 paths, 0.480.3); `research study --watch lane-probe --locate-only`; `nervous status` (`enabled: true`, `watch_fired` receipts); `GET /secrets/status` (`unminted`); `GET /api/away` 401; `approvals list` `[]` and `GET /rpc/v1/approvals`; `setup default` and `setup default nope --force` (`channel_not_found`); `follows`, `follows show @nobody/nothing`, both `relay trace` refusals, `unsubscribe nope`, `usage plans`, `subscriptions` (`account_required`), `series list`. `terms --format json` exited 1 `registry_unreachable` (the staging registry timed out; see [registry welcome and search](./registry-welcome-and-search.md)). Evidence: `http://127.0.0.1:8098/vom-nightly-20261101/r1/` (`cli/07-13b`, `cli/20-29l`, `cli/48*`).*
+
 *Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. `config key-info` (`om_guest`, `key_set: true`); the new `chat.sounds` key (set/get/refusal, below); `set agent.max_tool_calls 250` exit 2; `setup default` read and refusals (Guest-lane reads); `enum --list` (26 domains), `enum --domain exchange_id` (35, no `BYBIT_FUTURES`), `schema read`, `skill list`, `wrun templates` (91), `upgrade --show`; `notis --since 7d --json` (`fire` rows); `vault status` (`mode: none`, `keyring: macOS Keychain (available)`; it takes no `--format`); `GET /openapi.json` (200, 137 paths, `info.version` 0.480.2); `research study --watch lane-probe --locate-only` (one occurrence); `nervous status` (`enabled: true`, a `watch_fired` receipt); `GET /secrets/status` (`readiness: unminted`); `GET /api/away` 401 `operator_required`; `approvals list` `[]`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/26-29c`, `cli/40-43`, `cli/51`, `cli/60-67`, `cli/89-89h`, `cli/93`).*
 
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `config key-info` (`expired: false`, `tier: om_guest`), `enum --list` (`exchange_id` 35), `skill list`, `notis --since 1d` (the lane's own fires), `wrun templates` 91, `approvals list` (`No pending approvals.`), `nervous status` (`enabled: true`), `sidebar`. New this pass: `vault status` (`mode: none`, `keyring: macOS Keychain (available)`; it takes no `--format`), `terms --format json` (`not_applicable: true`, `accepted: false` for a guest), `unsubscribe nope` (`confirmation_required`), and `GET /openapi.json` (200, 137 paths including `/healthz`). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/` (`cli/10`, `cli/11`, `cli/13`).*
@@ -126,8 +128,19 @@ model.
   both went through the official package. Driven 2026-10-28 at `186030b63`:
   91 templates, 83 `Runs on:` lines, 30 with "at your own tier" (the commit's
   thirty sentences) and none with the old "US stocks (OPRA) and CME futures
-  through" wording. A JSON assertion that reads only `description` misses
-  this field.
+  through" wording. At `7ce379c45` (#2235) those read 92, 84 and 31: the new
+  `flow-vwap` starter is the thirty-first. A JSON assertion that reads only
+  `description` misses this field.
+- **`wrun templates` gained `flow-vwap` in #2235 (`942d0eb54`, v0.480.3), and
+  `WRUN_SCAFFOLD_VERSION` is 107.** The template sits in group `Order flow`
+  (the chart's price weighted by aggressive options premium, with sigma
+  bands). A fresh `wrun create --template flow-vwap <dir>` writes
+  `.wrun-scaffold` `{"scaffold_version": 107}` and an `indicator.ts` whose
+  `options_flow` inputs carry the new `underlying` knob (`"@chain"`, a select
+  of `auto`, `derived`, `QQQ`, `NDX`, `SPY`, `SPX`). A scaffold-106 workspace
+  refreshes only `src/sdk/declare.ts` and `scripts/wrun-prebuild.mjs` on its
+  next build. Drive the create into a directory outside the product tree, and
+  assert membership, not the count (driven 2026-11-01).
 - **`wrun templates` lost six option recipes in v0.466.0** (`5a03ffb43`):
   `dealer-nodes`, `gamma-map`, `zero-dte-levels`, `vol-term-structure`,
   `vol-smile` and `iv-term-structure`. The list went from 97 to 91, and those

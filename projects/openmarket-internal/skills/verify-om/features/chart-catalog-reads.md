@@ -1,5 +1,7 @@
 # Chart catalog reads
 
+*Re-driven 2026-11-01 (nightly), tree `7ce379c45` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.9. `chart indicator schema rsi` (`@om-core/rsi` 0.1.1, `period` int 14, 1..2500) and `schema nonsense` (exit 2 `indicator_unknown` listing the stock names); `indicator list --query rsi` (`indicators: []`, `scriptSubTypes: ["RSI"]`, `packages` with `wrun/@om-core/rsi/rsi`); `drawing schema` (`anchorFormat` `role=<epochSeconds>:<price>`, `tools` led by `TrendLine`). New for #2234: `chart indicator schema @backquant/order-blocks` exit 2 `kind_retired` (`kScript packages are retired, so a registry reference (@backquant/order-blocks) no longer adds to a chart.`) before any registry call, while the `indicator_unknown` message still lists `a registry kScript (legacy) indicator package (@scope/name)` as an accepted form (README, product gaps). Evidence: `http://127.0.0.1:8098/vom-nightly-20261101/r1/` (`cli/64-68`).*
+
 *Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6: `chart indicator schema rsi` (`@om-core/rsi` 0.1.1, `period` int 14, 1..2500) and `schema nonsense` (exit 2 `indicator_unknown` listing the stock names). `indicator list` and `drawing schema` were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/74-75`).*
 
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `chart indicator list` 65; `indicator schema rsi` names `@om-core/rsi` 0.1.1; `drawing schema` reads `anchorFormat` `role=<epochSeconds>:<price>`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/`.*
@@ -61,3 +63,10 @@ Preconditions: a lane the run started. No chart, workspace or account needed.
   belongs with the chart mutation verbs, which stay `live verification pending`.
 - `trend_line` is not a tool name. Take names from the bare `drawing schema`
   listing rather than guessing.
+- **A bare `@scope/name` is refused, not described.** Since #2234
+  (`4f4903ab9`) `chart indicator schema @scope/name` and
+  `chart_indicator_schema {indicatorType:"@scope/name"}` exit 2 `kind_retired`
+  before any registry read; the Indicator forms are the metric id
+  `wrun/@scope/name/<output>` or `om open <package>`. See
+  [kScript retirement](./kscript-retirement.md). The `indicator_unknown` hint
+  still names the retired form (a product gap, README).

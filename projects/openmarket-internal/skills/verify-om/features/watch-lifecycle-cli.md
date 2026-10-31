@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Re-driven 2026-11-01 (nightly), tree `7ce379c45` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.9. On `lane-lifecycle`: create, list, `edit --classifier-mode accept_all --label "Lane Lifecycle Probe"` (the slug stayed `lane-lifecycle`), show, pause (`enabled:false`, `held_lots: []`; the text form printed `Paused event watch lane-lifecycle (lane-lifecycle)` while `watch show`'s card opened `Lane Lifecycle Probe · paused`), resume (`Resumed event watch lane-lifecycle (lane-lifecycle)`), history (`events: []`), remove (`removed:true`, `paper_lots_left: []`, `journal_preserved: true`); `event-journal list` kept `lane-lifecycle` with `watch_id: null`. On the timer watch `demo`: `retry` and `repair` `working`, `repair --rearm` exit 2 `not_a_condition_watch`, `lane retry` exit 2, `unjudged --days 1` `[]`, `reclassify` exit 2 `watch_reclassify_daemon_running`, `source add … --name t2` then `source remove demo t2 --yes`; `execute summary` zeroed, `execute history demo` `{"receipts":[]}`, `watch execute history demo` `No money step`; `backtest spec`, `backtest run nope` and the two stop-breaker refusals each exit 2. On the fired `lane-probe`: `journal-stats` (`accepted_total: 2`, `live: 2`), `chapters: []`, `watch history`. `POST /rpc/v1/watch/overview` `daemon.running: true`; `resolve-attention` 409 `attention_changed`; `arm-confirm` with a non-UUID token 400 `invalid_input` (`token: Invalid UUID; confirmed: Invalid input: expected true`), the schema refusal that precedes the `approval_expired` one the table records for a well-formed unknown token. Evidence: `http://127.0.0.1:8098/vom-nightly-20261101/r1/` (`cli/30-39c`, `cli/87-89f`).*
+
 *Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. Create, list, edit (`accept_all`), show, pause (`enabled:false`, `held_lots: []`), resume, remove (`removed:true`, `paper_lots_left: []`); `event-journal list` kept the removed `lane-lifecycle` with `watch_id: null`. On a timer watch `demo`: `repair --rearm` exit 2 (`no condition source`), `backtest spec --window-secs 60` exit 2 `invalid_backtest_spec_input`. On the fired `lane-probe`: `journal-stats` (`accepted_total: 2`, `live: 2`), `chapters: []`, `watch history`, `execute summary` zeroed, `POST /rpc/v1/watch/overview` (`daemon.running: true`). Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/30-39b`, `cli/87-89e`).*
 
 *Re-driven 2026-10-30 (scheduled maintenance), tree `3cb50a821` (origin/main, v0.478.0), fresh lane on 18165, host load average about 140. `watch pause maint-1030` returned `enabled:false` and `held_lots: []`; a door push to the paused watch got 409; `resume` returned `enabled:true`; `watch history` read. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261030/r1/` (`cli/30-pause.json`).*
@@ -103,9 +105,12 @@ Preconditions:
   SLUG, not the label** (`renderPaused`/`renderResumed` in `cmd/watch-engine-verbs.ts`). Use a label
   that differs from its slug or the distinction stays invisible. Set it with
   `watch edit <slug> --label "<label>"`, because `watch create … --label`
-  exits with `invalid_input` ("--label describe[s] a step"). Label
-  `Lane Lifecycle Probe` prints
-  `Paused event watch lane-lifecycle-probe (lane-lifecycle-probe)`. **Assert the
+  exits with `invalid_input` ("--label describe[s] a step"). An edit changes
+  the label and leaves the slug, which is derived from the label only at
+  create time: label `Lane Lifecycle Probe` on the watch created as
+  `lane-lifecycle` prints `Paused event watch lane-lifecycle (lane-lifecycle)`
+  (driven 2026-10-28 and 2026-11-01; an older record's `lane-lifecycle-probe`
+  was the slug of a watch created under that label). **Assert the
   pause on `watch show`, not on `watch list`**: `watch show <id> --format json`
   carries `spec.enabled: false` and the result's own `card` FIELD opens
   `<label> · paused` (that is `watch show`'s rendered card, not an approval
@@ -113,9 +118,9 @@ Preconditions:
   the list's STATUS cell still reads `not read yet` — the column reports read
   state, not the enabled flag. Note the two surfaces disagree on purpose: the
   lifecycle lines print the SLUG, the card prints the LABEL. Driven with label
-  `Lane Lifecycle Probe`: `Paused event watch lane-lifecycle-probe
-  (lane-lifecycle-probe)` alongside a card opening `Lane Lifecycle Probe ·
-  paused`. Run
+  `Lane Lifecycle Probe` on `lane-lifecycle`: `Paused event watch
+  lane-lifecycle (lane-lifecycle)` alongside a card opening `Lane Lifecycle
+  Probe · paused`. Run
   `control-om om -- watch resume lane-lifecycle`
   (`Resumed event watch <id> (<slug>)`) and confirm `spec.enabled` is back to
   `true`. A watch with attached steps takes an authorization door on resume and
