@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-02 (nightly), tree `2567b7974` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 4. Before the boot (daemon down, keyless home): `enum --list`, `enum --domain indicator_template` (92), `wrun templates` (92; the text form has 84 `Runs on:` lines, 31 reading `CME futures in your browser`, none reading `through OpenMarket`), `wrun create @lane/option-prints --template option-prints` and `@lane/flow-vwap --template flow-vwap` (`.wrun-scaffold` `{"scaffold_version": 108}`, `src/sdk/declare.ts` and `scripts/wrun-prebuild.mjs` written, the prebuild carrying `visible_by`, `needed_by` and `min_coins`), `skill list`, `skill show indicators` (`min_coins`, `two or none`), `skill show watch` (`watch_state_clear` drops the anchor, `record_restarts`), `config show` (`api_key_set: false`), `setup default`, `upgrade --show`, `schema read` and `schema read condition_create`, `chart indicator schema rsi`. After the boot: `config show` (masked key), `key-info` (`om_guest`, a one-hour expiry), `get data.transport`, `set agent.max_tool_calls 250` exit 2, `get chat.sounds` `unset (default: on)`, `set chat.sounds maybe` exit 2; `notis --since 7d --json` (a `notice` row for `calendar-probe`); `approvals list` `[]`; `setup default nope --force` `channel_not_found`; `nervous status` (`watch_fired` receipt, `unresolved_subject`); `follows` `[]` and `follows show` `not_following`; both `relay trace` refusals; `research study --locate-only` (one occurrence for the door's `event_id`) and `--watch nope` exit 2; `/api/away` 401 `operator_required`; `/secrets/status` 200 `unminted`; `/openapi.json` 137 paths; `vault status` `mode: none`; `usage plans` `providers: []`; `subscriptions` `account_required`; `unsubscribe nope` `confirmation_required`; `wrun list` (`@om-core/accumulate` 0.1.3); `terms` answered from the staging registry (version `2026-09-10`) in 0.5 s. **Series (#2240, #2241):** `series list` `[]`; `create s1 --watch demo --key v --scope local` (`@local/s1` 0.1.0, `rows: 0`); `show --format json` carries `visibility: "public"`, `relay: null`, `relay_refusal: "feed_not_found"`, and the text form prints `Visibility: public` and `Feed: not on the relay yet`; `list --format text` prints the row with no `listed:` marker. The new publish flags refuse locally on a guest: `--price 9/mo --dry-run` → `seller_session_required` ("Selling a feed needs a sign-in session; this home signs in with a login key", hint `OM_LOGIN_LANE=session om login`), `--price 1/mo` → `price_below_minimum` ($2.50 floor), `--price abc` → `invalid_price`, `--stop-sales --yes` → `listing_free`, `--stop-sales --free` → `invalid_options` ("cannot ride one call"), `--price 9/mo` without `--yes` → `confirmation_required`, `--free --yes` → `seller_session_required`. A plain `--dry-run` reached the registry and got `registry_unavailable` (503, "could not confirm this account's username") tonight, not the `publish_rejected` of earlier passes. `series delete s1 --yes` returned `relay: "missing"` and the removed directory. Evidence: `http://127.0.0.1:8098/vom-nightly-20261102/r1/` (`cli/01-15`, `cli/50-65`, `cli/128-153`).*
+
 *Re-driven 2026-11-01 (nightly), tree `7ce379c45` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.9. `config show` (masked key), `config key-info` (`om_guest`, `expired: false`), `config get chat.sounds` (`value: null`, `default: on`, `stored_as: tui.sounds`), `config get data.transport` (`default: auto`), `set agent.max_tool_calls 250` exit 2; `enum --list` (26 domains; `indicator_template` now counts **92**), `enum --domain indicator_template` lists `flow-vwap`, `enum --domain exchange_id --query BIN --limit 3`; `schema read` (7 intents); `skill list` (16 names, one per line; it takes no `--format`); `wrun list` (`@om-core/accumulate` 0.1.3); `wrun templates` **92** (new with #2235: `flow-vwap` in group `Order flow`, `runsOn` naming OPRA at the viewer's own tier; 84 `runsOn` entries, 31 with "at your own tier"); `wrun create @vommaint/flow-vwap <dir> --template flow-vwap` scaffolded a workspace whose `.wrun-scaffold` reads `scaffold_version 107` and whose `src/indicator.ts` reads `options_flow.*` inputs with `underlying: "@chain"`; `upgrade --show`; `notis --since 7d --json` (`notice` and `fire` rows); `vault status`; `GET /openapi.json` (200, 137 paths, 0.480.3); `research study --watch lane-probe --locate-only`; `nervous status` (`enabled: true`, `watch_fired` receipts); `GET /secrets/status` (`unminted`); `GET /api/away` 401; `approvals list` `[]` and `GET /rpc/v1/approvals`; `setup default` and `setup default nope --force` (`channel_not_found`); `follows`, `follows show @nobody/nothing`, both `relay trace` refusals, `unsubscribe nope`, `usage plans`, `subscriptions` (`account_required`), `series list`. `terms --format json` exited 1 `registry_unreachable` (the staging registry timed out; see [registry welcome and search](./registry-welcome-and-search.md)). Evidence: `http://127.0.0.1:8098/vom-nightly-20261101/r1/` (`cli/07-13b`, `cli/20-29l`, `cli/48*`).*
 
 *Re-driven 2026-10-31 (nightly), tree `dfefe0a21` (origin/main, v0.480.2), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 1.6. `config key-info` (`om_guest`, `key_set: true`); the new `chat.sounds` key (set/get/refusal, below); `set agent.max_tool_calls 250` exit 2; `setup default` read and refusals (Guest-lane reads); `enum --list` (26 domains), `enum --domain exchange_id` (35, no `BYBIT_FUTURES`), `schema read`, `skill list`, `wrun templates` (91), `upgrade --show`; `notis --since 7d --json` (`fire` rows); `vault status` (`mode: none`, `keyring: macOS Keychain (available)`; it takes no `--format`); `GET /openapi.json` (200, 137 paths, `info.version` 0.480.2); `research study --watch lane-probe --locate-only` (one occurrence); `nervous status` (`enabled: true`, a `watch_fired` receipt); `GET /secrets/status` (`readiness: unminted`); `GET /api/away` 401 `operator_required`; `approvals list` `[]`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261031/r1/` (`cli/26-29c`, `cli/40-43`, `cli/51`, `cli/60-67`, `cli/89-89h`, `cli/93`).*
@@ -35,7 +37,7 @@ bundled constants. None needs an account or a model.
 - `skill-list`: the bundled skill files.
 - `wrun-list` / `wrun-templates`: installed indicator packages and scaffold
   templates.
-- Local series authoring (`om series create|list|show`), the plan table (`om upgrade --show`, `om usage plans`) and the sealed-secrets status read (`GET /secrets/status`).
+- Local series authoring (`om series create|list|show|delete`) and the marketplace listing refusals of `om series publish --price|--stop-sales|--resume-sales|--free` (#2240), the plan table (`om upgrade --show`, `om usage plans`) and the sealed-secrets status read (`GET /secrets/status`).
 
 ## How to get to it (user POV)
 
@@ -83,8 +85,10 @@ decode.
 
 - **Series:**
   - `series list` on a fresh lane returns `{"series":[]}`.
-  - `series create s1 --watch <watch> --key v --scope local --format json` creates `@local/s1` with version 0.1.0 and `rows: 0`. `list` and `show` then read it back.
-  - `series publish s1 --dry-run` exits 2 with `publish_rejected`: "the registry refused the pack: kind 'live-series' is not accepted by the v1 registry". So the dry run does reach the registry, using the lane's guest key.
+  - `series create s1 --watch <watch> --key v --scope local --format json` creates `@local/s1` with version 0.1.0 and `rows: 0`. `list` and `show` then read it back. Since #2240 `show --format json` carries `visibility` (`public` for a fresh local feed; `listed` once it is priced) and the text form prints `Visibility: public` and `Feed: not on the relay yet`; `list --format text` appends ` | listed: $9 / month` only to a priced feed.
+  - `series publish s1 --dry-run` (no price) reaches the registry with the lane's guest key. Earlier passes read `publish_rejected` ("kind 'live-series' is not accepted by the v1 registry"); on 2026-11-02 it read `registry_unavailable` (503, "could not confirm this account's username"). Either way exit 2.
+  - **Selling a feed (#2240, #2241) refuses locally on a guest, before any relay or registry call.** `series publish s1 --price 9/mo --dry-run` exits 2 `seller_session_required` ("Selling a feed needs a sign-in session; this home signs in with a login key", hint `OM_LOGIN_LANE=session om login`); `--free --yes` reads the same. The price is parsed first: `--price 1/mo` is `price_below_minimum` ($2.50 floor), `--price abc` is `invalid_price` ("Write a monthly price as 9/mo or a one-time price as 20 once (USD)"). `--stop-sales --yes` or `--resume-sales --yes` on an unlisted feed is `listing_free`; two sales flags in one call are `invalid_options` ("cannot ride one call"); `--price` without `--dry-run` or `--yes` is `confirmation_required`. The marketplace origin is `OM_ORANGE_ORIGIN` (default `https://chart.openmarket.xyz`), read only after the session check, so a loopback stub cannot be reached from a guest lane. A real listing, `Visibility: listed (…)`, the `listed:` marker, `feed_tier_required`, `listing_price_locked` and the `series_listed` delete refusal need a sign-in session (pending).
+  - `series delete s1 --yes --format json` removes the directory and reports `relay: "missing"` for a feed never declared on the relay.
 - **Plans:**
   - `upgrade --show --format json` is static: the guest note is "Guest keys (no sign-in) get 600 weight per 60s window and 7 days of history…", followed by the plan list.
   - `usage plans --format json` returns `{"providers":[]}`.
@@ -123,8 +127,13 @@ model.
 - `wrun build` compiles and runs `bun install` by default, so it needs the package
   registry. Keep it out of a quick pass.
 - **The US options templates read OPRA at the viewer's own tier since #2180
-  (`f8b2ca3b4`).** Their `runsOn` reads "US stocks (OPRA) at your own tier;
-  CME futures through OpenMarket's official package", where it used to say
+  (`f8b2ca3b4`), and since #2243 (`49aa1672f`) their CME clause reads "CME
+  futures in your browser".** At `2567b7974` (2026-11-02) the text form had 92
+  templates, 84 `Runs on:` lines, 31 reading "in your browser" and none reading
+  "through OpenMarket"; #2237 also rewrote every options template's
+  `description` in plain words (`strike-matrix` now opens "A price-axis board
+  shows this symbol's options…"). Before #2243 the clause read "CME futures
+  through OpenMarket's official package", where it used to say
   both went through the official package. Driven 2026-10-28 at `186030b63`:
   91 templates, 83 `Runs on:` lines, 30 with "at your own tier" (the commit's
   thirty sentences) and none with the old "US stocks (OPRA) and CME futures
@@ -132,15 +141,20 @@ model.
   `flow-vwap` starter is the thirty-first. A JSON assertion that reads only
   `description` misses this field.
 - **`wrun templates` gained `flow-vwap` in #2235 (`942d0eb54`, v0.480.3), and
-  `WRUN_SCAFFOLD_VERSION` is 107.** The template sits in group `Order flow`
+  `WRUN_SCAFFOLD_VERSION` is 108 since #2239 (`2b356c05e`;
+  `packages/sdk/src/wrun-sdk-sources.ts:1180`).** The template sits in group `Order flow`
   (the chart's price weighted by aggressive options premium, with sigma
-  bands). A fresh `wrun create --template flow-vwap <dir>` writes
-  `.wrun-scaffold` `{"scaffold_version": 107}` and an `indicator.ts` whose
-  `options_flow` inputs carry the new `underlying` knob (`"@chain"`, a select
-  of `auto`, `derived`, `QQQ`, `NDX`, `SPY`, `SPX`). A scaffold-106 workspace
-  refreshes only `src/sdk/declare.ts` and `scripts/wrun-prebuild.mjs` on its
-  next build. Drive the create into a directory outside the product tree, and
-  assert membership, not the count (driven 2026-11-01).
+  bands). **`wrun create` takes the package name first:** `wrun create
+  @you/<name> --template flow-vwap <dir>`; a bare directory is refused
+  "package name must look like @scope/short-name". A fresh create writes
+  `.wrun-scaffold` `{"scaffold_version": 108}`, an `indicator.ts` whose
+  `options_flow` inputs carry the `underlying` knob (`"@chain"`, a select
+  of `auto`, `derived`, `QQQ`, `NDX`, `SPY`, `SPX`), and a `src/sdk/declare.ts`
+  and `scripts/wrun-prebuild.mjs` that carry the keyed-row words
+  (`visible_by`, `needed_by`, `min_coins`). A scaffold-106 or 107 workspace
+  refreshes only those two files on its next build. Drive the create into a
+  directory outside the product tree, and assert membership, not the count
+  (driven 2026-11-01 at 107, 2026-11-02 at 108).
 - **`wrun templates` lost six option recipes in v0.466.0** (`5a03ffb43`):
   `dealer-nodes`, `gamma-map`, `zero-dte-levels`, `vol-term-structure`,
   `vol-smile` and `iv-term-structure`. The list went from 97 to 91, and those
