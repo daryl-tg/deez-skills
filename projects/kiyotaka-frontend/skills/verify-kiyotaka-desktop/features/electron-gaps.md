@@ -9,22 +9,21 @@ registers, and the offline and online events fire. A download saves to Downloads
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-The guest rows were last attempted on 2026-11-01, on tree `2646a76a83` (`origin/main`, `desktop/` unchanged since
-`30481b57f8`), with `GAPS_REUSE_PACKAGE=1` on the package the parity sweep had just made: the lane threw
-`page.waitForFunction: Timeout 180000ms exceeded` in `waitForCandles` (`gaps.mjs:505`) from `bootHosts`
-(`gaps.mjs:1695`) before any row, with no table and no frame, because the dev lane had no candles in either host that
-day (the chart's v2 streaming host was unreachable from the machine; see [parity](./parity-sweep.md) and the
-[index](./README.md)). That is an environment block, not a row result. The guest rows were last driven on 2026-10-31,
-on tree `5475ab32d5`, straight after the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 103 s. That run
-had the console session locked:
+The guest rows were last driven on 2026-11-02, on tree `39b22dd2ec` (`origin/main`, `gaps.mjs` unchanged since
+`30481b57f8`), straight after the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 101 s, with the same
+result as 2026-10-31 (`5475ab32d5`, 103 s). On 2026-11-01 (`2646a76a83`) the lane had thrown `page.waitForFunction:
+Timeout 180000ms exceeded` in `waitForCandles` (`gaps.mjs:505`) from `bootHosts` (`gaps.mjs:1695`) before any row,
+with no table and no frame, because the dev lane had no candles in either host that day (the chart's v2 streaming host
+was unreachable from the machine; see [parity](./parity-sweep.md) and the [index](./README.md)); that was an
+environment block, not a row result. Both driven runs had the console session locked:
 
 - 16 rows passed in both hosts: the five `contextmenu-*` rows, `drop-chart`, `clipboard-text-read`, `navigator-share`,
   `online-offline`, `service-worker`, `device-pixel-ratio`, the two gesture rows, `upload-image-picker`,
   `drop-image-dialog` and `download-chart-csv`.
-- `device-pixel-ratio` ran for the first time, because two displays were attached (both 1920 by 1080 at scale 1): the
-  shell moved the window and read `dpr 1, engine 1` after the move, and the browser side is "not moved: headless
-  Chromium has no window". On 2026-10-29 one display was attached and the row was the allowed not-run. Two displays at
-  the same scale prove the move, not a scale change.
+- `device-pixel-ratio` ran on 2026-10-31 and 2026-11-02, because two displays were attached (both 1920 by 1080 at
+  scale 1): the shell moved the window and read `dpr 1, engine 1` after the move, and the browser side is "not moved:
+  headless Chromium has no window". On 2026-10-29 one display was attached and the row was the allowed not-run. Two
+  displays at the same scale prove the move, not a scale change.
 - The eight `keys-*` rows were not run, because the console was locked ("the macOS console is locked: no app can
   become active, so the shell window is never key and a posted key reaches no page").
 
@@ -52,9 +51,14 @@ to the operator's real account. Windows and Linux are unprobed.
   `gesture-copy-timestamp`, `gesture-ruler`).
 - `gaps-downloads` the chart CSV saves under its own name with no prompt (`download-chart-csv`). The workspace JSON
   (`openmarket_workspace_<name>.json` since `dc9ed408ee`) and the screenshot PNG (`openmarket_chart.png`) are signed-in
-  rows.
+  rows, and so are `clipboard-png-write` (the screenshot dialog's Copy leaves a PNG on the clipboard in both hosts) and
+  `contextmenu-screenshot-preview` (a right-click on the preview, a `data-allow-context-menu` element, gets the native
+  menu). `download-recovery-codes` is skipped by the lane itself: the file is offered only inside the 2FA setup dialog,
+  which the probe never turns on. These rows are source-read (2026-11-02, `gaps.mjs` `signedInRows`), never driven here.
 - `gaps-window-open` the API console and Streams commands land in the shell window, signed in (signed-in rows
-  `window-open-console`, `window-open-streams` and `window-open-access`).
+  `window-open-console`, `window-open-streams` and `window-open-access`; the last is an allowed not-run while the
+  my-access flag is off for the account, `NOT_RUN_ALLOWED`). `upload-import-picker` and `drop-import-dialog` are
+  skipped by the lane because the import-workspace dialog has no desktop entry.
 
 ## How to get to it (user POV)
 

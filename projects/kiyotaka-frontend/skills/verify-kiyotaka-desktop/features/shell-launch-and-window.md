@@ -5,15 +5,17 @@ a dev lane overrides it with `OPENMARKET_DESKTOP_URL`), takes a single-instance 
 first window, and remembers the window's position, size and maximized state across launches. The window has no system
 title bar: a 36 px bar view above the page carries Back, Forward, the page title and an update button, and draws its
 own tooltips; on Windows and Linux the menu bar stays hidden until Alt. A packaged release build shows a one-time
-"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-11-01 on product tree `2646a76a83`
-(`origin/main`, desktop 0.1.7; `desktop/` unchanged since `30481b57f8`) with the console session locked and the machine
-at a load average of 3 to 6 on 10 cores. The `window` scenario on production passed 9 of 12 in 105 s, the same split as
-2026-10-29 and 2026-10-31: the first launch logged `desktop: loaded https://openmarket.xyz/chart/` with the title
-`77,519.6 ▼ BTC - USD`, 15 canvases and a candle frame (`unit-01-chart.png` shows the 1h BTC-USD candles with VWAP, not
-the splash), the second instance focused it (`desktop: second instance, focusing`, exit 0, one window), and the saved
-bounds (moved to 120,110 at 1280 by 800, maximized) matched on relaunch. The three relaunch checks went red because the
-relaunch is a `capture.js` launch, which a locked screen leaves with no frame (`relaunchCapture: {}`). No `capture` was
-attempted on 2026-10-31 or 2026-11-01 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The
+"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-11-02 on product tree `39b22dd2ec`
+(`origin/main`, desktop 0.1.7; the shell's `desktop/src/` unchanged since `30481b57f8`) with the console session locked
+and the machine at a load average of 3 to 6 on 10 cores. The `window` scenario on production passed 9 of 12 in 105 s,
+the same split as 2026-10-29, 2026-10-31 and 2026-11-01: the first launch logged `desktop: loaded
+https://openmarket.xyz/chart/` with the title `77,566.5 ▲ BTC - USD`, 15 canvases and a candle frame
+(`unit-01-chart.png` shows the 1h BTC-USD candles with VWAP, not the splash), the second instance focused it
+(`desktop: second instance, focusing`, exit 0, one window), and the saved bounds (moved to 120,110 at 1280 by 800,
+maximized) matched on relaunch (`relaunchBoundsEqualMoved` true, the relaunch logging `desktop: window bounds
+{"x":120,"y":110,"width":1280,"height":800}` and `desktop: loaded`). The three relaunch checks (`relaunchBtcTitle`,
+`relaunchCanvas`, `relaunchMaximized`) went red because the relaunch is a `capture.js` launch, which a locked screen
+leaves with no frame (`relaunchCapture: {}`). No `capture` was attempted from 2026-10-31 to 2026-11-02 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The
 last captures were on 2026-10-28 on `5365748ef3`: the dev-lane frame showed the boot splash, and the production frames
 showed candles and the sign-in screen. The `window` scenario was last 12 of 12 that day. The title bar, the Alt menu bar
 and the beta notice have no live driver (unit tests in `desktop/tests/main/` only; the beta notice never shows on a dev

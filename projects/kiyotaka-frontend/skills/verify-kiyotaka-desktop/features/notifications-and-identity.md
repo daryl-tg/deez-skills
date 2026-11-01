@@ -6,8 +6,8 @@ a native notification. An installed build keeps its profile in `OpenMarket`; an 
 The shell also hands eight analytics events (`app-opened`, `update-installed`, `update-ready`, `signin-started`,
 `signin-completed`, `signin-failed`, `policy-shown`, `beta-notice-dismissed`) to the page through
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
-Last driven 2026-11-01 by the `notify` scenario on tree `2646a76a83` (`origin/main`, `desktop/` unchanged since
-`30481b57f8`): 12 of 17 checks in 56 s, the same split as 2026-10-29 and 2026-10-31. The bundle read `OpenMarket`,
+Last driven 2026-11-02 by the `notify` scenario on tree `39b22dd2ec` (`origin/main`, the shell's `desktop/src/`
+unchanged since `30481b57f8`): 12 of 17 checks in 47 s, the same split as 2026-10-29, 2026-10-31 and 2026-11-01. The bundle read `OpenMarket`,
 `xyz.openmarket.desktop`, `icon.icns` and `Signature=adhoc` (`unit-04-bundle-icon.png` is the mascot icon), and the OS
 answered `Added notification request: [ hasError: 0 hasCompletionHandler: 1 ]`. Four reds are the same as on every run
 since 2026-10-27. The fifth, `screenUnlocked`, is the lane reading a locked console session (`screenLocked: true` in the

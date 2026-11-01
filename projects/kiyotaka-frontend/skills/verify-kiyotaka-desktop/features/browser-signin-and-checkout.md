@@ -9,20 +9,23 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-01 on tree
-`2646a76a83` (`origin/main`) in Chromium on the dev lane: the return page (valid and invalid), the four checkout-return
-states, the signin page's redirect to `/chart/auth?redirect=/desktop/signin`, the super-search command
-(`super-search-result-featureCommands:desktop-app-btn`, "Download the OpenMarket desktop app", the only result for
-"desktop app") and the sign-in dialog with its `login-signup-passkey-btn` "Use a passkey" row among
-`login-signup-submit-btn`, `-use-password-btn`, `-google-btn` and `-twitter-btn`. The chart route reached the guest
-button in about ten seconds that day, though agent-browser's Chromium then read "Can't reach live data. Retrying..."
-with no candles; none of these proofs needs candles. On 2026-10-30 the route never settled under machine load (see the
-[index](./README.md)). Between 2026-10-31 and 2026-11-01 `AuthFormView.vue` changed (`10655335c4`, `e3e96bf360`: the
-field collapse clips with `min-width: 0`, so the form no longer runs past the card) and the dialog's rows were not
-touched; on 2026-10-31 `ProfilePanel.vue` changed (`6dd6aa43de`) and its `desktop-app` row, behind
-`isDesktopDownloadEntryVisible()`, was not touched. The shell's production sign-in screen with no passkey row was last
-captured 2026-10-28 on `5365748ef3`; from 2026-10-29 to 2026-11-01 the console session was locked, so `capture` got no
-frame or was not attempted (see [launch](./shell-launch-and-window.md)). The
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-02 on tree
+`39b22dd2ec` (`origin/main`) in Chromium on the dev lane, every page on its first read with the tab re-fronted before
+each poll: the return page (valid and invalid), the four checkout-return states, the signin page's redirect to
+`/chart/auth?redirect=/desktop/signin`, the super-search command (`super-search-result-featureCommands:desktop-app-btn`,
+"Download the OpenMarket desktop app", the only result for "desktop app") and the sign-in dialog with its
+`login-signup-passkey-btn` "Use a passkey" row among `login-signup-submit-btn`, `-use-password-btn`, `-google-btn`,
+`-twitter-btn`, `-forgot-password-btn` and `-tos-link`. The chart route reached the guest button in about ten seconds
+with live candles in agent-browser's Chromium (`77,572.1 ▼ BTC - USD`, 15 canvases); on 2026-11-01 the same route read
+"Can't reach live data. Retrying..." with no candles, and none of these proofs needs candles. On 2026-10-30 the route
+never settled under machine load (see the [index](./README.md)). `AuthFormView.vue`, `ProfilePanel.vue`,
+`featureCommands.ts` and the four desktop pages did not change between `2646a76a83` and `39b22dd2ec`; between
+2026-10-31 and 2026-11-01 `AuthFormView.vue` changed (`10655335c4`, `e3e96bf360`: the field collapse clips with
+`min-width: 0`, so the form no longer runs past the card; `.field-collapse-inner` read 342 px wide with `overflow:
+clip` on 2026-11-02) and the dialog's rows were not touched; on 2026-10-31 `ProfilePanel.vue` changed (`6dd6aa43de`)
+and its `desktop-app` row, behind `isDesktopDownloadEntryVisible()`, was not touched. The shell's production sign-in
+screen with no passkey row was last captured 2026-10-28 on `5365748ef3`; from 2026-10-29 to 2026-11-02 the console
+session was locked, so `capture` got no frame or was not attempted (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
 `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, a real orange and, for checkout, a Stripe session.
@@ -77,9 +80,13 @@ Preconditions:
 - **No passkey in the shell.** `control-kiyotaka-desktop capture <dir>/shell-login-prod.png --prod --path '?login=1'`
   shows no Use a passkey row; the same dialog in Chromium (`browser ... click '[data-testid="profile-guest-mode-btn"]'`)
   shows one.
-- **Download door.** In Chromium, click `global-nav-search-btn`, then `browser ... fill
-  '[data-testid="super-search-input"]' 'desktop app'`, wait about three seconds, and read
-  `super-search-result-featureCommands:desktop-app-btn`. Fill the input; see Gotchas.
+- **Download door.** In Chromium, once the chart shows its guest button, click `global-nav-search-btn` (with
+  candles the first-run "See what moves price." dialog appears a little later and covers the button; see Gotchas),
+  then `browser ... fill '[data-testid="super-search-input"]' 'desktop app'`, wait about three seconds, and read
+  `super-search-result-featureCommands:desktop-app-btn`. If `fill` answers "Element not found" while the input is in
+  the DOM, set the value from `eval` instead: `Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,
+  'value').set.call(i, 'desktop app'); i.dispatchEvent(new Event('input', { bubbles: true }))` on
+  `i = document.querySelector('[data-testid=super-search-input]')`. Either way the row is the only result.
 - **Proof.** One PNG per page plus the read testids and href; the two sign-in frames side by side.
 
 ## Gotchas
@@ -96,8 +103,17 @@ Preconditions:
   opened in the run notes.
 - `browser ... keyboard type 'desktop app'` after the search click left `super-search-input` empty on 2026-11-01, with
   the input focused, so the panel kept its default shortcuts and showed no `desktop-app` row. `fill` on the input's
-  testid put the words in and the row came. A missing row after `keyboard type` is the driver, not the door: read the
-  input's value before calling it a miss.
+  testid put the words in and the row came. On 2026-11-02 `fill` on the same testid answered "Element not found" right
+  after the search click, while a DOM read found `super-search-input` present, visible and focused
+  (`document.activeElement` was the `.ssv3-pill-input`); setting the value through the native setter and an `input`
+  event (see Driving) listed the row at once. A missing row after `keyboard type` or `fill` is the driver, not the
+  door: read the input's value and the DOM before calling it a miss.
+- With candles on the lane, the first-run "See what moves price." dialog (`.dialog-overlay`,
+  `guest-signup-modal-close-btn`) appears some seconds after the guest button and covers `global-nav-search-btn`:
+  agent-browser's click answers "is covered by <div.dialog-style.dialog-overlay>". On 2026-11-02 a click right after
+  the guest button appeared went through, a click after a minute hit the overlay, and one close click reported done
+  while the overlay still intercepted 1.5 s later. Click the close button and poll until no `.dialog-overlay` remains
+  before the search click. The same dialog is what stops the `links` lane (see [links](./links-menu-and-channel.md)).
 - A page read that returns no `desktop-` testid with `#skeleton-loader` still present after a minute is a hidden tab,
   not the page: on 2026-11-01 the invalid return page and the expired sign request both read empty that way on the
   first pass, and read correctly after two polls when `tab 1` ran before every poll. Re-front before each read, not only

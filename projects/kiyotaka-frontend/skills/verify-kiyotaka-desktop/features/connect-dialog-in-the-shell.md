@@ -10,12 +10,13 @@ opens a separate handoff screen (`hl-link-handoff`, "Finish in your browser, the
 WalletConnect opens the pairing screen (`hl-link-pairing`, `hl-connect-wc-qr`). A browser window is unchanged. The
 signed-out step ("Turn on trading" reaching `signedOutStep` with `signInOffered`) was last proved by the parity sweep's
 `hl-enable` on `1570b59d69` (2026-10-12). On 2026-10-27 (tree `7290d33d10`), 2026-10-28 (`5365748ef3`), 2026-10-29
-(`30481b57f8`) and 2026-10-31 (`5475ab32d5`, at a load average of 3 to 6), the step failed on a 15 s click timeout in
-both hosts, with a failed restore in both. That is a sweep cascade, not a shell difference (see
-[parity](./parity-sweep.md)), so those passes prove nothing about the dialog. On 2026-11-01 (`2646a76a83`) the sweep
-threw before any step, because the dev lane had no candles (the internal streaming host was unreachable), so the step
-did not run; the dialog's source (`HLConnectDialog.vue`, `HLLinkWalletStep.vue`, `useHLLinkSheet.ts`) did not change
-between the two trees. The signed-in rows, the handoff screen and the pairing screen have no live recipe through this
+(`30481b57f8`), 2026-10-31 (`5475ab32d5`, at a load average of 3 to 6) and 2026-11-02 (`39b22dd2ec`, `origin/main`,
+again at 3 to 6 and on a lane with candles), the step failed on a 15 s click timeout in both hosts, with a failed
+restore in both. That is a sweep cascade, not a shell difference (see [parity](./parity-sweep.md)), so those passes
+prove nothing about the dialog. On 2026-11-01 (`2646a76a83`) the sweep threw before any step, because the dev lane had
+no candles (the internal streaming host was unreachable), so the step did not run. The dialog's source
+(`HLConnectDialog.vue`, `HLLinkWalletStep.vue`, `useHLLinkSheet.ts`) did not change between `5475ab32d5` and
+`39b22dd2ec`. The signed-in rows, the handoff screen and the pairing screen have no live recipe through this
 wrapper; `tests/components/dialogs/HLConnectDialog.spec.ts` covers them.
 
 ## Sub-features

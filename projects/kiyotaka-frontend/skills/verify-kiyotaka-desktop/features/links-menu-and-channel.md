@@ -13,13 +13,14 @@ microphone are asked once and remembered). Live verification pending since this 
 scenario was last green 2026-10-12 on `6e93464b59`. On 2026-10-27 on tree `7290d33d10` it failed twice at its first
 click, before any check, on 2026-10-28 on `5365748ef3` it failed the same way once, on 2026-10-29 on
 `30481b57f8` it failed the same way again, on 2026-10-31 on `5475ab32d5`, with the machine at a load average of 3 to 6,
-it failed the same way once more, and on 2026-11-01 on `2646a76a83` (`origin/main`) it failed the same way again in
-64 s (`locator.click: Timeout 30000ms exceeded` at `launch.mjs:230`, the `dialog-style dialog-overlay backdrop-dim`
-element "intercepts pointer events" over `chart-watermark-link`, after `desktop: loaded https://openmarket.xyz/chart/`):
-the first-run onboarding dialog covers the chart (a product-lane gap, not load). `GuestSignupPromptDialog.vue` and
-`ChartWatermark.vue` did not change between `5475ab32d5` and `2646a76a83`.
-The context menu and the chart CSV download were last driven live on 2026-10-31 on `5475ab32d5` by the gaps lane's
-guest rows (`contextmenu-*` and `download-chart-csv` passed in both hosts, as on 2026-10-29; see
+it failed the same way once more, on 2026-11-01 on `2646a76a83` it failed the same way again in 64 s, and on
+2026-11-02 on `39b22dd2ec` (`origin/main`) in 62 s (`locator.click: Timeout 30000ms exceeded` at `launch.mjs:230`,
+the `dialog-style dialog-overlay backdrop-dim` element "intercepts pointer events" over `chart-watermark-link`, after
+`desktop: loaded https://openmarket.xyz/chart/`): the first-run onboarding dialog ("See what moves price.", Join for
+free) covers the chart (a product-lane gap, not load). `launch.mjs` did not change between `30481b57f8` and
+`39b22dd2ec`, so the lane still clicks before dismissing it.
+The context menu and the chart CSV download were last driven live on 2026-11-02 on `39b22dd2ec` by the gaps lane's
+guest rows (`contextmenu-*` and `download-chart-csv` passed in both hosts, as on 2026-10-29 and 2026-10-31; see
 [Electron gaps](./electron-gaps.md)); on 2026-11-01 that lane threw before any row because the dev lane had no candles.
 The permission prompts, a download collision or failure, mouse side buttons and the Windows and Linux menus are proved
 by unit tests only.
@@ -31,6 +32,9 @@ by unit tests only.
 - `links-signin-routes` the auth-v2 sign-in routes stay in the window; Google and X sign-in started by the page leave
   for the browser (see [browser sign-in](./browser-signin-and-checkout.md)).
 - `menu-items` the menus, their ids (`app`, `edit`, `view`, `window`) and the macOS close-then-activate lifecycle.
+  View also holds Reload, Force Reload, Actual Size, Zoom In, Zoom Out and Toggle Full Screen (`desktop/src/main/menu.ts`
+  item ids `reload`, `force-reload`, `reset-zoom`, `zoom-in`, `zoom-out`, `fullscreen`); the `links` lane reads only
+  `menuTop` and `noDeveloperItems`, so those items are source-read, not driven (2026-11-02).
 - `menu-history` View, Back (Cmd+[ or Alt+Left), Forward and Return to OpenMarket, plus mouse side buttons on Windows
   and Linux.
 - `in-window-context-menu` undo, redo, cut, copy, paste and select all on a field; Copy on selected text; nothing on a
