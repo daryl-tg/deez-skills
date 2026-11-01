@@ -23,10 +23,22 @@ line, a creation cancelled with `Escape` (no line; the console's one `TypeError`
 was the guest's `[wrun-registry] package listing unavailable: Failed to fetch`
 warning, not the cancel), and a Fibonacci retracement whose settings card
 carried the `Fib levels based on log scale` row reading `aria-checked="false"`.
-Not driven: the other tools (the vertical line's new axis label from titan 1214
-included: `toolbar-item-trendline:tool-submenu-arrow` opened no visible
-submenu on a click), favorites (`FAVORITES` wall), the drawing-sync scope, and
-whether a guest's drawing persists across a reload.
+Re-driven 2026-11-02 on `a4488341f6` (`origin/main`, lane `18103`, no JWT) on
+BINANCE.F SOLUSDT 1h: the trend line placed with two clicks and its
+`.tool-quick-bar` (the same `tqb-*` handles plus a `number-input`, and no
+`tqb-constrain-btn` on desktop), the custom colour popover (`.cpk-hex` read
+`4DA3FF`; `FF00AA` kept on an outside click, `00FF00` dropped by `Escape`, the
+swatch read `rgb(255, 0, 170)` both times), `Delete` removing the line, a
+cancelled creation with zero `TypeError` lines in the console, the Fibonacci
+card's `Fib levels based on log scale` row (`aria-checked="false"`), and the
+magnet's strength memory (`Shift+Alt+M` wrote `orange-tc-magnet-strength` =
+`weak` into localStorage, which had been `null`). A down-move-up drag followed
+by one click left NO selection on this tree; two plain clicks did. Not driven:
+the other tools (the vertical line's axis label from titan 1214 included:
+`toolbar-item-trendline:tool-submenu-arrow` opened no visible submenu on a
+click on 2026-11-01), the Shift constraint (engine-side, frame-only proof),
+favorites and their drag reorder (`FAVORITES` wall), the drawing-sync scope,
+and whether a guest's drawing persists across a reload.
 
 ## Sub-features
 
@@ -95,8 +107,42 @@ the top overlay cleared.
 
 ## Gotchas
 
+- **Place with two clicks, not a drag (driven 2026-11-02).** `mouse move 400
+  400`, `mouse down`, `mouse up`, then `mouse move 800 300`, `mouse down`,
+  `mouse up`. A `down`, `move`, `up` drag followed by a click left no selected
+  drawing and no `.tool-quick-bar` on `a4488341f6`; the two-click sequence
+  placed the line at once. The hex field takes the top-level verb,
+  `./control-kiyotaka browser fill .cpk-hex "FF00AA"`; `find css` is not a
+  locator (`role, text, label, placeholder, alt, title, testid, first, last,
+  nth` are).
+- **Shift squares and snaps (source, `87e6a66297`, titan alpha.1220 and
+  later; not driven).** Holding Shift squares a rectangle, rounds an ellipse,
+  snaps a line to 45° steps and straightens a drag, TradingView-style. It is
+  engine-side, so the only proof is a frame. On a phone the same constraint is
+  a latch: `tqb-constrain-btn` (`Align 45°`) in the quick bar, a drawing-bar
+  tile and the Super Search row `tools:drawing-constrain`, all rendered only
+  when `isMobile` and the tool is constrainable (the fib retracement shows
+  none). A desktop guest sees none of them (driven: `tqb-constrain-btn`
+  absent).
+- **The magnet remembers its strength (source, `38af41350d`; driven
+  2026-11-02).** The toolbar magnet, `Shift+Alt+M` and the Super Search
+  `magnet` toggle restore the last strength instead of always `weak`
+  (`useMagnetMode.ts`, localStorage `orange-tc-magnet-strength`): the first
+  press on a fresh profile wrote `weak`.
+- **Favourite tools reorder by drag (source, `38af41350d`).** A favourite row
+  carries `data-favorite-tool`, lifts 4 px and drops through
+  `userStore.reorderFavoriteTools` (`ToolsItemWidget.vue`). A guest meets the
+  `FAVORITES` wall first.
+- **Positions and defaults (source, `4e48acdc82`, `3ed1679add`).** A new
+  position tool starts from the last account size and risk
+  (`tool-style-memory.ts`). The settings card's "save as default" goes through
+  `saveToolDefaultStyle` and reports with the drawing's name; a tool with an
+  empty default lane (Image) shows the row off with a note (`defaultLaneEmpty`,
+  `dialogs.settingsTemplates.defaultKeepsNote`). Order-flow tools on a US
+  stock's Live price feed ask to switch to Trades first (`dc92b520b5`), which
+  a guest never reaches.
 - **Fib levels can follow a log scale (source, `679091780e`; the row driven
-  2026-11-01).** The Fibonacci retracement and the trend-based fib extension
+  2026-11-01 and 2026-11-02).** The Fibonacci retracement and the trend-based fib extension
   carry a `Fib levels based on log scale` switch in their settings card (key
   `levelsOnLogScale`, off by default, `offWhenAbsent` so old fibs show it too;
   Reset turns it off). The row has no testid, so match its label. Reach it by

@@ -4,10 +4,23 @@ The script editor is a drawer docked alongside the terminal, never a dockview
 tab, where a user writes a TypeScript Indicator, runs it in the browser or the
 cloud lane, and sees the result mount as an overlay through the frontend
 adapter. **kScript is retired on this tree:** since `722911b50f` (2026-10-31)
-the browser kScript engine and the kScript authoring lane are deleted, a kScript
-document opens read-only under a frozen bar, and it has no Run (source, read on
-`120d5d5d32`). This entry was last DRIVEN on 2026-11-01 against product tree
-`120d5d5d32` (`origin/main`), lane `18103`, a guest lane with no JWT: ks-open
+the browser kScript engine and the kScript authoring lane are deleted, and
+since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
+door refuses it with a 3 s toast, the read-only viewer and its frozen bar are
+deleted too (source, read on `a4488341f6`). This entry was last DRIVEN on
+2026-11-02 against product tree `a4488341f6` (`origin/main`), lane `18103`, a
+guest lane with no JWT: ks-open through Super Search (the row
+`super-search-result-panels:Editor-btn` titled `Script Editor`; within 3 s the
+drawer was not `inert`, `editor-workspace-skeleton` gone, `kscript-run-btn`
+and `kscript-close-editor-btn` present, no `kscript-save-btn`, no
+`kscript-template-picker`, no `kscript-frozen-bar`, the text `New indicator`
+and `No script open`, one `.cm-editor`), `tb-editor-toggle-btn` raising the
+`script-editor` wall, and the retired handles absent from the DOM
+(`kscript-frozen-bar`, `kscript-sunset-notice`, `legend-diagnostic-card-sunset`,
+`kscript-legacy-notice`, `activity-bar-view-kscript-btn`: 0 matches). One
+thing to know: after `kscript-close-editor-btn` the drawer went `inert` but
+kept `kscript-run-btn` mounted, so assert `inert`, not the button's absence.
+Earlier, 2026-11-01 on `120d5d5d32` (`origin/main`, lane `18103`, no JWT): ks-open
 through Super Search (the drawer read `New indicator No indicators yet. Manage
 groups No script open`, `kscript-run-btn` present, no `kscript-save-btn`, no
 template picker, no `kscript-frozen-bar`, one `.cm-editor`), the ticker-bar
@@ -33,7 +46,7 @@ authenticated coverage obligations.
   (authed). A kScript document no longer runs anywhere: its tab has no Run.
 - `ks-lint` the editor reports a TypeScript problem rather than mounting (authed).
 - `ks-protected` a protected / WRUN script returns from the backend lane (authed);
-  a protected kScript document shows only the docs link under the frozen bar.
+  a protected kScript document opens nowhere, like any kScript document.
 - `ks-wrun-launch` the WRUN launch box/ring and Pine conversion hand-offs create
   the appropriate hosted or TypeScript draft, including retained conversion
   failures and the shared hosted-run path (authed, entitlement-dependent).
@@ -190,22 +203,37 @@ Preconditions:
   `VITE_KSCRIPT_RETIRED_AT`, the `kscript-sunset` and `kscript-twin-convert`
   flags, the browser kScript engine (`src/workers/kscript-engine.worker.ts`),
   the editor analysis worker, the kScript grammar and
-  `src/services/protected-kscript-cache.service.ts` are all deleted. A kScript
-  document opens in a plain read-only textarea (`kscript-plain-editor`; a
-  withheld source shows `kscript-readonly-locked`), never mounts CodeMirror, and
-  has no Run, run-target chip, lint or Problems rows. Above it the frozen bar
-  `kscript-frozen-bar` reads `kScript is retired. This code is read-only.
-  Indicators are now written in TypeScript.` (withheld: `kScript is retired. The
-  source of this script is not available to copy.`) with `-copy`, `-port`
-  (`Port to Indicator`, which opens a TypeScript draft seeded with the source as
-  a comment), `-port-kata` (when Kata is available and the source is not
-  withheld), `-docs` (`Indicator docs`) and `-author` for someone else's script.
+  `src/services/protected-kscript-cache.service.ts` are all deleted.
+  **The read-only viewer went next (`4f7be7723c`, read on `a4488341f6`).**
+  `KScriptLegacyNotice.vue` and its frozen bar (`kscript-frozen-bar` with
+  `-copy`, `-port`, `-port-kata`, `-docs` and `-author`), the activity-bar view
+  `activity-bar-view-kscript-btn`, `script-explorer-show-kscripts-btn` and
+  `useKscriptView.ts` are deleted; `legacyNoticePort` (`Port to Indicator`) is
+  an orphaned string, and `Port with Kata` survives only in the Indicators
+  dialog's detail panel and the seller hub's kScript notice. A kScript document
+  now opens nowhere: `openScriptInEditor.ts` (`refuseKscriptSource`),
+  `IndicatorDialogV2.vue` (`onOpenInEditor` and an initial script id on
+  mount) and `editor-shell.ts` `openScript` (`noteKscriptRetired()`) each
+  answer with a 3 s warning toast, `kscriptSunset.card.retiredBody` (`This
+  indicator was written in kScript, which is retired. It no longer draws.`),
+  a drawer the refused call had opened closes again (`closeDrawerLeftEmpty`),
+  and `sanitizeHydratedState` drops any persisted tab whose language is not
+  `wrun-ts`. `kscript-plain-editor` is now only the debug and large-source
+  fallback, a saved tab whose language is still unknown shows
+  `kscript-language-pending` (`Loading` or `Couldn't load this`), and the
+  activity bar's `activity-bar-docs-btn` is always the Indicator docs link.
+  The kScript access screens (the offers inbox, `useScriptGrants`,
+  `dialogStore.offersInboxHostOpen`) are deleted as well (`b568527235`; groups
+  keep tiers, members and Indicators) and the `script-offers` flag is gone.
   On the chart a saved kScript row that reads `retired` leaves the workspace at
   its restore (`src/utility/chart/kscript-retired-rows.util.ts`, ring events
   `kscript-sunset-row-removed` and `kscript-sunset-row-held`); a built-in with a
   twin route converts instead, and a lossy conversion shows the
   `kscript-sunset-settings-reset` toast (`-dismiss-<indicatorId>`), which is all
-  `KscriptSunsetNotice.vue` renders now. The countdown chips, the
+  `KscriptSunsetNotice.vue` renders now (it lives at
+  `src/components/chart/KscriptSunsetNotice.vue`, not under
+  `scriptEditor/shell`; `kscript-retired-rows.util.ts` and
+  `kscript-sunset.util.ts` are unchanged on `a4488341f6`). The countdown chips, the
   `kscript-sunset-notice` toast with its `-show-btn`, `-dismiss-btn`,
   `-remove-all-btn` and `-keep-btn`, and the legend card
   `legend-diagnostic-card-sunset` are gone; the only chip key left is
@@ -275,11 +303,15 @@ Preconditions:
   DOM edit it refuses. A same-tick read reports a guest edit that never
   happened.
 - **OPRA data in user scripts is no longer flag-gated (source, `61f23cdf65`).**
-  The `opra-user-scripts` flag is retired:
   `packages/wrun-chart-host/src/utility/chart/opra-user-scripts-gate.util.ts`
   answers on in every context, so what still gates a user script on an OPRA chart
-  is a signed-in session and the OPRA entitlement and tier. Stale comments still
-  name the flag (`KScriptWorkspace.vue`, `useIndicatorCatalogV2.ts`). Not driven.
+  is a signed-in session and the OPRA entitlement and tier. The flag RECORD is
+  not deleted: `opra-user-scripts` is still a `FeatureFlag` member on
+  `a4488341f6` (`feature-flags.constants.ts`, marked launched 2026-10-27);
+  the gate simply no longer reads it. Stale comments still name it
+  (`KScriptWorkspace.vue`, `useIndicatorCatalogV2.ts`). Its CME twin,
+  `cme-user-scripts`, stays a dark flag and since `ebea84a61a` also opens a CME
+  chart's own options chains to a user study (signed-in only). Not driven.
 - **The kScript stand-in paints on more charts (source, `f047751c9a`).** Stock,
   forex, commodity, DEX, index and CME charts now get the stand-in candles
   (`kscript-standin-chart.util.ts`). Not driven.

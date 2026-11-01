@@ -23,7 +23,14 @@ handle changed in between. Re-driven 2026-11-01 against `120d5d5d32`
 `guestLoginFeatureId = "watchlist"` with no `watchlist-pane` in the DOM; the
 range's watchlist commits (`4f5e7b9d94`, `28ca756386` the shared type list for
 CRYPTOCAP rows; `42b2a5dbac`, `9f3c7d9288`, `5f48e3fb4a` ink only) changed no
-handle, and the limits are still 250 symbols per list and 50 lists. **Only
+handle, and the limits are still 250 symbols per list and 50 lists. Re-driven
+2026-11-02 against `a4488341f6` (`origin/main`, lane `18103`, no JWT) from
+`tb-watchlist-toggle-btn`, `tb-panels-row-watchlist` and `Alt+W`, each
+setting `guestLoginFeatureId = "watchlist"`; nothing under
+`src/components/watchlist`, `src/composables/watchlist`,
+`watchlist-limits.constants.ts` or the shortcut table changed in
+`120d5d5d32..a4488341f6` (the only touching commit, `69b213ec1b`, is about
+stock feeds on a symbol switch). **Only
 the guest-side is driven**: the doors and the sign-in wall were proven live.
 Source names more doors that wall the same way (read on `120d5d5d32`): Super
 Search's `panels:WatchlistPane` row (not even listed to a guest, since the

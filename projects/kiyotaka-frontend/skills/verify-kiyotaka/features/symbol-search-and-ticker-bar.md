@@ -4,8 +4,34 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-01 against product tree `120d5d5d32` (`origin/main`),
-lane `18103`, a guest lane with no JWT, on a quiet machine (load 3 on 10 cores).
+was last DRIVEN on 2026-11-02 against product tree `a4488341f6` (`origin/main`),
+lane `18103`, a guest lane with no JWT, on a quiet machine (load 2 to 5 on 10
+cores). Driven: the V2 dialog (v2 20 testids, legacy 0), an `ETHUSDT` search
+whose `Ethereum` row went to BINANCE.F ETHUSDT (464 bars, OI `$5.36B`,
+funding `+0.0017%`) and whose bare `ETHUSDT` row STILL charted a BINANCE.O
+put (`2 Nov 2026 2,250 Put`, 60 bars; the row arrives in a second batch about
+8 s after the fill, a 3 s read listed the `Ethereum` row alone), `BTC.D` (250
+bars, `60.36% ▼ BTC.D`), the Predict list through the Browse rail's
+`search-v2-view-predictions-btn` (chips `all` pressed, `polymarket`,
+`hyperliquid`; 22 rows; the Senate event charted, 143 bars, `25.5¢`) after
+the tab's own click was `covered by <div.dialog-style.dialog-overlay>`, the
+hover quick search to BINANCE.F SOLUSDT (`quick-search-v2-group-Solana|1-btn`,
+250 bars), the `1m` pin (318 bars), the chevron to `5m`, the in-chart menu
+back to `1h` (`Undo Change interval`), Heikin Ashi (`plotType=heikinAshi`,
+the trigger's label `Heikin Ashi`, `Undo Change chart type`) and its undo,
+the one-menu rule (15 chart-type options to 0 when the layout picker opened,
+16 cells, four `role=switch` sync rows), the matrix cell's `multi-chart`
+wall, the Panels menu (**17** rows, the Trades and Liquidations row gone),
+the Options button's `terminal` wall, the footer undo and redo around the
+option-put switch (`Undo Change symbol` back to BTC.D, `Redo Change symbol`
+to the put, undo again), and the symbol button's logo (`f08ff46099`:
+`LogoImage` is `aria-hidden`, so the accessible name is still `COINBASE
+BTC-USD` while `textContent` now starts with the logo's letters,
+`BTCOINBASEBTC-USD`). Not driven: the Equities tab, the input-method guard
+(`ime-key-filter.util.ts` unchanged), the hover peeks, and the quick search
+on a Polymarket chart, where `SOLUSDT` listed no `quick-search-v2-group-*`
+in 12 s (it listed them at once on BTC.D). Earlier, 2026-11-01 on
+`120d5d5d32` (`origin/main`, lane `18103`, no JWT, load 3 on 10 cores).
 Driven: the V2 dialog (v2 20 testids, legacy 0, the same nine tabs), an
 `ETHUSDT` search whose `Ethereum` row went to BINANCE.F ETHUSDT (440 bars, OI
 `$5.31B`, funding) and whose bare `ETHUSDT` row STILL charted a BINANCE.O put
@@ -65,10 +91,11 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   prediction markets behind venue chips, and a pick charts the event.
 - `sym-quick` hovering the symbol button opens a quick-search list, and a pick
   switches the symbol without the full dialog.
-- `tb-undo` the footer's undo and redo buttons put back a symbol switch, a
+- `tb-undo` the footer's undo and redo buttons (`footer-undo-btn`,
+  `footer-redo-btn`; there is no `tb-undo` testid) put back a symbol switch, a
   compare, an interval, a chart type, a chart setting, the session, the price
-  scale or the Volume row, and name the step they will undo. Source only so far
-  (`b975aaa639`, `7118982415`, read on `849fb08e95`); see Gotchas.
+  scale or the Volume row, and name the step they will undo. Driven 2026-11-01
+  and 2026-11-02 for symbol, interval and chart type; see Gotchas.
 
 ## How to get to it (user POV)
 
@@ -85,8 +112,9 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   Hyperliquid) and a market to chart a prediction market.
 - Hover the visible symbol control to open `quick-search-dropdown`; its stable
   input is `quick-search-input` and its full-dialog hand-off is
-  `quick-search-advanced-button`. V2 quick-search can expose memecoin/Pulse rows
-  under `quick-search-v2-memecoin-*` and a liquidity-floor refinement.
+  `quick-search-advanced-button`. The memecoin lane answers only a pasted
+  Solana mint there (signed-in; see Gotchas), and a failed search shows
+  `quick-search-failed` with `quick-search-retry-btn`.
 
 ## Driving it with control-kiyotaka
 
@@ -200,9 +228,12 @@ Preconditions:
   ./control-kiyotaka browser find testid tb-chart-type-option-heikinAshi-btn click
   ```
 
-  The engine read is `chartStore.plotTypeForChart` — picking `Line` makes it
-  `"spline"` — and the trigger's `aria-label` follows the pick, which is the
-  cheaper of the two reads.
+  The engine read is `chartStore.mergedAllCharts[0].metadata.plotType` —
+  picking `Line` makes it `"spline"`, Heikin Ashi `"heikinAshi"` (driven
+  2026-11-02; `chartStore.plotTypeForChart` is not a function on
+  `a4488341f6`) — and the trigger's `aria-label` follows the pick (`Heikin
+  Ashi`), which is the cheaper of the two reads. The pick records `Undo Change
+  chart type` in the footer.
 - **Layout.** `button "Layout"` peeks on hover and pins on click, same as chart
   type — a click-only drive forfeits the `tb-hover` half of the proof. Its contents are invisible to the
   a11y tree: the grid groups (1, 2, 3, 4, 5, 6, 8, 9, 12, 16), the custom N×N
@@ -265,13 +296,17 @@ Preconditions:
   Indicators, Options and Panels. A `find testid tb-alerts-toggle-btn` then fails
   with `No element found`. Close the panel, or use `tb-panels-row-<id>`.
 
-    `ToolbarPanelId` is now **30 ids** (`etfScreener` joined — guest-reachable, no gate) (`src/constants/toolbar-panels.constants.ts`),
+    `ToolbarPanelId` is **29 ids** on `a4488341f6` (`tradeAndLiquidations` left
+  with `ad67d47c62`; `etfScreener` had joined — guest-reachable, no gate)
+  (`src/constants/toolbar-panels.constants.ts`),
   most of them grid panels: `watchlist, scanner, markets, options, orderbook, tape,
-  footprint, tradeAndLiquidations, marketStatsPanel, volumeStats, liquidityStats,
+  footprint, marketStatsPanel, volumeStats, liquidityStats,
   optionsFlowTape, news, events, earnings, alerts, objects, journal` plus
   `marketStats, splits, chartType, replay, heatmap, hlView, calls, goLive, editor,
   chat, trade`. `terminal` is gone. `hlView` and `calls` are door-only: no row, no
   seat, no pin — they mount headless and open from Super Search or a command.
+  A stored `tradeAndLiquidations` pin seats the Tape
+  (`TOOLBAR_RETIRED_PIN_SUCCESSORS`).
 
   A pin persists to user settings plus a localStorage mirror and survives a
   reload even for a guest, so a recipe that pins must unpin.
@@ -287,6 +322,11 @@ Preconditions:
   marketStatsPanel, volumeStats, liquidityStats`, alongside
   `tb-panels-customize-btn`. No `tb-panels-reason-*` rendered. (The 2026-10-23
   pass listed `hlView` and `calls` rows; they were absent this time.)
+  **Driven 2026-11-02 on `a4488341f6`: 17 rows**, the same list without
+  `tradeAndLiquidations` (`replay, heatmap, watchlist, scanner, etfScreener,
+  news, chat, orderbook, tape, footprint, alerts, objects, journal, editor,
+  marketStatsPanel, volumeStats, liquidityStats`), each row with a
+  `tb-panels-pin-<id>-btn` beside it.
   `goLive` was absent, as it is for any guest. Note the menu lists PINNED entries
   too — it is the full catalog, not only what was folded — so a row's presence
   says nothing about whether that panel is also in the bar.
@@ -420,6 +460,54 @@ Preconditions:
   in the DOM, and a later `find testid "toolbar-item-trendline:tool-icon-btn"
   click` failed with `covered by <div.scope-token-line.v2-tokens>`. Move the
   pointer onto the chart and press `Escape` before clicking a tool.
+- **The bare `ETHUSDT` row arrives in a second batch (driven 2026-11-02 on
+  `a4488341f6`).** Three seconds after the fill the list held only
+  `asset-row-Ethereum|1-btn`; at eight seconds it held `asset-row-ETHUSDT|1-btn`
+  (`ETHUSDT ETHUSDT · Crypto`, no price), `Lido Staked Ether`, `WBETH`,
+  `BETH` and `METH` rows too. The bare row's click still charted `BINANCE.O
+  ETH/USDT 2 Nov 2026 2,250 Put` (60 bars, title `9.40000 ▼ ETH - 261102 -
+  2250 - P`), so the gap is open on this tree as well; nothing under
+  `src/utility/symbol-search-v2/` or `symbol-selection/` that resolves an
+  asset row changed in `120d5d5d32..a4488341f6`. Wait for the second batch
+  before counting rows, and take the `Ethereum` row.
+- **The Predict tab's own click can be covered; the Browse rail is the other
+  door (driven 2026-11-02).** `find testid search-v2-category-predictions-btn
+  click` failed with `covered by <div.dialog-style.dialog-overlay>` while the
+  dialog itself was the only overlay (the strip's first DOM copy is the hidden
+  twin). `search-v2-view-predictions-btn` (the rail's `Predictions`) opened
+  the same list: `intent-filter-predict-venue-{all,polymarket,hyperliquid}-btn`
+  with `all` pressed, 22 `prediction-row-pred:*-btn` rows, and a JS `.click()`
+  on a Polymarket row charted the event (`POLYMARKET Which Senate Swing
+  States will Republicans win?`, 143 bars, `25.5¢`).
+- **Memecoins left the `All` tab and the quick search (source, `9ffb5345bf`,
+  `eb1f3b83be`, `89adcfc7d5`; read on `a4488341f6`).** The lane answers only
+  to the Memecoins tab (signed-in) or a pasted Solana mint
+  (`memecoinLaneAsked` in `QuickSymbolSearchDropdown.vue`,
+  `isMemecoinAddressBox` in `SymbolSelectionDialog.vue`; an address pasted
+  with text around it is normalised). `quick-search-v2-memecoins-tail-btn`
+  and `openMemecoinsInFullDialog` are deleted; the `quick-search-v2-memecoin-*`
+  rows this guide's user-POV line names are gone with them. New quick-search
+  handles: `quick-search-failed` and `quick-search-retry-btn` when a search
+  failed with an empty list, and the full dialog's Retry re-sends with
+  `retry: true`. Plain words no longer rewrite to token-catalog venues
+  (`matchImplicitExchangesByPrefix`) and carried-over tokenized pools are
+  stripped (`withoutTokenCatalogVenues`), so a tokenized stock pool no longer
+  shows for a plain ticker.
+- **The symbol button wears the market's logo (source, `f08ff46099`; driven
+  2026-11-02).** `tb-symbol-info-btn` carries `tb-symbol-logo` (`LogoImage`,
+  `aria-hidden="true"`, `alt=""`), so the accessible name is unchanged
+  (`COINBASE BTC-USD`, `BINANCE.F ETHUSDT`) while the button's `textContent`
+  starts with the logo's fallback letters (`BTCOINBASEBTC-USD`,
+  `ETBINANCE.FETHUSDT`). Read the name or `document.title`, never the text.
+  `tb-symbol-market-toggle-btn` is gone. The button is wider with the logo
+  (134 to 234 px), so the width-fold can shed a rung earlier at `1440`.
+- **The top-bar Layouts menu has testids (source, `f4c9e56e82`).**
+  `layouts-menu-recent-held`, `-open-tab`, `-layout`, `-search`, `-grid`,
+  `-pinned`, `-close-<id>`, `-keep-<id>-btn` and `-scratch` in
+  `LayoutsMenu.vue`; the rows keep their first position. It is not the
+  ticker-bar `tb-layout-*` picker and is not driven. `global-nav-create-btn`
+  (`NavCreateButton.vue`) renders only with the Board flag on; absent for a
+  guest (driven), as is `stock-feed-chip`.
 
 - **`sym-ime`, driven 2026-10-29 on `78ec9625d9` with synthetic events.** The
   testid sits on the `INPUT` itself, so dispatch on

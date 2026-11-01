@@ -1,12 +1,31 @@
 # Right-side panels
 
 The right-hand cluster of the ticker bar and its `Panels` menu open market
-panels to the right of the chart: Orderbook, Alerts, Objects, the ETF screener,
-the heatmap switch and Options, among others. Some open for a guest and some
-stop at the sign-in wall, and a panel can open with no data when the backend has
-none. Created 2026-10-27; last DRIVEN on 2026-11-01 against product tree
-`120d5d5d32` (`origin/main`), lane `18103`, a guest lane with no JWT. Driven:
-every one of the 18 guest Panels rows with the same split as before (Replay
+panels to the right of the chart: Orderbook, the Tape with its docked
+Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
+among others. Some open for a guest and some stop at the sign-in wall, and a
+panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-02 against product tree `a4488341f6` (`origin/main`), lane
+`18103`, a guest lane with no JWT, on a quiet machine (load 2 to 5 on 10
+cores). Driven: the Panels menu's **17** rows (the Trades and Liquidations panel
+is retired, `ad67d47c62`; its saved rows load as Tapes), the same seven walls
+(Replay `chart-actions`, Watchlist `watchlist`, Scanner `terminal`, News
+`news`, Chat `community-chat`, Footprint `volume-footprint`, Editor
+`script-editor`), the ten rows that open (`ETF screener`, `Orderbook`, `Tape`,
+`Alerts`, `Journal`, `Market Stats`, `Volume Stats`, `Liquidity Stats`, and
+Objects without a title), the rebuilt Tape (`crypto-tape-panel`) printing on
+BINANCE.F ETHUSDT (2 rows at 6 s) and on BINANCE.F SOLUSDT (25 rows at 4 s)
+with its Trades and Heatmap views, its markets menu and its docked Liquidations
+in both the Prints and Levels views, the Orderbook ladder on ETHUSDT and on
+SOLUSDT (within 5 s, but only once the tab was visible; see Gotchas), the
+`heatmap` row opening the popover whose switch raised `orderbook-heatmap`, the
+Options button's `terminal` wall, the alert create wall
+(`alert-list-create-btn`, `alert-add-menu`, `alert-add-menu-price-btn` raising
+`alert`), the ETF screener (0 rows again) and the Objects panel's handles.
+Not proven: the Tape's sound control (the panel DOM carried no `tape-sound-*`
+for a guest; Super Search lists the `Tape sounds` row), and anything signed
+in. Earlier, 2026-11-01 on `120d5d5d32` (`origin/main`, lane `18103`, no JWT):
+every one of the then 18 guest Panels rows with the same split as before (Replay
 `chart-actions`, Watchlist `watchlist`, Scanner `terminal`, News `news`, Chat
 `community-chat`, Footprint `volume-footprint`, Editor `script-editor`; the
 other eleven open with their `panel-header-title`, Objects without one), Tape
@@ -39,8 +58,10 @@ panels, which a guest is not offered.
 - `rp-etf` the ETF screener opens with its column sets.
 - `rp-heatmap` the heatmap seat opens an on and off switch.
 - `rp-options` the Options button opens the Options panel (signed-in).
-- `rp-tape` the Tape and the Trades and Liquidations panels open on the chart's
-  market.
+- `rp-tape` the Tape opens on the chart's market: live prints with a venue
+  glyph and a tag icon, a Heatmap view, a markets menu, and a docked
+  Liquidations section with Prints and Levels views. It is the one tape for
+  every market; the Trades and Liquidations panel is retired (`ad67d47c62`).
 - `rp-stats` the Market, Volume and Liquidity Stats panels open.
 - `rp-journal` the Journal panel opens.
 - `rp-walled` the Scanner, Footprint, Chat, News, Watchlist, Editor and Replay
@@ -64,14 +85,17 @@ an open panel.
   `find testid tb-panels-row-<id> click`. Read the open panel's header text: the
   panel title (`Orderbook`, `Alerts`, `Objects`, `ETF screener`) is the first
   text in the right-side header.
-- **A store read for every panel.** The panels store lists what is open:
-  `document.querySelector('#app').__vue_app__.config.globalProperties.$pinia._s.get('panels').items`
-  (each item's `content` is the panel type, for example `OrderbookPanel`,
-  `Tape`, `TradeAndLiquidations`, `MarketStats`, `VolumeStats`,
-  `LiquidityStats`, `Journal`, `Objects`, `EtfScreener`, `Alerts`). The header
-  title is `panel-header-title` and its `×` is `panel-header-close-btn`; Objects
-  has no `panel-header-title`. A walled row leaves `items` empty and sets
-  `dialog.isAuthenticationDialogOpen`.
+- **A DOM read for every panel (driven 2026-11-02).** Read the open panels as
+  the `panel-header-title` texts
+  (`[...document.querySelectorAll('[data-testid=panel-header-title]')].map(e=>e.textContent.trim())`)
+  beside the dialog store's `isAuthenticationDialogOpen` and
+  `guestLoginFeatureId`. The header's `×` is `panel-header-close-btn`; Objects
+  has no `panel-header-title` (its handles are `objects-views-trigger-btn`,
+  `objects-collapse-all-btn`, `objects-search-toggle-btn` and
+  `objects-docked-settings`). A walled row opens nothing and sets
+  `isAuthenticationDialogOpen`. The Pinia `panels` store's `$state` holds only
+  `lastUsedId` on `a4488341f6`; its `items` getter, which earlier passes read,
+  was not re-read.
 - **`rp-orderbook`.** `tb-orderbook-toggle-btn` opened `Orderbook` with
   `Book / Delta / DOM` and no wall. On 2026-10-28 (`tb-panels-row-orderbook`,
   COINBASE BTC-USD) it drew live levels on both sides and an imbalance line
@@ -82,10 +106,19 @@ an open panel.
   with amount and total, `2253.18 ▲`, `Spread 0.20 · 0.009%`. **The book is a
   canvas**: the panel's handles are `orderbook-source-btn` (the venue picker,
   `22a2ad32d4`) and `orderbook-canvas`, so `innerText` holds no levels; prove
-  it from the frame, or from the mid-price line, which is DOM text. On
-  BINANCE.F SOLUSDT the same day the book stayed blank for 25 s with the tab
-  visible; it was live there on 2026-10-29, so treat an empty SOL book as
-  unproven rather than broken until re-driven on a healthy gateway.
+  it from the frame. Re-driven 2026-11-02 on `a4488341f6`, ETHUSDT and
+  SOLUSDT: the panel opens with `segmented-{book,delta,dom}-btn`,
+  `orderbook-source-btn` (its `aria-label` reads `Source: Binance Futures`;
+  its text is empty), `ob-sidebar-collapse-btn` and
+  `ob-sidebar-toggle-settings-btn`, and `orderbook-canvas` mounted within 5 s
+  with asks and bids on both sides; the mid row is painted in the canvas too
+  and now reads the price with `Imbalance 44.7% bid · 55.3% ask` (a
+  `/Spread/` match on `innerText` finds nothing). **The ladder does not mount
+  while the tab is hidden**: the same open with `document.visibilityState`
+  `hidden` showed the header and the tabs but no `orderbook-canvas` for 40 s on
+  ETHUSDT and 24 s on SOLUSDT, and `tab t1` plus a reopen drew it in 5 s both
+  times. The 2026-11-01 "blank SOL book" was that, not the gateway. Read
+  `visibilityState` before any Orderbook assertion.
 - **`rp-alerts`.** `tb-alerts-toggle-btn` opened `Alerts` (`Active` and
   `History` tabs, `No alerts yet`). Its handles are `alert-list-search-input`,
   `alert-list-create-btn`, `alert-list-select-mode-btn`,
@@ -113,7 +146,44 @@ an open panel.
   not driven).
 - **`rp-options`.** `tb-options-btn` (`Options`) was visible to the guest. A
   click raised the `terminal` wall.
-- **`rp-tape`, driven 2026-10-28.** `tb-panels-row-tape` opened `Tape` on
+- **`rp-tape`, rebuilt as one tape (`ad67d47c62`, `4dae9e6136`,
+  `ba8e2cc280`; driven 2026-11-02 on `a4488341f6`).** `tb-panels-row-tape`
+  opens `Tape` (`src/components/trades/Trades.vue` mounts
+  `CryptoTapePanel.vue` for a crypto market): `crypto-tape-panel` with
+  `crypto-tape-name`, `crypto-tape-last-price` (`2,263.61▼`),
+  `crypto-tape-markets-line`, and `crypto-tape-waiting` (`Waiting for
+  trades...`) or `crypto-tape-failed` while it has nothing. Rows are
+  `stock-tape-row` with `stock-tape-row-time`, `-price`, `-size` and a venue
+  glyph; the **`SWEEP` text is gone**: `stock-tape-row-tag` is an icon whose
+  `aria-label` reads `Sweep ×N`, `Block` or `N fills`, and the old rate
+  readout (`2.0/s`) is gone too. On BINANCE.F ETHUSDT 2 rows printed within
+  6 s; on BINANCE.F SOLUSDT 25 rows within 4 s (last `94.43▼`), so the
+  2026-11-01 "empty SOL tape" was the gateway outage. The head carries the
+  view tabs `stock-tape-tab-trades-btn` and `stock-tape-tab-heatmap-btn`
+  (`aria-pressed`; the Heatmap view fills `crypto-tape-heatmap-host`) and
+  `tape-markets-btn`, which opens `tape-markets-menu`: a size floor
+  (`tape-markets-show-{all,10k,50k,100k}-btn`, `Show All trades / $10K+ /
+  $50K+ / $100K+`), `tape-markets-follow-btn` (`Follow the chart`),
+  `tape-markets-chart-market` (`Binance Futures ETHUSDT`) and
+  `tape-markets-add-btn` (`Add a market (10 at most)`). Docked below the
+  prints is `tape-liquidations` with `tape-liquidations-head`
+  (`Liquidations Today Prints Levels`), `-range-btn` (`Today`),
+  `-view-prints-btn` and `-view-levels-btn`, `-collapse-btn`, `-list`, `-row`
+  (with `-row-time`, `-row-price`, `-row-icon`, `-row-value`; 13 rows on
+  ETHUSDT, 16 on SOLUSDT) and, in the Levels view, `-level` (16). The Super
+  Search row answers `liquidations`, `trades and liquidations` and the former
+  name `Trade & Liquidations` (`providers/panels.ts`). The sound control
+  (`tape-sound-settings`, `-toggle`, `-picker`, `-volume`, `-option-*`) was not
+  in the panel DOM for a guest; its palette row is `tape-toggle:sound` (`Tape
+  sounds`, see [Super Search](./super-search-and-settings.md)). The old
+  `CEXTradesStream.vue` (with `tape-pace-rate`) is now only the fallback for
+  markets the new Tape cannot read: CME, OPRA, formulas and on-chain pools
+  (source). `src/components/tradeAndLiquidations/` is deleted; a stored
+  `tradeAndLiquidations` pin seats the Tape (`TOOLBAR_RETIRED_PIN_SUCCESSORS`
+  in `src/constants/toolbar-panels.constants.ts`) and a saved row converts
+  through `src/utility/panels/trade-liquidations-to-tape.util.ts`. The earlier
+  history follows.
+  **Driven 2026-10-28.** `tb-panels-row-tape` opened `Tape` on
   COINBASE BTC-USD with a rate readout (`1.6/s`, `4.5/s`) and `PRICE / SIZE /
   TIME` heads, but its body still read `Waiting for trades...` after 20 s.
   `tb-panels-row-tradeAndLiquidations` opened `Trade & Liquidations` on BINANCE
@@ -156,8 +226,12 @@ an open panel.
   `community-chat`, `news` → `news`, `watchlist` → `watchlist`, `editor` →
   `script-editor`, `replay` → `chart-actions`. A guest's Replay row raises the
   sign-in wall, not the upgrade dialog, and there is no `tb-replay-toggle-btn`
-  or `tb-replay-locked` until Replay is pinned. The `heatmap` row opened nothing
-  visible and no wall; use `tb-heatmap-trigger-btn`.
+  or `tb-replay-locked` until Replay is pinned. Re-driven 2026-11-02 on
+  `a4488341f6` with the same seven ids. The `heatmap` row opened nothing
+  visible on 2026-10-28; on 2026-11-02 `tb-panels-row-heatmap` opened the
+  heatmap popover (`tb-heatmap-toggle-btn`, `role=switch`,
+  `aria-checked="false"`) and the switch's click raised `orderbook-heatmap`,
+  the same as `tb-heatmap-trigger-btn`.
 - **Proof.** The panel header, the store read showing no wall (or the walled
   id), and a screenshot. Close each panel before opening the next.
 
@@ -186,11 +260,25 @@ an open panel.
   seconds after the open and read the frame before claiming book data either way.
 - **`tb-heatmap-trigger-btn` needs a click.** On 2026-10-28 a `hover` did not
   render `tb-heatmap-toggle-btn`; a click opened the popover.
-- **A guest is offered 18 Panels rows**, the same on 2026-10-27 and 2026-10-28:
+- **A guest is offered 17 Panels rows** (driven 2026-11-02 on `a4488341f6`):
   `replay, heatmap, watchlist, scanner, etfScreener, news, chat, orderbook, tape,
-  footprint, tradeAndLiquidations, alerts, objects, journal, editor,
-  marketStatsPanel, volumeStats, liquidityStats`. `markets`, `events`,
-  `earnings`, `options` and `optionsFlowTape` are not offered.
+  footprint, alerts, objects, journal, editor, marketStatsPanel, volumeStats,
+  liquidityStats`. `tradeAndLiquidations` left the list with `ad67d47c62`
+  (18 rows from 2026-10-27 to 2026-11-01); `markets`, `events`, `earnings`,
+  `options` and `optionsFlowTape` are not offered.
+- **The Orderbook is the hidden-tab canary (driven 2026-11-02).** The headless
+  tab drifted to `visibilityState: hidden` right after `browser open` and
+  again mid-pass; the Tape kept printing and every `eval` answered, but the
+  Orderbook ladder never mounted its canvas until the tab was fronted. When
+  `orderbook-canvas` is absent, read `document.visibilityState` before anything
+  else, run `browser tab` and then `browser tab t1`, read it again, and reopen
+  the panel.
+- **The US options alert lane is retired (source, `b059e70852`).** An alert on
+  a US option or a US stocks tape is refused with one flat sentence
+  (`dialogs.alertCreate.blocked.opra`) and no way out; `opraAlertDoorVerdict`
+  answers `opra-closed` for every tier and flag, and the `opra-alerts` flag and
+  the `alert-create-opra-way-out` / `alert-dialog-opra-way-out` handles are
+  gone. A guest meets the `alert` wall first, so it is not guest-driven.
 - **The `Panels` row list is the full catalog.** It lists pinned panels too, so a
   row being there says nothing about the bar.
 - **The Options button's visibility is a runtime flag.** Source puts it behind

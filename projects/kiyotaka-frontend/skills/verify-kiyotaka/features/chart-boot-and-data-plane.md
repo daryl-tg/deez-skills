@@ -3,10 +3,27 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-01 against product tree `120d5d5d32`
+entry was last DRIVEN on 2026-11-02 against product tree `a4488341f6`
 (`origin/main`), lane `18103`, a guest lane with the operator's `.env.local`
-linked in and no JWT, on a quiet machine (load 3 on 10 cores; the lane
-answered `up` in 5 s and drew candles in under 30 s). Proven: boot to 250
+linked in and no JWT, on a quiet machine (load 2 to 5 on 10 cores; `pnpm
+install --frozen-lockfile` in the fresh worktree took 8 s from the shared
+store, the lane answered `up` at once and drew 250 candles in 12 s). Proven:
+boot to 250 candles on COINBASE BTC-USD 1h with VWAP (`#skeleton-loader` up
+before the candles and gone with them, no `chart-loading-overlay`,
+`window.__BOOT_ERRORS__` `[]`, `__kiyoBuildId` `local-…`, a 79-line console
+with zero worker-death matches), the spot live edge (`24H VOLUME $190.53M`,
+no OI), the perp live edge on BINANCE.F ETHUSDT (`OPEN INTEREST $5.36B`,
+`FUNDING / COUNTDOWN +0.0017% · 02:45:36`), the ring after boot
+(`v2-socket-route` twice with `route: other, reason: custom, host:
+tsdb-gateway.int.ore.kiyotaka.ai`, `ohlcv-cache-read` 3,
+`main-cache-painted-marked` 1, no `main-fetch-reserve-*`), no
+`connection-status-chip` on the healthy lane, and **the wake heal** on
+BINANCE.F SOLUSDT 1m from a 392 s visibility override (5 synthesized blank
+slots to 0, the full chain through `main-heal-commit`; see Driving the wake
+heal, including the recipe artifact it exposed). Not driven: the left-pan
+floor, the Reconnect button (it renders only on a degraded socket), a real
+sleep and the process-suspend lane. Earlier, 2026-11-01 on `120d5d5d32`
+(`origin/main`, lane `18103`, no JWT, load 3 on 10 cores). Proven: boot to 250
 candles on COINBASE BTC-USD 1h with VWAP, `#skeleton-loader` gone and no
 `chart-loading-overlay` once candles existed, `window.__BOOT_ERRORS__` `[]`, a
 worker console with zero death matches, the spot live edge (`24H VOLUME
@@ -89,6 +106,30 @@ Preconditions:
 
 ## Driving the wake heal
 
+**Re-driven 2026-11-02 on `a4488341f6`, the visibility-override recipe.**
+Guest BINANCE.F SOLUSDT 1m (333 bars), lane `18103`, the gateway resolving
+and `POST /api/v1/auth-v2/refresh-token` answering 200 through the lane.
+Hidden for 392 s with `__kiyoDropLiveSeriesFrames('.*')` on; 5 NaN rows
+written from the last real bar (21:52) plus a lone bar one slot behind now
+(21:58), `beforeFlip` reading 6 rows with 5 blank. After the visible flip the
+ring read `lifecycle-hidden-return` (`wasHiddenMs 392588`,
+`willEmitWake true`), `lifecycle-wake-emit` (`reason: clock-skew`,
+`outageStartedAt` the hide time), `wake-received`, `wake-token-refreshed`
+(178 ms), `wake-sockets` (`v2Open`, `liveFeedOpen`), `wake-resync-live-drain`
+(`none`), `wake-resync-pass` (`trigger: wake`, `mainStartMs` equal to the
+last real bar before the hide, `mainPeriodSec 431`), `wake-resync-overlay-window`
+(VWAP `full`), `main-heal-commit` (`lane: period`, `mode: wholesale`, `rows:
+7`, `heldRows: 6`, `reason: row-width`), `wake-resync-awaited` (238 ms) and
+`wake-reconnected`. 80 s after the flip the hole held 0 blank and 6 real bars.
+**The recipe's own artifact:** the series read 8 rows after the wake and 10
+two minutes later, with the 18:00 to 21:52 history gone from the frame. That
+is the synthesis, not the heal: `tc[0].updateData('main', rows, {isPrepend:
+false})` REPLACES the main series with `rows` (probed on a fresh COINBASE
+BTC-USD 1h boot: 251 rows became 1 after one NaN row was written). Write the
+whole series plus the damage (`[...rawData, ...nanRows, loneBar]`) so the
+heal is judged on a full chart, and read `rawData.length` before and after.
+Earlier passes counted only the hole, so their totals are unknown.
+
 **Re-driven 2026-10-29 on `78ec9625d9`, same recipe.** Guest BINANCE.F
 SOLUSDT 1m with a `BITCOIN_DOMINANCE` pane mounted, lane `18103`. Hidden for 405
 s with the feed silenced; 5 NaN rows from the last real bar (20:24) to a lone
@@ -157,7 +198,13 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   footprint through the engine: NaN rows (`[ts, NaN, NaN, NaN, NaN]`, flag `1` in
   `syntheticFlags`) from the last real bar, then one real bar one slot behind
   now, via `tc[0].updateData('main', rows, { shouldResetRange: false, isPrepend:
-  false, syntheticFlags })`. Make the hole longer than the 2-bar lookback
+  false, syntheticFlags })`. **`rows` must be the whole series plus the
+  damage** (`[...tc[0].metadata[0].rawData, ...nanRows, loneBar]`, with a
+  `syntheticFlags` entry per row): with `isPrepend: false` the call replaces
+  the main series with exactly `rows`, so writing only the new rows leaves a
+  chart of six bars that the heal then fills, and the frame shows an empty
+  left side (driven 2026-11-02; a one-row write on a fresh boot took 251 rows
+  to 1). Make the hole longer than the 2-bar lookback
   (`WAKE_RESYNC_MAIN_LOOKBACK_BARS`), or both builds heal it: hide ~6.5 min.
 - **Read the verdict from the engine and the ring.** After the wake, count NaN
   closes in `tc[0].metadata[0].rawData` between the last real bar and the lone
@@ -432,4 +479,49 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   first candles arrived with the overlay union at `0`; the signup modal came up
   about two minutes in (`guestVisitCount` 1, `modalShownThisSession` false until
   then) and the ink tutorial AFTER it, during the first dialog drive. Read the
-  top overlay before every click; `dismiss` nothing on faith.
+  top overlay before every click; `dismiss` nothing on faith. On 2026-11-02 the
+  signup modal (`guest-signup-prompt-modal`) was up about 20 s after the first
+  candles and no ink tutorial appeared on the reused browser profile.
+- **The connection chip carries Reconnect and Reload buttons now (source,
+  `e2967128e2`; read on `a4488341f6`, absent on the healthy lane).**
+  `connection-status-chip` (`src/components/common/ConnectionStatusChip.vue`)
+  is `role="status"` with a `data-status` attribute and ignores pointer events
+  itself; inside it `connection-status-reconnect` (`Reconnect`) renders when
+  the status is `reconnecting`, the candle socket is not `open`, the last
+  failure is not a kick and at least one establish timed out or failed
+  (`reconnectEligible` in `useConnectionLatency.ts`), and
+  `connection-status-reload` (`Reload`) only after a Reconnect whose dial also
+  expired. The chip shows after 2 s of degraded state and hides a cold-boot
+  `reconnecting` until the first healthy observation unless the reach state is
+  `unreachable`. Reconnect marks the edge host suspect and writes the ring
+  event `v2-socket-route-forced`; every dial writes `v2-socket-route` (`slot,
+  route, reason, host, suspectUntil, pinnedUntil`) and localStorage
+  `kiyotaka:v2-route` persists the edge-or-direct decision. Console warnings
+  start `Connection chip:` and `Reconnect:`. On a healthy lane the chip is
+  absent (`null`), so a guest lane proves only absence; an outage like the
+  2026-11-01 one is where the buttons appear.
+- **A window cell's loader names the window (source, `301ef7e764`).**
+  `chartArea.loadingWindow` = `Loading {name}...` applies to wrun window cells
+  only and falls back to `Loading indicators...`; a plain chart still reads
+  `Loading chart...` and `Loading candles...`, and `pane-loading-overlay.util.ts`
+  keeps a window cell from ever showing those. The OI fallback stamp is gone
+  from the options heatmap chip. `584eae0ca8` stops re-downloading held rows
+  (`main-cache-reserve.util.ts`, `overlay-held-source.util.ts`; ring
+  `main-fetch-reserve-ineligible`, `main-cache-reserve-released`, and
+  `main-fetch-reserve-miss` or `-served` only on a warm reopen); none seen on
+  a cold boot.
+- **The hidden tab, re-confirmed 2026-11-02, and the Orderbook is its canary.**
+  The tab read `hidden` within a minute of `browser open` and again after
+  every later `open`; the footer clock froze (`21:13:34` across four panel
+  frames), the Tape kept printing, every `eval` answered, and the Orderbook
+  never mounted `orderbook-canvas` until the tab was fronted (40 s on ETHUSDT,
+  24 s on SOLUSDT; 5 s once visible). A `tab t1` sent straight after an `open`
+  did not take; `browser tab` (the list) and then `tab t1` did, so read
+  `document.visibilityState` back before trusting it. See [right-side
+  panels](./right-side-panels.md).
+- **Two routes outside the chart, driven 2026-11-02.** `/chart/clip/<id>` is
+  the only clip surface a guest reaches ([clip guest page](./clip-guest-page.md));
+  without the `/chart/` base vite answers with its base-URL hint page instead
+  of the app. `/chart/board/clips` sends a guest back to `/chart/`. Either
+  `open` reloads the tab, so dismiss the overlays and re-front it before the
+  next chart drive.

@@ -1,0 +1,78 @@
+# Clip guest page
+
+A chart clip's public link, `/chart/clip/<id>`, plays for anyone: a guest sees
+the clip's poster player (picture, voice, captions), its title, author and
+market, and a Copy link button, with Take over, Open the chart and Reply sending
+them to sign in. A clip that is not public, a malformed id and a server error
+each show their own state. Created 2026-11-02 from a live drive on product tree
+`a4488341f6` (`origin/main`), lane `18103`, a guest lane with no JWT: a
+made-up id (`/chart/clip/zzz`) rendered `clip-guest-page` with
+`clip-guest-private` (`This clip is not public`) and `clip-guest-home-link`
+(`Open the chart`), with no sign-in wall. A real public clip was not driven
+(no clip id is known to this map), nor the Board's own clip wall
+(`/chart/board/clips`), which redirected the guest to `/chart/`.
+
+## Sub-features
+
+- `clip-private` a clip that is not public, or an id that is not a clip, shows
+  the private state with a way back to the chart.
+- `clip-play` a public clip plays with its title, author, market and Copy link
+  (live verification pending: needs a published clip id).
+- `clip-signin-doors` Take over, Open the chart and Reply go to
+  `/auth?redirect=/board/clips/<id>` for a guest (source only).
+
+## How to get to it (user POV)
+
+- Open a clip link someone shared: `https://<host>/chart/clip/<id>`. No sign-in
+  is asked for.
+- Click `Open the chart` to leave a private clip for the chart.
+
+## Driving it with control-kiyotaka
+
+Preconditions: the lane is up (`./control-kiyotaka doctor` green). No chart
+boot is needed; the page is its own route.
+
+- **Use the `/chart/` base.** The app is served under `/chart/`, so the route
+  is `http://127.0.0.1:<lane>/chart/clip/<id>`. A bare
+  `http://127.0.0.1:<lane>/clip/<id>` is answered by vite's base-URL hint
+  (`The server is configured with a public base URL of /chart/ - did you mean
+  to visit /chart/clip/<id> instead?`), not by the app.
+- **`clip-private`.** `./control-kiyotaka browser open
+  "http://127.0.0.1:<lane>/chart/clip/zzz"`, then poll
+  `[data-testid=clip-guest-page]`. Proof (driven 2026-11-02): `clip-guest-page`
+  and `clip-guest-private` present, `clip-guest-home-link` present, the body
+  text `This clip is not public Open the chart`, and the dialog store's
+  `isAuthenticationDialogOpen` `false`. A malformed id is answered without a
+  network call (source: `src/pages/ClipGuestPage.vue`,
+  `src/services/academy-guest.service.ts`).
+- **`clip-play`.** With a real public id, poll `clip-guest-title`,
+  `clip-guest-author` and `clip-guest-market`; `clip-guest-copy-link-btn`
+  copies the link. A server error other than 401, 403 or 404 shows
+  `clip-guest-retry-btn`. Source only.
+- **`clip-signin-doors`.** `clip-guest-take-over-btn`,
+  `clip-guest-open-chart-btn` and `clip-guest-reply-btn` navigate to
+  `/auth?redirect=/board/clips/<id>`; that is where a guest stops. Source only.
+- **The Board is not a guest door.** `/chart/board/clips` (and `clips/:id`,
+  `setup/:key`, `c/:slug` under the Board) carry `meta.authorized: true` plus
+  the `om-board` and `chart-clips` flags; a guest open of `/chart/board/clips`
+  landed on `/chart/` (driven 2026-11-02).
+- **Proof.** The page's testids, the private or title text, the wall state,
+  and a screenshot of the page.
+
+## Gotchas
+
+- **The route is `authorized: false` by design (source, `routes.ts`,
+  `ClipGuest`).** It is the only clip surface a guest reaches; the Super Search
+  row `academy:open-clips` (`clips`, `reels`, `videos`) is listed only while
+  `isChartClipsOn()` (`om-board` and `chart-clips`), so a guest's `clips`
+  query lists nothing (driven 2026-11-02).
+- **Opening the route reloads the lane's page**, so a later chart drive in the
+  same tab starts from a fresh boot: dismiss the overlays and wait for candles
+  again, and re-front the tab (it drifted `hidden` after the reload on
+  2026-11-02; see [chart boot](./chart-boot-and-data-plane.md) Gotchas).
+- **Clips are recorded on the author's chart and the wall plays them on the
+  viewer's own chart (source, `d5d9e33713`, `ec8e001d2d`, `479b782d5c`,
+  `f63becdf6a`, `79b1c41da2`, `f6e068a812`).** The Board's `clips` and
+  `clips/:id` routes render `chart.vue` itself with `immersive: true`, and a
+  guest gets no record button (`clip-record*`: 0 in the DOM, driven
+  2026-11-02).

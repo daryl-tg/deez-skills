@@ -12,6 +12,13 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-02 on tree `a4488341f6` (`origin/main`, lane `18103`, no
+JWT): still unreachable.** `typeof window.__voiceControl` read `undefined`
+and `voice-control-mic-btn` was absent after the full guest pass; the
+Keyboard Shortcuts page's text held no `voice`. `src/utility/voice-control/`
+and `src/components/voiceControl/` have no diff in `120d5d5d32..a4488341f6`,
+and `voiceControlEnabled()` is still `isSignedInSession()`.
+
 **Re-driven 2026-11-01 on tree `120d5d5d32` (`origin/main`, lane `18103`, no
 JWT): still unreachable.** `typeof window.__voiceControl` read `undefined`, and
 `voice-control-mic-btn` and `voice-control-chip` were absent after the full

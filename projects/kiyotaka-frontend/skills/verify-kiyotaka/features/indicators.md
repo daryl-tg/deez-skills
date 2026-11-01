@@ -4,9 +4,28 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-01 against
-product tree `120d5d5d32` (`origin/main`), lane `18103`, a guest lane with no
+leave the chart at restore). This entry was last DRIVEN on 2026-11-02 against
+product tree `a4488341f6` (`origin/main`), lane `18103`, a guest lane with no
 JWT whose `.env.local` proxies to the operator's remote backend. Driven: the
+store landing (`See all 243`, tabs `popular, trending, new, paid`, three shelf
+cards, the Ask block with its hide and show; on BINANCE.F ETHUSDT the three
+questions were `footprint, levels, market_structure`, see the Ask bullet), an
+`RSI` query (`Official 4`, `Community 12`, the first row
+`official-indicator-add-official-indicator-relative-strength-index-rsi-official-rsi-btn`
+with `Oscillator 14, close` and an `Add · 1 slot` affordance), that row's Add
+raising the `indicators` wall, programmatic `BITCOIN_DOMINANCE` and
+`MA_RIBBON` adds (464 rows each, the counter `Indicators 3/3`, the ribbon's
+legend `Moving Average Ribbon`), the docked settings card (10 `setting-term`
+rows, `settings-templates-trigger` and `-value`, the Float/Dock toggle
+`settings-panel-mode-btn`, `overlay-settings-close-btn`), the legend's more
+menu (`indicator-menu` with `indicator-menu-{settings,copy,pane-move,show-on,remove}`),
+**the pane move, which is guest-walled**: `indicator-menu-pane-move` (`Move
+to new pane`) raised the sign-in wall headed `Technical Indicators` with
+`guestLoginFeatureId = "indicators"`, which is why the 2026-11-01 attempt saw
+no move; `legends.closeBtn.click()` tearing both overlays down (`Indicators
+1/3`); and the `?wrunRef=@om-core/trend-candles` link (URL stripped,
+`indicators` wall, the package stashed in `sessionStorage`). Earlier,
+2026-11-01 on `120d5d5d32` (`origin/main`, lane `18103`, no JWT). Driven: the
 dialog on its store landing (`See all 243`, tabs `popular, trending, new,
 paid`, three shelf cards, the Ask block's families `derivatives, order_book,
 delta_cvd` and its hide and show), an `RSI` query (`Official 4`, `Community
@@ -250,12 +269,28 @@ Preconditions:
   The on and off controls are the app-wide pill since `8b8b211759`:
   `[role=switch][data-testid=on-off-toggle-btn]` read by `aria-checked` (four on
   this card).
-- **The Ask block — driven 2026-10-29.** The store landing's
-  `indicator-ask-block` now carries `indicator-ask-promise` (`Nothing is added
-  until you choose`), three `indicator-ask-question-<topic>` buttons
-  (`derivatives`, `order_book`, `delta_cvd`) and `indicator-ask-hide-btn`. Its
-  click left the block with `indicator-ask-show-btn` and no questions; the show
-  button brought all three back.
+- **The Ask block — driven 2026-10-29 and 2026-11-02.** The store landing's
+  `indicator-ask-block` carries `indicator-ask-promise` (`Nothing is added
+  until you choose`), three `indicator-ask-question-<topic>` buttons and
+  `indicator-ask-hide-btn`. Its click left the block with
+  `indicator-ask-show-btn` and no questions; the show button brought all three
+  back. **The three families rotate.** They read `derivatives, order_book,
+  delta_cvd` on 2026-10-29 and 2026-11-01 and `footprint, levels,
+  market_structure` on 2026-11-02 (BINANCE.F ETHUSDT): `ASK_QUESTION_FAMILIES`
+  in `src/utility/chart/indicator-ask-questions.util.ts` is walked from a
+  rotation that the first open of a page load starts, and only families the
+  chart's market answers (`askQuestionFits`) are offered, so assert three
+  distinct `indicator-ask-question-*` ids, not which three.
+- **The dialog remembers its last query (driven 2026-11-02).** A reopen after
+  an `RSI` search lands on the results with `RSI` still in
+  `indicator-search-bar-input`, so `indicator-store-landing`,
+  `indicator-store-see-all-official-btn` and the Ask block are absent. Clear
+  the field (`find testid indicator-search-bar-input fill ""`) and the landing
+  returns within 2 s. `See all N` is `Math.max(storeShelfCount,
+  entries.length)` for the active tab (`IndicatorOfficialShelf.vue`,
+  `useIndicatorCatalogV2.ts`), so it is the official rows in that tab, not a
+  backend total. A row's Add now sits beside a slot count (`Add · 1 slot`),
+  and the favourite star carries no testid (match it by accessible name).
 - **Open Interest Profile `Display` — driven 2026-10-28.** On BINANCE.F
   ETHUSDT, `addIndicator('OPEN_INTEREST_PROFILE',{},0)` mounted and its settings
   `Source` tab showed a `Display` section: `Display mode` (`Net`), `Bar width`,
@@ -282,6 +317,31 @@ Preconditions:
 
 ## Gotchas
 
+- **New in `120d5d5d32..a4488341f6`, source only, not driven:**
+  - A US stock's Live price feed lifts a row's wall through the Trades feed:
+    the row shows `indicator-trades-feed-<slug>` (`Trades feed`), an Add on it
+    asks to switch to Trades first, and the legend's diagnostic card offers
+    `legend-diagnostic-card-switch-trades` (`IndicatorRow.vue`,
+    `LegendDiagnosticCard.vue`; `dc92b520b5`, `94f2354f15`). The add doors are
+    wrapped by `answerRefusedAdd` and `stockFeedWallFor`
+    (`chart.add-indicator.ts`); a crypto lane never meets them, and a guest
+    reads the `us-equities-full` flag off.
+  - The settings card's template menu gains a "Save as default" row and
+    `settings-template-default-note` (`SettingsTemplatesMenu.vue`,
+    `3ed1679add`; toasts `defaultSaved` and `defaultNothingToKeep`). On
+    2026-11-02 the docked card showed `settings-templates-trigger` and
+    `-value`; the note was not in the DOM with the menu closed.
+  - Every store-listed indicator carries a plain-words subtitle
+    (`indicator-labels.builtin.json`, `indicator-label-basis.util.ts`;
+    `6471ebc723`, `4f8f1a4bf4`); `ae55578e77` and `b10888e36c` record which
+    row a sentence answer led to (`sentenceAnswered`, `sentencePicked`), with
+    no surface.
+  - The ten options overlays follow the chart's market after a switch
+    (`8a69220785`); Cumulative Returns by Session draws only inside its session,
+    closed hours faint, as unbroken steady lines (`c963ab53df`, `38bc469231`,
+    `440d23be2d`, `f67ff294ef`); Big Trades 0.10.0 sets its minimum in coins
+    on crypto charts (`c45a9f4e80`); a wrun banded order-book input with a
+    `when` gate (`47fff639e5`); the kit is `0.109.0` (`a4488341f6`).
 - **New on `849fb08e95`, source only, never driven:**
   - The moving average ribbon is a built-in, `MA_RIBBON` (`dedda2c7bf`,
     `src/indicators/controls/ma-ribbon/`, chart-schema `0.8.1`). It needs no
@@ -374,18 +434,22 @@ Preconditions:
   conversion's settings reset (`kscript-sunset-settings-reset`). A missing
   overlay after such an Add, or after a restore, is the retirement, not a
   broken add. A guest has no saved rows, so none of it is guest-reachable.
-- **An indicator can move between the price pane and its own pane (source,
-  `66450484c2`, `fbb32ff5c2`; attempted 2026-11-01).** `OWN_PANE_MOVABLE_TYPES`
-  is `VWAP` and `MA_RIBBON` (`src/composables/chart/useIndicatorMenu.ts`): on
-  the price pane their legend menu and the chart right-click menu (after Hide)
-  offer `Move to new pane`, and in their own pane `Move to price pane`. Live,
-  the legend's `moreBtn.click()` surfaced a `Move to new pane` entry and the
-  click was accepted, but the Objects panel and the frame still showed the
-  ribbon under the price source; a synthetic `contextmenu` on the canvas opened
-  nothing. Drive it with a real pointer right-click (`mouse down --button
-  right` is not an agent-browser verb; use `mouse down`/`up` with the engine's
-  own menu) before claiming it, and prove it from the Objects panel's `PANE n`
-  badges.
+- **The pane move is guest-walled (source, `66450484c2`, `fbb32ff5c2`;
+  driven 2026-11-02 on `a4488341f6`).** `OWN_PANE_MOVABLE_TYPES` is `VWAP`
+  and `MA_RIBBON` (`src/composables/chart/useIndicatorMenu.ts`): on the price
+  pane their legend menu and the chart right-click menu (after Hide) offer
+  `Move to new pane`, and in their own pane `Move to price pane`. The legend's
+  `moreBtn.click()` opens the Vue menu `indicator-menu` (`IndicatorMenu.vue`)
+  with `indicator-menu-settings`, `indicator-menu-copy`,
+  `indicator-menu-pane-move` (`Move to new pane`), `indicator-menu-show-on`
+  and `indicator-menu-remove` (`-move-up` and `-move-down` exist in source).
+  A guest's click on `indicator-menu-pane-move` raises the sign-in wall headed
+  `Technical Indicators` (`guestLoginFeatureId = "indicators"`) and the ribbon
+  stays `type: "onchart"`; that is what the 2026-11-01 attempt saw as "the
+  move not observed". Proving the move itself needs a signed-in session; read
+  the overlay's `type` (`onchart` to `offchart`) and the Objects panel's `PANE
+  n` badge (`Bitcoin Dominance PANE 2` showed there for the own-pane
+  indicator).
 - **The settings card docks, and floats on a toggle (driven 2026-11-01).**
   `settings-panel` opened docked at the right (`union 0`, 10 `setting-term`
   rows, header `Bitcoin Dominance Template No template Style …`);

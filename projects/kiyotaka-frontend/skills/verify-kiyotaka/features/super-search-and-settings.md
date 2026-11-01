@@ -6,8 +6,30 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
-2026-11-01 against product tree `120d5d5d32` (`origin/main`), lane `18103`, a
-guest lane with no JWT. Driven: the empty box (placeholder `Search the
+2026-11-02 against product tree `a4488341f6` (`origin/main`), lane `18103`, a
+guest lane with no JWT. Driven: the empty box (`super-search-directory`
+present, no `super-search-section-toggle-*`, no starters), `liquidations`
+listing the Tape row (`super-search-result-panels:Tape-btn`, the retired
+panel's alias), `tape sounds` listing `super-search-result-tape:tape-toggle:sound-btn`
+(`Tape sounds · Tape: play a sound on live prints`, `OFF`; listed for a
+guest, not clicked), `clips` and `pepe` listing nothing, `Volt`
+(`theme-kiyotaka`) and Terracotta back, `Dark Mode` both ways, `Gray`
+raising `light-mode`, `SPY/GLD` charting `BINANCE.F SPYUSDT / NYSE GLD/USD`
+(a third resolution, see Gotchas), `hide candles` and `show candles`
+(`candles-visible:off` and `:on`, `metadata[0].isHidden`), a how-to question
+(`No results found`), the `Explore` row's `workspace` wall, the camera's
+`screenshot` wall, `Meta+/` (nav `shortcuts, language, notes`; no voice
+text), Release Notes (81 versions, `4.49.0 Latest`, `4.0.0 Spotlight
+OPENMARKET V4`), the Preferences page (13 `language-option-*`,
+`appearance-mode-{dark,gray,light,cream}`, 8 `preferences-theme-*`), and
+the walls from `tb-watchlist-toggle-btn` and `Alt+W` (`watchlist`),
+`tb-options-btn` (`terminal`), `tb-news-toggle-btn` (`news`),
+`tb-editor-toggle-btn` (`script-editor`), an official row's Add and the
+legend menu's `Move to new pane` (`indicators`), a `?wrunRef=` link
+(`indicators`), the heatmap switch (`orderbook-heatmap`),
+`alert-add-menu-price-btn` (`alert`), the matrix cell (`multi-chart`) and the
+seven walled Panels rows. Earlier, 2026-11-01 on `120d5d5d32`
+(`origin/main`, lane `18103`, no JWT). Driven: the empty box (placeholder `Search the
 platform`, directory sections `market, orderflow, build, automate, learn`, no
 `trade`, no starters), `volt` (`theme-kiyotaka`) and back to `Percept`, whose
 row is now titled **Terracotta** (`theme-percept`), the `Dark Mode` toggle
@@ -202,6 +224,14 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   | `tb-panels-row-watchlist`, `-news`, `-editor` (2026-10-28) | `watchlist`, `news`, `script-editor` |
   | `themes:mode:gray` or `themes:mode:cream` (2026-11-01) | `light-mode` |
   | `featureCommands:layout-templates`, the `Explore` row (2026-11-01) | `workspace` |
+  | `indicator-menu-pane-move`, the legend menu's `Move to new pane` (2026-11-02) | `indicators` |
+
+  Re-driven 2026-11-02 on `a4488341f6`, every id unchanged (the camera, the
+  row Add, the matrix cell, the seat, `Alt+W`, News, Editor, Options, the
+  heatmap switch, the alert price item, the seven Panels rows, Gray, Explore,
+  `?wrunRef=`), plus the pane-move door above. The wall's heading is the
+  feature's name (`Technical Indicators` for `indicators`) over `Sign in or
+  create an account`.
 
   Re-driven 2026-10-28 with the same ids: the camera, an official row's Add,
   `tb-options-btn`, `tb-heatmap-toggle-btn` and `alert-add-menu-price-btn`;
@@ -242,13 +272,19 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   for every desktop guest and their pick raises `light-mode` (driven
   2026-11-01), so a frame after a Gray pick is a frame of the wall.
 - **`SPY / GLD` no longer charts the ETFs (driven 2026-11-01 on
-  `120d5d5d32`).** The formula row `formula:SPY/GLD` resolved to Solana
-  tokenized stocks: the ticker read `SOLANA SPYx/USDC:4pCZ…` and the title
-  `SPYx / USDC · 4pCZCV…iNXhRw / GLDx / USDC · 5tGLud…fzETV9` (440 bars). On
-  2026-10-29 the same row charted `SPY / USD / GLD / USD` (252 bars). The ranking
-  change `528a31b434` is the suspect; product gap, reported, not a map error.
-  The frame also showed `Connection lost. Reconnecting…` from that chart on,
-  which turned out to be the gateway outage below, not the formula.
+  `120d5d5d32`, again 2026-11-02 on `a4488341f6`).** On 2026-11-02 the
+  formula row `formula:SPY/GLD` (`Plot SPY ÷ GLD · Formula · Ratio`) charted
+  `BINANCE.F · NYSE SPYUSDT / GLD/USD` with the title `SPYUSDT / GLD / USD`
+  (464 bars): `GLD` is back on NYSE, but `SPY` resolves to a BINANCE.F
+  `SPYUSDT` perp. On 2026-11-01 it resolved to Solana tokenized stocks
+  (`SOLANA SPYx/USDC:4pCZ…` over `GLDx/USDC`, 440 bars), and on 2026-10-29 to
+  `SPY / USD / GLD / USD` (252 bars). `9ffb5345bf` and `eb1f3b83be` (tokenized
+  pools kept out of a plain search) moved it off Solana; `528a31b434` (search
+  ranking) is still the suspect for `SPY` leaving the ETF. Product gap,
+  reported, not a map error; `footer-undo-btn` (`Undo Change symbol`) puts the
+  previous chart back. The 2026-11-01 frame also showed `Connection lost.
+  Reconnecting…` from that chart on, which turned out to be the gateway outage
+  below, not the formula.
 - **The wall's visible title is the feature's name.** The camera's wall is
   headed `Share Your Chart`, Replay's `Chart Actions`, then `Sign in or create
   an account / One email. We send you a code, no password.` with `Email me a
@@ -271,3 +307,31 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   before calling an empty live panel a regression.
 - **Super Search mounts lazily.** `isSuperSearchOpen` goes true before the
   overlay is in the DOM, so poll for `super-search-overlay`.
+- **Provider changes in `120d5d5d32..a4488341f6` (source, read on
+  `a4488341f6`; the guest-visible ones driven 2026-11-02).** `panels.ts`
+  gives the Tape row the aliases `liquidations`, `trades and liquidations`,
+  `trade & liquidations` and the former name (`superSearch.panels.tapeFormerName`,
+  `Trade & Liquidations`), and `TradeAndLiquidations` left `WIDGET_PANELS`
+  (driven: `liquidations` lists `panels:Tape`). `tape.ts` adds the toggle row
+  `tape-toggle:sound` (`Tape sounds`, `ba8e2cc280`; driven, listed `OFF`).
+  `memecoins.ts` answers only a pasted Solana mint (`pastedSolanaAddress`;
+  `9ffb5345bf`, `eb1f3b83be`, `89adcfc7d5`), so a word such as `pepe` lists
+  no memecoin row (driven), and `symbols.ts` keeps `isBlkExchange` tokenized
+  pools out of the exact-ticker row. `academy.ts` adds `academy:open-clips`
+  (`clips`, `reels`, `videos`) behind `isChartClipsOn()` (`om-board` and
+  `chart-clips`), so a guest sees no clips row (driven: `clips` lists
+  nothing). `settings.ts` adds `trade:futures-order-confirm` behind the
+  futures flag on desktop (absent for a guest). `tools.ts` makes the `magnet`
+  toggle restore its last strength and adds `drawing-constrain` (`Align 45°`)
+  on phones only. `indicators.ts` gains `chartLifts` for Big Trades on a stock
+  Live price chart. Ask's do lane is now picked by Jev from the feature
+  registry (`src/ask/pick/*`; `src/ask/decide/route.ts` and `parts.ts` are
+  deleted, `8826196f40`) and `runUndo` undoes every record of a run; nothing a
+  guest sees changed (`askLaneOn` still needs a signed-in session).
+  `src/store/feature-flags.ts` only memoises its map (`flagsSnapshot`);
+  `GUEST_DEFAULT_FLAGS` is still `{}`.
+- **The appearance modes carry testids (driven 2026-11-02).** The Preferences
+  page's modes are `appearance-mode-{dark,gray,light,cream}` beside the 13
+  `language-option-*` rows and the 8 `preferences-theme-*` tiles. The Release
+  Notes nav is `settings-pages-nav-notes-btn` (a `-release-notes-` guess
+  finds nothing).
