@@ -49,6 +49,19 @@ Assert the Info content through the drawer's text, e.g. walk up from
 `Ops rotation, scanner duty, funding prints.`, `MUTUAL SERVERS · 2`,
 `Jan 2025`, `128 followers` and `Block user`.
 
+### Presence dots (added 2026-11-02)
+
+`tools/visual/person-presence-fixture.html` is an ordinary fixture, not a
+spec-only harness: it mounts one `[data-person-presence-fixture]` board with the
+four `PresenceDot` specimens (`shared/ui/PresenceDot.tsx`, rendered by
+`Avatar.tsx` and `HomeHub.tsx`), each labelled by its state: **Presence
+unknown** (`data-presence-source="unknown"`, a hollow ring), **Offline**
+(`leased`, dimmed), **Idle** and **Online on mobile** (`live`, the mobile
+glyph). Read them with
+`agent-browser eval '(()=>JSON.stringify([...document.querySelectorAll("[data-presence-source]")].map(d=>d.getAttribute("aria-label")+"/"+d.dataset.presenceSource)))()'`.
+Driven 2026-11-02 on `/rooms/` (18137). Live presence transitions still need a
+relay.
+
 ## Gotchas
 
 - The sections have no `role="tabpanel"`. A query for the panel finds nothing,
@@ -70,7 +83,9 @@ Assert the Info content through the drawer's text, e.g. walk up from
 
 ### Verification record
 
-**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `profile=1` opened the drawer with tabs **Info**, **Media**, **Links** and **To-dos**; **Media** became selected with the hash unchanged; **Close profile** unmounted the tablist; `card=1` showed **Profile for ana** with **View ana (ops)'s full profile**, **Message**, **Mention**, **Follow**, **Block ana** and **Send to ana**. `/chat/` (18138): `profile=1` still opens no drawer (fixture gap re-confirmed). **Limitations:** the name popover, the user context menu, tab contents beyond Info and real profile fetches. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`profiles-01`, `profiles-02`).
+**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=dm&dm=ana&alerts=quiet&profile=1`: **Profile sections** (Info, Media, Links, To-dos) → **Media** selected with the hash still `#/dm/ana`; **Close profile** clicked; `card=1` → **Profile for ana**; `person-presence-fixture.html` → the four presence specimens. **Limitations:** 400 ms after **Close profile** the `Profile sections` tablist still read as mounted, so the unmount was not re-proved tonight (the 2026-11-01 reading stands); the `/chat/` DM header still has no profile button. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+
+**Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `profile=1` opened the drawer with tabs **Info**, **Media**, **Links** and **To-dos**; **Media** became selected with the hash unchanged; **Close profile** unmounted the tablist; `card=1` showed **Profile for ana** with **View ana (ops)'s full profile**, **Message**, **Mention**, **Follow**, **Block ana** and **Send to ana**. `/chat/` (18138): `profile=1` still opens no drawer (fixture gap re-confirmed). **Limitations:** the name popover, the user context menu, tab contents beyond Info and real profile fetches. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`profiles-01`, `profiles-02`).
 
 **Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `?view=dm&dm=ana&alerts=quiet&profile=1`: tab **Media** selected, hash stayed `#/dm/ana`, **Close profile** present; `&card=1` mounted the **Profile for ana** dialog with its six buttons. `/chat/` (18136): the header button **ana Online ana** opened nothing (no **Close profile**, no **Profile sections**). **Limitations:** Block, Follow, Message and Report effects; the name popover; `/chat/` drawer (fixture gap). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 

@@ -136,7 +136,7 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 
 On `shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server`,
 right-click the **runbook.md** treeitem in the library panel, or focus it and
-press the ContextMenu key (`LibraryPanel.tsx:696`, `:1786`). Either one opens
+press the ContextMenu key (`LibraryPanel.tsx:696`, `:1194`). Either one opens
 `DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4594-4600`), a
 `menu` with no accessible name and 12 items: Open, Open in floating window,
 Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
@@ -157,7 +157,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, abs
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
 with `data-daily-note-day` set to the local day, `LibraryView.tsx:3232-3240`;
 the add menu lists it as **Daily note**, `:3770`, `:4137`; the `d` key at
-`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:38833`),
+`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:38913`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
 no doc pane, no `.library-daily-note` section (`:6533`), no toast, hash still
@@ -240,6 +240,16 @@ is `false`. `agent-browser press` does not perform the browser's native
 page-wide select-all, so an empty selection after a chat click is a harness
 artefact, not a failure.
 
+### Doc tags (added 2026-11-02)
+
+The server doc reader (`shell-fixture.html?view=room&alerts=quiet&doc=server`)
+renders a `[data-doc-pane-tag-row]` under the header with a **+ tag** button
+(`[data-doc-tag-add]`, `DocPane.tsx`). Clicking it mounts an inline `input`
+with the placeholder **add tag**; the seeded doc carries no `.doc-tag-pill`
+chips, so the chip title (**Search this server's library for #<key>**) and the
+tag search it opens are source-only here. Driven 2026-11-02 on `/rooms/`
+(18137).
+
 ## Gotchas
 
 - **The Archive lens renders its chrome and never fills — and it does not
@@ -278,7 +288,9 @@ artefact, not a failure.
 
 ### Verification record
 
-**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `panel=library&scope=server` filter `a` → **2 notes match “a”** with **Clear search**, **Open Library full page** → `full`; `lens=todos` → `#/library/todos` (**Todos** current, "Review the launch checklist"); `lens=archive` → `#/library/archive` with **Refresh**; `lens=agents` → **Your Library could not load**; `?view=home&homeImport=open` → **Import folder into Your Library** (**Browse folders...**, **Continue**); `doc=server` → **Edit**, **Version history**, **Close document**; `docState=reconcile` → **Two versions of this doc**, **Later** → `fixtureDocReconcile=dismissed`; `docState=history` → the **Version history** select (2 options); `docAccess=readonly` → no **Edit**; `doc=journal` with `om.chat.vimMode` → `data-vim=on` and `.cm-vim-panel` **--NORMAL--**; the **Today's note ⌘D** button (inert). `/chat/` (18138): `lens=todos` → `/chat/library/todos` ("Share the customer notes"); `lens=agents` renders (Agents, Agent persona note, Living daily note, Note gardener); `docState=reconcile` and `docState=history`. **Limitations:** the `runbook.md` doc menu was not re-opened (the script's row finder missed on the full page; the 2026-10-31 twelve-item record stands); doc verbs, proposals, `docState=review`, import phases and the daily note itself stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`library-01` to `library-06`, `census-03`, `chat-13`).
+**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `panel=library&scope=server` → runbook.md right-click → the 12-item menu; the full page (`#/library`) with **Today's note ⌘D** (`data-daily-note-day=2026-11-02`); `lens=todos` → `#/library/todos`; `lens=archive` → `#/library/archive` with `data-home-library-archive`; `homeImport=open` → **Import folder into Your Library**; `doc=server` reader (**Edit**, **Version history**, **+ tag** → an **add tag** input), `docState=reconcile` → **Two versions of this doc** (Result / Changes / Use every ↓ ×2 / what both started from / write it myself / **Combine** "1 passage left to settle", **Later**), `docState=history` → **Version history** at 9 (r9 · current · kyle, r8 · om), `docAccess=readonly` drops **Edit**; `/chat/` (18138): the doc menu does not open (`openDocMenu` noop), `lens=todos` → `/chat/library/todos`, `lens=agents` renders **Agents** (`/rooms/` still shows **Your Library could not load**). **Limitations:** `docState` and `docMode` need `doc=server` (without it a run reads as "nothing renders"); the doc reader select-all and the import flow past the dialog were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+
+**Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `panel=library&scope=server` filter `a` → **2 notes match “a”** with **Clear search**, **Open Library full page** → `full`; `lens=todos` → `#/library/todos` (**Todos** current, "Review the launch checklist"); `lens=archive` → `#/library/archive` with **Refresh**; `lens=agents` → **Your Library could not load**; `?view=home&homeImport=open` → **Import folder into Your Library** (**Browse folders...**, **Continue**); `doc=server` → **Edit**, **Version history**, **Close document**; `docState=reconcile` → **Two versions of this doc**, **Later** → `fixtureDocReconcile=dismissed`; `docState=history` → the **Version history** select (2 options); `docAccess=readonly` → no **Edit**; `doc=journal` with `om.chat.vimMode` → `data-vim=on` and `.cm-vim-panel` **--NORMAL--**; the **Today's note ⌘D** button (inert). `/chat/` (18138): `lens=todos` → `/chat/library/todos` ("Share the customer notes"); `lens=agents` renders (Agents, Agent persona note, Living daily note, Note gardener); `docState=reconcile` and `docState=history`. **Limitations:** the `runbook.md` doc menu was not re-opened (the script's row finder missed on the full page; the 2026-10-31 twelve-item record stands); doc verbs, proposals, `docState=review`, import phases and the daily note itself stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`library-01` to `library-06`, `census-03`, `chat-13`).
 
 **Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): `panel=library&scope=server` filter `a` → `2 notes match “a”` with the clear control, **Open Library full page** → `full`; `runbook.md` right-click → 12 items (Open … Delete); `?view=library&lens=todos` → `#/library/todos` with `aria-current`; `lens=archive` → **Archived** and **Refresh**, no rows; `?view=home&homeImport=open` → **Import folder into Your Library**; `doc=server` **Edit** and **Version history**; `docState=reconcile` → **Two versions of this doc**, **Later** → `fixtureDocReconcile=dismissed`; `docState=history` → the **Version history** select; `docAccess=readonly` → no **Edit**; `doc=journal` with `om.chat.vimMode=true` set first → `data-vim=on` and `.cm-vim-panel` **--NORMAL--** (without the pref the editor has no Vim panel). `/chat/` (18136): `lens=todos` → `/chat/library/todos`; `lens=agents` rendered (Agents, Agent persona note, Living daily note, Note gardener); `docState=reconcile` and `docState=history`. **Limitations:** `lens=agents` still crashes on `/rooms/` (smoke, **could not load**); `?panel=todos` crashes on both; doc verbs, proposals, `docState=review`, import phases, the `/chat/` doc menu and the **New doc** entry in the panel's add menu (`LibraryPanel.tsx:1984`) were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 

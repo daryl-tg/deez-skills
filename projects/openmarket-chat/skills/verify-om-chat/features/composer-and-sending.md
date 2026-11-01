@@ -75,7 +75,7 @@ Read the gotchas for where the line now falls.
 - Send disabled while empty; Enter-to-send versus newline. The **Send message**
   button renders when `isMobile || showSendButton` (`Composer.tsx:6466`). The
   ordinary room and DM composer is therefore phone-width only, and desktop
-  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:433`) and the
+  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:434`) and the
   remote-control pane (`RemoteControlPane.tsx:345`) also show it on desktop,
   with an `sr-only` "Send" label.
 - Sent text must not come back as a draft after a reload or a revisit
@@ -98,7 +98,7 @@ Read the gotchas for where the line now falls.
   mode. Escape belongs to Vim, so it no longer cancels a reply. Touch screens
   (coarse pointer) never get Vim. With the setting off none of this renders,
   and Enter and Escape behave as before.
-- The GIF picker: **Choose emoji or GIF** → **GIFs** opens dialog **Choose a GIF** with **Search KLIPY**; `?view=gif` is a standalone sizing harness.
+- The GIF picker: **Choose emoji or GIF** → **GIFs** opens dialog **Choose a GIF** with **Search KLIPY**; `?view=gif` is a standalone sizing harness (`/rooms/` only; the `/chat/` fixture has no GIF view).
 
 ## How to get to it (user POV)
 
@@ -232,7 +232,7 @@ In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** 
 ### Chart card and cashtag pill (added 2026-10-28)
 
 - **Chart card:** send a message that is only a chart URI, such as `om://chart/BTC?i=15m`. The grammar is `CHART_URI_RE` (`lib/message-preview.ts:16`). The sent row renders a chart card reading **BTC · 15m · LIVE** with **Copy link**.
-- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2603-2606`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3070`), so the peek cannot be proved here.
+- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2606-2610`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3070`), so the peek cannot be proved here.
 - **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture parses `?draft=` (`apps/cloud/tools/visual/shell-fixture.tsx:1239-1242`), but its composer still loads empty on a room or a DM (re-measured 2026-10-30), so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
 - **Not seeded:** `UnfurlCard` (no fixture seeds `entry.unfurls`, and a send never adds one) and `WebhookEmbedBlock` (it needs `metadata.embeds` on a webhook sender; the gallery's webhook rows have none, `tools/visual/fixture.tsx:1430-1490`).
 
@@ -262,8 +262,8 @@ Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
 `/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
 Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
 renders the guide page **Slash commands**. Running a command is pending: the
-real handler is `ChatSession.handleSlash` (`lib/session.ts:43079`, called at
-`:15130`, `:15355` and `:15687`), and the fixture's send only appends the text, so `/nick`,
+real handler is `ChatSession.handleSlash` (`lib/session.ts:43159`, called at
+`:15194`, `:15419` and `:15751`), and the fixture's send only appends the text, so `/nick`,
 `/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
 authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
@@ -302,6 +302,16 @@ pushing a pending attachment and stamping `data-fixture-attachment`; no upload
 or scan runs. OS drops onto the tape, the topic list or the library
 (`useFileDropZone.tsx`) still need a real file through `setInputFiles` or a CDP
 drop, and stay pending.
+
+### The older-messages banner past 99 (added 2026-11-02)
+
+`ChatPane.tsx:3266` prints **You're viewing older messages · 99+ new below**
+once the count behind the banner passes 99 (`formatUnreadCount`,
+`lib/animated-count-parts.ts:35-42`, since `4cd3434f`). No fixture seed raises
+a room's new-below count that high (`bulk=120` pads the tape but the reader
+sits at the bottom), so this is source-only; see
+[channel-and-topic-navigation.md](channel-and-topic-navigation.md) / Unread
+labels past 99.
 
 ## Gotchas
 
@@ -417,7 +427,9 @@ drop, and stay pending.
 
 ### Verification record
 
-**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): a bare `@` lists 13 options and `/` 29 (`/shr` → **/shrug**) on both; `@traders hi` renders `.mention-pill.role-mention.role-colored` at `rgb(209, 154, 58)` on both; `om://chart/BTC?i=15m` renders the chart card (**BTC 15m LIVE**, **Copy link**) on `/rooms/`; `?connection=reconnecting` reads **Reconnecting...** after 8 s; `failed=room` shows kyle's failed row; the link-over-selection paste and the image paste (**Message attachments**: **probe.png Ready · 1 KB**) on both hosts; Vim in the composer with `om.chat.vimMode` (**INSERT** → Escape **NORMAL**, `0` `x` → `ello world`, `d` pending then `w` → `world`, `v l l` → **VISUAL** with selection 0–3). **Limitations:** the cashtag pill and the GIF send were not re-read (the chart card selector in the script missed and the text was read instead); delivery and draft durability still need the daemon-pair lane. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`composer-01` to `composer-04`, `paste-01`/`02`, `vim-01`, `chat-09`).
+**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): `$TSLA looks strong` → `.cashtag-pill[role=link][data-cashtag=TSLA]` (the `draft=` seed on `/rooms/`, `fill` on `/chat/`); the `om://chart/BTC?i=15m` send → **BTC 15m LIVE** with **Copy link** (`/rooms/`); `/` → **COMMANDS** (29), `/shr` → **/shrug**; a bare `@` → **MEMBERS & ROLES** (13); **Choose emoji or GIF** → **Choose an emoji** → **GIFs** → **Choose a GIF** with **Search KLIPY**; the link-over-selection paste → `[docs](https://example.com/x)`; `connection=reconnecting&failed=room` → **Reconnecting...** (`role=status`) at 8 s with the failed row (`/rooms/`); the 300-character fence wrapping (958 px, no overflow) with `code-block.css` injected (`/rooms/`). **Limitations:** the cashtag peek and the chart card's actions stay inert; `/chat/` ignores `draft=`; nothing seeds a 99+ banner; the image paste and the Vim motions were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+
+**Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): a bare `@` lists 13 options and `/` 29 (`/shr` → **/shrug**) on both; `@traders hi` renders `.mention-pill.role-mention.role-colored` at `rgb(209, 154, 58)` on both; `om://chart/BTC?i=15m` renders the chart card (**BTC 15m LIVE**, **Copy link**) on `/rooms/`; `?connection=reconnecting` reads **Reconnecting...** after 8 s; `failed=room` shows kyle's failed row; the link-over-selection paste and the image paste (**Message attachments**: **probe.png Ready · 1 KB**) on both hosts; Vim in the composer with `om.chat.vimMode` (**INSERT** → Escape **NORMAL**, `0` `x` → `ello world`, `d` pending then `w` → `world`, `v l l` → **VISUAL** with selection 0–3). **Limitations:** the cashtag pill and the GIF send were not re-read (the chart card selector in the script missed and the text was read instead); delivery and draft durability still need the daemon-pair lane. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`composer-01` to `composer-04`, `paste-01`/`02`, `vim-01`, `chat-09`).
 
 **Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): local send (16 → 17 rows, box cleared); bare `@` → **MEMBERS & ROLES** with 13 options; `/` → 29 commands, `/shr` → `/shrug`; `@traders hi` → `.mention-pill.role-mention.role-colored` in `rgb(209, 154, 58)` with `--role-color: #d19a3a`; `om://chart/BTC?i=15m` → **BTC 15m LIVE** with **Copy link**; `$BTC looks strong` → one `.cashtag-pill`; `?draft=` code fence → one `[data-code-panel]`, three regions, two markers; **Choose emoji or GIF** → **GIFs** → **Choose a GIF** with **Search KLIPY**; `?reply=1` strip and the toolbar **Reply** retarget; `?connection=reconnecting` → **Reconnecting...** after 8 s. `/chat/` (18136): send, bare `@` (13), `/` (29) and `/shr`, the role pill, the chart card, the reply strip and retarget. **Limitations:** Delivery and recovery banners, staged attachments, agent rows in the `@` menu, sending a GIF, slash execution, Vim touch/IME, durable drafts, unfurl and webhook cards. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 

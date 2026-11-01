@@ -147,9 +147,9 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
 
 - **Mute a channel:** hover a sidebar channel row and press **More options for
   <name>**. The menu's **Mute** tile is named **Choose how long to mute
-  #<name>** (`Sidebar.tsx:414`). Clicking it (hover does not open it) opens a
+  #<name>** (`Sidebar.tsx:415`). Clicking it (hover does not open it) opens a
   submenu with 15m / 1h / 8h / 24h / **Until unmuted**; a muted channel also offers
-  **Unmute channel** (`:433`). The same verb sits in the channel header menu as
+  **Unmute channel** (`:434`). The same verb sits in the channel header menu as
   **Mute channel** with a **Mute for** chip row (`ChannelHeaderMenus.tsx:175`,
   `:374`), as **Mute conversation** for a DM (`:336`), as **Mute <topic>** on a
   topic pill (`TopicPill.tsx:126`) and on the server menu's quick bar
@@ -159,12 +159,12 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
   no state change and no toast, and `roomAttentionFor` / `roomMuteUntilFor`
   answer `null`. Since `4ca34c9a`, muting a room this socket never joined (an
   alert channel never opened this session) retries over REST after the relay's
-  `NOT_IN_ROOM` refusal (`lib/session.ts:35616`, `:35711`). That path is
+  `NOT_IN_ROOM` refusal (`lib/session.ts:35680`, `:35775`). That path is
   covered only by `packages/chat-ui/test/ui/mute-durations.test.ts`. The topic
   pill's mute is stubbed (`tools/visual/shell-fixture.tsx:2950-2960`, writes
   `data-fixture-topic-attention`), but it is a different code path.
 - **Topic chevron on hover (`357b2df5`):** a row's right-edge cluster (badge,
-  hover actions, topic chevron) is `shrink-0` (`Sidebar.tsx:3489`), so when the
+  hover actions, topic chevron) is `shrink-0` (`Sidebar.tsx:3490`), so when the
   hover actions **Invite people to <name>**, **Edit <name>** and **More options
   for <name>** appear, the label truncates and the chevron stays put. No seeded
   name is long enough at the default width. Narrow the sidebar first:
@@ -186,7 +186,7 @@ A hover peek previews a conversation without opening it or marking it read. It
 is desktop only. The fetch starts at 440 ms, the popover shows at 500 ms, and
 it closes 120 ms after the pointer leaves (`lib/channel-peek.ts:26-28`).
 Keyboard focus on the row opens it too. While a row menu is open, or during a
-drag, peeks are off (`Sidebar.tsx:2561-2564`).
+drag, peeks are off (`Sidebar.tsx:2562-2565`).
 
 - **Channel peek:** on `shell-fixture.html?view=room&alerts=quiet`, run
   `agent-browser find role treeitem hover --name "channel signals, 4 unread, 5 unread in topics"`
@@ -252,7 +252,7 @@ destructive verbs for the fixture viewer, so these lists are what a member
 without manage rights sees. Driven on `/rooms/` (18135) and `/chat/` (18136)
 at `936f5b64`.
 
-- **Channel row** (`Sidebar.tsx:6058-6262`), 10 items on `signals`: a
+- **Channel row** (`Sidebar.tsx:6059-6263`), 10 items on `signals`: a
   notification tile named **Notification settings for #signals (Use server
   default)** (a submenu), **Link** (**Copy link to #signals**), **Mute**
   (**Choose how long to mute #signals**, a submenu with 15m / 1h / 8h / 24h /
@@ -262,14 +262,14 @@ at `936f5b64`.
   to** / **Move up** / **Move down** need manage rights and do not render.
   **Create Topic** opens the dialog **Create Topic in #signals** with a
   **Make topic private** switch and **Create Topic** (`Modals.tsx:370`).
-- **Category header** (`Sidebar.tsx:6290-6381`), 3 items on **category Desk,
+- **Category header** (`Sidebar.tsx:6291-6382`), 3 items on **category Desk,
   5 channels**: **Mark As Read**, **Collapse Category** and **Create Channel in
   Desk**. **Rename Category** and **Delete Category** need manage rights on
   every room in the category and do not render.
 - **Server header** (`.sidebar-server-menu-trigger`, `aria-haspopup="menu"`,
   `ServerMenu.tsx:81-267`), 16 items on `/rooms/`: **Read** (**Mark every
   channel in Thanefield Capital as read · ⇧Esc**), **Mute** (**Mute Thanefield
-  Capital until you turn it back on**), **Invite**, **Server Settings**,
+  Capital until you turn it back on (timed mutes below)**), **Invite**, **Server Settings**,
   **Create Channel**, **Create Category**, **Server Library**, **Open World**,
   **Clean up topics**, **Notification Settings** (a submenu), the flat timed
   mutes **15m** / **1h** / **8h** / **24h** (named **Mute Thanefield Capital
@@ -288,7 +288,7 @@ at `936f5b64`.
 Every verb here that changes state (`applyRoomPositions`, the archive and
 category writes, leave, the mute writes) is unstubbed in both fixtures, so the
 offer is proved and the effect is pending. Sidebar drag-and-drop
-(`text/om-channel`, `text/om-server`, `Sidebar.tsx:5338-5716`) is not
+(`text/om-channel`, `text/om-server`, `Sidebar.tsx:5339-5717`) is not
 driveable with synthetic `DragEvent`s.
 
 ### Resize handles and the sidebar lens (added 2026-11-01)
@@ -313,7 +313,7 @@ third demo lives in the gallery (driven 2026-11-01 on `/rooms/` at `936f5b64`):
 **The sidebar lens renders from prefs, and only from prefs, in this lane.**
 `sidebarLensMode` reads `om.chat.sidebarFocus` (a JSON array of space ids) and
 `om.chat.sidebarTodos` (`{"home":bool,"spaces":[…]}`) on every render
-(`lib/prefs.ts:507`, `:572`, `:812-816`; `Sidebar.tsx:3832-3844`). Seed one and
+(`lib/prefs.ts:507`, `:572`, `:812-816`; `Sidebar.tsx:3833-3845`). Seed one and
 reload at a desktop width (the lens is off below 768 px):
 
 ```bash
@@ -325,10 +325,49 @@ agent-browser reload
 #   "To-dos on: show all channels" pressed; the tree shrinks to the Open World row
 ```
 
-Clicking **Focus: only what needs you** (`Sidebar.tsx:4820`) or pressing ⌘⇧F
+Clicking **Focus: only what needs you** (`Sidebar.tsx:4821`) or pressing ⌘⇧F
 changes nothing: `setSidebarFocus` and `cycleSidebarLens` are unstubbed, so
 they resolve to `INERT` and write no pref. Clear both keys before any frame
 that should show the full tree.
+
+### Unread labels past 99 (added 2026-11-02)
+
+`4cd3434f` routes four counts through `formatUnreadCount`
+(`lib/animated-count-parts.ts:35-42`): the channel treeitem's aria-label
+(`Sidebar.tsx:3378`, **channel <name>, 99+ unread**), the Home headline
+(`shared/components/HomeHub.tsx:694`), the channel peek's header and door
+(`ChannelPeekPopover.tsx:94`, `:118`: **99+ new since you last read** and
+**99+ unread · open #<title>**) and the older-messages banner
+(`ChatPane.tsx:3266`, **You're viewing older messages · 99+ new below**). Above
+99 the peek's remainder is zero, so its **+N more unread** line becomes
+**More unread · open #<title>** (`:88-89`, `:96`). The topic part of the
+sidebar label (**N unread in topics**) and the **N mentions** part stay raw.
+
+Only the headline is reachable on the fixture lane: no channel or topic seed
+exceeds 99 (`BASE_CHANNELS` tops out at macro's 12, `channels=many` at 20,
+topics at 3; `shell-fixture.tsx:1698-1731`, `:1772`, `:2172`), and the
+session store is not on `window`, so a count cannot be raised from
+`agent-browser eval`. `rail=counts` seeds one DM at 120 (`:1905`): its
+`.rail-badge` reads **99+** while the DM treeitem keeps **120 unread** in its
+name. See [direct-messages-and-home.md](direct-messages-and-home.md) / The 99+
+headline for the headline proof. A `channel("firehose", 150, 0)` seed in
+`BASE_CHANNELS` would make the label and peek forms driveable.
+
+### The bottom pin (added 2026-11-02)
+
+The tape keeps the reader on the newest message until a real scroll gesture
+moves them off it (`lib/bottom-pin.ts`: `arm`, `noteGesture`, `bottomPinFor`;
+used by `ChatPane.tsx` and `TopicListView.tsx`). On
+`shell-fixture.html?view=room&alerts=quiet&bulk=120` the scroller is
+`[data-tape-scroller]` (`overflow-anchor: none`) and it loads at the bottom
+(`scrollTop + clientHeight === scrollHeight`); it stayed there through a
+1440×900 → 1100×640 → 1440×900 viewport change (driven 2026-11-02 on
+`/rooms/`). Setting `scrollTop` from `eval` does **not** disarm the pin (the
+next layout change snapped back to the bottom), because only a wheel or touch
+gesture counts as the reader leaving; disarm it with `agent-browser scroll up`
+or `mouse wheel` before asserting a held position. The dock's **Collapse
+panel** toggle is INERT on this fixture, so use the viewport, not the side
+panel, as the layout change.
 
 ## Gotchas
 
@@ -436,7 +475,7 @@ that should show the full tree.
   `tools/visual/topic-peek-drop.visual.ts` uses that bare URL, which explains
   its old failure. It was not run this pass. **Clicks that no longer peek:** a
   topic activity card in the stream, including its message count, always
-  opens the full topic (`TopicActivityCard.tsx:151-163`). So
+  opens the full topic (`TopicActivityCard.tsx:152-164`). So
   `apps/cloud/tools/visual/topic-peek.visual.ts`, which clicks that count,
   reads as stale against source. It was not run either. In the fixture, the
   inbox panel's **Topic CPI print — Aug, followed** row did not open a peek on
@@ -490,7 +529,9 @@ that should show the full tree.
 
 ### Verification record
 
-**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): **CPI print — Aug, 2 mentions, 3 unread** → `#/room/ops/topic/cpi-print-aug` with the composer **Message in CPI print — Aug** → **Back to #ops**; dock **Members**; the topic row menu (10 items: Following, Mute, Link, Resolve, Open Topic, Import Folder..., Rename, Create Doc from Topic, Set topic index..., Delete Topic); the channel-row menu (10) and its **Create Topic** → **Create Topic in #signals** with **Make topic private**; the **Desk** category menu (3); the server menu (16, with **Clean up topics**) → **Create Category** and **Create Channel** → **Create channel**; the topic peek under the hash (**Topic CPI print — Aug (peek)**, **Open full**), the DM hover peek (**Conversation with ana**) and the channel hover peek (**Preview of signals**, caught up); the switcher (`#mac` → `#/room/macro/topic/basis-desk-review`); the deep link `#/room/ops/msg/105` flashing row 105; the inbox, New topic, Pinned and Bookmarks panels; the two resize separators and the seeded Focus and To-dos lenses. `/chat/` (18138): topic open and **Back to #ops**, the channel-row menu (10), the server menu (15, no **Clean up topics**), **Create Category**, the DM row menu, the DM hover peek, the topic peek's **Open full** promoting to `/chat/room/ops/topic/cpi-print-aug`, the four panels and the switcher. **Limitations:** **Hide this channel's topics**, Mark As Unread (the `topic in ops` row's menu tonight listed no such entry), **Resolve Topic**, Mute durations and the remove/delete confirms were not re-driven; their 2026-10-31 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`nav-01` to `nav-10`, `peek-01` to `peek-03`, `panels-01`, `lens-01`/`02`, `census-04`, `chat-01` to `chat-05`).
+**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): **CPI print — Aug, 2 mentions, 3 unread** → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`) and **Back to #ops**; **Hide this channel's topics** → **Show this channel's topics** with `aria-expanded="false"` (level-2 rows 20 → 18 on `/rooms/`); the channel-row menu (10 entries) and its **Choose how long to mute #ops** tile → **15m / 1h / 8h / 24h / Until unmuted**; the server menu (the sweep entry and the four timed-mute chips on `/rooms/`; 25 entries, five mute entries and no **Clean up topics** on `/chat/`); the topic-row menu (11 entries, **Mark As Unread** and **Set topic index...** listed) → **Resolve <topic>** dialog (**What settled it? · optional**, **Resolve Topic**, **Enter resolves · Esc cancels**) and the **Delete ⌗ <topic>** alertdialog (**Cancel** / **Delete**); `switcher=open` → the `.quick-switcher` combobox, `#mac` → 9 options → Enter landed `#/room/macro/topic/basis-desk-review`; the #macro hover peek (**You're caught up**, **Peeking never marks as read**); **Resize channel sidebar** 240 → 270 (`om.chat.sidebarWidth` 270) and **Resize the side panel** by keyboard after an `eval` focus; the topics primer on both hosts (**Create Topic in ##ops** still doubled; **Dismiss the topics explainer**); **Remove ana from this topic** → **Remove from private topic?** on `/rooms/` (the `/chat/` members panel renders no Remove buttons); the Home headline **99+ unread across 4 conversations.** under `rail=counts`; the bottom pin across a viewport change. **Limitations:** `find role separator` has no `focus` action, focus the separator with `eval` first; `panel=members` on the public topic `cpi-print-aug` still blanks both hosts; the 99+ channel label and peek forms have no seed; the deep link, the DM and topic peeks and the New topic pane were load-smoked only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+
+**Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): **CPI print — Aug, 2 mentions, 3 unread** → `#/room/ops/topic/cpi-print-aug` with the composer **Message in CPI print — Aug** → **Back to #ops**; dock **Members**; the topic row menu (10 items: Following, Mute, Link, Resolve, Open Topic, Import Folder..., Rename, Create Doc from Topic, Set topic index..., Delete Topic); the channel-row menu (10) and its **Create Topic** → **Create Topic in #signals** with **Make topic private**; the **Desk** category menu (3); the server menu (16, with **Clean up topics**) → **Create Category** and **Create Channel** → **Create channel**; the topic peek under the hash (**Topic CPI print — Aug (peek)**, **Open full**), the DM hover peek (**Conversation with ana**) and the channel hover peek (**Preview of signals**, caught up); the switcher (`#mac` → `#/room/macro/topic/basis-desk-review`); the deep link `#/room/ops/msg/105` flashing row 105; the inbox, New topic, Pinned and Bookmarks panels; the two resize separators and the seeded Focus and To-dos lenses. `/chat/` (18138): topic open and **Back to #ops**, the channel-row menu (10), the server menu (15, no **Clean up topics**), **Create Category**, the DM row menu, the DM hover peek, the topic peek's **Open full** promoting to `/chat/room/ops/topic/cpi-print-aug`, the four panels and the switcher. **Limitations:** **Hide this channel's topics**, Mark As Unread (the `topic in ops` row's menu tonight listed no such entry), **Resolve Topic**, Mute durations and the remove/delete confirms were not re-driven; their 2026-10-31 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`nav-01` to `nav-10`, `peek-01` to `peek-03`, `panels-01`, `lens-01`/`02`, `census-04`, `chat-01` to `chat-05`).
 
 **Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): CPI treeitem → `#/room/ops/topic/cpi-print-aug` and **Message in CPI print — Aug**, **Back to #ops** → `#/room/ops`; **Hide this channel's topics** → **Show this channel's topics** (16 level-2 rows); dock **Members** → **Close Members** with `aria-pressed=true` and `.right-panel-drawer`; topic row menu (11 items), **Resolve Funding flipped negative on Hyperliquid** and **Resolve Topic** pressed (closes, no change), **Delete ⌗ …** alertdialog; switcher `#mac` → `#/room/macro/topic/basis-desk-review`; deep link `msg/105` → `data-message-jump=105`; channel-row **Mute** submenu (five durations); **Preview of signals** and **Conversation with ana** hover peeks; topic peek with the hash and Escape back to `#/room/ops`; **Remove from private topic?**; primer **New topic** → **Create Topic in ##ops**; the channel row, category and server menus and **Create Topic** / **Create Channel** dialogs. `/chat/` (18136): topic → `/chat/room/ops/topic/cpi-print-aug` and back; `peek=cpi-print-aug` plus **Open full** → the full topic; DM peek; the channel peek stays **Loading preview**; switcher → `/chat/room/macro/topic/basis-desk-review`; `panel=inbox` aside **Inbox**; `panel=topic-draft` aside **New topic**; the three sidebar menus (server 15 items). **Limitations:** Every menu verb's effect, public-topic removal, the dock collapse toggle and **Add People...**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 

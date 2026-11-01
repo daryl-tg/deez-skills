@@ -35,7 +35,7 @@ tools/visual/shell-fixture.html?view=room&alerts=quiet&quiet=on
 The entry is on the **server header menu**, not the channel header's **More
 channel actions** (earlier passes looked there and recorded an absence that
 was never the gate). On `/rooms/` the root host's `daemonFeatures` is true, so
-`Sidebar.tsx:5958` renders **Clean up topics** between **Open World** and
+`Sidebar.tsx:5959` renders **Clean up topics** between **Open World** and
 **Notification Settings**:
 
 ```bash
@@ -48,7 +48,7 @@ retryable error state: "Could not reach om to sort these topics. Pick by hand
 below, or retry.", with **Retry**, **Cancel** and **Resolve 0 topics**. Every
 quiet topic lands in one group, **Not sorted** (30 rows from the `quiet=on`
 seed), each with a checkbox, plus **Select all in Not sorted**. Ticking one row
-renames the action **Resolve 1 topic**; **Select all** gives **Resolve 30
+renames the action **Resolve 1 topic**; the checkbox **Select all in Not sorted** (no control is named just "Select all") gives **Resolve 30
 topics**. Pressing it closes the sheet and the fixture records the sweep start
 as `document.documentElement.dataset.fixtureTopicSweep="30"`. On `/chat/` the
 server menu has no **Clean up topics** (15 items), which is the gate working:
@@ -62,7 +62,7 @@ with topic triage. Do not target the operator daemon.
 ## Gotchas
 
 - `quiet=on` seeds the quiet followed topics the sheet lists and the bottom-rail
-  button **Quiet topics 20** (`shell-fixture.tsx:2242-2247`; `showQuiet=1` also
+  button **Quiet topics 20** (`shell-fixture.tsx:2247-2261`; `showQuiet=1` also
   seeds the shown state). Pressing the button flips `aria-pressed` and shows the
   hidden rows (the sidebar's level-2 treeitems went 14 → 30 on 2026-10-31);
   read the attribute after the re-render, not in the click's own tick.
@@ -86,7 +86,9 @@ with topic triage. Do not target the operator daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=room&alerts=quiet&quiet=on`: the **Quiet topics 20** toggle flips `aria-pressed` and grows the tree 20 → 36 rows (no pref written, as expected of the fixture); the server menu's **Clean up topics** opens the **Clean up topics** dialog in its fallback ("Could not reach om to sort these topics. Pick by hand below, or retry.", **Retry**, **Cancel**, **Resolve 0 topics**, one **Not sorted** group with 31 checkboxes). `/chat/` (18138): the server menu lists 15 items without the entry. **Limitations:** **Select all** and the sweep start were not re-driven (the script matched **Resolve 0 topics** instead); the 2026-10-31 record for them stands, and the triage groups, progress and running job still need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`cleanup-01`, `cleanup-02`, `chat-03`).
+**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=room&alerts=quiet&quiet=on`: **Quiet topics 20** `aria-pressed` false → true, level-2 rows 15 → 35; server menu → **Clean up topics** sheet with **Could not reach om to sort these topics.**, the **Not sorted** group (31 checkboxes), **Retry** / **Cancel** / **Resolve 0 topics**; **Select all in Not sorted** → **Resolve 30 topics**; pressing it closed the sheet and set `data-fixture-topic-sweep="30"`. **Limitations:** `/chat/` has no entry (`topicCleanupAvailable` is false there); the real sweep and the persisted toggle need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+
+**Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=room&alerts=quiet&quiet=on`: the **Quiet topics 20** toggle flips `aria-pressed` and grows the tree 20 → 36 rows (no pref written, as expected of the fixture); the server menu's **Clean up topics** opens the **Clean up topics** dialog in its fallback ("Could not reach om to sort these topics. Pick by hand below, or retry.", **Retry**, **Cancel**, **Resolve 0 topics**, one **Not sorted** group with 31 checkboxes). `/chat/` (18138): the server menu lists 15 items without the entry. **Limitations:** **Select all** and the sweep start were not re-driven (the script matched **Resolve 0 topics** instead); the 2026-10-31 record for them stands, and the triage groups, progress and running job still need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`cleanup-01`, `cleanup-02`, `chat-03`).
 
 **Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135) `?view=room&alerts=quiet&quiet=on`: server menu → **Clean up topics** opened the **Clean up topics** dialog in its error fallback ("Could not reach om to sort these topics. Pick by hand below, or retry."), **Not sorted** with 30 rows and **Select all in Not sorted**; one tick → **Resolve 1 topic**, select all → **Resolve 30 topics**; pressing it closed the sheet and set `fixtureTopicSweep="30"`. **Quiet topics 20** flipped `aria-pressed` and showed the hidden rows. `/chat/` (18136): the server menu has no **Clean up topics** (15 items). **Limitations:** The **Looks finished** / **Still active** groups, **Topics read** progress, the running job and toggle persistence across reloads (the fixture's `quietTopics` is a plain object). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 

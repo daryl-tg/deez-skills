@@ -146,9 +146,9 @@ agent-browser find role button click --name "Add someone"   # dialog "Add to gro
 
 ### New DM, Create or join a server, Getting started (added 2026-10-28)
 
-- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:746`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4449`); the old `NewDmModal` was deleted in `228c35f9`. The sidebar DMS header `+` (**New message**, `Sidebar.tsx:4680`) opens the same **New Message** dialog, and Escape returns focus to the `+`. It lives in the DMS group, which the sidebar shows on `?view=dm` and `?view=home`, not on `?view=room`. Driven on both hosts 2026-10-29. Starting the DM needs the daemon-pair lane.
+- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:747`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4449`); the old `NewDmModal` was deleted in `228c35f9`. The sidebar DMS header `+` (**New message**, `Sidebar.tsx:4681`) opens the same **New Message** dialog, and Escape returns focus to the `+`. It lives in the DMS group, which the sidebar shows on `?view=dm` and `?view=home`, not on `?view=room`. Driven on both hosts 2026-10-29. Starting the DM needs the daemon-pair lane.
 - **Create or join a server:** the rail button **Create or join a server** (`Shell.tsx:4106`) opens a dialog named **Create or Join a Server**, with **Create a server** and **Join with invite link** (`Modals.tsx:119-160`). **Create a server** moves to **Create your server**, with **Server name**, **Back** and **Create server**. Creating a server, and the channel, topic and doc modals, were not driven.
-- **Getting started checklist:** the checklist shows only for an enrolled account or a first-run candidate with zero spaces and zero DMs (`HomeHub.tsx:620-624`, `:283`), and the fixture always has spaces. Seed it in the browser before loading Home:
+- **Getting started checklist:** the checklist shows only for an enrolled account or a first-run candidate with zero spaces and zero DMs (`HomeHub.tsx:621-625`, `:284`), and the fixture always has spaces. Seed it in the browser before loading Home:
 
   ```bash
   agent-browser eval 'localStorage.setItem("om.chat.gettingStarted", JSON.stringify({enrolled:true}))'
@@ -159,13 +159,13 @@ agent-browser find role button click --name "Add someone"   # dialog "Add to gro
   agent-browser eval 'localStorage.removeItem("om.chat.gettingStarted")'
   ```
 
-  The key is sticky, like `message=cozy`, so remove it afterwards. The dismiss control is **Dismiss getting started**. "Start here" is a different surface: the `<h2>Start here</h2>` in Browse channels (`BrowseChannels.tsx:432`) shows only on a first run with no subscribed channels (`:257`, `:269`), and no fixture seeds that. `WelcomeToChat` needs zero spaces (`HomeHub.tsx:612`), and no seed gives that either.
+  The key is sticky, like `message=cozy`, so remove it afterwards. The dismiss control is **Dismiss getting started**. "Start here" is a different surface: the `<h2>Start here</h2>` in Browse channels (`BrowseChannels.tsx:432`) shows only on a first run with no subscribed channels (`:257`, `:269`), and no fixture seeds that. `WelcomeToChat` needs zero spaces (`HomeHub.tsx:613`), and no seed gives that either.
 
 Verified 2026-10-28 at `2dd7aad1` on `/rooms/` and `/chat/` (nightly maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 10-12, 44).
 
 ### Create Category name prompt (added 2026-10-28)
 
-On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:37`) opens `NamePromptModal` (`Modals.tsx:162`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2852`, `:6596`) and was not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. The other display-name modals have no seed. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu), which the fixture leaves unstubbed with `nameEditPrompt: null` (`shell-fixture.tsx:3051`). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
+On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:37`) opens `NamePromptModal` (`Modals.tsx:162`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2853`, `:6597`) and was not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. The other display-name modals have no seed. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu), which the fixture leaves unstubbed with `nameEditPrompt: null` (`shell-fixture.tsx:3051`). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
 
 Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-create-category-name-prompt.png`).
 
@@ -173,7 +173,7 @@ Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenan
 
 On `shell-fixture.html?view=dm&alerts=quiet`, dispatch a `contextmenu` event
 on the `.channel-row-identity` of **Direct message with ana, 2 unread**
-(`Sidebar.tsx:6440-6585`). The menu opens with an identity header (**ana**)
+(`Sidebar.tsx:6441-6586`). The menu opens with an identity header (**ana**)
 and seven items: **Follow**, **Invite to Server** (a submenu), **Add to Desk**,
 **Close DM**, **Block**, **Copy @ana** and **Copy user ID**. A followed peer
 would read **Unfollow** or **Cancel follow request**, a Desk DM **Remove from
@@ -187,13 +187,28 @@ unstubbed, so the offer is proved and every effect is pending. Driven on
 `?requests=N` (`shell-fixture.tsx:2733-2744`, 0–9) knocks N strangers onto
 the pinned **Message requests** row above the DMs. On
 `shell-fixture.html?view=dm&requests=3&alerts=quiet` the sidebar shows a
-`treeitem` named **3 message requests** (`Sidebar.tsx:4612`); clicking it
-changes nothing (`openMessageRequests`, `lib/session.ts:37929`, is unstubbed,
+`treeitem` named **3 message requests** (`Sidebar.tsx:4613`); clicking it
+changes nothing (`openMessageRequests`, `lib/session.ts:38009`, is unstubbed,
 so the click resolves to `INERT`), and the hash stays `#/dm/ana`. The
 Connections **Requests** tab's **Messages 0** tab (`FriendsPane.tsx:1171`) is
 the other door and renders **No message requests waiting.** without the seed.
 Driven 2026-11-01 on `/rooms/` at `936f5b64`. Opening the inbox, accepting or
 declining a request need a stub or a daemon.
+
+### The 99+ headline (added 2026-11-02)
+
+Since `4cd3434f` the Home headline caps its count: `formatUnreadCount`
+(`lib/animated-count-parts.ts:35-42`, `UNREAD_COUNT_CAP = 99`) prints the
+grouped number up to 99 and the literal **99+** past it, and `HomeHub.tsx:694`
+wraps only the number in `<b>`. The fixture lane reaches it through the rail
+seed: `shell-fixture.html?view=home&alerts=quiet&rail=counts` seeds the **vex**
+DM at 120 unread (`shell-fixture.tsx:1905`), and the `h1` reads
+**99+ unread across 4 conversations.** (driven 2026-11-02 on `/rooms/`). The
+same seed leaves the DM treeitem named **Direct message with vex, 120 unread**
+while its `.rail-badge` reads **99+**: the row label does not go through the
+formatter, only the pill and the headline do. No channel or topic seed exceeds
+99 (`channels=many` tops out at 20), so the sidebar channel label's
+**, 99+ unread** form (`Sidebar.tsx:3378`) is source-only here.
 
 ## Gotchas
 
@@ -268,7 +283,9 @@ declining a request need a stub or a daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): Home (**2 unread across 1 conversation.**) → **New DM** → **New Message** with **Search connections** and ana / dax / mira / rho; **Create or join a server** → **Create or Join a Server**; the Getting started checklist (5 items) with the `om.chat.gettingStarted` seed; **Requests** tab (**Followers NaN** still); the DM row menu (Follow, Invite to Server, Add to Desk, Close DM, Block, Copy @ana, Copy user ID); **Rename group** on OM chatters; Browse channels (9 public · 4 subscribed) and `directory=empty`; the **3 message requests** row from `?requests=3`. `/chat/` (18138): **New Message**, **Create or Join a Server**, the DM row menu and the DM hover peek. **Limitations:** **Add someone**, **See connections**, **Follow someone** and the blocked tab were not re-driven; every menu verb and the requests inbox stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`home-01` to `home-06`, `census-01`/`02`, `chat-04`, `chat-06`).
+**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): Home **2 unread across 1 conversation.** (`#/home`, `/chat/home`) → **New DM** → **New Message**; **Create or join a server** → **Create or Join a Server** (**Create a server**, **Join with invite link**); the Requests tab (**Request type**: All, Followers NaN, Messages); **Browse channels** (5 Subscribe buttons); the DM row menu (ana: Follow, Invite to Server, Add to Desk, Close DM, Block, Copy @ana, Copy user ID); on `/rooms/`: `requests=3` → treeitem **3 message requests** (click inert, hash stays `#/home`); the **Getting started** heading and **Dismiss getting started** with the `om.chat.gettingStarted` seed; **Rename group** → dialog **Rename group** with **Group name**; `rail=counts` → **99+ unread across 4 conversations.** while the vex treeitem keeps **120 unread**. **Limitations:** the `/chat/` DM header still does not open the profile drawer; the typing indicator and the directory states were load-smoked only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+
+**Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): Home (**2 unread across 1 conversation.**) → **New DM** → **New Message** with **Search connections** and ana / dax / mira / rho; **Create or join a server** → **Create or Join a Server**; the Getting started checklist (5 items) with the `om.chat.gettingStarted` seed; **Requests** tab (**Followers NaN** still); the DM row menu (Follow, Invite to Server, Add to Desk, Close DM, Block, Copy @ana, Copy user ID); **Rename group** on OM chatters; Browse channels (9 public · 4 subscribed) and `directory=empty`; the **3 message requests** row from `?requests=3`. `/chat/` (18138): **New Message**, **Create or Join a Server**, the DM row menu and the DM hover peek. **Limitations:** **Add someone**, **See connections**, **Follow someone** and the blocked tab were not re-driven; every menu verb and the requests inbox stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`home-01` to `home-06`, `census-01`/`02`, `chat-04`, `chat-06`).
 
 **Previous record:** 2026-10-31 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18135): `?view=home` **New DM** → **New Message** (ana, dax, mira, rho); rail **Create or join a server** → **Create or Join a Server**; server menu **Create Category** → **Create Category** and **Create Channel** → **Create channel**; `?view=dm&dm=OM%20chatters` **Rename group** dialog; `?view=friends&tab=requests` → `#/connections/requests` with the **Request type** tablist (All / Followers NaN / Messages 0); `?view=channels&directory=empty` "This workspace has no public channels yet." and `&directory=loading&connection=offline` "The channel directory is out of reach."; the DM row menu. `/chat/` (18136): **New Message**, **Create or Join a Server**, **Create Category**, the DM row menu, and 390×844 Chats → `/chat/dm/ana` → **Back to Chats**. **Limitations:** Sending, creation, rename and add effects; Blocked tab crash; Start here and WelcomeToChat seeds. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261031/r1/`.
 
