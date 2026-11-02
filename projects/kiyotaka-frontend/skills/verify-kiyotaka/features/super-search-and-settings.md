@@ -6,8 +6,20 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
-2026-11-02 against product tree `a4488341f6` (`origin/main`), lane `18103`, a
-guest lane with no JWT. Driven: the empty box (`super-search-directory`
+2026-11-03 against product tree `215896e614` (`origin/main`), lane `18103`, a
+guest-JWT lane with the gateway name mapped in the browser (see the README).
+Driven that day: `SPY / GLD`, which **charts the ETFs again** (`NYSE SPY /
+GLD`, title `SPY / USD / GLD / USD`, 252 bars; see Gotchas), `hide candles`
+and `show candles` (`candles-visible:off` then `:on`, `metadata[0].isHidden`
+true then false), `volt` (`theme-kiyotaka`) and back through `terracotta`
+(`theme-percept`), `gray` raising `light-mode`, `editor` listing
+`super-search-result-panels:Editor-btn`, `Meta+/` to Keyboard Shortcuts
+(nav `shortcuts`, `language`, `notes`), Release Notes (81 versions, `4.49.0`
+first, no `4.52.0`, the list scrolling inside `.rn-sidebar__scroll`), the
+walls named in the guest-wall bullet, and the new sign-in return flags
+(`auth-return`). Before that, DRIVEN on 2026-11-02 against product tree
+`a4488341f6` (`origin/main`), lane `18103`, a guest lane with no JWT.
+Driven: the empty box (`super-search-directory`
 present, no `super-search-section-toggle-*`, no starters), `liquidations`
 listing the Tape row (`super-search-result-panels:Tape-btn`, the retired
 panel's alias), `tape sounds` listing `super-search-result-tape:tape-toggle:sound-btn`
@@ -75,6 +87,9 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
 - `ss-ask-commands` a query lists app commands as palette rows (hide candles,
   swap candle colours, and the rest) and a click runs them.
 - `guest-wall` a walled control raises the sign-in dialog and names its feature.
+- `auth-return` a sign-in return flag in the address (`?oauth=true`,
+  `?twofa=true`) is spent from the address on arrival; `?twofa=true` opens the
+  authenticator-code step.
 - `ss-guides` a help question lists the best user-guide sections under `Guides`
   (live verification pending: it needs the backend's `/ask/config` to answer
   `surface:true`).
@@ -187,9 +202,17 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   but the `language` row now reads `Preferences`.
   Re-driven 2026-10-29: 81 rows, `4.49.0` newest. The `4.0.0` row now reads
   `4.0.0 Spotlight OPENMARKET V4` (`dc9ed408ee`), and the page body carries no
-  `Kiyotaka`. Source holds 87 entries; `4.51.0` (`options`) and `4.50.0`
-  (`wrun-launch`) are filtered by audience, so a guest's count is a viewer's,
-  not the file's.
+  `Kiyotaka`. Source holds 88 entries on `215896e614`; `4.52.0` (`Trade
+  futures.`, `audience: 'futures'`, `12f71dc90b`), `4.51.0` (`options`) and
+  `4.50.0` (`wrun-launch`) are filtered by audience, so a guest's count is a
+  viewer's, not the file's. Re-driven 2026-11-03: 81 rows, `4.49.0` first,
+  `1.1.0` last, no `4.52.0`. The version list now scrolls inside
+  `.rn-sidebar__scroll` (`overflow-y: scroll`, with an edge fade) and
+  `.rn-sidebar` itself no longer scrolls (`90a639ffaa`). That day the first
+  `find testid settings-pages-nav-notes-btn click` left the page on Keyboard
+  Shortcuts again; an `eval` click on the same node switched it, so poll for
+  `[data-testid^=release-notes-version-]` after the click and click once
+  more if it reads `0`.
 - **The close corner, driven 2026-10-29.** Since `4f5cc1622e` every settings
   page reserves the close button's gutter: `.settings-page-title-row` carries
   `padding-right: 30px` and `settings-pages-close-btn` sits in it. A guest's
@@ -271,7 +294,16 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `LIGHT_MODE`. Driven, dark and light toggled freely. Gray and Cream are listed
   for every desktop guest and their pick raises `light-mode` (driven
   2026-11-01), so a frame after a Gray pick is a frame of the wall.
-- **`SPY / GLD` no longer charts the ETFs (driven 2026-11-01 on
+- **`SPY / GLD` charts the ETFs again (driven 2026-11-03 on `215896e614`).**
+  The row `super-search-result-formula:SPY/GLD-btn` switched the chart to
+  `NYSE SPY / GLD` (title `2.07938 ▼ SPY / USD / GLD / USD`, 252 bars), as on
+  2026-10-29. The switch took about 15 s behind a `Connecting` chip, so poll
+  the title rather than reading it at once. Which commit in
+  `a4488341f6..215896e614` restored it was not traced; the formula legs are
+  picked in `pairTypedFormulaAssets` and `nativeFormulaVenues`
+  (`src/utility/symbol-selection/typed-formula.util.ts`). The gap recorded
+  below is closed on this tree.
+- **History: `SPY / GLD` left the ETFs on two trees (driven 2026-11-01 on
   `120d5d5d32`, again 2026-11-02 on `a4488341f6`).** On 2026-11-02 the
   formula row `formula:SPY/GLD` (`Plot SPY ÷ GLD · Formula · Ratio`) charted
   `BINANCE.F · NYSE SPYUSDT / GLD/USD` with the title `SPYUSDT / GLD / USD`
@@ -280,11 +312,22 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   (`SOLANA SPYx/USDC:4pCZ…` over `GLDx/USDC`, 440 bars), and on 2026-10-29 to
   `SPY / USD / GLD / USD` (252 bars). `9ffb5345bf` and `eb1f3b83be` (tokenized
   pools kept out of a plain search) moved it off Solana; `528a31b434` (search
-  ranking) is still the suspect for `SPY` leaving the ETF. Product gap,
-  reported, not a map error; `footer-undo-btn` (`Undo Change symbol`) puts the
+  ranking) was the suspect for `SPY` leaving the ETF. It was a product gap,
+  closed by 2026-11-03; `footer-undo-btn` (`Undo Change symbol`) puts the
   previous chart back. The 2026-11-01 frame also showed `Connection lost.
   Reconnecting…` from that chart on, which turned out to be the gateway outage
   below, not the formula.
+- **`auth-return`: the sign-in return flags are spent on arrival (source,
+  `0a0d1b8313`, `dd6c6f4161`; driven 2026-11-03).** The Chart route runs
+  `signInReturnGuard` (`src/router/guards/sign-in-return.guard.ts`) before
+  `chartBeforeEnter`, which no longer reads them. Open
+  `/chart/?oauth=true`: 3 s later `location.search` was `''`, the page had
+  one navigation entry (no reload loop) and the chart drew 488 bars. Open
+  `/chart/?twofa=true` as a guest: the address was clean and
+  `dialogStore.isOAuthTwoFADialogOpen` read `true`, with the dialog `Verify
+  Code / Enter the 6-digit verification code from your authenticator app` on
+  top. Press `Escape` to clear it. Completing either flow needs a real
+  sign-in.
 - **The wall's visible title is the feature's name.** The camera's wall is
   headed `Share Your Chart`, Replay's `Chart Actions`, then `Sign in or create
   an account / One email. We send you a code, no password.` with `Email me a
@@ -320,8 +363,14 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   pools out of the exact-ticker row. `academy.ts` adds `academy:open-clips`
   (`clips`, `reels`, `videos`) behind `isChartClipsOn()` (`om-board` and
   `chart-clips`), so a guest sees no clips row (driven: `clips` lists
-  nothing). `settings.ts` adds `trade:futures-order-confirm` behind the
-  futures flag on desktop (absent for a guest). `tools.ts` makes the `magnet`
+  nothing). `settings.ts` adds `trade:futures-order-confirm`, and since
+  `215896e614` also `trade:futures-change-confirm`,
+  `trade:futures-cancel-confirm` and `trade:futures-position-confirm`, all
+  behind the futures flag on desktop (absent for a guest).
+  `featureCommands.ts` dropped its `trade-history` and `open-trades` rows for
+  a `show-on-chart` row and `show-on-chart:<family>` toggles, listed only while
+  the trader's own account draws on a pane (`useOwnChartPanes().listed`), so
+  a guest gets none (source). `tools.ts` makes the `magnet`
   toggle restore its last strength and adds `drawing-constrain` (`Align 45°`)
   on phones only. `indicators.ts` gains `chartLifts` for Big Trades on a stock
   Live price chart. Ask's do lane is now picked by Jev from the feature

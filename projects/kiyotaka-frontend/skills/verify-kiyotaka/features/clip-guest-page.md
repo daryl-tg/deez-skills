@@ -8,7 +8,10 @@ each show their own state. Created 2026-11-02 from a live drive on product tree
 `a4488341f6` (`origin/main`), lane `18103`, a guest lane with no JWT: a
 made-up id (`/chart/clip/zzz`) rendered `clip-guest-page` with
 `clip-guest-private` (`This clip is not public`) and `clip-guest-home-link`
-(`Open the chart`), with no sign-in wall. A real public clip was not driven
+(`Open the chart`), with no sign-in wall. Re-driven 2026-11-03 on
+`215896e614` (a guest JWT): the same three handles and text; `ClipGuestPage.vue`
+and the `ClipGuest` route have no diff since `a4488341f6` (the clip commits in
+between changed the recorder and the Board's hand overlay only). A real public clip was not driven
 (no clip id is known to this map), nor the Board's own clip wall
 (`/chart/board/clips`), which redirected the guest to `/chart/`.
 

@@ -4,8 +4,22 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-02 against product tree `a4488341f6` (`origin/main`),
-lane `18103`, a guest lane with no JWT, on a quiet machine (load 2 to 5 on 10
+was last DRIVEN on 2026-11-03 against product tree `215896e614` (`origin/main`),
+lane `18103`, a guest-JWT lane with the gateway name mapped in the browser
+(see the README). Driven that day: the V2 dialog (v2 20, legacy 0), an
+`ETHUSDT` fill whose bare `ETHUSDT` row STILL charted a BINANCE.O put
+(`5 Nov 2026 2,275 Put`, 13 bars) and whose `Ethereum` row went to BINANCE.F
+ETHUSDT (488 bars, `2252.19 −0.545%`), the footer's `Undo Change symbol`
+back from the put to COINBASE BTC-USD, `BTC.D` through
+`asset-row-CRYPTOCAP|BTC.D-btn` (250 bars, `60.30% ▲ BTC.D`), the restyled
+chart-type menu (15 options in five `role=group` families) with Heikin Ashi
+and its `Undo Change chart type`, `tb-interval-pinned-1m-btn` and `Undo
+Change interval` back to `1h`, the layout picker's `tb-layout-entry-2H-btn`
+raising the `multi-chart` wall, and the hover quick search's `SOLUSDT` pick
+to BINANCE.F SOLUSDT. Not driven that day: the Predict tab, the input-method
+guard, the hover peeks and a narrow viewport. Before that, DRIVEN on
+2026-11-02 against product tree `a4488341f6` (`origin/main`), lane `18103`, a
+guest lane with no JWT, on a quiet machine (load 2 to 5 on 10
 cores). Driven: the V2 dialog (v2 20 testids, legacy 0), an `ETHUSDT` search
 whose `Ethereum` row went to BINANCE.F ETHUSDT (464 bars, OI `$5.36B`,
 funding `+0.0017%`) and whose bare `ETHUSDT` row STILL charted a BINANCE.O
@@ -228,6 +242,15 @@ Preconditions:
   ./control-kiyotaka browser find testid tb-chart-type-option-heikinAshi-btn click
   ```
 
+  **The menu was regrouped on `5a110f76b3` (driven 2026-11-03).** The
+  per-family header text (`.tb-chart-type__category-header`) is gone: the
+  families are `.tb-chart-type__group[role=group]` with an `aria-label`
+  (`Candles`, `Bars`, `Lines`, `Areas`, `Pro`) separated by hairlines, the
+  glyphs no longer wear the up and down colours, and `Hide bars` is a
+  `button.tb-chart-type__row[role=switch][aria-checked]` with a check mark
+  (source: it shows only under the Pro types, and none showed on a candle
+  chart). The option testids did not change.
+
   The engine read is `chartStore.mergedAllCharts[0].metadata.plotType` —
   picking `Line` makes it `"spline"`, Heikin Ashi `"heikinAshi"` (driven
   2026-11-02; `chartStore.plotTypeForChart` is not a function on
@@ -403,7 +426,12 @@ Preconditions:
   `crypto`, then `quick-search-tokens-more-btn`) and the hand-off to the full
   dialog, `quick-search-advanced-button`. Fill `quick-search-input` and the rows
   are `quick-search-v2-group-<id>-btn` with an expander
-  `quick-search-v2-expander-<id>-btn`; `SOLUSDT` listed
+  `quick-search-v2-expander-<id>-btn`. On 2026-11-03 the first list, 5 s
+  after the fill, held only a provisional
+  `quick-search-v2-group-unresolved:crypto:SOL-btn`; 13 s after it the
+  groups were `Solana|1`, `RAYSOL|1`, `Binance Staked SOL|1` and `Bybit
+  Staked SOL|1`, and `quick-search-v2-group-Solana|1-btn` charted BINANCE.F
+  SOLUSDT. Poll for the named group before clicking. Earlier, `SOLUSDT` listed
   `quick-search-v2-group-crypto:SOL-btn` (`SOLUSDT Solana · Perp +1.24% 13
   markets`). Its click switched the chart to BINANCE.F SOLUSDT, 250 bars. The
   dropdown node stays in the DOM after it closes, so assert the switch on the
@@ -460,6 +488,14 @@ Preconditions:
   in the DOM, and a later `find testid "toolbar-item-trendline:tool-icon-btn"
   click` failed with `covered by <div.scope-token-line.v2-tokens>`. Move the
   pointer onto the chart and press `Escape` before clicking a tool.
+- **The bare `ETHUSDT` row still opens an option put (driven 2026-11-03 on
+  `215896e614`).** It listed with the `Ethereum` row 12 s after the fill and
+  charted `BINANCE.O ETH/USDT 5 Nov 2026 2,275 Put` (13 bars, title
+  `53.8000 ▼ ETH - 261105 - 2275 - P`). Source read: the venue comes from
+  `resolveEnterTargetVenue` (`src/utility/symbol-search-v2/enter-target.util.ts`),
+  which ranks by remembered venue, then `volume24hUsd`, and filters no
+  instrument category; neither it nor `default-venue.util.ts` changed in
+  `a4488341f6..215896e614`. Product gap, not doc drift.
 - **The bare `ETHUSDT` row arrives in a second batch (driven 2026-11-02 on
   `a4488341f6`).** Three seconds after the fill the list held only
   `asset-row-Ethereum|1-btn`; at eight seconds it held `asset-row-ETHUSDT|1-btn`
@@ -658,3 +694,20 @@ Preconditions:
   no handle.
 - Switching symbol on the authed lane writes to the account's autosaving
   workspace. Use a throwaway account or restore the original symbol.
+- **A US stock's `Options chain` row is signed-in only (source, `9a0149e404`;
+  read on `215896e614`, not driven).** Under a US stock's feeds the quick
+  search lists `quick-search-v2-stock-options-<groupKey>-btn`, the full
+  dialog `asset-list-stock-options-<assetId>-btn`, and the venue panel
+  `venue-panel-options-head` and `venue-panel-options-row`; a click routes to
+  the `OptionsChain` page (`authorized: true`). `useOptionChainEnabled` is
+  `isSignedInSession()` and the rows also need the `opra` flag, so a guest
+  lane never renders them: assert a count of `0` there rather than looking
+  for a wall.
+- **The ticker's 24h change now reads the gateway reference (source,
+  `53d871d60a`; driven 2026-11-03).** `useMarketStatsData` takes the market
+  table's `refPrice24h`, then one gateway read per market per 60 s, before the
+  old candle method, so the pill should match the watchlist and search 24h
+  figure. On BINANCE.F ETHUSDT it read `−0.545%` against the `Ethereum`
+  search row's `↓ 0.53%` read about a minute earlier. While the tab is
+  hidden the price and change slot reads `—` and the funding countdown
+  stops; re-front the tab before reading it.

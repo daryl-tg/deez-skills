@@ -6,10 +6,15 @@ cloud lane, and sees the result mount as an overlay through the frontend
 adapter. **kScript is retired on this tree:** since `722911b50f` (2026-10-31)
 the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
-door refuses it with a 3 s toast, the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). This entry was last DRIVEN on
-2026-11-02 against product tree `a4488341f6` (`origin/main`), lane `18103`, a
-guest lane with no JWT: ks-open through Super Search (the row
+door refuses it with a warning toast (asked for 3 s, shown about 5 s since
+`eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-03 against
+`215896e614` (`origin/main`, lane `18103`, a guest JWT): the Super Search
+`editor` row `super-search-result-panels:Editor-btn` opened the drawer with no
+wall (`New indicator`, `No indicators yet`, `No script open`, one
+`.cm-editor`), and the Panels `editor` row raised `script-editor`. Before
+that, DRIVEN on 2026-11-02 against product tree `a4488341f6` (`origin/main`),
+lane `18103`, a guest lane with no JWT: ks-open through Super Search (the row
 `super-search-result-panels:Editor-btn` titled `Script Editor`; within 3 s the
 drawer was not `inert`, `editor-workspace-skeleton` gone, `kscript-run-btn`
 and `kscript-close-editor-btn` present, no `kscript-save-btn`, no
@@ -214,7 +219,11 @@ Preconditions:
   now opens nowhere: `openScriptInEditor.ts` (`refuseKscriptSource`),
   `IndicatorDialogV2.vue` (`onOpenInEditor` and an initial script id on
   mount) and `editor-shell.ts` `openScript` (`noteKscriptRetired()`) each
-  answer with a 3 s warning toast, `kscriptSunset.card.retiredBody` (`This
+  answer with a warning toast asked for 3 s; since `eac2e5f2fb`
+  `readableTimeout` (`src/utility/common/toast.util.ts`) keeps a toast up for
+  at least 500 ms plus 60 ms per character, so this 76-character body stays
+  about 5.1 s and a "gone by 3 s" assertion fails (source, read on
+  `215896e614`), `kscriptSunset.card.retiredBody` (`This
   indicator was written in kScript, which is retired. It no longer draws.`),
   a drawer the refused call had opened closes again (`closeDrawerLeftEmpty`),
   and `sanitizeHydratedState` drops any persisted tab whose language is not

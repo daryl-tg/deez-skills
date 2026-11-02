@@ -23,8 +23,15 @@ line, a creation cancelled with `Escape` (no line; the console's one `TypeError`
 was the guest's `[wrun-registry] package listing unavailable: Failed to fetch`
 warning, not the cancel), and a Fibonacci retracement whose settings card
 carried the `Fib levels based on log scale` row reading `aria-checked="false"`.
-Re-driven 2026-11-02 on `a4488341f6` (`origin/main`, lane `18103`, no JWT) on
-BINANCE.F SOLUSDT 1h: the trend line placed with two clicks and its
+Re-driven 2026-11-03 on `215896e614` (`origin/main`, lane `18103`, a guest
+JWT, the gateway name mapped in the browser) on BINANCE.F ETHUSDT 1h: the
+trend line placed with two clicks and its `.tool-quick-bar` (the same 15
+`tqb-*` handles), `tqb-more-btn` opening `tqb-more-menu` with nine items,
+a right-click on the line opening the app's own menu with its
+`chart-ctx-drawing-*` rows, and `chart-ctx-drawing-remove` deleting the line
+(`.tool-quick-bar` gone). Not driven that day: the colour popover, the
+cancelled creation, the fib card and the magnet. Re-driven 2026-11-02 on
+`a4488341f6` (`origin/main`, lane `18103`, no JWT) on BINANCE.F SOLUSDT 1h: the trend line placed with two clicks and its
 `.tool-quick-bar` (the same `tqb-*` handles plus a `number-input`, and no
 `tqb-constrain-btn` on desktop), the custom colour popover (`.cpk-hex` read
 `4DA3FF`; `FF00AA` kept on an outside click, `00FF00` dropped by `Escape`, the
@@ -48,6 +55,8 @@ and whether a guest's drawing persists across a reload.
 - `dt-colour` the floating toolbar's colour popover keeps a typed colour on an
   outside click and drops it on `Escape`.
 - `dt-cancel` `Escape` during a creation leaves no drawing behind.
+- `dt-context` a right-click on a drawing opens the app's menu for it (settings,
+  clone, copy, lock, hide, order, show on, delete) above the chart's own rows.
 
 ## How to get to it (user POV)
 
@@ -95,6 +104,23 @@ the top overlay cleared.
   `toolbar-item-trendline:tool-icon-btn`, click the chart once, move, then
   `press Escape`: no line was left and `browser console` held no `TypeError`
   (before `662faad117` a cancelled creation threw on a null tool).
+- **The floating toolbar's more menu (driven 2026-11-03).** `find testid
+  tqb-more-btn click` opens `tqb-more-menu`, its rows inside
+  `.tqb-menu-scroll`, each led by an icon: `tqb-menu-clone`, `-copy`,
+  `-front`, `-back`, `-show-on-{all,andAbove,andBelow,only}` and
+  `-templates`. A guest got no `tqb-menu-sync-<scope>` row.
+- **`dt-context`: the right-click menu on a drawing (driven 2026-11-03).**
+  Move the pointer onto the line (`mouse move 600 350` for a line from `400
+  400` to `800 300`), then `mouse down right` and `mouse up right`. The app's
+  own menu opens with a `TREND LINE` section,
+  `chart-ctx-drawing-{settings,clone,copy,lock,hide,order,show-on,remove}`,
+  and a `CHART` section (`chart-ctx-paste`, `-copy-price`,
+  `-add-to-watchlist`, `-reset-view`, `-add-alert`, `-grid`, `-settings`,
+  `-report-problem`, `-remove-indicators`). Every row leads with an icon
+  (`5c2d8603a6`). A guest got no `chart-ctx-drawing-alert` or `-sync` row.
+  `chart-ctx-drawing-remove` deletes the line. Since `12906d4136` the chart
+  cancels the browser menu only on `#main-chart`, and text fields keep the
+  native menu (source).
 - **`dt-delete`.** `press Delete` removed the selected line. To reselect a line
   after an outside click, click on the line itself; `.tool-quick-bar` returns.
 - **Proof.** A screenshot with the line and its floating toolbar, then one

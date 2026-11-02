@@ -176,5 +176,15 @@ load; with the gateway down the rows render but every cell stays a dash.
 - **Another tab can change the lists underneath you.** The store re-reads on tab
   focus and on collab `WATCHLISTS_CHANGED` hints, so do not leave a second driver
   attached.
+- **An absolute `24h chg` column joined the library (source, `625bc087a5`;
+  read on `215896e614`, not driven: signed-in only).** Its key is
+  `chg24hAbs`, in the `price` group, sortable, signed at the price's decimals,
+  and not in the default set; add it from the table settings with
+  `watchlist-settings-column-chg24hAbs-toggle` (the library is
+  `watchlist-settings-column-library`, the shown list
+  `watchlist-settings-shown-list`, a row's remove
+  `watchlist-settings-column-<key>-remove-btn` and its grip
+  `watchlist-column-grip-<key>`). The wall was re-driven 2026-11-03 on
+  `215896e614` from `tb-panels-row-watchlist` (`watchlist`).
 - Prior art worth reading before writing a new rig: `qa/watchlist-v2/rig-lib.mjs`
   carries open helpers and store probes.

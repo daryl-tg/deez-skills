@@ -5,8 +5,18 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-02 against product tree `a4488341f6` (`origin/main`), lane
-`18103`, a guest lane with no JWT, on a quiet machine (load 2 to 5 on 10
+DRIVEN on 2026-11-03 against product tree `215896e614` (`origin/main`), lane
+`18103`, a guest-JWT lane with the gateway name mapped in the browser (see the
+README). Driven that day: every Panels row on BINANCE.F ETHUSDT (17 rows; 16
+on the NYSE `SPY / GLD` formula, which offers no `orderbook` row), the same
+seven walls and ten opening rows, the Orderbook ladder live on ETHUSDT, the
+Tape printing (`crypto-tape-last-price` `2,251.54▼`) with its docked
+Liquidations list, the markets menu's `tape-markets-follow-btn` (`Follow the
+chart · Binance Futures ETHUSDT`) and its size floor with `aria-pressed`
+(`all` true), and the alert create wall (`alert`). Not driven that day: the
+heatmap switch's wall, the Options button, the ETF rows and the Tape's
+Heatmap view. Before that, DRIVEN on 2026-11-02 against product tree
+`a4488341f6` (`origin/main`), lane `18103`, a guest lane with no JWT, on a quiet machine (load 2 to 5 on 10
 cores). Driven: the Panels menu's **17** rows (the Trades and Liquidations panel
 is retired, `ad67d47c62`; its saved rows load as Tapes), the same seven walls
 (Replay `chart-actions`, Watchlist `watchlist`, Scanner `terminal`, News
@@ -85,6 +95,10 @@ an open panel.
   `find testid tb-panels-row-<id> click`. Read the open panel's header text: the
   panel title (`Orderbook`, `Alerts`, `Objects`, `ETF screener`) is the first
   text in the right-side header.
+- **The row count follows the chart's market (driven 2026-11-03).** On
+  BINANCE.F ETHUSDT the menu listed 17 `tb-panels-row-*`; on the NYSE `SPY /
+  GLD` formula it listed 16, without `orderbook`. Count on a crypto perp
+  before reading a missing row as drift.
 - **A DOM read for every panel (driven 2026-11-02).** Read the open panels as
   the `panel-header-title` texts
   (`[...document.querySelectorAll('[data-testid=panel-header-title]')].map(e=>e.textContent.trim())`)
@@ -112,8 +126,11 @@ an open panel.
   its text is empty), `ob-sidebar-collapse-btn` and
   `ob-sidebar-toggle-settings-btn`, and `orderbook-canvas` mounted within 5 s
   with asks and bids on both sides; the mid row is painted in the canvas too
-  and now reads the price with `Imbalance 44.7% bid · 55.3% ask` (a
-  `/Spread/` match on `innerText` finds nothing). **The ladder does not mount
+  and read the price with `Imbalance 44.7% bid · 55.3% ask` on 2026-11-02 (a
+  `/Spread/` match on `innerText` finds nothing). On 2026-11-03 the frame of
+  the same ETHUSDT ladder showed `2251.09 ▲` over `Spread 0.20 · 0.009%`
+  instead, with no imbalance line, so read the mid row off the frame rather
+  than asserting either text. **The ladder does not mount
   while the tab is hidden**: the same open with `document.visibilityState`
   `hidden` showed the header and the tabs but no `orderbook-canvas` for 40 s on
   ETHUSDT and 24 s on SOLUSDT, and `tab t1` plus a reopen drew it in 5 s both

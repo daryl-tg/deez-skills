@@ -4,9 +4,21 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-02 against
-product tree `a4488341f6` (`origin/main`), lane `18103`, a guest lane with no
-JWT whose `.env.local` proxies to the operator's remote backend. Driven: the
+leave the chart at restore). This entry was last DRIVEN on 2026-11-03 against
+product tree `215896e614` (`origin/main`), lane `18103`, a guest-JWT lane whose
+`.env.local` proxies to the operator's remote backend. Driven that day: the
+dialog at 1440 px as a **split view** (the store card beside
+`indicator-pane`, which showed the first shelf card, `Key Levels`, with
+`indicator-detail-apply-btn` `Add to chart`, `indicator-detail-favorite-btn`
+and `indicator-pane-more-btn`; `See all 193`), the shorthand search `poc`
+listing six volume-profile rows, two sentences that never reached the
+sentence lane (see the search bullet), the `RSI` row Add raising the `indicators` wall, programmatic
+`BITCOIN_DOMINANCE` and `MA_RIBBON` adds (`Indicators 3/3`), the docked
+settings card (10 `setting-term` rows, `settings-panel-mode-btn`), the
+legend's more menu with eight rows (see the pane-move bullet), and its
+`Move to price pane` on the Bitcoin Dominance pane raising the same
+`indicators` wall. Before that, DRIVEN on 2026-11-02 against product tree
+`a4488341f6` (`origin/main`), lane `18103`, a guest lane with no JWT. Driven: the
 store landing (`See all 243`, tabs `popular, trending, new, paid`, three shelf
 cards, the Ask block with its hide and show; on BINANCE.F ETHUSDT the three
 questions were `footprint, levels, market_structure`, see the Ask bullet), an
@@ -18,7 +30,8 @@ raising the `indicators` wall, programmatic `BITCOIN_DOMINANCE` and
 legend `Moving Average Ribbon`), the docked settings card (10 `setting-term`
 rows, `settings-templates-trigger` and `-value`, the Float/Dock toggle
 `settings-panel-mode-btn`, `overlay-settings-close-btn`), the legend's more
-menu (`indicator-menu` with `indicator-menu-{settings,copy,pane-move,show-on,remove}`),
+menu (`indicator-menu` with `indicator-menu-{settings,copy,pane-move,show-on,remove}`;
+the `-scale` and `-fold` rows were missed that day, see the pane-move bullet),
 **the pane move, which is guest-walled**: `indicator-menu-pane-move` (`Move
 to new pane`) raised the sign-in wall headed `Technical Indicators` with
 `guestLoginFeatureId = "indicators"`, which is why the 2026-11-01 attempt saw
@@ -116,8 +129,31 @@ Preconditions:
   `indicator-catalog-unseeded-notice` — the last now gated on
   `import.meta.env.DEV` alone, so it is a dev-build banner rather than a
   catalog-state signal. Row adds are
-  `official-indicator-add-official-indicator-<slug>-btn`, and the detail panel
-  carries `indicator-detail-add-btn` / `-apply-btn`.
+  `official-indicator-add-official-indicator-<slug>-btn`; once that indicator
+  is on the chart the same pill becomes `indicator-added-<slug>-btn`, which
+  opens `indicator-added-menu-<slug>` with `indicator-add-another-<slug>-btn`
+  and `indicator-remove-<slug>-btn`, and `indicator-count-<slug>` shows from
+  two copies (`IndicatorAddPill.vue`, source). On the detail page and the
+  pane, `indicator-detail-apply-btn` is Add (`Add to chart`, driven
+  2026-11-03), `indicator-detail-added-btn` is Added, and
+  `indicator-detail-add-btn` is now that menu's `Add another` item, not the
+  Add button (`IndicatorDetailPanel.vue`).
+
+  **At 1100 px and wider the dialog is a split view (`c6aad32e02`; driven
+  2026-11-03 at 1440).** `SPLIT_VIEW_MIN_WIDTH_PX` is `1100`
+  (`indicator-split-window.ts`). Beside the store card sits `indicator-pane`,
+  which opened on the first shelf card (`Key Levels`) rather than on
+  `indicator-pane-empty`. A row or shelf card under the pointer for 150 ms
+  (`PANE_REST_MS`) or highlighted by the arrow keys fills the pane instead of
+  opening the full page, so a "click a row, then go back" recipe holds only
+  below 1100 px. Pane handles, read live: `indicator-pane-page`,
+  `indicator-pane-picture` and `-picture-cover`, `indicator-pane-information`
+  with `indicator-pane-info-{maker,category,version,updated,price,uses}`,
+  `indicator-pane-more` / `-more-title` / `-more-<entryId>` (for example
+  `indicator-pane-more-official:OPTIONS_HEATMAP`), and
+  `indicator-pane-more-btn`, which opens `indicator-pane-menu` with
+  `indicator-pane-door-<share|window|page|source|fork|post|like|people>`
+  (source, not opened).
 
   **`wrun-registry` is no longer a flag at all** — the lane is unconditional and
   `kiyo.flag-overrides` cannot turn it off. Drop any "read the strip, it flipped
@@ -277,8 +313,8 @@ Preconditions:
   back. **The three families rotate.** They read `derivatives, order_book,
   delta_cvd` on 2026-10-29 and 2026-11-01 and `footprint, levels,
   market_structure` on 2026-11-02 (BINANCE.F ETHUSDT): `ASK_QUESTION_FAMILIES`
-  in `src/utility/chart/indicator-ask-questions.util.ts` is walked from a
-  rotation that the first open of a page load starts, and only families the
+  in `src/utility/chart/indicator-ask-questions.util.ts` advances by three on
+  every open (`ASK_QUESTIONS_SHOWN`), and only families the
   chart's market answers (`askQuestionFits`) are offered, so assert three
   distinct `indicator-ask-question-*` ids, not which three.
 - **The dialog remembers its last query (driven 2026-11-02).** A reopen after
@@ -289,8 +325,23 @@ Preconditions:
   returns within 2 s. `See all N` is `Math.max(storeShelfCount,
   entries.length)` for the active tab (`IndicatorOfficialShelf.vue`,
   `useIndicatorCatalogV2.ts`), so it is the official rows in that tab, not a
-  backend total. A row's Add now sits beside a slot count (`Add · 1 slot`),
-  and the favourite star carries no testid (match it by accessible name).
+  backend total. The slot count is a caption under the row's Add,
+  `indicator-slots-<slug>` (`1 slot`; `0 slots` when it costs none; read
+  2026-11-03), and a row's favourite star carries no testid (match it by
+  accessible name); the pane's star is `indicator-detail-favorite-btn`.
+- **Shorthand and sentence search (driven 2026-11-03).** Trader shorthand finds
+  indicators (`e93440ac46`, `src/constants/indicator-names.ts`): `poc` listed
+  `Sliding Volume Profile`, `Session Volume Profile`, `VRVP`, `Value Area
+  Reversion`, `Volume Profile and Value Area` and `Agg. Session Volume
+  Profile`. The sentence lane (`indicator-list-sentence`, its no-fit head
+  `indicator-sentence-no-fit` "No exact fit" with
+  `indicator-sentence-band-closest` and `-band-family`; source,
+  `bdc652a36f`) did not engage for a guest: `show me where whales hide purple
+  bananas at night` gave `No indicators found`, and `where are buyers more
+  aggressive than sellers` showed no empty state, with no
+  `indicator-sentence-*` node either time. The lane's `enabled()` needs a
+  sentence host (`useIndicatorCatalogV2.ts`); why a guest had none was not
+  traced, so the sentence bands stay unproven.
 - **Open Interest Profile `Display` — driven 2026-10-28.** On BINANCE.F
   ETHUSDT, `addIndicator('OPEN_INTEREST_PROFILE',{},0)` mounted and its settings
   `Source` tab showed a `Display` section: `Display mode` (`Net`), `Bar width`,
@@ -341,7 +392,8 @@ Preconditions:
     closed hours faint, as unbroken steady lines (`c963ab53df`, `38bc469231`,
     `440d23be2d`, `f67ff294ef`); Big Trades 0.10.0 sets its minimum in coins
     on crypto charts (`c45a9f4e80`); a wrun banded order-book input with a
-    `when` gate (`47fff639e5`); the kit is `0.109.0` (`a4488341f6`).
+    `when` gate (`47fff639e5`); the kit was `0.109.0` on `a4488341f6` and is
+    `0.110.0` since `987eb6e7ac` (the Liquidation Map look).
 - **New on `849fb08e95`, source only, never driven:**
   - The moving average ribbon is a built-in, `MA_RIBBON` (`dedda2c7bf`,
     `src/indicators/controls/ma-ribbon/`, chart-schema `0.8.1`). It needs no
@@ -441,8 +493,18 @@ Preconditions:
   `Move to new pane`, and in their own pane `Move to price pane`. The legend's
   `moreBtn.click()` opens the Vue menu `indicator-menu` (`IndicatorMenu.vue`)
   with `indicator-menu-settings`, `indicator-menu-copy`,
-  `indicator-menu-pane-move` (`Move to new pane`), `indicator-menu-show-on`
-  and `indicator-menu-remove` (`-move-up` and `-move-down` exist in source).
+  `indicator-menu-pane-move` (`Move to new pane`), `indicator-menu-scale`
+  (a submenu, `indicator-menu-scale-<side>`), `indicator-menu-show-on`,
+  `indicator-menu-fold` (`Fold legend`) and `indicator-menu-remove`
+  (`-move-up` and `-move-down` exist in source; read live 2026-11-03 on the
+  Bitcoin Dominance pane: eight rows, header `BITCOIN DOMINANCE`). Pick the
+  row's own legend `More` button: the price pane carries one per row, and the
+  last `[class*=legend] button[aria-label=More]` was the Bitcoin Dominance
+  pane's. The pane-move row is not only for `OWN_PANE_MOVABLE_TYPES`: an
+  own-pane indicator gets `Move to price pane` as a pin
+  (`indicatorMenuFacts`, `action: 'pin'`), and a merged row `unmerge`. On
+  2026-11-03 the pin move on Bitcoin Dominance raised the same `indicators`
+  wall and the overlay stayed `offchart`.
   A guest's click on `indicator-menu-pane-move` raises the sign-in wall headed
   `Technical Indicators` (`guestLoginFeatureId = "indicators"`) and the ribbon
   stays `type: "onchart"`; that is what the 2026-11-01 attempt saw as "the

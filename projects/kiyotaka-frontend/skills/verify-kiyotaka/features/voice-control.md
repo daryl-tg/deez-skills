@@ -12,6 +12,11 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-checked 2026-11-03 on tree `215896e614` (`origin/main`, lane `18103`, a
+guest JWT): still unreachable.** After the full guest pass the page held no
+`[data-testid^=voice]` node at all. Source on that tree: the key menu is
+wrapped in `.voice-key-menu__scroll`, and a reserved-system key refusal now
+carries a caption (`noticeLine`); neither is guest-visible.
 **Re-driven 2026-11-02 on tree `a4488341f6` (`origin/main`, lane `18103`, no
 JWT): still unreachable.** `typeof window.__voiceControl` read `undefined`
 and `voice-control-mic-btn` was absent after the full guest pass; the

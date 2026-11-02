@@ -3,9 +3,18 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-02 against product tree `a4488341f6`
-(`origin/main`), lane `18103`, a guest lane with the operator's `.env.local`
-linked in and no JWT, on a quiet machine (load 2 to 5 on 10 cores; `pnpm
+entry was last DRIVEN on 2026-11-03 against product tree `215896e614`
+(`origin/main`, 131 commits past `a4488341f6`), lane `18103`, a guest lane
+carrying a guest JWT (`jwtStore.isGuest` true), with the browser launched
+with a `--host-resolver-rules` map for the gateway name (see Gotchas). Proven
+that day: boot to 250 candles on COINBASE BTC-USD 1h with VWAP
+(`activeInterval` `1h`, `window.__BOOT_ERRORS__` `[]`, `#skeleton-loader`
+gone, no `connection-status-chip`, `Indicators 1/3`) and the perp live edge on
+BINANCE.F ETHUSDT (`2252.19 −0.545%`, `24H VOLUME $7.62B`, `OPEN INTEREST
+$5.27B`, `FUNDING +0.0033%`). Not driven that day: the wake heal, the ring
+dump and the left-pan floor. Before that, DRIVEN on 2026-11-02 against product
+tree `a4488341f6` (`origin/main`), lane `18103`, a guest lane with the
+operator's `.env.local` linked in and no JWT, on a quiet machine (load 2 to 5 on 10 cores; `pnpm
 install --frozen-lockfile` in the fresh worktree took 8 s from the shared
 store, the lane answered `up` at once and drew 250 candles in 12 s). Proven:
 boot to 250 candles on COINBASE BTC-USD 1h with VWAP (`#skeleton-loader` up
@@ -451,6 +460,38 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   `UNREACHABLE`, so run `doctor` before reading an empty live panel as a
   regression, and never drive the wake heal during it: the heal needs the
   backfill.
+- **On 2026-11-03 the gateway name stopped resolving through the system
+  resolver while the tailnet answered it, and a resolver map in the browser
+  was enough to drive.** About two minutes after `up`, `nc` and `curl` failed
+  with `nodename nor servname provided` (getaddrinfo), while `nslookup
+  tsdb-gateway.int.ore.kiyotaka.ai 100.100.100.100` and a plain `nslookup`
+  both answered `10.1.1.10` and `curl --resolve
+  tsdb-gateway.int.ore.kiyotaka.ai:443:10.1.1.10 https://…/` returned `302`.
+  The page stuck at 1 bar with `Can't reach live data. Retrying...` and
+  `v2 Streaming socket error`, and a re-run of `doctor` flipped `v2 gateway` to
+  `UNREACHABLE`. Relaunching the session's browser with
+  `--host-resolver-rules=MAP tsdb-gateway.int.ore.kiyotaka.ai 10.1.1.10`
+  appended to the wrapper's software-GL args drew 250 candles in 30 s and kept
+  every live surface working for the whole pass. The wrapper has no switch for
+  extra args, so call `agent-browser --session "$KIYO_SESSION" --args
+  "--use-angle=swiftshader,--enable-unsafe-swiftshader,--host-resolver-rules=MAP
+  tsdb-gateway.int.ore.kiyotaka.ai 10.1.1.10" …` for every browser command of
+  the run. A `control-kiyotaka browser …` call in between relaunches the
+  browser without the map and lands on `about:blank`. `doctor` keeps reading
+  `UNREACHABLE` because its probe uses the system resolver, so record that
+  you drove past it. Read the address from `nslookup … 100.100.100.100` on the
+  day rather than copying `10.1.1.10`.
+- **The connection chip has a `Slow network` state and a worker watchdog
+  (source, `0c4e1493f7`, `7e92b90d2f`; read on `215896e614`, not driven).**
+  `useConnectionLatency.ts` adds the status `slowNetwork` (label `Slow
+  network`) while `dataWorkerHealth` is `slow`; `stalled` and `replacing` read
+  `reconnecting` and suppress `connection-status-reconnect` (the button needs
+  the worker `ok`), and `exhausted` reads `disconnected` with
+  `connection-status-reload`. The watchdog
+  (`src/utility/perf/data-worker-watchdog.util.ts`) replaces a data worker
+  silent for 30 s of visible time or without its implementation for 40 s. Its
+  commit says it is on in production and opt-in in dev, so a lane may never
+  show it.
 - **Boot shows one loader now (source, `d4c822292e`, `c798f8a110`; driven
   2026-11-01).** The `index.html` start screen (`#skeleton-loader`) stays up
   until the first candles paint (`skeleton-loader:route-painted`, `.sk-cut`
@@ -490,8 +531,9 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   the status is `reconnecting`, the candle socket is not `open`, the last
   failure is not a kick and at least one establish timed out or failed
   (`reconnectEligible` in `useConnectionLatency.ts`), and
-  `connection-status-reload` (`Reload`) only after a Reconnect whose dial also
-  expired. The chip shows after 2 s of degraded state and hides a cold-boot
+  `connection-status-reload` (`Reload`) after a Reconnect whose dial also
+  expired, and since `0c4e1493f7` also when the data worker is `exhausted`
+  (see the watchdog bullet). The chip shows after 2 s of degraded state and hides a cold-boot
   `reconnecting` until the first healthy observation unless the reach state is
   `unreachable`. Reconnect marks the edge host suspect and writes the ring
   event `v2-socket-route-forced`; every dial writes `v2-socket-route` (`slot,
