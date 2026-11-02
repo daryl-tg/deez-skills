@@ -29,6 +29,8 @@ the workflow that owns it. `curl` on the host passes either way.
 - `8098` device-owned review renderer. Hands off. Never start, restart, track,
   stop, or replace it. Publish through it; never author a revision file.
 - `31337` the `om` daemon. `om service restart` is the only handle.
+- `31417` the operator's source dev daemon, the `openmarket-internal`
+  `scripts/dev.ts` default. Never bind it from a lane. Not tunnelled.
 - `31338` singleton HTTP MCP. Never start a second.
 - `4178`, `13137` forwarded general-purpose slots. Run-owned: stop what you
   started.

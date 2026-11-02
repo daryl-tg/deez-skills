@@ -18,7 +18,9 @@ The build itself is one command. The part that is easy to get wrong is the rooms
 GUI: it is **not** built from the monorepo, and a plain source build serves the
 placeholder shell at `/rooms` (`packages/cli/src/dashboard/rooms-gui.ts:1-32`) —
 which looks exactly like the GUI broke. Steps 1, 2 and 6 reproduce locally what
-`.github/workflows/release.yml:196-240` does in CI.
+`.github/workflows/release-self-hosted.yml` and `.github/release/build-rooms-gui.sh`
+do in CI. A tagged release takes its GUI source from the repo variable
+`ROOMS_GUI_SOURCE`.
 
 ### Run the script, not the steps
 
@@ -133,7 +135,7 @@ this skill produces.
 Capture both repos up front and put it in the opening line and the final report:
 
 ```bash
-for R in ~/github/openmarket-internal ~/github/openmarket-chat; do
+for R in ~/github/openmarket-internal ~/gitlab/openmarket-chat; do
   cd "$R" || continue
   BR=$(git rev-parse --abbrev-ref HEAD)                    # "HEAD" means detached
   [ "$BR" = HEAD ] && BR="detached@$(git rev-parse --short HEAD)"
@@ -179,7 +181,7 @@ means build, and the reason is what you say you are building for.
 ```bash
 OM_BIN=$(realpath /opt/homebrew/bin/om)   # a symlink here — resolve it, or stat reads the link
 MONO=~/github/openmarket-internal
-GUI=~/github/openmarket-chat
+GUI=~/gitlab/openmarket-chat
 
 need=0; why=""
 flag() { need=1; why="${why:+$why; }$1"; }
@@ -254,7 +256,7 @@ First check the protocol era matches, or the GUI is built against a different
 wire contract than the daemon:
 
 ```bash
-cd ~/github/openmarket-chat && bun run rooms-client:status
+cd ~/gitlab/openmarket-chat && bun run rooms-client:status
 ```
 
 **Compare the constants, not the package number.** `package.json` says `0.43.0`
@@ -293,7 +295,7 @@ grep VERSION dist/version.js
 Then build:
 
 ```bash
-cd ~/github/openmarket-chat
+cd ~/gitlab/openmarket-chat
 bun install
 bun run build
 ```
@@ -323,7 +325,7 @@ must happen before step 3.
 
 ```bash
 cd ~/github/openmarket-internal
-GUI=~/github/openmarket-chat/dist
+GUI=~/gitlab/openmarket-chat/dist
 SLOT=packages/cli/assets/rooms-gui
 
 cp "$GUI/assets/rooms.js"  "$SLOT/rooms.js"
@@ -556,21 +558,26 @@ Hand this over verbatim. It assumes nothing this skill set up.
 - `bun` on PATH (`bun --version`).
 - Both repos cloned. They are separate — the GUI is **not** in the monorepo:
   - monorepo (daemon + CLI + `rooms-client`): `openmarket-internal`
-  - rooms GUI: `openmarket-chat`
+  - rooms GUI: `openmarket-chat`, on GitLab at `~/gitlab/openmarket-chat`. The
+    `~/github/openmarket-chat*` checkouts are deprecated; never build from them.
 - Write access to wherever `om` is installed. Never `sudo`.
 
 If you do not know where the repos are:
 
 ```bash
 find ~ -maxdepth 4 -type d -name openmarket-internal 2>/dev/null
-find ~ -maxdepth 4 -type d -name openmarket-chat 2>/dev/null
+# the GUI: the checkout whose origin is GitLab. A name search also finds the
+# deprecated GitHub checkout and its worktrees, which still build.
+for d in $(find ~ -maxdepth 3 -type d -name 'openmarket-chat*' 2>/dev/null); do
+  git -C "$d" remote get-url origin 2>/dev/null | grep -q gitlab.com/openmarketxyz/frontend/openmarket-chat.git && echo "$d"
+done
 ```
 
 **Set the paths once. Every step below uses them.**
 
 ```bash
 export MONO=~/github/openmarket-internal   # <- the script's own default
-export GUI=~/github/openmarket-chat
+export GUI=~/gitlab/openmarket-chat
 export OM_BIN="$(command -v om || echo ~/.local/bin/om)"
 echo "$MONO"; echo "$GUI"; echo "$OM_BIN"
 ```

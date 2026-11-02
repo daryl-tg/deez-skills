@@ -14,11 +14,18 @@ die_early() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
 # Paths default to this box's layout; override to run it anywhere else.
 MONO=${OM_MONO:-$HOME/github/openmarket-internal}
-GUI=${OM_GUI:-$HOME/github/openmarket-chat}
+GUI=${OM_GUI:-$HOME/gitlab/openmarket-chat}
 SLOT="$MONO/packages/cli/assets/rooms-gui"
 PLIST=${OM_PLIST:-$HOME/Library/LaunchAgents/xyz.openmarket.runner.plist}
 [ -d "$MONO" ] || die_early "monorepo not at $MONO (set OM_MONO)"
 [ -d "$GUI" ]  || die_early "GUI repo not at $GUI (set OM_GUI)"
+# A path cannot tell the live checkout from the deprecated GitHub one: both exist,
+# both build. Only the remote can, and a hosted build of the wrong tree installs
+# old code over the daemon's /rooms with nothing to warn you.
+case "$(git -C "$GUI" remote get-url origin 2>/dev/null)" in
+  *gitlab.com/openmarketxyz/frontend/openmarket-chat*) : ;;
+  *) die_early "GUI repo at $GUI is not the GitLab openmarket-chat checkout (origin: $(git -C "$GUI" remote get-url origin 2>/dev/null || echo none)). The GitHub openmarket-chat checkouts are deprecated; set OM_GUI." ;;
+esac
 HEALTH=http://127.0.0.1:31337/healthz
 ROOMS=http://127.0.0.1:31337/rooms/
 
@@ -49,14 +56,7 @@ run_step() {
 # Staged assets are a working-tree overwrite of committed stubs. Restore them on
 # EVERY exit path -- failure and Ctrl-C included, which is where they used to leak.
 STAGED=0
-GUI_WS_BAK=""
-restore_gui_workspace() {
-  [ -n "$GUI_WS_BAK" ] && [ -d "$GUI_WS_BAK" ] || return 0
-  cp "$GUI_WS_BAK/package.json" "$GUI_WS_BAK/bun.lock" "$GUI/" 2>/dev/null
-  rm -rf "$GUI_WS_BAK"; GUI_WS_BAK=""
-}
 cleanup() {
-  restore_gui_workspace
   [ "$STAGED" = 1 ] || return 0
   git -C "$MONO" checkout -- packages/cli/assets/rooms-gui/ 2>/dev/null
   rm -f "$MONO"/packages/cli/.*.bun-build
@@ -78,7 +78,7 @@ for R in "$MONO" "$GUI"; do
 done
 
 # Where does the daemon actually live? Read it, never assume -- the plist has
-# been repointed at the repo build tree before (openmarket-chat #603), and on
+# been repointed at the repo build tree before (GitHub-era openmarket-chat #603), and on
 # 2026-09-11 at an away-run build named `om-away-workload-live`. Take the FIRST
 # <string> in ProgramArguments, which is the program path whatever it is called:
 # the old pattern `<string>[^<]*om</string>` required the path to END in "om", so
@@ -179,38 +179,15 @@ if [ "$NO_GUI" = 0 ]; then
     say "rooms-client:          $(grep -o '"[0-9][0-9.]*"' "$MONO/packages/rooms-client/dist/version.js" | head -1 | tr -d '"')"
   fi
 
-  # openmarket-chat f190644c made apps/cloud a workspace of this root, so a plain
-  # root `bun install` now resolves apps/cloud's @orangecharts dependency -- an npm
-  # org this machine has no read access to. npm answers 404 (never 403) for a
-  # private package you cannot authenticate to, so the desktop build died with
-  # "12.45.0 not found" on a package it never loads: @orangecharts belongs to the
-  # Kiyotaka/orange stack, and nothing under src/ imports it.
-  #
-  # Neither --filter nor --production sidesteps it (both still plan the package --
-  # the root lockfile is resolved as ONE graph and hoisted), so drop apps/cloud
-  # from `workspaces` for the duration of the install and put package.json and
-  # bun.lock straight back. The cleanup trap restores them on EVERY exit path,
-  # failure and Ctrl-C included -- leaving a truncated workspaces array behind
-  # would silently break the next cloud build.
-  #
-  # No scope tokens needed: with apps/cloud excluded the only private scope left is
-  # @openmarket, which ~/.npmrc already covers. That is also why npm config is NOT
-  # isolated here -- the README's XDG_CONFIG_HOME dance exists to stop a
-  # registry-wide credential from beating TWO scope tokens, and there is only one
-  # scope in play now.
-  GUI_WS_BAK=$(mktemp -d)
-  cp "$GUI/package.json" "$GUI/bun.lock" "$GUI_WS_BAK/" || die "backing up the GUI workspace files"
-  python3 - "$GUI/package.json" <<'PYEOF' || die "editing workspaces"
-import collections, json, sys
-path = sys.argv[1]
-doc = json.load(open(path), object_pairs_hook=collections.OrderedDict)
-doc["workspaces"] = [w for w in doc["workspaces"] if "cloud" not in w]
-json.dump(doc, open(path, "w"), indent=2)
-PYEOF
-  gui_install() { cd "$GUI" && bun install; }
-  run_step "GUI bun install" gui_install
-  restore_gui_workspace
-  say "workspaces:            apps/cloud excluded for install (restored)"
+  # The daemon only needs the root app and the shared UI. apps/cloud pulls in
+  # @orangecharts, an org this machine may not be able to read, and npm answers
+  # 404 (never 403) for a private package you cannot authenticate to. The repo
+  # supports filtering it out, so no scope token is needed beyond ~/.npmrc's
+  # @openmarket, and --frozen-lockfile keeps the install from rewriting bun.lock.
+  # This replaced an older workaround that edited the tracked package.json and
+  # bun.lock mid-install and restored them from a trap.
+  gui_install() { cd "$GUI" && bun install --frozen-lockfile --filter '!@openmarket/chat-cloud'; }
+  run_step "GUI bun install (daemon-only)" gui_install
   # `bun install` silently replaces the rooms-client SYMLINK with the PUBLISHED
   # registry copy whenever the npm token works, downgrading the GUI to whatever
   # npm has. SKILL.md documents the opposite failure (the install 404s on the

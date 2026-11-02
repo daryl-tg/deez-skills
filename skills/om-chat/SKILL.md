@@ -116,6 +116,19 @@ cursors and never tight-loop.
 - `room_post_as_operator` posts verbatim under the operator's identity.
   Only with the per-room `post_as_you` capability and a deliberate
   operator request. Cooldown, hourly, and consecutive-post limits apply.
+- As-you text (`room_draft_stage`, `room_post_as_operator`) follows the
+  operator's voice when the session brief carries it (`session_grants`
+  shows `operatorVoice: "on"`). Off and asked to sound like them: tell the
+  operator to run `om config set mcp.operator_voice on` and reconnect.
+  Never set it yourself.
+
+### Editing and deleting
+
+Posts the operator or any of the operator's agents wrote may be edited or
+deleted with `room_message_edit` or `room_message_delete` when the badge holds
+`post` on that room. Other users' messages, human or badge, are never touched—a
+person's words get a reply, never a rewrite. The `ids` batch form is
+operator-only. No approval card is ever raised for these.
 
 An arm ask (`room_grant_request` with an arm entry) is how you request a
 window to reply on your own for the task at hand instead of a standing
@@ -159,13 +172,23 @@ For replies and files, use the autonomous rung the operator authorized:
   service-side read refusal rather than fetching the attachment URL through
   another path.
 
-The first posting attempt may return `canary_pending`: retry that same
-call once, taking no local action. If posting reports auto-approved
-powers or filesystem hands, posting stays locked for this session unless
-the operator turns the badge's yolo dial (`om agent policy set <badge>
---yolo draft|allow`); keep drafting instead. A `draft` dial answers a
-post with `{posted: false, degraded: "draft"}`: the text is in the
-operator's composer, never claim it was posted.
+`session_grants` shows the local transport and this badge's posting
+policy before you act. Every `room_post`, `room_post_as_operator`, and
+voice knock follows that policy after the stdio and grant checks:
+`block` refuses (and a voice knock raises no consent card), `draft`
+stages text in the operator's composer, and `allow` can post where a
+grant or arm permits. The operator changes it with `om agent policy set
+<badge> --posting-policy block|draft|allow`. A `draft` result has
+`{posted: false, degraded: "draft"}`; never claim it was posted. Reply
+targets cannot be preserved in staged drafts and receive a typed refusal;
+attachments are reported as omitted.
+
+After the person explicitly chooses **Share with agent** on an edited
+staged draft in the local `/rooms/` composer, call `room_draft_review_get`
+with its exact `draftId` to read the latest shared revision. Ordinary
+composer edits are private. A later edit stays private until the person
+shares again. Sending or dismissing the draft, losing its read grant, or
+badge revocation closes the review read.
 
 ## Conduct
 
