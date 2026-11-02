@@ -38,7 +38,8 @@ validation step.
 4. **Never deliver a goal.** No incremental push, review request, announcement,
    or promotion mid-loop. A partial candidate is not a deliverable.
 5. **When every goal is verified**, run the terminal gate once for the whole
-   candidate, then the family's completion playbook once.
+   candidate, scoped per **principle-scope-checks-to-the-change**, then the
+   family's completion playbook once.
 
 **When the operator returns mid-loop, or a wake has something new**, reply in
 the shape of **ketchup**: decisions first, every waiting call decidable from the

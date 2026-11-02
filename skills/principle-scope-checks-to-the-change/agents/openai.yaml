@@ -1,0 +1,5 @@
+interface:
+  display_name: "Scope Checks To The Change"
+  short_description: "Apply before any typecheck, test run, lint, or build"
+policy:
+  allow_implicit_invocation: false
