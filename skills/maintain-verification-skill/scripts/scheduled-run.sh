@@ -59,12 +59,45 @@ fi
 
 log "START $SKILL in $REPO"
 OUT="$STATE/$SKILL.last-run.txt"
-claude -p "Run maintain-verification-skill against $SKILL at $SKILLDIR for $REPO. Hub: $HUB. \
-Unattended: do not ask questions. Stay inside the skill's edit scope, never \
+PROMPT="First read and follow the current hub instructions at \
+$HUB/skills/maintain-verification-skill/SKILL.md and the persistence contract at \
+$HUB/docs/project-verification.md. Run that maintenance workflow for $SKILL in \
+the product repository $REPO. Initial ownership lookup: $SKILLDIR.
+
+Treat $SKILLDIR as the initial ownership lookup only, not automatically as the \
+map edit target. Before editing a map, fetch current origin/main and inspect the \
+hub's worktree status, upstream ancestry, and outgoing history. If the operator \
+hub is dirty, behind origin/main, or has unrelated outgoing commits, create a \
+detached isolated hub worktree from fetched origin/main. Resolve the project's \
+canonical verification skill inside that worktree and use that actual isolated \
+skill path for all map edits and the publisher. Leave the operator hub \
+untouched. Honor .sync-hold from the original hub; report the proved maps as \
+pending instead of publishing while it is present.
+
+Inventory the product's full user-facing source surface, then reconcile that \
+inventory against every existing feature-map entry. Add proved missing surfaces, \
+and when live coverage is blocked, persist source-supported inventory gaps as \
+explicitly pending where the shared contract permits. Do not limit the pass to \
+features already present in the map. If some coverage is blocked, still persist \
+each independently proved map correction and run the map-only automatic \
+publisher for exactly those reviewed feature-map files. Report the publisher \
+receipt: project path, map commit, push result, and remaining non-map changes. \
+Never use broad bin/sync.
+
+Unattended: do not ask questions. Stay inside the skill's edit scope and never \
 touch product code. End your reply with a single final line reading exactly \
-VERDICT: clean, VERDICT: changed, or VERDICT: blocked." \
-	>"$OUT" 2>&1
+VERDICT: clean, VERDICT: changed, or VERDICT: blocked."
+(
+	cd "$REPO" || exit 1
+	claude -p "$PROMPT"
+) >"$OUT" 2>&1
 RC=$?
+
+if [ "$RC" -ne 0 ]; then
+	log "CLAUDE FAILED (rc=$RC) -- see $OUT"
+	cat "$OUT" >&2
+	exit 1
+fi
 
 VERDICT="$(grep -oE '^VERDICT: (clean|changed|blocked)' "$OUT" | tail -1 | awk '{print $2}')"
 case "${VERDICT:-}" in

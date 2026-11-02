@@ -44,3 +44,15 @@ state, commands, and observable proof.
 ## Features
 
 - [Send a message](./send-message.md)
+
+## Surface inventory
+
+Replace this example with the product's source inventory, stamped with its
+discovery date and tree. Include outcomes beyond the first live-proved recipes.
+Keep an unresolved discovery visible until live-proved, mapped, or removed with
+source evidence. Source inspection alone is never live verification.
+
+| User outcome | Product source path | Guide / sub-feature | Live verification | Prerequisite or gap |
+|---|---|---|---|---|
+| Send a message | <real registration / implementation path> | [Send a message](./send-message.md) | <date and driven tree> | <limitations, if any> |
+| <source-supported outcome> | <real registration / implementation path> | unmapped | live verification pending | <missing proof / prerequisite> |

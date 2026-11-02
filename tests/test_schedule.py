@@ -49,14 +49,18 @@ project = "example-app"
             harness.mkdir()
             claude = harness / "claude"
             claude.write_text(
-                '#!/bin/sh\nprintf "%s" "$2" > "$DEEZ_PROMPT_CAPTURE"\n'
-                'printf "VERDICT: clean\\n"\n')
+                '#!/bin/sh\npwd > "$DEEZ_CWD_CAPTURE"\n'
+                'printf "%s" "$2" > "$DEEZ_PROMPT_CAPTURE"\n'
+                'printf "VERDICT: clean\\n"\n'
+                'exit "${DEEZ_CLAUDE_RC:-0}"\n')
             claude.chmod(0o755)
             product = root / "product-worktree"
             product.mkdir()
             capture = root / "prompt.txt"
+            cwd_capture = root / "cwd.txt"
             env = {**os.environ, "PATH": f"{harness}:{os.environ['PATH']}",
                    "DEEZ_MAINTAIN_STATE": str(root / "state"),
+                   "DEEZ_CWD_CAPTURE": str(cwd_capture),
                    "DEEZ_PROMPT_CAPTURE": str(capture)}
             result = subprocess.run(
                 [str(installed / "scripts/scheduled-run.sh"), str(product), "verify-example"],
@@ -65,5 +69,31 @@ project = "example-app"
             self.assertTrue(capture.is_file(), result.stdout + result.stderr)
             prompt = capture.read_text()
             self.assertIn(str(skill.resolve()), prompt)
-            self.assertIn(f"Hub: {hub.resolve()}", prompt)
+            self.assertIn(
+                str(hub.resolve() / "skills/maintain-verification-skill/SKILL.md"),
+                prompt)
+            self.assertIn(str(hub.resolve() / "docs/project-verification.md"), prompt)
+            self.assertIn(f"Initial ownership lookup: {skill.resolve()}", prompt)
+            self.assertIn("initial ownership lookup only", prompt)
+            self.assertIn("fetch current origin/main", prompt)
+            self.assertIn("worktree status, upstream ancestry, and outgoing history", prompt)
+            self.assertIn("detached isolated hub worktree", prompt)
+            self.assertIn("actual isolated skill path", prompt)
+            self.assertIn("Leave the operator hub untouched", prompt)
+            self.assertIn("Honor .sync-hold from the original hub", prompt)
+            self.assertIn("full user-facing source surface", prompt)
+            self.assertIn("source-supported inventory gaps", prompt)
+            self.assertIn("explicitly pending", prompt)
+            self.assertIn("map-only automatic publisher", prompt)
+            self.assertIn("publisher receipt", prompt)
+            self.assertEqual(
+                Path(cwd_capture.read_text().strip()).resolve(), product.resolve())
+            self.assertFalse((root / "state/verify-example.lock.d").exists())
+
+            failed_env = {**env, "DEEZ_CLAUDE_RC": "7"}
+            failed = subprocess.run(
+                [str(installed / "scripts/scheduled-run.sh"), str(product), "verify-example"],
+                capture_output=True, text=True, env=failed_env)
+            self.assertEqual(failed.returncode, 1, failed.stdout + failed.stderr)
+            self.assertIn("VERDICT: clean", failed.stderr)
             self.assertFalse((root / "state/verify-example.lock.d").exists())

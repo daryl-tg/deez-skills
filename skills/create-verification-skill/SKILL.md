@@ -107,8 +107,14 @@ since some dry runs still touch the network.
 
 ## 5. Seed the feature map
 
-Create `features/README.md` inside the canonical verification skill plus one file
-per user-facing feature, top three to five to start. Follow
+Inventory all applicable source entry points and user outcomes before choosing
+the first recipes, following the shared contract's discovery rules. Record the
+complete source-supported `Surface inventory` in `features/README.md`, including
+outcomes awaiting live verification. The initial three to five live-proved guides
+are a seed, not a complete feature map. Record each remaining outcome's source
+path, pending verification and prerequisites so maintenance can expand coverage.
+
+Create one guide per coherent user-facing feature. Follow
 [`references/feature-map-example/`](references/feature-map-example/). Four H2s
 in order: `Sub-features`, `How to get to it (user POV)`,
 `Driving it with control-<app>`, `Gotchas`.

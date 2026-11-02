@@ -74,11 +74,63 @@ def cmd_skill_path(args):
     return 0
 
 
+def cmd_clanker_hook(args):
+    from deezlib import clanker
+
+    try:
+        payload = json.load(sys.stdin)
+        output = clanker.handle_event(
+            REPO_ROOT, args.runtime, payload, clanker.state_root(os.environ, Path.home())
+        )
+    except (ValueError, OSError, clanker.ClankerError) as exc:
+        print(f"clanker reminder unavailable: {exc}", file=sys.stderr)
+        return 0
+    if output is not None:
+        print(json.dumps(output))
+    return 0
+
+
+def cmd_clanker_hooks(args):
+    from deezlib import clanker
+
+    roots = runtimes.roots(os.environ, Path.home())
+    if args.runtime:
+        roots = {args.runtime: roots[args.runtime]}
+    try:
+        for line in clanker.install(REPO_ROOT, roots, args.apply):
+            print(line)
+    except (OSError, clanker.ClankerError) as exc:
+        print(f"deez: {exc}", file=sys.stderr)
+        return 2
+    if not args.apply:
+        print("Plan only. Use --apply to install the reminders.")
+    if "codex" in roots:
+        print("Codex skips new hooks until reviewed and trusted in /hooks.")
+    return 0
+
+
+def cmd_clanker_checkpoint(args):
+    from deezlib import clanker
+
+    try:
+        print(clanker.checkpoint(
+            REPO_ROOT, args.runtime, args.session, args.playbook, args.resume_note,
+            clanker.state_root(os.environ, Path.home()),
+        ))
+    except (OSError, clanker.ClankerError) as exc:
+        print(f"deez: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
 def cmd_sync_feature_maps(args):
     import subprocess
 
     repo = Path(args.repo).expanduser().resolve() if args.repo else REPO_ROOT
     if repo != REPO_ROOT:
+        if (REPO_ROOT / ".sync-hold").exists():
+            print("feature maps: hub .sync-hold present; skipped")
+            return 0
         origins = [subprocess.run(
             ["git", "remote", "get-url", "origin"], cwd=folder,
             capture_output=True, text=True,

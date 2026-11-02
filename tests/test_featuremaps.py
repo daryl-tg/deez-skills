@@ -1,5 +1,6 @@
 import hashlib
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -7,6 +8,9 @@ from pathlib import Path
 from unittest import mock
 
 from deezlib import featuremaps, registry
+
+
+REPO = Path(__file__).resolve().parents[1]
 
 
 class FeatureMapPublishTest(unittest.TestCase):
@@ -363,6 +367,52 @@ class FeatureMapPublishTest(unittest.TestCase):
         )
         self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), main_head)
         self.assertEqual(self.git("status", "--short").stdout, main_status)
+
+    def test_cli_isolated_publication_honors_the_operator_hub_hold(self):
+        (self.repo / "registry.toml").write_text('''
+[meta]
+version = 1
+default_profile = "full"
+[categories]
+verification = "Verification"
+[profiles]
+full = ["*"]
+[skills.verify-chat]
+category = "verification"
+runtimes = ["claude", "codex"]
+project = "chat-app"
+''')
+        self.git("add", "registry.toml")
+        self.git("commit", "-qm", "complete CLI registry fixture")
+        self.git("push", "-q", "origin", "main")
+        isolated = Path(self.tmp.name) / "isolated-hub"
+        self.git("worktree", "add", "--quiet", "--detach", str(isolated), "origin/main")
+        for item in ("bin", "deezlib"):
+            shutil.copytree(REPO / item, self.repo / item,
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        (self.repo / ".sync-hold").write_text("operator paused publication\n")
+        feature = isolated / "projects/chat-app/skills/verify-chat/features/held.md"
+        feature.write_text("held source-supported map\n")
+        before_head = self.run_git(isolated, "rev-parse", "HEAD").stdout
+        before_status = self.run_git(isolated, "status", "--porcelain=v1").stdout
+        before_remote = self.run_git(
+            self.remote.parent, f"--git-dir={self.remote}", "rev-parse", "main"
+        ).stdout
+
+        result = subprocess.run(
+            [str(self.repo / "bin/deez"), "sync-feature-maps", "chat-app", "verify-chat",
+             "held.md", "--repo", str(isolated)],
+            capture_output=True, text=True, env=self.env,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("hub .sync-hold present; skipped", result.stdout)
+        self.assertEqual(self.run_git(isolated, "rev-parse", "HEAD").stdout, before_head)
+        self.assertEqual(self.run_git(isolated, "status", "--porcelain=v1").stdout,
+                         before_status)
+        self.assertEqual(self.run_git(
+            self.remote.parent, f"--git-dir={self.remote}", "rev-parse", "main"
+        ).stdout, before_remote)
 
 
 if __name__ == "__main__":
