@@ -507,6 +507,25 @@ class Store:
     def undelivered_inputs(self, ticket_id):
         return self._select(Input, "ticket_id = ? AND delivered_at IS NULL", (ticket_id,))
 
+    def inputs(self, ticket_id):
+        return self._select(Input, "ticket_id = ?", (ticket_id,))
+
+    def retry(self, ticket_id):
+        with self._transaction():
+            ticket = self._require(Ticket, ticket_id)
+            if ticket.state is TicketState.ended:
+                raise SuperError(f"{ticket_id} has ended; nothing to retry")
+            ended_at = utc_now()
+            self._db.execute(
+                "UPDATE assignments SET state = ?, ended_at = ? WHERE ticket_id = ? AND state != ?",
+                (AssignmentState.ended, ended_at, ticket_id, AssignmentState.ended),
+            )
+            fresh = Assignment(
+                new_id(Assignment), ticket_id, AssignmentState.pending, None, None, None, None, None
+            )
+            self._insert(fresh)
+        return fresh
+
     def fanout_targets(self, thread_id):
         rows = self._db.execute(
             "SELECT tickets.id FROM subscriptions "

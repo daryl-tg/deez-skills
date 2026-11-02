@@ -224,3 +224,36 @@ class SuperCliTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RetryTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.store = Store.open(Path(self.tmp.name) / "super")
+        self.addCleanup(self.store.close)
+        trigger = github_trigger()
+        self.store.receive(trigger)
+        self.ticket = self.store.accept(
+            trigger.id, "fix-build", Strength.explicit, "scope", [], "policy-1", "asked",
+        )
+
+    def test_retry_ends_stalled_assignment_and_starts_new(self):
+        first = self.store.assignment_for(self.ticket.id)
+        self.store.start_assignment(first.id, "sid", 4242, "/tmp/wt")
+        fresh = self.store.retry(self.ticket.id)
+        self.assertNotEqual(fresh.id, first.id)
+        self.assertEqual(str(fresh.state), "pending")
+        self.assertEqual(str(self.store.show(first.id)["state"]), "ended")
+        self.assertEqual(self.store.assignment_for(self.ticket.id).id, fresh.id)
+
+    def test_retry_refuses_ended_ticket(self):
+        self.store.stop(self.ticket.id, "dboon", "no")
+        with self.assertRaises(SuperError):
+            self.store.retry(self.ticket.id)
+
+    def test_inputs_lists_delivered_and_undelivered(self):
+        note = self.store.add_input(self.ticket.id, "note", "repo: /r")
+        self.store.mark_delivered([note.id])
+        self.assertEqual([i.text for i in self.store.inputs(self.ticket.id)], ["repo: /r"])
+        self.assertEqual(self.store.undelivered_inputs(self.ticket.id), [])

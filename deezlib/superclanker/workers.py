@@ -28,8 +28,7 @@ from deezlib.superclanker.store import InputKind, SuperError
 REPORT_LINE = re.compile(r"^REPORT (progress|waiting|ready|blocked|failed|dropped) (.*)$", re.M)
 ERR_TAIL_CHARS = 300
 SESSION_FLAGS = (
-    "--permission-mode", "bypassPermissions", "--output-format", "json",
-    "--strict-mcp-config", "--setting-sources", "project,local",
+    "--permission-mode", "bypassPermissions", "--output-format", "json", "--strict-mcp-config",
 )
 NO_REPORT = "worker exited without a report"
 _children = {}
@@ -196,10 +195,11 @@ def launch(store, config, assignment_id, hub_root, root, dev_notes_root=None,
     mandate = _load(store, Mandate, ticket.mandate_id)
     origin = store.ticket_origin(ticket.id)
     inputs = store.undelivered_inputs(ticket.id)
-    playbook = _noted(inputs, "playbook") or str(
+    facts = store.inputs(ticket.id)
+    playbook = _noted(facts, "playbook") or str(
         hub_root / "skills" / "clanker-mode" / "playbooks" / "feature.md"
     )
-    repo = _noted(inputs, "repo")
+    repo = _noted(facts, "repo")
     cwd, branch = prepare_workspace(ticket, repo and Path(repo), ticket.slug, root)
     where = paths(root, dev_notes_root, ticket)
     brief = where.notes / "brief.md"

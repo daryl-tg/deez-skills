@@ -87,6 +87,8 @@ def build_parser():
     deliver_parser = super_verbs.add_parser("deliver", help="Resume a worker with its inputs.")
     deliver_parser.add_argument("ref", metavar="ticket-or-assignment")
     super_verbs.add_parser("reap", help="Turn finished worker turns into report triggers.")
+    retry_parser = super_verbs.add_parser("retry", help="End a stalled assignment and start a fresh one.")
+    retry_parser.add_argument("ticket")
     kill_parser = super_verbs.add_parser("kill", help="Stop a worker process.")
     kill_parser.add_argument("assignment")
     report_parser = super_verbs.add_parser("report", help="Record a worker's own report.")
@@ -463,6 +465,12 @@ def _super_reap(store, _args):
         print(f"report {kind} for {trigger.meta['ticket']} → {trigger.id}")
 
 
+def _super_retry(store, args):
+    _super_record(store, "ticket", "k_", args.ticket)
+    fresh = store.retry(args.ticket)
+    print(f"retry {args.ticket} → {fresh.id} pending")
+
+
 def _super_kill(store, args):
     from deezlib.superclanker import workers
 
@@ -496,6 +504,7 @@ SUPER_VERBS = {
     "launch": _super_launch,
     "deliver": _super_deliver,
     "reap": _super_reap,
+    "retry": _super_retry,
     "kill": _super_kill,
     "report": _super_report,
 }

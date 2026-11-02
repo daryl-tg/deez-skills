@@ -259,7 +259,7 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual(argv[argv.index("--permission-mode") + 1], "bypassPermissions")
         self.assertEqual(argv[argv.index("--output-format") + 1], "json")
         self.assertIn("--strict-mcp-config", argv)
-        self.assertEqual(argv[argv.index("--setting-sources") + 1], "project,local")
+        self.assertNotIn("--setting-sources", argv)
         self.assertNotIn("--model", argv)
         self.assertEqual(
             argv[-1],
