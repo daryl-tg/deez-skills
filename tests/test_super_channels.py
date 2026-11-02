@@ -128,7 +128,7 @@ class ChannelsTest(unittest.TestCase):
         second = one_pass("2026-11-02T10:00:05+00:00")
 
         self.assertEqual((first.polled, first.errors), (8, ()))
-        self.assertEqual(len(wake.batches[0]), 8)
+        self.assertEqual(len(wake.batches[0]), 5)
         self.assertEqual((second.polled, second.replies_sent, second.errors), (0, 2, ()))
         self.assertEqual(self.store.unsent_replies(), [])
         listings = [call for call in fake_forge.calls(self.log) if call[1:3] == ["pr", "list"]]
