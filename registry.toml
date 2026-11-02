@@ -310,6 +310,11 @@ layer    = "mode"
 category = "core"
 runtimes = ["claude", "codex"]
 
+[skills.super-clanker]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude"]
+
 # --- Workflow skills --------------------------------------------------------
 # Adopted from pstack where nothing local covered the ground, merged with the
 # local counterpart where both had a stronger half. Installed on both runtimes:

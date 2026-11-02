@@ -126,13 +126,15 @@ class WorkersTest(unittest.TestCase):
         _trigger, ticket_id, assignment_id = self.dispatch()
         folder = self.notes / SLUG
         folder.mkdir(parents=True)
+        (folder / ".ticket").write_text(f"{ticket_id}\n", encoding="utf-8")
         (folder / "resume.md").write_text("kept from an earlier session\n", encoding="utf-8")
 
         started = self.launch(assignment_id)
         self.finish(started.pid)
 
         self.assertEqual(
-            sorted(p.name for p in folder.iterdir()), ["brief.md", "mandate.md", "resume.md"]
+            sorted(p.name for p in folder.iterdir()),
+            [".ticket", "brief.md", "mandate.md", "resume.md"],
         )
         self.assertEqual(
             (folder / "resume.md").read_text(encoding="utf-8"), "kept from an earlier session\n"
@@ -150,6 +152,40 @@ class WorkersTest(unittest.TestCase):
         self.assertIn("read brief.md", fresh)
         self.assertIn(str(self.root / "work" / other_ticket), fresh)
         self.assertIn(str(BUG_FIX), fresh)
+
+    def test_second_ticket_with_same_slug_gets_its_own_folder(self):
+        _first, first_ticket, first = self.dispatch()
+        _second, second_ticket, second = self.dispatch("fix the other typo", thread="other")
+
+        self.finish(self.launch(first).pid)
+        self.finish(self.launch(second).pid)
+
+        mine = self.notes / SLUG
+        theirs = self.notes / f"{SLUG}-{second_ticket}"
+        self.assertEqual((mine / ".ticket").read_text(encoding="utf-8").strip(), first_ticket)
+        self.assertEqual((theirs / ".ticket").read_text(encoding="utf-8").strip(), second_ticket)
+        self.assertIn(first_ticket, (mine / "brief.md").read_text(encoding="utf-8"))
+        self.assertNotIn(second_ticket, (mine / "brief.md").read_text(encoding="utf-8"))
+        self.assertIn(second_ticket, (theirs / "brief.md").read_text(encoding="utf-8"))
+        self.assertIn(second_ticket, (theirs / "mandate.md").read_text(encoding="utf-8"))
+        self.assertEqual(self.argvs()[-1][-1].split(" the handoff at ")[1].split(". ")[0],
+                         str(theirs / "brief.md"))
+
+    def test_relaunch_reuses_the_folder_it_marked(self):
+        _trigger, ticket_id, assignment_id = self.dispatch()
+        self.finish(self.launch(assignment_id).pid)
+        folder = self.notes / SLUG
+        (folder / "resume.md").write_text("step 2 of 5 done\n", encoding="utf-8")
+
+        code, _out, err = self.deez("retry", ticket_id)
+        self.assertEqual(code, 0, err)
+        fresh = self.store.assignment_for(ticket_id).id
+        self.finish(self.launch(fresh).pid)
+
+        self.assertEqual(sorted(p.name for p in self.notes.iterdir()), [SLUG])
+        self.assertEqual((folder / ".ticket").read_text(encoding="utf-8").strip(), ticket_id)
+        self.assertEqual((folder / "resume.md").read_text(encoding="utf-8"), "step 2 of 5 done\n")
+        self.assertIn(fresh, (folder / "brief.md").read_text(encoding="utf-8"))
 
     def test_brief_cites_playbook_mandate_and_forbids_delivery(self):
         _trigger, ticket_id, assignment_id = self.dispatch("fix the typo\nin README line 3")

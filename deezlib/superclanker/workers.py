@@ -31,6 +31,7 @@ SESSION_FLAGS = (
     "--permission-mode", "bypassPermissions", "--output-format", "json", "--strict-mcp-config",
 )
 NO_REPORT = "worker exited without a report"
+TICKET_MARK = ".ticket"
 _children = {}
 
 
@@ -42,6 +43,20 @@ class TicketPaths:
     log: Path
 
 
+def _marked_ticket(folder):
+    try:
+        return (folder / TICKET_MARK).read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return None
+
+
+def _notes_folder(notes_root, ticket):
+    shared = notes_root / ticket.slug
+    if not shared.exists() or _marked_ticket(shared) == ticket.id:
+        return shared
+    return notes_root / f"{ticket.slug}-{ticket.id}"
+
+
 def paths(root, dev_notes_root, ticket):
     root = Path(root)
     notes_root = Path(
@@ -50,7 +65,8 @@ def paths(root, dev_notes_root, ticket):
         or Path.home() / "Documents" / "dev-notes"
     ).expanduser().absolute()
     return TicketPaths(
-        notes_root / ticket.slug, root / "worktrees", root / "work" / ticket.id, root / "log"
+        _notes_folder(notes_root, ticket), root / "worktrees", root / "work" / ticket.id,
+        root / "log",
     )
 
 
@@ -205,6 +221,7 @@ def launch(store, config, assignment_id, hub_root, root, dev_notes_root=None,
     brief = where.notes / "brief.md"
     mandate_path = where.notes / "mandate.md"
     resume_note = where.notes / "resume.md"
+    _write_atomic(where.notes / TICKET_MARK, f"{ticket.id}\n")
     goal = f'{origin.actor} asked on {origin.thread_id}: "{_one_line(origin.text)}"'
     _write_atomic(mandate_path, _template(hub_root, "super-worker-mandate.md").format_map({
         "ticket_id": ticket.id, "slug": ticket.slug, "thread": ticket.thread_id,

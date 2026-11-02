@@ -361,6 +361,26 @@ class RouterTest(unittest.TestCase):
         self.assertEqual((shown["state"], shown["ended_by"]), ("ended", "daryl"))
         self.assertIn("input note: the README moved to docs/", summaries(shown))
 
+    def test_attach_refuses_router_stopped_ticket_and_allows_work_ended_ticket(self):
+        stopped_request = self.ask("fix the typo", thread="stopped")
+        ended_request = self.ask("tidy the changelog", thread="ended")
+        self.deez("dispatch", stopped_request.id, "--slug", "fix-typo", "--playbook", "bug-fix")
+        self.deez("dispatch", ended_request.id, "--slug", "tidy", "--playbook", "bug-fix")
+        stopped_ticket, ended_ticket = (row["ticket"] for row in self.store.status())
+        self.deez("stop", stopped_ticket, "--reason", "daryl said stop in the room")
+        self.store.end_ticket(ended_ticket, "dropped")
+        late = self.ask("one more thing", thread="late")
+        followup = self.ask("and the date", thread="later")
+
+        refused = self.deez("attach", late.id, stopped_ticket)
+        allowed = self.deez("attach", followup.id, ended_ticket)
+
+        self.assertEqual(refused, (2, "", f"deez: {stopped_ticket} was stopped by router\n"))
+        self.assertEqual(self.store.fanout_targets(late.thread_id), [])
+        self.assertEqual(allowed, (0, f"attached {followup.id} → {ended_ticket}\n", ""))
+        self.assertEqual(self.store.fanout_targets(followup.thread_id), [ended_ticket])
+        self.assertIn(f"input trigger: {followup.id}", summaries(self.store.show(ended_ticket)))
+
     def test_wake_dry_run_prints_prompt_and_writes_nothing(self):
         stranger = self.received("om", "om:chat:general", "mallory", "do my homework")
         request = self.ask("fix the typo")

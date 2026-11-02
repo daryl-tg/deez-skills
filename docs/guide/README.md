@@ -1,6 +1,6 @@
 # The guide
 
-Ten short chapters. **Start with chapter 0** the first time — it is the ordered
+Eleven short chapters. **Start with chapter 0** the first time — it is the ordered
 checklist. The rest are reference.
 
 0. [First run](./00-first-run.md) — the ordered setup checklist, including the
@@ -15,5 +15,7 @@ checklist. The rest are reference.
 8. [Recipes](./08-recipes.md) — the short version of common tasks
 9. [Keeping it honest](./09-keeping-it-honest.md) — when to run the maintenance
    pass, and why not daily
+10. [super-clanker](./10-super-clanker.md) — the local Router that runs
+    clanker-mode Workers from events
 
 Prefer to learn by doing? Chapter 0, then [recipes](./08-recipes.md).

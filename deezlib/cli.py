@@ -105,6 +105,10 @@ def build_parser():
     report_parser.add_argument("--question")
     report_parser.add_argument("--evidence", action="append")
     super_verbs.add_parser("pass", help="Run one daemon pass and print its line.")
+    init_parser = super_verbs.add_parser(
+        "init", help="Write a first sources.toml and the example rule in observe mode."
+    )
+    init_parser.add_argument("--force", action="store_true")
     daemon_parser = super_verbs.add_parser("daemon", help="Run daemon passes until stopped.")
     daemon_parser.add_argument("--interval", type=float, default=5)
     install_parser = super_verbs.add_parser("install", help="Plan or apply the launchd agent.")
@@ -291,7 +295,6 @@ def _super_compose(store, args):
 
 
 KEBAB = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
-PERSONLESS_STOPPERS = (None, "router")
 
 
 def _super_settings():
@@ -412,7 +415,6 @@ def _super_dispatch(store, args):
 
 
 def _super_attach(store, args):
-    from deezlib.superclanker.domain import TicketState
     from deezlib.superclanker.store import SuperError
 
     trigger = _super_trigger(store, args.trigger)
@@ -423,7 +425,7 @@ def _super_attach(store, args):
             f"{trigger.id} is a report from {args.ticket}; reply or note, then ignore it"
         )
     ticket = _super_record(store, "ticket", "k_", args.ticket)
-    if ticket["state"] != TicketState.open and ticket["ended_by"] not in PERSONLESS_STOPPERS:
+    if ticket["ended_by"] is not None:
         raise SuperError(f"{args.ticket} was stopped by {ticket['ended_by']}")
     store.subscribe(args.ticket, trigger.thread_id)
     store.record_fanout(trigger.id, [args.ticket])
@@ -641,6 +643,61 @@ def _super_rules(root, args):
     print(f"# {rule.title}\nmode: {rule.mode}\n\n{rule.text}")
 
 
+EXAMPLE_RULE = REPO_ROOT / "skills" / "super-clanker" / "references" / "rules" / "silent-repro.md"
+
+
+def _toml_value(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, tuple):
+        return "[" + ", ".join(json.dumps(item) for item in value) + "]"
+    return json.dumps(str(value))
+
+
+def _toml_table(header, record, skip=()):
+    from dataclasses import fields
+
+    values = ((field.name, getattr(record, field.name)) for field in fields(record))
+    return "\n".join([f"[{header}]", *(
+        f"{name} = {_toml_value(value)}" for name, value in values
+        if name not in skip and value is not None
+    )]) + "\n"
+
+
+def _super_first_config():
+    from deezlib.superclanker import config, sources
+
+    return "\n".join([
+        _toml_table("accept", config.AcceptPolicy()),
+        _toml_table("router", config.RouterConfig()),
+        _toml_table("workers", config.WorkersConfig()),
+        _toml_table("watchdog", config.WatchdogConfig()),
+        *(
+            _toml_table(f"sources.{name}", config.default_policy(name), skip=("name",))
+            for name in ("terminal", *sources.POLLERS)
+        ),
+    ])
+
+
+def _super_init(root, args):
+    from deezlib.superclanker import rules
+    from deezlib.superclanker.workers import _write_atomic
+
+    root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(root, 0o700)
+    for path, text in (
+        (root / "sources.toml", _super_first_config()),
+        (rules.rules_dir(root) / EXAMPLE_RULE.name, EXAMPLE_RULE.read_text(encoding="utf-8")),
+    ):
+        if path.exists() and not args.force:
+            print(f"kept {path}")
+            continue
+        _write_atomic(path, text)
+        print(f"wrote {path}")
+
+
 def _super_policy(root, args):
     from deezlib.superclanker import rules
 
@@ -673,6 +730,7 @@ SUPER_VERBS = {
 }
 
 STORELESS_SUPER_VERBS = {
+    "init": _super_init,
     "daemon": _super_daemon,
     "install": _super_install,
     "inbox": _super_inbox,
