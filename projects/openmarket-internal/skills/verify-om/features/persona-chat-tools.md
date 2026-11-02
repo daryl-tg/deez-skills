@@ -1,6 +1,8 @@
 # Persona setup from om chat
 
-*Verified: 2026-11-02. Branch `daryl/persona-tools` at `cc7a755c5`, later rebased to `50c026306` (PR #2256, off origin/main; not on main yet).*
+*Re-driven 2026-11-03 (nightly), tree `777ee7f21` (origin/main, v0.488.0; #2256 merged as `0d6993613`). First drive on main, on a **guest** lane home (18163, daemon down in a guest sign-in 429, no rooms identity), source `om chat --no-workspace`, tmux 140x40, auto-approve on, a scripted fake model on 18164. Seeded `om persona set "voice: clipped, wry. vom-nightly-20261103" --source verify` and `config set mcp.operator_voice on`. "set up my persona" ran `tool_search` (`names: persona_infer, persona_set`) and then `persona_infer {pasted: <7 lines>}` → `{"proposal":…,"samples":7,"roomsRead":0}` with the reply guidance to show it and ask. "yes save it" raised the card (`approval needed` / `persona_set`; `VOICE` over two lines, `REPLACES voice: clipped, wry. … (managed by verify)`, `USED BY om drafts, MCP clients`, `Save this as your persona?`, no `d` row for a short voice). `n` → `What should the agent do instead?`, Esc → `✗ declined persona_set`, `om persona show` unchanged; a second yes and `y` → `✓ approved persona_set`, and `om persona show` printed the new text as `Your persona` with no managing tool. CLI: `persona set ""` exit 2 (`a persona cannot be blank; remove the stored one with \`om persona clear\``), `persona clear --if-source other` → `persona left in place, managed by verify, not other`, `persona show --json` `{…,"source":"verify","mcpOperatorVoice":true}`. MCP stdio: `persona_show` is listed and answered `mcpOperatorVoice: "on"`; `persona_set` → `Tool persona_set not found` (and `persona_infer` is not listed). Not driven: room sampling (needs a rooms identity), a real model's tool choice, the thin-sample and no-model refusals. Evidence: `http://127.0.0.1:8098/vom-nightly-20261103/r1/` (`tui/09`–`14`, `cli/persona-*.txt`, `cli/30-mcp-pre.json`, `fake-log.jsonl`).*
+
+*Verified: 2026-11-02. Branch `daryl/persona-tools` at `cc7a755c5`, later rebased to `50c026306` (PR #2256, then off origin/main; on main since `0d6993613`, v0.487.0).*
 
 *Setup: source `om chat`, tmux 140x44, auto-approve on. The home was fresh, holding only the operator's device key (`credentials.json`, `device-id`; no vault). The daemon port was 18173, with nothing listening. The model was a scripted fake on 18172.*
 
@@ -16,12 +18,12 @@
 
 *Evidence: `~/dev-notes-artifacts/om-persona-tools/run-artifacts/` (text captures; nothing was published to 8098).*
 
-Ask `om chat` to set up your persona. om reads a sample of your own room messages and proposes a voice. Nothing is saved until you approve the exact text on a card. The card shows the new voice, the persona it replaces and the tool that manages it, and who uses it: om drafts, and MCP clients when `mcp.operator_voice` is on. The card appears even with auto-approve on. Neither tool is offered over MCP.
+Ask `om chat` to set up your persona. om reads a sample of your own room messages, or messages you paste, and proposes a voice. Nothing is saved until you approve the exact text on a card. The card shows the new voice, the persona it replaces and the tool that manages it, and who uses it: om drafts, and MCP clients when `mcp.operator_voice` is on. The card appears even with auto-approve on. Neither tool is offered over MCP.
 
 ## Sub-features
 
 - `persona-show`: reads the persona in force, whether it is stored, its managing tool, the card census and the MCP voice state (`on`, `off` or `on_no_persona`). It is the default of the `persona` routing family and is operator-only over MCP.
-- `persona-infer`: reads your own messages and proposes a voice, with one model call. It returns `proposal`, `samples` and `roomsRead`, and saves nothing. Each failure is typed:
+- `persona-infer`: reads your own room messages, or `pasted` text (one message per line, up to 40,000 characters, replacing room history), and proposes a voice with one model call. It returns `proposal`, `samples` and `roomsRead`, and saves nothing. Each failure is typed:
   - `persona_thin_sample`: under 5 own messages;
   - `llm_not_configured`;
   - `persona_infer_empty`;
@@ -38,7 +40,9 @@ Ask `om chat` to set up your persona. om reads a sample of your own room message
 
 ## Driving it with control-om
 
-A guest lane cannot drive this: sampling needs a rooms identity, and chat needs a model. Use a fresh source home that holds only the operator's device key, together with a scripted fake model. Never copy the vault: a copied home that refreshes an OAuth model login rotates the operator's real token.
+**On a guest lane (since main `0d6993613`).** `pasted` needs no rooms identity, so a lane home plus a scripted fake model drives infer, the card and both answers. Have the fake call `tool_search {names:["persona_infer","persona_set"]}` first (the two load deferred), then `persona_infer {pasted:"<5 or more lines>"}` after the search result, and `persona_set {text}` on "yes". Launch with `--no-workspace` if the transcript must be read in scrollback. Expect `roomsRead: 0`.
+
+**Room sampling.** A guest lane cannot sample rooms: that needs a rooms identity. Use a fresh source home that holds only the operator's device key, together with a scripted fake model. Never copy the vault: a copied home that refreshes an OAuth model login rotates the operator's real token.
 
 - **Home.** Make a root with `active` set to the account name. In `accounts/<name>/`, copy only `credentials.json` and `device-id` (the device key is a non-rotating `apiKey`). Let om create the database. Seed it:
   - `om persona set "voice: clipped, wry"`;

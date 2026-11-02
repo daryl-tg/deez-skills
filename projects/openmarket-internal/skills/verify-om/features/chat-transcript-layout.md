@@ -1,5 +1,7 @@
 # Chat transcript layout (`om chat`)
 
+*Re-driven 2026-11-03 (nightly), tree `777ee7f21` (origin/main, v0.488.0), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.8; the first `up` died on a guest sign-in 429 (35 minutes) and the lane booted in 3 s at 19:55Z. Fake model on 18164, tmux 140x40. The default `om chat` is now the workspace (#2254), so the turn was driven there: `show my watches` in the `┃` user panel, `✓ watch_list → 7 watches` and the reply at column 6, the `While you were away · 2 events, 2 stories` band; the footer read `data limit hit 8m ago · om usage`. A `--no-workspace` session drove the persona turns: the `approval needed` card, `✗ declined persona_set`, `✓ approved persona_set` with its `· 10s` duration. Not driven: a fire band live, replay, the spinner, the 90-column re-wrap, notice strips, chimes. Evidence: `http://127.0.0.1:8098/vom-nightly-20261103/r1/` (`tui/09-14`, `tui/21-tool-turn.txt`).*
+
 *Re-driven 2026-11-02 (scheduled maintenance), tree `587ce2d0b` (origin/main, v0.480.3), lane on 18168 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 5. Fake model on 18170, tmux: the sent line `vom-maint-20261102 transcript probe` sat in the `┃` user panel and the fake reply (`reply 2 line 1…`) followed unlabelled and indented; earlier `/watches` commands also show in `┃` panels.*
 
 *Re-driven on main 2026-11-02 (nightly), tree `2567b7974` (origin/main, v0.480.3), lane on 18163, fake model on 18164, tmux at 140x40. Plain chat opened with the away banner (`While you were away · 2 events, 2 stories` and the two probe rows, `quiet …`, `/news for the rest`); `show my watches` rendered as the `┃` user panel, then the tool row `✓ watch_list → 4 watches` and the streamed reply, with no labels. The footer read `openai-compatible/fake · data limit hit 5m ago · om usage` (the home's `last-plan-refusal.json` `{"kind":"data_type"}`, written during the market reads) and `⚠ 2 broken · 2 need you`. Not driven: the approval card, a live fire band, replay, the spinner frame, the 90-column re-wrap, notice strips, chimes. Evidence: `http://127.0.0.1:8098/vom-nightly-20261102/r1/` (`tui/01-plain-whats-new.txt`, `tui/04-plain-tool-turn.txt`).*
@@ -26,13 +28,13 @@ frame itself (sidebar, cards, ctrl+x) is `chat-workspace-tui.md`.
 - `away-band` / `catchup-band` — "While you were away" and `/catchup` use the same band; stories in aligned columns, age right-aligned. At 71 columns the title cuts with `…`.
 - `notice-strip` — jobs, spend, follows, relay, stand-downs, the beta countdown and update notices sit on a faint strip with a toned label.
 - `replay` — `om chat --resume` replays the conversation exactly as it looked live, under a faint `resuming from N prior turns · M earlier messages not shown` marker.
-- `spinner` — only while om works, directly above the composer; idle has no status row. In `--workspace` it is the transcript pane's last row, left of the divider.
+- `spinner` — only while om works, directly above the composer; idle has no status row. In the workspace (the default since #2254) it is the transcript pane's last row, left of the divider.
 - `chimes` — macOS local: Tink when an approval card opens, Glass when a turn over 3 s ends; SSH and other systems ring BEL. `om config set chat.sounds off` silences all of it.
 - `palette` — clay accent `#d97757`, muted `#8b9198`, up, down, warn; tints blend over the terminal's real background (OSC 11, first frame held up to 100 ms). `OM_TUI_ACCENT` overrides the accent. The footer, mode line and watch attention badge are the exception (#2219): the terminal's own cyan, green, red, yellow and gray, with `OM_TUI_ACCENT` replacing the cyan.
 
 ## How to get to it (user POV)
 
-`om chat`, ask something that calls a tool, then read the screen. `om chat --resume` for the replay.
+`om chat`, ask something that calls a tool, then read the screen. Since #2254 (v0.487.0) that opens the workspace; `om chat --no-workspace` (or `om config set chat.workspace off`) gives the scrollback layout. `om chat --resume` for the replay.
 
 ## Driving it with control-om
 
@@ -40,7 +42,7 @@ A guest lane has no model, so drive it with a fake OpenAI-compatible server.
 
 1. `control-om up --port 18113`, then every call as `OM_LANE_PORT=18113 control-om om -- …`.
 2. Fake model on `18114`: a `Bun.serve` on `127.0.0.1` that answers `/v1/models` with `{data:[{id:"fake"}]}` and streams `/v1/chat/completions` as SSE. When the last message is not a tool result, it streams one `tool_calls` delta for a tool present in `body.tools` (`watch_list` for "watches", `watch_remove` for "remove", which raises the irreversible card); after a tool result it streams a markdown reply with a list and a fenced block.
-3. Launch in tmux on a private server: `tmux -L vomtui -f /dev/null new -d -s p -x 140 -y 40 ./launch.sh`, where `launch.sh` exports `COLORTERM=truecolor`, `OPENMARKET_LLM_PROVIDER=openai-compatible`, `OPENMARKET_LLM_BASE_URL=http://127.0.0.1:18114/v1`, `OPENMARKET_LLM_MODEL=fake` and runs `OM_LANE_PORT=18113 control-om om -- chat "$@"`.
+3. Launch in tmux on a private server: `tmux -L vomtui -f /dev/null new -d -s p -x 140 -y 40 ./launch.sh`, where `launch.sh` exports `COLORTERM=truecolor`, `OPENMARKET_LLM_PROVIDER=openai-compatible`, `OPENMARKET_LLM_BASE_URL=http://127.0.0.1:18114/v1`, `OPENMARKET_LLM_MODEL=fake` and runs `OM_LANE_PORT=18113 control-om om -- chat "$@"`. Pass `--no-workspace` for the plain transcript checks (a bare launch is the workspace).
 4. Fires: create a `--inbound` watch, `watch edit --classifier-mode accept_all`, then `event push` while the chat is open.
 5. Capture: `capture-pane -p -e` for ANSI and `-p` for text. Convert the ANSI to HTML (a ~50-line script mapping SGR 38/48;2 and 38/48;5 to spans on a `#282c33` page) and screenshot it with `agent-browser`. Assert on the `.txt`; the PNG is for the reviewer.
 
@@ -48,5 +50,6 @@ A guest lane has no model, so drive it with a fake OpenAI-compatible server.
 
 - `control-om down` takes `OM_LANE_PORT`, never `--port`.
 - tmux answers OSC 11 with its own background, so the tint blend shown is tmux's, not a real terminal's.
-- Dismissing the What's new card leaves blank rows under the footer in plain mode (pre-existing flow-mode shrink).
+- Dismissing the What's new card leaves blank rows under the footer in plain mode (pre-existing flow-mode shrink). Since #2254 a fresh home's card shows in the workspace, so plain mode shows one only for an entry that still applies there.
+- A launch on a home that already holds a conversation resumes it: the workspace replays the earlier turns above the new one.
 - Kill the tmux server with `tmux -L vomtui kill-server`; never a bare `tmux kill-server`.

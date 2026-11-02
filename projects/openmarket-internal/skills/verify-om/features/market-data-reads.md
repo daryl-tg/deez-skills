@@ -1,5 +1,7 @@
 # Market data reads
 
+*Re-driven 2026-11-03 (nightly), tree `777ee7f21` (origin/main, v0.488.0), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.8; the first `up` died on a guest sign-in 429 (35 minutes) and the lane booted in 3 s at 19:55Z. `coins`, `exchanges`, `points` (BTCUSDT hourly), `resolve BTC` (Hyperliquid exact perp), `resolve "bitcoin dip to 55000"` (a Polymarket candidate with its condition id), `metric list`. New: `markets --exchange HYPERLIQUID_FUTURES --symbol-filter GOLD` returned `HYPERLIQUID_HIP3 xyz:GOLD` and `HYPERLIQUID_FUTURES PAXG`, `--symbol-filter SP500` two HIP-3 rows (`xyz:SP500`, `mkts:US500`), the unfiltered browse 100 core rows only (#2260); `points --exchange POLYMARKET --raw-symbol will-bitcoin-dip-to-55000` exit 2 `invalid_query` (`keyed by condition id (0x + 64 hex)`, hint `market_resolve`), on the CLI and over MCP, while the condition id read a series (#2224). Still failing: `tenors` 500, `points --exchange BYBIT_FUTURES` `Bad Request`, and `points --type TPO_AGG` 500, so `stale_newest_session` was not seen. Evidence: `http://127.0.0.1:8098/vom-nightly-20261103/r1/` (`cli/60-73`, `cli/31-mcp-post.json`).*
+
 *Re-driven 2026-11-02 (scheduled maintenance), tree `587ce2d0b` (origin/main, v0.480.3), lane on 18168 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 5. `coins`, `exchanges`, `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h` (`{"Point":{…}}` series), `resolve BTC` (`HYPERLIQUID_FUTURES`, `match exact`), `metric get --metric rsi …` (`ok:true`), `markets --symbol-filter BTC --page-size 3`; `tenors` still exit 2 `server_error` (500).*
 
 *Re-driven 2026-11-02 (nightly), tree `2567b7974` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 4. `enum` (live lists), `coins` 4,183 rows, `exchanges` 45 (`BINANCE`, `HYPERLIQUID`, `LIGHTER` present; the answer also carries `refusedTypes` with five data types the guest plan refuses and `unselectable` 24), `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h` one series of 3 `{Point}` rows, `resolve BTC` (`HYPERLIQUID_FUTURES`, `exact`), `metric list --metric rsi`, `metric get` (`ok:true`, `data_age_seconds: 0`), `metric series --bars 3` (3 pairs), `metric screen --top-n 3` (3 rows), `markets --symbol-filter BTC` and `--exchange LIGHTER` (rows), `tenors` 500 `server_error` again, `symbols` without `--type` exit 2 `invalid_options` ("types: requires at least one type") and `symbols --type TRADE_AGG` `rawSymbols`, `normalized-symbols --type TRADE_AGG`, `block-sizes`, `instruments BINANCE BTC` `invalid_query` (v3 only), `points --exchange BYBIT_FUTURES` refused `Bad Request` ("is not a valid value"), `enum --domain exchange_id` 35. During these reads the home wrote `last-plan-refusal.json` `{"kind":"data_type"}` (19:43:21Z, inside the `coins`/`exchanges` pair), and the chat footer then read `data limit hit`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261102/r1/` (`cli/160-178`).*
@@ -96,6 +98,22 @@ Preconditions:
     Gotchas).
   - `tenors` answered `server_error` (500) on 2026-10-28, a service fault, so
     its shape stays unproven.
+- **Hyperliquid name search and Polymarket ids** (driven 2026-11-03 at `777ee7f21`):
+  - `markets --exchange HYPERLIQUID_FUTURES --symbol-filter GOLD --format json`
+    also searches HIP-3 (#2260): it returned `HYPERLIQUID_HIP3 xyz:GOLD` beside
+    `HYPERLIQUID_FUTURES PAXG`; `--symbol-filter SP500` returned `xyz:SP500` and
+    `mkts:US500`. Without a filter the browse stays on core rows (100 here). The
+    MCP `markets {exchanges:["HYPERLIQUID_FUTURES"], symbolFilter:"GOLD"}` returns
+    the same HIP-3 row. When Hyperliquid cannot be read, `resolve` now says the
+    name is unchecked there, not missing (source only).
+  - `points --type TRADE_AGG --exchange POLYMARKET --raw-symbol <slug>` exits 2
+    `invalid_query`: `Polymarket points are keyed by condition id (0x + 64 hex)`,
+    hint `Resolve the market with market_resolve or markets` (#2224). Take the
+    id from `resolve "bitcoin dip to 55000"` (`candidates[0].condition_id`) and
+    the same read returns a series.
+  - A TPO read without `from` now asks for `now - lookback` and marks a stale
+    series `stale_newest_session` (#2224, source only): `points --type TPO_AGG`
+    answered 500 on 2026-11-03.
 - **Symbol lists** (driven 2026-11-02): `symbols` needs `--type <data_type>`; the bare verb exits 2 `invalid_options` ("types: requires at least one type"), and `symbols --type TRADE_AGG --format json` returns `rawSymbols` (a very large array: keep a head, not the file). `normalized-symbols --type TRADE_AGG` returns `normalizedSymbols`, `block-sizes` returns `blockSizes`. `exchanges --format json` carries `exchanges`, `refusedTypes` (the data types the guest plan refuses: five on 2026-11-02) and `unselectable`.
 - **Proof.** Keep the exact command and the JSON (truncated to the first point
   or two is fine, but keep the full `id` block) plus the exit code.
