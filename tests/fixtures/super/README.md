@@ -1,0 +1,1 @@
+Fixture names are `<tool>-<words>.json`, where the words are the positional arguments and the values of `--repo` and `-F` in argv order, each character outside `A-Za-z0-9_.` replaced by `-`; a `<key>.stderr` file instead makes the call print it to stderr and exit 1.

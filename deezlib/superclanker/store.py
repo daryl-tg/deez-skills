@@ -131,6 +131,9 @@ CREATE TABLE IF NOT EXISTS inputs (
     id TEXT PRIMARY KEY, ticket_id TEXT NOT NULL, kind TEXT NOT NULL, text TEXT NOT NULL,
     created_at TEXT NOT NULL, delivered_at TEXT);
 CREATE INDEX IF NOT EXISTS inputs_by_ticket ON inputs (ticket_id);
+CREATE TABLE IF NOT EXISTS cursors (
+    source TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, updated_at TEXT NOT NULL,
+    PRIMARY KEY (source, key));
 """
 
 _UNDECIDED = (
@@ -566,6 +569,21 @@ class Store:
             )
             self._insert(fresh)
         return fresh
+
+    def cursor(self, source, key):
+        row = self._db.execute(
+            "SELECT value FROM cursors WHERE source = ? AND key = ?", (source, key)
+        ).fetchone()
+        return row[0] if row else None
+
+    def set_cursor(self, source, key, value):
+        with self._transaction():
+            self._db.execute(
+                "INSERT INTO cursors (source, key, value, updated_at) VALUES (?, ?, ?, ?) "
+                "ON CONFLICT (source, key) DO UPDATE SET value = excluded.value, "
+                "updated_at = excluded.updated_at",
+                (source, key, value, utc_now()),
+            )
 
     def fanout_targets(self, thread_id):
         rows = self._db.execute(

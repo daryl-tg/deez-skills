@@ -1,0 +1,7 @@
+{"data": {"repository": {"pullRequest": {"reviewThreads": {"nodes": [
+  {"id": "PRRT_t1", "isResolved": false, "comments": {"nodes": [
+    {"id": "PRRC_1", "databaseId": 1001, "author": {"login": "rev-alice"}, "body": "this leaks a handle", "createdAt": "2026-11-02T09:11:00Z", "path": "src/io.py", "url": "https://github.com/acme/widgets/pull/12#discussion_r1001"},
+    {"id": "PRRC_2", "databaseId": 1002, "author": {"login": "daryl-tg"}, "body": "fixed", "createdAt": "2026-11-02T09:15:00Z", "path": "src/io.py", "url": "https://github.com/acme/widgets/pull/12#discussion_r1002"},
+    {"id": "PRRC_3", "databaseId": 1003, "author": {"login": "rev-alice"}, "body": "@daryl-tg it still leaks on the error path", "createdAt": "2026-11-02T09:30:00Z", "path": "src/io.py", "url": "https://github.com/acme/widgets/pull/12#discussion_r1003"}
+  ]}}
+]}}}}}

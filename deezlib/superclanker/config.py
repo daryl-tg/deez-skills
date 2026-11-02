@@ -47,6 +47,8 @@ class SourcePolicy:
     senders: tuple = ()
     bots: tuple = ()
     scopes: tuple = ()
+    mentions: tuple = ()
+    poll_seconds: int = 120
 
 
 def default_policy(name):
@@ -108,7 +110,7 @@ _ROUTER = {
 _WORKERS = {"model": _text, "max_running": _count}
 _SOURCE = {
     "enabled": _flag, "mode": _choice(SourceMode), "senders": _names, "bots": _names,
-    "scopes": _names,
+    "scopes": _names, "mentions": _names, "poll_seconds": _count,
 }
 
 

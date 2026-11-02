@@ -35,6 +35,10 @@ def _fast_path(trigger, policy, thread_has_tickets):
         if candidates:
             return Admission(Strength.inferred, Basis.bot, f"bot {actor} on a candidates source")
         return Admission(Strength.not_admitted, Basis.bot, f"bot {actor} did not address the agent")
+    if actor is None:
+        if thread_has_tickets:
+            return Admission(Strength.inferred, Basis.followup, "sender-less event on a ticketed thread")
+        return Admission(Strength.not_admitted, Basis.source, "sender-less event on a thread without tickets")
     listed = actor in policy.senders
     who = f"listed sender {actor}" if listed else f"unlisted actor {actor}"
     if listed and trigger.addressed:

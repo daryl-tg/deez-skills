@@ -1,0 +1,4 @@
+[
+  {"iid": 221, "project_id": 77, "web_url": "https://gitlab.com/openmarketxyz/js-backend/openmarket-registry/-/merge_requests/221", "updated_at": "2026-11-02T08:40:00.000Z", "source_branch": "daryl/registry-fix", "user_notes_count": 3, "references": {"full": "openmarketxyz/js-backend/openmarket-registry!221"}},
+  {"iid": 5, "project_id": 88, "web_url": "https://gitlab.com/otherorg/elsewhere/-/merge_requests/5", "updated_at": "2026-11-02T08:41:00.000Z", "source_branch": "daryl/elsewhere", "user_notes_count": 0, "references": {"full": "otherorg/elsewhere!5"}}
+]

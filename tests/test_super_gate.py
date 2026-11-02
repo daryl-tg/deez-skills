@@ -124,3 +124,24 @@ class WorkerReportGateTest(unittest.TestCase):
             verdict = gate.admit(trigger, superconfig.default_policy("worker"), accept_mode, False)
             self.assertIs(verdict.strength, Strength.explicit, accept_mode)
             self.assertEqual(verdict.basis, gate.Basis.internal)
+
+
+class SenderlessEventGateTest(unittest.TestCase):
+    def ci_trigger(self):
+        return Trigger(
+            id="t_ci00000001", source="github", source_event_id="check:1:build:FAILURE:x",
+            thread_id="gh:acme/widgets#12", actor=None, addressed=False,
+            text="CI build FAILURE on daryl/x", parent_id=None,
+            received_at="2026-11-02T10:00:00+00:00", meta={},
+        )
+
+    def test_senderless_event_is_followup_only(self):
+        from deezlib.superclanker import gate
+        from deezlib.superclanker.config import AcceptMode, SourceMode
+        from deezlib.superclanker.domain import Strength
+        policy = SourcePolicy("github", True, SourceMode.candidates, ("daryl-tg",))
+        cold = gate.admit(self.ci_trigger(), policy, AcceptMode.auto, False)
+        warm = gate.admit(self.ci_trigger(), policy, AcceptMode.auto, True)
+        self.assertIs(cold.strength, Strength.not_admitted)
+        self.assertIs(warm.strength, Strength.inferred)
+        self.assertEqual(warm.basis, gate.Basis.followup)

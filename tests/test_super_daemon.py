@@ -379,3 +379,28 @@ class DaemonTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RefusedSettleTest(unittest.TestCase):
+    def test_refused_triggers_are_ignored_without_a_wake(self):
+        import tempfile
+        from pathlib import Path
+        from deezlib.superclanker import config as superconfig, daemon
+        from deezlib.superclanker.domain import Trigger
+        from deezlib.superclanker.store import Store
+        tmp = tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / "sources.toml").write_text('[sources.github]\nenabled = true\nmode = "explicit-only"\nsenders = ["daryl-tg"]\n')
+        store = Store.open(root); self.addCleanup(store.close)
+        store.receive(Trigger(
+            id="t_refused0001", source="github", source_event_id="check:1:b:F:x",
+            thread_id="gh:acme/widgets#12", actor=None, addressed=False, text="CI b F",
+            parent_id=None, received_at="2026-11-02T10:00:00+00:00", meta={},
+        ))
+        calls = []
+        result = daemon.one_pass(store, superconfig.load(root), root, root,
+                                 wake=lambda *a, **k: calls.append(a), launch=lambda *a, **k: None,
+                                 resume=lambda *a, **k: None, reap=lambda *a, **k: [])
+        self.assertEqual(calls, [])
+        self.assertEqual(store.queued(), [])
+        self.assertEqual(result.wake_id, None)

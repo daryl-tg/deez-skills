@@ -1,0 +1,20 @@
+{
+  "number": 12,
+  "headRefName": "daryl/fix-build",
+  "reviewDecision": "CHANGES_REQUESTED",
+  "reviews": [
+    {"author": {"login": "rev-alice"}, "state": "CHANGES_REQUESTED", "submittedAt": "2026-11-02T09:10:00Z", "body": "needs a test"},
+    {"author": {"login": "rev-bob"}, "state": "PENDING", "submittedAt": null, "body": "half written"},
+    {"author": {"login": "daryl-tg"}, "state": "COMMENTED", "submittedAt": "2026-11-02T09:12:00Z", "body": "answered inline"}
+  ],
+  "statusCheckRollup": [
+    {"__typename": "CheckRun", "name": "build", "status": "COMPLETED", "conclusion": "FAILURE", "completedAt": "2026-11-02T09:05:00Z", "detailsUrl": "https://github.com/acme/widgets/actions/runs/1"},
+    {"__typename": "CheckRun", "name": "lint", "status": "IN_PROGRESS", "conclusion": "", "completedAt": "0001-01-01T00:00:00Z", "detailsUrl": "https://github.com/acme/widgets/actions/runs/2"},
+    {"__typename": "StatusContext", "context": "ci/legacy", "state": "SUCCESS", "targetUrl": "https://ci.example/legacy/3"},
+    {"__typename": "StatusContext", "context": "ci/queued", "state": "PENDING", "targetUrl": "https://ci.example/queued/4"}
+  ],
+  "comments": [
+    {"id": "IC_kw1", "author": {"login": "rev-carol"}, "body": "@super-clanker can you rebase this?", "createdAt": "2026-11-02T09:20:00Z", "url": "https://github.com/acme/widgets/pull/12#issuecomment-1"},
+    {"id": "IC_kw2", "author": {"login": "daryl-tg"}, "body": "on it", "createdAt": "2026-11-02T09:21:00Z", "url": "https://github.com/acme/widgets/pull/12#issuecomment-2"}
+  ]
+}

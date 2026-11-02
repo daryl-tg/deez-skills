@@ -9,7 +9,7 @@ from datetime import datetime
 from itertools import takewhile
 from pathlib import Path
 
-from deezlib.superclanker import compose, config, router, workers
+from deezlib.superclanker import channels, compose, config, router, sources, workers
 from deezlib.superclanker.domain import Strength, utc_now
 from deezlib.superclanker.store import Store, SuperError
 
@@ -28,17 +28,22 @@ class PassResult:
     wake_id: str | None
     replies_sent: int
     errors: tuple
+    polled: int = 0
 
     @property
     def eventful(self):
-        counts = (self.fanned_out, self.launched, self.resumed, self.reaped, self.replies_sent)
+        counts = (
+            self.polled, self.fanned_out, self.launched, self.resumed, self.reaped,
+            self.replies_sent,
+        )
         return any(counts) or self.wake_id not in (None, BACKOFF) or bool(self.errors)
 
     def line(self, at):
+        polled = f" polled={self.polled}" if self.polled else ""
         return (
             f"{at}  fanout={self.fanned_out} reaped={self.reaped} resumed={self.resumed} "
             f"launched={self.launched} wake={self.wake_id or '-'} replies={self.replies_sent} "
-            f"errors={len(self.errors)}"
+            f"errors={len(self.errors)}{polled}"
         )
 
 
@@ -90,6 +95,21 @@ def _backing_off(store, now):
     return _seconds_since(wakes[0].ended_at, now) < delay
 
 
+def _poll_due_sources(store, settings, now):
+    return sum(
+        len(sources.POLLERS[name](store, policy, now=now))
+        for name, policy in settings.sources.items()
+        if policy.enabled and name in sources.POLLERS and sources.due(store, policy, now)
+    )
+
+
+def _send_forge_replies(store, settings):
+    waiting = {reply.id for reply in store.unsent_replies()}
+    lines = channels.deliver(store, settings)
+    still_waiting = {reply.id for reply in store.unsent_replies()}
+    return len(waiting - still_waiting), lines
+
+
 def _send_terminal_replies(store, root):
     sent = 0
     for reply in store.unsent_replies():
@@ -112,6 +132,7 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
             errors.append(str(exc))
             return None
 
+    polled = _poll_due_sources(store, config, now)
     fanned_out = attempt(_fan_out, store, config) or 0
     reaped = len(attempt(reap, store, root) or [])
     resumed = 0
@@ -129,7 +150,10 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
             launched += 1
             running += 1
     wake_id = None
-    if router.triage(store, config).router_items:
+    plan = router.triage(store, config)
+    for trigger, verdict in plan.refused:
+        attempt(store.ignore, trigger.id, f"not admitted: {verdict.basis}")
+    if plan.router_items:
         inflight = store.inflight_wake()
         if inflight is not None and _wake_is_stuck(inflight, now):
             store.expire_wake(inflight.id)
@@ -140,7 +164,12 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
             woken = attempt(wake, store, config, root, hub_root)
             wake_id = woken and woken.wake_id
     replies_sent = _send_terminal_replies(store, root)
-    return PassResult(fanned_out, launched, resumed, reaped, wake_id, replies_sent, tuple(errors))
+    forge_sent, undelivered = _send_forge_replies(store, config)
+    errors.extend(undelivered)
+    return PassResult(
+        fanned_out, launched, resumed, reaped, wake_id, replies_sent + forge_sent, tuple(errors),
+        polled,
+    )
 
 
 def log_pass(root, result):
