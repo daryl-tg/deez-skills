@@ -50,6 +50,10 @@ def build_parser():
     show_parser = super_verbs.add_parser("show", help="Print one object and its neighbours.")
     show_parser.add_argument("id")
     super_verbs.add_parser("status", help="List tickets and what needs attention.")
+    compose_parser = super_verbs.add_parser(
+        "compose", help="Gate queued triggers and print the wake prompt."
+    )
+    compose_parser.add_argument("--dry-run", action="store_true")
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -188,7 +192,38 @@ def _super_status(store, _args):
         ]))
 
 
-SUPER_VERBS = {"ask": _super_ask, "show": _super_show, "status": _super_status}
+def _super_compose(store, args):
+    from deezlib.superclanker import compose, config, gate
+    from deezlib.superclanker.domain import Strength
+    from deezlib.superclanker.store import SuperError, state_root
+
+    if not args.dry_run:
+        raise SuperError("compose only supports --dry-run until unit 3")
+    settings = config.load(state_root(os.environ, Path.home()))
+    admitted, refused = {}, []
+    for trigger in store.queued():
+        admission = gate.admit(
+            trigger, settings.policy(trigger.source), settings.accept.mode,
+            bool(compose.thread_tickets(store, trigger.thread_id)),
+        )
+        if admission.strength is Strength.not_admitted:
+            refused.append(trigger.id)
+        else:
+            admitted[trigger.id] = (trigger, admission)
+    print(f"not admitted: {', '.join(refused) or 'none'}")
+    router_batch, fanout = compose.partition([t for t, _a in admitted.values()], store)
+    for ticket_id, triggers in fanout.items():
+        for trigger in triggers:
+            print(f"fanout: {trigger.id} → {ticket_id}")
+    print(compose.wake_prompt([admitted[t.id] for t in router_batch], settings, store))
+
+
+SUPER_VERBS = {
+    "ask": _super_ask,
+    "show": _super_show,
+    "status": _super_status,
+    "compose": _super_compose,
+}
 
 
 def cmd_super(args):

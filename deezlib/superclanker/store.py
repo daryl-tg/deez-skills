@@ -62,6 +62,9 @@ CREATE INDEX IF NOT EXISTS reports_by_assignment ON reports (assignment_id);
 CREATE TABLE IF NOT EXISTS subscriptions (
     ticket_id TEXT NOT NULL, thread_id TEXT NOT NULL, context_only INTEGER NOT NULL,
     PRIMARY KEY (ticket_id, thread_id));
+CREATE TABLE IF NOT EXISTS fanouts (
+    trigger_id TEXT NOT NULL, ticket_id TEXT NOT NULL, created_at TEXT NOT NULL,
+    PRIMARY KEY (trigger_id, ticket_id));
 """
 
 _TABLES = {
@@ -307,6 +310,37 @@ class Store:
                 "DELETE FROM subscriptions WHERE ticket_id = ? AND thread_id = ?",
                 (ticket_id, thread_id),
             )
+
+    def queued(self):
+        return self._select(
+            Trigger,
+            "NOT EXISTS (SELECT 1 FROM decisions, json_each(decisions.trigger_ids) AS decided "
+            "WHERE decided.value = triggers.id) "
+            "AND NOT EXISTS (SELECT 1 FROM fanouts WHERE fanouts.trigger_id = triggers.id)",
+            order="ORDER BY received_at, rowid",
+        )
+
+    def fanout_targets(self, thread_id):
+        rows = self._db.execute(
+            "SELECT tickets.id FROM subscriptions "
+            "JOIN tickets ON tickets.id = subscriptions.ticket_id "
+            "WHERE subscriptions.thread_id = ? AND NOT subscriptions.context_only "
+            "AND (tickets.state = ? OR tickets.ended_by IS NULL) ORDER BY tickets.rowid",
+            (thread_id, TicketState.open),
+        )
+        return [ticket_id for (ticket_id,) in rows]
+
+    def record_fanout(self, trigger_id, ticket_ids):
+        with self._transaction():
+            self._require(Trigger, trigger_id)
+            created_at = utc_now()
+            for ticket_id in ticket_ids:
+                self._require(Ticket, ticket_id)
+                self._db.execute(
+                    "INSERT OR IGNORE INTO fanouts (trigger_id, ticket_id, created_at) "
+                    "VALUES (?, ?, ?)",
+                    (trigger_id, ticket_id, created_at),
+                )
 
     def report(self, assignment_id, kind, text, question=None, evidence=None):
         kind = ReportKind(kind)
