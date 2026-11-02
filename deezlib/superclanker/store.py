@@ -647,7 +647,7 @@ class Store:
             Ticket,
             "ended_by IS NULL "
             "AND EXISTS (SELECT 1 FROM inputs WHERE inputs.ticket_id = tickets.id "
-            "AND inputs.delivered_at IS NULL) "
+            "AND inputs.delivered_at IS NULL AND inputs.kind = 'trigger') "
             "AND (SELECT state FROM assignments WHERE assignments.ticket_id = tickets.id "
             "ORDER BY rowid DESC LIMIT 1) = ?",
             (AssignmentState.ended,),

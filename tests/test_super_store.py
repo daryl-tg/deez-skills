@@ -257,3 +257,29 @@ class RetryTest(unittest.TestCase):
         self.store.mark_delivered([note.id])
         self.assertEqual([i.text for i in self.store.inputs(self.ticket.id)], ["repo: /r"])
         self.assertEqual(self.store.undelivered_inputs(self.ticket.id), [])
+
+
+class RevivableTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.store = Store.open(Path(self.tmp.name) / "super")
+        self.addCleanup(self.store.close)
+        trigger = github_trigger()
+        self.store.receive(trigger)
+        self.ticket = self.store.accept(
+            trigger.id, "fix-build", Strength.explicit, "scope", [], "policy-1", "asked",
+        )
+        first = self.store.assignment_for(self.ticket.id)
+        self.store.start_assignment(first.id, "sid", 4242, "/tmp/wt")
+        self.store.report(first.id, "ready", "done")
+
+    def test_note_alone_does_not_revive(self):
+        self.store.add_input(self.ticket.id, "note", "fyi")
+        self.assertEqual(self.store.revivable(), [])
+
+    def test_person_trigger_revives(self):
+        follow = github_trigger(event_id="evt-2", text="one more thing")
+        self.store.receive(follow)
+        self.store.add_input(self.ticket.id, "trigger", follow.id)
+        self.assertEqual(self.store.revivable(), [self.ticket.id])
