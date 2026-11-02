@@ -13,6 +13,9 @@ restarts. Each Worker is a clanker-mode lead for one Ticket.
 
 ## Talk to it
 
+`deez` is `~/github/deez-skills/bin/deez`. Put that `bin` on PATH or spell the
+path out; the daemon already does so for the Router and the Workers.
+
 - `deez super ask <text>` hands the Router a request on the terminal thread.
 - `deez super status` lists Tickets, last reports and what needs attention.
 - `deez super inbox` prints the Router's replies on the terminal thread.
