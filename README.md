@@ -321,7 +321,9 @@ bin/deez clanker-checkpoint --runtime <runtime> --session <id> \
                 --playbook <file.md> --resume-note <absolute-path>
                 register the active task's durable continuation note
 bin/test        the suite
-bin/memguard    memory watchdog launchd runs every 30s; `install` loads it, `--dry-run` previews
+bin/memguard    memory watchdog launchd runs every 30s: pauses heavy jobs under 15% free,
+                resumes them oldest-first at 30%. `install`, `uninstall`, `resume-all`,
+                `report` (weekly into dev-notes/memguard), `--dry-run`
 ```
 
 `bin/doctor` is the one to run before every commit. It fails on a principle
