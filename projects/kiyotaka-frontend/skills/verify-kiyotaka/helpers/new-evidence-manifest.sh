@@ -11,7 +11,7 @@ run="${1:?usage: new-evidence-manifest.sh <run-id> <revision> \"<goal>\"}"
 rev="${2:?revision required}"
 goal="${3:?one-line goal required}"
 
-REPO="${KIYO_REPO:-/Users/dboon/Gitlab/kiyotaka-frontend}"
+REPO="${KIYO_REPO:-$(git rev-parse --show-toplevel 2>/dev/null || echo /Users/dboon/gitlab/kiyotaka-frontend)}"
 dir="${ARTIFACTS:-$REPO/artifacts}/$run/$rev"
 [ -d "$dir" ] || { printf 'no such artifact dir: %s\n' "$dir" >&2; exit 1; }
 
