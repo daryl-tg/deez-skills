@@ -39,6 +39,7 @@ mid-call never places an order on its own.
   line (`Schema validation failed: <path>: <msg>`), not the SDK's verbose error.
 - `mcp-version-warning` (PR #2231, on main since `3498391e7`; not re-driven on main): when the servant's om version and the daemon's `/healthz` version differ, the fire bridge sends one `notifications/message` (`logger` `openmarket.servant`, `level` `warning`) per daemon version and writes the same line to stderr. Older servant: `om MCP servant 0.478.0 is older than the daemon 0.480.2. Restart this Claude Code session to upgrade.` Older daemon: `Daemon 0.478.0 is older than this MCP servant 0.480.2. Restart it to catch up.` The servant never exits on its own.
 - Hosted MCP over loopback HTTP (`om mcp serve --http 127.0.0.1:<port>`): the same capability layer on `POST /mcp`, unauthenticated on loopback unless `OM_LOOPBACK_AUTH=1`.
+- `mcp-operator-voice` (branch `daryl/mcp-operator-voice`, PR #2250, pending on main): with `om config set mcp.operator_voice on` (default off) and a stored `om persona`, a badge session's `initialize` instructions end with `Operator's voice (room_draft_stage and room_post_as_operator text only; never room_post or replies to the operator):` and the persona digest. `session_grants` returns `operatorVoice`, `config_show` returns `mcp_operator_voice`, and `om persona show` ends with an `MCP clients:` row. No agent or MCP tool sets the key.
 
 ## How to get to it (user POV)
 
@@ -121,6 +122,15 @@ grep notifications/message out.jsonl
 ```
 
 Driven 2026-10-30: a 0.480.2 branch servant against the 0.478.0 daemon answered `initialize` and, within the 20 s window, emitted exactly one `{"method":"notifications/message","params":{"level":"warning","logger":"openmarket.servant","data":"Daemon 0.478.0 is older than this MCP servant 0.480.2. Restart it to catch up."}}` with the same text on stderr. Equal versions emit nothing (driven with the installed servant and daemon both on 0.478.0). The servant-older wording is pinned by `packages/cli/test/mcp-sse-bridge.test.ts` and was not driven live.
+
+### Operator voice in the badge brief (added 2026-11-02, PR #2250, pending on main)
+
+Needs a badge session (`--session merged` or a badge stdio servant) against a home with a stored persona. On a lane, store one with `control-om om -- persona set "voice: terse"` and flip the key with `control-om om -- config set mcp.operator_voice on`; the operator's own home works read-only for the off state.
+
+- **Off (default).** `initialize` instructions carry no `Operator's voice` line; `tools/call session_grants` text payload has `"operatorVoice": "off"`; `om config show --format json` has `"mcp_operator_voice": "off"`; `om persona show` ends `MCP clients: off (om config set mcp.operator_voice on)`.
+- **On.** The instructions' last two lines are the scope line and the stored digest; `session_grants` gives `"on"`; `om persona show` ends `MCP clients: write as you (om config set mcp.operator_voice off)`. On with no stored persona: no block, and `om persona show` says `nothing sent until a persona is stored`.
+- **Reading the result.** `session_grants`' `structuredContent` wraps the payload under `data`; parse `content[0].text` for the field.
+- Driven 2026-11-02 on the branch (`d779717eb`..`0775fc2da`, source `bun packages/cli/src/main.ts`) against the operator's home and badge from `~/.claude.json` (`mcpServers.openmarket.env`, never printed): off brief byte-identical to the installed 0.480.3 (3661 chars), on brief 6440 chars ending with the dboon333 digest, `session_grants` `operatorVoice: "off"`, `config_show` `mcp_operator_voice: "off"`. The switch was flipped on and back to an explicit `off` for the on-state check. Evidence (local): `~/dev-notes-artifacts/om-mcp-operator-voice/run-artifacts/instructions-*.txt`, `handshake.ts`, `session-grants-call.ts`. Not driven: a live client writing a draft in the voice.
 
 ## Gotchas
 
