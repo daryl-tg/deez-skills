@@ -36,6 +36,7 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
 - `profile` — `POST /rpc/v1/system/profile` arms an on-demand sampling profiler
   (`{"action":"start"}`) and reads it back (`{"action":"stacks"}`). There is no
   CLI verb.
+- `footprint-line` (branch `daryl/roster-teardown-footprint`, PR #2231, pending on main): on the first runner heartbeat (30 s after boot) and every tenth after it (every 5 min) the daemon logs `[footprint] rss N MB heap_used N MB heap_total N MB pressure normal|warn|critical`; Linux reports `some10=N%` from `/proc/pressure/memory`, elsewhere the field is omitted.
 - `status` renders the same state as a human rollup.
 - `doctor` self-diagnoses the install: binary, version, home, network, key,
   schema, daemon.
@@ -66,6 +67,7 @@ Preconditions:
   root you passed: `<lane root>/accounts/guest`. Assert that it sits under the
   lane root and never under `~/.openmarket`; an equality check against
   `OM_HOME` fails on a healthy lane.
+- **Footprint line in the log.** (PR #2231, pending on main.) Within 60 s of `up`, `grep '\[footprint\]' .control-om/lane-<port>.log` shows one line; a second lands 5 min later. On 2026-10-30 a source lane on 18103 logged `rss 447 MB heap_used 137 MB heap_total 178 MB pressure normal` at +30 s, then at +5 min and +10 min, and `sysctl -n kern.memorystatus_vm_pressure_level` read 1 at the time, which is `normal`. A source lane writes this to the lane log, not to `runner.log`; a daemon under launchd writes it to `runner.log`.
 - **Footprint and the profiler.** `curl -fsS "$(control-om url /healthz)" | jq
   '{memory, slow_sql, roster}'` shows three integer MiB values, `slow_sql: []`
   on a quiet lane, and `roster.capabilities`. Then POST JSON to
