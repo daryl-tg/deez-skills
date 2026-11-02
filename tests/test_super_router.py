@@ -552,5 +552,16 @@ class RouterTest(unittest.TestCase):
             self.assertIn(phrase, prompt)
         self.assertLess(len(prompt.split()), 400)
 
+    def test_router_prompt_tells_router_to_check_rules(self):
+        prompt = router.agent_prompt(HUB)
+
+        cited = prompt.index("`--rule <name>`")
+        checked = prompt.index("`deez super rules`")
+        self.assertLess(cited, checked)
+        self.assertNotIn("Pick the clanker-mode playbook", prompt[cited:checked])
+        self.assertIn("unknown rule", prompt[checked:])
+        self.assertLess(len(prompt.split()), 400)
+
+
 if __name__ == "__main__":
     unittest.main()

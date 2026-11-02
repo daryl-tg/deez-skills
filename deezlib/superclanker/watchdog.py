@@ -4,6 +4,7 @@ import tempfile
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from itertools import takewhile
 from pathlib import Path
 
 from deezlib.superclanker import daemon, router, sources, workers
@@ -17,10 +18,7 @@ from deezlib.superclanker.domain import (
 from deezlib.superclanker.store import SuperError
 
 SESSION_FILE = "watchdog.session"
-ALLOWED_TOOLS = (
-    "Bash(deez super *)", "Bash(launchctl list *)", "Bash(launchctl kickstart *)",
-    "Bash(claude logs *)",
-)
+ALLOWED_TOOLS = ("Bash(deez super *)",)
 STALLED_REPORTS = (ReportKind.failed, ReportKind.blocked)
 LOOKBACK = timedelta(hours=24)
 WAKES_IN_LOOKBACK = 5000
@@ -30,6 +28,7 @@ CLIP_CHARS = 80
 @dataclass(frozen=True)
 class TickResult:
     tick_id: str
+    denials: int
     cost_usd: float | None
     result: str | None
 
@@ -175,7 +174,8 @@ def _undecided(store, wakes, now):
 
 
 def _failed_wakes(wakes):
-    failed = [w for w in reversed(wakes) if w.ended_at is not None and w.exit_code != 0]
+    ended = (w for w in wakes if w.ended_at is not None)
+    failed = list(reversed(list(takewhile(lambda w: w.exit_code != 0, ended))))
     if not failed:
         return []
     noun = "wake" if len(failed) == 1 else "wakes"
@@ -217,19 +217,18 @@ def _more(items, fallback):
 def _anomalies(store, config, root, now):
     tickets = _open_tickets(store)
     wakes = _recent_wakes(store, now)
-    log_dir = Path(root) / "log"
     return [
         (kind, items, _more(items, fallback))
         for kind, items, fallback in (
-            ("daemon down", _daemon_down(root, config, now), f"tail {log_dir / 'launchd.err.log'}"),
+            ("daemon down", _daemon_down(root, config, now), "deez super log launchd"),
             ("unreaped turn", _unreaped(store, root), None),
             ("long turn", _long_turns(store, config, now), None),
             ("stalled ticket", _stalled(tickets), None),
             ("unanswered question", _unanswered(store, config, tickets, now), None),
             ("undecided", _undecided(store, wakes, now), None),
             ("failed wakes", _failed_wakes(wakes), None),
-            ("source errors", _source_errors(store, config), f"tail {log_dir / 'daemon.log'}"),
-            ("orphan worktree", _orphans(store, root), f"ls {Path(root) / 'worktrees'}"),
+            ("source errors", _source_errors(store, config), "deez super log daemon"),
+            ("orphan worktree", _orphans(store, root), "deez super status"),
         )
         if items
     ]
@@ -297,5 +296,8 @@ def tick(store, config, root, hub_root, runner=subprocess.run):
         raise SuperError(f"watchdog tick {tick_id} failed with exit {completed.returncode}")
     cost = outcome.get("total_cost_usd")
     result = outcome.get("result")
-    store.end_tick(tick_id, completed.returncode, cost, outcome.get("session_id", sid), result)
-    return TickResult(tick_id, cost, result)
+    denials = router._denied_commands(outcome)
+    store.end_tick(
+        tick_id, completed.returncode, cost, outcome.get("session_id", sid), result, denials
+    )
+    return TickResult(tick_id, len(denials), cost, result)

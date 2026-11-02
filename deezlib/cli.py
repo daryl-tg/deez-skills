@@ -121,6 +121,13 @@ def build_parser():
         "watchdog", help="Tick the watchdog when its digest of anomalies is not empty."
     )
     watchdog_parser.add_argument("--digest", action="store_true")
+    kick_parser = super_verbs.add_parser("kick", help="Restart the daemon or Watchdog agent.")
+    kick_parser.add_argument("agent", nargs="?", default="daemon", choices=["daemon", "watchdog"])
+    log_parser = super_verbs.add_parser(
+        "log", help="Print the tail of a log: daemon, launchd, watchdog, or an a_, w_ or x_ id."
+    )
+    log_parser.add_argument("target")
+    log_parser.add_argument("--lines", type=int, default=40)
     requeue_parser = super_verbs.add_parser("requeue", help="Put a decided trigger back in the queue.")
     requeue_parser.add_argument("trigger")
     rules_parser = super_verbs.add_parser("rules", help="List the policy rules or print one.")
@@ -623,7 +630,71 @@ def _super_watchdog(store, args):
         print("clean, no tick")
         return
     cost = "-" if ticked.cost_usd is None else f"{ticked.cost_usd:.4f}"
-    print(f"tick {ticked.tick_id} cost {cost}")
+    print(f"tick {ticked.tick_id} denied {ticked.denials} cost {cost}")
+
+
+def _super_kick(_root, args, run=None):
+    import subprocess
+
+    from deezlib.superclanker import launchd
+
+    label = launchd.WATCHDOG_LABEL if args.agent == "watchdog" else launchd.LABEL
+    argv = ["launchctl", "kickstart", "-k", f"gui/{os.getuid()}/{label}"]
+    completed = (run or subprocess.run)(argv, capture_output=True, text=True)
+    print(f"{' '.join(argv)} exit {completed.returncode}")
+    return completed.returncode
+
+
+def _tail(text, lines):
+    return "\n".join(text.splitlines()[-lines:]) if lines > 0 else ""
+
+
+def _print_file_tail(path, lines):
+    try:
+        print(_tail(path.read_text(encoding="utf-8", errors="replace"), lines))
+    except FileNotFoundError:
+        print(f"(no {path})")
+
+
+def _turn_result(path):
+    raw = path.read_text(encoding="utf-8", errors="replace")
+    try:
+        outcome = json.loads(raw)
+    except json.JSONDecodeError:
+        return raw
+    result = outcome.get("result") if isinstance(outcome, dict) else None
+    return result if isinstance(result, str) else raw
+
+
+def _super_log(root, args):
+    from deezlib.superclanker import workers
+    from deezlib.superclanker.store import Store, SuperError
+
+    log_dir = root / "log"
+    target, lines = args.target, args.lines
+    if target == "daemon":
+        _print_file_tail(log_dir / "daemon.log", lines)
+    elif target in ("launchd", "watchdog"):
+        for name in (f"{target}.err.log", f"{target}.out.log"):
+            print(f"== {name}")
+            _print_file_tail(log_dir / name, lines)
+    elif target.startswith("a_"):
+        output = workers._turn_log(log_dir, target, max(workers._turns(log_dir, target) - 1, 0))
+        print("== result")
+        try:
+            print(_tail(_turn_result(output), lines))
+        except FileNotFoundError:
+            print(f"(no {output})")
+        print("== stderr")
+        _print_file_tail(output.with_suffix(".err"), lines)
+    elif target.startswith(("w_", "x_")):
+        store = Store.open(root)
+        try:
+            print(_tail(store.show(target)["result"] or "", lines))
+        finally:
+            store.close()
+    else:
+        raise SuperError(f"log takes daemon, launchd, watchdog, or an a_, w_ or x_ id, not {target}")
 
 
 def _super_requeue(store, args):
@@ -734,6 +805,8 @@ STORELESS_SUPER_VERBS = {
     "daemon": _super_daemon,
     "install": _super_install,
     "inbox": _super_inbox,
+    "kick": _super_kick,
+    "log": _super_log,
     "rules": _super_rules,
     "policy": _super_policy,
 }

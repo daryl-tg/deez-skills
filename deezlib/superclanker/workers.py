@@ -271,6 +271,27 @@ def _inputs_message(store, ticket_id, inputs):
     return "\n\n".join(blocks)
 
 
+def _require_reaped(log_dir, assignment_id):
+    turns = _turns(log_dir, assignment_id)
+    if turns and not _marker(_turn_log(log_dir, assignment_id, turns - 1)).exists():
+        raise SuperError(f"{assignment_id} finished a turn nobody reaped; run deez super reap first")
+    return turns
+
+
+def _start_turn(store, config, assignment, inputs, turn, hub_root, root, popen):
+    argv = [
+        "claude", "-p", "--resume", assignment.session_id, *SESSION_FLAGS, *_model(config),
+        _inputs_message(store, assignment.ticket_id, inputs),
+    ]
+    pid = _spawn(
+        popen, argv, assignment.worktree, root, hub_root,
+        _turn_log(root / "log", assignment.id, turn),
+    )
+    started = store.start_assignment(assignment.id, assignment.session_id, pid, assignment.worktree)
+    store.mark_delivered([entry.id for entry in inputs])
+    return started
+
+
 def resume(store, config, assignment_id, hub_root, root, popen=subprocess.Popen):
     root = Path(root)
     assignment = _load(store, Assignment, assignment_id)
@@ -279,20 +300,28 @@ def resume(store, config, assignment_id, hub_root, root, popen=subprocess.Popen)
     inputs = store.undelivered_inputs(assignment.ticket_id)
     if not inputs:
         return None
-    log_dir = root / "log"
-    turns = _turns(log_dir, assignment_id)
-    if turns and not _marker(_turn_log(log_dir, assignment_id, turns - 1)).exists():
-        raise SuperError(f"{assignment_id} finished a turn nobody reaped; run deez super reap first")
-    argv = [
-        "claude", "-p", "--resume", assignment.session_id, *SESSION_FLAGS, *_model(config),
-        _inputs_message(store, assignment.ticket_id, inputs),
-    ]
-    pid = _spawn(
-        popen, argv, assignment.worktree, root, hub_root, _turn_log(log_dir, assignment_id, turns)
-    )
-    resumed = store.start_assignment(assignment_id, assignment.session_id, pid, assignment.worktree)
-    store.mark_delivered([entry.id for entry in inputs])
-    return resumed
+    turns = _require_reaped(root / "log", assignment_id)
+    return _start_turn(store, config, assignment, inputs, turns, hub_root, root, popen)
+
+
+def revive(store, config, ticket_id, hub_root, root, popen=subprocess.Popen):
+    root = Path(root)
+    previous = store.assignment_for(ticket_id)
+    if previous.state is not AssignmentState.ended or previous.session_id is None:
+        return None
+    if alive(previous.pid):
+        return None
+    inputs = store.undelivered_inputs(ticket_id)
+    if not inputs:
+        return None
+    _require_reaped(root / "log", previous.id)
+    running = len(store.running_assignments())
+    limit = config.workers.max_running
+    if running >= limit:
+        raise SuperError(f"{running} of {limit} workers running; {ticket_id} waits for a slot")
+    store.reopen(ticket_id)
+    successor = store.succeed_assignment(ticket_id)
+    return _start_turn(store, config, successor, inputs, 0, hub_root, root, popen)
 
 
 def alive(pid, kill=os.kill):

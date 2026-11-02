@@ -424,6 +424,76 @@ class WorkersTest(unittest.TestCase):
             [r["kind"] for r in self.reports(assignment_id)], ["waiting", "waiting"]
         )
 
+    def test_followup_on_work_ended_ticket_revives_it_in_the_same_session(self):
+        _trigger, ticket_id, assignment_id = self.dispatch()
+        started = self.run_turn(assignment_id, "REPORT dropped already fixed on main")
+        workers.reap(self.store, self.root)
+        self.assertEqual(self.store.show(ticket_id)["state"], "ended")
+        followup, _receipt = terminal.ask(self.store, "it is not fixed, look again")
+        self.assertEqual(self.deez("attach", followup.id, ticket_id)[0], 0)
+        cwd = self.tmp / "cwd.txt"
+        os.environ["FAKE_CLAUDE_SCRIPT"] = f"pwd > {cwd}"
+
+        revived = workers.revive(self.store, config.load(self.root), ticket_id, HUB, self.root)
+        self.finish(revived.pid)
+
+        ticket = self.store.show(ticket_id)
+        self.assertEqual(
+            (ticket["state"], ticket["ended_at"], ticket["ended_by"]), ("open", None, None)
+        )
+        self.assertNotEqual(revived.id, assignment_id)
+        self.assertEqual(self.store.assignment_for(ticket_id).id, revived.id)
+        self.assertEqual(self.store.show(revived.id)["state"], "running")
+        self.assertEqual(self.store.show(assignment_id)["state"], "ended")
+        self.assertEqual(revived.session_id, started.session_id)
+        _launch_argv, revive_argv = self.argvs()
+        self.assertEqual(revive_argv[revive_argv.index("--resume") + 1], started.session_id)
+        self.assertNotIn("--session-id", revive_argv)
+        message = revive_argv[-1]
+        self.assertTrue(message.startswith(f"# inputs for {ticket_id}\n"))
+        self.assertIn(f"## {followup.id} terminal terminal:default daryl\nit is not fixed", message)
+        self.assertEqual(
+            Path(cwd.read_text(encoding="utf-8").strip()).resolve(),
+            Path(started.worktree).resolve(),
+        )
+        self.assertEqual(self.store.undelivered_inputs(ticket_id), [])
+        self.assertTrue((self.root / "log" / f"{revived.id}.json").is_file())
+        self.assertIsNone(
+            workers.revive(self.store, config.load(self.root), ticket_id, HUB, self.root)
+        )
+        self.assertEqual(len(self.argvs()), 2)
+
+    def test_revive_refuses_a_person_stopped_ticket(self):
+        _trigger, ticket_id, assignment_id = self.dispatch()
+        self.run_turn(assignment_id, "REPORT ready diff at /x")
+        workers.reap(self.store, self.root)
+        self.assertEqual(self.deez("stop", ticket_id, "--reason", "done", "--by", "daryl")[0], 0)
+        self.store.add_input(ticket_id, "note", "one more thing")
+
+        with self.assertRaisesRegex(SuperError, f"{ticket_id} was stopped by daryl"):
+            workers.revive(self.store, config.load(self.root), ticket_id, HUB, self.root)
+
+        self.assertEqual(self.store.show(ticket_id)["state"], "ended")
+        self.assertEqual(self.store.assignment_for(ticket_id).id, assignment_id)
+        self.assertEqual(len(self.store.undelivered_inputs(ticket_id)), 1)
+        self.assertEqual(len(self.argvs()), 1)
+
+    def test_revive_waits_for_a_free_worker_slot(self):
+        self.sources("[workers]\nmax_running = 1\n")
+        _trigger, ticket_id, assignment_id = self.dispatch()
+        self.run_turn(assignment_id, "REPORT dropped already fixed on main")
+        workers.reap(self.store, self.root)
+        _busy, _busy_ticket, busy = self.dispatch("tidy the changelog", "tidy-changelog", thread="other")
+        self.store.start_assignment(busy, "sid", os.getpid(), self.root)
+        self.store.add_input(ticket_id, "note", "look again")
+
+        with self.assertRaisesRegex(SuperError, "1 of 1 workers running"):
+            workers.revive(self.store, config.load(self.root), ticket_id, HUB, self.root)
+
+        self.assertEqual(self.store.show(ticket_id)["state"], "ended")
+        self.assertEqual(self.store.assignment_for(ticket_id).id, assignment_id)
+        self.assertEqual(len(self.argvs()), 1)
+
     def test_worker_report_verb_is_not_duplicated_by_reap(self):
         _trigger, ticket_id, assignment_id = self.dispatch()
         os.environ["FAKE_CLAUDE_SCRIPT"] = (

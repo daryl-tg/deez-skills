@@ -54,9 +54,8 @@ Under the state root:
 
 ## Recovery
 
-- **Daemon down.** Read `launchctl list com.dboon.super-clanker` for the last
-  exit and the tail of `log/launchd.err.log`. Then run
-  `launchctl kickstart -k gui/$UID/com.dboon.super-clanker`.
+- **Daemon down.** Read `deez super log launchd` for the last error. Then run
+  `deez super kick daemon`.
 - **Stalled ticket.** Read `deez super show <ticket>` and its last report.
   Then run `deez super retry <ticket>`.
 - **Unreaped turn.** Run `deez super reap`.

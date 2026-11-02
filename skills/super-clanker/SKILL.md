@@ -28,6 +28,9 @@ restarts. Each Worker is a clanker-mode lead for one Ticket.
 - `retry <ticket>` ends a stalled assignment and queues a fresh one.
 - `requeue <trigger>` puts a decided trigger back in the Router's queue.
 - `kill <assignment>` stops a Worker process.
+- `kick [daemon|watchdog]` restarts that launchd agent.
+- `log <daemon|launchd|watchdog|id> [--lines N]` prints the tail of a log, a
+  Worker turn's result and stderr, or a wake's or tick's result.
 - `rules [<name>]` lists the policy rules or prints one.
 - `policy set <rule> --mode <off|observe|auto>` changes one rule's mode.
 

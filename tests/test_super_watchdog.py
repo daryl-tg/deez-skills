@@ -28,10 +28,6 @@ with open(os.environ["FAKE_LAUNCHCTL_LOG"], "a", encoding="utf-8") as log:
     log.write(json.dumps(sys.argv[1:]) + "\\n")
 sys.exit(0)
 """
-ALLOWLIST = [
-    "Bash(deez super *)", "Bash(launchctl list *)", "Bash(launchctl kickstart *)",
-    "Bash(claude logs *)",
-]
 
 
 def dead_pid():
@@ -307,7 +303,7 @@ class WatchdogTest(unittest.TestCase):
         code, out, err = self.deez("watchdog")
 
         self.assertEqual((code, err), (0, ""))
-        printed = re.fullmatch(r"tick (x_[0-9a-f]{10}) cost 0\.0010\n", out)
+        printed = re.fullmatch(r"tick (x_[0-9a-f]{10}) denied 0 cost 0\.0010\n", out)
         self.assertIsNotNone(printed, out)
         self.assertEqual(self.store.show(printed.group(1))["session_id"], sid)
 
@@ -323,7 +319,7 @@ class WatchdogTest(unittest.TestCase):
         self.assertIn("fake claude failed with 1", shown["result"])
         self.assertFalse((self.root / "watchdog.session").exists())
 
-    def test_tick_passes_digest_agent_prompt_and_allowlist(self):
+    def test_tick_passes_digest_and_agent_prompt(self):
         (self.root / "sources.toml").write_text('[watchdog]\nmodel = "haiku"\n', encoding="utf-8")
         seen = self.tmp / "seen-state"
         os.environ["FAKE_CLAUDE_SCRIPT"] = f'echo "$DEEZ_SUPER_STATE" > {seen}'
@@ -335,9 +331,6 @@ class WatchdogTest(unittest.TestCase):
         self.assertEqual(argv[:2], ["-p", "--model"])
         self.assertEqual(argv[argv.index("--model") + 1], "haiku")
         self.assertEqual(argv[argv.index("--tools") + 1], "Bash")
-        start = argv.index("--allowedTools") + 1
-        self.assertEqual(argv[start:start + 4], ALLOWLIST)
-        self.assertEqual(argv[start + 4], "--permission-mode")
         self.assertEqual(argv[argv.index("--permission-mode") + 1], "dontAsk")
         self.assertEqual(argv[argv.index("--output-format") + 1], "json")
         self.assertIn("--strict-mcp-config", argv)
@@ -383,6 +376,156 @@ class WatchdogTest(unittest.TestCase):
 
         self.store.set_cursor("github", "last_error", "")
         self.assertNotIn("## source errors", self.digest(now=lambda: later(hours=1)))
+
+    def test_tick_allowlist_is_only_deez_super(self):
+        self.tick()
+
+        (argv,) = self.argvs()
+        allowed = argv[argv.index("--allowedTools") + 1:argv.index("--permission-mode")]
+        self.assertEqual(allowed, ["Bash(deez super *)"])
+
+    def test_tick_records_denials(self):
+        chained = "launchctl list com.dboon.super-clanker; tail -n 40 log/launchd.err.log"
+        outcome = {
+            "result": "ok", "session_id": "s-1", "total_cost_usd": 0.002,
+            "permission_denials": [
+                {"tool_name": "Bash", "tool_use_id": "toolu_1", "tool_input": {"command": chained}},
+            ],
+        }
+        (self.tmp / "bin" / "claude").write_text(
+            f"#!/bin/sh\ncat <<'OUTCOME'\n{json.dumps(outcome)}\nOUTCOME\n", encoding="utf-8"
+        )
+
+        code, out, err = self.deez("watchdog")
+
+        self.assertEqual((code, err), (0, ""))
+        printed = re.fullmatch(r"tick (x_[0-9a-f]{10}) denied 1 cost 0\.0020\n", out)
+        self.assertIsNotNone(printed, out)
+        self.assertEqual(self.store.show(printed.group(1))["denials"], (chained,))
+
+    def test_watchdog_prompt_has_no_launchctl_and_forbids_chaining(self):
+        prompt = watchdog.agent_prompt(HUB)
+
+        self.assertNotIn("launchctl", prompt)
+        self.assertNotIn("claude logs", prompt)
+        for phrase in (
+            "`;`", "`&&`", "`&`", "`|`", "deez super log launchd", "deez super kick daemon",
+            "deez super log <assignment>", "deez super log daemon",
+        ):
+            self.assertIn(phrase, prompt)
+        self.assertLess(prompt.index("deez super log launchd"), prompt.index("deez super kick daemon"))
+        self.assertLess(len(prompt.split()), 300)
+
+    def test_failed_wakes_clear_after_a_successful_wake(self):
+        self.daemon_alive()
+
+        def wake(exit_code):
+            wake_id = self.store.begin_wake([])
+            self.store.end_wake(wake_id, exit_code, None, None, "result")
+            return wake_id
+
+        first = wake(1)
+        self.assertEqual(
+            block(self.digest(), "failed wakes"),
+            f"1 wake failed in 24 hours: {first} exit 1\nmore: deez super show {first}",
+        )
+
+        wake(0)
+        self.assertEqual(self.digest(), "")
+
+        later_failure = wake(2)
+        self.assertEqual(
+            block(self.digest(), "failed wakes"),
+            f"1 wake failed in 24 hours: {later_failure} exit 2\n"
+            f"more: deez super show {later_failure}",
+        )
+
+    def test_kick_runs_kickstart_for_the_daemon_label(self):
+        calls = []
+
+        def run(argv, **_options):
+            calls.append(argv)
+            return subprocess.CompletedProcess(argv, 3 if argv[-1].endswith("watchdog") else 0)
+
+        parse = cli.build_parser().parse_args
+        out = StringIO()
+        with redirect_stdout(out):
+            codes = (
+                cli._super_kick(self.root, parse(["super", "kick"]), run=run),
+                cli._super_kick(self.root, parse(["super", "kick", "watchdog"]), run=run),
+            )
+
+        uid = os.getuid()
+        self.assertEqual(calls, [
+            ["launchctl", "kickstart", "-k", f"gui/{uid}/com.dboon.super-clanker"],
+            ["launchctl", "kickstart", "-k", f"gui/{uid}/com.dboon.super-watchdog"],
+        ])
+        self.assertEqual(codes, (0, 3))
+        self.assertEqual(out.getvalue(), (
+            f"launchctl kickstart -k gui/{uid}/com.dboon.super-clanker exit 0\n"
+            f"launchctl kickstart -k gui/{uid}/com.dboon.super-watchdog exit 3\n"
+        ))
+        self.assertEqual(self.deez("kick", "daemon")[0], 0)
+        self.assertEqual(
+            json.loads(self.launchctl_log.read_text(encoding="utf-8")),
+            ["kickstart", "-k", f"gui/{uid}/com.dboon.super-clanker"],
+        )
+
+    def test_log_prints_daemon_tail_and_names_missing_files(self):
+        log_dir = self.root / "log"
+
+        self.assertEqual(self.deez("log", "daemon"), (0, f"(no {log_dir / 'daemon.log'})\n", ""))
+
+        log_dir.mkdir()
+        (log_dir / "daemon.log").write_text(
+            "".join(f"pass {n}\n" for n in range(50)), encoding="utf-8"
+        )
+        (log_dir / "launchd.err.log").write_text("boom\nexit 78\n", encoding="utf-8")
+
+        self.assertEqual(self.deez("log", "daemon", "--lines", "2"), (0, "pass 48\npass 49\n", ""))
+        self.assertEqual(
+            self.deez("log", "daemon")[1].splitlines(), [f"pass {n}" for n in range(10, 50)]
+        )
+        self.assertEqual(self.deez("log", "launchd"), (0, (
+            "== launchd.err.log\nboom\nexit 78\n"
+            f"== launchd.out.log\n(no {log_dir / 'launchd.out.log'})\n"
+        ), ""))
+        self.assertEqual(self.deez("log", "watchdog"), (0, (
+            f"== watchdog.err.log\n(no {log_dir / 'watchdog.err.log'})\n"
+            f"== watchdog.out.log\n(no {log_dir / 'watchdog.out.log'})\n"
+        ), ""))
+        refused = self.deez("log", "router")
+        self.assertEqual(refused[:2], (2, ""))
+        self.assertIn("router", refused[2])
+
+    def test_log_prints_assignment_result_and_stderr_tails(self):
+        _ticket_id, assignment_id = self.dispatch()
+        os.environ["FAKE_CLAUDE_SCRIPT"] = "printf 'warn one\\nwarn two\\nwarn three\\n'"
+        self.run_worker(assignment_id, "step one\nstep two\nREPORT ready done")
+        log_dir = self.root / "log"
+
+        first = self.deez("log", assignment_id, "--lines", "2")
+
+        self.assertEqual(first, (0, (
+            "== result\nstep two\nREPORT ready done\n== stderr\nwarn two\nwarn three\n"
+        ), ""))
+
+        (log_dir / f"{assignment_id}.1.json").write_text(
+            json.dumps({"result": "second turn"}), encoding="utf-8"
+        )
+
+        self.assertEqual(self.deez("log", assignment_id), (0, (
+            f"== result\nsecond turn\n== stderr\n(no {log_dir / f'{assignment_id}.1.err'})\n"
+        ), ""))
+
+    def test_log_prints_wake_and_tick_result(self):
+        wake_id = self.store.begin_wake([])
+        self.store.end_wake(wake_id, 0, 0.0, "s", "decided t_1\nignored t_2")
+        tick_id = self.store.begin_tick("## daemon down")
+        self.store.end_tick(tick_id, 0, 0.0, "s", "kicked the daemon")
+
+        self.assertEqual(self.deez("log", wake_id), (0, "decided t_1\nignored t_2\n", ""))
+        self.assertEqual(self.deez("log", tick_id, "--lines", "1"), (0, "kicked the daemon\n", ""))
 
     def test_install_plan_lists_both_plists(self):
         (self.root / "sources.toml").write_text('[watchdog]\ninterval_seconds = 900\n', encoding="utf-8")

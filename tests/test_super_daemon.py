@@ -1,8 +1,10 @@
 import json
 import os
+import shutil
 import signal
 import subprocess
 import tempfile
+import time
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timedelta
@@ -51,6 +53,7 @@ class FakeWorkers:
     def __init__(self, fail=()):
         self.launched = []
         self.resumed = []
+        self.revived = []
         self.fail = fail
 
     def launch(self, store, settings, assignment_id, hub_root, root):
@@ -62,6 +65,9 @@ class FakeWorkers:
     def resume(self, store, settings, assignment_id, hub_root, root):
         self.resumed.append(assignment_id)
         return store.start_assignment(assignment_id, "session", os.getpid(), root)
+
+    def revive(self, store, settings, ticket_id, hub_root, root):
+        self.revived.append(ticket_id)
 
 
 def no_reap(store, root):
@@ -86,10 +92,11 @@ class DaemonTest(unittest.TestCase):
     def sources(self, text):
         (self.root / "sources.toml").write_text(text, encoding="utf-8")
 
-    def one_pass(self, wake=None, reap=no_reap, **now):
+    def one_pass(self, wake=None, reap=no_reap, revive=None, **now):
         return daemon.one_pass(
             self.store, config.load(self.root), self.root, HUB, wake=wake or self.wake,
-            launch=self.workers.launch, resume=self.workers.resume, reap=reap, **now,
+            launch=self.workers.launch, resume=self.workers.resume,
+            revive=revive or self.workers.revive, reap=reap, **now,
         )
 
     def ask(self, text, thread="default"):
@@ -154,6 +161,45 @@ class DaemonTest(unittest.TestCase):
         self.assertEqual(result.resumed, 1)
         self.assertEqual(self.wake.batches, [])
         self.assertEqual(self.store.queued(), [])
+
+    def test_pass_revives_ended_ticket_with_new_input(self):
+        tmp = Path(self.root).parent
+        bin_dir = tmp / "bin"
+        bin_dir.mkdir()
+        shutil.copy(Path(__file__).with_name("fake_claude.py"), bin_dir / "claude")
+        (bin_dir / "claude").chmod(0o755)
+        argv_log = tmp / "argv.jsonl"
+        os.environ.update({
+            "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
+            "FAKE_CLAUDE_LOG": str(argv_log),
+        })
+        ticket, assignment_id = self.ticket("fix the typo")
+        self.store.start_assignment(assignment_id, "sid-1", dead_pid(), self.root)
+        self.store.report(assignment_id, "ready", "fixed it")
+        stopped, stopped_assignment = self.ticket("tidy the changelog", "other")
+        self.store.stop(stopped.id, "daryl", "not needed")
+        self.store.add_input(stopped.id, "note", "late fact")
+        follow_up = self.ask("the second typo is still there")
+
+        result = self.one_pass(revive=workers.revive)
+
+        revived = self.store.assignment_for(ticket.id)
+        deadline = time.monotonic() + 2
+        while workers.alive(revived.pid):
+            self.assertLess(time.monotonic(), deadline, "fake worker did not exit")
+            time.sleep(0.01)
+        self.assertEqual((result.fanned_out, result.resumed, result.errors), (1, 1, ()))
+        self.assertNotEqual(revived.id, assignment_id)
+        self.assertEqual((revived.state, revived.session_id), ("running", "sid-1"))
+        workers_argv = [json.loads(line) for line in argv_log.read_text(encoding="utf-8").splitlines()]
+        (argv,) = workers_argv
+        self.assertEqual(argv[argv.index("--resume") + 1], "sid-1")
+        self.assertIn(follow_up.id, argv[-1])
+        self.assertEqual(self.store.undelivered_inputs(ticket.id), [])
+        self.assertEqual(self.store.show(stopped.id)["state"], "ended")
+        self.assertEqual(self.store.assignment_for(stopped.id).id, stopped_assignment)
+        self.assertEqual(len(self.store.undelivered_inputs(stopped.id)), 1)
+        self.assertEqual(self.workers.launched, [])
 
     def test_stop_on_a_subscribed_thread_reaches_the_router(self):
         ticket, assignment_id = self.ticket("fix the typo")

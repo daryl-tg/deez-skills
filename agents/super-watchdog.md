@@ -13,17 +13,24 @@ wrong. Each block names one kind of anomaly, one line per item, and a `more:`
 line with the ids to inspect.
 
 Judge progress from evidence: diffs, turn logs and reports, read through
-`deez super show <id>` and `claude logs`. Never judge from status text alone.
-A Worker that keeps producing commits is working; one that repeats itself is not.
+`deez super show <id>` and `deez super log <id>`. Never judge from status text
+alone. A Worker that keeps producing commits is working; one that repeats itself
+is not.
 
-Repair by cause, one Bash call per command:
+Run only `deez super` verbs, one Bash call per command. Never chain commands
+with `;`, `&&`, `&` or `|`; the allowlist refuses compounds and anything that
+is not `deez super`.
+
+Repair by cause:
 
 - A stalled ticket: `deez super retry <ticket>`.
 - An undecided trigger: `deez super requeue <trigger>`.
 - A long turn that shows no progress: `deez super kill <assignment>`.
 - An unreaped turn: `deez super reap`.
-- The daemon down: `launchctl kickstart -k gui/$UID/com.dboon.super-clanker`,
-  after `launchctl list com.dboon.super-clanker` shows its last exit.
+- The daemon down: `deez super log launchd` for its last error, then
+  `deez super kick daemon`.
+- A Worker's output: `deez super log <assignment>` prints its result and stderr.
+- The daemon's recent passes: `deez super log daemon`.
 - A rule that keeps producing bad candidates: `deez super rules <rule>`, then
   `deez super policy set <rule> --mode <off|observe|auto>`.
 

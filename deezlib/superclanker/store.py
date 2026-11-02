@@ -86,6 +86,7 @@ class Tick:
     cost_usd: float | None
     session_id: str | None
     result: str | None
+    denials: tuple | None
 
 
 _ROUTER_PREFIXES = {Wake: "w_", Reply: "p_", Input: "i_", Tick: "x_"}
@@ -148,7 +149,7 @@ CREATE TABLE IF NOT EXISTS cursors (
     PRIMARY KEY (source, key));
 CREATE TABLE IF NOT EXISTS ticks (
     id TEXT PRIMARY KEY, started_at TEXT NOT NULL, ended_at TEXT, digest TEXT NOT NULL,
-    exit_code INTEGER, cost_usd REAL, session_id TEXT, result TEXT);
+    exit_code INTEGER, cost_usd REAL, session_id TEXT, result TEXT, denials TEXT);
 CREATE TABLE IF NOT EXISTS requeues (
     trigger_id TEXT NOT NULL, requeued_at TEXT NOT NULL, decisions_before INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS requeues_by_trigger ON requeues (trigger_id);
@@ -199,6 +200,7 @@ _DECODERS = {
     Report: {"kind": ReportKind, "evidence": _optional_tuple},
     Subscription: {"context_only": bool},
     Wake: {"trigger_ids": _json_tuple, "denials": _json_tuple},
+    Tick: {"denials": _json_tuple},
     Input: {"kind": InputKind},
 }
 
@@ -284,6 +286,9 @@ class Store:
         wake_columns = {row[1] for row in connection.execute("PRAGMA table_info(wakes)")}
         if "denials" not in wake_columns:
             connection.execute("ALTER TABLE wakes ADD COLUMN denials TEXT")
+        tick_columns = {row[1] for row in connection.execute("PRAGMA table_info(ticks)")}
+        if "denials" not in tick_columns:
+            connection.execute("ALTER TABLE ticks ADD COLUMN denials TEXT")
         return cls(connection)
 
     def close(self):
@@ -488,18 +493,18 @@ class Store:
             )
 
     def begin_tick(self, digest):
-        tick = Tick(_new_router_id(Tick), utc_now(), None, digest, None, None, None, None)
+        tick = Tick(_new_router_id(Tick), utc_now(), None, digest, None, None, None, None, None)
         with self._transaction():
             self._insert(tick)
         return tick.id
 
-    def end_tick(self, tick_id, exit_code, cost_usd, session_id, result):
+    def end_tick(self, tick_id, exit_code, cost_usd, session_id, result, denials=None):
         with self._transaction():
             self._require(Tick, tick_id)
             self._db.execute(
                 "UPDATE ticks SET ended_at = ?, exit_code = ?, cost_usd = ?, session_id = ?, "
-                "result = ? WHERE id = ?",
-                (utc_now(), exit_code, cost_usd, session_id, result, tick_id),
+                "result = ?, denials = ? WHERE id = ?",
+                (utc_now(), exit_code, cost_usd, session_id, result, _encode(denials), tick_id),
             )
 
     def requeue(self, trigger_id):
@@ -615,6 +620,38 @@ class Store:
 
     def inputs(self, ticket_id):
         return self._select(Input, "ticket_id = ?", (ticket_id,))
+
+    def reopen(self, ticket_id):
+        with self._transaction():
+            ticket = self._require(Ticket, ticket_id)
+            if ticket.ended_by is not None:
+                raise SuperError(f"{ticket_id} was stopped by {ticket.ended_by}; it stays ended")
+            self._db.execute(
+                "UPDATE tickets SET state = ?, ended_at = NULL, outcome = NULL WHERE id = ?",
+                (TicketState.open, ticket_id),
+            )
+            return self._require(Ticket, ticket_id)
+
+    def succeed_assignment(self, ticket_id):
+        with self._transaction():
+            previous = self.assignment_for(ticket_id)
+            successor = Assignment(
+                new_id(Assignment), ticket_id, AssignmentState.pending, previous.session_id,
+                None, previous.worktree, None, None,
+            )
+            self._insert(successor)
+        return successor
+
+    def revivable(self):
+        return [ticket.id for ticket in self._select(
+            Ticket,
+            "ended_by IS NULL "
+            "AND EXISTS (SELECT 1 FROM inputs WHERE inputs.ticket_id = tickets.id "
+            "AND inputs.delivered_at IS NULL) "
+            "AND (SELECT state FROM assignments WHERE assignments.ticket_id = tickets.id "
+            "ORDER BY rowid DESC LIMIT 1) = ?",
+            (AssignmentState.ended,),
+        )]
 
     def retry(self, ticket_id):
         with self._transaction():

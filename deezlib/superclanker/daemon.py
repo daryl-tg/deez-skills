@@ -126,7 +126,7 @@ def _send_terminal_replies(store, root):
 
 
 def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.launch,
-             resume=workers.resume, reap=workers.reap, now=utc_now):
+             resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now):
     errors = []
 
     def attempt(step, *args):
@@ -144,6 +144,11 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
         if workers.alive(assignment.pid) or not store.undelivered_inputs(assignment.ticket_id):
             continue
         if attempt(resume, store, config, assignment.id, hub_root, root) is not None:
+            resumed += 1
+    for ticket_id in store.revivable():
+        if len(store.running_assignments()) >= config.workers.max_running:
+            break
+        if attempt(revive, store, config, ticket_id, hub_root, root) is not None:
             resumed += 1
     launched = 0
     running = len(store.running_assignments())
