@@ -15,7 +15,7 @@ FAKE_LAUNCHCTL = """#!/usr/bin/env python3
 import json, os, sys
 with open(os.environ["FAKE_LAUNCHCTL_LOG"], "a", encoding="utf-8") as log:
     log.write(json.dumps(sys.argv[1:]) + "\\n")
-sys.exit(3 if sys.argv[1] == "bootout" else 0)
+sys.exit({"bootout": 3, "print": 113}.get(sys.argv[1], 0))
 """
 
 
@@ -84,19 +84,17 @@ class LaunchdTest(unittest.TestCase):
     def test_install_apply_runs_bootout_bootstrap_kickstart_in_order(self):
         lines = self.install(apply=True)
         self.assertEqual(self.launchctl_calls(), [
-            ["bootout", f"{self.domain}/com.dboon.super-clanker"],
+            ["print", f"{self.domain}/com.dboon.super-clanker"],
             ["bootstrap", self.domain, str(self.plist_path)],
             ["kickstart", "-k", f"{self.domain}/com.dboon.super-clanker"],
-            ["bootout", f"{self.domain}/com.dboon.super-watchdog"],
+            ["print", f"{self.domain}/com.dboon.super-watchdog"],
             ["bootstrap", self.domain, str(self.watchdog_path)],
         ])
         self.assertEqual(lines, [
             f"wrote {self.plist_path}",
-            f"launchctl bootout {self.domain}/com.dboon.super-clanker exit 3",
             f"launchctl bootstrap {self.domain} {self.plist_path} exit 0",
             f"launchctl kickstart -k {self.domain}/com.dboon.super-clanker exit 0",
             f"wrote {self.watchdog_path}",
-            f"launchctl bootout {self.domain}/com.dboon.super-watchdog exit 3",
             f"launchctl bootstrap {self.domain} {self.watchdog_path} exit 0",
         ])
 
@@ -138,3 +136,54 @@ class LaunchdTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReinstallRaceTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+        self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name) / "state"; self.root.mkdir()
+        self.agents = Path(self.tmp.name) / "agents"
+        self.calls = []
+
+    def fake_run(self, loaded_until_bootout, prints_before_gone):
+        state = {"loaded": loaded_until_bootout, "polls": 0}
+        def run(argv, **_kw):
+            import subprocess
+            self.calls.append(argv[1:])
+            verb = argv[1]
+            if verb == "print":
+                state["polls"] += 1
+                gone = (not state["loaded"]) and state["polls"] > prints_before_gone
+                return subprocess.CompletedProcess(argv, 0 if (state["loaded"] or not gone) else 113)
+            if verb == "bootout":
+                state["loaded"] = False
+            return subprocess.CompletedProcess(argv, 0)
+        return run
+
+    def test_loaded_and_unchanged_only_kickstarts(self):
+        from deezlib.superclanker import launchd
+        from pathlib import Path
+        launchd.install("/hub", self.root, Path(self.tmp.name), self.agents, apply=True,
+                        run=self.fake_run(False, 0))
+        self.calls.clear()
+        launchd.install("/hub", self.root, Path(self.tmp.name), self.agents, apply=True,
+                        run=self.fake_run(True, 0))
+        verbs = [c[0] for c in self.calls]
+        self.assertNotIn("bootout", verbs)
+        self.assertNotIn("bootstrap", verbs)
+        self.assertIn("kickstart", verbs)
+
+    def test_changed_plist_waits_until_booted_out_before_bootstrap(self):
+        from deezlib.superclanker import launchd
+        from pathlib import Path
+        launchd.install("/hub", self.root, Path(self.tmp.name), self.agents, apply=True,
+                        run=self.fake_run(False, 0))
+        self.calls.clear()
+        launchd.install("/other-hub", self.root, Path(self.tmp.name), self.agents, apply=True,
+                        run=self.fake_run(True, 2), sleep=lambda _s: None)
+        verbs = [c[0] for c in self.calls if c[0] != "print"]
+        self.assertEqual(verbs[:3], ["bootout", "bootstrap", "kickstart"])
+        polls = [c for c in self.calls if c[0] == "print"]
+        self.assertGreaterEqual(len(polls), 3)

@@ -2,6 +2,7 @@ import os
 import plistlib
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 from deezlib.superclanker import config
@@ -90,18 +91,44 @@ def _write_atomic(path, text):
     os.replace(temp, path)
 
 
-def install(hub_root, root, home, agents_dir=None, apply=False, run=subprocess.run):
+BOOTOUT_POLLS = 8
+BOOTOUT_POLL_SECONDS = 0.25
+
+
+def _loaded(run, label):
+    completed = run(["launchctl", "print", f"{_domain()}/{label}"], capture_output=True, text=True)
+    return completed.returncode == 0
+
+
+def _current(path):
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+
+
+def install(hub_root, root, home, agents_dir=None, apply=False, run=subprocess.run,
+            sleep=time.sleep):
     if not apply:
         return plan(hub_root, root, home, agents_dir)
     (Path(root) / "log").mkdir(parents=True, exist_ok=True, mode=0o700)
     lines = []
     for label, path, wanted in _plists(hub_root, root, home, agents_dir):
+        loaded = _loaded(run, label)
+        if loaded and _current(path) == wanted:
+            lines.append(f"kept {path}")
+            if label == LABEL:
+                lines.append(_launchctl(run, "kickstart", "-k", f"{_domain()}/{label}"))
+            continue
         _write_atomic(path, wanted)
-        lines += [
-            f"wrote {path}",
-            _launchctl(run, "bootout", f"{_domain()}/{label}"),
-            _launchctl(run, "bootstrap", _domain(), str(path)),
-        ]
+        lines.append(f"wrote {path}")
+        if loaded:
+            lines.append(_launchctl(run, "bootout", f"{_domain()}/{label}"))
+            for _attempt in range(BOOTOUT_POLLS):
+                if not _loaded(run, label):
+                    break
+                sleep(BOOTOUT_POLL_SECONDS)
+        lines.append(_launchctl(run, "bootstrap", _domain(), str(path)))
         if label == LABEL:
             lines.append(_launchctl(run, "kickstart", "-k", f"{_domain()}/{label}"))
     return lines
