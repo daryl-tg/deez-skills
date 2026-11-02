@@ -3,14 +3,20 @@
 Some behavior differs between Electron and Chrome by construction. In those places the shell is built to act as
 Chrome does. Keys run the same app command and fire no native menu item. Alt+click on the plot copies the bar's time,
 and Shift+click starts the ruler. A file dropped on the chart never navigates the window, and the image dialog's picker
-and drop zone take a PNG. A field off the chart and selected text get a native edit or copy menu, while the chart page
-keeps its own. `readText` reads text copied in another app, and `navigator.share` is undefined. A service worker
+and drop zone take a PNG. A field (on the chart page too, since `12906d4136`) and selected text get a native edit or
+copy menu, while the plot keeps the app's own. `readText` reads text copied in another app, and `navigator.share` is
+undefined. A service worker
 registers, and the offline and online events fire. A download saves to Downloads under the page's file name, with no
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-The guest rows were last driven on 2026-11-02, on tree `39b22dd2ec` (`origin/main`, `gaps.mjs` unchanged since
-`30481b57f8`), straight after the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 101 s, with the same
+On 2026-11-03, on tree `1af9ebbe07` (`origin/main`; `8ce333e5e9` changed only the comment over `contextMenuRows`), the
+lane packed nothing new (`GAPS_REUSE_PACKAGE=1`) and threw `page.waitForFunction: Timeout 180000ms exceeded` in
+`waitForCandles` (`gaps.mjs:505`) from `bootHosts` (`gaps.mjs:1694`) before any row, because the dev lane had no
+candle history (2 bars; the v2 streaming host did not resolve; see the [index](./README.md)). So the right-click rows
+have not been driven under the chart-only cancel (`gaps-contextmenu` below): live verification pending. The guest rows
+were last driven on 2026-11-02, on tree `39b22dd2ec` (`gaps.mjs` unchanged since `30481b57f8`, under the old
+document-wide cancel), straight after the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 101 s, with the same
 result as 2026-10-31 (`5475ab32d5`, 103 s). On 2026-11-01 (`2646a76a83`) the lane had thrown `page.waitForFunction:
 Timeout 180000ms exceeded` in `waitForCandles` (`gaps.mjs:505`) from `bootHosts` (`gaps.mjs:1695`) before any row,
 with no table and no frame, because the dev lane had no candles in either host that day (the chart's v2 streaming host
@@ -38,10 +44,17 @@ to the operator's real account. Windows and Linux are unprobed.
 - `gaps-keys` every default binding in `src/constants/keymap.constants.ts`, sent as a real macOS key event, runs the
   same app command in both hosts and fires no native menu item (rows `keys-calibration`, `keys-tools`, `keys-edit`,
   `keys-dialogs`, `keys-view`, `keys-watchlist-replay`, `keys-panels`, `keys-misc`).
-- `gaps-contextmenu` the chart page prevents `contextmenu` (no native menu in either host). An editable field and
-  selected text get the main-process `context-menu` event, so the shell draws its own edit or copy menu where Chrome
-  draws one (rows `contextmenu-search-input`, `contextmenu-editor`, `contextmenu-chart`, `contextmenu-input`,
-  `contextmenu-selection`).
+- `gaps-contextmenu` each row holds the shell to Chrome's answer (`contextVerdict`): where Chrome's `contextmenu` goes
+  unprevented, the shell must draw a native menu with the expected items; where Chrome's is prevented, the shell must
+  draw none and match the app's own menu. Since `12906d4136` (2026-11-02, after `39b22dd2ec`) the chart page cancels
+  the event on the plot alone (`#main-chart`, `ChartArea.vue` `handleContextMenu`), never in a field, a link or a
+  `[data-allow-context-menu]` element (`keepsNativeContextMenu`, `src/utility/dom/native-context-menu.util.ts`), and the
+  toolbar-stats and bottom-bar menus share that rule (`8ce333e5e9`). So `contextmenu-search-input` (super search's
+  field) and `contextmenu-input` (the email field on `/chart/auth`) expect the edit menu, `contextmenu-selection` (the
+  console's copy) expects Copy, and `contextmenu-chart` expects no native menu and the app's own. `contextmenu-editor`
+  expects the edit menu only if CodeMirror's `.cm-content` counts as a typing field for `isTypingTarget`; that is
+  unconfirmed. Before `12906d4136` the page cancelled the event everywhere except inside `[data-allow-context-menu]`,
+  and the 2026-11-02 passes were judged against that. Source-read 2026-11-03; live verification pending.
 - `gaps-files` a file dropped on the chart leaves the window on the chart. The image dialog's picker opens a file
   chooser, and its drop zone previews a dropped PNG (rows `drop-chart`, `upload-image-picker`, `drop-image-dialog`).
 - `gaps-platform` `readText` returns text copied in another app. `navigator.share` is undefined. A service worker

@@ -7,7 +7,11 @@ plot region is blank in either capture; a step also fails when the hosts disagre
 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`; `ad67d47c62`,
 on 2026-11-02's tree, retired `si-panel-trades-liquidations` and renamed the `panel-tape` inventory row "Tape /
 Footprint panel", since one tape now serves every market, and left the guest steps alone) that signs in as the
-operator's real account on the deployed chart. Last driven 2026-11-02 on tree `39b22dd2ec` (`origin/main`), guest steps
+operator's real account on the deployed chart. On 2026-11-03 on tree `1af9ebbe07` (`origin/main`, `parity.mjs`
+unchanged) the sweep packed the app and threw in `waitForCandles` (`parity.mjs:457`, 180 s) before any step, as on
+2026-11-01: the dev lane's engine held 2 bars, because the v2 streaming host did not resolve, while Chromium on the same
+lane read a ticking priced title (see the [index](./README.md)). Last driven with steps on 2026-11-02 on tree
+`39b22dd2ec`, guest steps
 named, with the console session locked and the machine at a load average of 3 to 6, on a lane with candles: the same
 split as 2026-10-29 (`30481b57f8`) and 2026-10-31 (`5475ab32d5`), in 8 min 23 s with its pack (Electron 44.9.3,
 Chromium 152 in the shell; the sweep dismissed `guest-signup-modal-close-btn` in both hosts). On 2026-11-01
@@ -86,9 +90,10 @@ Preconditions:
 - **`doctor` green is not candles.** `doctor` reads the lane's REST health, and the chart's candles come over the v2
   streaming socket to another host. On 2026-11-01 health was `ok` and the sweep still threw in `waitForCandles` on a
   fresh pack, because that socket's host was unreachable; on 2026-11-02 `nc -z tsdb-gateway.int.ore.kiyotaka.ai 443`
-  succeeded, Chromium on the lane read a priced title, and the sweep ran every step. Before a sweep, open the lane in
-  a browser and look for a priced title, or read the lane log for `v2 Streaming socket error`; with no candles, report
-  the sweep as blocked on the environment and name the host.
+  succeeded, Chromium on the lane read a priced title, and the sweep ran every step. A priced title is not enough: on 2026-11-03 Chromium read
+  `76,718.5 ▲ BTC - USD` with 2 bars in the engine, and the sweep threw. Before a sweep, read
+  `window.tc[0].metadata[0].rawData.length` in a browser on the lane (the sweep waits for more than 50), or the lane log
+  for `v2 Streaming socket error`; with no history, report the sweep as blocked on the environment and name the host.
 - Steps that would raise the sign-in dialog are reported BLOCKED and close Turnstile at once if it ever appears; the
   sign-in pair is two plain launches, `capture.js` in the unpackaged shell and Chromium's headless shell with
   `--screenshot`. Read that pair by eye.

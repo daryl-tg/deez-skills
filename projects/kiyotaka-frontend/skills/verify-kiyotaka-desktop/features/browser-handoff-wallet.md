@@ -11,20 +11,26 @@ read exactly as the trading store writes it, at most six fraction digits), `evm-
 and `solana-connect`, and every request carries `issuedAt`, the app's clock when it opened the page; an old request
 reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent, approveBuilderFee, usdClassTransfer,
 personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no transaction
-signing). Last driven 2026-11-02 on tree `39b22dd2ec` (`origin/main`; none of the sign, handoff or page files
-changed since `2646a76a83`), with the console session locked and the machine at a load average of 3 to 6. The sign page
-was proved by hand in Chromium on the dev lane, every state on its first read: a fresh `hl-approve-agent` request drew
+signing). Last driven 2026-11-03 on tree `1af9ebbe07` (`origin/main`; none of the sign, handoff or page files
+changed since `2646a76a83`), with the console session locked and the machine at a load average of 4 to 6. The sign page
+was proved by hand in Chromium on the dev lane, every state on a pass run alone (a first pass beside two other tabs on
+the cold lane left the fresh request on the boot screen): a fresh `hl-approve-agent` request drew
 `desktop-sign-page-title` "Authorize a trading key", the summary (key name, agent address, Valid until, Hyperliquid
 Testnet, Account), `desktop-sign-origin` and `desktop-sign-no-wallet`; a day-old `issuedAt` drew `desktop-sign-expired`
 "This signing request has expired"; a truncated `r` drew `desktop-sign-invalid` "This signing link isn't valid"; and the
 `hl-usd-class-transfer` kind drew "Transfer USDC" with Transfer "Spot to perps", Amount "25.5 USDC", Network
 "Hyperliquid Testnet" and Account (`toPerp: false` and `100` read "Perps to spot" and "100 USDC"), while an amount of
-`1.2345678` drew `desktop-sign-invalid`. The `hl` scenario on the testnet lane, with candles on the lane again, went
-through the connect and two approveAgent round trips (three `desktop: external .../desktop/sign?r=...` lines, each
+`1.2345678` drew `desktop-sign-invalid`. The `hl` scenario on the warmed testnet lane (no candle history that day; `waitForChart` needs only a BTC
+title) went through the connect and two approveAgent round trips (three `desktop: external .../desktop/sign?r=...` lines, each
 answered by `desktop: return <id>`) and then timed out at the `personal_sign` request (`timed out waiting for the shell
 to hand the sign page to the browser`, `waitFor` at `handoff.mjs:226` from `nextSignPage` at 238 from `hlScenario` at
-645) after 3 min 6 s, `completed: false`, as on 2026-10-27 (`7290d33d10`), 2026-10-29 (`30481b57f8`) and 2026-10-31
-(`5475ab32d5`). On 2026-11-01 (`2646a76a83`) it had stopped before any request at `waitForChart` (`handoff.mjs:230`, a
+645) after 192 s, `completed: false`, as on 2026-10-27 (`7290d33d10`), 2026-10-29 (`30481b57f8`), 2026-10-31
+(`5475ab32d5`) and 2026-11-02 (`39b22dd2ec`). Two earlier runs that day stopped sooner. The first, straight after
+`lane up --testnet`, stopped at `waitForChart` (`handoff.mjs:230`), because the cold vite never started the router (see
+the [index](./README.md)). The second got the connect and the first approveAgent back (three `desktop: external`, two
+`desktop: return`), then waited 90 s for the crossed-chain request's `desktop-sign-wallet` MetaMask row
+(`signInBrowser`, `handoff.mjs:307` from `hlScenario` at 619). That stop did not repeat on the third run and is not
+isolated. On 2026-11-01 (`2646a76a83`) it had stopped before any request at `waitForChart` (`handoff.mjs:230`, a
 90 s `page.waitForFunction` timeout) because the dev lane had no candles that day (the chart's v2 streaming host was
 unreachable; see the [index](./README.md)), the same stop as 2026-10-28 (`5365748ef3`). Four runs at very different
 loads, on either side of that candle outage, stop at the same `personal_sign` line, so that cause is in the lane or the
@@ -80,7 +86,7 @@ Preconditions:
   on the first pass and after two polls once re-fronted).
 - **Sign page lane.** `control-kiyotaka-desktop run sign <dir>` signs with MetaMask, 16 checks when green, among them
   `the signature recovers to the requested account` and `a tampered request raises no MetaMask prompt`. On 2026-10-27
-  and again on every run to 2026-11-02 it onboarded MetaMask (13.50.0) and then failed `desktop-sign-summary` after
+  and again on every run to 2026-11-03 it onboarded MetaMask (13.50.0) and then failed `desktop-sign-summary` after
   60 s:
   `qa/tests/e2e/desktop-sign.mjs` builds its request with no `issuedAt`, which
   `src/utility/desktop/sign-request.util.ts` rejects, so the page shows `desktop-sign-invalid`. That is a product-lane
@@ -93,15 +99,18 @@ Preconditions:
   at `handoff.mjs:645`, the `personal_sign` request; no summary checks beyond `completed: false`. Cause not isolated.
   On 2026-10-28, twice, it stopped before the first request: `page.waitForFunction: Timeout 90000ms exceeded` in
   `waitForChart` (`handoff.mjs:230`), `completed: false`. On 2026-10-29 and 2026-10-31 it was back to the
-  `handoff.mjs:645` stop. On 2026-11-01 it was the `waitForChart` stop again, on a lane with no candles: check the
-  lane for a priced title before reading that stop as the scenario's. On 2026-11-02, with candles, it was the
-  `handoff.mjs:645` stop again after 3 min 6 s; `unit-09-handoff-prompt.png` is the only frame it leaves.
-- **The three lanes on 2026-11-02.** `run sign` onboarded MetaMask 13.50.0 and failed `desktop-sign-summary` after
-  60 s as before (no `issuedAt`, 77 s in all); `run handoff hl` reached the `personal_sign` stop; `run handoff solana`
-  stopped at the Phantom pin in 15 s. Only `hl` reached a wallet prompt.
+  `handoff.mjs:645` stop. On 2026-11-01 it was the `waitForChart` stop again, on a lane with no candles. On 2026-11-02, with candles, it was
+  the `handoff.mjs:645` stop again after 3 min 6 s; `unit-09-handoff-prompt.png` is the only frame it leaves.
+  `waitForChart` waits for a BTC title and a canvas, not for history: on 2026-11-03 a lane with 2 bars passed it once
+  warm, and a cold lane failed it. Read a `waitForChart` stop as a page that never booted, warm the lane (see the
+  [index](./README.md)) and run again before reading it as the scenario's.
+- **The three lanes on 2026-11-03.** `run sign` onboarded MetaMask 13.50.0 and failed `desktop-sign-summary` after
+  60 s as before (no `issuedAt`, 78 s in all); `run handoff hl` reached the `personal_sign` stop on its third run (the
+  first stopped at `waitForChart` on the cold lane, the second at the crossed-chain wallet row); `run handoff solana`
+  stopped at the Phantom pin in 21 s. Only `hl` reached a wallet prompt.
 - **Wallet Standard face.** `control-kiyotaka-desktop run handoff <dir> solana`. When green, all 7 checks pass; the
   wallet's features are exactly `solana:signMessage`, `standard:connect` and `standard:events`. On every run from
-  2026-10-27 to 2026-11-02 it stopped at `Phantom CRX is not the pinned 26.32.0 build` (`handoff.mjs:95`).
+  2026-10-27 to 2026-11-03 it stopped at `Phantom CRX is not the pinned 26.32.0 build` (`handoff.mjs:95`).
 - **Proof.** The lane summaries and their PNGs, among them `unit-09-handoff-prompt.png` and
   `unit-09-oneclick-signmessage.png`; for the hand drive, one frame per state plus the testids read.
 

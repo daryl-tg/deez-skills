@@ -6,15 +6,18 @@ The main process tries three parsers in order, sign-in (`openmarket://oauth/call
 (`openmarket://checkout`) and return; anything none of them takes is dropped as `desktop: dropped openmarket://<host>`.
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
 window shows a chart page. The bridge's members are `version`, `onReturn`, `updates` and `analytics`, plus
-`browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last driven 2026-11-02
-by the `returns` scenario on tree `39b22dd2ec` (`origin/main`, the shell's `desktop/src/` unchanged since `30481b57f8`)
-against the dev lane: 20 of 21 checks in 68 s including the `pnpm package:dev` pack, the same split as on every run
-from 2026-10-27 to 2026-11-01. The shell logged `desktop: dropped openmarket://elsewhere`, a `desktop: return <id>` line for `abc`,
+`browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last driven 2026-11-03
+by the `returns` scenario on tree `1af9ebbe07` (`origin/main`, the shell's `desktop/src/` unchanged since `30481b57f8`)
+against the dev lane: 20 of 21 checks in 67 s including the `pnpm package:dev` pack, the same split as on every run
+from 2026-10-27 to 2026-11-02. The first run that day, straight after `lane up`, threw in `waitForCandles`
+(`launch.mjs:94`, no BTC title in 60 s) before any check: the cold vite's first chart load failed its dynamic imports
+and the router never started (see the [index](./README.md)). The re-run on the warmed lane is the result above. The shell logged `desktop: dropped openmarket://elsewhere`, a `desktop: return <id>` line for `abc`,
 `second`, the handoff's uuid, `before-subscribe`, `held` and `cold`, and `desktop: external .../desktop/sign?r=...` (a
 `solana-connect` request) for the handoff step. The red one, `bridgeTwoMembers`, still expects `onReturn, version` and
 read `analytics, browserSignIn, onReturn, updates, version` (`version` 0.1.7); that is a stale lane assertion, not a
-regression. `unit-03-return.png` showed the `onReturn {"id":"abc",...}` banner over the 1h BTC-USD candles (`77,576.5`, VWAP,
-the first-run onboarding dialog over them). On 2026-11-01 the same frame had no candles ("Reconnecting...", the "Draw
+regression. `unit-03-return.png` showed the `onReturn {"id":"abc",...}` banner over a chart with no history (two bars at
+`76,683.3`, "Reconnecting...", the "Draw by holding" tip), because the dev lane's streaming host did not resolve that day;
+on 2026-11-02 it showed the 1h candles under the banner. On 2026-11-01 the same frame had no candles ("Reconnecting...", the "Draw
 by holding" tip) because the dev lane had no live data that day; the scenario's checks need a canvas, not a price, so
 a green `returns` says nothing about candles, and only the frame does. Windows registration
 and delivery are unproven on a real machine. The sign-in and checkout links are covered in

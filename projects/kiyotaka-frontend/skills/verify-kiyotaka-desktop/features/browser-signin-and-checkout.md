@@ -9,22 +9,27 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-02 on tree
-`39b22dd2ec` (`origin/main`) in Chromium on the dev lane, every page on its first read with the tab re-fronted before
-each poll: the return page (valid and invalid), the four checkout-return states, the signin page's redirect to
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-03 on tree
+`1af9ebbe07` (`origin/main`) in Chromium on the dev lane, one page at a time with the tab re-fronted before each poll
+(a first pass that opened three tabs at once on a cold lane drew "Startup is taking longer than expected ... [failed to
+load external] main.ts" on two pages; see the [index](./README.md)): the return page (valid and invalid), the four checkout-return states, the signin page's redirect to
 `/chart/auth?redirect=/desktop/signin`, the super-search command (`super-search-result-featureCommands:desktop-app-btn`,
-"Download the OpenMarket desktop app", the only result for "desktop app") and the sign-in dialog with its
+"Download the OpenMarket desktop app", the only result for "desktop app"; the "Draw by holding" tip's overlay covered
+`global-nav-search-btn` until its Got it was clicked, and the query went in through the input event) and the sign-in dialog with its
 `login-signup-passkey-btn` "Use a passkey" row among `login-signup-submit-btn`, `-use-password-btn`, `-google-btn`,
 `-twitter-btn`, `-forgot-password-btn` and `-tos-link`. The chart route reached the guest button in about ten seconds
-with live candles in agent-browser's Chromium (`77,572.1 ▼ BTC - USD`, 15 canvases); on 2026-11-01 the same route read
-"Can't reach live data. Retrying..." with no candles, and none of these proofs needs candles. On 2026-10-30 the route
+with a priced title but only 2 bars of history (`76,852.9 ▲ BTC - USD`, 15 canvases, "Reconnecting..."), because the
+lane's streaming host did not resolve; on 2026-11-02 it had live candles, and none of these proofs needs candles. On 2026-10-30 the route
 never settled under machine load (see the [index](./README.md)). `AuthFormView.vue`, `ProfilePanel.vue`,
-`featureCommands.ts` and the four desktop pages did not change between `2646a76a83` and `39b22dd2ec`; between
+the four desktop pages did not change between `2646a76a83` and `1af9ebbe07`, and `ProfilePanel.vue` not since `6dd6aa43de`;
+between `39b22dd2ec` and `1af9ebbe07` `featureCommands.ts` was reworked (`66a5bcb680`) with the `desktop-app`
+command's id, aliases and gate unchanged, and `AuthFormView.vue` gained `usePendingTwoFA` (`5027d30d82`, an expired
+2FA step restarts sign-in) with its rows unchanged; between
 2026-10-31 and 2026-11-01 `AuthFormView.vue` changed (`10655335c4`, `e3e96bf360`: the field collapse clips with
 `min-width: 0`, so the form no longer runs past the card; `.field-collapse-inner` read 342 px wide with `overflow:
 clip` on 2026-11-02) and the dialog's rows were not touched; on 2026-10-31 `ProfilePanel.vue` changed (`6dd6aa43de`)
 and its `desktop-app` row, behind `isDesktopDownloadEntryVisible()`, was not touched. The shell's production sign-in
-screen with no passkey row was last captured 2026-10-28 on `5365748ef3`; from 2026-10-29 to 2026-11-02 the console
+screen with no passkey row was last captured 2026-10-28 on `5365748ef3`; from 2026-10-29 to 2026-11-03 the console
 session was locked, so `capture` got no frame or was not attempted (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
