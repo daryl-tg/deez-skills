@@ -321,6 +321,7 @@ bin/deez clanker-checkpoint --runtime <runtime> --session <id> \
                 --playbook <file.md> --resume-note <absolute-path>
                 register the active task's durable continuation note
 bin/test        the suite
+bin/memguard    memory watchdog launchd runs every 30s; `install` loads it, `--dry-run` previews
 ```
 
 `bin/doctor` is the one to run before every commit. It fails on a principle
