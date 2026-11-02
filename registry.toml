@@ -389,6 +389,11 @@ layer    = "workflow"
 category = "core"
 runtimes = ["claude"]
 
+[agents.super-router]
+layer    = "workflow"
+category = "core"
+runtimes = ["claude"]
+
 # The five roles every playbook step routes to. Claude only, because the hub
 # links agents into ~/.claude/agents and Codex resolves its own lanes from
 # oh-my-codex (recorded in vendor.toml). Before these were registered they were

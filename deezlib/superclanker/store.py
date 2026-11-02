@@ -1,8 +1,10 @@
 import json
 import os
 import sqlite3
+import uuid
 from contextlib import contextmanager
-from dataclasses import fields, replace
+from dataclasses import dataclass, fields, replace
+from enum import StrEnum
 from pathlib import Path
 
 from deezlib.superclanker.domain import (
@@ -20,6 +22,7 @@ from deezlib.superclanker.domain import (
     Ticket,
     TicketState,
     Trigger,
+    _short_digest,
     new_id,
     utc_now,
 )
@@ -27,6 +30,50 @@ from deezlib.superclanker.domain import (
 
 class SuperError(Exception):
     pass
+
+
+class InputKind(StrEnum):
+    note = "note"
+    trigger = "trigger"
+
+
+@dataclass(frozen=True)
+class Wake:
+    id: str
+    started_at: str
+    ended_at: str | None
+    trigger_ids: tuple
+    exit_code: int | None
+    cost_usd: float | None
+    session_id: str | None
+    result: str | None
+
+
+@dataclass(frozen=True)
+class Reply:
+    id: str
+    thread_id: str
+    text: str
+    created_at: str
+    sent_at: str | None
+
+
+@dataclass(frozen=True)
+class Input:
+    id: str
+    ticket_id: str
+    kind: InputKind
+    text: str
+    created_at: str
+    delivered_at: str | None
+
+
+_ROUTER_PREFIXES = {Wake: "w_", Reply: "p_", Input: "i_"}
+_PREFIXES = {**ID_PREFIXES, **_ROUTER_PREFIXES}
+
+
+def _new_router_id(kind):
+    return _ROUTER_PREFIXES[kind] + _short_digest(uuid.uuid4().hex)
 
 
 _SCHEMA = """
@@ -65,7 +112,24 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 CREATE TABLE IF NOT EXISTS fanouts (
     trigger_id TEXT NOT NULL, ticket_id TEXT NOT NULL, created_at TEXT NOT NULL,
     PRIMARY KEY (trigger_id, ticket_id));
+CREATE TABLE IF NOT EXISTS wakes (
+    id TEXT PRIMARY KEY, started_at TEXT NOT NULL, ended_at TEXT, trigger_ids TEXT NOT NULL,
+    exit_code INTEGER, cost_usd REAL, session_id TEXT, result TEXT);
+CREATE TABLE IF NOT EXISTS replies (
+    id TEXT PRIMARY KEY, thread_id TEXT NOT NULL, text TEXT NOT NULL,
+    created_at TEXT NOT NULL, sent_at TEXT);
+CREATE INDEX IF NOT EXISTS replies_by_thread ON replies (thread_id);
+CREATE TABLE IF NOT EXISTS inputs (
+    id TEXT PRIMARY KEY, ticket_id TEXT NOT NULL, kind TEXT NOT NULL, text TEXT NOT NULL,
+    created_at TEXT NOT NULL, delivered_at TEXT);
+CREATE INDEX IF NOT EXISTS inputs_by_ticket ON inputs (ticket_id);
 """
+
+_UNDECIDED = (
+    "NOT EXISTS (SELECT 1 FROM decisions, json_each(decisions.trigger_ids) AS decided "
+    "WHERE decided.value = triggers.id) "
+    "AND NOT EXISTS (SELECT 1 FROM fanouts WHERE fanouts.trigger_id = triggers.id)"
+)
 
 _TABLES = {
     Thread: "threads",
@@ -76,6 +140,9 @@ _TABLES = {
     Assignment: "assignments",
     Report: "reports",
     Subscription: "subscriptions",
+    Wake: "wakes",
+    Reply: "replies",
+    Input: "inputs",
 }
 
 
@@ -95,6 +162,8 @@ _DECODERS = {
     Assignment: {"state": AssignmentState},
     Report: {"kind": ReportKind, "evidence": _optional_tuple},
     Subscription: {"context_only": bool},
+    Wake: {"trigger_ids": _json_tuple},
+    Input: {"kind": InputKind},
 }
 
 
@@ -140,6 +209,12 @@ def _summary(record):
             return f"decision {record.kind}: {_clip(record.reason)}"
         case Subscription():
             return "subscribed, context only" if record.context_only else "subscribed"
+        case Wake():
+            return f"wake exit {record.exit_code} cost {record.cost_usd}"
+        case Reply():
+            return f"reply: {_clip(record.text)}"
+        case Input():
+            return f"input {record.kind}: {_clip(record.text)}"
 
 
 def _neighbours(records):
@@ -312,13 +387,68 @@ class Store:
             )
 
     def queued(self):
-        return self._select(
-            Trigger,
-            "NOT EXISTS (SELECT 1 FROM decisions, json_each(decisions.trigger_ids) AS decided "
-            "WHERE decided.value = triggers.id) "
-            "AND NOT EXISTS (SELECT 1 FROM fanouts WHERE fanouts.trigger_id = triggers.id)",
-            order="ORDER BY received_at, rowid",
+        return self._select(Trigger, _UNDECIDED, order="ORDER BY received_at, rowid")
+
+    def undecided(self, trigger_ids):
+        return [
+            trigger.id for trigger in self._select(
+                Trigger, f"id IN (SELECT value FROM json_each(?)) AND {_UNDECIDED}",
+                (json.dumps(list(trigger_ids)),),
+            )
+        ]
+
+    def mark_unavailable(self, trigger_ids, reason):
+        with self._transaction():
+            for trigger_id in self.undecided(trigger_ids):
+                trigger = self._require(Trigger, trigger_id)
+                self._insert(Decision(
+                    new_id(Decision), trigger.thread_id, (trigger_id,), DecisionKind.unavailable,
+                    Strength.not_admitted, reason, utc_now(),
+                ))
+
+    def begin_wake(self, trigger_ids):
+        wake = Wake(
+            _new_router_id(Wake), utc_now(), None, tuple(trigger_ids), None, None, None, None
         )
+        with self._transaction():
+            self._insert(wake)
+        return wake.id
+
+    def end_wake(self, wake_id, exit_code, cost_usd, session_id, result):
+        with self._transaction():
+            self._require(Wake, wake_id)
+            self._db.execute(
+                "UPDATE wakes SET ended_at = ?, exit_code = ?, cost_usd = ?, session_id = ?, "
+                "result = ? WHERE id = ?",
+                (utc_now(), exit_code, cost_usd, session_id, result, wake_id),
+            )
+
+    def reply(self, thread_id, text):
+        with self._transaction():
+            self._require(Thread, thread_id)
+            reply = Reply(_new_router_id(Reply), thread_id, text, utc_now(), None)
+            self._insert(reply)
+        return reply
+
+    def unsent_replies(self):
+        return self._select(Reply, "sent_at IS NULL")
+
+    def add_input(self, ticket_id, kind, text):
+        kind = InputKind(kind)
+        with self._transaction():
+            self._require(Ticket, ticket_id)
+            pending = self._select(
+                Input, "ticket_id = ? AND kind = ? AND text = ? AND delivered_at IS NULL",
+                (ticket_id, kind, text),
+            )
+            if pending:
+                return pending[0]
+            entry = Input(_new_router_id(Input), ticket_id, kind, text, utc_now(), None)
+            self._insert(entry)
+        return entry
+
+    def undelivered_inputs(self, ticket_id):
+        return self._select(Input, "ticket_id = ? AND delivered_at IS NULL", (ticket_id,))
 
     def fanout_targets(self, thread_id):
         rows = self._db.execute(
@@ -360,7 +490,7 @@ class Store:
 
     def show(self, obj_id):
         kind = next(
-            (kind for kind, prefix in ID_PREFIXES.items() if obj_id.startswith(prefix)), Thread
+            (kind for kind, prefix in _PREFIXES.items() if obj_id.startswith(prefix)), Thread
         )
         record = self._get(kind, obj_id)
         if record is None:
@@ -373,6 +503,11 @@ class Store:
         return _neighbours([
             self._require(Thread, trigger.thread_id),
             *self._select(Ticket, "thread_id = ?", (trigger.thread_id,)),
+            *self._select(
+                Decision,
+                "EXISTS (SELECT 1 FROM json_each(decisions.trigger_ids) WHERE value = ?)",
+                (trigger.id,),
+            ),
         ])
 
     def _thread_neighbours(self, thread):
@@ -383,6 +518,7 @@ class Store:
             )),
             *_neighbours(self._select(Ticket, "thread_id = ?", (thread.id,))),
             *[(sub.ticket_id, _summary(sub)) for sub in subscriptions],
+            *_neighbours(self._select(Reply, "thread_id = ?", (thread.id,))),
         ]
 
     def _ticket_neighbours(self, ticket):
@@ -396,6 +532,7 @@ class Store:
                 *([last_report] if last_report else []),
             ]),
             *[(sub.thread_id, _summary(sub)) for sub in subscriptions],
+            *_neighbours(self.undelivered_inputs(ticket.id)),
         ]
 
     def _assignment_neighbours(self, assignment):
@@ -416,6 +553,15 @@ class Store:
     def _report_neighbours(self, report):
         return _neighbours([self._require(Assignment, report.assignment_id)])
 
+    def _wake_neighbours(self, wake):
+        return _neighbours([self._require(Trigger, trigger_id) for trigger_id in wake.trigger_ids])
+
+    def _reply_neighbours(self, reply):
+        return _neighbours([self._require(Thread, reply.thread_id)])
+
+    def _input_neighbours(self, entry):
+        return _neighbours([self._require(Ticket, entry.ticket_id)])
+
     _related = {
         Trigger: _trigger_neighbours,
         Thread: _thread_neighbours,
@@ -424,6 +570,9 @@ class Store:
         Mandate: _mandate_neighbours,
         Decision: _decision_neighbours,
         Report: _report_neighbours,
+        Wake: _wake_neighbours,
+        Reply: _reply_neighbours,
+        Input: _input_neighbours,
     }
 
     def status(self):

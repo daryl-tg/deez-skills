@@ -412,6 +412,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-visual-approval-gates-delivery` | principle | claude, codex | Apply before promoting, opening a review request, or announcing. Published evidence must exist and be approved first. Approval is the operator's, never inferre… |
 | `reflect` |  | claude, codex | Mine a finished session for durable lessons and route each to a concrete skill edit, gated on approval. Use when the operator says reflect, or after a complex … |
 | `review` |  | claude, codex | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a branch, PR, or MR, dead-code checks, or 'wou… |
+| `super-router` |  | claude | The Router of super-clanker. Woken headless with a batch of triggers, it decides each one through the deez super verbs and never executes work itself. |
 | `test-engineer` |  | claude | Test strategy, coverage-gap analysis, regression design, flaky-test hardening, and running the repository's own gates. Use when a task needs test design or tes… |
 | `test-first` |  | claude, codex | Write the failing check before production code, at the fastest level that expresses the behavior, and report the failing-before evidence. Use before implementi… |
 | `verifier` |  | claude | Completion evidence and claim validation — turns implementation claims into a PASS/FAIL/PARTIAL verdict backed by fresh evidence. Read-only. Use for the indepe… |

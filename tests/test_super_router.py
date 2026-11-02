@@ -1,0 +1,401 @@
+import json
+import os
+import re
+import shutil
+import stat
+import tempfile
+import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+from pathlib import Path
+from unittest import mock
+
+from deezlib import cli
+from deezlib.superclanker import config, router
+from deezlib.superclanker.domain import Trigger, trigger_id
+from deezlib.superclanker.sources import terminal
+from deezlib.superclanker.store import Store, SuperError
+
+HUB = cli.REPO_ROOT
+FAKE = Path(__file__).with_name("fake_claude.py")
+UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
+SOURCES = """
+[router]
+model = "haiku"
+
+[sources.github]
+enabled = true
+mode = "candidates"
+senders = ["daryl-tg"]
+
+[sources.om]
+enabled = true
+senders = ["daryl"]
+"""
+
+
+def summaries(shown):
+    return [summary for _neighbour, summary in shown["related"]]
+
+
+class RouterTest(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name) / "state"
+        bin_dir = Path(tmp.name) / "bin"
+        bin_dir.mkdir()
+        shutil.copy(FAKE, bin_dir / "claude")
+        (bin_dir / "claude").chmod(0o755)
+        self.log = Path(tmp.name) / "argv.jsonl"
+        self.out = Path(tmp.name) / "router-out.txt"
+        environ = {
+            key: value for key, value in os.environ.items()
+            if not key.startswith("FAKE_CLAUDE_")
+        }
+        environ.update({
+            "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
+            "FAKE_CLAUDE_LOG": str(self.log),
+            "DEEZ_SUPER_STATE": str(self.root),
+            "USER": "daryl",
+        })
+        patcher = mock.patch.dict(os.environ, environ, clear=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.store = Store.open(self.root)
+        self.addCleanup(self.store.close)
+        (self.root / "sources.toml").write_text(SOURCES, encoding="utf-8")
+        self.events = 0
+
+    def config(self):
+        return config.load(self.root)
+
+    def wake(self):
+        return router.wake(self.store, self.config(), self.root, HUB)
+
+    def ask(self, text, thread="default"):
+        trigger, _receipt = terminal.ask(self.store, text, thread_name=thread)
+        return trigger
+
+    def received(self, source, thread, actor, text, addressed=True):
+        self.events += 1
+        event_id = f"evt-{self.events}"
+        trigger = Trigger(
+            trigger_id(source, event_id), source, event_id, thread, actor, addressed, text,
+            None, f"2026-11-02T10:{self.events:02d}:00+00:00", {},
+        )
+        self.store.receive(trigger)
+        return trigger
+
+    def argvs(self):
+        if not self.log.exists():
+            return []
+        return [json.loads(line) for line in self.log.read_text(encoding="utf-8").splitlines()]
+
+    def router_runs(self, script):
+        os.environ["FAKE_CLAUDE_SCRIPT"] = script
+
+    def deez(self, *argv):
+        out, err = StringIO(), StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = cli.main(["super", *argv])
+        return code, out.getvalue(), err.getvalue()
+
+    def queued_ids(self):
+        return [trigger.id for trigger in self.store.queued()]
+
+    def test_empty_batch_skips_model(self):
+        self.assertIsNone(self.wake())
+        self.assertEqual(self.argvs(), [])
+
+        self.ask("fix the typo")
+
+        self.assertIsNotNone(self.wake())
+        self.assertEqual(len(self.argvs()), 1)
+
+    def test_not_admitted_triggers_are_ignored_without_model_call(self):
+        stranger = self.received("om", "om:chat:general", "mallory", "do my homework")
+        unconfigured = self.received("gitlab", "gitlab:group/repo!3", "daryl", "please merge")
+
+        self.assertIsNone(self.wake())
+
+        self.assertEqual(self.argvs(), [])
+        self.assertEqual(self.queued_ids(), [])
+        self.assertIn("decision ignore: not admitted: source", summaries(self.store.show(stranger.id)))
+        self.assertIn(
+            "decision ignore: not admitted: source", summaries(self.store.show(unconfigured.id))
+        )
+
+    def test_wake_creates_session_once_then_resumes(self):
+        self.ask("first request")
+        self.wake()
+        self.ask("second request")
+        self.wake()
+
+        first, second = self.argvs()
+        sid = first[first.index("--session-id") + 1]
+        self.assertRegex(sid, UUID)
+        self.assertNotIn("--resume", first)
+        self.assertEqual(second[second.index("--resume") + 1], sid)
+        self.assertNotIn("--session-id", second)
+        session_file = self.root / "router.session"
+        self.assertEqual(session_file.read_text(encoding="utf-8").strip(), sid)
+        self.assertEqual(stat.S_IMODE(session_file.stat().st_mode), 0o600)
+
+    def test_wake_passes_agent_prompt_and_allowlist(self):
+        request = self.ask("fix the typo in README")
+
+        self.wake()
+
+        (argv,) = self.argvs()
+        body = (HUB / "agents" / "super-router.md").read_text(encoding="utf-8").split("---\n", 2)[2]
+        self.assertEqual(argv[:2], ["-p", "--model"])
+        self.assertEqual(argv[argv.index("--model") + 1], "haiku")
+        self.assertEqual(argv[argv.index("--tools") + 1], "Bash")
+        self.assertEqual(argv[argv.index("--allowedTools") + 1], "Bash(deez super *)")
+        self.assertEqual(argv[argv.index("--permission-mode") + 1], "dontAsk")
+        self.assertEqual(argv[argv.index("--output-format") + 1], "json")
+        self.assertIn("--strict-mcp-config", argv)
+        self.assertEqual(argv[argv.index("--setting-sources") + 1], "project,local")
+        system_prompt = argv[argv.index("--append-system-prompt") + 1]
+        self.assertEqual(system_prompt, body.strip())
+        self.assertIn("You are the Router of super-clanker", system_prompt)
+        self.assertNotIn("name: super-router", system_prompt)
+        self.assertIn(f"## {request.id}  terminal  terminal:default  daryl", argv[-1])
+        self.assertIn("text: fix the typo in README", argv[-1])
+
+    def test_dispatch_from_router_creates_ticket(self):
+        request = self.ask("fix the typo in README line 1")
+        self.router_runs(
+            f"deez super dispatch {request.id} --slug fix-readme-typo --playbook bug-fix "
+            f">> {self.out}"
+        )
+
+        result = self.wake()
+
+        self.assertEqual((result.batch, result.decided, result.cost_usd), (1, 1, 0.001))
+        printed = self.out.read_text(encoding="utf-8")
+        ticket_id = re.search(r"ticket (k_[0-9a-f]{10})", printed).group(1)
+        playbook = HUB / "skills" / "clanker-mode" / "playbooks" / "bug-fix.md"
+        self.assertEqual(
+            printed,
+            f"accept {request.id} → ticket {ticket_id} mandate explicit addressed playbook "
+            f"{playbook}\n",
+        )
+        ticket = self.store.show(ticket_id)
+        self.assertEqual((ticket["slug"], ticket["state"]), ("fix-readme-typo", "open"))
+        self.assertIn("mandate explicit terminal:default", summaries(ticket))
+        self.assertEqual(
+            [(i.kind, i.text) for i in self.store.undelivered_inputs(ticket_id)],
+            [("note", f"playbook: {playbook}")],
+        )
+        wake = self.store.show(result.wake_id)
+        self.assertEqual((wake["exit_code"], wake["cost_usd"]), (0, 0.001))
+        self.assertRegex(wake["session_id"], UUID)
+        self.assertEqual(wake["trigger_ids"], (request.id,))
+        self.assertEqual(self.queued_ids(), [])
+
+    def test_dispatch_twice_same_trigger_one_ticket(self):
+        request = self.ask("fix the typo")
+
+        first = self.deez("dispatch", request.id, "--slug", "fix-typo", "--playbook", "bug-fix")
+        second = self.deez("dispatch", request.id, "--slug", "fix-typo", "--playbook", "bug-fix")
+
+        self.assertEqual((first[0], second[0]), (0, 0))
+        self.assertEqual(first[1], second[1])
+        self.assertEqual([row["slug"] for row in self.store.status()], ["fix-typo"])
+        ticket_id = self.store.status()[0]["ticket"]
+        notes = [s for s in summaries(self.store.show(ticket_id)) if s.startswith("input note")]
+        self.assertEqual(len(notes), 1)
+
+    def test_observe_mode_records_would_accept(self):
+        overheard = self.received(
+            "github", "github:daryl-tg/deez-skills#9", "someone", "the build is red", addressed=False
+        )
+
+        code, out, _err = self.deez(
+            "dispatch", overheard.id, "--slug", "fix-red-build", "--playbook", "bug-fix",
+            "--rule", "red-builds",
+        )
+
+        self.assertEqual(code, 0)
+        self.assertEqual(
+            out, f"would accept {overheard.id} as fix-red-build (observe mode, nothing started)\n"
+        )
+        self.assertIn(
+            "decision ignore: would accept: fix-red-build via red-builds",
+            summaries(self.store.show(overheard.id)),
+        )
+        self.assertEqual(self.store.status(), [])
+        self.assertEqual(self.queued_ids(), [])
+
+    def test_undecided_batch_trigger_becomes_unavailable(self):
+        handled = self.ask("fix the typo")
+        forgotten = self.ask("and the other typo", thread="other")
+        self.router_runs(f"deez super ignore {handled.id} --reason 'chatter' >> {self.out}")
+
+        result = self.wake()
+
+        self.assertEqual((result.batch, result.decided), (2, 1))
+        self.assertEqual(self.out.read_text(encoding="utf-8"), f"ignored {handled.id}\n")
+        self.assertIn("decision ignore: chatter", summaries(self.store.show(handled.id)))
+        self.assertIn(
+            f"decision unavailable: router made no decision in {result.wake_id}",
+            summaries(self.store.show(forgotten.id)),
+        )
+        self.assertEqual(self.queued_ids(), [])
+
+    def test_attached_trigger_counts_as_decided(self):
+        first = self.ask("fix the typo")
+        ticket = self.store.accept(
+            first.id, "fix-typo", "explicit", "terminal:default", [], "unset", "asked"
+        )
+        followup = self.ask(f"also the changelog for {ticket.id}", thread="side")
+        self.router_runs(f"deez super attach {followup.id} {ticket.id} >> {self.out}")
+
+        result = self.wake()
+
+        self.assertEqual((result.batch, result.decided), (1, 1))
+        self.assertEqual(
+            self.out.read_text(encoding="utf-8"), f"attached {followup.id} → {ticket.id}\n"
+        )
+        again = self.deez("attach", followup.id, ticket.id)
+        self.assertEqual(again, (0, f"attached {followup.id} → {ticket.id}\n", ""))
+        related = summaries(self.store.show(ticket.id))
+        self.assertEqual(related.count(f"input trigger: {followup.id}"), 1)
+        self.assertEqual(related.count("subscribed"), 2)
+        self.assertFalse(
+            [s for s in summaries(self.store.show(followup.id)) if s.startswith("decision")]
+        )
+
+    def test_reply_over_100_words_refused(self):
+        self.received("om", "om:chat:general", "daryl", "status?")
+        self.ask("status?")
+
+        refused = self.deez("reply", "om:chat:general", "--text", " ".join(["word"] * 101))
+        im = self.deez("reply", "om:chat:general", "--text", " ".join(["word"] * 99))
+        tty = self.deez("reply", "terminal:default", "--text", " ".join(["word"] * 150))
+
+        self.assertEqual(refused, (2, "", "deez: reply is 101 words; IM replies stay under 100\n"))
+        self.assertEqual(im[0], 0)
+        self.assertRegex(im[1], r"^reply p_[0-9a-f]{10} queued for om:chat:general\n$")
+        self.assertEqual(tty[0], 0)
+        self.assertRegex(tty[1], r"^reply p_[0-9a-f]{10} queued for terminal:default\n$")
+        self.assertEqual(
+            sorted(reply.thread_id for reply in self.store.unsent_replies()),
+            ["om:chat:general", "terminal:default"],
+        )
+        self.assertIn(
+            "reply: " + " ".join(["word"] * 12) + "…", summaries(self.store.show("om:chat:general"))
+        )
+
+    def test_dispatch_refuses_unadmitted_trigger_and_unknown_playbook(self):
+        stranger = self.received("om", "om:chat:general", "mallory", "do my homework")
+        request = self.ask("fix the typo")
+
+        unadmitted = self.deez("dispatch", stranger.id, "--slug", "homework", "--playbook", "bug-fix")
+        unknown = self.deez("dispatch", request.id, "--slug", "fix-typo", "--playbook", "no-such")
+        escaping = self.deez("dispatch", request.id, "--slug", "fix-typo", "--playbook", "../SKILL")
+        bad_slug = self.deez("dispatch", request.id, "--slug", "Fix Typo", "--playbook", "bug-fix")
+
+        self.assertEqual(unadmitted, (2, "", f"deez: {stranger.id} is not admitted (source)\n"))
+        self.assertEqual(unknown[0], 2)
+        self.assertIn("no-such", unknown[2])
+        self.assertEqual(escaping[0], 2)
+        self.assertEqual(bad_slug[0], 2)
+        self.assertEqual(self.store.status(), [])
+        self.assertEqual(self.queued_ids(), [stranger.id, request.id])
+
+    def test_second_decision_on_a_trigger_is_refused(self):
+        accepted = self.ask("fix the typo")
+        ignored = self.ask("thanks", thread="chatter")
+        self.deez("dispatch", accepted.id, "--slug", "fix-typo", "--playbook", "bug-fix")
+        self.deez("ignore", ignored.id, "--reason", "chatter")
+        ticket_id = self.store.status()[0]["ticket"]
+
+        ignore_after_accept = self.deez("ignore", accepted.id, "--reason", "done")
+        dispatch_after_ignore = self.deez(
+            "dispatch", ignored.id, "--slug", "thanks", "--playbook", "bug-fix"
+        )
+        attach_after_ignore = self.deez("attach", ignored.id, ticket_id)
+        redispatch = self.deez("dispatch", accepted.id, "--slug", "fix-typo", "--playbook", "bug-fix")
+
+        self.assertEqual(
+            ignore_after_accept,
+            (2, "", f"deez: {accepted.id} is already decided; see deez super show {accepted.id}\n"),
+        )
+        self.assertEqual(dispatch_after_ignore[0], 2)
+        self.assertEqual(attach_after_ignore[0], 2)
+        self.assertEqual(redispatch[0], 0)
+        self.assertEqual(len(self.store.status()), 1)
+        decisions = [s for s in summaries(self.store.show(accepted.id)) if s.startswith("decision")]
+        self.assertEqual(decisions, ["decision accept: dispatch by router: addressed"])
+        self.assertEqual(
+            [s for s in summaries(self.store.show(ignored.id)) if s.startswith("decision")],
+            ["decision ignore: chatter"],
+        )
+
+    def test_note_and_stop_reach_the_ticket(self):
+        request = self.ask("fix the typo")
+        self.deez("dispatch", request.id, "--slug", "fix-typo", "--playbook", "bug-fix")
+        ticket_id = self.store.status()[0]["ticket"]
+
+        noted = self.deez("note", ticket_id, "--text", "the README moved to docs/")
+        stopped = self.deez("stop", ticket_id, "--reason", "daryl said stop", "--by", "daryl")
+        attach = self.deez("attach", self.ask("one more").id, ticket_id)
+
+        self.assertEqual(noted, (0, f"noted {ticket_id}\n", ""))
+        self.assertEqual(stopped, (0, f"stopped {ticket_id}\n", ""))
+        self.assertEqual(attach[0], 2)
+        shown = self.store.show(ticket_id)
+        self.assertEqual((shown["state"], shown["ended_by"]), ("ended", "daryl"))
+        self.assertIn("input note: the README moved to docs/", summaries(shown))
+
+    def test_wake_dry_run_prints_prompt_and_writes_nothing(self):
+        stranger = self.received("om", "om:chat:general", "mallory", "do my homework")
+        request = self.ask("fix the typo")
+
+        code, out, _err = self.deez("wake", "--dry-run")
+
+        self.assertEqual(code, 0)
+        self.assertIn(f"not admitted: {stranger.id}", out)
+        self.assertIn(f"## {request.id}  terminal", out)
+        self.assertEqual(self.argvs(), [])
+        self.assertEqual(self.queued_ids(), [stranger.id, request.id])
+        self.assertFalse((self.root / "router.session").exists())
+
+    def test_wake_verb_prints_summary(self):
+        self.assertEqual(self.deez("wake"), (0, "nothing to wake\n", ""))
+        request = self.ask("fix the typo")
+        self.router_runs(f"deez super ignore {request.id} --reason chatter > /dev/null")
+
+        code, out, _err = self.deez("wake")
+
+        self.assertEqual(code, 0)
+        self.assertRegex(out, r"^wake w_[0-9a-f]{10} batch 1 decided 1 cost 0\.0010\n$")
+
+    def test_wake_failure_records_exit_and_raises(self):
+        request = self.ask("fix the typo")
+        os.environ["FAKE_CLAUDE_EXIT"] = "3"
+
+        with self.assertRaises(SuperError) as raised:
+            self.wake()
+
+        wake_id = re.search(r"w_[0-9a-f]{10}", str(raised.exception)).group(0)
+        wake = self.store.show(wake_id)
+        self.assertEqual(wake["exit_code"], 3)
+        self.assertIn("fake claude failed with 3", wake["result"])
+        self.assertIsNotNone(wake["ended_at"])
+        self.assertEqual(self.queued_ids(), [request.id])
+
+        os.environ["FAKE_CLAUDE_EXIT"] = "0"
+        self.wake()
+        failed, retried = self.argvs()
+        self.assertIn("--session-id", retried)
+        self.assertNotEqual(
+            failed[failed.index("--session-id") + 1], retried[retried.index("--session-id") + 1]
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

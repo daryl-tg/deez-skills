@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -54,6 +55,30 @@ def build_parser():
         "compose", help="Gate queued triggers and print the wake prompt."
     )
     compose_parser.add_argument("--dry-run", action="store_true")
+    wake_parser = super_verbs.add_parser("wake", help="Wake the router with the queued batch.")
+    wake_parser.add_argument("--dry-run", action="store_true")
+    dispatch_parser = super_verbs.add_parser("dispatch", help="Accept a trigger as a ticket.")
+    dispatch_parser.add_argument("trigger")
+    dispatch_parser.add_argument("--slug", required=True)
+    dispatch_parser.add_argument("--playbook", required=True)
+    dispatch_parser.add_argument("--scope")
+    dispatch_parser.add_argument("--rule", action="append", default=[])
+    attach_parser = super_verbs.add_parser("attach", help="Route a trigger to an existing ticket.")
+    attach_parser.add_argument("trigger")
+    attach_parser.add_argument("ticket")
+    ignore_parser = super_verbs.add_parser("ignore", help="Decide a trigger needs nothing.")
+    ignore_parser.add_argument("trigger")
+    ignore_parser.add_argument("--reason", required=True)
+    stop_parser = super_verbs.add_parser("stop", help="End a ticket and withdraw its mandate.")
+    stop_parser.add_argument("ticket")
+    stop_parser.add_argument("--reason", required=True)
+    stop_parser.add_argument("--by")
+    reply_parser = super_verbs.add_parser("reply", help="Queue a reply on a thread.")
+    reply_parser.add_argument("thread")
+    reply_parser.add_argument("--text", required=True)
+    note_parser = super_verbs.add_parser("note", help="Queue a fact for a ticket's worker.")
+    note_parser.add_argument("ticket")
+    note_parser.add_argument("--text", required=True)
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -218,11 +243,173 @@ def _super_compose(store, args):
     print(compose.wake_prompt([admitted[t.id] for t in router_batch], settings, store))
 
 
+KEBAB = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+PERSONLESS_STOPPERS = (None, "router")
+
+
+def _super_settings():
+    from deezlib.superclanker import config
+    from deezlib.superclanker.store import state_root
+
+    root = state_root(os.environ, Path.home())
+    return root, config.load(root)
+
+
+def _super_record(store, kind, prefix, record_id):
+    from deezlib.superclanker.store import SuperError
+
+    if not record_id.startswith(prefix):
+        raise SuperError(f"{record_id} is not a {kind}")
+    return store.show(record_id)
+
+
+def _super_trigger(store, trigger_id):
+    from deezlib.superclanker.domain import Trigger
+
+    shown = _super_record(store, "trigger", "t_", trigger_id)
+    shown.pop("related")
+    return Trigger(**shown)
+
+
+def _super_decision_kinds(store, trigger_id):
+    related = store.show(trigger_id)["related"]
+    return [store.show(i)["kind"] for i, _summary in related if i.startswith("d_")]
+
+
+def _super_already_decided(trigger_id):
+    from deezlib.superclanker.store import SuperError
+
+    return SuperError(f"{trigger_id} is already decided; see deez super show {trigger_id}")
+
+
+def _super_playbook(name):
+    from deezlib.superclanker.store import SuperError
+
+    playbooks = REPO_ROOT / "skills" / "clanker-mode" / "playbooks"
+    given = Path(name)
+    if given.is_absolute():
+        path = given
+    elif given.name == name:
+        path = playbooks / (name if name.endswith(".md") else f"{name}.md")
+    else:
+        path = None
+    if path is None or not path.is_file():
+        raise SuperError(f"no playbook {name} in {playbooks} and no such absolute file")
+    return path.resolve()
+
+
+def _super_wake(store, args):
+    from deezlib.superclanker import compose, router
+
+    root, settings = _super_settings()
+    if args.dry_run:
+        plan = router.triage(store, settings)
+        refused = [trigger.id for trigger, _verdict in plan.refused]
+        print(f"not admitted: {', '.join(refused) or 'none'}")
+        print(compose.wake_prompt(plan.router_items, settings, store))
+        return
+    woken = router.wake(store, settings, root, REPO_ROOT)
+    if woken is None:
+        print("nothing to wake")
+        return
+    cost = "-" if woken.cost_usd is None else f"{woken.cost_usd:.4f}"
+    print(f"wake {woken.wake_id} batch {woken.batch} decided {woken.decided} cost {cost}")
+
+
+def _super_dispatch(store, args):
+    from deezlib.superclanker import router
+    from deezlib.superclanker.config import AcceptMode
+    from deezlib.superclanker.domain import DecisionKind, Strength
+    from deezlib.superclanker.store import SuperError
+
+    _root, settings = _super_settings()
+    if not KEBAB.fullmatch(args.slug):
+        raise SuperError(f"slug {args.slug!r} is not kebab-case")
+    playbook = _super_playbook(args.playbook)
+    trigger = _super_trigger(store, args.trigger)
+    if not store.undecided([trigger.id]) and DecisionKind.accept not in _super_decision_kinds(
+        store, trigger.id
+    ):
+        raise _super_already_decided(trigger.id)
+    verdict = router.admission(store, settings, trigger)
+    if verdict.strength is Strength.not_admitted:
+        raise SuperError(f"{trigger.id} is not admitted ({verdict.basis})")
+    if verdict.strength is Strength.inferred and settings.accept.mode == AcceptMode.observe:
+        rules = ", ".join(args.rule) or "no rule"
+        store.ignore(trigger.id, f"would accept: {args.slug} via {rules}")
+        print(f"would accept {trigger.id} as {args.slug} (observe mode, nothing started)")
+        return
+    ticket = store.accept(
+        trigger.id, args.slug, verdict.strength, args.scope or trigger.thread_id, args.rule,
+        settings.accept.policy_version, f"dispatch by router: {verdict.basis}",
+    )
+    store.add_input(ticket.id, "note", f"playbook: {playbook}")
+    print(
+        f"accept {trigger.id} → ticket {ticket.id} mandate {verdict.strength} {verdict.basis} "
+        f"playbook {playbook}"
+    )
+
+
+def _super_attach(store, args):
+    from deezlib.superclanker.domain import TicketState
+    from deezlib.superclanker.store import SuperError
+
+    trigger = _super_trigger(store, args.trigger)
+    if _super_decision_kinds(store, trigger.id):
+        raise _super_already_decided(trigger.id)
+    ticket = _super_record(store, "ticket", "k_", args.ticket)
+    if ticket["state"] != TicketState.open and ticket["ended_by"] not in PERSONLESS_STOPPERS:
+        raise SuperError(f"{args.ticket} was stopped by {ticket['ended_by']}")
+    store.subscribe(args.ticket, trigger.thread_id)
+    store.record_fanout(trigger.id, [args.ticket])
+    store.add_input(args.ticket, "trigger", trigger.id)
+    print(f"attached {trigger.id} → {args.ticket}")
+
+
+def _super_ignore(store, args):
+    _super_trigger(store, args.trigger)
+    if not store.undecided([args.trigger]):
+        raise _super_already_decided(args.trigger)
+    store.ignore(args.trigger, args.reason)
+    print(f"ignored {args.trigger}")
+
+
+def _super_stop(store, args):
+    _super_record(store, "ticket", "k_", args.ticket)
+    store.stop(args.ticket, args.by or "router", args.reason)
+    print(f"stopped {args.ticket}")
+
+
+def _super_reply(store, args):
+    from deezlib.superclanker.store import SuperError
+
+    _root, settings = _super_settings()
+    words = len(args.text.split())
+    limit = settings.router.im_reply_words
+    if args.thread.startswith("om:") and words > limit:
+        raise SuperError(f"reply is {words} words; IM replies stay under {limit}")
+    reply = store.reply(args.thread, args.text)
+    print(f"reply {reply.id} queued for {args.thread}")
+
+
+def _super_note(store, args):
+    _super_record(store, "ticket", "k_", args.ticket)
+    store.add_input(args.ticket, "note", args.text)
+    print(f"noted {args.ticket}")
+
+
 SUPER_VERBS = {
     "ask": _super_ask,
     "show": _super_show,
     "status": _super_status,
     "compose": _super_compose,
+    "wake": _super_wake,
+    "dispatch": _super_dispatch,
+    "attach": _super_attach,
+    "ignore": _super_ignore,
+    "stop": _super_stop,
+    "reply": _super_reply,
+    "note": _super_note,
 }
 
 
