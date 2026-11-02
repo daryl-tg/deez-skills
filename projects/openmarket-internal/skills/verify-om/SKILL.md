@@ -117,6 +117,22 @@ dashboard bundle stubs if they are missing, records a pidfile under
 `.control-om/`, and blocks until `/healthz` actually answers. Boot is about 20
 seconds from source.
 
+Coding ACP runs require the compiled daemon because the daemon uses its own
+executable path to launch `__roster-acp`; Bun cannot execute that internal
+compiled-binary entrypoint. Build this checkout, then opt into the compiled
+daemon explicitly:
+
+```bash
+bun run build
+control-om up --compiled
+```
+
+`--compiled` runs **this checkout's** `packages/cli/dist/om run`. It refuses to
+boot when that file is missing, is not executable, or is older than the CLI's
+bundled source, workspace packages, dashboard bundle, skills, or build
+manifests and configuration. Rebuild instead of treating a stale artifact as
+verification. Source mode remains the default for every other drive.
+
 Some behaviour only exists under a switch, so `up` takes repeatable
 `--env KEY=VALUE` and passes it to the lane daemon:
 
@@ -126,20 +142,27 @@ control-om up --env OM_FEED_ALLOW_LOOPBACK=1 --env OM_FEED_POLL_INTERVAL_MS=6000
 
 It is deliberately explicit rather than forwarding every `OM_*` in your shell —
 a stray variable must never reach a lane silently — and it refuses `OM_HOME` and
-`OM_BIND`, which the lane owns. `doctor` prints what the running lane was
-started with on a `lane env` line. **A switch the CLI also reads must be set on
-the CLI call too**: `om` subcommands run in their own process and inherit
-nothing from the lane, which is how the origin-challenge recipe fails at its
-first step if you set the switch only on `up`.
+`OM_BIND`, which the lane owns. `doctor` prints the variable names on a
+`lane env` line, but neither its output nor the wrapper's launch provenance
+stores their values. **A switch the CLI also reads must be set on the CLI call
+too**: `om` subcommands run in their own process and inherit nothing from the
+lane, which is how the origin-challenge recipe fails at its first step if you
+set the switch only on `up`.
 
 Ready when it prints the origin. If it prints a boot failure instead, read
 `.control-om/lane-<port>.log` — the daemon's own stdout goes there and nothing
 else carries it.
 
-The lane runs **from source** (`bun packages/cli/src/bootstrap.ts run`), so the
-process *is* the working tree: no build step, and no stale-bundle trap for the
-daemon or the CLI. The compiled `packages/cli/dist/om` is a different question —
-see [Gotchas](#gotchas-that-cost-a-run).
+By default the lane runs **from source**
+(`bun packages/cli/src/bootstrap.ts run`), so the process *is* the working tree:
+no build step, and no stale-binary trap for the daemon or the CLI. A compiled
+lane changes only the daemon launch; `control-om om -- ...` deliberately stays
+on the source CLI, bound to the same isolated home and port.
+
+Every successful `up` writes `.control-om/lane-<port>.launch` with the launch
+mode, executable path, repo HEAD, and compiled artifact digest when applicable.
+Those fields contain no environment values or credentials. An already-running
+lane cannot be silently reused through the other launch mode; stop it first.
 
 Teardown is [Cleanup](#cleanup).
 
@@ -152,11 +175,14 @@ control-om doctor
 ```
 
 It reports the repo HEAD, the lane origin and root, whether the dashboard bundle
-exists, whether a compiled binary is lying around, whether the lane is down /
-yours / somebody else's, the `/healthz` version and auth posture, **whether the
-lane's daemon still matches the working tree**, **whether the operator's daemon
-is live on 31337**, `agent-browser`, and the review renderer on `8098`. It exits
-non-zero when the lane is not worth driving.
+exists, whether the compiled binary is current, whether the lane is down /
+yours / somebody else's, the recorded launch mode and provenance, the
+`/healthz` version and auth posture, **whether the lane's daemon still matches
+the working tree**, **whether the operator's daemon is live on 31337**,
+`agent-browser`, and the review renderer on `8098`. For a compiled lane it also
+checks that the recorded path and digest still match the current artifact. It
+exits non-zero when the lane is not worth driving; an unrecorded, stale, or
+changed compiled daemon never receives a qualified verdict.
 
 Three lines earn their place. `lane version STALE` is the one this skill learned
 the hard way: a source lane is the tree **at boot**, not the tree now, and
