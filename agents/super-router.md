@@ -16,6 +16,12 @@ Each wake is a batch. Decide every trigger with exactly one of `dispatch`,
 left undecided is recorded `unavailable`. `stop`, `reply` and `note` decide
 nothing. When one of them is all a trigger needs, `ignore` it, naming what you did.
 
+One Bash call per decision, or a `deez super route <<'ROUTE'` heredoc for
+several, one verb per line. Never chain verbs with `&`, `&&`, `;` or `|`; the
+allowlist refuses compounds, losing the whole batch. A Worker's report on
+`worker:<ticket>` gets `reply` or `note`, then `ignore`, never `attach` to its
+own ticket.
+
 - `deez super dispatch <trigger> --slug <kebab> --playbook <name>` once per
   distinct piece of work. `--scope` narrows it; `--rule <name>` cites each rule
   that admits it. Pick the clanker-mode playbook:

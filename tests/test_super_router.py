@@ -47,6 +47,7 @@ class RouterTest(unittest.TestCase):
         bin_dir.mkdir()
         shutil.copy(FAKE, bin_dir / "claude")
         (bin_dir / "claude").chmod(0o755)
+        self.claude = bin_dir / "claude"
         self.log = Path(tmp.name) / "argv.jsonl"
         self.out = Path(tmp.name) / "router-out.txt"
         environ = {
@@ -103,6 +104,13 @@ class RouterTest(unittest.TestCase):
 
     def queued_ids(self):
         return [trigger.id for trigger in self.store.queued()]
+
+    def route(self, script):
+        with mock.patch("sys.stdin", StringIO(script)):
+            return self.deez("route")
+
+    def decisions(self, trigger_id_):
+        return [s for s in summaries(self.store.show(trigger_id_)) if s.startswith("decision")]
 
     def test_empty_batch_skips_model(self):
         self.assertIsNone(self.wake())
@@ -372,7 +380,7 @@ class RouterTest(unittest.TestCase):
         code, out, _err = self.deez("wake")
 
         self.assertEqual(code, 0)
-        self.assertRegex(out, r"^wake w_[0-9a-f]{10} batch 1 decided 1 cost 0\.0010\n$")
+        self.assertRegex(out, r"^wake w_[0-9a-f]{10} batch 1 decided 1 denied 0 cost 0\.0010\n$")
 
     def test_wake_failure_records_exit_and_raises(self):
         request = self.ask("fix the typo")
@@ -396,6 +404,131 @@ class RouterTest(unittest.TestCase):
             failed[failed.index("--session-id") + 1], retried[retried.index("--session-id") + 1]
         )
 
+
+    def test_route_runs_each_line_and_continues_past_a_failure(self):
+        first = self.ask("thanks")
+        second = self.ask("cheers", thread="other")
+
+        code, out, err = self.route(
+            f'ignore {first.id} --reason "chatter one"\n'
+            "ignore t_0000000000 --reason missing\n"
+            f"ignore {second.id} --reason 'chatter two'\n"
+        )
+
+        self.assertEqual(code, 2)
+        self.assertEqual(err, "route line 2: nothing has id t_0000000000\n")
+        self.assertEqual(out, f"1: ignored {first.id}\n3: ignored {second.id}\n")
+        self.assertEqual(self.decisions(first.id), ["decision ignore: chatter one"])
+        self.assertEqual(self.decisions(second.id), ["decision ignore: chatter two"])
+
+    def test_route_refuses_non_routable_verb(self):
+        request = self.ask("fix the typo")
+
+        code, out, err = self.route(
+            "wake\n"
+            f"ignore {request.id}\n"
+            f"ignore {request.id} --reason chatter\n"
+        )
+
+        self.assertEqual(code, 2)
+        self.assertEqual(err.splitlines(), [
+            "route line 1: wake is not routable",
+            "route line 2: deez super ignore: error: the following arguments are required: "
+            "--reason",
+        ])
+        self.assertEqual(out, f"3: ignored {request.id}\n")
+        self.assertEqual(self.decisions(request.id), ["decision ignore: chatter"])
+        self.assertEqual(self.argvs(), [])
+
+    def test_route_prefixes_output_with_line_numbers(self):
+        first = self.ask("fix the typo")
+        ticket = self.store.accept(
+            first.id, "fix-typo", "explicit", "terminal:default", [], "unset", "asked"
+        )
+        thanks = self.ask("thanks", thread="chatter")
+
+        code, out, err = self.route(
+            "# a note, a decision and a reply\n"
+            "\n"
+            f"note {ticket.id} --text 'the README moved to docs/'\n"
+            f'ignore {thanks.id} --reason "said thanks"\n'
+            "reply terminal:chatter --text 'you are welcome'\n"
+        )
+
+        self.assertEqual((code, err), (0, ""))
+        self.assertRegex(
+            out,
+            rf"^3: noted {ticket.id}\n4: ignored {thanks.id}\n"
+            r"5: reply p_[0-9a-f]{10} queued for terminal:chatter\n$",
+        )
+        self.assertIn(
+            "input note: the README moved to docs/", summaries(self.store.show(ticket.id))
+        )
+        self.assertEqual(self.decisions(thanks.id), ["decision ignore: said thanks"])
+        self.assertEqual(
+            [reply.text for reply in self.store.unsent_replies()], ["you are welcome"]
+        )
+
+    def test_attach_refuses_worker_report_to_its_own_ticket(self):
+        first = self.ask("fix the typo")
+        own = self.store.accept(
+            first.id, "fix-typo", "explicit", "terminal:default", [], "unset", "asked"
+        )
+        second = self.ask("and the changelog", thread="other")
+        other = self.store.accept(
+            second.id, "fix-changelog", "explicit", "terminal:other", [], "unset", "asked"
+        )
+        report = Trigger(
+            trigger_id("worker", "r_0000000001"), "worker", "r_0000000001", f"worker:{own.id}",
+            f"worker:{own.id}", True, "REPORT ready fixed the typo", None,
+            "2026-11-02T10:30:00+00:00", {"ticket": own.id},
+        )
+        self.store.receive(report)
+        refusal = f"{report.id} is a report from {own.id}; reply or note, then ignore it"
+
+        direct = self.deez("attach", report.id, own.id)
+        routed = self.route(f"attach {report.id} {own.id}\n")
+        elsewhere = self.deez("attach", report.id, other.id)
+
+        self.assertEqual(direct, (2, "", f"deez: {refusal}\n"))
+        self.assertEqual(routed, (2, "", f"route line 1: {refusal}\n"))
+        self.assertEqual(elsewhere, (0, f"attached {report.id} → {other.id}\n", ""))
+        self.assertNotIn(f"input trigger: {report.id}", summaries(self.store.show(own.id)))
+
+    def test_wake_records_permission_denials(self):
+        request = self.ask("fix the typo")
+        chained = (
+            f"deez super ignore {request.id} --reason chatter & "
+            "deez super reply terminal:default --text done"
+        )
+        outcome = {
+            "result": "ok", "session_id": "s-1", "total_cost_usd": 0.002,
+            "permission_denials": [
+                {"tool_name": "Bash", "tool_use_id": "toolu_1", "tool_input": {"command": chained}},
+            ],
+        }
+        self.claude.write_text(
+            "#!/bin/sh\n"
+            f"deez super ignore {request.id} --reason chatter > /dev/null\n"
+            f"cat <<'OUTCOME'\n{json.dumps(outcome)}\nOUTCOME\n",
+            encoding="utf-8",
+        )
+
+        code, out, _err = self.deez("wake")
+
+        self.assertEqual(code, 0)
+        self.assertRegex(out, r"^wake w_[0-9a-f]{10} batch 1 decided 1 denied 1 cost 0\.0020\n$")
+        wake_id = out.split()[1]
+        self.assertEqual(self.store.show(wake_id)["denials"], (chained,))
+        shown = self.deez("show", wake_id)
+        self.assertIn(f"denials: {json.dumps([chained])}\n", shown[1])
+
+    def test_router_prompt_forbids_chaining_and_self_attach(self):
+        prompt = router.agent_prompt(HUB)
+
+        for phrase in ("deez super route <<", "&&", "never", "ignore"):
+            self.assertIn(phrase, prompt)
+        self.assertLess(len(prompt.split()), 400)
 
 if __name__ == "__main__":
     unittest.main()

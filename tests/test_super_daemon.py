@@ -44,7 +44,7 @@ class FakeWake:
         for trigger_id_ in ids:
             store.ignore(trigger_id_, "decided by fake router")
         store.end_wake(wake_id, 0, 0.0, "session", "ok")
-        return router.WakeResult(wake_id, len(ids), len(ids), 0.0, "ok")
+        return router.WakeResult(wake_id, len(ids), len(ids), 0, 0.0, "ok")
 
 
 class FakeWorkers:
@@ -105,6 +105,18 @@ class DaemonTest(unittest.TestCase):
 
     def inbox(self, name="default"):
         return self.root / "inbox" / f"terminal-{name}.log"
+
+    def failing_wake(self):
+        ended = []
+
+        def wake(store, settings, root, hub_root):
+            ids = [trigger.id for trigger, _verdict in router.triage(store, settings).router_items]
+            wake_id = store.begin_wake(ids)
+            store.end_wake(wake_id, 1, None, None, "boom")
+            ended.append(store.show(wake_id)["ended_at"])
+            raise SuperError(f"router wake {wake_id} failed with exit 1")
+
+        return wake, ended
 
     def test_second_pass_with_no_new_triggers_does_not_wake(self):
         asked = self.ask("ping")
@@ -229,6 +241,39 @@ class DaemonTest(unittest.TestCase):
         self.assertEqual(
             (result.wake_id, result.errors), (None, ("router wake w_x failed with exit 1",))
         )
+
+    def test_failed_wake_backs_off_then_retries(self):
+        asked = self.ask("ping")
+        failing, ended = self.failing_wake()
+
+        first = self.one_pass(wake=failing)
+        held = self.one_pass(wake=failing, now=lambda: shifted(ended[0], 29))
+        self.assertEqual(len(ended), 1)
+        self.assertEqual((first.wake_id, len(first.errors)), (None, 1))
+        self.assertEqual((held.wake_id, held.errors, held.eventful), ("backoff", (), False))
+        self.assertIn(" wake=backoff ", held.line("2026-11-02T10:00:00+00:00"))
+
+        retried = self.one_pass(wake=failing, now=lambda: shifted(ended[0], 31))
+        self.assertEqual((retried.wake_id, len(ended)), (None, 2))
+
+        held_longer = self.one_pass(now=lambda: shifted(ended[1], 59))
+        woken = self.one_pass(now=lambda: shifted(ended[1], 61))
+        self.assertEqual(held_longer.wake_id, "backoff")
+        self.assertTrue(woken.wake_id.startswith("w_"))
+        self.assertEqual(self.wake.batches, [[asked.id]])
+
+    def test_successful_wake_resets_backoff(self):
+        first = self.ask("ping")
+        failing, ended = self.failing_wake()
+        self.one_pass(wake=failing)
+
+        recovered = self.one_pass(now=lambda: shifted(ended[0], 31))
+        second = self.ask("ping again", thread="other")
+        again = self.one_pass(now=lambda: shifted(ended[0], 32))
+
+        self.assertTrue(recovered.wake_id.startswith("w_"))
+        self.assertTrue(again.wake_id.startswith("w_"))
+        self.assertEqual(self.wake.batches, [[first.id], [second.id]])
 
     def test_terminal_reply_lands_in_inbox_and_is_marked_sent(self):
         asked = self.ask("ping")

@@ -54,6 +54,7 @@ class Wake:
     cost_usd: float | None
     session_id: str | None
     result: str | None
+    denials: tuple | None
 
 
 @dataclass(frozen=True)
@@ -121,7 +122,7 @@ CREATE TABLE IF NOT EXISTS fanouts (
     PRIMARY KEY (trigger_id, ticket_id));
 CREATE TABLE IF NOT EXISTS wakes (
     id TEXT PRIMARY KEY, started_at TEXT NOT NULL, ended_at TEXT, trigger_ids TEXT NOT NULL,
-    exit_code INTEGER, cost_usd REAL, session_id TEXT, result TEXT);
+    exit_code INTEGER, cost_usd REAL, session_id TEXT, result TEXT, denials TEXT);
 CREATE TABLE IF NOT EXISTS replies (
     id TEXT PRIMARY KEY, thread_id TEXT NOT NULL, text TEXT NOT NULL,
     created_at TEXT NOT NULL, sent_at TEXT);
@@ -169,7 +170,7 @@ _DECODERS = {
     Assignment: {"state": AssignmentState},
     Report: {"kind": ReportKind, "evidence": _optional_tuple},
     Subscription: {"context_only": bool},
-    Wake: {"trigger_ids": _json_tuple},
+    Wake: {"trigger_ids": _json_tuple, "denials": _json_tuple},
     Input: {"kind": InputKind},
 }
 
@@ -250,6 +251,9 @@ class Store:
         ticket_columns = {row[1] for row in connection.execute("PRAGMA table_info(tickets)")}
         if "outcome" not in ticket_columns:
             connection.execute("ALTER TABLE tickets ADD COLUMN outcome TEXT")
+        wake_columns = {row[1] for row in connection.execute("PRAGMA table_info(wakes)")}
+        if "denials" not in wake_columns:
+            connection.execute("ALTER TABLE wakes ADD COLUMN denials TEXT")
         return cls(connection)
 
     def close(self):
@@ -418,19 +422,19 @@ class Store:
 
     def begin_wake(self, trigger_ids):
         wake = Wake(
-            _new_router_id(Wake), utc_now(), None, tuple(trigger_ids), None, None, None, None
+            _new_router_id(Wake), utc_now(), None, tuple(trigger_ids), None, None, None, None, None
         )
         with self._transaction():
             self._insert(wake)
         return wake.id
 
-    def end_wake(self, wake_id, exit_code, cost_usd, session_id, result):
+    def end_wake(self, wake_id, exit_code, cost_usd, session_id, result, denials=None):
         with self._transaction():
             self._require(Wake, wake_id)
             self._db.execute(
                 "UPDATE wakes SET ended_at = ?, exit_code = ?, cost_usd = ?, session_id = ?, "
-                "result = ? WHERE id = ?",
-                (utc_now(), exit_code, cost_usd, session_id, result, wake_id),
+                "result = ?, denials = ? WHERE id = ?",
+                (utc_now(), exit_code, cost_usd, session_id, result, _encode(denials), wake_id),
             )
 
     def inflight_wake(self):
@@ -438,6 +442,11 @@ class Store:
             Wake, "ended_at IS NULL", order="ORDER BY started_at DESC, rowid DESC LIMIT 1"
         )
         return found[0] if found else None
+
+    def recent_wakes(self, limit=12):
+        return self._select(
+            Wake, order="ORDER BY started_at DESC, rowid DESC LIMIT ?", params=(limit,)
+        )
 
     def expire_wake(self, wake_id):
         with self._transaction():

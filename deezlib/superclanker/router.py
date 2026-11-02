@@ -21,6 +21,7 @@ class WakeResult:
     wake_id: str
     batch: int
     decided: int
+    denials: int
     cost_usd: float | None
     result: str | None
 
@@ -97,6 +98,13 @@ def _outcome(completed):
     return outcome if isinstance(outcome, dict) else None
 
 
+def _denied_commands(outcome):
+    return [
+        str(denial.get("tool_input", {}).get("command", denial.get("tool_name")))
+        for denial in outcome.get("permission_denials") or []
+    ]
+
+
 def wake(store, config, root, hub_root, runner=subprocess.run):
     plan = triage(store, config)
     for trigger, verdict in plan.refused:
@@ -125,8 +133,11 @@ def wake(store, config, root, hub_root, runner=subprocess.run):
         raise SuperError(f"router wake {wake_id} failed with exit {completed.returncode}")
     cost = outcome.get("total_cost_usd")
     result = outcome.get("result")
-    store.end_wake(wake_id, completed.returncode, cost, outcome.get("session_id", sid), result)
+    denials = _denied_commands(outcome)
+    store.end_wake(
+        wake_id, completed.returncode, cost, outcome.get("session_id", sid), result, denials
+    )
     left = store.undecided(ids)
     if left:
         store.mark_unavailable(left, f"router made no decision in {wake_id}")
-    return WakeResult(wake_id, len(ids), len(ids) - len(left), cost, result)
+    return WakeResult(wake_id, len(ids), len(ids) - len(left), len(denials), cost, result)

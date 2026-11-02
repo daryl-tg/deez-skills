@@ -1,9 +1,12 @@
 import argparse
+import io
 import json
 import os
 import re
+import shlex
 import sys
 import time
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from deezlib import __version__, apply, featuremaps, frontmatter, linkplan, registry, runtimes
@@ -82,6 +85,7 @@ def build_parser():
     note_parser = super_verbs.add_parser("note", help="Queue a fact for a ticket's worker.")
     note_parser.add_argument("ticket")
     note_parser.add_argument("--text", required=True)
+    super_verbs.add_parser("route", help="Run one decision verb per line of stdin.")
     launch_parser = super_verbs.add_parser("launch", help="Start the worker for an assignment.")
     launch_parser.add_argument("ref", metavar="ticket-or-assignment")
     deliver_parser = super_verbs.add_parser("deliver", help="Resume a worker with its inputs.")
@@ -343,7 +347,10 @@ def _super_wake(store, args):
         print("nothing to wake")
         return
     cost = "-" if woken.cost_usd is None else f"{woken.cost_usd:.4f}"
-    print(f"wake {woken.wake_id} batch {woken.batch} decided {woken.decided} cost {cost}")
+    print(
+        f"wake {woken.wake_id} batch {woken.batch} decided {woken.decided} "
+        f"denied {woken.denials} cost {cost}"
+    )
 
 
 def _super_dispatch(store, args):
@@ -392,6 +399,10 @@ def _super_attach(store, args):
     trigger = _super_trigger(store, args.trigger)
     if _super_decision_kinds(store, trigger.id):
         raise _super_already_decided(trigger.id)
+    if trigger.source == "worker" and trigger.meta.get("ticket") == args.ticket:
+        raise SuperError(
+            f"{trigger.id} is a report from {args.ticket}; reply or note, then ignore it"
+        )
     ticket = _super_record(store, "ticket", "k_", args.ticket)
     if ticket["state"] != TicketState.open and ticket["ended_by"] not in PERSONLESS_STOPPERS:
         raise SuperError(f"{args.ticket} was stopped by {ticket['ended_by']}")
@@ -431,6 +442,48 @@ def _super_note(store, args):
     _super_record(store, "ticket", "k_", args.ticket)
     store.add_input(args.ticket, "note", args.text)
     print(f"noted {args.ticket}")
+
+
+ROUTABLE_VERBS = ("dispatch", "attach", "ignore", "stop", "reply", "note")
+
+
+def _route_args(parser, line):
+    from deezlib.superclanker.store import SuperError
+
+    try:
+        words = shlex.split(line)
+    except ValueError as exc:
+        raise SuperError(str(exc)) from None
+    if words[0] not in ROUTABLE_VERBS:
+        raise SuperError(f"{words[0]} is not routable")
+    complaint = io.StringIO()
+    try:
+        with redirect_stdout(complaint), redirect_stderr(complaint):
+            return parser.parse_args(["super", *words])
+    except SystemExit:
+        said = complaint.getvalue().strip().splitlines() or [f"cannot parse {line}"]
+        raise SuperError(said[-1]) from None
+
+
+def _super_route(store, _args):
+    from deezlib.superclanker.store import SuperError
+
+    parser = build_parser()
+    failed = False
+    for number, line in enumerate(sys.stdin.read().splitlines(), start=1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        printed = io.StringIO()
+        try:
+            args = _route_args(parser, line)
+            with redirect_stdout(printed):
+                SUPER_VERBS[args.verb](store, args)
+        except SuperError as exc:
+            failed = True
+            print(f"route line {number}: {exc}", file=sys.stderr)
+        for said in printed.getvalue().splitlines():
+            print(f"{number}: {said}")
+    return 2 if failed else 0
 
 
 def _super_assignment(store, ref):
@@ -549,6 +602,7 @@ SUPER_VERBS = {
     "stop": _super_stop,
     "reply": _super_reply,
     "note": _super_note,
+    "route": _super_route,
     "launch": _super_launch,
     "deliver": _super_deliver,
     "reap": _super_reap,
@@ -574,13 +628,13 @@ def cmd_super(args):
             return STORELESS_SUPER_VERBS[args.verb](root, args) or 0
         store = Store.open(root)
         try:
-            SUPER_VERBS[args.verb](store, args)
+            status = SUPER_VERBS[args.verb](store, args)
         finally:
             store.close()
     except (SuperError, OSError) as exc:
         print(f"deez: {exc}", file=sys.stderr)
         return 2
-    return 0
+    return status or 0
 
 
 def cmd_sync_feature_maps(args):

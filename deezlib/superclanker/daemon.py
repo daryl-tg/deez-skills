@@ -6,6 +6,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from datetime import datetime
+from itertools import takewhile
 from pathlib import Path
 
 from deezlib.superclanker import compose, config, router, workers
@@ -13,6 +14,9 @@ from deezlib.superclanker.domain import Strength, utc_now
 from deezlib.superclanker.store import Store, SuperError
 
 TERMINAL_PREFIX = "terminal:"
+BACKOFF = "backoff"
+BACKOFF_FIRST_SECONDS = 30
+BACKOFF_CEILING_SECONDS = 600
 
 
 @dataclass(frozen=True)
@@ -28,7 +32,7 @@ class PassResult:
     @property
     def eventful(self):
         counts = (self.fanned_out, self.launched, self.resumed, self.reaped, self.replies_sent)
-        return any(counts) or self.wake_id is not None or bool(self.errors)
+        return any(counts) or self.wake_id not in (None, BACKOFF) or bool(self.errors)
 
     def line(self, at):
         return (
@@ -69,9 +73,21 @@ def _fan_out(store, settings):
     return fanned
 
 
+def _seconds_since(stamp, now):
+    return (datetime.fromisoformat(now()) - datetime.fromisoformat(stamp)).total_seconds()
+
+
 def _wake_is_stuck(wake, now):
-    age = datetime.fromisoformat(now()) - datetime.fromisoformat(wake.started_at)
-    return age.total_seconds() >= router.WAKE_TIMEOUT_SECONDS
+    return _seconds_since(wake.started_at, now) >= router.WAKE_TIMEOUT_SECONDS
+
+
+def _backing_off(store, now):
+    wakes = store.recent_wakes()
+    failures = len(list(takewhile(lambda wake: wake.exit_code != 0, wakes)))
+    if not failures:
+        return False
+    delay = min(BACKOFF_CEILING_SECONDS, BACKOFF_FIRST_SECONDS * 2 ** (failures - 1))
+    return _seconds_since(wakes[0].ended_at, now) < delay
 
 
 def _send_terminal_replies(store, root):
@@ -118,7 +134,9 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
         if inflight is not None and _wake_is_stuck(inflight, now):
             store.expire_wake(inflight.id)
             inflight = None
-        if inflight is None:
+        if inflight is None and _backing_off(store, now):
+            wake_id = BACKOFF
+        elif inflight is None:
             woken = attempt(wake, store, config, root, hub_root)
             wake_id = woken and woken.wake_id
     replies_sent = _send_terminal_replies(store, root)

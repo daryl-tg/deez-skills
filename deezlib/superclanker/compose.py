@@ -10,6 +10,7 @@ VERBS = (
     "deez super stop <ticket> --reason <text>",
     "deez super reply <thread> --text <text>",
     "deez super note <ticket> --text <text>",
+    "deez super route <<'ROUTE' … ROUTE, one of the verbs above per line, for several decisions in one call",
 )
 
 
