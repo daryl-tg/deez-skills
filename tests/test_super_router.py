@@ -217,6 +217,8 @@ class RouterTest(unittest.TestCase):
         self.assertEqual(len(notes), 1)
 
     def test_observe_mode_records_would_accept(self):
+        (self.root / "policy" / "rules").mkdir(parents=True)
+        (self.root / "policy" / "rules" / "red-builds.md").write_text("# Red builds\n", encoding="utf-8")
         overheard = self.received(
             "github", "github:daryl-tg/deez-skills#9", "someone", "the build is red", addressed=False
         )

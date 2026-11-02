@@ -113,6 +113,19 @@ def build_parser():
     install_parser.add_argument("--state", type=Path)
     inbox_parser = super_verbs.add_parser("inbox", help="Print replies on a terminal thread.")
     inbox_parser.add_argument("--thread", default="default")
+    watchdog_parser = super_verbs.add_parser(
+        "watchdog", help="Tick the watchdog when its digest of anomalies is not empty."
+    )
+    watchdog_parser.add_argument("--digest", action="store_true")
+    requeue_parser = super_verbs.add_parser("requeue", help="Put a decided trigger back in the queue.")
+    requeue_parser.add_argument("trigger")
+    rules_parser = super_verbs.add_parser("rules", help="List the policy rules or print one.")
+    rules_parser.add_argument("name", nargs="?")
+    policy_parser = super_verbs.add_parser("policy", help="Change a policy rule.")
+    policy_verbs = policy_parser.add_subparsers(dest="policy_verb", required=True)
+    policy_set_parser = policy_verbs.add_parser("set", help="Set one rule's mode.")
+    policy_set_parser.add_argument("rule")
+    policy_set_parser.add_argument("--mode", required=True, choices=["off", "observe", "auto"])
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -354,18 +367,19 @@ def _super_wake(store, args):
 
 
 def _super_dispatch(store, args):
-    from deezlib.superclanker import router
+    from deezlib.superclanker import router, rules
     from deezlib.superclanker.config import AcceptMode
     from deezlib.superclanker.domain import DecisionKind, Strength
     from deezlib.superclanker.store import SuperError
 
-    _root, settings = _super_settings()
+    root, settings = _super_settings()
     if not KEBAB.fullmatch(args.slug):
         raise SuperError(f"slug {args.slug!r} is not kebab-case")
     playbook = _super_playbook(args.playbook)
     repo = args.repo and args.repo.expanduser().resolve()
     if repo and not repo.is_dir():
         raise SuperError(f"--repo {args.repo} is not a directory")
+    cited = rules.require(root, args.rule)
     trigger = _super_trigger(store, args.trigger)
     if not store.undecided([trigger.id]) and DecisionKind.accept not in _super_decision_kinds(
         store, trigger.id
@@ -374,11 +388,16 @@ def _super_dispatch(store, args):
     verdict = router.admission(store, settings, trigger)
     if verdict.strength is Strength.not_admitted:
         raise SuperError(f"{trigger.id} is not admitted ({verdict.basis})")
-    if verdict.strength is Strength.inferred and settings.accept.mode == AcceptMode.observe:
-        rules = ", ".join(args.rule) or "no rule"
-        store.ignore(trigger.id, f"would accept: {args.slug} via {rules}")
-        print(f"would accept {trigger.id} as {args.slug} (observe mode, nothing started)")
-        return
+    if verdict.strength is Strength.inferred:
+        off = next((rule for rule in cited if rule.mode == AcceptMode.off), None)
+        if off:
+            raise SuperError(f"rule {off.name} is off")
+        auto = any(rule.mode == AcceptMode.auto for rule in cited)
+        if not auto and settings.accept.mode == AcceptMode.observe:
+            named = ", ".join(args.rule) or "no rule"
+            store.ignore(trigger.id, f"would accept: {args.slug} via {named}")
+            print(f"would accept {trigger.id} as {args.slug} (observe mode, nothing started)")
+            return
     ticket = store.accept(
         trigger.id, args.slug, verdict.strength, args.scope or trigger.thread_id, args.rule,
         settings.accept.policy_version, f"dispatch by router: {verdict.basis}",
@@ -397,7 +416,7 @@ def _super_attach(store, args):
     from deezlib.superclanker.store import SuperError
 
     trigger = _super_trigger(store, args.trigger)
-    if _super_decision_kinds(store, trigger.id):
+    if _super_decision_kinds(store, trigger.id) and not store.undecided([trigger.id]):
         raise _super_already_decided(trigger.id)
     if trigger.source == "worker" and trigger.meta.get("ticket") == args.ticket:
         raise SuperError(
@@ -590,6 +609,45 @@ def _super_inbox(root, args):
         print("inbox empty")
 
 
+def _super_watchdog(store, args):
+    from deezlib.superclanker import watchdog
+
+    root, settings = _super_settings()
+    if args.digest:
+        print(watchdog.digest(store, settings, root) or "clean")
+        return
+    ticked = watchdog.tick(store, settings, root, REPO_ROOT)
+    if ticked is None:
+        print("clean, no tick")
+        return
+    cost = "-" if ticked.cost_usd is None else f"{ticked.cost_usd:.4f}"
+    print(f"tick {ticked.tick_id} cost {cost}")
+
+
+def _super_requeue(store, args):
+    _super_trigger(store, args.trigger)
+    store.requeue(args.trigger)
+    print(f"requeued {args.trigger}")
+
+
+def _super_rules(root, args):
+    from deezlib.superclanker import rules
+
+    if args.name is None:
+        for rule in rules.load(root).values():
+            print(f"{rule.name}  {rule.mode}  {rule.title}")
+        return
+    (rule,) = rules.require(root, [args.name])
+    print(f"# {rule.title}\nmode: {rule.mode}\n\n{rule.text}")
+
+
+def _super_policy(root, args):
+    from deezlib.superclanker import rules
+
+    rule = rules.set_mode(root, args.rule, args.mode)
+    print(f"rule {rule.name} mode {rule.mode}")
+
+
 SUPER_VERBS = {
     "ask": _super_ask,
     "show": _super_show,
@@ -610,12 +668,16 @@ SUPER_VERBS = {
     "kill": _super_kill,
     "report": _super_report,
     "pass": _super_pass,
+    "watchdog": _super_watchdog,
+    "requeue": _super_requeue,
 }
 
 STORELESS_SUPER_VERBS = {
     "daemon": _super_daemon,
     "install": _super_install,
     "inbox": _super_inbox,
+    "rules": _super_rules,
+    "policy": _super_policy,
 }
 
 

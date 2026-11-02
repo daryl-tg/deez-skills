@@ -76,7 +76,19 @@ class Input:
     delivered_at: str | None
 
 
-_ROUTER_PREFIXES = {Wake: "w_", Reply: "p_", Input: "i_"}
+@dataclass(frozen=True)
+class Tick:
+    id: str
+    started_at: str
+    ended_at: str | None
+    digest: str
+    exit_code: int | None
+    cost_usd: float | None
+    session_id: str | None
+    result: str | None
+
+
+_ROUTER_PREFIXES = {Wake: "w_", Reply: "p_", Input: "i_", Tick: "x_"}
 _PREFIXES = {**ID_PREFIXES, **_ROUTER_PREFIXES}
 
 
@@ -134,12 +146,24 @@ CREATE INDEX IF NOT EXISTS inputs_by_ticket ON inputs (ticket_id);
 CREATE TABLE IF NOT EXISTS cursors (
     source TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, updated_at TEXT NOT NULL,
     PRIMARY KEY (source, key));
+CREATE TABLE IF NOT EXISTS ticks (
+    id TEXT PRIMARY KEY, started_at TEXT NOT NULL, ended_at TEXT, digest TEXT NOT NULL,
+    exit_code INTEGER, cost_usd REAL, session_id TEXT, result TEXT);
+CREATE TABLE IF NOT EXISTS requeues (
+    trigger_id TEXT NOT NULL, requeued_at TEXT NOT NULL, decisions_before INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS requeues_by_trigger ON requeues (trigger_id);
 """
 
+_NEWEST_DECISION = (
+    "(SELECT MAX(decisions.rowid) FROM decisions, json_each(decisions.trigger_ids) AS decided "
+    "WHERE decided.value = triggers.id)"
+)
+_NEWEST_REQUEUE = (
+    "(SELECT MAX(requeues.decisions_before) FROM requeues WHERE requeues.trigger_id = triggers.id)"
+)
 _UNDECIDED = (
-    "NOT EXISTS (SELECT 1 FROM decisions, json_each(decisions.trigger_ids) AS decided "
-    "WHERE decided.value = triggers.id) "
-    "AND NOT EXISTS (SELECT 1 FROM fanouts WHERE fanouts.trigger_id = triggers.id)"
+    "NOT EXISTS (SELECT 1 FROM fanouts WHERE fanouts.trigger_id = triggers.id) "
+    f"AND ({_NEWEST_DECISION} IS NULL OR {_NEWEST_REQUEUE} >= {_NEWEST_DECISION})"
 )
 
 _TABLES = {
@@ -154,6 +178,7 @@ _TABLES = {
     Wake: "wakes",
     Reply: "replies",
     Input: "inputs",
+    Tick: "ticks",
 }
 
 
@@ -226,6 +251,8 @@ def _summary(record):
             return f"reply: {_clip(record.text)}"
         case Input():
             return f"input {record.kind}: {_clip(record.text)}"
+        case Tick():
+            return f"tick exit {record.exit_code} cost {record.cost_usd}"
 
 
 def _neighbours(records):
@@ -458,6 +485,41 @@ class Store:
                 "UPDATE wakes SET ended_at = ?, exit_code = NULL, result = ? "
                 "WHERE id = ? AND ended_at IS NULL",
                 (utc_now(), "expired by daemon", wake_id),
+            )
+
+    def begin_tick(self, digest):
+        tick = Tick(_new_router_id(Tick), utc_now(), None, digest, None, None, None, None)
+        with self._transaction():
+            self._insert(tick)
+        return tick.id
+
+    def end_tick(self, tick_id, exit_code, cost_usd, session_id, result):
+        with self._transaction():
+            self._require(Tick, tick_id)
+            self._db.execute(
+                "UPDATE ticks SET ended_at = ?, exit_code = ?, cost_usd = ?, session_id = ?, "
+                "result = ? WHERE id = ?",
+                (utc_now(), exit_code, cost_usd, session_id, result, tick_id),
+            )
+
+    def requeue(self, trigger_id):
+        with self._transaction():
+            self._require(Trigger, trigger_id)
+            accepted = self._db.execute(
+                "SELECT ticket_id FROM acceptances WHERE trigger_id = ?", (trigger_id,)
+            ).fetchone()
+            if accepted:
+                raise SuperError(f"{trigger_id} is accepted as {accepted[0]}; nothing to requeue")
+            if self._db.execute(
+                "SELECT 1 FROM fanouts WHERE trigger_id = ?", (trigger_id,)
+            ).fetchone():
+                raise SuperError(f"{trigger_id} went to a ticket's worker; nothing to requeue")
+            if self.undecided([trigger_id]):
+                return
+            self._db.execute(
+                "INSERT INTO requeues (trigger_id, requeued_at, decisions_before) "
+                "VALUES (?, ?, (SELECT COALESCE(MAX(rowid), 0) FROM decisions))",
+                (trigger_id, utc_now()),
             )
 
     def reply(self, thread_id, text):
@@ -697,6 +759,9 @@ class Store:
     def _input_neighbours(self, entry):
         return _neighbours([self._require(Ticket, entry.ticket_id)])
 
+    def _tick_neighbours(self, _tick):
+        return []
+
     _related = {
         Trigger: _trigger_neighbours,
         Thread: _thread_neighbours,
@@ -708,6 +773,7 @@ class Store:
         Wake: _wake_neighbours,
         Reply: _reply_neighbours,
         Input: _input_neighbours,
+        Tick: _tick_neighbours,
     }
 
     def status(self):

@@ -40,6 +40,15 @@ class WorkersConfig:
 
 
 @dataclass(frozen=True)
+class WatchdogConfig:
+    model: str = "sonnet"
+    interval_seconds: int = 1800
+    max_turn_minutes: int = 90
+    attention_hours: int = 1
+    heartbeat_stale_seconds: int = 120
+
+
+@dataclass(frozen=True)
 class SourcePolicy:
     name: str
     enabled: bool = False
@@ -65,6 +74,7 @@ class Config:
     sources: dict
     rules: list
     workers: WorkersConfig = WorkersConfig()
+    watchdog: WatchdogConfig = WatchdogConfig()
 
     def policy(self, source):
         return self.sources.get(source) or default_policy(source)
@@ -108,6 +118,10 @@ _ROUTER = {
     "model": _text, "wake_cap_chars": _count, "inline_chars": _count, "im_reply_words": _count,
 }
 _WORKERS = {"model": _text, "max_running": _count}
+_WATCHDOG = {
+    "model": _text, "interval_seconds": _count, "max_turn_minutes": _count,
+    "attention_hours": _count, "heartbeat_stale_seconds": _count,
+}
 _SOURCE = {
     "enabled": _flag, "mode": _choice(SourceMode), "senders": _names, "bots": _names,
     "scopes": _names, "mentions": _names, "poll_seconds": _count,
@@ -145,7 +159,7 @@ def _read(path):
 def load(root):
     root = Path(root)
     raw = _read(root / "sources.toml")
-    unknown = sorted(raw.keys() - {"accept", "router", "workers", "sources"})
+    unknown = sorted(raw.keys() - {"accept", "router", "workers", "watchdog", "sources"})
     if unknown:
         raise SuperError(f"sources.toml: unknown key {', '.join(unknown)}")
     sources = {"terminal": default_policy("terminal")}
@@ -156,6 +170,7 @@ def load(root):
         router=RouterConfig(**_section("router", raw.get("router", {}), _ROUTER)),
         sources=sources,
         workers=WorkersConfig(**_section("workers", raw.get("workers", {}), _WORKERS)),
+        watchdog=WatchdogConfig(**_section("watchdog", raw.get("watchdog", {}), _WATCHDOG)),
         rules=sorted(
             path.stem for path in (root / "policy" / "rules").glob("*.md") if path.is_file()
         ),

@@ -41,6 +41,7 @@ class LaunchdTest(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
         self.plist_path = self.agents / "com.dboon.super-clanker.plist"
+        self.watchdog_path = self.agents / "com.dboon.super-watchdog.plist"
         self.domain = f"gui/{os.getuid()}"
 
     def install(self, apply, root=None):
@@ -86,12 +87,17 @@ class LaunchdTest(unittest.TestCase):
             ["bootout", f"{self.domain}/com.dboon.super-clanker"],
             ["bootstrap", self.domain, str(self.plist_path)],
             ["kickstart", "-k", f"{self.domain}/com.dboon.super-clanker"],
+            ["bootout", f"{self.domain}/com.dboon.super-watchdog"],
+            ["bootstrap", self.domain, str(self.watchdog_path)],
         ])
         self.assertEqual(lines, [
             f"wrote {self.plist_path}",
             f"launchctl bootout {self.domain}/com.dboon.super-clanker exit 3",
             f"launchctl bootstrap {self.domain} {self.plist_path} exit 0",
             f"launchctl kickstart -k {self.domain}/com.dboon.super-clanker exit 0",
+            f"wrote {self.watchdog_path}",
+            f"launchctl bootout {self.domain}/com.dboon.super-watchdog exit 3",
+            f"launchctl bootstrap {self.domain} {self.watchdog_path} exit 0",
         ])
 
     def test_uninstall_removes_plist(self):
@@ -100,15 +106,20 @@ class LaunchdTest(unittest.TestCase):
         self.assertTrue(self.plist_path.exists())
         removed = launchd.uninstall(self.home, self.agents, apply=True)
         self.assertFalse(self.plist_path.exists())
-        self.assertEqual(
-            self.launchctl_calls()[-1], ["bootout", f"{self.domain}/com.dboon.super-clanker"]
-        )
-        self.assertEqual(
-            planned, [f"would boot out com.dboon.super-clanker and remove {self.plist_path}"]
-        )
+        self.assertFalse(self.watchdog_path.exists())
+        self.assertEqual(self.launchctl_calls()[-2:], [
+            ["bootout", f"{self.domain}/com.dboon.super-clanker"],
+            ["bootout", f"{self.domain}/com.dboon.super-watchdog"],
+        ])
+        self.assertEqual(planned, [
+            f"would boot out com.dboon.super-clanker and remove {self.plist_path}",
+            f"would boot out com.dboon.super-watchdog and remove {self.watchdog_path}",
+        ])
         self.assertEqual(removed, [
             f"launchctl bootout {self.domain}/com.dboon.super-clanker exit 3",
             f"removed {self.plist_path}",
+            f"launchctl bootout {self.domain}/com.dboon.super-watchdog exit 3",
+            f"removed {self.watchdog_path}",
         ])
 
     def test_install_verb_plans_against_the_given_state_root(self):

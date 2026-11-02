@@ -47,6 +47,10 @@ class PassResult:
         )
 
 
+def heartbeat_path(root):
+    return Path(root) / "daemon.heartbeat"
+
+
 def inbox_path(root, thread_id):
     return Path(root) / "inbox" / f"{thread_id.replace(':', '-')}.log"
 
@@ -166,6 +170,7 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     replies_sent = _send_terminal_replies(store, root)
     forge_sent, undelivered = _send_forge_replies(store, config)
     errors.extend(undelivered)
+    workers._write_atomic(heartbeat_path(root), now() + "\n")
     return PassResult(
         fanned_out, launched, resumed, reaped, wake_id, replies_sent + forge_sent, tuple(errors),
         polled,
