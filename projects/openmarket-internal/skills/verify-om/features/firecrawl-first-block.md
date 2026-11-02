@@ -1,5 +1,7 @@
 # Firecrawl recovery before whitelist
 
+*Re-driven 2026-11-02, branch `daryl/firecrawl-offer-pause` tree `d26f65d8f` (on origin/main `760571859`, v0.487.0), lane on 18105 from source with `--env OM_FIRECRAWL_API_KEY=<fixture>` (never sent: the drain only checks a key resolves). Pause path only, see "Pausing the offers" below: `config set firecrawl.offers off` read back on `/healthz` `.loops[firecrawl-offers]` as `inactive`, reason `offers paused`, one pass (60 s) later; a refusing host seeded during the pause raised no card; `config set firecrawl.offers on` and the next pass raised it (`[firecrawl-offer] probe-a.example.test: no answer`, the guest lane's expected settlement). `setup firecrawl --deny 127.0.0.1 --format json` answered `declined: ["127.0.0.1"]`. The CLI door needs `OM_LANE_PORT=18105` on a non-default lane port or it writes a fresh `home-18101`. Evidence: `http://127.0.0.1:8098/firecrawl-offer-pause-20261102/r1/`.*
+
 *Re-driven 2026-11-02 (scheduled maintenance), tree `587ce2d0b` (origin/main, v0.480.3), lane on 18168 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 5. No-key path inside the hold above. `watch page-add http://127.0.0.1:18169/article/2` while the stub answered challenge → exit 2 `page_bot_wall_suspected` (`127.0.0.1 is challenging this machine; next try …`, hint `om setup firecrawl`), with its own `next try` (03:19 against the feed's 03:14). **With the stub back on `ok`, `page-add …/article/1` inside the same feed hold answered `llm_not_configured`** ("a page watch needs one for its setup read"): the page probe is not held by the feed's cooldown, so the article itself must be challenged at the moment of the call.*
 
 *Re-driven 2026-11-02 (nightly), tree `2567b7974` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 4. No-key path only, inside the hold above: `watch page-add http://127.0.0.1:18166/article/1 --format json` exit 2 `page_bot_wall_suspected` ("127.0.0.1 is challenging this machine; next try 2026-11-01T20:04:38Z (HTTP 403)", hint `Run om setup firecrawl to retry public pages this machine cannot read`); the probe itself reached the stub (`challenge GET /article/1`) and its `next try` ran from that probe, not from the feed's hold. The feed source's `Status` row and the dashboard detail carried `Firecrawl can read it for you`. The configured path is still pending. Evidence: `http://127.0.0.1:8098/vom-nightly-20261102/r1/` (`cli/223-page-add-article-hold`, `cli/224-watch-show-hold-text`, `watch-detail-feed-hold.png`).*
@@ -64,6 +66,21 @@ neither.
 
 This guide has had no live pass from this maintenance loop. Its configured-path
 steps stay `live verification pending` on that pair.
+
+## Pausing the offers
+
+*Source-established and driven 2026-11-02 on `daryl/firecrawl-offer-pause`; lands on main with that branch's PR.*
+
+`om config set firecrawl.offers off` (a settings on-off key) stops the daemon raising allow cards; `on` resumes. The agent verbs `firecrawl_offers_pause` (`for: 24h` writes `firecrawl.offers.paused_until`) and `firecrawl_offers_resume` write the same rows (`runner/firecrawl/policy.ts`). While paused, or while `firecrawl.exhausted_until` is in the future, the drain's watchdog row reads `inactive` with the reason (`offers paused`, `offers paused until <ISO>`, `Firecrawl credits exhausted until <ISO>`); the first pass runs 60 s after boot and every 60 s after. `om setup firecrawl --deny <host>` now also writes `firecrawl.offer.<host>=declined`, so a restart never re-offers a denied host.
+
+Recipe, on a run-owned lane with a fixture key:
+
+1. `OM_LANE_PORT=<port> control-om om -- config set firecrawl.offers off`, then within 70 s `curl /healthz | jq '.loops[] | select(.name=="firecrawl-offers")'` reads `verdict: inactive, reason: offers paused`.
+2. Seed a refusing host without an origin: a runtime row on `feed://items?url=https://<host>/feed.rss` in `origin_cooldown` plus two `observeSourceChallenge` calls (the drain test's `seedRefusing`; a bun script with `OM_HOME=<lane root>` works). `pendingFirecrawlOffers(db, new Set())` lists the host.
+3. The lane log (`.control-om/lane-<port>.log`) carries no `[firecrawl-offer]` line while paused. `config set firecrawl.offers on`, and the next pass logs `[firecrawl-offer] <host>: no answer` (no model on a guest lane) and the row returns to `ok`.
+4. `OM_FIRECRAWL_API_KEY=<fixture> control-om om -- setup firecrawl --deny 127.0.0.1 --format json` answers `declined: ["127.0.0.1"]`.
+
+Not drivable on a guest lane: the card itself (no model) and the exhausted-credits hold (needs a 402 from the vendor fixture); both are unit-pinned in `firecrawl-offer-drain.test.ts`.
 
 ## Gotchas
 
