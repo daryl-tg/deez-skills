@@ -64,7 +64,9 @@ session methods.
 
 ### Verification record
 
-**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `agent-draft-share-fixture.html`: an edit to the draft → **Share with agent** → **Shared revision 1 with the agent.** Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `agent-draft-share-fixture.html`: **History**, fill **Message #agents-lab**, **Share with agent** → **Shared revision 1 with the agent**; `data-fixture-shared-revision=1` and the shared text match. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ag-07-share`).
+
+**Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `agent-draft-share-fixture.html`: an edit to the draft → **Share with agent** → **Shared revision 1 with the agent.** Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 
 **Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `agent-draft-share-fixture.html`: filling **Message #agents-lab** revealed **Share with agent**; pressing it recorded **Shared revision 1 with the agent.**, and **History** lists revision 1. **Limitations:** daemon delivery. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`share-01`).
 

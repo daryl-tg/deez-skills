@@ -315,7 +315,9 @@ third demo lives in the gallery (driven 2026-11-01 on `/rooms/` at `936f5b64`):
 `sidebarLensMode` reads `om.chat.sidebarFocus` (a JSON array of space ids) and
 `om.chat.sidebarTodos` (`{"home":bool,"spaces":[…]}`) on every render
 (`lib/prefs.ts:507`, `:572`, `:812-816`; `Sidebar.tsx:3833-3845`). Seed one and
-reload at a desktop width (the lens is off below 768 px):
+reload at a desktop width. At 768 px and below (`MOBILE_QUERY` is inclusive)
+the To-dos lens is off, and Focus reads only the active space's pref
+(`Sidebar.tsx:3838-3845`):
 
 ```bash
 agent-browser eval '(()=>{localStorage.setItem("om.chat.sidebarFocus",JSON.stringify(["s1"]));return 1})()'
@@ -356,19 +358,68 @@ headline for the headline proof. A `channel("firehose", 150, 0)` seed in
 
 ### The bottom pin (added 2026-11-02)
 
-The tape keeps the reader on the newest message until a real scroll gesture
+The tape keeps the reader on the newest message until a real input gesture
 moves them off it (`lib/bottom-pin.ts`: `arm`, `noteGesture`, `bottomPinFor`;
-used by `ChatPane.tsx` and `TopicListView.tsx`). On
-`shell-fixture.html?view=room&alerts=quiet&bulk=120` the scroller is
-`[data-tape-scroller]` (`overflow-anchor: none`) and it loads at the bottom
-(`scrollTop + clientHeight === scrollHeight`); it stayed there through a
-1440×900 → 1100×640 → 1440×900 viewport change (driven 2026-11-02 on
-`/rooms/`). Setting `scrollTop` from `eval` does **not** disarm the pin (the
-next layout change snapped back to the bottom), because only a wheel or touch
-gesture counts as the reader leaving; disarm it with `agent-browser scroll up`
-or `mouse wheel` before asserting a held position. The dock's **Collapse
-panel** toggle is INERT on this fixture, so use the viewport, not the side
-panel, as the layout change.
+used by `ChatPane.tsx` and `TopicListView.tsx`). The gestures are an upward
+wheel, a touch drag, a `mousedown` on the scroller (a scrollbar grab), or a
+`keydown` on it (`bottom-pin.ts:128-131`), followed within 400 ms by an upward
+scroll the pin did not write itself. While armed, resize and child-list
+observers pull the tape back to the bottom.
+
+On `shell-fixture.html?view=room&alerts=quiet&bulk=120` the scroller is
+`[data-tape-scroller]` (`overflow-anchor: none`, `tabindex="0"`). It loads at the
+bottom (`scrollHeight - scrollTop - clientHeight` is 0). Prove both halves with a
+late-growing row, which is the layout change the pin actually reacts to. Add
+`&lateImage=1&lateImageDelay=5000`, so a row grows by about 213 px five seconds
+after load:
+
+```bash
+D='(()=>{const s=document.querySelector("[data-tape-scroller]");return Math.round(s.scrollHeight-s.scrollTop-s.clientHeight)})()'
+# armed: a programmatic scroll is not a gesture, so the late image pulls the tape back
+agent-browser eval '(()=>{const s=document.querySelector("[data-tape-scroller]");s.scrollTop-=1500;return 1})()'
+sleep 6; agent-browser eval "$D"           # 0
+# disarmed: reload, then press PageUp on the focused scroller
+agent-browser eval '(()=>{document.querySelector("[data-tape-scroller]").focus();return 1})()'
+agent-browser press PageUp; agent-browser press PageUp
+sleep 6; agent-browser eval "$D"           # 1414, held
+```
+
+Driven 2026-11-03 on `/rooms/` at `ba4389e7`.
+
+Three things do **not** work as a proof on this lane:
+
+- **`agent-browser mouse wheel` and `agent-browser scroll up` never reach the
+  scroller.** A `wheel` listener on `[data-tape-scroller]` counted zero events
+  after both, with the pointer over the tape, and the distance stayed 0.
+- **A viewport change does not separate armed from disarmed.** After a
+  programmatic `scrollTop` (armed), a 1440×900 → 1100×640 → 1440×900 round trip
+  left the tape where it was (2914 px up). So holding position across a resize
+  proves nothing about the gesture.
+- The dock's **Collapse panel** toggle is INERT on this fixture, so it cannot
+  be the layout change either.
+
+### Tab title and favicon (added 2026-11-03)
+
+The router writes `document.title` on every session change, and repaints the
+favicon and the PWA app badge from the same counts (`apps/cloud/src/lib/routing.ts:250-255`;
+`lib/badge.ts:190-273`). The title is the per-view title
+(`routing.ts:72`, `titleForView`). It reads **OM Chat | #ops | Thanefield
+Capital** in a channel, **OM Chat | #ops ⌗ CPI print — Aug | Thanefield
+Capital** in a topic and **OM Chat | Home** on Home. A **(N)** prefix, or
+**(99+)**, appears only for mentions, DMs and pending agent asks; ordinary room
+unread is dot-only (`badge.ts:11-28`, `:201-204`). The favicon is
+`link#om-chat-favicon`, which the badge painter replaces with a canvas
+`data:image/png` URL.
+
+```bash
+agent-browser eval '(()=>document.title+" | "+document.querySelector("link#om-chat-favicon").href.slice(0,22))()'
+```
+
+Driven on both hosts on 2026-11-03: the title followed the room and the topic,
+and the favicon was a data URL. **Not proved:** the **(N)** prefix. No fixture
+seed gives a non-zero badge count, so `rail=counts` (`/rooms/`) and `rail=many`
+(`/chat/`) both read **OM Chat | Home**. The dot grade (alert or unread) and
+`navigator.setAppBadge` cannot be read on the lane.
 
 ## Gotchas
 
@@ -536,7 +587,9 @@ panel, as the layout change.
 
 ### Verification record
 
-**Last verified:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142): **CPI print — Aug, 2 mentions, 3 unread** → `#/room/ops/topic/cpi-print-aug` on `/rooms/` and the composer **Message in CPI print — Aug** on both; **Back to #ops** → `#/room/ops`; **Hide this channel's topics** → `title="Show this channel's topics"`, `aria-expanded="false"` on both; **Resize channel sidebar** present; `view=topics` mounts; `rail=counts` shows **99+** on `/rooms/`. **Limitations:** the peeks, the bottom pin and the right-panel dock were not re-driven; their nightly records stand. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
+**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144). Sidebar → **CPI print — Aug** retargets the composer to **Message in CPI print — Aug** (`#/room/ops/topic/cpi-print-aug`); **Back to #ops**; **All 6 topics in ops**; `#/room/ops/msg/105` sets `messageJump=105`; the seven `panel=` asides (**New topic**, **Inbox**, **Pinned**, **Bookmarks**, **Members**, **Results**, **Library**); the **Preview of signals** and **Conversation with ana** peeks; **Remove ana from this topic** → **Remove from private topic?**; the 11-item topic row menu, **Delete ⌗ …** and **Resolve …**; the 10-item channel row menu and the mute submenu (15m / 1h / 8h / 24h / **Until unmuted**); **Resize channel sidebar** 240 → 210; the Focus lens (16 treeitems); both halves of the bottom pin with `lateImage`; the tab title and favicon. On `/chat/`: the topic route, the topic peek, and no **Remove …** buttons on `basis-desk-review`. **Limitations:** the bottom pin's touch and scrollbar disarms are source-only; no seed gives the title's **(N)** prefix; the 99+ channel label is still unseeded. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`nav-*`, `pin-*`, `sig-01`).
+
+**Previous record:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142): **CPI print — Aug, 2 mentions, 3 unread** → `#/room/ops/topic/cpi-print-aug` on `/rooms/` and the composer **Message in CPI print — Aug** on both; **Back to #ops** → `#/room/ops`; **Hide this channel's topics** → `title="Show this channel's topics"`, `aria-expanded="false"` on both; **Resize channel sidebar** present; `view=topics` mounts; `rail=counts` shows **99+** on `/rooms/`. **Limitations:** the peeks, the bottom pin and the right-panel dock were not re-driven; their nightly records stand. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
 
 **Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): **CPI print — Aug, 2 mentions, 3 unread** → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`) and **Back to #ops**; **Hide this channel's topics** → **Show this channel's topics** with `aria-expanded="false"` (level-2 rows 20 → 18 on `/rooms/`); the channel-row menu (10 entries) and its **Choose how long to mute #ops** tile → **15m / 1h / 8h / 24h / Until unmuted**; the server menu (the sweep entry and the four timed-mute chips on `/rooms/`; 25 entries, five mute entries and no **Clean up topics** on `/chat/`); the topic-row menu (11 entries, **Mark As Unread** and **Set topic index...** listed) → **Resolve <topic>** dialog (**What settled it? · optional**, **Resolve Topic**, **Enter resolves · Esc cancels**) and the **Delete ⌗ <topic>** alertdialog (**Cancel** / **Delete**); `switcher=open` → the `.quick-switcher` combobox, `#mac` → 9 options → Enter landed `#/room/macro/topic/basis-desk-review`; the #macro hover peek (**You're caught up**, **Peeking never marks as read**); **Resize channel sidebar** 240 → 270 (`om.chat.sidebarWidth` 270) and **Resize the side panel** by keyboard after an `eval` focus; the topics primer on both hosts (**Create Topic in ##ops** still doubled; **Dismiss the topics explainer**); **Remove ana from this topic** → **Remove from private topic?** on `/rooms/` (the `/chat/` members panel renders no Remove buttons); the Home headline **99+ unread across 4 conversations.** under `rail=counts`; the bottom pin across a viewport change. **Limitations:** `find role separator` has no `focus` action, focus the separator with `eval` first; `panel=members` on the public topic `cpi-print-aug` still blanks both hosts; the 99+ channel label and peek forms have no seed; the deep link, the DM and topic peeks and the New topic pane were load-smoked only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 

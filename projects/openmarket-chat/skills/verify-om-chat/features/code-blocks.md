@@ -65,7 +65,9 @@ Expect `pre-wrap`, `fits: true` and `copyInside: true` at 1440×900 and at
 
 ### Verification record
 
-**Last verified:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142), `view=room&alerts=quiet` at 1440×900 with `code-block.css` injected (`/rooms/src/…` and `/chat/src/…`): a sent 300-character fence reads `pre-wrap|true|true` (wraps, no horizontal overflow, **Copy** inside the block) on both hosts. **Limitations:** the 390 px width was not re-measured this pass. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
+**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the seeded tape renders one `pre` with its `span.code-copy[role=button]` **Copy**. **Limitations:** the wrapping proof (which needs the stylesheet injected) was not re-driven; the 2026-11-02 record stands. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/`.
+
+**Previous record:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142), `view=room&alerts=quiet` at 1440×900 with `code-block.css` injected (`/rooms/src/…` and `/chat/src/…`): a sent 300-character fence reads `pre-wrap|true|true` (wraps, no horizontal overflow, **Copy** inside the block) on both hosts. **Limitations:** the 390 px width was not re-measured this pass. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
 
 **Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): a 300-character fence sent with `code-block.css` injected wrapped at 958 px with no horizontal overflow and a button inside the `pre`. **Limitations:** `/chat/` was not re-driven tonight (the 2026-11-01 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 

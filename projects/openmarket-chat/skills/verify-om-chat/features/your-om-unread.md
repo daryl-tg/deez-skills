@@ -32,7 +32,9 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=agent&alerts=quiet&omSessions=daemon` with the `**/healthz*` stub: **Conversations are out of reach** with **Try again** about 8.5 s after load, zero `[data-om-session-unread]` rows. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `?view=agent&alerts=quiet&omSessions=daemon` with the `**/healthz*` stub: **Conversations are out of reach** about 9.5 s after load, and zero `[data-om-session-unread]` rows. **Limitations:** unchanged; unread rows need an isolated daemon origin. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/`.
+
+**Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=agent&alerts=quiet&omSessions=daemon` with the `**/healthz*` stub: **Conversations are out of reach** with **Try again** about 8.5 s after load, zero `[data-om-session-unread]` rows. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 
 **Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=agent&alerts=quiet&omSessions=daemon` with the `**/healthz*` stub: the gate passed and, about eight seconds after load, **Conversations are out of reach** with **Try again** and zero `[data-om-session-unread]` rows. **Limitations:** unread rows and their actions need an isolated daemon origin with real sessions; a read at 3.5 s saw neither the gate text nor the error, so wait. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`om-05`).
 
