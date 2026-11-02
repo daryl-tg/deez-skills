@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-11-02 (scheduled maintenance), tree `587ce2d0b` (origin/main, v0.480.3), lane on 18168 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 5. Boot in seconds with no 429. `doctor --format json` `ok:true`; `status` running, foreground; `/healthz` carries `memory`, `slow_sql`, `roster`, `subscriptions`; `service status` not installed, foreground pid; the wrapper refused `service restart` (exit 1). **The `[footprint]` line is on main**: `rss 396 MB heap_used 154 MB heap_total 195 MB pressure normal` at the first heartbeat. `logs --limit 20` read `No log lines yet` (a foreground lane writes to the lane log, not `runner.log`). Not driven: the profiler POSTs.*
+
 *Re-driven 2026-11-02 (nightly), tree `2567b7974` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 4. The first `up` at 19:23Z died the way the 2026-10-31 record describes: the boot mint was refused (one `coins` read then said `HTTP 429: Too many guest sign-ins. Try again in 15 minute(s)`), the lane printed its banner and exited `om: No OpenMarket API key configured`. After the window a fresh root booted in about 2 s with the mint landing: `/healthz` read 0.480.3, `auth: guest`, `last_error: null`, `om_home` ending `/accounts/guest`, `memory` (`rss_mb` 620), `slow_sql: []` and `roster.capabilities`; the eight `@om-core` defaults installed 4 s after boot. `control-om doctor` passed; `om doctor --format json` `ok:true` with 14 checks (`binary`, `llm`, `agent_wiring` warn; `contracts` and `stream` ok; `daemon` ok). `status` `✓ running (PID 89937) (foreground om run)`; `service status` listed the INACTIVE loops (`guest session`, `no Firecrawl key`); `logs --limit 5` printed the CLI's own `watch_remove` line and no daemon line; the wrapper refused `service install` (exit 1) and `~/Library/LaunchAgents` kept its 3 entries; the profiler answered 409 `not_started`, 400 `bad_request`, 200 `start`, `stacks` with `samples`, and a second `start` repeated the first `started_at` with `already: false`; `GET /openapi.json` 200, 137 paths, `info.version` 0.480.3. Evidence: `http://127.0.0.1:8098/vom-nightly-20261102/r1/` (`cli/35-39`, `cli/47-48`, `cli/146`).*
 
 *Re-driven 2026-11-01 (nightly), tree `7ce379c45` (origin/main, v0.480.3), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.9. `up` booted in about 2 s with the guest mint landing at boot; `/healthz` read 0.480.3, `auth: guest`, `memory` (`rss_mb` 689), `slow_sql: []` and `roster.capabilities`; `doctor --format json` `ok: true` (`binary` warn for the dev checkout); `status --format json` `daemon.running: true`, `control: foreground`; `service status` read `running (foreground om run)`, `Service: not installed` and the INACTIVE loops with reasons; `logs` printed `No log lines yet`; the wrapper refused `service install` (exit 1); `POST /rpc/v1/system/profile` `{"action":"stacks"}` before any start answered 409 `not_started`; `GET /openapi.json` 200 with 137 paths and `info.version` 0.480.3. New on this tree (#2223): the guest lane's `agent.log` carries one `channel_error {"surface":"remote","message":"remote control dark: guest session (sign in to drive this machine from the OM Chat cloud page)"}` line at boot, the gate that keeps a guest from dialing the session link at all; the retry ladder past it needs an account and a relay. Evidence: `http://127.0.0.1:8098/vom-nightly-20261101/r1/` (`cli/00-19c`).*
@@ -36,7 +38,7 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
 - `profile` — `POST /rpc/v1/system/profile` arms an on-demand sampling profiler
   (`{"action":"start"}`) and reads it back (`{"action":"stacks"}`). There is no
   CLI verb.
-- `footprint-line` (branch `daryl/roster-teardown-footprint`, PR #2231, pending on main): on the first runner heartbeat (30 s after boot) and every tenth after it (every 5 min) the daemon logs `[footprint] rss N MB heap_used N MB heap_total N MB pressure normal|warn|critical`; Linux reports `some10=N%` from `/proc/pressure/memory`, elsewhere the field is omitted.
+- `footprint-line` (PR #2231, on main since `3498391e7`): on the first runner heartbeat (30 s after boot) and every tenth after it (every 5 min) the daemon logs `[footprint] rss N MB heap_used N MB heap_total N MB pressure normal|warn|critical`; Linux reports `some10=N%` from `/proc/pressure/memory`, elsewhere the field is omitted.
 - `status` renders the same state as a human rollup.
 - `doctor` self-diagnoses the install: binary, version, home, network, key,
   schema, daemon.
@@ -67,7 +69,7 @@ Preconditions:
   root you passed: `<lane root>/accounts/guest`. Assert that it sits under the
   lane root and never under `~/.openmarket`; an equality check against
   `OM_HOME` fails on a healthy lane.
-- **Footprint line in the log.** (PR #2231, pending on main.) Within 60 s of `up`, `grep '\[footprint\]' .control-om/lane-<port>.log` shows one line; a second lands 5 min later. On 2026-10-30 a source lane on 18103 logged `rss 447 MB heap_used 137 MB heap_total 178 MB pressure normal` at +30 s, then at +5 min and +10 min, and `sysctl -n kern.memorystatus_vm_pressure_level` read 1 at the time, which is `normal`. A source lane writes this to the lane log, not to `runner.log`; a daemon under launchd writes it to `runner.log`.
+- **Footprint line in the log.** (PR #2231, on main since `3498391e7`.) Within 60 s of `up`, `grep '\[footprint\]' .control-om/lane-<port>.log` shows one line; a second lands 5 min later. On 2026-10-30 a source lane on 18103 logged `rss 447 MB heap_used 137 MB heap_total 178 MB pressure normal` at +30 s, then at +5 min and +10 min, and `sysctl -n kern.memorystatus_vm_pressure_level` read 1 at the time, which is `normal`. A source lane writes this to the lane log, not to `runner.log`; a daemon under launchd writes it to `runner.log`.
 - **Footprint and the profiler.** `curl -fsS "$(control-om url /healthz)" | jq
   '{memory, slow_sql, roster}'` shows three integer MiB values, `slow_sql: []`
   on a quiet lane, and `roster.capabilities`. Then POST JSON to
@@ -77,7 +79,7 @@ Preconditions:
   200 `{started_at, already}`, and `stacks` then returns `inclusive`, `self`,
   `samples`, `seconds`, `slow_sql`, `rss_mb` and `started_at`. **A second
   `start` also says `already: false`**, with the first `started_at`
-  (`runner/http/rpc/system.ts:403`), so assert on the repeated `started_at`,
+  (`runner/http/rpc/system.ts:404`), so assert on the repeated `started_at`,
   not on `already`. Driven 2026-10-27 at `8fe6a8432`. The profiler stays armed
   until the lane stops.
 - **Human rollup.** Run `control-om om -- status`. Then

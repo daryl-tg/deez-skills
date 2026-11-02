@@ -1,6 +1,8 @@
 # Roster ACP host launch and teardown
 
-*Verified: 2026-10-30, branch `daryl/roster-teardown-footprint` (PR #2231, head `f7b554fbd`, cut from `origin/main` `dfefe0a21`), driven with the branch's `packages/cli/dist/om` and the installed Claude Code 2.1.314. Pending on main until the PR merges. The leak it fixes was reproduced first on the installed om 0.478.0.*
+*Re-driven 2026-11-02 (scheduled maintenance), tree `587ce2d0b` (origin/main, v0.480.3), lane on 18168 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 5. On main. The unguarded refusal is reachable from the source CLI, with no compiled build: `control-om om -- __roster-acp claude /usr/bin/true` exits 2 with `om __roster-acp must run in its own process group (spawn it detached) or under the roster guardian.` Not re-driven on main: the detached teardown ladder and a real ACP launch, which still need the compiled daemon.*
+
+*Verified: 2026-10-30, branch `daryl/roster-teardown-footprint` (PR #2231, head `f7b554fbd`, cut from `origin/main` `dfefe0a21`), driven with the branch's `packages/cli/dist/om` and the installed Claude Code 2.1.314. Merged to main as `3498391e7`. The leak it fixes was reproduced first on the installed om 0.478.0.*
 
 `om __roster-acp <brain> <cli>` is the private host the daemon's roster spawns to run a coding agent over the Agent Client Protocol. The daemon wraps it in a guardian (`packages/roster/src/adapters/acp-guardian.ts`) that owns its process group. Anything else that launches the host, a rig or a hand-typed command, used to leave the Claude Code child behind when it killed the host.
 
