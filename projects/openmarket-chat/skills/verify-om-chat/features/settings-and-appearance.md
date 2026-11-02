@@ -254,6 +254,36 @@ on this device** once permission is granted). The button mounts on the lane
 enrollment itself need a real daemon and a non-headless browser, so pressing it
 proves nothing here.
 
+### Motion and feedback sounds (added 2026-11-02)
+
+`settings-fixture.html?host=user&page=accessibility` has a **Motion and
+feedback** card (`settings/UserSettings.tsx:2025-2050`) with four switches:
+**Enable reduced motion**, **Resolve sound**, **GOAT ceremony sound** and
+**GOAT bleat**. On a fresh lane the three sound switches read
+`aria-checked="true"` and reduced motion reads `false`. `find role switch click
+--name "Resolve sound"` turns it off and writes `om.chat.resolveSound=false`
+to `localStorage` (`lib/prefs.ts:434`); assert the key, not only the switch.
+The chime itself (`lib/resolve-chime.ts`) plays on a topic resolve and is not
+observable in a headless lane.
+
+### Audio processing (added 2026-11-02)
+
+`settings-fixture.html?host=user&page=audio` renders three processing switches
+(`settings/AudioSettings.tsx:258-272`): **Noise suppression**, **Echo
+cancellation** and **Automatic input gain**, all `aria-checked="true"` on the
+lane. The microphone and device pickers on the same page need a real input
+device, so only the switch states are provable here.
+
+### Settings search with no match (added 2026-11-02)
+
+Type into **Search settings** (`input[aria-label="Search settings"]`) a string
+nothing matches, such as `zzqqx`: the nav empties and reads **No setting
+matches “zzqqx”.** with curly quotes (`settings/SettingsShell.tsx:286`). The
+**Discard unsaved changes?** alertdialog at `SettingsShell.tsx:444` is not
+reached on the lane: `page=profile` exposes no text input to dirty, so leaving
+the page raises nothing. Live verification is pending a page with an editable
+form seed.
+
 ## Gotchas
 
 - **Notifications crashes the shell fixture's whole User settings surface.**
@@ -339,7 +369,9 @@ proves nothing here.
 
 ### Verification record
 
-**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): `?view=settings` → dialog **Settings** over `#ops` (20 nav entries; about 5–6 s after load on `/chat/`); the Appearance radiogroups (Theme, Palette, Chat layout, Server channel layout, Direct message layout, Message display) and **Show link previews** true → false (`/rooms/`); Notifications volume 100 → 99 with `om.chat.notificationVolume=99` (both hosts) and the **Enable notifications** button; **Convert webhooks to alerts** → **Convert webhooks to alerts · bitcoin** (Cancel, **Convert 2**) on both hosts; Server Settings → Invites → **Create invite link** → **Invite link settings** (**Invite link expiry**, **Invite link max uses**, **Create link**, **Done**) on both hosts; ⌘/ → **Grammar & shortcuts**; **Log Out** → the **Log Out** confirm (Cancel / Log Out) on `/rooms/`; the Profiles, To-dos and Slash commands pages render; `page=privacy` is blank on both hosts; `host=server&page=moderation` renders on `/rooms/` and is blank on `/chat/`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+**Last verified:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141): `page=appearance` **Light theme** → `data-theme` dark → light; **Settings navigation**; **Search settings** `vim` → Keyboard Shortcuts, `zzqqx` → **No setting matches “zzqqx”.**; `page=accessibility` **Resolve sound** on → off with `om.chat.resolveSound=false`; `page=audio` three processing switches on; `host=channel&page=webhooks&perms=owner` **Convert webhooks to alerts**; `page=shortcuts` Vim switch present. `/chat/` (18142): **Light theme** dark → light, **Settings navigation**. **Limitations:** the discard guard was not reached (`page=profile` has no editable input); the other page bodies were not re-driven, so the nightly record below stands for them. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
+
+**Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) and `/chat/` (18138): `?view=settings` → dialog **Settings** over `#ops` (20 nav entries; about 5–6 s after load on `/chat/`); the Appearance radiogroups (Theme, Palette, Chat layout, Server channel layout, Direct message layout, Message display) and **Show link previews** true → false (`/rooms/`); Notifications volume 100 → 99 with `om.chat.notificationVolume=99` (both hosts) and the **Enable notifications** button; **Convert webhooks to alerts** → **Convert webhooks to alerts · bitcoin** (Cancel, **Convert 2**) on both hosts; Server Settings → Invites → **Create invite link** → **Invite link settings** (**Invite link expiry**, **Invite link max uses**, **Create link**, **Done**) on both hosts; ⌘/ → **Grammar & shortcuts**; **Log Out** → the **Log Out** confirm (Cancel / Log Out) on `/rooms/`; the Profiles, To-dos and Slash commands pages render; `page=privacy` is blank on both hosts; `host=server&page=moderation` renders on `/rooms/` and is blank on `/chat/`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 
 **Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `?view=settings&settingsPage=shortcuts` → the **Settings** dialog (20 nav items) over `#ops`, **Vim mode** on → `om.chat.vimMode="true"`, **Log Out** → the **Log Out** alertdialog; ⌘/ → the **Grammar & shortcuts** dialog; `settingsPage=privacy` → **Privacy** with **Private account**; `settings-fixture` Appearance (**Show link previews** off → `om.chat.linkPreviews="false"` and back, **Underline links**, **High contrast mode**, the six radiogroups; **Light theme** selects without recolouring the fixture's `<html>`), Notifications (100 → 99, `om.chat.notificationVolume`), Profiles (justintg, long $BTC, Online / Idle / Do not disturb), To-dos (two radiogroups); the settings takeover at 390 ([mobile-shell-navigation.md](mobile-shell-navigation.md)). `/chat/` (18138): the **Settings** dialog mounts about five seconds after load (a 2 s read saw none), **Vim mode**, **Log Out**, ⌘/, **Light theme**, notification volume 100 → 99. Load smoke: every `settings-fixture` page mounted on `/rooms/` except `page=privacy` (blank); on `/chat/` `page=privacy` and `host=server&page=moderation` are blank. **Limitations:** the webhooks **Convert** dialog and the invite-link dialog were not re-driven (2026-10-31 stands); toggles and saves remain unstubbed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`settings-01` to `settings-05`, `mobile-02`, `mobile-03`, `chat-07`).
 

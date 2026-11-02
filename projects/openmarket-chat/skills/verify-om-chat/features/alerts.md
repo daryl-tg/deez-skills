@@ -59,6 +59,9 @@ plain `generic` there.
 
 ## Gotchas
 
+- **`surface=alert-card` mounts late.** 1.8 s after `open` none of the four
+  card actions were in `innerText`; at 2.5 s all four were. Wait for
+  **Discuss** before asserting the rest (2026-11-02, `/rooms/`).
 - Do not look for the old `Alerts: N feeds are ringing` beacon or caption a
   frame with its count. It has not rendered since `dc6a9a47`; the board's two
   seeded rows are the only feed list in the fixture.
@@ -90,7 +93,9 @@ plain `generic` there.
 
 ### Verification record
 
-**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `view=room` strip **store-5xx · check pods** (with `alerts.css` injected); `alerts=board` → **Alerts board** on both hosts; `fixture.html?surface=alert-card` → **Discuss**, **I'm on it**, **Mark fixed**, **Flag noisy**. **Limitations:** `?panel=alerts` still blanks the shell on both hosts (load smoke). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+**Last verified:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141): `view=room` strip **store-5xx · check pods**; `alerts=board` → dialog **Alerts board** with **All alerts**; `surface=alert-card` **Discuss**, **I'm on it**, **Mark fixed**, **Flag noisy** after a 2.5 s mount. `/chat/` (18142): `alerts=board` → **Alerts board**. **Limitations:** `?panel=alerts` still blanks the shell (`#root` empty at 3 s). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
+
+**Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `view=room` strip **store-5xx · check pods** (with `alerts.css` injected); `alerts=board` → **Alerts board** on both hosts; `fixture.html?surface=alert-card` → **Discuss**, **I'm on it**, **Mark fixed**, **Flag noisy**. **Limitations:** `?panel=alerts` still blanks the shell on both hosts (load smoke). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 
 **Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `?view=room` strip **store-5xx · check pods** with **I'm on it** and **Open**; `alerts=board` → the **Alerts board** dialog; `fixture.html?surface=alert-card` → the card with **Discuss**, **I'm on it**, **Mark fixed** and **Flag noisy**. `/chat/` (18138): the strip and the board. `?panel=alerts` still blanks the shell on both (smoke). **Limitations:** claim, create, the alerts home and the dock door stay pending; the strip and board remain unstyled in the fixture. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`alerts-01` to `alerts-03`, `chat-12`).
 

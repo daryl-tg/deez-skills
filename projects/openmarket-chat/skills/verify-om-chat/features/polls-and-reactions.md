@@ -118,6 +118,10 @@ session.
 
 ## Gotchas
 
+- **The `fixture.html` galleries mount slowly.** On a lane serving several
+  sessions, `surface=poll-ux` had no **Create poll in #chat** text 1.8 s after
+  `open` and had it at 3.5 s. Wait about 3.5 s, or wait for a named element,
+  before asserting on any `fixture.html?surface=` route (2026-11-02, `/rooms/`).
 - None of these routes travel the wire. Reaction chip clicks change no count.
   On `surface=poll-ux`, however, a vote **does** settle locally: after a 700 ms
   timeout `ye 8 · 80%` becomes `ye 9 · 82%` (`PollUxFixture`'s `settleVote`,
@@ -155,7 +159,9 @@ session.
 
 ### Verification record
 
-**Last verified:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `poll-results-fixture` **Final results · 14 votes** (57 / 29 / 14 / 0 %); `poll-cache-fixture` **roster loads: 1** after two **Show results**; `surface=poll-ux` **nay** → **ye 8 · 73%**, **nay 3 · 27%** (the `/chat/` gallery renders ye 8 · 80% / nay 2 · 20%); `surface=reaction-polish` → **See who reacted** → the **Reactions** dialog (🔥 6, 🐐 1, 🤍 4); `surface=reaction-scene-integration` in a visible page: fall 1125 ms, shake 1286, pulse 1051, **burst** 1592. **Limitations:** the gallery's **See who reacted** and **Add a reaction** buttons mount a beat after load (a read at about 1 s saw only the chips); rise and shimmer still need a seeded chip; the emoji picker was not re-opened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
+**Last verified:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141): `poll-results-fixture` **Final results · 14 votes**; `poll-cache-fixture` two **Show results** → `roster loads: 1`; `surface=poll-ux` **Create poll in #chat** with **ye** 8 · 80% and **nay** 2 · 20% after a 3.5 s mount; `surface=reaction-polish` hover **Message from Mira Chen** → **Add a reaction** → dialog **Choose an emoji**, and **See who reacted** → dialog **Reactions**. **Limitations:** no vote settle or scene lifetimes this pass; `/chat/` galleries not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
+
+**Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `poll-results-fixture` **Final results · 14 votes** (57 / 29 / 14 / 0 %); `poll-cache-fixture` **roster loads: 1** after two **Show results**; `surface=poll-ux` **nay** → **ye 8 · 73%**, **nay 3 · 27%** (the `/chat/` gallery renders ye 8 · 80% / nay 2 · 20%); `surface=reaction-polish` → **See who reacted** → the **Reactions** dialog (🔥 6, 🐐 1, 🤍 4); `surface=reaction-scene-integration` in a visible page: fall 1125 ms, shake 1286, pulse 1051, **burst** 1592. **Limitations:** the gallery's **See who reacted** and **Add a reaction** buttons mount a beat after load (a read at about 1 s saw only the chips); rise and shimmer still need a seeded chip; the emoji picker was not re-opened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 
 **Previous record:** 2026-11-01 (nightly maintenance). **Product commit:** `936f5b64` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): `poll-results-fixture` **Final results · 14 votes** (57% / 29% / 14% / 0%); `poll-cache-fixture` **roster loads: 0**; `surface=poll-ux` Escape closed **Create poll in #chat** and **ye 8 · 80%** settled to **ye 9 · 82%**; `surface=reaction-polish` **See who reacted** → **Reactions** (🔥 6 / 🐐 1 / 🤍 4) and **Add a reaction** → **Choose an emoji**; `surface=reaction-scene-integration` with `reduced-motion` removed: fall 1178–1195 ms, shake 1210–1237, pulse 1013–1062 and, new, 👏🏽 **burst** 1594 ms. `/chat/` (18138): the `poll-ux` vote settle and the scene families. **Limitations:** rise and shimmer need a chip outside the seeded row; vote persistence and a scene from a real in-shell reaction stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261101/r1/` (`polls-01` to `polls-03`, `gallery-01-rooms`, `gallery-01-chat`).
 
