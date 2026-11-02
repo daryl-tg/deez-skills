@@ -42,6 +42,15 @@ def build_parser():
     checkpoint_parser.add_argument("--playbook", required=True)
     checkpoint_parser.add_argument("--resume-note", required=True, type=Path)
 
+    super_parser = subparsers.add_parser("super", help="Talk to the super-clanker store.")
+    super_verbs = super_parser.add_subparsers(dest="verb", required=True)
+    ask_parser = super_verbs.add_parser("ask", help="Hand the router a request from this terminal.")
+    ask_parser.add_argument("text", nargs="+")
+    ask_parser.add_argument("--thread", default="default")
+    show_parser = super_verbs.add_parser("show", help="Print one object and its neighbours.")
+    show_parser.add_argument("id")
+    super_verbs.add_parser("status", help="List tickets and what needs attention.")
+
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
     link.add_argument("--runtime", default=None, choices=registry.RUNTIMES)
@@ -136,6 +145,62 @@ def cmd_clanker_checkpoint(args):
             clanker.state_root(os.environ, Path.home()),
         ))
     except (OSError, clanker.ClankerError) as exc:
+        print(f"deez: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _super_ask(store, args):
+    from deezlib.superclanker.sources import terminal
+
+    trigger, receipt = terminal.ask(store, " ".join(args.text), thread_name=args.thread)
+    print(f"trigger {trigger.id} {receipt} on thread {trigger.thread_id}")
+
+
+def _super_field(value):
+    if value is None:
+        return "-"
+    if isinstance(value, (tuple, list, dict)):
+        return json.dumps(value)
+    return value
+
+
+def _super_show(store, args):
+    shown = store.show(args.id)
+    related = shown.pop("related")
+    for key, value in shown.items():
+        print(f"{key}: {_super_field(value)}")
+    print("related:")
+    for neighbour_id, summary in related:
+        print(f"  {neighbour_id}  {summary}")
+
+
+def _super_status(store, _args):
+    rows = store.status()
+    if not rows:
+        print("no tickets")
+        return
+    print("ticket  state  slug  assignment  last-report  attention")
+    for row in rows:
+        print("  ".join([
+            row["ticket"], row["state"], row["slug"], row["assignment"] or "-",
+            row["last_report"] or "-", "yes" if row["attention"] else "no",
+        ]))
+
+
+SUPER_VERBS = {"ask": _super_ask, "show": _super_show, "status": _super_status}
+
+
+def cmd_super(args):
+    from deezlib.superclanker.store import Store, SuperError, state_root
+
+    try:
+        store = Store.open(state_root(os.environ, Path.home()))
+        try:
+            SUPER_VERBS[args.verb](store, args)
+        finally:
+            store.close()
+    except (SuperError, OSError) as exc:
         print(f"deez: {exc}", file=sys.stderr)
         return 2
     return 0
@@ -326,6 +391,7 @@ COMMANDS = {
     "clanker-hook": cmd_clanker_hook,
     "clanker-hooks": cmd_clanker_hooks,
     "clanker-checkpoint": cmd_clanker_checkpoint,
+    "super": cmd_super,
     "link": cmd_link,
     "doctor": cmd_doctor,
     "index": cmd_index,
