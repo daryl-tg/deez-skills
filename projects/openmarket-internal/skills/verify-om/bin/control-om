@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# @file control-om
+# @brief Start and inspect an isolated om verification lane.
+# @description
+#   Binds the om daemon and source CLI to a run-owned home and assigned port,
+#   preserves pid-based teardown, and records launch provenance for doctor.
 # control-om — the deterministic verification lane for the `om` daemon + CLI.
 #
 # Lives in the hub at projects/openmarket-internal/skills/verify-om/bin/ and is
@@ -9,7 +14,8 @@
 # CLI and agent-browser rather than reimplementing either.
 #
 #   doctor                        is this lane worth driving?
-#   up [--port N] [--env K=V ...]  start a run-owned lane daemon (background)
+#   up [--compiled] [--port N] [--env K=V ...]
+#                                 start a run-owned lane daemon (background)
 #   down                          stop only what `up` started
 #   url [path]                    print the lane URL for a daemon path
 #   om -- <args...>               run the om CLI BOUND TO THE LANE
@@ -57,6 +63,7 @@ REVIEW_ROOT="${OM_REVIEW_ROOT:-$HOME/.local/state/om-chat-feature}"
 ARTIFACTS="${ARTIFACTS:-$REPO_ROOT/artifacts}"
 RUN_STATE="${OM_LANE_STATE:-$REPO_ROOT/.control-om}"
 BOOT_TIMEOUT_S="${OM_LANE_BOOT_TIMEOUT_S:-120}"
+COMPILED_OM="$REPO_ROOT/packages/cli/dist/om"
 
 die() { printf 'control-om: %s\n' "$*" >&2; exit 1; }
 note() { printf 'control-om: %s\n' "$*" >&2; }
@@ -66,6 +73,70 @@ lane_home()   { printf '%s/home-%s' "$RUN_STATE" "$LANE_PORT"; }
 pidfile()     { printf '%s/lane-%s.pid' "$RUN_STATE" "$LANE_PORT"; }
 logfile()     { printf '%s/lane-%s.log' "$RUN_STATE" "$LANE_PORT"; }
 envfile()     { printf '%s/lane-%s.env' "$RUN_STATE" "$LANE_PORT"; }
+launchfile()  { printf '%s/lane-%s.launch' "$RUN_STATE" "$LANE_PORT"; }
+
+launch_value() {
+  local key="$1"
+  [ -f "$(launchfile)" ] || return 0
+  sed -n "s/^${key}=//p" "$(launchfile)" | head -1
+}
+
+compiled_binary_is_stale() {
+  local path newer
+  for path in \
+    "$REPO_ROOT/packages/cli/src" \
+    "$REPO_ROOT/packages/sdk/src" \
+    "$REPO_ROOT/packages/contracts/src" \
+    "$REPO_ROOT/packages/hyperliquid-sdk/src" \
+    "$REPO_ROOT/packages/rooms-client/src" \
+    "$REPO_ROOT/packages/route-catalog/src" \
+    "$REPO_ROOT/apps/dashboard/dist" \
+    "$REPO_ROOT/skills"; do
+    [ -d "$path" ] || continue
+    newer="$(find "$path" -type f -newer "$COMPILED_OM" -print -quit 2>/dev/null || true)"
+    [ -z "$newer" ] || return 0
+  done
+  for path in \
+    "$REPO_ROOT/package.json" \
+    "$REPO_ROOT/bun.lock" \
+    "$REPO_ROOT/bunfig.toml" \
+    "$REPO_ROOT/tsconfig.json"; do
+    [ ! -f "$path" ] || [ ! "$path" -nt "$COMPILED_OM" ] || return 0
+  done
+  for path in \
+    "$REPO_ROOT/packages/cli" \
+    "$REPO_ROOT/packages/sdk" \
+    "$REPO_ROOT/packages/contracts" \
+    "$REPO_ROOT/packages/hyperliquid-sdk" \
+    "$REPO_ROOT/packages/rooms-client" \
+    "$REPO_ROOT/packages/route-catalog"; do
+    [ -d "$path" ] || continue
+    newer="$(find "$path" -maxdepth 1 -type f \( -name package.json -o -name 'tsconfig*.json' -o -name bunfig.toml \) -newer "$COMPILED_OM" -print -quit 2>/dev/null || true)"
+    [ -z "$newer" ] || return 0
+  done
+  return 1
+}
+
+assert_compiled_binary() {
+  [ -e "$COMPILED_OM" ] \
+    || die 'compiled daemon requested, but packages/cli/dist/om is missing. Run bun run build in this checkout.'
+  [ -x "$COMPILED_OM" ] \
+    || die 'compiled daemon requested, but packages/cli/dist/om is not executable. Rebuild it with bun run build.'
+  ! compiled_binary_is_stale \
+    || die 'compiled daemon requested, but packages/cli/dist/om is stale. Run bun run build in this checkout.'
+}
+
+record_launch() {
+  local mode="$1" executable="$2" artifact_sha256="source"
+  [ "$mode" != compiled ] || artifact_sha256="$(shasum -a 256 "$COMPILED_OM" | awk '{print $1}')"
+  {
+    printf 'mode=%s\n' "$mode"
+    printf 'executable=%s\n' "$executable"
+    printf 'repo_head=%s\n' "$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo unknown)"
+    printf 'artifact_sha256=%s\n' "$artifact_sha256"
+  } >"$(launchfile).tmp"
+  mv "$(launchfile).tmp" "$(launchfile)"
+}
 
 assert_lane_port() {
   for p in $FORBIDDEN_PORTS; do
@@ -124,18 +195,48 @@ cmd_doctor() {
   fi
 
   # Source lane vs compiled lane. A source lane IS the working tree; a compiled
-  # lane is whatever `bun run build` last wrote, which nothing else says is old.
-  if [ -x "$REPO_ROOT/packages/cli/dist/om" ]; then
-    printf 'binary       dist/om present (%s) — a compiled lane may predate the tree\n' \
-      "$(date -r "$REPO_ROOT/packages/cli/dist/om" '+%Y-%m-%d %H:%M' 2>/dev/null || echo unknown)"
+  # lane is whatever `bun run build` last wrote.
+  if [ -e "$COMPILED_OM" ]; then
+    if [ ! -x "$COMPILED_OM" ]; then
+      printf 'binary       dist/om NOT EXECUTABLE — rebuild with bun run build\n'
+    elif compiled_binary_is_stale; then
+      printf 'binary       dist/om STALE — source or build inputs are newer; run bun run build\n'
+    else
+      printf 'binary       dist/om current (built %s)\n' \
+        "$(date -r "$COMPILED_OM" '+%Y-%m-%d %H:%M' 2>/dev/null || echo unknown)"
+    fi
   else
     printf 'binary       no dist/om — source lane only (the lane runs the working tree)\n'
   fi
 
   if lane_is_ours; then
     printf 'lane         RUNNING, ours (pid %s)\n' "$(cat "$(pidfile)")"
+    local launch_mode launch_executable launch_head launch_sha current_sha
+    launch_mode="$(launch_value mode)"
+    launch_executable="$(launch_value executable)"
+    launch_head="$(launch_value repo_head)"
+    launch_sha="$(launch_value artifact_sha256)"
+    if [ -z "$launch_mode" ]; then
+      printf 'lane launch  UNKNOWN — no wrapper launch provenance; relaunch before trusting this lane\n'
+      fail=1
+    else
+      printf 'lane launch  %s (%s)\n' "$launch_mode" "$launch_executable"
+      printf 'provenance   repo %s, artifact %s\n' "$launch_head" "$launch_sha"
+      if [ "$launch_mode" = compiled ]; then
+        if [ ! -x "$COMPILED_OM" ] || compiled_binary_is_stale; then
+          printf 'lane binary  UNQUALIFIED — the compiled artifact is missing, non-executable, or stale\n'
+          fail=1
+        else
+          current_sha="$(shasum -a 256 "$COMPILED_OM" | awk '{print $1}')"
+          if [ "$launch_executable" != "$COMPILED_OM" ] || [ "$launch_sha" != "$current_sha" ]; then
+            printf 'lane binary  CHANGED — the recorded compiled artifact no longer matches this checkout\n'
+            fail=1
+          fi
+        fi
+      fi
+    fi
     if [ -s "$(envfile)" ]; then
-      printf 'lane env     %s\n' "$(tr '\n' ' ' < "$(envfile)")"
+      printf 'lane env     keys: %s\n' "$(sed 's/=.*//' "$(envfile)" | tr '\n' ' ')"
     fi
   elif port_busy "$LANE_PORT"; then
     printf 'lane         BUSY, not ours — check `lsof -nP -iTCP:%s -sTCP:LISTEN` before assuming\n' "$LANE_PORT"
@@ -191,9 +292,12 @@ cmd_up() {
   # cadence, say), and a recipe that needs one is undrivable without this.
   # Explicit rather than "forward every OM_* in the caller's shell": a stray
   # variable in the operator's environment must never reach a lane silently.
+  local launch_mode=source
+  local launch_executable="$REPO_ROOT/packages/cli/src/bootstrap.ts"
   LANE_ENV=()
   while [ $# -gt 0 ]; do
     case "$1" in
+      --compiled) launch_mode=compiled; launch_executable="$COMPILED_OM"; shift ;;
       --port) LANE_PORT="${2:?--port needs a value}"; shift 2 ;;
       --env)
         case "${2:-}" in
@@ -207,8 +311,17 @@ cmd_up() {
   done
   assert_lane_port
   assert_lane_home
+  [ "$launch_mode" != compiled ] || assert_compiled_binary
 
-  lane_is_ours && { printf '%s\n' "$(lane_origin)"; return 0; }
+  if lane_is_ours; then
+    local running_mode
+    running_mode="$(launch_value mode)"
+    [ -n "$running_mode" ] || running_mode=unknown
+    [ "$running_mode" = "$launch_mode" ] \
+      || die "lane $LANE_PORT is already running in $running_mode mode; stop it before requesting $launch_mode mode"
+    printf '%s\n' "$(lane_origin)"
+    return 0
+  fi
   port_busy "$LANE_PORT" && die "port $LANE_PORT is busy and not ours. Take another slot in $LANE_PORT_MIN-$LANE_PORT_MAX rather than stealing it."
 
   mkdir -p "$RUN_STATE" "$(lane_home)"
@@ -224,11 +337,21 @@ cmd_up() {
   # so the daemon never holds the caller's pipe open.
   (
     cd "$REPO_ROOT" || exit 1
-    export OM_HOME="$(lane_home)" OM_BIND="127.0.0.1:$LANE_PORT"
+    OM_HOME="$(lane_home)"
+    OM_BIND="127.0.0.1:$LANE_PORT"
+    export OM_HOME OM_BIND
     for kv in ${LANE_ENV+"${LANE_ENV[@]}"}; do export "${kv?}"; done
-    nohup bun packages/cli/src/bootstrap.ts run >"$(logfile)" 2>&1 </dev/null &
+    if [ "$launch_mode" = compiled ]; then
+      nohup "$COMPILED_OM" run >"$(logfile)" 2>&1 </dev/null &
+    else
+      nohup bun packages/cli/src/bootstrap.ts run >"$(logfile)" 2>&1 </dev/null &
+    fi
     echo $! >"$(pidfile)"
-    printf '%s\n' ${LANE_ENV+"${LANE_ENV[@]}"} >"$(envfile)"
+    : >"$(envfile)"
+    for kv in ${LANE_ENV+"${LANE_ENV[@]}"}; do
+      printf '%s\n' "${kv%%=*}" >>"$(envfile)"
+    done
+    record_launch "$launch_mode" "$launch_executable"
   )
 
   local waited=0
