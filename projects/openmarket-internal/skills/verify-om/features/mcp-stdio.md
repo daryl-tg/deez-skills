@@ -35,6 +35,7 @@ mid-call never places an order on its own.
   naming `om mcp arm`, before the handler can reach a venue.
 - `mcp-validation`: invalid arguments come back as one compact `invalid_arguments`
   line (`Schema validation failed: <path>: <msg>`), not the SDK's verbose error.
+- `mcp-version-warning` (branch `daryl/roster-teardown-footprint`, PR #2231, pending on main): when the servant's om version and the daemon's `/healthz` version differ, the fire bridge sends one `notifications/message` (`logger` `openmarket.servant`, `level` `warning`) per daemon version and writes the same line to stderr. Older servant: `om MCP servant 0.478.0 is older than the daemon 0.480.2. Restart this Claude Code session to upgrade.` Older daemon: `Daemon 0.478.0 is older than this MCP servant 0.480.2. Restart it to catch up.` The servant never exits on its own.
 - Hosted MCP over loopback HTTP (`om mcp serve --http 127.0.0.1:<port>`): the same capability layer on `POST /mcp`, unauthenticated on loopback unless `OM_LOOPBACK_AUTH=1`.
 
 ## How to get to it (user POV)
@@ -106,6 +107,18 @@ On 2026-10-27 the responses were SSE-framed (`data: {...}`). On 2026-10-28 the s
 - Account-only tools refuse before any request. `watchlist_list` gives `missing_api_key` ("guest keys have no workspaces"). An `exchange_id` outside the 35-value domain is refused at schema validation even when `om exchanges` lists it (see [market data](./market-data-reads.md)).
 
 **Teardown trap:** killing the backgrounded `control-om om --` pid leaves its `bun packages/cli/src/bootstrap.ts mcp serve --http …` child running with PPID 1, still holding the port. Check `lsof -nP -iTCP:<port> -sTCP:LISTEN` and kill that child by pid.
+
+### Stale-version warning over stdio (added 2026-10-31, PR #2231, pending on main)
+
+Needs a servant and a daemon on different om versions. The cheapest pair is a branch build of the servant against the installed daemon on another version; the servant only reads `/healthz` and `/events/v1`, so pointing it at the operator's daemon on `31337` is read-only. A `--session merged` servant needs the badge from a live servant's environment (`ps -E -o command= -p <servant pid> | tr ' ' '\n' | grep '^OM_AGENT_SECRET='`), passed through `env`, never printed.
+
+```bash
+( printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"driver","version":"0"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}'; sleep 20 ) \
+  | env "$SECRET_KV" packages/cli/dist/om mcp serve --stdio --session merged > out.jsonl 2> err.log
+grep notifications/message out.jsonl
+```
+
+Driven 2026-10-30: a 0.480.2 branch servant against the 0.478.0 daemon answered `initialize` and, within the 20 s window, emitted exactly one `{"method":"notifications/message","params":{"level":"warning","logger":"openmarket.servant","data":"Daemon 0.478.0 is older than this MCP servant 0.480.2. Restart it to catch up."}}` with the same text on stderr. Equal versions emit nothing (driven with the installed servant and daemon both on 0.478.0). The servant-older wording is pinned by `packages/cli/test/mcp-sse-bridge.test.ts` and was not driven live.
 
 ## Gotchas
 
