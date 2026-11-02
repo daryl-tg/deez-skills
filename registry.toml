@@ -677,3 +677,8 @@ runtimes = ["claude", "codex"]
 category = "kiyotaka"
 runtimes = ["claude", "codex"]
 project = "kiyotaka-frontend"
+
+[skills.principle-scope-checks-to-the-change]
+layer    = "principle"
+category = "core"
+runtimes = ["claude", "codex"]

@@ -56,6 +56,8 @@ unread.
   every import returning `undefined` is not a check. Any code you write or edit
   → **principle-code-speaks-for-itself**: no comment explains the code or your
   work on it.
+- Any typecheck, test run, lint, or build → **principle-scope-checks-to-the-change**.
+  Whole-repo gates run only when the operator asks.
 - Any claim that something works → **principle-prove-on-the-real-surface**.
   Inconclusive is not a pass.
 - About to measure, or to report or act on a measured number, a speedup, regression, or eval
@@ -126,7 +128,7 @@ behind it means you skipped reading it.
 **Verification.** What counts as done.
 `prove-on-the-real-surface` · `explain-the-number` · `visual-approval-gates-delivery` ·
 `failing-test-first` · `test-behavior-not-implementation` · `fix-root-causes` ·
-`sequence-verifiable-units` · `finish-or-report`
+`sequence-verifiable-units` · `scope-checks-to-the-change` · `finish-or-report`
 
 **Delivery.** How work reaches main.
 `rebase-pr-squash` · `one-commit-lands` · `feature-branch-isolation` ·

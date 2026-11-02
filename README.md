@@ -5,7 +5,7 @@ and Codex on every machine. Skills live here once and are symlinked into both
 runtimes, so there is no second copy to drift.
 
 The architecture is [pstack](https://github.com/cursor/plugins/tree/main/pstack),
-adapted for two runtimes instead of one. Thirty-eight principles, twenty-five
+adapted for two runtimes instead of one. Thirty-nine principles, twenty-five
 playbooks, one router.
 
 ```mermaid
@@ -188,7 +188,7 @@ when you want one directly.
 
 ## principles
 
-Thirty-eight rules, one per skill. Playbooks **cite** them by name and never
+Thirty-nine rules, one per skill. Playbooks **cite** them by name and never
 restate them, which is what stops the same rule drifting across five files. Each
 one is invisible until something routes to it, so they cost nothing at session
 start.
@@ -197,7 +197,7 @@ About half come from rules my own skills already asserted. The rest are
 adapted from pstack.
 
 <details>
-<summary>all thirty-eight principles</summary>
+<summary>all thirty-nine principles</summary>
 
 **Core**
 
@@ -237,6 +237,7 @@ adapted from pstack.
 | `test-behavior-not-implementation` | Apply when writing, changing, or keeping a test. Call the code the way its users do and assert the observed result aga… |
 | `fix-root-causes` | Apply when debugging. Trace each symptom to its root cause and fix it there. Reproduce first, ask why until you reach … |
 | `sequence-verifiable-units` | Apply to multi-step work and to how you stack commits. Break work into small units that each end in a check, verify ea… |
+| `scope-checks-to-the-change` | Apply before any typecheck, test run, lint, or build. Run only the checks that cover what you changed. Whole-repo gates run on… |
 | `finish-or-report` | Apply at the end of any run. Never deliver a partial silently. Either the whole thing is done, or say precisely what i… |
 
 **Delivery**
@@ -398,6 +399,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `principle-prove-on-the-real-surface` | principle | claude, codex | Apply after any change, before declaring done. Verify in the running product on the surface the change touches. Tests are necessary and never sufficient; incon… |
 | `principle-rebase-pr-squash` | principle | claude, codex | Apply to every branch delivery. Rebase onto current origin/main, push the branch only, land through the PR or MR squashed. Never merge locally, never push main… |
 | `principle-redesign-from-first-principles` | principle | claude, codex | Apply when integrating a new requirement into an existing design. Redesign as if the requirement had been foundational from day one instead of bolting it on. |
+| `principle-scope-checks-to-the-change` | principle | claude, codex | Apply before any typecheck, test run, lint, or build. Run only the checks that cover what you changed. Whole-repo gates run only when the operator asks for the… |
 | `principle-separate-before-serializing-shared-state` | principle | claude, codex | Apply when concurrent workers might write the same file, branch, port, or object. Eliminate the sharing first; serialize structurally only when one shared writ… |
 | `principle-sequence-verifiable-units` | principle | claude, codex | Apply to multi-step work and to how you stack commits. Break work into small units that each end in a check, verify each before the next, and order delivery so… |
 | `principle-subtract-before-you-add` | principle | claude, codex | Apply when sequencing an addition, refactor, or rewrite. Remove dead weight, redundant validators, and stubs first, then build on the simpler base. |
