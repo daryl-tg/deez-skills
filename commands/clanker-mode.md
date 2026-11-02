@@ -1,8 +1,11 @@
 ---
-description: Apply clanker-mode to this request — routed playbooks, cited principles, proof on the real surface.
+description: Activate clanker-mode for this session — routed playbooks, cited principles, proof on the real surface.
 ---
 
-Read `~/.claude/skills/clanker-mode/SKILL.md` in full, then follow it for everything below.
+Read `~/.claude/skills/clanker-mode/SKILL.md` in full, then follow it for the
+current session until explicit opt-out. Its Session continuity section explains
+the hook marker and external task checkpoint. Compaction reloads the skill and
+current playbook; it does not restart the task or count as an explicit pause.
 
 That skill is gated with `disable-model-invocation: true`, so you cannot reach it
 through the Skill tool. Read the file directly and apply it.

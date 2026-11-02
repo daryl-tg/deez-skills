@@ -1,15 +1,21 @@
 ### OM Chat feature
 
-**Repo:** `openmarket-chat` — one workspace holding both hosts (`/rooms` at
-the root, `/chat/` in `apps/cloud`) over one shared `packages/chat-ui`. Protocol
-comes from `@openmarket/rooms-client`. **This family stops at
-`ready_for_review`.** It never merges.
+**Repo:** `openmarket-chat` on GitLab, checked out at `~/gitlab/openmarket-chat`,
+with review requests as MRs through **glab**. One workspace holds both hosts
+(`/rooms` at the root, `/chat/` in `apps/cloud`) over one shared
+`packages/chat-ui`. Protocol comes from `@openmarket/rooms-client`. **This family
+stops at `ready_for_review`.** It never merges, and landing on `main` publishes
+the hosted app. The `~/github/openmarket-chat*` checkouts are deprecated history.
+Never build or branch from them.
 
 Read `references/om-chat-boundaries.md` before editing. The short version: UI
 lives in `packages/chat-ui` and a change there hits both hosts at once, host
 `src/` is re-export facades, and the parity/sync tooling is deleted.
 
-1. **Resolve the candidate.** Read the root `AGENTS.md` and, for cloud work,
+1. **Resolve the candidate.** Confirm `git remote get-url origin` is
+   `gitlab.com/openmarketxyz/frontend/openmarket-chat`, and put the worktree at
+   `~/gitlab/openmarket-chat-<slug>` so `@cli/*` resolves. Any rig serving it
+   sets `OM_DEV_CHAT_REPO` to that path. Read the root `AGENTS.md` and, for cloud work,
    `apps/cloud/AGENTS.md`. **Name the hosts the change touches** — shared
    (`packages/chat-ui`, both hosts) or host-local — and say so before editing.
    Route to the **explore** role, pointing it at `packages/chat-ui/src/`, never

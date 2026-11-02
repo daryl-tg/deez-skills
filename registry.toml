@@ -581,6 +581,11 @@ runtimes = ["claude", "codex"]
 category = "kiyotaka"
 runtimes = ["claude", "codex"]
 
+[skills.verify-kiyotaka]
+project = "kiyotaka-frontend"
+category = "kiyotaka"
+runtimes = ["claude", "codex"]
+
 [skills.prompt-ready]
 category = "workflow"
 runtimes = ["claude"]
@@ -631,11 +636,6 @@ runtimes = ["claude", "codex"]
 
 [skills.product-video]
 category = "workflow"
-runtimes = ["claude", "codex"]
-
-[skills.verify-kiyotaka]
-project = "kiyotaka-frontend"
-category = "kiyotaka"
 runtimes = ["claude", "codex"]
 
 [skills.principle-explain-the-number]

@@ -4,9 +4,10 @@
 from without you.
 
 Explicit only. "Pause safely", "I am going offline", "restarting the CLI", and
-the moment before context compacts. "Keep going" and "going to bed, keep going"
-mean continue, not pause. `playbooks/agentic-loop.md` already checkpoints per
-goal.
+other explicit pause requests. "Keep going", "going to bed, keep going" and
+context compaction mean continue, not pause. Compaction uses the skill's
+Session continuity checkpoint without stopping delegates, committing WIP or
+shutting down services. `playbooks/agentic-loop.md` already checkpoints per goal.
 
 1. **Stop at a safe boundary.** Finish the current atomic step or back out of
    it. Never stop mid-edit in a known-broken state. Start nothing new. Cancel

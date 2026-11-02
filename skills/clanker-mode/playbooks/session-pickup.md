@@ -3,6 +3,11 @@
 Resuming or taking over in-flight work from a prior session, a branch, or
 another agent's thread.
 
+When the session hook supplies an active playbook and resume-note path, read
+them along with the current Clanker skill. A hook restores the procedure, not
+proof that the prior repository or service state is still true. Restore the
+existing checklist and continue at the first unproven step.
+
 1. **Establish what actually exists** before believing any summary. Read the
    branch, the diff against `origin/main`, the worktree state, and whether
    anything is running on an owned port. A handoff note describes intent; the

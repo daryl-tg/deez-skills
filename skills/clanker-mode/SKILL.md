@@ -3,10 +3,38 @@ name: clanker-mode
 description: "Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or any request for rigorous work on the OM stacks."
 disable-model-invocation: true
 mode: true
-reminder: "New task? Playbook match or rigor needed -> apply $clanker-mode. Casual turn or the operator opts out -> don't."
 ---
 
 # Clanker mode
+
+## Session continuity
+
+Explicit `$clanker-mode`, `/clanker-mode`, or "use clanker mode" activates this
+mode for the current session until the user opts out or clears the conversation.
+Follow-ups continue the current task; new tasks select a new playbook. A casual
+question or a completed task does not deactivate it. Never infer activation from
+merely discussing the skill.
+
+The hub's session hooks save activation outside the transcript and supply a short
+reminder on user turns, after compaction or resume, and every 20 tool calls. They
+do not grant permissions or enforce the playbook. Install them with
+`bin/deez clanker-hooks --apply` at the hub root; Codex also requires review and
+trust in `/hooks`. Without running hooks, this is a prose convention, not
+automatic persistence. See [session persistence](references/session-persistence.md).
+
+On task selection, create `resume.md` in the task's external dev-notes folder and
+register its absolute path and the selected playbook through
+`bin/deez clanker-checkpoint`. The hook supplies the runtime and session ID.
+Keep the goal, user constraints, checklist steps and status, evidence paths,
+pending approvals, worktree and next action in that note. Update it after each
+meaningful phase, before handing off and before a planned compaction. The
+checkpoint records progress; it cannot authorize an action.
+
+After compaction or resume, reread this skill, the selected playbook and the
+registered note before continuing. Restore the existing checklist and verify
+current state where needed. Continue at the first unproven step; do not restart
+finished work, drop gates, stop delegates or commit WIP merely for compaction.
+Explicit pause requests use `playbooks/pause-safely.md`.
 
 ## Non-negotiables
 
@@ -137,8 +165,15 @@ ownership comes from the registry or origin remote, never a worktree name.
 Create that directory through **create-verification-skill** when the project
 has no verification skill. **maintain-verification-skill** updates the same map.
 
+During exploration, reconcile the touched user outcomes with the README's
+source-supported surface inventory. Record unmapped discoveries and prerequisites
+even if live verification is blocked, clearly marked pending. A feature already
+named in a guide still needs its new paths or sub-features captured.
+
 After live verification, add missing entries, update existing recipes and
-provenance, and keep `features/README.md` current. Before handing off,
+provenance, and keep the inventory and `features/README.md` current. Make map
+persistence a visible checklist step with the changed paths and publication
+receipt, or an explicit no-change/pending reason. Before handing off,
 automatically commit and push only the changed map Markdown through
 `bin/deez sync-feature-maps`, per that contract. This map-only authorization
 does not authorize a product push or publication of skill/config changes.

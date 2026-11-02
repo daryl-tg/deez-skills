@@ -7,9 +7,10 @@ Invoked at the end of every delivering playbook. Applies
 first review operation and hold that answer for create, edit, view, watch, and
 land. GitHub remotes take `gh`. GitLab remotes take `glab`, with the **glab**
 skill for writes and **labiew** for review threads. Never infer the forge from
-the directory name or from the last repository you worked in. The OM stacks are
-GitHub and the Kiyotaka stack is GitLab. A session that carries `gh` into a
-GitLab repository fails at the first call with nothing landed.
+the directory name or from the last repository you worked in. OM Chat, OM
+Mobile and the Kiyotaka stack are GitLab. `openmarket-internal`, home of the
+daemon and `packages/rooms-client`, is GitHub. A session that carries `gh` into
+a GitLab repository fails at the first call with nothing landed.
 
 1. **Rebase** onto current `origin/main`. Resolve every conflict in the
    worktree. Never consolidate commits locally.

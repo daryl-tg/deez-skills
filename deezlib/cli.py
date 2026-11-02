@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import sys
 import time
@@ -23,6 +24,23 @@ def build_parser():
     maps_parser.add_argument("skill")
     maps_parser.add_argument("files", nargs="+")
     maps_parser.add_argument("--repo", help="Isolated hub worktree to publish from.")
+
+    hook_parser = subparsers.add_parser(
+        "clanker-hook", help="Handle a runtime Clanker event from JSON on stdin."
+    )
+    hook_parser.add_argument("--runtime", required=True, choices=registry.RUNTIMES)
+    hooks_parser = subparsers.add_parser(
+        "clanker-hooks", help="Install session reminders without changing other hooks."
+    )
+    hooks_parser.add_argument("--runtime", choices=registry.RUNTIMES)
+    hooks_parser.add_argument("--apply", action="store_true")
+    checkpoint_parser = subparsers.add_parser(
+        "clanker-checkpoint", help="Remember an active session's playbook and resume note."
+    )
+    checkpoint_parser.add_argument("--runtime", required=True, choices=registry.RUNTIMES)
+    checkpoint_parser.add_argument("--session", required=True)
+    checkpoint_parser.add_argument("--playbook", required=True)
+    checkpoint_parser.add_argument("--resume-note", required=True, type=Path)
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -305,6 +323,9 @@ COMMANDS = {
     "python-path": cmd_python_path,
     "skill-path": cmd_skill_path,
     "sync-feature-maps": cmd_sync_feature_maps,
+    "clanker-hook": cmd_clanker_hook,
+    "clanker-hooks": cmd_clanker_hooks,
+    "clanker-checkpoint": cmd_clanker_checkpoint,
     "link": cmd_link,
     "doctor": cmd_doctor,
     "index": cmd_index,

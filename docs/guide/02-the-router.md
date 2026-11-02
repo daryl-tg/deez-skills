@@ -43,7 +43,18 @@ to read it. Now it is a step.
 
 Once entered, the mode persists. A follow-up "keep going" stays in it; "new
 task" re-runs playbook selection; a casual turn does not drag the machinery in.
-Say so to opt out.
+Say "stop clanker mode" to opt out.
+
+This now has a runtime implementation. `bin/deez clanker-hooks --apply` adds
+session-scoped reminders on follow-ups, after compaction or resume, and every
+20 tool calls. Codex requires trusting those definitions in `/hooks`. Without
+running hooks, stickiness is only an instruction in the transcript.
+
+The active task's playbook and external `resume.md` are registered with
+`bin/deez clanker-checkpoint`. Compaction rereads them and continues the existing
+checklist. It does not stop delegates, commit WIP or rerun finished steps. See
+[session persistence](../../skills/clanker-mode/references/session-persistence.md)
+for setup, scope and recovery limits.
 
 ## When not to use it
 

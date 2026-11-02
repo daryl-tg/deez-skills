@@ -314,6 +314,11 @@ bin/check-plan  check a multi-phase plan against the skeleton its playbook publi
 bin/sync        commit and push all hub changes; never use for map-only persistence
 bin/deez sync-feature-maps <project> <skill> <files...>
                 commit and push only selected feature-map Markdown
+bin/deez clanker-hooks
+                preview session reminders; --apply installs on both runtimes
+bin/deez clanker-checkpoint --runtime <runtime> --session <id> \
+                --playbook <file.md> --resume-note <absolute-path>
+                register the active task's durable continuation note
 bin/test        the suite
 ```
 
@@ -322,6 +327,12 @@ cited but never written, a routed layer that lost its flag, a skill instructing
 a local merge to main, a playbook step routing to a role neither runtime
 defines, a count or link in these docs that no longer matches the tree, and a
 stale index.
+
+Clanker reminders survive compaction through runtime hooks rather than an
+unconsumed frontmatter field. Activate once per session; "stop clanker mode"
+opts out. Codex requires hook review in `/hooks`. See
+[session persistence](./skills/clanker-mode/references/session-persistence.md)
+for setup and the external checkpoint that keeps playbook progress intact.
 
 There is deliberately **no per-skill description limit**. A single long
 description is not what makes a runtime truncate its catalogue; the total is.
@@ -346,7 +357,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `automate-me` |  | claude, codex | Draft or refresh the operator's personal mode skill from real transcript history rather than from description. Use for 'automate me', 'capture how I work', or … |
 | `clanker-agent` |  | claude | A delegate working in clanker-mode style, not the runner of clanker-mode itself. Reads the clanker-mode skill in full before any work, including its Principles… |
 | `clanker-mode` | router | claude, codex | Daryl's agent style: routed playbooks, cited principles, proof on the real surface, and delivery by rebase-PR-squash. Use for /clanker-mode, $clanker-mode, or … |
-| `clanker-mode` |  | claude | Apply clanker-mode to this request — routed playbooks, cited principles, proof on the real surface. |
+| `clanker-mode` |  | claude | Activate clanker-mode for this session — routed playbooks, cited principles, proof on the real surface. |
 | `code-reviewer` |  | claude | Comprehensive severity-rated review across spec compliance, security, quality, and performance. Read-only. Use for the independent review pass before delivery. |
 | `correct` |  | claude, codex | Find the mistakes agents keep repeating in a repo and make each one impossible: architecture first, then types, a lint whose error names the fix, a test, and d… |
 | `create-formal-verification-skill` |  | claude, codex | Generate a project-owned skill in the deez-skills hub that formally verifies the code where a bug costs most and tests reach least, with whichever tool fits. U… |
