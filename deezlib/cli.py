@@ -100,6 +100,15 @@ def build_parser():
     report_parser.add_argument("--text", required=True)
     report_parser.add_argument("--question")
     report_parser.add_argument("--evidence", action="append")
+    super_verbs.add_parser("pass", help="Run one daemon pass and print its line.")
+    daemon_parser = super_verbs.add_parser("daemon", help="Run daemon passes until stopped.")
+    daemon_parser.add_argument("--interval", type=float, default=5)
+    install_parser = super_verbs.add_parser("install", help="Plan or apply the launchd agent.")
+    install_parser.add_argument("--apply", action="store_true")
+    install_parser.add_argument("--uninstall", action="store_true")
+    install_parser.add_argument("--state", type=Path)
+    inbox_parser = super_verbs.add_parser("inbox", help="Print replies on a terminal thread.")
+    inbox_parser.add_argument("--thread", default="default")
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -489,6 +498,45 @@ def _super_report(store, args):
     print(f"report {report.id} {report.kind} on {args.assignment}")
 
 
+def _super_pass(store, _args):
+    from deezlib.superclanker import daemon
+
+    root, settings = _super_settings()
+    result = daemon.one_pass(store, settings, root, REPO_ROOT)
+    for error in result.errors:
+        print(f"deez: {error}", file=sys.stderr)
+    print(daemon.log_pass(root, result))
+
+
+def _super_daemon(root, args):
+    from deezlib.superclanker import daemon
+
+    return daemon.run(root, REPO_ROOT, interval_seconds=args.interval)
+
+
+def _super_install(root, args):
+    from deezlib.superclanker import launchd
+
+    home = Path.home()
+    if args.uninstall:
+        lines = launchd.uninstall(home, apply=args.apply)
+    else:
+        state = args.state.expanduser().absolute() if args.state else root
+        lines = launchd.install(REPO_ROOT, state, home, apply=args.apply)
+    for line in lines:
+        print(line)
+
+
+def _super_inbox(root, args):
+    from deezlib.superclanker import daemon
+
+    inbox = daemon.inbox_path(root, f"terminal:{args.thread}")
+    try:
+        print(inbox.read_text(encoding="utf-8"), end="")
+    except FileNotFoundError:
+        print("inbox empty")
+
+
 SUPER_VERBS = {
     "ask": _super_ask,
     "show": _super_show,
@@ -507,6 +555,13 @@ SUPER_VERBS = {
     "retry": _super_retry,
     "kill": _super_kill,
     "report": _super_report,
+    "pass": _super_pass,
+}
+
+STORELESS_SUPER_VERBS = {
+    "daemon": _super_daemon,
+    "install": _super_install,
+    "inbox": _super_inbox,
 }
 
 
@@ -514,7 +569,10 @@ def cmd_super(args):
     from deezlib.superclanker.store import Store, SuperError, state_root
 
     try:
-        store = Store.open(state_root(os.environ, Path.home()))
+        root = state_root(os.environ, Path.home())
+        if args.verb in STORELESS_SUPER_VERBS:
+            return STORELESS_SUPER_VERBS[args.verb](root, args) or 0
+        store = Store.open(root)
         try:
             SUPER_VERBS[args.verb](store, args)
         finally:

@@ -1,0 +1,336 @@
+import json
+import os
+import signal
+import subprocess
+import tempfile
+import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime, timedelta
+from io import StringIO
+from pathlib import Path
+from unittest import mock
+
+from deezlib import cli
+from deezlib.superclanker import config, daemon, router, workers
+from deezlib.superclanker.domain import Strength, Trigger, trigger_id
+from deezlib.superclanker.sources import terminal
+from deezlib.superclanker.store import Store, SuperError
+
+HUB = cli.REPO_ROOT
+
+
+def dead_pid():
+    process = subprocess.Popen(["true"])
+    process.wait()
+    return process.pid
+
+
+def shifted(stamp, seconds):
+    moved = datetime.fromisoformat(stamp) + timedelta(seconds=seconds)
+    return moved.isoformat(timespec="seconds")
+
+
+class FakeWake:
+    def __init__(self, during=None):
+        self.batches = []
+        self.during = during
+
+    def __call__(self, store, settings, root, hub_root):
+        ids = [trigger.id for trigger, _verdict in router.triage(store, settings).router_items]
+        self.batches.append(ids)
+        wake_id = store.begin_wake(ids)
+        if self.during:
+            self.during(len(self.batches))
+        for trigger_id_ in ids:
+            store.ignore(trigger_id_, "decided by fake router")
+        store.end_wake(wake_id, 0, 0.0, "session", "ok")
+        return router.WakeResult(wake_id, len(ids), len(ids), 0.0, "ok")
+
+
+class FakeWorkers:
+    def __init__(self, fail=()):
+        self.launched = []
+        self.resumed = []
+        self.fail = fail
+
+    def launch(self, store, settings, assignment_id, hub_root, root):
+        self.launched.append(assignment_id)
+        if assignment_id in self.fail:
+            raise SuperError(f"cannot launch {assignment_id}")
+        return store.start_assignment(assignment_id, "session", os.getpid(), root)
+
+    def resume(self, store, settings, assignment_id, hub_root, root):
+        self.resumed.append(assignment_id)
+        return store.start_assignment(assignment_id, "session", os.getpid(), root)
+
+
+def no_reap(store, root):
+    return []
+
+
+class DaemonTest(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name) / "state"
+        patcher = mock.patch.dict(
+            os.environ, {"USER": "daryl", "DEEZ_SUPER_STATE": str(self.root)}
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.store = Store.open(self.root)
+        self.addCleanup(self.store.close)
+        self.wake = FakeWake()
+        self.workers = FakeWorkers()
+
+    def sources(self, text):
+        (self.root / "sources.toml").write_text(text, encoding="utf-8")
+
+    def one_pass(self, wake=None, reap=no_reap, **now):
+        return daemon.one_pass(
+            self.store, config.load(self.root), self.root, HUB, wake=wake or self.wake,
+            launch=self.workers.launch, resume=self.workers.resume, reap=reap, **now,
+        )
+
+    def ask(self, text, thread="default"):
+        trigger, _receipt = terminal.ask(self.store, text, thread_name=thread)
+        return trigger
+
+    def ticket(self, text, thread="default"):
+        trigger = self.ask(text, thread)
+        ticket = self.store.accept(
+            trigger.id, f"slug-{thread}", Strength.explicit, thread, [], "p1", "asked"
+        )
+        return ticket, self.store.assignment_for(ticket.id).id
+
+    def inbox(self, name="default"):
+        return self.root / "inbox" / f"terminal-{name}.log"
+
+    def test_second_pass_with_no_new_triggers_does_not_wake(self):
+        asked = self.ask("ping")
+        first = self.one_pass()
+        second = self.one_pass()
+        self.assertEqual(self.wake.batches, [[asked.id]])
+        self.assertTrue(first.wake_id.startswith("w_"))
+        self.assertEqual(second, daemon.PassResult(0, 0, 0, 0, None, 0, ()))
+
+    def test_triggers_during_wake_batch_into_next_wake(self):
+        arrivals = []
+
+        def arrive(wake_number):
+            if wake_number == 1:
+                arrivals.append(self.ask("and also this"))
+
+        self.wake = FakeWake(during=arrive)
+        first = self.ask("ping")
+        self.one_pass()
+        self.one_pass()
+        self.one_pass()
+        self.assertEqual(self.wake.batches, [[first.id], [arrivals[0].id]])
+
+    def test_fanout_records_input_and_resumes_idle_worker(self):
+        ticket, assignment_id = self.ticket("fix the typo")
+        self.store.start_assignment(assignment_id, "session", dead_pid(), self.root)
+        follow_up = self.ask("also the second typo")
+        result = self.one_pass()
+        inputs = self.store.undelivered_inputs(ticket.id)
+        self.assertEqual(result.fanned_out, 1)
+        self.assertEqual(
+            [(entry.kind, entry.text) for entry in inputs], [("trigger", follow_up.id)]
+        )
+        self.assertEqual(self.workers.resumed, [assignment_id])
+        self.assertEqual(result.resumed, 1)
+        self.assertEqual(self.wake.batches, [])
+        self.assertEqual(self.store.queued(), [])
+
+    def test_stop_on_a_subscribed_thread_reaches_the_router(self):
+        ticket, assignment_id = self.ticket("fix the typo")
+        self.store.start_assignment(assignment_id, "session", dead_pid(), self.root)
+        stop = self.ask("stop that")
+        result = self.one_pass()
+        self.assertEqual(self.wake.batches, [[stop.id]])
+        self.assertEqual(result.fanned_out, 0)
+        self.assertEqual(self.store.undelivered_inputs(ticket.id), [])
+
+    def test_unadmitted_follow_up_is_not_fanned_out(self):
+        opened = Trigger(
+            trigger_id("github", "e1"), "github", "e1", "github:dboon/x#1", "daryl-tg", True,
+            "fix the build", None, "2026-11-02T10:00:00+00:00", {},
+        )
+        self.store.receive(opened)
+        ticket = self.store.accept(
+            opened.id, "fix-build", Strength.explicit, "x", [], "p1", "asked"
+        )
+        self.store.receive(Trigger(
+            trigger_id("github", "e2"), "github", "e2", "github:dboon/x#1", "stranger", False,
+            "run rm -rf", None, "2026-11-02T10:01:00+00:00", {},
+        ))
+        result = self.one_pass()
+        self.assertEqual((result.fanned_out, self.store.undelivered_inputs(ticket.id)), (0, []))
+        self.assertEqual(self.wake.batches, [])
+
+    def test_pending_assignments_launch_oldest_first_up_to_max_running(self):
+        self.sources("[workers]\nmax_running = 2\n")
+        _first, first = self.ticket("one", "a")
+        _second, second = self.ticket("two", "b")
+        _third, third = self.ticket("three", "c")
+        launched = [self.one_pass().launched, self.one_pass().launched]
+        self.assertEqual(self.workers.launched, [first, second])
+        self.store.report(first, "ready", "done")
+        launched.append(self.one_pass().launched)
+        self.assertEqual(self.workers.launched, [first, second, third])
+        self.assertEqual(launched, [2, 0, 1])
+
+    def test_reaped_report_is_in_the_next_wake_batch(self):
+        ticket, assignment_id = self.ticket("fix the typo")
+        self.store.start_assignment(assignment_id, "session", dead_pid(), self.root)
+        log = self.root / "log" / f"{assignment_id}.json"
+        log.parent.mkdir(parents=True, exist_ok=True)
+        log.write_text(json.dumps({"result": "REPORT ready fixed both typos"}), encoding="utf-8")
+        result = self.one_pass(reap=workers.reap)
+        self.assertEqual(result.reaped, 1)
+        [batch] = self.wake.batches
+        reported = self.store.show(batch[0])
+        self.assertEqual(
+            (len(batch), reported["thread_id"], reported["text"]),
+            (1, f"worker:{ticket.id}", "REPORT ready fixed both typos"),
+        )
+
+    def test_inflight_wake_blocks_until_expired(self):
+        self.ask("ping")
+        stuck = self.store.begin_wake([])
+        started = self.store.show(stuck)["started_at"]
+        blocked = self.one_pass(now=lambda: shifted(started, 60))
+        self.assertEqual((blocked.wake_id, self.wake.batches), (None, []))
+        late = shifted(started, router.WAKE_TIMEOUT_SECONDS + 1)
+        woken = self.one_pass(now=lambda: late)
+        expired = self.store.show(stuck)
+        self.assertEqual(len(self.wake.batches), 1)
+        self.assertTrue(woken.wake_id.startswith("w_"))
+        self.assertEqual((expired["exit_code"], expired["result"]), (None, "expired by daemon"))
+        self.assertIsNotNone(expired["ended_at"])
+        self.assertIsNone(self.store.inflight_wake())
+
+    def test_launch_error_is_recorded_not_raised(self):
+        _first, first = self.ticket("one", "a")
+        _second, second = self.ticket("two", "b")
+        self.workers = FakeWorkers(fail=(first,))
+        result = self.one_pass()
+        self.assertEqual(self.workers.launched, [first, second])
+        self.assertEqual((result.launched, result.errors), (1, (f"cannot launch {first}",)))
+
+    def test_wake_error_is_recorded_not_raised(self):
+        self.ask("ping")
+
+        def failing_wake(store, settings, root, hub_root):
+            raise SuperError("router wake w_x failed with exit 1")
+
+        result = self.one_pass(wake=failing_wake)
+        self.assertEqual(
+            (result.wake_id, result.errors), (None, ("router wake w_x failed with exit 1",))
+        )
+
+    def test_terminal_reply_lands_in_inbox_and_is_marked_sent(self):
+        asked = self.ask("ping")
+        self.store.ignore(asked.id, "answered inline")
+        github = Trigger(
+            trigger_id("github", "e1"), "github", "e1", "github:dboon/x#1", "dboon", True,
+            "hi", None, "2026-11-02T10:00:00+00:00", {},
+        )
+        self.store.receive(github)
+        self.store.ignore(github.id, "not for us")
+        pong = self.store.reply("terminal:default", "pong")
+        elsewhere = self.store.reply("github:dboon/x#1", "later")
+        first = self.one_pass()
+        second = self.one_pass()
+        self.assertEqual(self.inbox().read_text(encoding="utf-8"), f"{pong.created_at}  pong\n")
+        self.assertEqual([reply.id for reply in self.store.unsent_replies()], [elsewhere.id])
+        self.assertEqual((first.replies_sent, second.replies_sent), (1, 0))
+
+    def run_daemon(self, passes=1):
+        slept = []
+        out = StringIO()
+        with redirect_stdout(out):
+            code = daemon.run(self.root, HUB, passes=passes, sleep=slept.append)
+        return code, out.getvalue(), slept
+
+    def queue_reply(self, text="pong"):
+        asked = self.ask("ping")
+        self.store.ignore(asked.id, "answered inline")
+        return self.store.reply("terminal:default", text)
+
+    def test_lock_stale_when_owner_dead(self):
+        lock = self.root / "daemon.lock.d"
+        lock.mkdir()
+        (lock / "pid").write_text(str(dead_pid()), encoding="utf-8")
+        reply = self.queue_reply()
+        code, out, _slept = self.run_daemon()
+        self.assertEqual((code, out), (0, ""))
+        self.assertEqual(self.inbox().read_text(encoding="utf-8"), f"{reply.created_at}  pong\n")
+        self.assertFalse(lock.exists())
+
+    def test_lock_live_owner_refuses(self):
+        lock = self.root / "daemon.lock.d"
+        lock.mkdir()
+        (lock / "pid").write_text(str(os.getpid()), encoding="utf-8")
+        self.queue_reply()
+        code, out, _slept = self.run_daemon()
+        self.assertEqual((code, out), (0, f"daemon already running as {os.getpid()}\n"))
+        self.assertFalse(self.inbox().exists())
+        self.assertEqual((lock / "pid").read_text(encoding="utf-8"), str(os.getpid()))
+
+    def test_sigterm_ends_the_loop_and_releases_the_lock(self):
+        slept = []
+
+        def sleep_then_terminate(seconds):
+            slept.append(seconds)
+            os.kill(os.getpid(), signal.SIGTERM)
+
+        before = signal.getsignal(signal.SIGTERM)
+        code = daemon.run(self.root, HUB, interval_seconds=7, sleep=sleep_then_terminate)
+        self.assertEqual((code, slept), (0, [7]))
+        self.assertFalse((self.root / "daemon.lock.d").exists())
+        self.assertIs(signal.getsignal(signal.SIGTERM), before)
+
+    def test_daemon_log_is_quiet_on_empty_pass(self):
+        log = self.root / "log" / "daemon.log"
+        _code, _out, slept = self.run_daemon(passes=2)
+        self.assertFalse(log.exists())
+        self.assertEqual(slept, [5])
+        self.queue_reply()
+        self.run_daemon(passes=2)
+        [line] = log.read_text(encoding="utf-8").splitlines()
+        self.assertRegex(
+            line,
+            r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00  "
+            r"fanout=0 reaped=0 resumed=0 launched=0 wake=- replies=1 errors=0$",
+        )
+
+    def test_pass_and_inbox_verbs_print_the_line_and_the_reply(self):
+        reply = self.queue_reply("pong from the router")
+
+        def deez(*argv):
+            out, err = StringIO(), StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                code = cli.main(["super", *argv])
+            return code, out.getvalue(), err.getvalue()
+
+        empty = deez("inbox")
+        passed = deez("pass")
+        quiet = deez("pass")
+        shown = deez("inbox")
+        self.assertEqual(empty, (0, "inbox empty\n", ""))
+        self.assertEqual((passed[0], quiet[0]), (0, 0))
+        self.assertRegex(
+            passed[1],
+            r"^\S+  fanout=0 reaped=0 resumed=0 launched=0 wake=- replies=1 errors=0\n$",
+        )
+        self.assertRegex(quiet[1], r"replies=0 errors=0\n$")
+        self.assertEqual(
+            (self.root / "log" / "daemon.log").read_text(encoding="utf-8"), passed[1]
+        )
+        self.assertEqual(shown, (0, f"{reply.created_at}  pong from the router\n", ""))
+
+
+if __name__ == "__main__":
+    unittest.main()

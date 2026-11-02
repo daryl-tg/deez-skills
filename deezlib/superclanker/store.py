@@ -433,6 +433,21 @@ class Store:
                 (utc_now(), exit_code, cost_usd, session_id, result, wake_id),
             )
 
+    def inflight_wake(self):
+        found = self._select(
+            Wake, "ended_at IS NULL", order="ORDER BY started_at DESC, rowid DESC LIMIT 1"
+        )
+        return found[0] if found else None
+
+    def expire_wake(self, wake_id):
+        with self._transaction():
+            self._require(Wake, wake_id)
+            self._db.execute(
+                "UPDATE wakes SET ended_at = ?, exit_code = NULL, result = ? "
+                "WHERE id = ? AND ended_at IS NULL",
+                (utc_now(), "expired by daemon", wake_id),
+            )
+
     def reply(self, thread_id, text):
         with self._transaction():
             self._require(Thread, thread_id)
@@ -469,6 +484,15 @@ class Store:
     def running_assignments(self):
         return self._select(Assignment, "state = ?", (AssignmentState.running,))
 
+    def pending_assignments(self):
+        return self._select(
+            Assignment,
+            "state = ? AND ticket_id IN (SELECT id FROM tickets WHERE state = ?)",
+            (AssignmentState.pending, TicketState.open),
+            "ORDER BY (SELECT created_at FROM tickets WHERE tickets.id = assignments.ticket_id), "
+            "(SELECT rowid FROM tickets WHERE tickets.id = assignments.ticket_id), rowid",
+        )
+
     def mark_delivered(self, input_ids):
         with self._transaction():
             self._db.execute(
@@ -489,6 +513,14 @@ class Store:
 
     def unsent_replies(self):
         return self._select(Reply, "sent_at IS NULL")
+
+    def mark_sent(self, reply_id):
+        with self._transaction():
+            self._require(Reply, reply_id)
+            self._db.execute(
+                "UPDATE replies SET sent_at = ? WHERE id = ? AND sent_at IS NULL",
+                (utc_now(), reply_id),
+            )
 
     def add_input(self, ticket_id, kind, text):
         kind = InputKind(kind)
