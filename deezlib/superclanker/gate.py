@@ -12,6 +12,7 @@ class Basis(StrEnum):
     admission = "admission"
     bot = "bot"
     off = "off"
+    internal = "internal"
 
 
 @dataclass(frozen=True)
@@ -48,7 +49,12 @@ def _fast_path(trigger, policy, thread_has_tickets):
     )
 
 
+INTERNAL_SOURCES = ("worker",)
+
+
 def admit(trigger, policy, accept_mode, thread_has_tickets):
+    if trigger.source in INTERNAL_SOURCES:
+        return Admission(Strength.explicit, Basis.internal, f"{trigger.source} report")
     admission = _fast_path(trigger, policy, thread_has_tickets)
     if admission.strength is Strength.inferred and accept_mode == AcceptMode.off:
         return Admission(Strength.not_admitted, Basis.off, f"accept mode off: {admission.reason}")

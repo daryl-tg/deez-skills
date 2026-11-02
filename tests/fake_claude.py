@@ -19,7 +19,8 @@ def main(argv):
     if exit_code:
         print(f"fake claude failed with {exit_code}", file=sys.stderr)
     session = flag_value(argv, "--session-id") or flag_value(argv, "--resume")
-    print(json.dumps({"result": "ok", "session_id": session, "total_cost_usd": 0.001}))
+    result = os.environ.get("FAKE_CLAUDE_RESULT", "ok")
+    print(json.dumps({"result": result, "session_id": session, "total_cost_usd": 0.001}))
     return exit_code
 
 

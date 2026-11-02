@@ -12,6 +12,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def build_parser():
+    from deezlib.superclanker.domain import ReportKind
+
     parser = argparse.ArgumentParser(prog="deez", description="Central skills hub.")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("version", help="Print the deez version.")
@@ -63,6 +65,7 @@ def build_parser():
     dispatch_parser.add_argument("--playbook", required=True)
     dispatch_parser.add_argument("--scope")
     dispatch_parser.add_argument("--rule", action="append", default=[])
+    dispatch_parser.add_argument("--repo", type=Path)
     attach_parser = super_verbs.add_parser("attach", help="Route a trigger to an existing ticket.")
     attach_parser.add_argument("trigger")
     attach_parser.add_argument("ticket")
@@ -79,6 +82,22 @@ def build_parser():
     note_parser = super_verbs.add_parser("note", help="Queue a fact for a ticket's worker.")
     note_parser.add_argument("ticket")
     note_parser.add_argument("--text", required=True)
+    launch_parser = super_verbs.add_parser("launch", help="Start the worker for an assignment.")
+    launch_parser.add_argument("ref", metavar="ticket-or-assignment")
+    deliver_parser = super_verbs.add_parser("deliver", help="Resume a worker with its inputs.")
+    deliver_parser.add_argument("ref", metavar="ticket-or-assignment")
+    super_verbs.add_parser("reap", help="Turn finished worker turns into report triggers.")
+    kill_parser = super_verbs.add_parser("kill", help="Stop a worker process.")
+    kill_parser.add_argument("assignment")
+    report_parser = super_verbs.add_parser("report", help="Record a worker's own report.")
+    report_parser.add_argument("assignment")
+    report_parser.add_argument(
+        "--kind", required=True,
+        choices=[kind.value for kind in ReportKind],
+    )
+    report_parser.add_argument("--text", required=True)
+    report_parser.add_argument("--question")
+    report_parser.add_argument("--evidence", action="append")
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -326,6 +345,9 @@ def _super_dispatch(store, args):
     if not KEBAB.fullmatch(args.slug):
         raise SuperError(f"slug {args.slug!r} is not kebab-case")
     playbook = _super_playbook(args.playbook)
+    repo = args.repo and args.repo.expanduser().resolve()
+    if repo and not repo.is_dir():
+        raise SuperError(f"--repo {args.repo} is not a directory")
     trigger = _super_trigger(store, args.trigger)
     if not store.undecided([trigger.id]) and DecisionKind.accept not in _super_decision_kinds(
         store, trigger.id
@@ -344,6 +366,8 @@ def _super_dispatch(store, args):
         settings.accept.policy_version, f"dispatch by router: {verdict.basis}",
     )
     store.add_input(ticket.id, "note", f"playbook: {playbook}")
+    if repo:
+        store.add_input(ticket.id, "note", f"repo: {repo}")
     print(
         f"accept {trigger.id} → ticket {ticket.id} mandate {verdict.strength} {verdict.basis} "
         f"playbook {playbook}"
@@ -398,6 +422,65 @@ def _super_note(store, args):
     print(f"noted {args.ticket}")
 
 
+def _super_assignment(store, ref):
+    if ref.startswith("k_"):
+        _super_record(store, "ticket", "k_", ref)
+        return store.assignment_for(ref).id
+    _super_record(store, "assignment", "a_", ref)
+    return ref
+
+
+def _super_launch(store, args):
+    from deezlib.superclanker import workers
+
+    root, settings = _super_settings()
+    started = workers.launch(store, settings, _super_assignment(store, args.ref), REPO_ROOT, root)
+    print(
+        f"launched {started.id} session {started.session_id} pid {started.pid} "
+        f"in {started.worktree}"
+    )
+
+
+def _super_deliver(store, args):
+    from deezlib.superclanker import workers
+
+    root, settings = _super_settings()
+    assignment_id = _super_assignment(store, args.ref)
+    count = len(store.undelivered_inputs(store.show(assignment_id)["ticket_id"]))
+    resumed = workers.resume(store, settings, assignment_id, REPO_ROOT, root)
+    print("nothing to deliver" if resumed is None else f"resumed {resumed.id} with {count} inputs")
+
+
+def _super_reap(store, _args):
+    from deezlib.superclanker import workers
+
+    root, _settings = _super_settings()
+    triggers = workers.reap(store, root)
+    if not triggers:
+        print("nothing to reap")
+    for trigger in triggers:
+        kind = store.show(trigger.meta["report"])["kind"]
+        print(f"report {kind} for {trigger.meta['ticket']} → {trigger.id}")
+
+
+def _super_kill(store, args):
+    from deezlib.superclanker import workers
+
+    _super_record(store, "assignment", "a_", args.assignment)
+    workers.stop(store, args.assignment)
+    print(f"stopped {args.assignment}")
+
+
+def _super_report(store, args):
+    from deezlib.superclanker.store import SuperError
+
+    _super_record(store, "assignment", "a_", args.assignment)
+    if args.kind == "waiting" and not args.question:
+        raise SuperError("a waiting report carries exactly one --question")
+    report = store.report(args.assignment, args.kind, args.text, args.question, args.evidence)
+    print(f"report {report.id} {report.kind} on {args.assignment}")
+
+
 SUPER_VERBS = {
     "ask": _super_ask,
     "show": _super_show,
@@ -410,6 +493,11 @@ SUPER_VERBS = {
     "stop": _super_stop,
     "reply": _super_reply,
     "note": _super_note,
+    "launch": _super_launch,
+    "deliver": _super_deliver,
+    "reap": _super_reap,
+    "kill": _super_kill,
+    "report": _super_report,
 }
 
 

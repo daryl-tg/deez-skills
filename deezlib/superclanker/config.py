@@ -34,6 +34,12 @@ class RouterConfig:
 
 
 @dataclass(frozen=True)
+class WorkersConfig:
+    model: str | None = None
+    max_running: int = 3
+
+
+@dataclass(frozen=True)
 class SourcePolicy:
     name: str
     enabled: bool = False
@@ -56,6 +62,7 @@ class Config:
     router: RouterConfig
     sources: dict
     rules: list
+    workers: WorkersConfig = WorkersConfig()
 
     def policy(self, source):
         return self.sources.get(source) or default_policy(source)
@@ -98,6 +105,7 @@ _ACCEPT = {"mode": _choice(AcceptMode), "policy_version": _text}
 _ROUTER = {
     "model": _text, "wake_cap_chars": _count, "inline_chars": _count, "im_reply_words": _count,
 }
+_WORKERS = {"model": _text, "max_running": _count}
 _SOURCE = {
     "enabled": _flag, "mode": _choice(SourceMode), "senders": _names, "bots": _names,
     "scopes": _names,
@@ -135,7 +143,7 @@ def _read(path):
 def load(root):
     root = Path(root)
     raw = _read(root / "sources.toml")
-    unknown = sorted(raw.keys() - {"accept", "router", "sources"})
+    unknown = sorted(raw.keys() - {"accept", "router", "workers", "sources"})
     if unknown:
         raise SuperError(f"sources.toml: unknown key {', '.join(unknown)}")
     sources = {"terminal": default_policy("terminal")}
@@ -145,6 +153,7 @@ def load(root):
         accept=AcceptPolicy(**_section("accept", raw.get("accept", {}), _ACCEPT)),
         router=RouterConfig(**_section("router", raw.get("router", {}), _ROUTER)),
         sources=sources,
+        workers=WorkersConfig(**_section("workers", raw.get("workers", {}), _WORKERS)),
         rules=sorted(
             path.stem for path in (root / "policy" / "rules").glob("*.md") if path.is_file()
         ),

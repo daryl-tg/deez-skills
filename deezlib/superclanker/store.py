@@ -37,6 +37,13 @@ class InputKind(StrEnum):
     trigger = "trigger"
 
 
+class TicketOutcome(StrEnum):
+    merged = "merged"
+    closed = "closed"
+    dropped = "dropped"
+    done = "done"
+
+
 @dataclass(frozen=True)
 class Wake:
     id: str
@@ -94,7 +101,7 @@ CREATE TABLE IF NOT EXISTS mandates (
 CREATE TABLE IF NOT EXISTS tickets (
     id TEXT PRIMARY KEY, slug TEXT NOT NULL, thread_id TEXT NOT NULL,
     mandate_id TEXT NOT NULL, state TEXT NOT NULL, created_at TEXT NOT NULL,
-    ended_at TEXT, ended_by TEXT);
+    ended_at TEXT, ended_by TEXT, outcome TEXT);
 CREATE INDEX IF NOT EXISTS tickets_by_thread ON tickets (thread_id);
 CREATE TABLE IF NOT EXISTS acceptances (
     trigger_id TEXT PRIMARY KEY, ticket_id TEXT NOT NULL);
@@ -240,6 +247,9 @@ class Store:
         connection = sqlite3.connect(root / "super.db", isolation_level=None)
         connection.execute("PRAGMA journal_mode=WAL")
         connection.executescript(_SCHEMA)
+        ticket_columns = {row[1] for row in connection.execute("PRAGMA table_info(tickets)")}
+        if "outcome" not in ticket_columns:
+            connection.execute("ALTER TABLE tickets ADD COLUMN outcome TEXT")
         return cls(connection)
 
     def close(self):
@@ -429,6 +439,53 @@ class Store:
             reply = Reply(_new_router_id(Reply), thread_id, text, utc_now(), None)
             self._insert(reply)
         return reply
+
+    def ticket_origin(self, ticket_id):
+        row = self._db.execute(
+            "SELECT trigger_id FROM acceptances WHERE ticket_id = ? ORDER BY rowid LIMIT 1",
+            (ticket_id,),
+        ).fetchone()
+        if row is None:
+            raise SuperError(f"no accepted trigger for ticket {ticket_id}")
+        return self._require(Trigger, row[0])
+
+    def assignment_for(self, ticket_id):
+        assignment = self._latest_assignment(ticket_id)
+        if assignment is None:
+            raise SuperError(f"no assignment for ticket {ticket_id}")
+        return assignment
+
+    def start_assignment(self, assignment_id, session_id, pid, worktree):
+        with self._transaction():
+            self._require(Assignment, assignment_id)
+            self._db.execute(
+                "UPDATE assignments SET state = CASE WHEN state = ? THEN state ELSE ? END, "
+                "session_id = ?, pid = ?, worktree = ?, started_at = ? WHERE id = ?",
+                (AssignmentState.ended, AssignmentState.running, session_id, pid, str(worktree),
+                 utc_now(), assignment_id),
+            )
+            return self._require(Assignment, assignment_id)
+
+    def running_assignments(self):
+        return self._select(Assignment, "state = ?", (AssignmentState.running,))
+
+    def mark_delivered(self, input_ids):
+        with self._transaction():
+            self._db.execute(
+                "UPDATE inputs SET delivered_at = ? "
+                "WHERE id IN (SELECT value FROM json_each(?)) AND delivered_at IS NULL",
+                (utc_now(), json.dumps(list(input_ids))),
+            )
+
+    def end_ticket(self, ticket_id, outcome):
+        outcome = TicketOutcome(outcome)
+        with self._transaction():
+            self._require(Ticket, ticket_id)
+            self._db.execute(
+                "UPDATE tickets SET state = ?, ended_at = ?, outcome = ? WHERE id = ? AND state = ?",
+                (TicketState.ended, utc_now(), outcome, ticket_id, TicketState.open),
+            )
+            return self._require(Ticket, ticket_id)
 
     def unsent_replies(self):
         return self._select(Reply, "sent_at IS NULL")

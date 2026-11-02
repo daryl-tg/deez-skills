@@ -108,3 +108,19 @@ class GateTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WorkerReportGateTest(unittest.TestCase):
+    def test_worker_reports_are_always_explicit(self):
+        from deezlib.superclanker import config as superconfig, gate
+        from deezlib.superclanker.config import AcceptMode
+        from deezlib.superclanker.domain import Strength
+        trigger = Trigger(
+            id="t_worker0001", source="worker", source_event_id="r_1", thread_id="worker:k_1",
+            actor="worker:k_1", addressed=True, text="REPORT ready diff at /x", parent_id=None,
+            received_at="2026-11-02T10:00:00+00:00", meta={},
+        )
+        for accept_mode in (AcceptMode.off, AcceptMode.observe, AcceptMode.auto):
+            verdict = gate.admit(trigger, superconfig.default_policy("worker"), accept_mode, False)
+            self.assertIs(verdict.strength, Strength.explicit, accept_mode)
+            self.assertEqual(verdict.basis, gate.Basis.internal)
