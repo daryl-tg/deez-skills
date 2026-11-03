@@ -9,7 +9,10 @@ POLL_SECONDS = 0.05
 
 
 def _inside(root_parts, path):
-    return Path(path).resolve().parts[:len(root_parts)] == root_parts
+    try:
+        return Path(path).resolve().parts[:len(root_parts)] == root_parts
+    except (OSError, RuntimeError, ValueError):
+        return False
 
 
 def _cwd_listing(run):
@@ -51,12 +54,15 @@ def _send(kill, pid, signum):
         kill(pid, signum)
     except ProcessLookupError:
         pass
+    except OSError:
+        return False
+    return True
 
 
 def sweep(worktree, run=subprocess.run, kill=os.kill, grace_seconds=3):
-    pids = leftovers(worktree, run)
-    for pid in pids:
-        _send(kill, pid, signal.SIGTERM)
+    pids = [
+        pid for pid in leftovers(worktree, run) if _send(kill, pid, signal.SIGTERM)
+    ]
     deadline = time.monotonic() + grace_seconds
     survivors = [pid for pid in pids if _alive(kill, pid)]
     while survivors and time.monotonic() < deadline:

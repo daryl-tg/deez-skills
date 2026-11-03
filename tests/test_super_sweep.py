@@ -6,6 +6,7 @@ import time
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 from deezlib.superclanker import sweep
 
@@ -43,6 +44,18 @@ class LeftoversTest(unittest.TestCase):
             run = fake_lsof(lsof_output((41, str(real))))
 
             self.assertEqual(sweep.leftovers(alias, run=run), [41])
+
+    def test_path_that_cannot_be_resolved_is_skipped(self):
+        run = fake_lsof(lsof_output((61, "/wt/k_1/loop"), (62, "/wt/k_1/ok")))
+        real_resolve = Path.resolve
+
+        def resolve(path, *args, **kwargs):
+            if path.name == "loop":
+                raise RuntimeError("Symlink loop")
+            return real_resolve(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "resolve", resolve):
+            self.assertEqual(sweep.leftovers("/wt/k_1", run=run), [62])
 
     def test_lsof_failure_yields_nothing(self):
         run = fake_lsof(lsof_output((51, "/wt/k_1")), returncode=2)
@@ -106,6 +119,21 @@ class SweepTest(unittest.TestCase):
         run = fake_lsof(lsof_output((81, "/wt/k_1")))
 
         self.assertEqual(sweep.sweep("/wt/k_1", run=run, kill=kill, grace_seconds=0), [81])
+
+    def test_unsignalable_process_is_omitted_without_raising(self):
+        sent = []
+
+        def kill(pid, signum):
+            sent.append((pid, signum))
+            if pid == 91:
+                raise PermissionError
+
+        run = fake_lsof(lsof_output((91, "/wt/k_1"), (92, "/wt/k_1/x")))
+
+        swept = sweep.sweep("/wt/k_1", run=run, kill=kill, grace_seconds=0)
+
+        self.assertEqual(swept, [92])
+        self.assertIn((92, signal.SIGKILL), sent)
 
     def test_nothing_to_sweep_returns_empty(self):
         self.assertEqual(sweep.sweep("/wt/k_1", run=fake_lsof(""), grace_seconds=0), [])
