@@ -95,6 +95,18 @@ Follow [the project verification contract](../../../../docs/project-verification
 for storage and map-only automatic commits and pushes. Nothing here belongs in
 `openmarket-internal`, whose public export has a boundary gate and license audit.
 
+After proving a map change, commit and push only the changed `features/*.md`
+straight to the hub's `main`, from the hub root:
+
+```sh
+bin/deez sync-feature-maps openmarket-internal verify-om <file.md>... [--repo <hub worktree>]
+```
+
+Pass `--repo` when you edited in an isolated hub worktree. This is the one
+standing push to `main` and it covers map Markdown only. `SKILL.md`, wrappers,
+helpers and the registry go through ordinary review. No map change means
+nothing to publish.
+
 A map versioned separately from product code needs its own product baseline.
 Every feature entry carries a `Verified` date, product commit or tree, what was
 driven, and any limitations. Update that provenance whenever the entry is

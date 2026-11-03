@@ -97,7 +97,11 @@ environment lists every setup step it did that the target will not.
 real handles from this repo, ARIA roles and accessible names over coordinates.
 **Evidence** what to capture and where it goes. **Cleanup** kill what you
 started, never by process name; evidence survives teardown. **Helpers**
-executable, with invocation shown.
+executable, with invocation shown. **Keeping it current** names
+`maintain-verification-skill` and gives the exact
+`bin/deez sync-feature-maps <project> verify-<app> <file.md>...` line, so a
+session that loads only this skill knows its proved map changes go straight to
+the hub's `main`. `bin/doctor` fails a mapped skill without that line.
 
 Proof standards for the Evidence section: exercise the real user path, not
 internal setters or test-only endpoints. Capture the action and the resulting

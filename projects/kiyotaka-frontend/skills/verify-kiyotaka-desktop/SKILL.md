@@ -153,3 +153,15 @@ are gitignored and wiped by the next run.
 
 `maintain-verification-skill` is the upkeep pass. A lane or check renamed in `desktop/tools/verify/` changes the
 matching feature file in the same change, with its provenance line.
+
+After proving a map change, commit and push only the changed `features/*.md`
+straight to the hub's `main`, from the hub root:
+
+```sh
+bin/deez sync-feature-maps kiyotaka-frontend verify-kiyotaka-desktop <file.md>... [--repo <hub worktree>]
+```
+
+Pass `--repo` when you edited in an isolated hub worktree. This is the one
+standing push to `main` and it covers map Markdown only. `SKILL.md`, wrappers,
+helpers and the registry go through ordinary review. No map change means
+nothing to publish.
