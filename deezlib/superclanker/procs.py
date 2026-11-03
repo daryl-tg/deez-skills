@@ -156,7 +156,7 @@ def main_session_pids(table, run=subprocess.run):
             capture_output=True, text=True, timeout=TMUX_TIMEOUT_SECONDS,
         )
     except (OSError, subprocess.SubprocessError):
-        return set()
+        return None
     if listing.returncode != 0:
         return set()
     found = set()
@@ -175,7 +175,7 @@ def ancestors(table, pid):
 
 
 def protected(table, own_pid, main_pids, listeners):
-    if listeners is None:
+    if listeners is None or main_pids is None:
         return None
     named = {
         proc.pid for proc in table.values()

@@ -9,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from deezlib.superclanker import ui_model
+from deezlib.superclanker import procs, ui_format, ui_model
 from deezlib.superclanker.domain import Strength, Trigger, trigger_id
 from deezlib.superclanker.store import Store
 
@@ -197,6 +197,40 @@ def build_trigger(index):
     )
 
 
+class FormatTest(unittest.TestCase):
+    def test_ticket_label_shows_the_repo(self):
+        row = SimpleNamespace(
+            ticket_id="k_1", state="open", worker_state="running", slug="fix-it", repo="deez-skills",
+            last_report="progress", rss_kb=1048576, age_s=65, question=None,
+        )
+        self.assertIn("deez-skills", ui_format.ticket_label(row))
+
+    def test_sessions_text_shows_each_peers_tree_rss(self):
+        table = {
+            2: procs.Proc(2, 1, 0, 1048576, "claude"),
+            3: procs.Proc(3, 2, 0, 1048576, "node"),
+            4: procs.Proc(4, 1, 0, 524288, "claude"),
+        }
+        snap = SimpleNamespace(
+            table=table,
+            attribution=procs.Attribution({}, {"alpha": {2, 3}, "beta": {4}}, set()),
+            peers=[
+                SimpleNamespace(name="alpha", pid=2, status="busy", cwd="/a"),
+                SimpleNamespace(name="beta", pid=4, status="idle", cwd="/b"),
+                SimpleNamespace(name="gamma", pid=9, status="idle", cwd="/c"),
+            ],
+        )
+        lines = ui_format.sessions_text(snap).splitlines()
+        self.assertIn("2.0 GB", lines[0])
+        self.assertIn("0.5 GB", lines[1])
+        self.assertIn("-", lines[2])
+        self.assertNotIn("GB", lines[2])
+
+    def test_sessions_text_without_peers(self):
+        snap = SimpleNamespace(table={}, attribution=None, peers=[])
+        self.assertEqual(ui_format.sessions_text(snap), "no peer sessions")
+
+
 class AssemblyTest(TempTest):
     def setUp(self):
         super().setUp()
@@ -248,6 +282,22 @@ class AssemblyTest(TempTest):
         self.assertEqual(rows[0].question, "Which?")
         self.assertEqual(rows[0].last_report, "waiting")
         self.assertFalse(rows[1].needs_you)
+
+    def test_ended_ticket_with_a_waiting_report_does_not_need_you(self):
+        waiting = self.ticket(1, report="waiting")
+        stopped = self.ticket(2, report="blocked", end="done")
+        open_one = self.ticket(3)
+
+        snapshot = self.build()
+
+        by_id = {row.ticket_id: row for row in snapshot.rows}
+        self.assertTrue(by_id[waiting.id].needs_you)
+        self.assertFalse(by_id[stopped.id].needs_you)
+        self.assertEqual(
+            [row.ticket_id for row in snapshot.rows], [waiting.id, open_one.id, stopped.id],
+        )
+        anomalies = sum(len(items) for _kind, items in snapshot.anomalies)
+        self.assertEqual(ui_model.attention_count(snapshot), anomalies + 1)
 
     def test_worker_rss_includes_reparented_leftovers(self):
         ticket = self.ticket(1, pid=101, worktree=str(self.root / "worktrees" / "scratch" / "k_1"))

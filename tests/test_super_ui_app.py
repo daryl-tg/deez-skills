@@ -153,6 +153,65 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
                 table.move_cursor(row=index)
         await pilot.pause()
 
+    async def filtered(self, pilot, text):
+        await pilot.press("slash")
+        await pilot.pause()
+        if text:
+            pilot.app.screen.query_one("#prompt").value = text
+        await pilot.press("enter")
+        await settle(pilot)
+
+    async def test_filter_cancelled_with_escape_keeps_the_board_running(self):
+        rig = Rig(snapshot([ticket("k_1"), ticket("k_2")]))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            before = labels(pilot.app)
+            await pilot.press("slash")
+            await pilot.pause()
+            await pilot.press("escape")
+            await settle(pilot)
+            self.assertEqual(labels(pilot.app), before)
+
+    async def test_filter_submitted_empty_clears_the_filter(self):
+        rig = Rig(snapshot([ticket("k_1"), ticket("k_2")]))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            before = labels(pilot.app)
+            await self.filtered(pilot, "k_2")
+            self.assertFalse(any("k_1" in label for label in labels(pilot.app)))
+            await pilot.press("slash")
+            await pilot.pause()
+            pilot.app.screen.query_one("#prompt").value = ""
+            await pilot.press("enter")
+            await settle(pilot)
+            self.assertEqual(labels(pilot.app), before)
+
+    async def test_filter_narrows_rows_to_matches(self):
+        rig = Rig(snapshot([ticket("k_1"), ticket("k_2")]))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            await self.filtered(pilot, "k_2")
+            shown = labels(pilot.app)
+        self.assertTrue(any("k_2" in label for label in shown))
+        self.assertFalse(any("k_1" in label for label in shown))
+
+    async def test_ticket_rows_show_the_repo(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            self.assertTrue(any("repo" in label for label in labels(pilot.app)[1:]))
+
+    async def test_sessions_tab_shows_peer_rss(self):
+        table = {2: procs.Proc(2, 1, 0, 2097152, "claude")}
+        peer = ui_model.Peer("alpha", 2, "/a", "busy", "s")
+        rig = Rig(snapshot(
+            peers=[peer], table=table,
+            attribution=procs.Attribution({}, {"alpha": {2}}, set()),
+        ))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            self.assertIn("2.0 GB", plain(pilot.app, "#sessions-text"))
+
     async def test_ask_sends_ask_verb(self):
         rig = Rig(snapshot([ticket("k_1")]))
         async with rig.app().run_test() as pilot:

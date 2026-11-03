@@ -195,7 +195,7 @@ def _row(root, now, ticket, assignment, report):
         pid=assignment.pid if assignment else None,
         last_report=str(kind) if kind else None,
         question=report.question if report else None,
-        needs_you=kind in (ReportKind.waiting, ReportKind.blocked),
+        needs_you=ticket.state == TicketState.open and kind in (ReportKind.waiting, ReportKind.blocked),
         rss_kb=None,
     )
 
@@ -205,7 +205,10 @@ def _ordered(board):
     return sorted(
         newest,
         key=lambda entry: (
-            not (entry[2] and entry[2].kind in (ReportKind.waiting, ReportKind.blocked)),
+            not (
+                entry[0].state == TicketState.open
+                and entry[2] and entry[2].kind in (ReportKind.waiting, ReportKind.blocked)
+            ),
             entry[0].state != TicketState.open,
         ),
     )

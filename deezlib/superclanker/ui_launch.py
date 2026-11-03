@@ -58,23 +58,44 @@ def _state_args(state):
     return ["--state", str(state)] if state else []
 
 
-def tmux_plan(env, has_session, deez, state):
+def _board_command(deez, state):
+    return [str(deez), "super-clanker", "ui", "--no-tmux", *_state_args(state)]
+
+
+def _main_command(env):
+    path = env.get("PATH", os.defpath)
+    return ["env", f"PATH={path}", "sh", "-c", "claude --continue || claude"]
+
+
+def _window_named(windows, name):
+    return next((window for window in windows if window.startswith(name)), None)
+
+
+def tmux_plan(env, has_session, deez, state, windows=()):
     if "TMUX" in env:
         return []
     plan = []
     if not has_session:
-        plan.append([
-            "tmux", "new-session", "-d", "-s", SESSION, "-n", "board",
-            str(deez), "super-clanker", "ui", "--no-tmux", *_state_args(state),
-        ])
-        plan.append([
-            "tmux", "new-window", "-t", SESSION, "-n", "main", "-c", str(Path.home()),
-            "sh", "-c", "claude --continue || claude",
-        ])
-    if not has_session:
-        plan.append(["tmux", "select-window", "-t", f"{SESSION}:board"])
+        plan.append(["tmux", "new-session", "-d", "-s", SESSION, "-n", "board", *_board_command(deez, state)])
+        plan.append(["tmux", "new-window", "-t", SESSION, "-n", "main", "-c", str(Path.home()), *_main_command(env)])
+        board = "board"
+    else:
+        board = _window_named(windows, "board")
+        if board is None:
+            plan.append(["tmux", "new-window", "-t", SESSION, "-n", "board", *_board_command(deez, state)])
+            board = "board"
+        if _window_named(windows, "main") is None:
+            plan.append(["tmux", "new-window", "-t", SESSION, "-n", "main", "-c", str(Path.home()), *_main_command(env)])
+    plan.append(["tmux", "select-window", "-t", f"{SESSION}:{board}"])
     plan.append(["tmux", "attach", "-t", SESSION])
     return plan
+
+
+def _window_names(run, env):
+    listing = _run(run, ["tmux", "list-windows", "-t", SESSION, "-F", "#{window_name}"], env)
+    if listing.returncode != 0:
+        raise SuperError(f"tmux list-windows -t {SESSION} failed: {(listing.stderr or '').strip()}")
+    return (listing.stdout or "").splitlines()
 
 
 def app_argv(python, state):
@@ -90,7 +111,8 @@ def launch(args, env, run=subprocess.run, execve=os.execve, deez=REPO_ROOT / "bi
         if not tmux:
             raise SuperError(f"tmux not found on PATH {env['PATH']}")
         has_session = _run(run, ["tmux", "has-session", "-t", SESSION], env).returncode == 0
-        plan = tmux_plan(env, has_session, deez, state)
+        windows = _window_names(run, env) if has_session else ()
+        plan = tmux_plan(env, has_session, deez, state, windows)
         for step in plan[:-1]:
             _step(run, step, env)
         execve(tmux, plan[-1], env)

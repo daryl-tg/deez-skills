@@ -99,7 +99,7 @@ class ProtectionTest(unittest.TestCase):
 
     def test_port_listeners_and_main_session_tolerate_failure(self):
         self.assertIsNone(procs.port_listeners(run=raising(OSError)))
-        self.assertEqual(procs.main_session_pids(PEER_TABLE, run=raising(OSError)), set())
+        self.assertIsNone(procs.main_session_pids(PEER_TABLE, run=raising(OSError)))
 
     def test_port_listeners_non_zero_exit_is_unknown(self):
         self.assertIsNone(procs.port_listeners(run=fake_run("", returncode=2)))
@@ -129,6 +129,25 @@ class ProtectionTest(unittest.TestCase):
             [f"-iTCP:{port}" for port in procs.PROTECTED_PORTS],
         )
         self.assertTrue(all(argv[0] == procs.LSOF for argv in calls))
+
+    def test_main_session_pids_unknown_on_timeout_and_subprocess_error(self):
+        for error in (
+            lambda: subprocess.TimeoutExpired("tmux", 1), subprocess.SubprocessError, OSError,
+        ):
+            self.assertIsNone(procs.main_session_pids(PEER_TABLE, run=raising(error)))
+
+    def test_main_session_pids_empty_when_tmux_exits_non_zero(self):
+        run = fake_run("", returncode=1)
+        self.assertEqual(procs.main_session_pids(PEER_TABLE, run=run), set())
+
+    def test_protected_is_none_when_main_session_unknown(self):
+        self.assertIsNone(procs.protected(PEER_TABLE, 11, None, set()))
+
+    def test_every_kill_is_refused_when_main_session_unknown(self):
+        guard = procs.protected(PEER_TABLE, 11, None, set())
+        self.assertEqual(
+            procs.kill_refusal(PEER_TABLE, 71, guard, 501, set()), "protection unavailable",
+        )
 
     def test_main_session_pids_are_pane_subtrees(self):
         run = fake_run("70\n")

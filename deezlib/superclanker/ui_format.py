@@ -49,7 +49,7 @@ def ticket_label(row):
     size = "-" if row.rss_kb is None else f"{gb(row.rss_kb)} GB"
     ask = f'  "{row.question}"' if row.question else ""
     return (
-        f"{row.ticket_id}  {row.state}  {row.worker_state or '-'}  {row.slug}  "
+        f"{row.ticket_id}  {row.state}  {row.worker_state or '-'}  {row.repo}  {row.slug}  "
         f"{row.last_report or '-'}  {size}  {_age(row.age_s)}{ask}"
     )
 
@@ -59,3 +59,15 @@ def report_text(row):
         f"{row.ticket_id}  {row.slug}  {row.state}", f"repo {row.repo}  worker {row.worker_state or '-'}",
         f"last report: {row.last_report or '-'}", f"question: {row.question or '-'}",
     ])
+
+
+def sessions_text(snap):
+    if not snap.peers:
+        return "no peer sessions"
+    groups = snap.attribution.peers if snap.attribution else {}
+    lines = []
+    for peer in snap.peers:
+        pids = groups.get(peer.name)
+        size = "-" if pids is None else f"{gb(procs.tree_rss_kb(snap.table, pids))} GB"
+        lines.append(f"{peer.name}  {peer.pid}  {peer.status}  {size}  {peer.cwd}")
+    return "\n".join(lines)

@@ -76,24 +76,59 @@ class EnsureVenvTest(unittest.TestCase):
 
 class TmuxPlanTest(unittest.TestCase):
     def test_tmux_plan_creates_session_with_board_and_main_windows(self):
-        plan = ui_launch.tmux_plan({}, False, DEEZ, Path("/state"))
+        plan = ui_launch.tmux_plan({"PATH": "/p:/q"}, False, DEEZ, Path("/state"))
         self.assertEqual(
             plan,
             [
                 ["tmux", "new-session", "-d", "-s", "clanker", "-n", "board",
                  str(DEEZ), "super-clanker", "ui", "--no-tmux", "--state", "/state"],
                 ["tmux", "new-window", "-t", "clanker", "-n", "main", "-c", str(Path.home()),
-                 "sh", "-c", "claude --continue || claude"],
+                 "env", "PATH=/p:/q", "sh", "-c", "claude --continue || claude"],
                 ["tmux", "select-window", "-t", "clanker:board"],
                 ["tmux", "attach", "-t", "clanker"],
             ],
         )
 
-    def test_tmux_plan_attaches_existing_session(self):
+    def test_tmux_plan_attaches_existing_session_with_both_windows(self):
         self.assertEqual(
-            ui_launch.tmux_plan({}, True, DEEZ, None),
-            [["tmux", "attach", "-t", "clanker"]],
+            ui_launch.tmux_plan({}, True, DEEZ, None, windows=["board", "main"]),
+            [["tmux", "select-window", "-t", "clanker:board"], ["tmux", "attach", "-t", "clanker"]],
         )
+
+    def test_tmux_plan_recreates_missing_board_window(self):
+        plan = ui_launch.tmux_plan({"PATH": "/p"}, True, DEEZ, Path("/state"), windows=["main"])
+        self.assertEqual(
+            plan,
+            [
+                ["tmux", "new-window", "-t", "clanker", "-n", "board",
+                 str(DEEZ), "super-clanker", "ui", "--no-tmux", "--state", "/state"],
+                ["tmux", "select-window", "-t", "clanker:board"],
+                ["tmux", "attach", "-t", "clanker"],
+            ],
+        )
+
+    def test_tmux_plan_recreates_missing_main_window(self):
+        plan = ui_launch.tmux_plan({"PATH": "/p"}, True, DEEZ, None, windows=["board"])
+        self.assertEqual(
+            plan,
+            [
+                ["tmux", "new-window", "-t", "clanker", "-n", "main", "-c", str(Path.home()),
+                 "env", "PATH=/p", "sh", "-c", "claude --continue || claude"],
+                ["tmux", "select-window", "-t", "clanker:board"],
+                ["tmux", "attach", "-t", "clanker"],
+            ],
+        )
+
+    def test_tmux_plan_matches_board_window_by_prefix(self):
+        plan = ui_launch.tmux_plan({}, True, DEEZ, None, windows=["board(!2)", "main"])
+        self.assertEqual(
+            plan,
+            [["tmux", "select-window", "-t", "clanker:board(!2)"], ["tmux", "attach", "-t", "clanker"]],
+        )
+
+    def test_tmux_plan_recreates_both_when_session_has_other_windows(self):
+        plan = ui_launch.tmux_plan({"PATH": "/p"}, True, DEEZ, None, windows=["zsh"])
+        self.assertEqual([step[1] for step in plan], ["new-window", "new-window", "select-window", "attach"])
 
     def test_tmux_plan_empty_inside_tmux(self):
         self.assertEqual(ui_launch.tmux_plan({"TMUX": "x"}, False, DEEZ, None), [])
@@ -139,6 +174,29 @@ class LaunchTest(unittest.TestCase):
         self.assertIn(["tmux", "select-window"], flat)
         self.assertEqual(execs[0][0], TMUX)
         self.assertEqual(execs[0][1], ["tmux", "attach", "-t", "clanker"])
+
+    def test_launch_lists_windows_of_an_existing_session_and_recreates_missing_ones(self):
+        calls = []
+
+        def run(argv, **kwargs):
+            calls.append([str(part) for part in argv])
+            stdout = "main\n" if argv[1] == "list-windows" else ""
+            return SimpleNamespace(returncode=0, stderr="", stdout=stdout)
+
+        execs = []
+        args = SimpleNamespace(state=None, no_tmux=False)
+        ui_launch.launch(
+            args, {"PATH": "/usr/bin"}, run=run,
+            execve=lambda *a: execs.append(a), deez=DEEZ, which=which_found,
+        )
+        self.assertIn(
+            ["tmux", "list-windows", "-t", "clanker", "-F", "#{window_name}"], calls,
+        )
+        created = [call for call in calls if call[1] == "new-window"]
+        self.assertEqual(len(created), 1)
+        self.assertEqual(created[0][created[0].index("-n") + 1], "board")
+        self.assertEqual(execs[0][1], ["tmux", "attach", "-t", "clanker"])
+        self.assertIn(["tmux", "select-window", "-t", "clanker:board"], calls)
 
     def test_launch_gives_every_call_the_extended_path(self):
         run, calls = recorder((0, ""), (1, ""), (0, ""), (0, ""), (0, ""))

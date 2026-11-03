@@ -17,7 +17,7 @@ from textual.widgets import DataTable, Footer, Input, Label, Static, TabbedConte
 
 from deezlib.superclanker import procs
 from deezlib.superclanker.store import state_root
-from deezlib.superclanker.ui_format import header_text, report_text, ticket_label
+from deezlib.superclanker.ui_format import header_text, report_text, sessions_text, ticket_label
 from deezlib.superclanker.ui_memory import MemoryMixin, memory_table, protect_table, read_session_peers
 from deezlib.superclanker.ui_model import Cadence, attention_count, build_snapshot, needs_you_rose
 from deezlib.superclanker.ui_takeover import TakeoverMixin, run_tmux
@@ -379,7 +379,7 @@ class BoardApp(MemoryMixin, TakeoverMixin, App):
         )
         self.render_memory()
         self.query_one("#sessions-text", Static).update(
-            "\n".join(f"{p.name}  {p.pid}  {p.status}  {p.cwd}" for p in snap.peers) or "no peer sessions"
+            sessions_text(snap)
         )
 
     def maybe_reload_log(self):
@@ -552,7 +552,7 @@ class BoardApp(MemoryMixin, TakeoverMixin, App):
 
     def action_filter(self):
         def apply(text):
-            self.filter_text = "" if text == "-" else text
+            self.filter_text = "" if text in (None, "-") else text
             if self.snap:
                 self.render_rows()
 
