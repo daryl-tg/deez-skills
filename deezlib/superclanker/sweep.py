@@ -23,7 +23,7 @@ def _cwd_listing(run):
         )
     except (OSError, subprocess.SubprocessError):
         return ""
-    return listing.stdout if listing.returncode == 0 else ""
+    return listing.stdout or ""
 
 
 def leftovers(worktree, run=subprocess.run):

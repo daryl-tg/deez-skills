@@ -57,10 +57,10 @@ class LeftoversTest(unittest.TestCase):
         with mock.patch.object(Path, "resolve", resolve):
             self.assertEqual(sweep.leftovers("/wt/k_1", run=run), [62])
 
-    def test_lsof_failure_yields_nothing(self):
-        run = fake_lsof(lsof_output((51, "/wt/k_1")), returncode=2)
+    def test_lsof_exiting_one_with_output_still_finds_leftovers(self):
+        run = fake_lsof(lsof_output((51, "/wt/k_1")), returncode=1)
 
-        self.assertEqual(sweep.leftovers("/wt/k_1", run=run), [])
+        self.assertEqual(sweep.leftovers("/wt/k_1", run=run), [51])
 
     def test_missing_lsof_yields_nothing(self):
         def run(argv, **kwargs):
