@@ -5,17 +5,16 @@ a dev lane overrides it with `OPENMARKET_DESKTOP_URL`), takes a single-instance 
 first window, and remembers the window's position, size and maximized state across launches. The window has no system
 title bar: a 36 px bar view above the page carries Back, Forward, the page title and an update button, and draws its
 own tooltips; on Windows and Linux the menu bar stays hidden until Alt. A packaged release build shows a one-time
-"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-11-03 on product tree `1af9ebbe07`
+"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-11-04 on product tree `8436920004`
 (`origin/main`, desktop 0.1.7; the shell's `desktop/src/` unchanged since `30481b57f8`) with the console session locked
-and the machine at a load average of 4 to 6 on 10 cores. The `window` scenario on production passed 9 of 12 in 107 s,
-the same split as every run from 2026-10-29 to 2026-11-02: the first launch logged `desktop: loaded
-https://openmarket.xyz/chart/` with the title `76,669.4 ▲ BTC - USD`, 15 canvases and a candle frame
+and the machine at a load average of 4 to 7 on 10 cores. The `window` scenario on production passed 9 of 12 in 106 s,
+the same split as every run from 2026-10-29 to 2026-11-03: the first launch logged `desktop: loaded
+https://openmarket.xyz/chart/` with the title `77,849.0 ▲ BTC - USD`, 15 canvases and a candle frame
 (`unit-01-chart.png` shows the 1h BTC-USD candles with VWAP, not the splash), the second instance focused it
 (`desktop: second instance, focusing`, exit 0, one window), and the saved bounds (moved to 120,110 at 1280 by 800,
-maximized) matched on relaunch (`relaunchBoundsEqualMoved` true, the relaunch logging `desktop: window bounds
-{"x":120,"y":110,"width":1280,"height":800}` and `desktop: loaded`). The three relaunch checks (`relaunchBtcTitle`,
+maximized) matched on relaunch (`relaunchBoundsEqualMoved` true). The three relaunch checks (`relaunchBtcTitle`,
 `relaunchCanvas`, `relaunchMaximized`) went red because the relaunch is a `capture.js` launch, which a locked screen
-leaves with no frame (`relaunchCapture: {}`). No `capture` was attempted from 2026-10-31 to 2026-11-03 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The
+leaves with no frame (`relaunchCapture: {}`). No `capture` was attempted from 2026-10-31 to 2026-11-04 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The
 last captures were on 2026-10-28 on `5365748ef3`: the dev-lane frame showed the boot splash, and the production frames
 showed candles and the sign-in screen. The `window` scenario was last 12 of 12 that day. The title bar, the Alt menu bar
 and the beta notice have no live driver (unit tests in `desktop/tests/main/` only; the beta notice never shows on a dev
@@ -26,7 +25,10 @@ lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
 - `launch-chart` the window loads the chart and candles stream.
 - `launch-single` a second launch logs `desktop: second instance, focusing`, exits `0` and leaves one window.
 - `launch-window-state` moved, resized and maximized bounds come back on relaunch.
-- `launch-login` the sign-in screen renders in the shell with email code, password, Google and X, and no passkey row.
+- `launch-login` the sign-in screen renders in the shell with email code, password, Google and X, and no passkey pill.
+  Since `4b8f78a775` (2026-11-03, after `1af9ebbe07`) the dialog is one card: Email me a code, Sign in with a password
+  instead, "Or continue with" and a row of outlined pills (Passkey, Google, X in a browser; Google and X in the shell,
+  where `PasskeyService.isSupported()` is false under the bridge). The shell frame of the new card is not yet captured.
 - `launch-titlebar` the bar's Back, Forward, title and update button, disabled while a block or sign-in screen covers
   the window. Live verification pending: `capture` grabs the page view only, so the bar is never in a frame.
 - `launch-beta-notice` the one-time beta notice on a packaged release build. Live verification pending: no lane packs
@@ -53,8 +55,9 @@ Preconditions:
   `control-kiyotaka-desktop capture <dir>/shell-chart-prod.png --prod`. The loaded line names
   `https://openmarket.xyz/chart/`.
 - **The sign-in screen.** `control-kiyotaka-desktop capture <dir>/shell-login-prod.png --prod --path '?login=1'`.
-  Open the PNG: "Sign in or create an account", Email me a code, Sign in with a password instead, then Google and X.
-  There is no Use a passkey row in the shell; the same dialog in Chromium shows one, which is the proof of
+  Open the PNG: "Sign in or create an account", Email me a code, Sign in with a password instead, "Or continue with",
+  then Google and X pills. There is no Passkey pill in the shell; the same dialog in Chromium shows one
+  (`login-signup-passkey-btn`, "Passkey", read on `/chart/auth` on 2026-11-04), which is the proof of
   `src/services/passkey.service.ts` refusing passkeys under the bridge. No Turnstile widget shows for clean traffic.
 - **Single instance and window state.** `control-kiyotaka-desktop run launch <dir> window`. It passes with 12 checks,
   `loadedLine`, `btcTitle`, `canvas`, `secondInstanceLine`, `secondInstanceExited`, `oneWindow`,
@@ -84,8 +87,10 @@ Preconditions:
 - **Turnstile is a soft gate now.** auth-service hides the widget for clean traffic, so the sign-in capture usually
   shows no widget at all. When a widget does show, only `--prod` proves it: the dev lane's env carries Cloudflare's
   test sitekey, which reads Success! over a red "For testing only" strip.
-- Plain Chromium on the dev lane shows a first-run "See what moves price." onboarding dialog over a fresh guest chart.
-  The shell frames on 2026-10-27 caught the chart before it appeared.
+- A fresh guest chart shows the guest signup prompt ("See what moves price.", Join for free,
+  `guest-signup-modal-close-btn`, `GuestSignupPromptDialog.vue`) some seconds after it loads, in Chromium and in the
+  shell (the `returns` frame on 2026-11-04). It is not the first-run onboarding, which never starts for a guest. The
+  shell frames on 2026-10-27 caught the chart before it appeared.
 - No backend means no candles: the env file is missing or the dev backend is down, and the chart reads "Retrying data
   request...". `doctor`'s backend line catches the second; `lane up` refuses the first.
 - `capture` settles 60 s after load. A cold lane compiles the module graph on the first page load, so lower

@@ -9,9 +9,9 @@ shows its own "A new version of the OpenMarket app is ready." toast through `ope
 policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice in the title bar or block the site below a
 `minVersion`; both channel policies are `off`. A merge to `main` that changes `desktop/package.json`, or a hand-pushed
 `desktop-v*` tag, runs `desktop release` (macOS, with Windows unless `DESKTOP_SKIP_WINDOWS=1`), `desktop release
-linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `1af9ebbe07`
-(`origin/main`, 2026-11-03) is still 0.1.7. The update round trip was last driven 2026-11-03 by the `update` scenario on
-that tree: 14 of 15 checks in 97 s including both packs, the same split as on every run since 2026-10-27, up to the
+linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `8436920004`
+(`origin/main`, 2026-11-04) is still 0.1.7. The update round trip was last driven 2026-11-04 by the `update` scenario on
+that tree: 14 of 15 checks in 102 s including both packs, the same split as on every run since 2026-10-27, up to the
 boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature: `desktop: update check
 http://127.0.0.1:18150/ beta`, `desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`, `Code
 signature at URL file://.../ShipIt/update.../OpenMarket.app/ did not pass validation: code failed to satisfy specified
@@ -65,7 +65,7 @@ Preconditions:
 - **Unit level.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test` runs `updater`,
   `update-bridge`, `titlebar`, `policy`, `build-site`, `dev-lane`, and `tests/scripts/release-tag.test.ts`,
   `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27, 2026-10-29 (`30481b57f8`),
-  2026-10-31 (`5475ab32d5`, in 2.2 s), 2026-11-01 (`2646a76a83`, in 2.2 s), 2026-11-02 (`39b22dd2ec`, in 2.3 s) and 2026-11-03 (`1af9ebbe07`, in 2.3 s);
+  2026-10-31 (`5475ab32d5`, in 2.2 s), 2026-11-01 (`2646a76a83`, in 2.2 s), 2026-11-02 (`39b22dd2ec`, in 2.3 s), 2026-11-03 (`1af9ebbe07`, in 2.3 s) and 2026-11-04 (`8436920004`, in 2.5 s);
   on 2026-10-30 the subprocess tests timed out under machine load. Not a live proof.
 - **Upload set.** The publish script refuses unless every file it uploads exists and each feed file names the
   version, so a dry run needs a release build in `DIST_DIR` or placeholders. With placeholders, run:
@@ -74,8 +74,8 @@ Preconditions:
   control-kiyotaka-desktop cli -- bash -c 'd=$(mktemp -d) && v=0.1.0 && for f in mac-arm64.dmg mac-x64.dmg mac-arm64.zip mac-arm64.zip.blockmap mac-x64.zip mac-x64.zip.blockmap win-x64.exe win-x64.exe.blockmap; do touch "$d/OpenMarket-$v-$f"; done && for f in latest-mac.yml latest.yml; do echo "version: $v" > "$d/$f"; done && cd desktop && DRY_RUN=1 DIST_DIR="$d" DESKTOP_VERSION=$v DESKTOP_CHANNEL=stable BUCKET=dry bash scripts/publish-r2.sh; rc=$?; rm -rf "$d"; exit $rc'
   ```
 
-  It printed 13 `dry-run: upload` lines on 2026-10-12 (`d554bfb38c`, unit 12) and again on 2026-11-02 on `39b22dd2ec` and
-  2026-11-03 on `1af9ebbe07` under macOS `/bin/bash` 3.2.57: the eight installers, `latest-mac.yml`, `latest.yml` and the three `latest/`
+  It printed 13 `dry-run: upload` lines on 2026-10-12 (`d554bfb38c`, unit 12) and again on 2026-11-02 on `39b22dd2ec`,
+  2026-11-03 on `1af9ebbe07` and 2026-11-04 on `8436920004` under macOS `/bin/bash` 3.2.57: the eight installers, `latest-mac.yml`, `latest.yml` and the three `latest/`
   aliases, then `Published OpenMarket 0.1.0 to s3://dry/desktop/stable`, exit 0. `DESKTOP_TARGETS` defaults to
   `mac win`, so the Linux target adds lines only when named. `c57cc3af80` (on 2026-11-02's tree) rewrote the script's
   five array loops as `${ARR[@]+"${ARR[@]}"}` so an empty array passes under bash 3.2's `set -u`; that dry run under

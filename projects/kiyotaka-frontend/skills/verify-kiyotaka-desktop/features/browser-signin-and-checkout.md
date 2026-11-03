@@ -9,28 +9,29 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-03 on tree
-`1af9ebbe07` (`origin/main`) in Chromium on the dev lane, one page at a time with the tab re-fronted before each poll
-(a first pass that opened three tabs at once on a cold lane drew "Startup is taking longer than expected ... [failed to
-load external] main.ts" on two pages; see the [index](./README.md)): the return page (valid and invalid), the four checkout-return states, the signin page's redirect to
-`/chart/auth?redirect=/desktop/signin`, the super-search command (`super-search-result-featureCommands:desktop-app-btn`,
-"Download the OpenMarket desktop app", the only result for "desktop app"; the "Draw by holding" tip's overlay covered
-`global-nav-search-btn` until its Got it was clicked, and the query went in through the input event) and the sign-in dialog with its
-`login-signup-passkey-btn` "Use a passkey" row among `login-signup-submit-btn`, `-use-password-btn`, `-google-btn`,
-`-twitter-btn`, `-forgot-password-btn` and `-tos-link`. The chart route reached the guest button in about ten seconds
-with a priced title but only 2 bars of history (`76,852.9 ▲ BTC - USD`, 15 canvases, "Reconnecting..."), because the
-lane's streaming host did not resolve; on 2026-11-02 it had live candles, and none of these proofs needs candles. On 2026-10-30 the route
-never settled under machine load (see the [index](./README.md)). `AuthFormView.vue`, `ProfilePanel.vue`,
-the four desktop pages did not change between `2646a76a83` and `1af9ebbe07`, and `ProfilePanel.vue` not since `6dd6aa43de`;
-between `39b22dd2ec` and `1af9ebbe07` `featureCommands.ts` was reworked (`66a5bcb680`) with the `desktop-app`
-command's id, aliases and gate unchanged, and `AuthFormView.vue` gained `usePendingTwoFA` (`5027d30d82`, an expired
-2FA step restarts sign-in) with its rows unchanged; between
-2026-10-31 and 2026-11-01 `AuthFormView.vue` changed (`10655335c4`, `e3e96bf360`: the field collapse clips with
-`min-width: 0`, so the form no longer runs past the card; `.field-collapse-inner` read 342 px wide with `overflow:
-clip` on 2026-11-02) and the dialog's rows were not touched; on 2026-10-31 `ProfilePanel.vue` changed (`6dd6aa43de`)
-and its `desktop-app` row, behind `isDesktopDownloadEntryVisible()`, was not touched. The shell's production sign-in
-screen with no passkey row was last captured 2026-10-28 on `5365748ef3`; from 2026-10-29 to 2026-11-03 the console
-session was locked, so `capture` got no frame or was not attempted (see [launch](./shell-launch-and-window.md)). The
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-04 on tree
+`8436920004` (`origin/main`) in Chromium on the dev lane (live candles, 250 bars in the engine), one page at a time
+through `about:blank` with the tab re-fronted before each read: the return page (valid: `desktop-return-title`
+"Signed in. Open OpenMarket to finish", `desktop-return-open`, href with no hash; invalid: `desktop-return-invalid`),
+the four checkout-return states ("Payment received", "Checkout cancelled", "Billing updated", and
+`desktop-checkout-return-invalid` with `desktop-checkout-return-chart`, each with the query wiped), the signin page's
+redirect to `/chart/auth?redirect=/desktop/signin` ("Sign in or create an account"), and the super-search command
+(`super-search-result-featureCommands:desktop-app-btn`, "Download the OpenMarket desktop app", the only result for
+"desktop app", typed through the input event after the "Draw by holding" tip was closed with `ink-tutorial-close`).
+The sign-in card on `/chart/auth` read `login-signup-submit-btn` "Email me a code", `-use-password-btn`,
+`-passkey-btn` "Passkey", `-google-btn`, `-twitter-btn` and `-tos-link`; `-forgot-password-btn` shows only in the
+password step. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
+sit in one row of outlined pills under "Or continue with", a successful password, code, passkey or 2FA sign-in shows a
+welcome screen (`login-signup-welcome`) and then reloads once behind index.html's sign-in handoff card
+(`handOffSignIn`, `src/utility/auth/signin-handoff.util.ts`), and `ResendCountdown.vue` is new. The shell's browser
+sign-in does not take that path: its PKCE exchange is in the main process (`desktop/src/main/index.ts`,
+`browser-signin.ts`) and never calls `handOffSignIn`. The `DesktopBrowserSignIn` row (`login-signup-browser-btn`,
+gated on the bridge's `browserSignIn`) and the passkey gate (`PasskeyService.isSupported()` is false under
+`window.openmarketDesktop`) are unchanged. The four desktop pages, `featureCommands.ts`'s `desktop-app` command (id,
+aliases, gate) and `ProfilePanel.vue`'s `desktop-app` row did not change between `1af9ebbe07` and `8436920004`. The
+shell's production sign-in screen with no passkey row was last captured 2026-10-28 on `5365748ef3`, before the
+one-card rebuild; from 2026-10-29 to 2026-11-04 the console session was locked, so `capture` got no frame or was not
+attempted (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
 `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`, a real orange and, for checkout, a Stripe session.
@@ -46,7 +47,7 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   finish" with `desktop-return-open` and wipes the hash; any other `#to` shows `desktop-return-invalid`.
 - `signin-start-page` `/desktop/signin` reads "Sign in to the OpenMarket app" and "Checking your sign-in…" while it
   checks the account, then sends a signed-out visitor to `/auth?redirect=/desktop/signin`.
-- `signin-no-passkey` the shell's sign-in screen has no Use a passkey row; Chromium's does.
+- `signin-no-passkey` the shell's sign-in screen has no Passkey pill; Chromium's does (`login-signup-passkey-btn`).
 - `checkout-return-page` `/desktop/checkout-return` reads "Payment received" (`?product=<p>&session_id=cs_...`),
   "Checkout cancelled" (`?product=<p>`) or "Billing updated" (`?flow=portal`) with `desktop-checkout-return-open`, wipes
   the query, and shows `desktop-checkout-return-invalid` with `desktop-checkout-return-chart` for anything else.
@@ -83,15 +84,18 @@ Preconditions:
     before the account check settles sees the page itself, with no `desktop-` testids, so read again before calling
     it a miss.
 - **No passkey in the shell.** `control-kiyotaka-desktop capture <dir>/shell-login-prod.png --prod --path '?login=1'`
-  shows no Use a passkey row; the same dialog in Chromium (`browser ... click '[data-testid="profile-guest-mode-btn"]'`)
+  shows no Passkey pill; the same dialog in Chromium (`browser ... click '[data-testid="profile-guest-mode-btn"]'`)
   shows one.
-- **Download door.** In Chromium, once the chart shows its guest button, click `global-nav-search-btn` (with
-  candles the first-run "See what moves price." dialog appears a little later and covers the button; see Gotchas),
+- **Download door.** In Chromium, once the chart shows its guest button, close whatever overlay covers it (the
+  "Draw by holding" tip's `ink-tutorial-close` or the guest signup prompt's `guest-signup-modal-close-btn`; see
+  Gotchas) and poll until no `.dialog-overlay` remains, then click `global-nav-search-btn`,
   then `browser ... fill '[data-testid="super-search-input"]' 'desktop app'`, wait about three seconds, and read
   `super-search-result-featureCommands:desktop-app-btn`. If `fill` answers "Element not found" while the input is in
   the DOM, set the value from `eval` instead: `Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,
   'value').set.call(i, 'desktop app'); i.dispatchEvent(new Event('input', { bubbles: true }))` on
-  `i = document.querySelector('[data-testid=super-search-input]')`. Either way the row is the only result.
+  `i = document.querySelector('[data-testid=super-search-input]')`, wrapped in an arrow function that runs at once:
+  agent-browser's `eval` shares one global scope across calls, so a second top-level `const i` throws "Identifier 'i'
+  has already been declared". Either way the row is the only result.
 - **Proof.** One PNG per page plus the read testids and href; the two sign-in frames side by side.
 
 ## Gotchas
@@ -102,8 +106,9 @@ Preconditions:
 - agent-browser's headless tab drifts to `hidden`, and the boot splash waits on `requestAnimationFrame`, so a page read
   too early sees no testids and a splash frame. Re-front the tab and wait for `#skeleton-loader` to disappear. A DOM
   read can succeed while the frame still comes out blank: on 2026-10-31 two of seven page PNGs were a 3.7 KB white
-  frame with every testid read correctly. Run `browser --session <s> tab 1` right before `screenshot`, not only between
-  waits; the re-shot frames drew.
+  frame with every testid read correctly. Run `browser --session <s> tab t1` right before `screenshot`, not only between
+  waits; the re-shot frames drew. agent-browser takes a tab id (`t1`); on 2026-11-04 `tab 1` answered "Expected a tab
+  id like `t1`".
 - The pages wipe their hash or query on mount, so read `location.href` after the wipe to prove it and keep the URL you
   opened in the run notes.
 - `browser ... keyboard type 'desktop app'` after the search click left `super-search-input` empty on 2026-11-01, with
@@ -113,15 +118,18 @@ Preconditions:
   (`document.activeElement` was the `.ssv3-pill-input`); setting the value through the native setter and an `input`
   event (see Driving) listed the row at once. A missing row after `keyboard type` or `fill` is the driver, not the
   door: read the input's value and the DOM before calling it a miss.
-- With candles on the lane, the first-run "See what moves price." dialog (`.dialog-overlay`,
-  `guest-signup-modal-close-btn`) appears some seconds after the guest button and covers `global-nav-search-btn`:
-  agent-browser's click answers "is covered by <div.dialog-style.dialog-overlay>". On 2026-11-02 a click right after
-  the guest button appeared went through, a click after a minute hit the overlay, and one close click reported done
-  while the overlay still intercepted 1.5 s later. Click the close button and poll until no `.dialog-overlay` remains
-  before the search click. The same dialog is what stops the `links` lane (see [links](./links-menu-and-channel.md)).
+- With candles on the lane, a fresh guest chart raises one of two overlays over `global-nav-search-btn`: the guest
+  signup prompt ("See what moves price.", `.dialog-overlay`, `guest-signup-modal-close-btn`, `GuestSignupPromptDialog.vue`)
+  or the "Draw by holding" tip (`ink-tutorial`, `ink-tutorial-close`). It is not the first-run onboarding, which never
+  starts for a guest. agent-browser's click answers "is covered by <div.dialog-style.dialog-overlay>". On 2026-11-02 a
+  click right after the guest button appeared went through, a click after a minute hit the overlay, and one close
+  click reported done while the overlay still intercepted 1.5 s later. On 2026-11-04 the first load showed the prompt,
+  and a reload in the same session showed the tip instead. Read which close testid the overlay holds, click it, and
+  poll until no `.dialog-overlay` remains before the search click. The prompt is what stops the `links` lane (see
+  [links](./links-menu-and-channel.md)).
 - A page read that returns no `desktop-` testid with `#skeleton-loader` still present after a minute is a hidden tab,
   not the page: on 2026-11-01 the invalid return page and the expired sign request both read empty that way on the
-  first pass, and read correctly after two polls when `tab 1` ran before every poll. Re-front before each read, not only
+  first pass, and read correctly after two polls when `tab t1` ran before every poll. Re-front before each read, not only
   before the screenshot.
 - No lane signs in through the browser end to end. `open 'openmarket://oauth/callback?...'` with no pending sign-in only
   logs `desktop: sign-in return dropped, none-pending`.

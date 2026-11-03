@@ -7,33 +7,33 @@ plot region is blank in either capture; a step also fails when the hosts disagre
 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`; `ad67d47c62`,
 on 2026-11-02's tree, retired `si-panel-trades-liquidations` and renamed the `panel-tape` inventory row "Tape /
 Footprint panel", since one tape now serves every market, and left the guest steps alone) that signs in as the
-operator's real account on the deployed chart. On 2026-11-03 on tree `1af9ebbe07` (`origin/main`, `parity.mjs`
-unchanged) the sweep packed the app and threw in `waitForCandles` (`parity.mjs:457`, 180 s) before any step, as on
-2026-11-01: the dev lane's engine held 2 bars, because the v2 streaming host did not resolve, while Chromium on the same
-lane read a ticking priced title (see the [index](./README.md)). Last driven with steps on 2026-11-02 on tree
-`39b22dd2ec`, guest steps
-named, with the console session locked and the machine at a load average of 3 to 6, on a lane with candles: the same
-split as 2026-10-29 (`30481b57f8`) and 2026-10-31 (`5475ab32d5`), in 8 min 23 s with its pack (Electron 44.9.3,
-Chromium 152 in the shell; the sweep dismissed `guest-signup-modal-close-btn` in both hosts). On 2026-11-01
-(`2646a76a83`) the sweep had packed the app and then thrown `page.waitForFunction: Timeout 180000ms exceeded` in
-`waitForCandles` (`parity.mjs:457`) before any step, with no summary and no frame, because the chart's v2 streaming
-socket (`VITE_V2_WEB_SOCKET_DOMAIN`, `tsdb-gateway.int.ore.kiyotaka.ai`, an internal `10.1.1.x` address over the
-Tailscale route) was unreachable from the machine while the lane's REST health read `ok`; that was an environment
-block, not a shell or sweep finding (see the [index](./README.md)), and the host answered again on 2026-11-02.
-9 green (`boot-candles`, `ind-catalog`, `ind-search`, `ind-add`,
-`sym-dialog`, `sym-results`, `sym-scope`, `ks-super-search`, `ks-open`), 6 blocked at sign-in (`ind-legend`,
-`tb-layout-apply`, `ks-run`, `hl-order`, `cex-order`, `oneclick-link`), 12 findings. `ind-dialog` is a finding with
-every check true in both hosts (`searchBox`, `dialogStyleOverlay`, `guestCapShown`): 1.7 percent of the unmasked
-pixels differ (1.7 on 2026-10-31, 1.6 on 2026-10-29; 19,395 of 1,148,860 pixels on 2026-11-02, masks over 11 percent
-of the frame), inside the dialog's suggestion and catalog cards, which draw different content in the two hosts. That
-is content, not the shell. `sym-switch` failed `closed` in both hosts again (`ethTitle` and `barsOver50` true in both,
-its pair 0.2 percent apart), and every later step failed on a click or hover timeout in both hosts (`tb-interval` a
-15 s click, the peeks a 30 s hover, `hl-enable` and `cex-connect` a 15 s click plus a failed restore). `pulse-page`
-timed out waiting for the Pulse page. `login-wall` wrote no shell capture (`captured` and `loadedLane` false): its shell
-half is a `capture.js` launch, and a locked screen gives it no frame (see [launch](./shell-launch-and-window.md)).
-Chromium's half wrote its frame. The runs of 2026-10-27, 2026-10-28, 2026-10-29, 2026-10-31 and 2026-11-02, at very
-different loads, give the same cascade, so it is drift between the sweep and the web tree, not load. The signed-in phase has not been driven in this
-map. The Windows sweep needs a VM and has never run.
+operator's real account on the deployed chart. Last driven 2026-11-04 on tree `8436920004` (`origin/main`, `parity.mjs`
+unchanged since `30481b57f8`), guest steps named, with the console session locked and the machine at a load average of
+3 to 7, on a lane with candles (250 bars in Chromium's engine before the sweep), in 8 min 36 s with its pack (Electron
+44.9.3, Chromium 152 in the shell; the sweep dismissed `guest-signup-modal-close-btn` in both hosts). 10 green
+(`boot-candles`, `ind-dialog`, `ind-catalog`, `ind-search`, `ind-add`, `sym-dialog`, `sym-results`, `sym-scope`,
+`ks-super-search`, `ks-open`), 6 blocked at sign-in (`ind-legend`, `tb-layout-apply`, `ks-run`, `hl-order`,
+`cex-order`, `oneclick-link`), 11 findings. `ind-dialog` turned green with every check true in both hosts
+(`searchBox`, `dialogStyleOverlay`, `guestCapShown`, cap `1 / 3`): 0.46 percent of the unmasked pixels differed (5,307
+of 1,148,915, masks over 11 percent of the frame), just under the 0.5 percent line; on 2026-10-29, 2026-10-31 and
+2026-11-02 it was a finding at 1.6 to 1.7 percent, inside the dialog's suggestion and catalog cards, which draw
+different content in the two hosts. Read it as content close to the line, not as a shell change. `sym-switch` failed
+`closed` in both hosts again (`ethTitle` and `barsOver50` true in both, symbol `BINANCE.F ETHUSDT`, its pair 0.02
+percent apart), and every later step failed on a click or hover timeout in both hosts (`tb-interval`, `tb-plot`,
+`tb-panels` a 15 s click, the peeks a 30 s hover, `tb-plot`, `hl-enable` and `cex-connect` with a failed restore too).
+`pulse-page` timed out waiting for the Pulse page. `login-wall` wrote no shell capture (`captured` and `loadedLane`
+false): its shell half is a `capture.js` launch, and a locked screen gives it no frame (see
+[launch](./shell-launch-and-window.md)). Chromium's half wrote its frame. The runs of 2026-10-27, 2026-10-28,
+2026-10-29, 2026-10-31, 2026-11-02 and 2026-11-04, at very different loads, give the same cascade, so it is drift
+between the sweep and the web tree, not load. On 2026-11-01 (`2646a76a83`) and 2026-11-03 (`1af9ebbe07`) the sweep
+packed the app and threw in `waitForCandles` (`parity.mjs:457`, 180 s) before any step, because the dev lane's v2
+streaming host (`tsdb-gateway.int.ore.kiyotaka.ai`) was unreachable or did not resolve while the lane's REST health
+read `ok`; that was an environment block, not a sweep finding (see the [index](./README.md)). A source read on
+2026-11-04 found no testid the sweep uses that went dead between `1af9ebbe07` and `8436920004`; the dead alternatives
+it carries are older (`global-nav-pulse-btn` at `parity.mjs:220`, beside the live `pulse-main-feed` and
+`pulse-main-notice`; `option-chain-row` in `si-option-chain`, beside the live `option-chain-strike*`;
+`live-streams-card` and `marketplace-card` in masks; `workspace-more-0-btn` in the signed-in layouts rows). The
+signed-in phase has not been driven in this map. The Windows sweep needs a VM and has never run.
 
 ## Sub-features
 
@@ -82,7 +82,7 @@ Preconditions:
   `sym-switch` left its dialog open (`closed: false`) and blocked every later click. That is unconfirmed, and it points
   at drift between the sweep and the web tree, to be recorded in the `verify-kiyotaka` map. It does not point at the
   shell.
-- The sweep closes the first-run onboarding dialog itself (`meta.dismissed` lists `guest-signup-modal-close-btn` for
+- The sweep closes the guest signup prompt itself (`meta.dismissed` lists `guest-signup-modal-close-btn` for
   both hosts); `launch.mjs`'s `links` scenario does not.
 - A re-run on a reused package can fail before any step: `waitForCandles` timed out at 180 s once and
   `desktop: loaded` never came once, with `doctor` green both times. Check for leftover shells and Chromiums after a

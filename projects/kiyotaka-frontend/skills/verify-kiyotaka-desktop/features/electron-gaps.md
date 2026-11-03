@@ -10,29 +10,30 @@ registers, and the offline and online events fire. A download saves to Downloads
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-On 2026-11-03, on tree `1af9ebbe07` (`origin/main`; `8ce333e5e9` changed only the comment over `contextMenuRows`), the
-lane packed nothing new (`GAPS_REUSE_PACKAGE=1`) and threw `page.waitForFunction: Timeout 180000ms exceeded` in
-`waitForCandles` (`gaps.mjs:505`) from `bootHosts` (`gaps.mjs:1694`) before any row, because the dev lane had no
-candle history (2 bars; the v2 streaming host did not resolve; see the [index](./README.md)). So the right-click rows
-have not been driven under the chart-only cancel (`gaps-contextmenu` below): live verification pending. The guest rows
-were last driven on 2026-11-02, on tree `39b22dd2ec` (`gaps.mjs` unchanged since `30481b57f8`, under the old
-document-wide cancel), straight after the parity sweep on the same lane with `GAPS_REUSE_PACKAGE=1`, in 101 s, with the same
-result as 2026-10-31 (`5475ab32d5`, 103 s). On 2026-11-01 (`2646a76a83`) the lane had thrown `page.waitForFunction:
-Timeout 180000ms exceeded` in `waitForCandles` (`gaps.mjs:505`) from `bootHosts` (`gaps.mjs:1695`) before any row,
-with no table and no frame, because the dev lane had no candles in either host that day (the chart's v2 streaming host
-was unreachable from the machine; see [parity](./parity-sweep.md) and the [index](./README.md)); that was an
-environment block, not a row result. Both driven runs had the console session locked:
+Last driven 2026-11-04, on tree `8436920004` (`origin/main`; `gaps.mjs` unchanged since `8ce333e5e9`'s comment edit),
+straight after the parity sweep on the same dev lane (250 bars in the engine) with `GAPS_REUSE_PACKAGE=1`, in 105 s,
+with the console session locked:
 
 - 16 rows passed in both hosts: the five `contextmenu-*` rows, `drop-chart`, `clipboard-text-read`, `navigator-share`,
   `online-offline`, `service-worker`, `device-pixel-ratio`, the two gesture rows, `upload-image-picker`,
-  `drop-image-dialog` and `download-chart-csv`.
-- `device-pixel-ratio` ran on 2026-10-31 and 2026-11-02, because two displays were attached (both 1920 by 1080 at
-  scale 1): the shell moved the window and read `dpr 1, engine 1` after the move, and the browser side is "not moved:
-  headless Chromium has no window". On 2026-10-29 one display was attached and the row was the allowed not-run. Two
-  displays at the same scale prove the move, not a scale change.
+  `drop-image-dialog` and `download-chart-csv`. This is the first live run under `12906d4136`'s chart-only cancel:
+  `contextmenu-search-input` and `contextmenu-input` drew the native `undo, redo, cut, copy, paste, selectall` menu on
+  an unprevented event (`isEditable` true); `contextmenu-editor` drew the same menu on CodeMirror's `.cm-content`
+  (`isEditable` true), which settles that open question; `contextmenu-selection` drew `copy` alone; and
+  `contextmenu-chart` was prevented on the plot's `CANVAS`, with no main-process event and the app's own menu, in
+  both hosts.
+- `device-pixel-ratio` ran because two displays were attached (both 1920 by 1080 at scale 1): the shell moved the
+  window and read `dpr 1, engine 1` after the move, and the browser side is "not moved: headless Chromium has no
+  window". With one display the row is the allowed not-run. Two displays at the same scale prove the move, not a
+  scale change.
 - The eight `keys-*` rows were not run, because the console was locked ("the macOS console is locked: no app can
   become active, so the shell window is never key and a posted key reaches no page").
 
+On 2026-11-01 (`2646a76a83`) and 2026-11-03 (`1af9ebbe07`) the lane threw `page.waitForFunction: Timeout 180000ms
+exceeded` in `waitForCandles` (`gaps.mjs:505`) from `bootHosts` before any row, because the dev lane had no candle
+history (the v2 streaming host was unreachable or did not resolve; see the [index](./README.md)); that was an
+environment block, not a row result. The same 16 rows passed on 2026-10-31 (`5475ab32d5`) and 2026-11-02
+(`39b22dd2ec`) under the old document-wide cancel.
 On 2026-10-29, on `30481b57f8`, the same 15 non-key rows passed. On 2026-10-28, on `5365748ef3`, the lane threw twice
 before any row in `bootHosts` (`page.goto`), and on 2026-11-01 once, in `waitForCandles`. The signed-in rows have not
 been driven through
@@ -52,9 +53,9 @@ to the operator's real account. Windows and Linux are unprobed.
   toolbar-stats and bottom-bar menus share that rule (`8ce333e5e9`). So `contextmenu-search-input` (super search's
   field) and `contextmenu-input` (the email field on `/chart/auth`) expect the edit menu, `contextmenu-selection` (the
   console's copy) expects Copy, and `contextmenu-chart` expects no native menu and the app's own. `contextmenu-editor`
-  expects the edit menu only if CodeMirror's `.cm-content` counts as a typing field for `isTypingTarget`; that is
-  unconfirmed. Before `12906d4136` the page cancelled the event everywhere except inside `[data-allow-context-menu]`,
-  and the 2026-11-02 passes were judged against that. Source-read 2026-11-03; live verification pending.
+  expects the edit menu, and gets it: CodeMirror's `.cm-content` reaches the shell as an editable target. Before
+  `12906d4136` the page cancelled the event everywhere except inside `[data-allow-context-menu]`, and the 2026-11-02
+  passes were judged against that. Live 2026-11-04 on `8436920004`, all five rows passing in both hosts.
 - `gaps-files` a file dropped on the chart leaves the window on the chart. The image dialog's picker opens a file
   chooser, and its drop zone previews a dropped PNG (rows `drop-chart`, `upload-image-picker`, `drop-image-dialog`).
 - `gaps-platform` `readText` returns text copied in another app. `navigator.share` is undefined. A service worker
@@ -109,6 +110,11 @@ Preconditions:
 
 ## Gotchas
 
+- `contextmenu-editor` falls back to clicking `kscript-template-blank-legacy-btn` when the editor drawer opens on the
+  starter list instead of CodeMirror (`gaps.mjs:865`, `:869`). That testid is gone from `src/`; the starter list's
+  blank row is `kscript-template-blank-btn` (`src/components/scriptEditor/shell/IndicatorStarterList.vue`). On
+  2026-11-04 the drawer opened straight on `.cm-content`, so the dead fallback did not fire; on a profile where it does,
+  the row fails on a 15 s click timeout. That is a lane gap in the product repo.
 - A row that is not a pass in both hosts is a web-app or lane question first. Read the row's shell and browser
   columns before calling it a shell difference.
 - On 2026-10-28 the lane threw twice in `bootHosts` (`page.goto` 30 s at `gaps.mjs:1694`) before any row. That
