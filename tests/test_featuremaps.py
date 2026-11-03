@@ -107,6 +107,24 @@ class FeatureMapPublishTest(unittest.TestCase):
             f"main:{relative}",
         ).stdout
 
+    def other_clone_pushes(self, name, text):
+        other = Path(self.tmp.name) / f"other-clone-{name}"
+        if not other.exists():
+            self.run_git(other.parent, "clone", "-q", str(self.remote), str(other))
+            self.run_git(other, "checkout", "-q", "main")
+            self.run_git(other, "config", "user.email", "other@example.test")
+            self.run_git(other, "config", "user.name", "Other")
+        self.run_git(other, "pull", "-q", "--ff-only", "origin", "main")
+        (other / name).write_text(text, encoding="utf-8")
+        self.run_git(other, "add", name)
+        self.run_git(other, "commit", "-qm", f"remote {name}")
+        self.run_git(other, "push", "-q", "origin", "main")
+
+    def remote_head(self):
+        return self.run_git(
+            self.remote.parent, f"--git-dir={self.remote}", "rev-parse", "main"
+        ).stdout.strip()
+
     def test_publishes_only_selected_maps_and_preserves_other_changes(self):
         feature = self.features / "composer.md"
         feature.write_text("# Composer\n\nVerified.\n", encoding="utf-8")
@@ -252,40 +270,129 @@ class FeatureMapPublishTest(unittest.TestCase):
         with self.assertRaisesRegex(featuremaps.FeatureMapError, "does not exist"):
             self.publish("invented.md")
 
-    def test_unrelated_unpushed_commit_blocks_publication(self):
+    def test_unrelated_unpushed_commit_neither_blocks_nor_ships(self):
         (self.repo / "other.txt").write_text("other\n", encoding="utf-8")
         self.git("add", "other.txt")
         self.git("commit", "-qm", "unrelated local commit")
+        local_head = self.git("rev-parse", "HEAD").stdout.strip()
         (self.features / "composer.md").write_text("map\n", encoding="utf-8")
 
-        with self.assertRaisesRegex(featuremaps.FeatureMapError, "unrelated path.*other.txt"):
-            self.publish("composer.md")
+        status = self.publish("composer.md")
+
+        self.assertTrue(status.startswith("feature maps: committed and pushed 1 file"))
+        self.assertIn("left as is", status)
+        relative = "projects/chat-app/skills/verify-chat/features/composer.md"
+        self.assertEqual(self.remote_file(relative), "map\n")
         self.assertNotEqual(
             self.run_git(
-                self.remote.parent,
-                f"--git-dir={self.remote}",
-                "cat-file",
-                "-e",
-                "main:other.txt",
-                check=False,
+                self.remote.parent, f"--git-dir={self.remote}", "cat-file", "-e",
+                "main:other.txt", check=False,
             ).returncode,
             0,
         )
+        self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), local_head)
 
-    def test_remote_main_ahead_blocks_publication(self):
-        other = Path(self.tmp.name) / "other-clone"
+    def test_remote_main_ahead_publishes_on_top_and_fast_forwards(self):
+        self.other_clone_pushes("remote.txt", "remote\n")
+        (self.features / "composer.md").write_text("map\n", encoding="utf-8")
+        (self.repo / "unstaged.txt").write_text("operator WIP\n", encoding="utf-8")
+
+        status = self.publish("composer.md")
+
+        self.assertEqual(status, "feature maps: committed and pushed 1 file")
+        self.assertEqual(self.remote_file("remote.txt"), "remote\n")
+        self.assertEqual(
+            self.remote_file("projects/chat-app/skills/verify-chat/features/composer.md"),
+            "map\n",
+        )
+        self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), self.remote_head())
+        self.assertEqual(self.git("status", "--short").stdout, " M unstaged.txt\n")
+
+    def test_concurrent_edit_to_the_same_map_is_merged_not_overwritten(self):
+        readme = "projects/chat-app/skills/verify-chat/features/README.md"
+        (self.repo / readme).write_text("# Feature maps\n\nLocal line.\n", encoding="utf-8")
+        other = Path(self.tmp.name) / "other-clone-readme"
         self.run_git(other.parent, "clone", "-q", str(self.remote), str(other))
         self.run_git(other, "checkout", "-q", "main")
         self.run_git(other, "config", "user.email", "other@example.test")
         self.run_git(other, "config", "user.name", "Other")
-        (other / "remote.txt").write_text("remote\n", encoding="utf-8")
-        self.run_git(other, "add", "remote.txt")
-        self.run_git(other, "commit", "-qm", "remote update")
+        (other / readme).write_text("Remote title line.\n# Feature maps\n", encoding="utf-8")
+        self.run_git(other, "commit", "-qam", "another session")
         self.run_git(other, "push", "-q", "origin", "main")
+
+        status = self.publish("README.md")
+
+        merged = "Remote title line.\n# Feature maps\n\nLocal line.\n"
+        self.assertEqual(status, "feature maps: committed and pushed 1 file")
+        self.assertEqual(self.remote_file(readme), merged)
+        self.assertEqual((self.repo / readme).read_text(encoding="utf-8"), merged)
+        self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), self.remote_head())
+
+    def test_overlapping_edit_to_the_same_map_is_refused(self):
+        readme = "projects/chat-app/skills/verify-chat/features/README.md"
+        (self.repo / readme).write_text("# Local title\n", encoding="utf-8")
+        other = Path(self.tmp.name) / "other-clone-overlap"
+        self.run_git(other.parent, "clone", "-q", str(self.remote), str(other))
+        self.run_git(other, "checkout", "-q", "main")
+        self.run_git(other, "config", "user.email", "other@example.test")
+        self.run_git(other, "config", "user.name", "Other")
+        (other / readme).write_text("# Remote title\n", encoding="utf-8")
+        self.run_git(other, "commit", "-qam", "another session")
+        self.run_git(other, "push", "-q", "origin", "main")
+        remote_before = self.remote_head()
+
+        with self.assertRaisesRegex(featuremaps.FeatureMapError, "README.md.*overlap"):
+            self.publish("README.md")
+
+        self.assertEqual(self.remote_head(), remote_before)
+        self.assertEqual((self.repo / readme).read_text(encoding="utf-8"), "# Local title\n")
+
+    def test_lost_push_race_retries_on_the_new_remote_head(self):
+        marker = Path(self.tmp.name) / "raced"
+        racer = Path(self.tmp.name) / "racer"
+        self.run_git(racer.parent, "clone", "-q", str(self.remote), str(racer))
+        self.run_git(racer, "checkout", "-q", "main")
+        self.run_git(racer, "config", "user.email", "racer@example.test")
+        self.run_git(racer, "config", "user.name", "Racer")
+        hook = self.hooks / "pre-push"
+        hook.write_text(
+            "#!/bin/sh\n"
+            f"[ -e '{marker}' ] && exit 0\n"
+            f"touch '{marker}'\n"
+            f"cd '{racer}' && echo raced > race.txt && git add race.txt"
+            " && git commit -qm race && git push -q origin main\n",
+            encoding="utf-8",
+        )
+        hook.chmod(0o755)
         (self.features / "composer.md").write_text("map\n", encoding="utf-8")
 
-        with self.assertRaisesRegex(featuremaps.FeatureMapError, "synchronize.*separately"):
-            self.publish("composer.md")
+        status = self.publish("composer.md")
+
+        self.assertEqual(status, "feature maps: committed and pushed 1 file")
+        self.assertEqual(self.remote_file("race.txt"), "raced\n")
+        self.assertEqual(
+            self.remote_file("projects/chat-app/skills/verify-chat/features/composer.md"),
+            "map\n",
+        )
+        self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), self.remote_head())
+
+    def test_leftover_local_map_commit_is_published_and_main_reconciled(self):
+        leftover = self.features / "leftover.md"
+        leftover.write_text("from a failed push\n", encoding="utf-8")
+        self.git("add", str(leftover.relative_to(self.repo)))
+        self.git("commit", "-qm", "feature maps: update chat-app/verify-chat")
+        self.other_clone_pushes("remote.txt", "remote\n")
+        (self.features / "composer.md").write_text("map\n", encoding="utf-8")
+
+        status = self.publish("composer.md")
+
+        self.assertEqual(status, "feature maps: committed and pushed 2 files")
+        self.assertEqual(
+            self.remote_file("projects/chat-app/skills/verify-chat/features/leftover.md"),
+            "from a failed push\n",
+        )
+        self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), self.remote_head())
+        self.assertEqual(self.git("status", "--short").stdout, "")
 
     def test_no_changes_does_not_create_a_commit(self):
         before = self.git("rev-parse", "HEAD").stdout.strip()
@@ -295,7 +402,7 @@ class FeatureMapPublishTest(unittest.TestCase):
         self.assertEqual(status, "feature maps: already current")
         self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), before)
 
-    def test_failed_push_preserves_commit_and_retry_publishes_it(self):
+    def test_failed_push_leaves_no_local_commit_and_retry_publishes(self):
         feature = self.features / "composer.md"
         feature.write_text("retry me\n", encoding="utf-8")
         hook = self.hooks / "pre-push"
@@ -306,15 +413,14 @@ class FeatureMapPublishTest(unittest.TestCase):
         with self.assertRaises(featuremaps.FeatureMapError):
             self.publish("composer.md")
 
-        committed = self.git("rev-parse", "HEAD").stdout.strip()
-        self.assertNotEqual(committed, before)
+        self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), before)
         self.assertEqual(feature.read_text(encoding="utf-8"), "retry me\n")
         hook.unlink()
 
         status = self.publish("composer.md")
 
-        self.assertEqual(status, "feature maps: pushed existing commit")
-        self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), committed)
+        self.assertEqual(status, "feature maps: committed and pushed 1 file")
+        self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), self.remote_head())
         self.assertEqual(
             self.remote_file(
                 "projects/chat-app/skills/verify-chat/features/composer.md"

@@ -102,19 +102,18 @@ the overall verdict and the publication result are separate facts.
 The publisher requires the canonical skill and its project registry entry to
 exist on `origin/main` first. New skills and the initial layout migration use
 ordinary source delivery before their maps can be automatically published.
-It verifies project ownership and accepts only map `.md` files. It
-preserves unrelated staged and unstaged changes, checks outgoing commits for
-non-map files, and pushes only the hub's `main` to `origin/main`. A push refusal
-leaves the local map commit safe; report the failure and retry after recovery.
+It verifies project ownership and accepts only map `.md` files. It builds its
+commit on freshly fetched `origin/main` from the named files' working-tree
+contents, so a hub that is behind, diverged, or carrying unrelated commits does
+not block it, and those commits are never pushed. A lost push race refetches and
+rebuilds, up to three times. Afterwards the hub's checkout follows `origin/main`
+only when nothing local would be lost; otherwise the result line says it was
+left as is. Unrelated staged and unstaged changes are preserved. A failed push
+leaves no local commit; report it and retry.
 `.sync-hold` in the operator's hub or publishing worktree pauses publishing and
 must be reported as unsynced work. The original hub helper checks its own hold
 before an isolated `--repo` publication.
 
-If the hub is behind its remote or has unrelated unpushed commits, preserve
-that checkout and use a separate detached hub worktree based on fetched `origin/main`.
-Copy only this run's reviewed map changes to their canonical project paths,
-reconcile against any newer remote map, and publish using the original hub's
-`bin/deez sync-feature-maps ... --repo <isolated-worktree>`.
 The remote registry must already recognize the project skill. Local uncommitted
 registry entries and skill files are insufficient. If that baseline has not
 landed, finish ordinary source delivery first and report the maps as pending.

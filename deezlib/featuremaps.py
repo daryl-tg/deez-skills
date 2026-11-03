@@ -1,15 +1,19 @@
 """Publish explicitly selected project feature maps without broad Git changes."""
 
+import os
 import subprocess
+import tempfile
 import tomllib
 from pathlib import Path, PurePosixPath
+
+PUSH_ATTEMPTS = 3
 
 
 class FeatureMapError(Exception):
     """A feature-map publication cannot proceed safely."""
 
 
-def _git(repo, *args, check=True):
+def _git(repo, *args, check=True, env=None):
     command = ["git", "-C", str(repo), *args]
     try:
         return subprocess.run(
@@ -18,6 +22,7 @@ def _git(repo, *args, check=True):
             capture_output=True,
             text=True,
             errors="surrogateescape",
+            env=env,
         )
     except (OSError, subprocess.CalledProcessError) as exc:
         detail = ""
@@ -93,25 +98,118 @@ def _assert_repo(repo):
         raise FeatureMapError(f"repository root must be {top}, got {repo}")
 
 
-def _assert_unpushed_history_is_maps(repo, feature_prefix):
-    commits = _git(repo, "rev-list", "--reverse", "origin/main..HEAD").stdout.splitlines()
+def _fetch_origin_main(repo):
+    _git(
+        repo,
+        "fetch",
+        "--quiet",
+        "--no-tags",
+        "origin",
+        "+refs/heads/main:refs/remotes/origin/main",
+    )
+    return _git(repo, "rev-parse", "refs/remotes/origin/main").stdout.strip()
+
+
+def _leftover_map_paths(repo, feature_prefix):
     allowed_parent = PurePosixPath(feature_prefix)
+    commits = _git(repo, "rev-list", "origin/main..HEAD").stdout.split()
+    found = []
     for commit in commits:
         changed = _git(
-            repo,
-            "diff-tree", "--root", "-m", "--no-commit-id", "--name-only",
-            "-r", "-z", commit,
+            repo, "diff-tree", "--root", "-m", "--no-commit-id", "--name-only", "-r", "-z", commit,
         ).stdout.split("\0")
         for raw_path in changed:
-            if not raw_path:
-                continue
-            path = PurePosixPath(raw_path)
-            if path.parent != allowed_parent or path.suffix != ".md":
-                raise FeatureMapError(
-                    "unpushed history contains unrelated path "
-                    f"{path.as_posix()!r}; synchronize unrelated commits separately"
-                )
-    return commits
+            path = PurePosixPath(raw_path) if raw_path else None
+            if path and path.parent == allowed_parent and path.suffix == ".md":
+                found.append(path.as_posix())
+    return found
+
+
+def _assert_publishable(repo, base, paths):
+    for path in paths:
+        on_origin = _git(repo, "cat-file", "-e", f"{base}:{path}", check=False).returncode == 0
+        if not on_origin and _git(repo, "check-ignore", "-q", "--", path, check=False).returncode == 0:
+            raise FeatureMapError(f"feature map is ignored by Git: {path}")
+
+
+def _write_blob(repo, blob, destination):
+    content = _git(repo, "cat-file", "blob", blob).stdout if blob else ""
+    destination.write_text(content, encoding="utf-8", errors="surrogateescape")
+    return destination
+
+
+def _merge_origin_edit(repo, fork, base, path, scratch):
+    ancestor = _blob(repo, fork, path)
+    theirs = _blob(repo, base, path)
+    worktree = repo / path
+    if theirs == ancestor or not worktree.is_file():
+        return None
+    ours = _git(repo, "hash-object", "--", path).stdout.strip()
+    if ours == theirs:
+        return None
+    merged = _git(
+        repo, "merge-file", "-p", "-L", "this checkout", "-L", "common", "-L", "origin/main",
+        str(worktree),
+        str(_write_blob(repo, ancestor, Path(scratch) / "ancestor")),
+        str(_write_blob(repo, theirs, Path(scratch) / "theirs")),
+        check=False,
+    )
+    if merged.returncode != 0:
+        raise FeatureMapError(
+            f"origin/main changed {path} since this checkout and the edits overlap; "
+            "pull, resolve, and publish again"
+        )
+    return worktree, merged.stdout
+
+
+def _commit_on(repo, base, paths, message):
+    fork = _git(repo, "merge-base", "HEAD", base).stdout.strip()
+    with tempfile.TemporaryDirectory(prefix="feature-maps-") as scratch:
+        merges = [_merge_origin_edit(repo, fork, base, path, scratch) for path in paths]
+        for worktree, text in filter(None, merges):
+            worktree.write_text(text, encoding="utf-8", errors="surrogateescape")
+        env = {**os.environ, "GIT_INDEX_FILE": str(Path(scratch) / "index")}
+        _git(repo, "read-tree", base, env=env)
+        for path in paths:
+            if (repo / path).is_file():
+                blob = _git(repo, "hash-object", "-w", "--", path).stdout.strip()
+                _git(repo, "update-index", "--add", "--cacheinfo", f"100644,{blob},{path}", env=env)
+            else:
+                _git(repo, "update-index", "--force-remove", "--", path, env=env)
+        tree = _git(repo, "write-tree", env=env).stdout.strip()
+    if tree == _git(repo, "rev-parse", f"{base}^{{tree}}").stdout.strip():
+        return None, []
+    changed = _git(repo, "diff-tree", "--name-only", "-r", "-z", base, tree).stdout.split("\0")
+    commit = _git(repo, "commit-tree", tree, "-p", base, "-m", message).stdout.strip()
+    return commit, [path for path in changed if path]
+
+
+def _blob(repo, commit, path):
+    found = _git(repo, "rev-parse", "--verify", "--quiet", f"{commit}:{path}", check=False)
+    return found.stdout.strip() if found.returncode == 0 else None
+
+
+def _contained(repo, head, commit):
+    for local in _git(repo, "rev-list", f"{commit}..{head}").stdout.split():
+        changed = _git(
+            repo, "diff-tree", "--root", "-m", "--no-commit-id", "--name-only", "-r", "-z", local,
+        ).stdout.split("\0")
+        if any(path and _blob(repo, head, path) != _blob(repo, commit, path) for path in changed):
+            return False
+    return True
+
+
+def _reconcile(repo, commit, published):
+    head = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    if not _contained(repo, head, commit):
+        return "; local main has unpublished commits, left as is"
+    try:
+        _git(repo, "add", "-A", "--", *published)
+        _git(repo, "read-tree", "-m", "-u", head, commit)
+        _git(repo, "update-ref", "-m", "feature maps: follow origin/main", "HEAD", commit, head)
+    except FeatureMapError as exc:
+        return f"; local main left behind origin/main ({exc})"
+    return ""
 
 
 def _assert_remote_baseline(repo, project, skill):
@@ -165,58 +263,30 @@ def publish(repo_root, reg, project, skill, files):
             f"current branch is {branch!r}"
         )
     _git(repo, "remote", "get-url", "origin")
-    _git(
-        repo,
-        "fetch",
-        "--quiet",
-        "--no-tags",
-        "origin",
-        "+refs/heads/main:refs/remotes/origin/main",
-    )
-    _assert_remote_baseline(repo, project, skill)
-    ancestor = _git(repo, "merge-base", "--is-ancestor", "origin/main", "HEAD", check=False)
-    if ancestor.returncode != 0:
-        raise FeatureMapError(
-            "origin/main is not an ancestor of local main; synchronize the repository "
-            "separately before publishing feature maps"
-        )
-
     prefix = f"projects/{project}/skills/{skill}/features"
-    before_commits = _assert_unpushed_history_is_maps(repo, prefix)
-    changed = [
-        path
-        for path in selected
-        if _git(repo, "status", "--porcelain=v1", "--untracked-files=all", "--", path).stdout
-    ]
-    for path in changed:
-        tracked = _git(repo, "ls-files", "--error-unmatch", "--", path, check=False)
-        if tracked.returncode != 0 and _git(repo, "check-ignore", "-q", "--", path, check=False).returncode == 0:
-            raise FeatureMapError(f"feature map is ignored by Git: {path}")
+    message = f"feature maps: update {project}/{skill}"
 
-    committed = False
-    if changed:
-        _git(repo, "add", "--", *changed)
-        _git(
-            repo,
-            "commit",
-            "--quiet",
-            "--only",
-            "-m",
-            f"feature maps: update {project}/{skill}",
-            "--",
-            *changed,
+    for _attempt in range(PUSH_ATTEMPTS):
+        base = _fetch_origin_main(repo)
+        _assert_remote_baseline(repo, project, skill)
+        paths = list(dict.fromkeys([*selected, *_leftover_map_paths(repo, prefix)]))
+        _assert_publishable(repo, base, paths)
+        commit, published = _commit_on(repo, base, paths, message)
+        if commit is None:
+            return "feature maps: already current"
+        pushed = _git(repo, "push", "--quiet", "origin", f"{commit}:refs/heads/main", check=False)
+        if pushed.returncode == 0:
+            break
+        if _fetch_origin_main(repo) == base:
+            raise FeatureMapError(
+                f"git push of feature maps failed: {(pushed.stderr or pushed.stdout).strip()}"
+            )
+    else:
+        raise FeatureMapError(
+            f"origin/main moved during each of {PUSH_ATTEMPTS} publication attempts; retry"
         )
-        committed = True
 
-    after_commits = _assert_unpushed_history_is_maps(repo, prefix)
-    if not after_commits:
-        return "feature maps: already current"
-
-    _git(repo, "push", "--quiet", "origin", "HEAD:refs/heads/main")
-    if committed:
-        count = len(changed)
-        noun = "file" if count == 1 else "files"
-        return f"feature maps: committed and pushed {count} {noun}"
-    if before_commits:
-        return "feature maps: pushed existing commit"
-    return "feature maps: already current"
+    note = _reconcile(repo, commit, published)
+    count = len(published)
+    noun = "file" if count == 1 else "files"
+    return f"feature maps: committed and pushed {count} {noun}{note}"
