@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from rich.text import Text
 from textual.binding import Binding
@@ -9,6 +10,7 @@ from textual.widgets import DataTable, Input, Label
 
 from deezlib.superclanker import procs
 from deezlib.superclanker.ui_format import gb
+from deezlib.superclanker.ui_model import read_peers
 
 
 @dataclass(frozen=True)
@@ -24,6 +26,10 @@ class MemoryRow:
 
 def protect_table(table):
     return procs.protected(table, os.getpid(), procs.main_session_pids(table), procs.port_listeners())
+
+
+def read_session_peers():
+    return read_peers(Path.home() / ".claude" / "sessions")
 
 
 def memory_table():
@@ -78,8 +84,9 @@ class TypedNameScreen(ModalScreen):
 
 
 class MemoryMixin:
-    def init_memory(self, protect, kill_tree, read_table):
+    def init_memory(self, protect, kill_tree, read_table, read_peers):
         self.read_table = read_table
+        self.read_peers = read_peers
         self.protect = protect
         self.kill_tree = kill_tree
         self.protected_pids = None
@@ -143,8 +150,10 @@ class MemoryMixin:
         members = procs.subtree(snap.table, pid)
         peers = [peer for peer in snap.peers if peer.pid in members]
 
+        confirmed = {peer.pid for peer in peers}
+
         def go():
-            self.run_worker(lambda: self.run_kill(target, workers), thread=True, exit_on_error=False)
+            self.run_worker(lambda: self.run_kill(target, workers, confirmed), thread=True, exit_on_error=False)
 
         if peers:
             expected = peers[0].name if len(peers) == 1 else f"kill {len(peers)} sessions"
@@ -153,7 +162,7 @@ class MemoryMixin:
         else:
             self.ask(f"Kill {pid} {target.command} and everything under it?", go)
 
-    def run_kill(self, target, workers):
+    def run_kill(self, target, workers, confirmed):
         try:
             fresh = self.read_table()
             try:
@@ -161,7 +170,12 @@ class MemoryMixin:
             except Exception:
                 known = None
             reason = procs.kill_refusal(fresh, target.pid, known, os.getuid(), workers)
-            killed = [] if reason else self.kill_tree(target)
+            if not reason:
+                members = procs.subtree(fresh, target.pid)
+                found = {peer.pid for peer in self.read_peers() if peer.pid in members}
+                if found != confirmed:
+                    reason = f"peer sessions under {target.pid} changed; nothing killed"
+            killed = [] if reason else self.kill_tree(target, read=lambda: fresh)
         except Exception as exc:
             reason = f"kill failed: {exc}"
         if reason:

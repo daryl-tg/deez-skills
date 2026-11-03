@@ -83,6 +83,7 @@ class Rig:
 
     def app(self, **options):
         options.setdefault("protect", lambda table: set())
+        options.setdefault("which", lambda name: f"/bin/{name}")
         return BoardApp(
             Path("/state"), snapshot_fn=self.snapshot_fn, verb=self.verb, deez=DEEZ,
             clock=self.clock, refresh_s=3600, **options,
@@ -450,6 +451,26 @@ class AlertTest(unittest.IsolatedAsyncioTestCase):
                 pilot.app.apply_snapshot(snapshot([ticket("k_1")], held=5))
                 await settle(pilot)
         self.assertEqual((len(rings), tmux.calls), (1, []))
+
+    async def test_title_updates_continue_after_a_tmux_error(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        calls = []
+
+        def tmux(argv):
+            calls.append(argv[-1])
+            if len(calls) == 1:
+                raise RuntimeError("tmux exploded")
+            return subprocess.CompletedProcess(argv, 0)
+
+        one = [ticket("k_9", needs_you=True)]
+        two = [ticket("k_8", needs_you=True), ticket("k_9", needs_you=True)]
+        with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
+            async with rig.app(tmux=tmux, in_tmux=lambda: True).run_test() as pilot:
+                await settle(pilot)
+                for rows in (one, two):
+                    pilot.app.apply_snapshot(snapshot(rows))
+                    await settle(pilot)
+        self.assertEqual(calls, ["board(!1)", "board(!2)"])
 
     async def test_tmux_rename_runs_off_the_event_loop(self):
         rig = Rig(snapshot([ticket("k_9", needs_you=True)]))

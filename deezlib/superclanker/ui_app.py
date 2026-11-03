@@ -1,6 +1,7 @@
 import argparse
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -17,7 +18,7 @@ from textual.widgets import DataTable, Footer, Input, Label, Static, TabbedConte
 from deezlib.superclanker import procs
 from deezlib.superclanker.store import state_root
 from deezlib.superclanker.ui_format import header_text, report_text, ticket_label
-from deezlib.superclanker.ui_memory import MemoryMixin, memory_table, protect_table
+from deezlib.superclanker.ui_memory import MemoryMixin, memory_table, protect_table, read_session_peers
 from deezlib.superclanker.ui_model import Cadence, attention_count, build_snapshot, needs_you_rose
 from deezlib.superclanker.ui_takeover import TakeoverMixin, run_tmux
 from deezlib.superclanker.workers import alive
@@ -148,10 +149,11 @@ class BoardApp(MemoryMixin, TakeoverMixin, App):
     def __init__(self, root, *, snapshot_fn=build_snapshot, verb=run_verb,
                  deez=REPO_ROOT / "bin/deez", clock=time.monotonic, refresh_s=REFRESH_S,
                  protect=protect_table, kill_tree=procs.kill_tree, tmux=run_tmux,
-                 in_tmux=lambda: "TMUX" in os.environ, bell=None, pid_alive=alive, sleep=time.sleep, read_table=procs.read_table):
+                 in_tmux=lambda: "TMUX" in os.environ, bell=None, pid_alive=alive, sleep=time.sleep, read_table=procs.read_table,
+                 read_peers=read_session_peers, which=shutil.which):
         super().__init__()
-        self.init_memory(protect, kill_tree, read_table)
-        self.init_takeover(tmux, in_tmux, pid_alive, sleep)
+        self.init_memory(protect, kill_tree, read_table, read_peers)
+        self.init_takeover(tmux, in_tmux, pid_alive, sleep, which)
         self.ring = bell or self.bell
         self.title_applied = "board"
         self.root = Path(root)
@@ -243,11 +245,15 @@ class BoardApp(MemoryMixin, TakeoverMixin, App):
         self.run_worker(self.write_title, thread=True, exit_on_error=False)
 
     def write_title(self):
-        while self.title_applied != self.title_wanted:
-            title = self.title_wanted
-            self.tmux(["tmux", "rename-window", "-t", os.environ["TMUX_PANE"], title])
-            self.title_applied = title
-        self.call_from_thread(self.title_idle)
+        try:
+            while self.title_applied != self.title_wanted:
+                title = self.title_wanted
+                self.tmux(["tmux", "rename-window", "-t", os.environ["TMUX_PANE"], title])
+                self.title_applied = title
+        except Exception:
+            self.title_wanted = self.title_applied
+        finally:
+            self.call_from_thread(self.title_idle)
 
     def title_idle(self):
         self.title_busy = False

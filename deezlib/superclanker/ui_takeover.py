@@ -16,7 +16,9 @@ def run_tmux(argv):
 
 
 class TakeoverMixin:
-    def init_takeover(self, tmux, in_tmux, pid_alive, sleep):
+    def init_takeover(self, tmux, in_tmux, pid_alive, sleep, which):
+        self.which = which
+        self.takeover_running = False
         self.tmux = tmux
         self.in_tmux = in_tmux
         self.pid_alive = pid_alive
@@ -26,6 +28,8 @@ class TakeoverMixin:
         self.title_busy = False
 
     def takeover_refusal(self, row):
+        if self.takeover_running:
+            return "a takeover is already running"
         if row.ticket_id in self.taken_over:
             return f"{row.ticket_id}: already taken over"
         if not row.session_id:
@@ -48,6 +52,10 @@ class TakeoverMixin:
         if reason:
             self.notify(reason, severity="warning", markup=False)
             return
+        if self.in_tmux() and not self.which("claude"):
+            self.notify("claude not found on PATH; nothing killed", severity="error", markup=False)
+            return
+        self.takeover_running = True
         self.run_worker(lambda: self.takeover(row), thread=True, exit_on_error=False)
 
     def takeover(self, row):
@@ -74,6 +82,11 @@ class TakeoverMixin:
                 self.call_from_thread(self.resume_in_foreground, row)
         except Exception as exc:
             self.call_from_thread(self.session_opened, row, f"takeover failed: {exc}")
+        finally:
+            self.call_from_thread(self.takeover_finished)
+
+    def takeover_finished(self):
+        self.takeover_running = False
 
     def resume_argv(self, row):
         return ["claude", "--resume", row.session_id]

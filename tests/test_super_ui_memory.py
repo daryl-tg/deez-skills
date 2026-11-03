@@ -46,20 +46,29 @@ if TEXTUAL:
             super().__init__(snap or memory_snapshot())
             self.protect = protect
             self.fresh = None
+            self.fresh_peers = None
+            self.table_reads = 0
+            self.kill_reads = []
             self.kills = []
             self.kill_threads = []
 
-        def kill_tree(self, target):
+        def kill_tree(self, target, read=None):
+            self.kill_reads.append(read)
             self.kills.append(target.pid)
             self.kill_threads.append(threading.get_ident())
             return [target.pid]
 
+        def read_peers(self):
+            return self.snap.peers if self.fresh_peers is None else self.fresh_peers
+
         def read_table(self):
+            self.table_reads += 1
             return self.fresh if self.fresh is not None else self.snap.table
 
         def app(self, **options):
             return super().app(
-                protect=self.protect, kill_tree=self.kill_tree, read_table=self.read_table, **options,
+                protect=self.protect, kill_tree=self.kill_tree, read_table=self.read_table,
+                read_peers=self.read_peers, **options,
             )
 
 
@@ -345,6 +354,47 @@ class MemoryTabTest(unittest.IsolatedAsyncioTestCase):
             await settle(pilot)
             self.assertEqual(len(pilot.app.screen_stack), 1)
         self.assertEqual(rig.kills, [])
+
+
+    async def test_kill_refused_when_a_peer_appears_under_the_target_after_y(self):
+        rig = MemoryRig()
+        async with rig.app().run_test() as pilot:
+            await open_memory(pilot, 100)
+            await pilot.press("x")
+            await settle(pilot)
+            fresh = dict(rig.snap.table)
+            fresh[500] = proc(500, 101, "claude late")
+            rig.fresh = fresh
+            rig.fresh_peers = [*rig.snap.peers, ui_model.Peer("late", 500, "/c", "busy", "u")]
+            await pilot.press("y")
+            await until(pilot, lambda: any("peer" in note for note in toasts(pilot.app)))
+            await settle(pilot)
+        self.assertEqual(rig.kills, [])
+
+    async def test_kill_proceeds_when_the_confirmed_peers_are_unchanged(self):
+        rig = MemoryRig()
+        async with rig.app().run_test() as pilot:
+            await open_memory(pilot, 200)
+            await pilot.press("x")
+            await settle(pilot)
+            await pilot.press(*"my-peer")
+            await pilot.press("enter")
+            await until(pilot, lambda: rig.kills)
+        self.assertEqual(rig.kills, [200])
+
+    async def test_kill_signals_the_table_it_checked_and_reads_once(self):
+        rig = MemoryRig()
+        async with rig.app().run_test() as pilot:
+            await open_memory(pilot, 201)
+            await pilot.press("x")
+            await settle(pilot)
+            fresh = dict(rig.snap.table)
+            rig.fresh = fresh
+            before = rig.table_reads
+            await pilot.press("y")
+            await until(pilot, lambda: rig.kills)
+        self.assertEqual(rig.table_reads - before, 1)
+        self.assertIs(rig.kill_reads[0](), fresh)
 
 
 @unittest.skipUnless(TEXTUAL, "textual not installed")

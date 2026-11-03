@@ -15,6 +15,11 @@ if TEXTUAL:
 SESSION_ARGV = ["claude", "--resume", "s_1"]
 
 
+async def settle_ui(pilot):
+    await pilot.pause()
+    await pilot.pause()
+
+
 class Alive:
     def __init__(self, rig, polls_alive):
         self.rig = rig
@@ -177,6 +182,49 @@ class TakeoverTest(unittest.IsolatedAsyncioTestCase):
                 await until(pilot, lambda: any("claude" in note for note in toasts(pilot.app)))
                 await settle(pilot)
                 self.assertFalse(any("taken over" in label for label in labels(pilot.app)))
+
+    async def test_missing_claude_inside_tmux_toasts_before_killing_anything(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        windows = Tmux()
+        alive = Alive(rig, 10 ** 9)
+        app = rig.app(tmux=windows, in_tmux=lambda: True, pid_alive=alive, sleep=alive.sleep, which=lambda name: None)
+        async with app.run_test() as pilot:
+            await settle(pilot)
+            await pilot.press("t")
+            await pilot.press("y")
+            await settle(pilot)
+            self.assertTrue(any("claude" in note for note in toasts(pilot.app)))
+            self.assertFalse(any("taken over" in label for label in labels(pilot.app)))
+        self.assertEqual((rig.calls, windows.calls), ([], []))
+
+    async def test_second_takeover_while_one_runs_is_refused(self):
+        rig = Rig(snapshot([ticket("k_1"), ticket("k_2", assignment="a_2")]))
+        gate = threading.Event()
+        windows = Tmux()
+
+        def alive(pid):
+            gate.wait(10)
+            return False
+
+        app = rig.app(tmux=windows, in_tmux=lambda: True, pid_alive=alive)
+        try:
+            async with app.run_test() as pilot:
+                await settle_ui(pilot)
+                await pilot.press("t")
+                await pilot.press("y")
+                await pilot.pause()
+                table = pilot.app.query_one("#rows")
+                table.move_cursor(row=[i for i, label in enumerate(labels(pilot.app)) if "k_2" in label][0])
+                await pilot.pause()
+                await pilot.press("t")
+                await pilot.pause()
+                self.assertEqual(len(pilot.app.screen_stack), 1)
+                self.assertTrue(any("already running" in note for note in toasts(pilot.app)))
+                gate.set()
+                await until(pilot, lambda: windows.calls)
+        finally:
+            gate.set()
+        self.assertEqual(len(windows.calls), 1)
 
     async def test_takeover_refused_without_session(self):
         for missing in ("session_id", "worktree"):
