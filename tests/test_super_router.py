@@ -631,3 +631,11 @@ class DispatchFindsTheRepoTest(unittest.TestCase):
         from pathlib import Path
         body = Path(__file__).resolve().parents[1].joinpath("agents", "super-router.md").read_text()
         self.assertIn("--repo", body)
+
+
+class RouterReportsReadyTest(unittest.TestCase):
+    def test_router_prompt_replies_on_a_ready_report(self):
+        from pathlib import Path
+        body = Path(__file__).resolve().parents[1].joinpath("agents", "super-router.md").read_text()
+        self.assertIn("`ready`", body)
+        self.assertIn("one-line `reply`", body)

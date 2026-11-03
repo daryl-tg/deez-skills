@@ -20,7 +20,9 @@ One Bash call per decision, or a `deez super-clanker route <<'ROUTE'` heredoc fo
 several, one verb per line. Never chain verbs with `&`, `&&`, `;` or `|`; the
 allowlist refuses compounds, losing the whole batch. A Worker's report on
 `worker:<ticket>` gets `reply` or `note`, then `ignore`, never `attach` to its
-own ticket.
+own ticket. A `ready` or `waiting` report always gets a one-line `reply` on the
+thread the request came from, with the commit or the question; a person can use
+that result.
 
 - `deez super-clanker dispatch <trigger> --slug <kebab>` once per distinct piece
   of work. The Worker is a clanker-mode lead and picks its own playbook from the
