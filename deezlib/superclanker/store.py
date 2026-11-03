@@ -291,6 +291,13 @@ class Store:
             connection.execute("ALTER TABLE ticks ADD COLUMN denials TEXT")
         return cls(connection)
 
+    @classmethod
+    def open_read_only(cls, root):
+        path = Path(root) / "super.db"
+        if not path.is_file():
+            raise SuperError(f"super-clanker not initialised: {path}")
+        return cls(sqlite3.connect(f"file:{path}?mode=ro", uri=True, isolation_level=None))
+
     def close(self):
         self._db.close()
 
@@ -821,6 +828,20 @@ class Store:
         Input: _input_neighbours,
         Tick: _tick_neighbours,
     }
+
+    def board(self):
+        return [
+            (ticket, self._latest_assignment(ticket.id), self._last_report(ticket.id))
+            for ticket in self._select(Ticket)
+        ]
+
+    def spend_since(self, stamp):
+        return sum(
+            self._db.execute(
+                f"SELECT COALESCE(SUM(cost_usd), 0) FROM {table} WHERE started_at >= ?", (stamp,)
+            ).fetchone()[0]
+            for table in ("wakes", "ticks")
+        )
 
     def status(self):
         rows = []

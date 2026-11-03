@@ -1,5 +1,6 @@
 import os
 import re
+import sqlite3
 import stat
 import tempfile
 import unittest
@@ -50,6 +51,55 @@ class SuperStoreTest(unittest.TestCase):
             ["addressed-request"], "policy-1", "asked directly",
         )
         return trigger, ticket
+
+    def test_open_read_only_rejects_writes(self):
+        self.store.close()
+        read_only = Store.open_read_only(self.root)
+        self.addCleanup(read_only.close)
+        with self.assertRaises(sqlite3.OperationalError):
+            read_only._db.execute("INSERT INTO cursors VALUES ('a','b','c','d')")
+
+    def test_open_read_only_missing_db_raises_not_initialised(self):
+        missing = Path(self.tmp.name) / "absent"
+        with self.assertRaisesRegex(SuperError, "not initialised"):
+            Store.open_read_only(missing)
+        self.assertFalse((missing / "super.db").exists())
+
+    def test_board_pairs_latest_assignment_and_last_report(self):
+        _trigger, ticket = self.accepted_ticket()
+        assignment = self.store.assignment_for(ticket.id)
+        second = github_trigger("evt-2", "second ask")
+        self.store.receive(second)
+        other = self.store.accept(
+            second.id, "second-ask", Strength.explicit, "dboon/deez-skills",
+            ["addressed-request"], "policy-1", "asked directly",
+        )
+        self.store.report(assignment.id, "waiting", "need a call", question="Which?")
+        self.store.report(assignment.id, "ready", "done")
+
+        board = self.store.board()
+
+        self.assertEqual([row[0].id for row in board], [ticket.id, other.id])
+        self.assertEqual(board[0][1].id, assignment.id)
+        self.assertEqual(board[0][2].kind.value, "ready")
+        self.assertEqual(board[1][1].id, self.store.assignment_for(other.id).id)
+        self.assertIsNone(board[1][2])
+
+    def test_spend_since_sums_wakes_and_ticks_after_stamp(self):
+        old = self.store.begin_wake([])
+        self.store.end_wake(old, 0, 9.0, None, "old")
+        self.store._db.execute(
+            "UPDATE wakes SET started_at = '2026-11-01T00:00:00+00:00' WHERE id = ?", (old,)
+        )
+        recent = self.store.begin_wake([])
+        self.store.end_wake(recent, 0, 1.5, None, "recent")
+        unpriced = self.store.begin_wake([])
+        self.store.end_wake(unpriced, 0, None, None, "unpriced")
+        tick = self.store.begin_tick("digest")
+        self.store.end_tick(tick, 0, 0.25, None, "tick")
+
+        self.assertEqual(self.store.spend_since("2026-11-02T00:00:00+00:00"), 1.75)
+        self.assertEqual(self.store.spend_since("2099-01-01T00:00:00+00:00"), 0.0)
 
     def test_state_root_honours_override_then_defaults_under_home(self):
         self.assertEqual(

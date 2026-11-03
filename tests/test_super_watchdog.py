@@ -377,6 +377,26 @@ class WatchdogTest(unittest.TestCase):
         self.store.set_cursor("github", "last_error", "")
         self.assertNotIn("## source errors", self.digest(now=lambda: later(hours=1)))
 
+    def test_anomalies_is_public_and_digest_unchanged(self):
+        self.stalled_ticket()
+        now = utc_now()
+
+        kinds = [kind for kind, _items, _more in watchdog.anomalies(self.store, self.settings(), self.root, now)]
+
+        self.assertIn("stalled ticket", kinds)
+        self.assertEqual(
+            [line[3:] for line in self.digest().splitlines() if line.startswith("## ")], kinds
+        )
+
+    def test_anomalies_on_read_only_store(self):
+        self.stalled_ticket()
+        read_only = Store.open_read_only(self.root)
+        self.addCleanup(read_only.close)
+
+        found = watchdog.anomalies(read_only, self.settings(), self.root, utc_now())
+
+        self.assertIn("stalled ticket", [kind for kind, _items, _more in found])
+
     def test_tick_allowlist_is_only_deez_super(self):
         self.tick()
 

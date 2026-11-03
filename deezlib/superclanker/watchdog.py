@@ -208,7 +208,7 @@ def _more(items, fallback):
     return "; ".join(f"deez super-clanker show {record_id}" for record_id in ids) or fallback
 
 
-def _anomalies(store, config, root, now):
+def anomalies(store, config, root, now):
     tickets = _open_tickets(store)
     wakes = _recent_wakes(store, now)
     return [
@@ -231,7 +231,7 @@ def _anomalies(store, config, root, now):
 def digest(store, config, root, now=utc_now):
     return "\n\n".join(
         "\n".join([f"## {kind}", *(line for _refs, line in items), f"more: {more}"])
-        for kind, items, more in _anomalies(store, config, root, now())
+        for kind, items, more in anomalies(store, config, root, now())
     )
 
 
