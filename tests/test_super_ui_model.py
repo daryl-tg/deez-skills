@@ -48,6 +48,11 @@ class PeersTest(TempTest):
         names = [p.name for p in ui_model.read_peers(self.tmp, alive=lambda pid: True)]
         self.assertEqual(names, ["abe", "zed"])
 
+    def test_peers_reject_group_and_bool_pids(self):
+        for name, pid in (("zero", 0), ("neg", -5), ("one", 1), ("flag", True)):
+            write_session(self.tmp, name, pid=pid)
+        self.assertEqual(ui_model.read_peers(self.tmp, alive=lambda pid: True), [])
+
     def test_peers_missing_directory_is_empty(self):
         self.assertEqual(ui_model.read_peers(self.tmp / "absent", alive=lambda pid: True), [])
 
@@ -66,6 +71,31 @@ class InboxTest(TempTest):
         path.write_text("new\n", encoding="utf-8")
         self.assertEqual(ui_model.read_inbox(path, 99), ("new\n", 4))
 
+    def test_inbox_offset_is_position_after_the_read(self):
+        path = self.tmp / "in.log"
+        path.write_text("one\n", encoding="utf-8")
+        real_open = open
+
+        def appending_open(target, *args, **kwargs):
+            stream = real_open(target, *args, **kwargs)
+            with real_open(target, "ab") as extra:
+                extra.write(b"late\n")
+            return stream
+
+        with mock.patch("builtins.open", appending_open):
+            text, offset = ui_model.read_inbox(path, 0)
+        self.assertEqual(offset, len(text.encode()))
+        again, _ = ui_model.read_inbox(path, offset)
+        self.assertEqual(text + again, "one\nlate\n")
+
+    def test_inbox_first_read_starts_within_the_keep_window(self):
+        path = self.tmp / "in.log"
+        line = "x" * 99 + "\n"
+        path.write_text(line * 2000, encoding="utf-8")
+        text, offset = ui_model.read_inbox(path, 0)
+        self.assertLessEqual(len(text), ui_model.INBOX_KEEP_BYTES)
+        self.assertEqual(offset, path.stat().st_size)
+
     def test_inbox_missing_is_empty(self):
         self.assertEqual(ui_model.read_inbox(self.tmp / "absent.log", 5), ("", 0))
 
@@ -80,6 +110,10 @@ class HealthTest(TempTest):
         health = ui_model.read_daemon_health(self.tmp, NOW)
 
         self.assertEqual(health, ui_model.DaemonHealth(os.getpid(), True, 7))
+
+    def test_heartbeat_with_naive_timestamp_is_none(self):
+        (self.tmp / "daemon.heartbeat").write_text("2026-11-03T06:59:00\n", encoding="utf-8")
+        self.assertIsNone(ui_model._heartbeat_age(self.tmp, NOW))
 
     def test_daemon_health_without_lock(self):
         health = ui_model.read_daemon_health(self.tmp, NOW)
@@ -244,6 +278,60 @@ class AssemblyTest(TempTest):
         self.assertEqual(self.free.calls, 2)
         self.assertEqual(len(self.ps_calls), 2)
         self.assertEqual(second.free_pct, 55)
+
+    def test_cadence_tolerates_a_timer_firing_slightly_early(self):
+        clock = Clock()
+        cadence = ui_model.Cadence(clock)
+        self.assertTrue(cadence.due("fast", 2))
+        clock.value += 1.9
+        self.assertTrue(cadence.due("fast", 2))
+        clock.value += 1.0
+        self.assertFalse(cadence.due("fast", 2))
+
+    def test_inbox_shrink_resets_kept_text_in_snapshot(self):
+        inbox = self.root / "inbox" / "terminal-default.log"
+        inbox.parent.mkdir(parents=True)
+        inbox.write_text("old old old\n", encoding="utf-8")
+        first = self.build()
+        inbox.write_text("new\n", encoding="utf-8")
+        self.clock.value += 3
+        second = self.build(first)
+        self.assertEqual(second.inbox_text, "new\n")
+
+    def test_kept_inbox_text_is_bounded(self):
+        inbox = self.root / "inbox" / "terminal-default.log"
+        inbox.parent.mkdir(parents=True)
+        line = "y" * 99 + "\n"
+        inbox.write_text(line * 2000, encoding="utf-8")
+        first = self.build()
+        with open(inbox, "a", encoding="utf-8") as stream:
+            stream.write(line * 2000)
+        self.clock.value += 3
+        second = self.build(first)
+        self.assertLessEqual(len(first.inbox_text), ui_model.INBOX_KEEP_BYTES)
+        self.assertLessEqual(len(second.inbox_text), ui_model.INBOX_KEEP_BYTES)
+        self.assertTrue(second.inbox_text.endswith(line))
+
+    def test_slow_probe_failures_only_blank_their_own_field(self):
+        self.ticket(1)
+        first = self.build()
+        self.clock.value += 11
+        broken = mock.Mock(side_effect=RuntimeError("bad config"))
+        second = self.build(first, load_config=broken)
+        self.assertFalse(second.stale)
+        self.assertIsNone(second.error)
+        self.assertEqual(second.max_running, first.max_running)
+        self.assertEqual(second.anomalies, first.anomalies)
+        self.clock.value += 11
+        with mock.patch.object(Store, "spend_since", side_effect=RuntimeError("locked")):
+            third = self.build(second)
+        self.assertFalse(third.stale)
+        self.assertIsNone(third.spend_today)
+        with mock.patch("deezlib.superclanker.watchdog.anomalies", side_effect=RuntimeError("x")):
+            self.clock.value += 11
+            fourth = self.build(third)
+        self.assertFalse(fourth.stale)
+        self.assertEqual(fourth.anomalies, third.anomalies)
 
     def test_nothing_due_returns_previous_untouched(self):
         first = self.build()

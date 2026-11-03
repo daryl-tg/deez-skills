@@ -13,6 +13,8 @@ from deezlib.superclanker.store import Store
 LOCK_DIR = "daemon.lock.d"
 INBOX_THREAD = "terminal:default"
 NOT_INITIALISED = "daemon not initialised"
+INBOX_KEEP_BYTES = 65536
+DUE_TOLERANCE_S = 0.25
 FAST = 2
 MID = 5
 SLOW = 10
@@ -37,10 +39,11 @@ class DaemonHealth:
 def _peer(path):
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        if data.get("kind") != "interactive" or not isinstance(data.get("pid"), int):
+        pid = data.get("pid")
+        if data.get("kind") != "interactive" or type(pid) is not int or pid <= 1:
             return None
         return Peer(
-            str(data.get("name") or path.stem), data["pid"], str(data.get("cwd") or ""),
+            str(data.get("name") or path.stem), pid, str(data.get("cwd") or ""),
             str(data.get("status") or ""), str(data.get("sessionId") or ""),
         )
     except (OSError, ValueError, AttributeError):
@@ -52,22 +55,34 @@ def read_peers(sessions_dir, alive=workers.alive):
     return sorted((peer for peer in found if peer and alive(peer.pid)), key=lambda peer: peer.name)
 
 
-def read_inbox(path, offset):
+def _read_inbox(path, offset):
     try:
         with open(path, "rb") as stream:
             size = stream.seek(0, 2)
-            start = offset if offset <= size else 0
+            reset = offset > size
+            start = 0 if reset else offset
+            if start == 0:
+                start = max(0, size - INBOX_KEEP_BYTES)
             stream.seek(start)
-            return stream.read().decode("utf-8", errors="replace"), size
+            data = stream.read()
+            cut = data.rfind(b"\n") + 1
+            if cut:
+                data = data[:cut]
+            return data.decode("utf-8", errors="replace"), start + len(data), reset
     except FileNotFoundError:
-        return "", 0
+        return "", 0, offset > 0
+
+
+def read_inbox(path, offset):
+    text, new_offset, _reset = _read_inbox(path, offset)
+    return text, new_offset
 
 
 def _heartbeat_age(root, now):
     try:
         beat = daemon.heartbeat_path(root).read_text(encoding="utf-8").strip()
         return int((now - datetime.fromisoformat(beat)).total_seconds())
-    except (OSError, ValueError):
+    except (OSError, ValueError, TypeError):
         return None
 
 
@@ -147,7 +162,7 @@ class Cadence:
     def due(self, name, every_s):
         now = self._clock()
         last = self._last.get(name)
-        if last is not None and now - last < every_s:
+        if last is not None and now - last < every_s - DUE_TOLERANCE_S:
             return False
         self._last[name] = now
         return True
@@ -256,6 +271,30 @@ def build_snapshot(root, previous, cadence, *, now=lambda: datetime.now(timezone
         return replace(previous, stale=True, error=str(exc))
 
 
+def _attempt(probe, fallback):
+    try:
+        return probe()
+    except Exception:
+        return fallback
+
+
+def _slow_fields(root, store, moment, base, load_config):
+    settings = _attempt(lambda: load_config(root), None)
+    stamp = moment.isoformat(timespec="seconds")
+    found = _attempt(
+        lambda: [
+            (kind, items) for kind, items, _more in
+            watchdog.anomalies(store, settings, root, stamp)
+        ],
+        base.anomalies,
+    ) if settings else base.anomalies
+    return dict(
+        spend_today=_attempt(lambda: store.spend_since(local_midnight_utc(moment)), None),
+        anomalies=found,
+        max_running=settings.workers.max_running if settings else base.max_running,
+    )
+
+
 def _assemble(root, previous, store, moment, taken_at, mid, slow,
               run, free_pct, leftovers, sessions_dir, load_config):
     base = previous or _empty(taken_at)
@@ -265,26 +304,16 @@ def _assemble(root, previous, store, moment, taken_at, mid, slow,
         initialised=True, stale=False, error=None, taken_at=taken_at, leftover_pids=leftover_pids,
         health=read_daemon_health(root, moment), held=read_held(root),
     )
-    path = daemon.inbox_path(root, INBOX_THREAD)
-    size = path.stat().st_size if path.exists() else 0
-    kept = base.inbox_text if size >= base.inbox_offset else ""
-    text, offset = read_inbox(path, base.inbox_offset)
-    values.update(inbox_text=kept + text, inbox_offset=offset)
+    text, offset, reset = _read_inbox(daemon.inbox_path(root, INBOX_THREAD), base.inbox_offset)
+    kept = "" if reset else base.inbox_text
+    values.update(inbox_text=(kept + text)[-INBOX_KEEP_BYTES:], inbox_offset=offset)
     table = procs.read_table(run) if mid else base.table
     peers = read_peers(sessions_dir) if mid else base.peers
     if mid:
         values.update(top=procs.top_trees(table), table=table, peers=peers)
     if slow:
-        settings = load_config(root)
-        values.update(
-            free_pct=_free_pct(free_pct),
-            spend_today=store.spend_since(local_midnight_utc(moment)),
-            anomalies=[
-                (kind, items) for kind, items, _more in
-                watchdog.anomalies(store, settings, root, moment.isoformat(timespec="seconds"))
-            ],
-            max_running=settings.workers.max_running,
-        )
+        values.update(free_pct=_free_pct(free_pct))
+        values.update(_slow_fields(root, store, moment, base, load_config))
     attribution = procs.attribute(
         table, _worker_roots(board, leftover_pids), {peer.name: peer.pid for peer in peers},
     )
