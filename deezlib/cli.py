@@ -137,6 +137,9 @@ def build_parser():
     policy_set_parser = policy_verbs.add_parser("set", help="Set one rule's mode.")
     policy_set_parser.add_argument("rule")
     policy_set_parser.add_argument("--mode", required=True, choices=["off", "observe", "auto"])
+    ui_parser = super_verbs.add_parser("ui", help="Open the board in an isolated venv and tmux.")
+    ui_parser.add_argument("--state", type=Path)
+    ui_parser.add_argument("--no-tmux", action="store_true")
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -647,6 +650,12 @@ def _super_watchdog(store, args):
     print(f"tick {ticked.tick_id} denied {ticked.denials} cost {cost}")
 
 
+def _super_ui(_root, args):
+    from deezlib.superclanker import ui_launch
+
+    return ui_launch.launch(args, os.environ)
+
+
 def _super_kick(_root, args, run=None):
     import subprocess
 
@@ -823,6 +832,7 @@ STORELESS_SUPER_VERBS = {
     "log": _super_log,
     "rules": _super_rules,
     "policy": _super_policy,
+    "ui": _super_ui,
 }
 
 

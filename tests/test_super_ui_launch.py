@@ -1,0 +1,112 @@
+import unittest
+from pathlib import Path
+from types import SimpleNamespace
+
+from deezlib import cli
+from deezlib.superclanker import ui_launch
+from deezlib.superclanker.store import SuperError
+
+VENV = Path("/fake/venv")
+PYTHON = VENV / "bin" / "python"
+DEEZ = Path("/hub/bin/deez")
+
+
+def recorder(*results):
+    calls = []
+    queue = list(results)
+
+    def run(argv, **kwargs):
+        calls.append([str(part) for part in argv])
+        code, err = queue.pop(0) if queue else (0, "")
+        return SimpleNamespace(returncode=code, stderr=err, stdout="")
+
+    return run, calls
+
+
+class EnsureVenvTest(unittest.TestCase):
+    def test_ensure_venv_reuses_matching_install(self):
+        run, calls = recorder((0, ""))
+        self.assertEqual(ui_launch.ensure_venv(VENV, run=run), PYTHON)
+        self.assertEqual(
+            calls,
+            [[str(PYTHON), "-c", f"import textual,sys; sys.exit(textual.__version__ != {ui_launch.TEXTUAL_PIN!r})"]],
+        )
+
+    def test_ensure_venv_creates_and_installs_pin(self):
+        run, calls = recorder((1, ""), (0, ""), (0, ""))
+        self.assertEqual(ui_launch.ensure_venv(VENV, run=run), PYTHON)
+        self.assertEqual(calls[1], [ui_launch.BASE_PYTHON, "-m", "venv", str(VENV)])
+        self.assertEqual(
+            calls[2],
+            [str(VENV / "bin" / "pip"), "install", "--quiet", f"textual=={ui_launch.TEXTUAL_PIN}"],
+        )
+        self.assertEqual(len(calls), 3)
+
+    def test_ensure_venv_failure_raises_with_stderr(self):
+        run, calls = recorder((1, ""), (0, ""), (1, "no network\nboom"))
+        with self.assertRaises(SuperError) as caught:
+            ui_launch.ensure_venv(VENV, run=run)
+        self.assertIn("pip", str(caught.exception))
+        self.assertIn("boom", str(caught.exception))
+
+
+class TmuxPlanTest(unittest.TestCase):
+    def test_tmux_plan_creates_session_with_board_and_main_windows(self):
+        plan = ui_launch.tmux_plan({}, False, DEEZ, Path("/state"))
+        self.assertEqual(
+            plan,
+            [
+                ["tmux", "new-session", "-d", "-s", "clanker", "-n", "board",
+                 str(DEEZ), "super-clanker", "ui", "--no-tmux", "--state", "/state"],
+                ["tmux", "new-window", "-t", "clanker", "-n", "main", "-c", str(Path.home()),
+                 "sh", "-c", "claude --continue || claude"],
+                ["tmux", "attach", "-t", "clanker"],
+            ],
+        )
+
+    def test_tmux_plan_attaches_existing_session(self):
+        self.assertEqual(
+            ui_launch.tmux_plan({}, True, DEEZ, None),
+            [["tmux", "attach", "-t", "clanker"]],
+        )
+
+    def test_tmux_plan_empty_inside_tmux(self):
+        self.assertEqual(ui_launch.tmux_plan({"TMUX": "x"}, False, DEEZ, None), [])
+
+
+class LaunchTest(unittest.TestCase):
+    def test_launch_no_tmux_execs_app_with_pythonpath(self):
+        run, calls = recorder((0, ""))
+        execs = []
+        args = SimpleNamespace(state=Path("/state"), no_tmux=True)
+        ui_launch.launch(args, {"HOME": "/h"}, run=run, execve=lambda *a: execs.append(a), deez=DEEZ)
+        argv, env = execs[0][1], execs[0][2]
+        self.assertEqual(argv[1:], ["-m", "deezlib.superclanker.ui_app", "--state", "/state"])
+        self.assertEqual(env["PYTHONPATH"], str(DEEZ.parents[1]))
+        self.assertEqual(env["HOME"], "/h")
+
+    def test_launch_default_builds_session_then_execs_attach(self):
+        run, calls = recorder((0, ""), (1, ""), (0, ""), (0, ""))
+        execs = []
+        args = SimpleNamespace(state=None, no_tmux=False)
+        ui_launch.launch(args, {}, run=run, execve=lambda *a: execs.append(a), deez=DEEZ)
+        flat = [call[:2] for call in calls]
+        self.assertIn(["tmux", "has-session"], flat)
+        self.assertIn(["tmux", "new-session"], flat)
+        self.assertIn(["tmux", "new-window"], flat)
+        self.assertEqual(execs[0][1], ["tmux", "attach", "-t", "clanker"])
+
+
+class CliTest(unittest.TestCase):
+    def test_cli_ui_verb_parses_state_and_no_tmux(self):
+        args = cli.build_parser().parse_args(
+            ["super-clanker", "ui", "--state", "/tmp/s", "--no-tmux"]
+        )
+        self.assertEqual(args.verb, "ui")
+        self.assertEqual(args.state, Path("/tmp/s"))
+        self.assertTrue(args.no_tmux)
+        self.assertIn("ui", cli.STORELESS_SUPER_VERBS)
+
+
+if __name__ == "__main__":
+    unittest.main()
