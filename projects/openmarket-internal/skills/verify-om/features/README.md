@@ -121,6 +121,8 @@ state, commands, and observable proof.
   provable with no credentials. Start here.
 - [Daemon lifecycle and health](./daemon-lifecycle-and-health.md)
 - [Watch lifecycle from the CLI](./watch-lifecycle-cli.md)
+- [A watch step that wakes a roster agent](./watch-agent-step.md) — author, arm, fire
+  and read an `ai` step that names `agent`; keyless-lane path proven 2026-11-03
 - [The ops dashboard](./ops-dashboard.md) — the shell and the observation
   surfaces, redesigned in v0.400.0
 - [Watch authoring in the dashboard](./watch-authoring-ui.md) — new in v0.400.0:
