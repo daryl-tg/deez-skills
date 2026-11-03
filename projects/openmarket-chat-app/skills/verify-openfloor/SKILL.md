@@ -402,5 +402,17 @@ on 2026-09-03 at `f2c3f88` for the rest.
 stops resolving, when a new user-facing surface lands, or when a gotcha here
 turns out to be fixed. The Home-server note is the first thing to re-check.
 
+After proving a map change, commit and push only the changed `features/*.md`
+straight to the hub's `main`, from the hub root:
+
+```sh
+bin/deez sync-feature-maps openmarket-chat-app verify-openfloor <file.md>... [--repo <hub worktree>]
+```
+
+Pass `--repo` when you edited in an isolated hub worktree. This is the one
+standing push to `main` and it covers map Markdown only. `SKILL.md`, wrappers,
+helpers and the registry go through ordinary review. No map change means
+nothing to publish.
+
 `features/README.md` ends with a **Known gaps** section naming the surfaces the
 map still does not cover. Read it before claiming a run covered the app.

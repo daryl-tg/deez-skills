@@ -293,6 +293,28 @@ def check_citations(reg, repo_root):
     return findings
 
 
+def check_map_publish_rule(reg, repo_root):
+    findings = []
+    for entry in reg.entries:
+        if entry.kind != "skill" or entry.project is None:
+            continue
+        folder = Path(repo_root) / registry.skill_source(entry.name, entry.project)
+        skill_md = folder / "SKILL.md"
+        if not (folder / "features").is_dir() or not skill_md.is_file():
+            continue
+        if "sync-feature-maps" in skill_md.read_text(encoding="utf-8", errors="replace"):
+            continue
+        findings.append(
+            _fail(
+                "map-publish-rule",
+                f"{skill_md.relative_to(repo_root)} has a features/ map but never says to "
+                f"publish it; add that changed features/*.md go straight to main with "
+                f"`bin/deez sync-feature-maps {entry.project} {entry.name} <file.md>...`",
+            )
+        )
+    return findings
+
+
 def check_skill_references(reg, repo_root, extra_known=()):
     """Warn on a bold skill-shaped name nothing in the hub or vendor.toml knows.
 
@@ -833,6 +855,7 @@ def check(reg, repo_root, roots, profile):
     findings.extend(check_gates(reg, repo_root))
     findings.extend(_check_local_merge(reg, repo_root))
     findings.extend(check_citations(reg, repo_root))
+    findings.extend(check_map_publish_rule(reg, repo_root))
     findings.extend(check_runtime_neutrality(reg, repo_root))
     findings.extend(check_playbook_links(reg, repo_root))
     findings.extend(check_gate_tracking(reg, repo_root))
