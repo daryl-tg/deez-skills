@@ -2,6 +2,7 @@ import os
 import shutil
 import signal
 import sys
+import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
@@ -9,14 +10,20 @@ from datetime import datetime
 from itertools import takewhile
 from pathlib import Path
 
+from deezlib import memguard
 from deezlib.superclanker import channels, compose, config, router, sources, workers
-from deezlib.superclanker.domain import Strength, utc_now
+from deezlib.superclanker.domain import Strength, TicketState, utc_now
+from deezlib.superclanker.sweep import leftovers as cwd_leftovers, sweep
 from deezlib.superclanker.store import Store, SuperError
 
 TERMINAL_PREFIX = "terminal:"
 BACKOFF = "backoff"
 BACKOFF_FIRST_SECONDS = 30
 BACKOFF_CEILING_SECONDS = 600
+LOG_LIMIT_BYTES = 5 * 1024 * 1024
+GIT_TIMEOUT_SECONDS = 10
+REMOVAL_RETRY_SECONDS = 600
+MAX_REMOVALS_PER_PASS = 2
 
 
 @dataclass(frozen=True)
@@ -29,26 +36,35 @@ class PassResult:
     replies_sent: int
     errors: tuple
     polled: int = 0
+    expired: int = 0
+    held: int | None = None
+    hold_changed: bool = False
+    removed: int = 0
 
     @property
     def eventful(self):
         counts = (
             self.polled, self.fanned_out, self.launched, self.resumed, self.reaped,
-            self.replies_sent,
+            self.replies_sent, self.expired, self.hold_changed, self.removed,
         )
         return any(counts) or self.wake_id not in (None, BACKOFF) or bool(self.errors)
 
     def line(self, at):
         polled = f" polled={self.polled}" if self.polled else ""
+        held = f" held=mem{self.held}%" if self.held is not None else ""
         return (
-            f"{at}  fanout={self.fanned_out} reaped={self.reaped} resumed={self.resumed} "
-            f"launched={self.launched} wake={self.wake_id or '-'} replies={self.replies_sent} "
-            f"errors={len(self.errors)}{polled}"
+            f"{at}  fanout={self.fanned_out} reaped={self.reaped} expired={self.expired} "
+            f"removed={self.removed} resumed={self.resumed} launched={self.launched} wake={self.wake_id or '-'} "
+            f"replies={self.replies_sent} errors={len(self.errors)}{polled}{held}"
         )
 
 
 def heartbeat_path(root):
     return Path(root) / "daemon.heartbeat"
+
+
+def held_path(root):
+    return Path(root) / "daemon.held"
 
 
 def inbox_path(root, thread_id):
@@ -125,8 +141,130 @@ def _send_terminal_replies(store, root):
     return sent
 
 
+def _held_by_memory(settings, free_pct):
+    try:
+        free = free_pct()
+    except Exception:
+        return None
+    return free if free < settings.workers.min_free_pct else None
+
+
+def _record_hold(root, held):
+    path = held_path(root)
+    try:
+        previous = path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        previous = ""
+    current = "" if held is None else str(held)
+    if current == previous:
+        return False
+    workers._write_atomic(path, current + "\n")
+    return True
+
+
+def _expire_overlong_turns(store, settings, stop, leftovers, now, errors):
+    limit = settings.workers.turn_limit_minutes
+    expired = 0
+    for assignment in store.running_assignments():
+        if not workers.alive(assignment.pid) or assignment.started_at is None:
+            continue
+        if assignment.worktree is None or _seconds_since(assignment.started_at, now) <= limit * 60:
+            continue
+        if assignment.pid not in leftovers(assignment.worktree):
+            continue
+        try:
+            stop(store, assignment.id, reason=f"turn exceeded {limit} minutes")
+        except SuperError as exc:
+            errors.append(str(exc))
+            continue
+        expired += 1
+    return expired
+
+
+def _terminate_stopped_workers(store, root, leftovers, terminate, errors):
+    for assignment in store.stopped_assignments():
+        if assignment.worktree is None or workers.turn_reaped(root, assignment.id):
+            continue
+        if not workers.alive(assignment.pid) or assignment.pid not in leftovers(assignment.worktree):
+            continue
+        try:
+            terminate(assignment)
+        except (SuperError, OSError) as exc:
+            errors.append(str(exc))
+
+
+def _repo_of(worktree, git):
+    common = git(
+        ["git", "-C", str(worktree), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
+    )
+    if common.returncode != 0:
+        raise SuperError(f"{worktree}: not a git worktree: {common.stderr.strip()}")
+    return Path(common.stdout.strip()).parent
+
+
+def _require_clean(worktree, git):
+    status = git(
+        ["git", "-C", str(worktree), "status", "--porcelain"],
+        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
+    )
+    if status.returncode != 0:
+        raise SuperError(f"{worktree}: git status failed: {status.stderr.strip()}")
+    if status.stdout.strip():
+        raise SuperError(f"{worktree}: has uncommitted or untracked files; kept")
+
+
+def _remove_worktree(worktree, git, sweeper):
+    repo = _repo_of(worktree, git)
+    _require_clean(worktree, git)
+    sweeper(worktree)
+    removed = git(
+        ["git", "-C", str(repo), "worktree", "remove", str(worktree)],
+        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
+    )
+    if removed.returncode != 0:
+        raise SuperError(f"{worktree}: git worktree remove failed: {removed.stderr.strip()}")
+
+
+def _inside_worktrees(root, path):
+    try:
+        return not path.is_symlink() and path.resolve().is_relative_to(
+            (Path(root) / "worktrees").resolve()
+        )
+    except (OSError, RuntimeError, ValueError):
+        return False
+
+
+def _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors):
+    removed = 0
+    attempts = 0
+    for worktree, ticket in workers.ticket_worktrees(store, root):
+        if attempts >= MAX_REMOVALS_PER_PASS:
+            break
+        if ticket is None or ticket["state"] is not TicketState.ended or ticket["ended_by"] is None:
+            continue
+        if not _inside_worktrees(root, worktree):
+            continue
+        failed_at = blocked.get(worktree)
+        if failed_at is not None and _seconds_since(failed_at, now) < REMOVAL_RETRY_SECONDS:
+            continue
+        attempts += 1
+        try:
+            _remove_worktree(worktree, git, sweeper)
+        except (SuperError, OSError, subprocess.SubprocessError) as exc:
+            blocked[worktree] = now()
+            errors.append(str(exc))
+        else:
+            blocked.pop(worktree, None)
+            removed += 1
+    return removed
+
+
 def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.launch,
-             resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now):
+             resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now,
+             stop=workers.stop, free_pct=None, git=subprocess.run, sweeper=sweep,
+             blocked=None, leftovers=cwd_leftovers, terminate=workers.terminate):
+    blocked = {} if blocked is None else blocked
     errors = []
 
     def attempt(step, *args):
@@ -138,14 +276,23 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
 
     polled = _poll_due_sources(store, config, now)
     fanned_out = attempt(_fan_out, store, config) or 0
+    expired = attempt(_expire_overlong_turns, store, config, stop, leftovers, now, errors) or 0
+    attempt(_terminate_stopped_workers, store, root, leftovers, terminate, errors)
     reaped = len(attempt(reap, store, root) or [])
+    removed = _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors)
+    held = _held_by_memory(config, free_pct or memguard.free_pct)
+    hold_changed = _record_hold(root, held)
     resumed = 0
     for assignment in store.running_assignments():
+        if held is not None:
+            break
         if workers.alive(assignment.pid) or not store.undelivered_inputs(assignment.ticket_id):
             continue
         if attempt(resume, store, config, assignment.id, hub_root, root) is not None:
             resumed += 1
     for ticket_id in store.revivable():
+        if held is not None:
+            break
         if len(store.running_assignments()) >= config.workers.max_running:
             break
         if attempt(revive, store, config, ticket_id, hub_root, root) is not None:
@@ -153,6 +300,8 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     launched = 0
     running = len(store.running_assignments())
     for assignment in store.pending_assignments():
+        if held is not None:
+            break
         if running >= config.workers.max_running:
             break
         if attempt(launch, store, config, assignment.id, hub_root, root) is not None:
@@ -178,15 +327,17 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     workers._write_atomic(heartbeat_path(root), now() + "\n")
     return PassResult(
         fanned_out, launched, resumed, reaped, wake_id, replies_sent + forge_sent, tuple(errors),
-        polled,
+        polled, expired, held, hold_changed, removed,
     )
 
 
-def log_pass(root, result):
+def log_pass(root, result, limit=LOG_LIMIT_BYTES):
     line = result.line(utc_now())
     if result.eventful:
         log = Path(root) / "log" / "daemon.log"
         log.parent.mkdir(parents=True, exist_ok=True)
+        if log.exists() and log.stat().st_size > limit:
+            os.replace(log, log.with_name(log.name + ".1"))
         with log.open("a", encoding="utf-8") as stream:
             stream.write(line + "\n")
     return line
@@ -246,9 +397,12 @@ def run(root, hub_root, interval_seconds=5, passes=None, sleep=time.sleep,
         try:
             done = 0
             started_with = source_stamp(source_dir)
+            failed_removals = {}
             while True:
                 try:
-                    result = one_pass(store, load_config(root), root, hub_root)
+                    result = one_pass(
+                        store, load_config(root), root, hub_root, blocked=failed_removals,
+                    )
                 except SuperError as exc:
                     result = PassResult(0, 0, 0, 0, None, 0, (str(exc),))
                 for error in result.errors:

@@ -47,11 +47,16 @@ After `kill`, or once the Worker's turn has ended, read the session id from
 `deez super-clanker show a_…`. In the Worker's worktree, run
 `claude --resume <session id>`.
 
+Every process in that worktree dies on `kill`, on `stop`, and when a later turn
+of the Ticket is reaped, your shell, editor and `claude --resume` included.
+Leave the worktree before you run `stop` or `kill`.
+
 ## Change the policy
 
 In `sources.toml`, `[accept]` holds `mode` and `policy_version`. `[router]`
-holds the model and the wake and reply limits. `[workers]` holds the model and
-`max_running`. `[watchdog]` holds its model, interval and thresholds. Each
+holds the model and the wake and reply limits. `[workers]` holds the model,
+`max_running`, `turn_limit_minutes` and `min_free_pct`. `[watchdog]` holds its
+model, interval and thresholds. Each
 `[sources.<name>]` holds `enabled`, `mode`, `senders`, `bots`, `scopes`,
 `mentions` and `poll_seconds`.
 
@@ -67,6 +72,7 @@ reading the `would accept` decisions it recorded.
   before anything outward-facing, per **principle-never-block-on-reversible-work**.
 - The Router never edits code. It decides and dispatches.
 - Inferred work starts in observe mode.
+- A branch is never deleted. Removing an ended ticket's worktree leaves its branch.
 
 ## References
 

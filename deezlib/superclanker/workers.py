@@ -22,6 +22,7 @@ from deezlib.superclanker.domain import (
     trigger_id,
     utc_now,
 )
+from deezlib.superclanker import sweep
 from deezlib.superclanker.router import _environment
 from deezlib.superclanker.store import InputKind, SuperError
 
@@ -99,6 +100,19 @@ def prepare_workspace(ticket, repo, slug, root, run=subprocess.run):
     if added.returncode != 0:
         raise SuperError(f"git worktree add for {ticket.id} failed: {added.stderr.strip()}")
     return worktree, branch
+
+
+def ticket_worktrees(store, root):
+    found = []
+    for path in sorted((Path(root) / "worktrees").glob("*/*")):
+        if not path.is_dir():
+            continue
+        try:
+            ticket = store.show(path.name) if path.name.startswith("k_") else None
+        except SuperError:
+            ticket = None
+        found.append((path, ticket))
+    return found
 
 
 def _load(store, kind, record_id):
@@ -442,7 +456,13 @@ def _reapable(store):
     ]
 
 
-def reap(store, root):
+def turn_reaped(root, assignment_id):
+    log_dir = Path(root) / "log"
+    last = max(_turns(log_dir, assignment_id) - 1, 0)
+    return _marker(_turn_log(log_dir, assignment_id, last)).exists()
+
+
+def reap(store, root, sweep=sweep.sweep):
     log_dir = Path(root) / "log"
     emitted = []
     for assignment in _reapable(store):
@@ -453,6 +473,8 @@ def reap(store, root):
         marker = _marker(output)
         if marker.exists():
             continue
+        if assignment.worktree is not None:
+            sweep(assignment.worktree)
         report = _turn_report(
             store, assignment, output, _earlier_reports(log_dir, assignment.id, turns)
         )
@@ -476,12 +498,11 @@ def _signal(kill, pid, signum):
             return
         except ProcessLookupError:
             continue
+        except PermissionError as exc:
+            raise SuperError(f"cannot signal worker pid {pid}: {exc}") from exc
 
 
-def stop(store, assignment_id, kill=os.kill, grace_seconds=5):
-    assignment = _load(store, Assignment, assignment_id)
-    if assignment.state is AssignmentState.ended:
-        return None
+def terminate(assignment, kill=os.kill, sweep=sweep.sweep, grace_seconds=5):
     if alive(assignment.pid, kill):
         _signal(kill, assignment.pid, signal.SIGTERM)
         deadline = time.monotonic() + grace_seconds
@@ -489,4 +510,14 @@ def stop(store, assignment_id, kill=os.kill, grace_seconds=5):
             time.sleep(0.05)
         if alive(assignment.pid, kill):
             _signal(kill, assignment.pid, signal.SIGKILL)
-    return store.report(assignment_id, ReportKind.failed, "stopped by operator")
+    if assignment.worktree is not None:
+        sweep(assignment.worktree)
+
+
+def stop(store, assignment_id, kill=os.kill, grace_seconds=5, sweep=sweep.sweep,
+         reason="stopped by operator"):
+    assignment = _load(store, Assignment, assignment_id)
+    if assignment.state is AssignmentState.ended:
+        return None
+    terminate(assignment, kill=kill, sweep=sweep, grace_seconds=grace_seconds)
+    return store.report(assignment_id, ReportKind.failed, reason)
