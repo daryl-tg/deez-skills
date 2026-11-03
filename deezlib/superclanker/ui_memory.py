@@ -56,13 +56,15 @@ def memory_rows(snap):
 class TypedNameScreen(ModalScreen):
     BINDINGS = [Binding("escape", "cancel", "cancel")]
 
-    def __init__(self, name):
+    def __init__(self, expected, names):
         super().__init__()
-        self.name_text = name
+        self.name_text = expected
+        self.names = names
 
     def compose(self):
         with Vertical(id="dialog"):
-            yield Label(f"Kill the whole session. Type its name to confirm: {self.name_text}", markup=False)
+            yield Label(f"This kills peer session(s): {', '.join(self.names)}", markup=False)
+            yield Label(f"Type {self.name_text} to confirm", markup=False)
             yield Input(id="typed-name")
 
     def on_input_submitted(self, event):
@@ -76,7 +78,8 @@ class TypedNameScreen(ModalScreen):
 
 
 class MemoryMixin:
-    def init_memory(self, protect, kill_tree):
+    def init_memory(self, protect, kill_tree, read_table):
+        self.read_table = read_table
         self.protect = protect
         self.kill_tree = kill_tree
         self.protected_pids = None
@@ -124,29 +127,46 @@ class MemoryMixin:
             table.move_cursor(row=table.get_row_index(str(keep)))
 
     def can_kill_memory(self):
-        return self.query_one("#detail").active == "memory" and self.memory_pid() is not None
+        table = self.query_one("#memory-rows", DataTable)
+        return self.focused is table and self.memory_pid() is not None
 
     def action_memory_kill(self):
         snap = self.snap
         pid = self.memory_pid()
         workers = set().union(*snap.attribution.workers.values()) if snap.attribution else set()
-        reason = procs.kill_refusal(snap.table, pid, self.protected_pids, os.getuid(), workers)
+        known = self.protected_pids if self.protected_for is snap.table else None
+        reason = procs.kill_refusal(snap.table, pid, known, os.getuid(), workers)
         if reason:
             self.notify(reason, severity="warning", markup=False)
             return
         target = snap.table[pid]
-        peer = next((peer for peer in snap.peers if peer.pid == pid), None)
+        members = procs.subtree(snap.table, pid)
+        peers = [peer for peer in snap.peers if peer.pid in members]
 
         def go():
-            self.run_worker(lambda: self.run_kill(target), thread=True, exit_on_error=False)
+            self.run_worker(lambda: self.run_kill(target, workers), thread=True, exit_on_error=False)
 
-        if peer:
-            self.push_screen(TypedNameScreen(peer.name), lambda matched: matched and go())
+        if peers:
+            expected = peers[0].name if len(peers) == 1 else f"kill {len(peers)} sessions"
+            names = [peer.name for peer in peers]
+            self.push_screen(TypedNameScreen(expected, names), lambda matched: matched and go())
         else:
             self.ask(f"Kill {pid} {target.command} and everything under it?", go)
 
-    def run_kill(self, target):
-        killed = self.kill_tree(target)
+    def run_kill(self, target, workers):
+        try:
+            fresh = self.read_table()
+            try:
+                known = self.protect(fresh)
+            except Exception:
+                known = None
+            reason = procs.kill_refusal(fresh, target.pid, known, os.getuid(), workers)
+            killed = [] if reason else self.kill_tree(target)
+        except Exception as exc:
+            reason = f"kill failed: {exc}"
+        if reason:
+            self.call_from_thread(self.notify, reason, severity="warning", markup=False)
+            return
         self.call_from_thread(self.kill_done, target, killed)
 
     def kill_done(self, target, killed):

@@ -148,12 +148,12 @@ class BoardApp(MemoryMixin, TakeoverMixin, App):
     def __init__(self, root, *, snapshot_fn=build_snapshot, verb=run_verb,
                  deez=REPO_ROOT / "bin/deez", clock=time.monotonic, refresh_s=REFRESH_S,
                  protect=protect_table, kill_tree=procs.kill_tree, tmux=run_tmux,
-                 in_tmux=lambda: "TMUX" in os.environ, bell=None, pid_alive=alive, sleep=time.sleep):
+                 in_tmux=lambda: "TMUX" in os.environ, bell=None, pid_alive=alive, sleep=time.sleep, read_table=procs.read_table):
         super().__init__()
-        self.init_memory(protect, kill_tree)
+        self.init_memory(protect, kill_tree, read_table)
         self.init_takeover(tmux, in_tmux, pid_alive, sleep)
         self.ring = bell or self.bell
-        self.alerted = False
+        self.title_applied = "board"
         self.root = Path(root)
         self.snapshot_fn = snapshot_fn
         self.verb = verb
@@ -228,18 +228,31 @@ class BoardApp(MemoryMixin, TakeoverMixin, App):
         self.maybe_reload_log()
 
     def alert(self, previous, snap):
-        count = attention_count(snap)
-        pane = os.environ.get("TMUX_PANE")
-        title = None
         if needs_you_rose(previous, snap):
             self.ring()
-            title = f"board(!{max(count, 1)})"
-            self.alerted = True
-        elif count == 0 and self.alerted:
-            title = "board"
-            self.alerted = False
-        if title and pane and self.in_tmux():
-            self.tmux(["tmux", "rename-window", "-t", pane, title])
+        count = attention_count(snap)
+        title = f"board(!{count})" if count else "board"
+        if title != self.title_wanted and os.environ.get("TMUX_PANE") and self.in_tmux():
+            self.title_wanted = title
+            self.apply_title()
+
+    def apply_title(self):
+        if self.title_busy:
+            return
+        self.title_busy = True
+        self.run_worker(self.write_title, thread=True, exit_on_error=False)
+
+    def write_title(self):
+        while self.title_applied != self.title_wanted:
+            title = self.title_wanted
+            self.tmux(["tmux", "rename-window", "-t", os.environ["TMUX_PANE"], title])
+            self.title_applied = title
+        self.call_from_thread(self.title_idle)
+
+    def title_idle(self):
+        self.title_busy = False
+        if self.title_applied != self.title_wanted:
+            self.apply_title()
 
     def visible_entries(self):
         snap = self.snap

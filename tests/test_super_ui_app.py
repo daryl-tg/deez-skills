@@ -33,6 +33,18 @@ def snapshot(rows=(), **changes):
     return ui_model.Snapshot(**fields)
 
 
+class Tmux:
+    def __init__(self, returncode=0):
+        self.calls = []
+        self.threads = []
+        self.returncode = returncode
+
+    def __call__(self, argv):
+        self.calls.append(argv)
+        self.threads.append(threading.get_ident())
+        return subprocess.CompletedProcess(argv, self.returncode)
+
+
 class FakeClock:
     def __init__(self):
         self.now = 1000.0
@@ -395,40 +407,83 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
 
 @unittest.skipUnless(TEXTUAL, "textual not installed")
 class AlertTest(unittest.IsolatedAsyncioTestCase):
-    async def test_no_alert_on_first_snapshot(self):
-        rig = Rig(snapshot([ticket("k_9", needs_you=True)]))
-        rings, windows = [], []
-        with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
-            async with rig.app(bell=lambda: rings.append(1), tmux=windows.append, in_tmux=lambda: True).run_test() as pilot:
-                await settle(pilot)
-        self.assertEqual((rings, windows), ([], []))
+    def titles(self, tmux):
+        return [call[-1] for call in tmux.calls]
 
-    async def test_bell_and_rename_when_needs_you_rises(self):
-        rig = Rig(snapshot([ticket("k_1")]))
-        rings, windows = [], []
+    async def test_first_snapshot_sets_title_without_bell(self):
+        rig = Rig(snapshot([ticket("k_9", needs_you=True)]))
+        rings, tmux = [], Tmux()
         with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
-            async with rig.app(bell=lambda: rings.append(1), tmux=windows.append, in_tmux=lambda: True).run_test() as pilot:
+            async with rig.app(bell=lambda: rings.append(1), tmux=tmux, in_tmux=lambda: True).run_test() as pilot:
                 await settle(pilot)
-                pilot.app.apply_snapshot(snapshot([ticket("k_1"), ticket("k_9", needs_you=True)]))
+        self.assertEqual(rings, [])
+        self.assertEqual(tmux.calls, [["tmux", "rename-window", "-t", "%7", "board(!1)"]])
+
+    async def test_quiet_start_leaves_title_alone(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        tmux = Tmux()
+        with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
+            async with rig.app(tmux=tmux, in_tmux=lambda: True).run_test() as pilot:
                 await settle(pilot)
-                self.assertEqual(len(rings), 1)
-                self.assertEqual(windows, [["tmux", "rename-window", "-t", "%7", "board(!1)"]])
-                pilot.app.apply_snapshot(snapshot([ticket("k_1"), ticket("k_9", needs_you=True)]))
+        self.assertEqual(tmux.calls, [])
+
+    async def test_title_tracks_the_count_and_bell_rings_on_rise(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        rings, tmux = [], Tmux()
+        one = [ticket("k_1"), ticket("k_9", needs_you=True)]
+        two = [ticket("k_8", needs_you=True), ticket("k_9", needs_you=True)]
+        with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
+            async with rig.app(bell=lambda: rings.append(1), tmux=tmux, in_tmux=lambda: True).run_test() as pilot:
                 await settle(pilot)
-                self.assertEqual(len(rings), 1)
-                pilot.app.apply_snapshot(snapshot([ticket("k_1")]))
+                for rows in (one, one, two, one, [ticket("k_1")]):
+                    pilot.app.apply_snapshot(snapshot(rows))
+                    await settle(pilot)
+        self.assertEqual(self.titles(tmux), ["board(!1)", "board(!2)", "board(!1)", "board"])
+        self.assertEqual(len(rings), 2)
+
+    async def test_hold_change_with_nothing_waiting_rings_but_never_shows_a_count(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        rings, tmux = [], Tmux()
+        with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
+            async with rig.app(bell=lambda: rings.append(1), tmux=tmux, in_tmux=lambda: True).run_test() as pilot:
                 await settle(pilot)
-        self.assertEqual(windows[-1], ["tmux", "rename-window", "-t", "%7", "board"])
-        self.assertEqual(len(windows), 2)
+                pilot.app.apply_snapshot(snapshot([ticket("k_1")], held=5))
+                await settle(pilot)
+        self.assertEqual((len(rings), tmux.calls), (1, []))
+
+    async def test_tmux_rename_runs_off_the_event_loop(self):
+        rig = Rig(snapshot([ticket("k_9", needs_you=True)]))
+        tmux = Tmux()
+        with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
+            async with rig.app(tmux=tmux, in_tmux=lambda: True).run_test() as pilot:
+                await settle(pilot)
+        self.assertTrue(tmux.threads)
+        self.assertNotIn(threading.get_ident(), tmux.threads)
 
     async def test_outside_tmux_rings_without_rename(self):
         rig = Rig(snapshot([ticket("k_1")]))
-        rings, windows = [], []
-        async with rig.app(bell=lambda: rings.append(1), tmux=windows.append, in_tmux=lambda: False).run_test() as pilot:
+        rings, tmux = [], Tmux()
+        async with rig.app(bell=lambda: rings.append(1), tmux=tmux, in_tmux=lambda: False).run_test() as pilot:
             await settle(pilot)
             pilot.app.apply_snapshot(snapshot([ticket("k_9", needs_you=True)]))
             await settle(pilot)
-        self.assertEqual((len(rings), windows), (1, []))
+        self.assertEqual((len(rings), tmux.calls), (1, []))
+
+
+@unittest.skipUnless(TEXTUAL, "textual not installed")
+class TmuxRunTest(unittest.TestCase):
+    def test_run_tmux_times_out_and_reports_failure(self):
+        from deezlib.superclanker import ui_takeover
+        with mock.patch.object(ui_takeover.subprocess, "run", side_effect=subprocess.TimeoutExpired(["tmux"], 5)) as run:
+            result = ui_takeover.run_tmux(["tmux", "x"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(run.call_args.kwargs["timeout"], 5)
+
+    def test_run_tmux_reports_a_missing_binary(self):
+        from deezlib.superclanker import ui_takeover
+        with mock.patch.object(ui_takeover.subprocess, "run", side_effect=OSError("gone")):
+            result = ui_takeover.run_tmux(["tmux", "x"])
+        self.assertNotEqual(result.returncode, 0)
 
 
 @unittest.skipUnless(TEXTUAL, "textual not installed")
