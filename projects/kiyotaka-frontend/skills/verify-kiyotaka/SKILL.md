@@ -139,7 +139,12 @@ catalog probe bring the false cold failure back, and a probe ending in
 The `v2 gateway` line is a TCP probe of the tailnet-only host named by
 `VITE_V2_WEB_SOCKET_DOMAIN`; when that name stops resolving on the machine the
 line reads `UNREACHABLE` while candles still paint from the cache, so read it
-before blaming an empty live panel on the product.
+before blaming an empty live panel on the product. When only the system
+resolver has lost the name, the line asks the tailnet resolver (`100.100.100.100`)
+and prints the exact fix: export
+`KIYO_BROWSER_ARGS='--host-resolver-rules=MAP <gateway> <address>'`, close the
+browser session, and reopen it so Chromium starts with the map. With the map
+set, the line reads `reachable at <address>` and the lane is drivable.
 
 **The `chart-schema` line is the one that silently burns a run.** `vite.config.ts`
 aliases `@orangecharts/chart-schema` to the *sibling* `orange-shared` checkout's
@@ -232,6 +237,12 @@ Three observations make a chart claim stand up:
 2. **Accessible name** — the heading or control whose label should have changed.
 3. **A pixel frame** — the WebGL canvas is invisible to the a11y tree, so a
    screenshot is the only proof the chart actually drew.
+
+App state is in Pinia stores, not window globals: `chartStore`, `dialogStore`
+and `jwtStore` in the map's recipes mean
+`document.querySelector('#app').__vue_app__.config.globalProperties.$pinia._s.get('<id>')`
+with the ids `chart`, `dialog` and `jwt`. A bare `chartStore.activeInterval` in
+`eval` throws `ReferenceError`.
 
 Write frames into `artifacts/<run-id>/<revision>/` in the repo (gitignored),
 alongside an `evidence-manifest.json`, then validate:
@@ -432,8 +443,15 @@ the way any documentation does. `maintain-verification-skill` is the upkeep pass
 run it when a mapped handle stops resolving, when a new user-facing surface
 lands, or when a gotcha above turns out to be fixed.
 
-After proving a map correction, automatically commit and push only its changed
-`features/*.md` files under
-[the project verification contract](../../../../docs/project-verification.md).
-Keep `SKILL.md`, helpers, wrappers, and unrelated edits out of that automatic
-commit. No map changes means nothing to publish.
+After proving a map change, commit and push only the changed `features/*.md`
+straight to the hub's `main`, from the hub root:
+
+```sh
+bin/deez sync-feature-maps kiyotaka-frontend verify-kiyotaka <file.md>... [--repo <hub worktree>]
+```
+
+Pass `--repo` when you edited in an isolated hub worktree. This is the one
+standing push to `main` and it covers map Markdown only. `SKILL.md`, wrappers,
+helpers and the registry go through ordinary review under
+[the project verification contract](../../../../docs/project-verification.md). No map change means
+nothing to publish.
