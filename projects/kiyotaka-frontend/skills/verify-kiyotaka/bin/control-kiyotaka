@@ -3,10 +3,12 @@ set -euo pipefail
 
 PORT="${KIYO_LANE_PORT:-18097}"
 SESSION="${KIYO_SESSION:-verify-kiyotaka}"
-GL_ARGS='--use-angle=swiftshader,--enable-unsafe-swiftshader'
+TAILNET_DNS=100.100.100.100
+GL_ARGS="--use-angle=swiftshader,--enable-unsafe-swiftshader${KIYO_BROWSER_ARGS:+,$KIYO_BROWSER_ARGS}"
 USAGE='usage: control-kiyotaka {up|down|url|doctor|browser <verb> [args...]|cli -- <command...>|evidence check <run-id> <revision>}
   env: KIYO_LANE_PORT (default 18097, agent range 18097-18197), KIYO_SESSION (default verify-kiyotaka),
-       KIYO_REPO (default: the kiyotaka-frontend checkout containing $PWD), ARTIFACTS (default <repo>/artifacts)'
+       KIYO_REPO (default: the kiyotaka-frontend checkout containing $PWD), ARTIFACTS (default <repo>/artifacts),
+       KIYO_BROWSER_ARGS (extra Chromium flags, comma-separated, appended to the GL flags)'
 
 die() { printf 'control-kiyotaka: %s\n' "$*" >&2; exit 1; }
 
@@ -133,8 +135,22 @@ cmd_doctor() {
   fi
   local gw; gw="$(host_of "$(env_value VITE_V2_WEB_SOCKET_DOMAIN)")"
   if [ -n "$gw" ]; then
-    if nc -z -w 5 "$gw" 443 >/dev/null 2>&1; then printf 'v2 gateway   %s reachable (TCP only; a timing-out gateway still passes)\n' "$gw"
-    else printf 'v2 gateway   %s UNREACHABLE\n' "$gw"; fail=1; fi
+    local mapped tailnet
+    mapped="$(printf '%s' "${KIYO_BROWSER_ARGS:-}" | sed -n "s/.*MAP $gw \([0-9.]*\).*/\1/p")"
+    if [ -n "$mapped" ] && nc -z -w 5 "$mapped" 443 >/dev/null 2>&1; then
+      printf 'v2 gateway   %s reachable at %s through the browser'"'"'s KIYO_BROWSER_ARGS map (TCP only)\n' "$gw" "$mapped"
+    elif nc -z -w 5 "$gw" 443 >/dev/null 2>&1; then
+      printf 'v2 gateway   %s reachable (TCP only; a timing-out gateway still passes)\n' "$gw"
+    else
+      tailnet="$(dig +short +time=3 +tries=1 @"$TAILNET_DNS" "$gw" A 2>/dev/null | grep -E '^[0-9.]+$' | head -1 || true)"
+      if [ -n "$tailnet" ] && nc -z -w 5 "$tailnet" 443 >/dev/null 2>&1; then
+        printf 'v2 gateway   %s UNREACHABLE through the system resolver; the tailnet resolver %s answers %s, which is reachable. Fix: KIYO_BROWSER_ARGS='"'"'--host-resolver-rules=MAP %s %s'"'"', then reopen the browser session\n' \
+          "$gw" "$TAILNET_DNS" "$tailnet" "$gw" "$tailnet"
+      else
+        printf 'v2 gateway   %s UNREACHABLE (system resolver and tailnet resolver %s)\n' "$gw" "$TAILNET_DNS"
+      fi
+      fail=1
+    fi
   else
     printf 'v2 gateway   VITE_V2_WEB_SOCKET_DOMAIN not set in %s\n' "$ENV_FILE"
   fi
