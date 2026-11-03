@@ -33,6 +33,14 @@ def snapshot(rows=(), **changes):
     return ui_model.Snapshot(**fields)
 
 
+class FakeClock:
+    def __init__(self):
+        self.now = 1000.0
+
+    def __call__(self):
+        return self.now
+
+
 class Rig:
     def __init__(self, snap, gate=None, result=None, log_gate=None):
         self.snap = snap
@@ -42,6 +50,7 @@ class Rig:
         self.gate = gate
         self.log_gate = log_gate
         self.result = result
+        self.clock = FakeClock()
 
     def snapshot_fn(self, root, previous, cadence):
         self.snapshots += 1
@@ -61,18 +70,24 @@ class Rig:
         return VerbResult(argv, 0, "ok", "")
 
     def app(self):
-        return BoardApp(Path("/state"), snapshot_fn=self.snapshot_fn, verb=self.verb, deez=DEEZ)
+        return BoardApp(
+            Path("/state"), snapshot_fn=self.snapshot_fn, verb=self.verb, deez=DEEZ,
+            clock=self.clock, refresh_s=3600,
+        )
 
 
-def settle(pilot):
-    return pilot.pause(0.3)
+async def settle(pilot):
+    for _ in range(3):
+        await pilot.pause()
+        await pilot.app.workers.wait_for_complete()
+    await pilot.pause()
 
 
 async def until(pilot, condition):
     for _ in range(200):
         if condition():
             return
-        await pilot.pause(0.05)
+        await pilot.pause()
     raise AssertionError("condition not reached")
 
 
@@ -122,7 +137,7 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
         for index, label in enumerate(labels(pilot.app)):
             if ticket_id in label:
                 table.move_cursor(row=index)
-        await settle(pilot)
+        await pilot.pause()
 
     async def test_ask_sends_ask_verb(self):
         rig = Rig(snapshot([ticket("k_1")]))
@@ -343,6 +358,22 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
             await settle(pilot)
         self.assertEqual(rig.calls, [[str(DEEZ), "super-clanker", "kill", "a_1"]])
 
+    async def test_log_reloads_only_when_interval_elapses_on_the_injected_clock(self):
+        rig = Rig(snapshot([ticket("k_1", assignment="a_1")]))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            pilot.app.query_one("#detail").active = "log"
+            await settle(pilot)
+            self.assertEqual(len(rig.calls), 1)
+            for _ in range(3):
+                pilot.app.apply_snapshot(rig.snap)
+                await settle(pilot)
+            self.assertEqual(len(rig.calls), 1)
+            rig.clock.now += 6
+            pilot.app.apply_snapshot(rig.snap)
+            await settle(pilot)
+            self.assertEqual(len(rig.calls), 2)
+
     async def test_log_reload_is_single_flight_and_drops_stale_result(self):
         gate = threading.Event()
         rig = Rig(snapshot([ticket("k_1", assignment="a_1"), ticket("k_2", assignment="a_2")]), log_gate=gate)
@@ -353,7 +384,7 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
             await until(pilot, lambda: rig.started)
             await self.select_ticket(pilot, "k_2")
             pilot.app.apply_snapshot(rig.snap)
-            await settle(pilot)
+            await pilot.pause()
             self.assertEqual(len(rig.started), 1)
             gate.set()
             await until(pilot, lambda: "LOG-a_2" in plain(pilot.app, "#log-text"))

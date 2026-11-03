@@ -199,13 +199,14 @@ class BoardApp(App):
     ]
 
     def __init__(self, root, *, snapshot_fn=build_snapshot, verb=run_verb,
-                 deez=REPO_ROOT / "bin/deez", clock=time.monotonic):
+                 deez=REPO_ROOT / "bin/deez", clock=time.monotonic, refresh_s=REFRESH_S):
         super().__init__()
         self.root = Path(root)
         self.snapshot_fn = snapshot_fn
         self.verb = verb
         self.deez = Path(deez)
         self.clock = clock
+        self.refresh_s = refresh_s
         self.cadence = Cadence(clock)
         self.snap = None
         self.entries = {}
@@ -241,7 +242,7 @@ class BoardApp(App):
         table.add_column("rows", key="label")
         table.show_header = False
         table.focus()
-        self.set_interval(REFRESH_S, self.refresh_snapshot)
+        self.set_interval(self.refresh_s, self.refresh_snapshot)
         self.refresh_snapshot()
 
     def refresh_snapshot(self):
@@ -367,9 +368,9 @@ class BoardApp(App):
         if selected != self.selected:
             self.selected = selected
             self.shown = None
+            self.log_loaded_at = None
         self.refresh_bindings()
         self.render_tabs()
-        self.log_loaded_at = None
         self.maybe_reload_log()
 
     def render_tabs(self):
