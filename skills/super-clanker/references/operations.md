@@ -6,26 +6,38 @@ launchd keeps `deez super-clanker daemon` alive. Each pass, about every five sec
 
 1. Poll each enabled source that is due.
 2. Fan out queued Triggers on subscribed Threads to their Tickets.
-3. Stop Workers whose turn has run past `workers.turn_limit_minutes`. This runs
-   before the reap, so the stopped turn is reaped in the same pass.
-4. Reap finished Worker turns into `worker` Triggers. Reaping, and the
-   `stop` verb, sweep the Worker's worktree: any process whose working directory is the worktree or
-   below it is sent SIGTERM, then SIGKILL after a three-second grace.
-5. Remove the worktree of each Ticket ended by the `stop` verb: sweep it, then
-   `git worktree remove` without `--force` in the main repository. The branch
-   stays. A Ticket ended by a `dropped` report keeps its worktree, because it can
-   still be revived. A worktree with uncommitted changes stays too: the pass
-   records an error naming it and tries again after ten minutes.
-6. Check free memory. Below `workers.min_free_pct` the pass is held: steps 7 to 9
+3. Stop Workers whose turn has run past `workers.turn_limit_minutes`, as `kill`
+   does. A process whose working directory has left the Worker's worktree is not
+   the Worker and is left alone. This runs before the reap, so the stopped turn is
+   reaped in the same pass.
+4. End the Worker of each Ticket ended by the `stop` verb while that Worker still
+   runs in the Ticket's worktree or its scratch directory under `work/`: SIGTERM
+   to its process group, SIGKILL after five seconds, then a sweep. `stop` itself
+   only ends the Ticket; this step ends its process, before the reap and before
+   step 6 removes the worktree.
+5. Reap finished Worker turns into `worker` Triggers. Reaping, the `kill` verb
+   and steps 3 and 4 sweep the Worker's worktree: any process whose working
+   directory is the worktree or below it is sent SIGTERM, then SIGKILL after a
+   three-second grace. Only the sweeping process and its parent are spared.
+6. Remove the worktrees of Tickets ended by the `stop` verb, at most two per
+   pass: check `git status`, sweep, then `git worktree remove` without
+   `--force` in the main repository. The branch stays. A Ticket ended by a
+   `dropped` report keeps its worktree, because it can still be revived. A
+   worktree with uncommitted or untracked files stays and is not swept: the pass
+   records an error naming it and skips it for ten minutes. Each git command
+   times out after ten seconds.
+7. Check free memory. Below `workers.min_free_pct` the pass is held: steps 8 to 10
    are skipped and the pass line reads `held=mem<pct>%`. The hold is logged when
    it starts and when it clears, not on every held pass. An unreadable
-   `memory_pressure` does not hold.
-7. Resume exited Workers that have new inputs.
-8. Revive stopped Tickets that have new inputs.
-9. Launch pending Assignments up to `workers.max_running`.
-10. Ignore Triggers the gate refuses, then wake the Router if any remain.
-11. Send replies: terminal ones to the inbox, forge ones through `gh` or `glab`.
-12. Write the heartbeat.
+   `memory_pressure`, or one that takes over five seconds, does not hold.
+8. Resume exited Workers that have new inputs.
+9. Revive Tickets that have new inputs and whose last Assignment ended: by `kill`,
+   by the turn limit, or by a final report, `dropped` included. A Ticket ended by
+   `stop` stays ended.
+10. Launch pending Assignments up to `workers.max_running`.
+11. Ignore Triggers the gate refuses, then wake the Router if any remain.
+12. Send replies: terminal ones to the inbox, forge ones through `gh` or `glab`.
+13. Write the heartbeat.
 
 The pass line counts `reaped`, `expired` (turns stopped at the limit) and
 `removed` (worktrees removed).
@@ -98,8 +110,10 @@ Under the state root:
 - **Held pass.** The pass line reads `held=mem<pct>%`. Run `memory_pressure` to
   see free memory. Launches resume on their own once it reaches
   `workers.min_free_pct`; lower the key to launch sooner.
-- **Worktree that will not be removed.** The ended Ticket's worktree has
-  uncommitted changes, and each pass reports it as an error and the Watchdog as an
-  orphan. Inspect it, commit or discard what is there, and the next pass removes
-  it. To drop it by hand, run `git worktree remove --force <path>` in the main
+- **Worktree that will not be removed.** The stopped Ticket's worktree has
+  uncommitted or untracked files. A pass reports it as an error, then leaves it
+  alone for ten minutes; the Watchdog lists it as an orphan. Inspect it, commit or
+  discard what is there, and leave it: the first pass after the ten minutes
+  sweeps and removes it, and any shell or editor still open in it dies then. To
+  drop it by hand, run `git worktree remove --force <path>` in the main
   repository.

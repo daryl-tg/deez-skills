@@ -47,6 +47,10 @@ After `kill`, or once the Worker's turn has ended, read the session id from
 `deez super-clanker show a_…`. In the Worker's worktree, run
 `claude --resume <session id>`.
 
+Every process in that worktree dies on `kill`, on `stop`, and when a later turn
+of the Ticket is reaped, your shell, editor and `claude --resume` included.
+Leave the worktree before you run `stop` or `kill`.
+
 ## Change the policy
 
 In `sources.toml`, `[accept]` holds `mode` and `policy_version`. `[router]`
