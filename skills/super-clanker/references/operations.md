@@ -6,12 +6,28 @@ launchd keeps `deez super-clanker daemon` alive. Each pass, about every five sec
 
 1. Poll each enabled source that is due.
 2. Fan out queued Triggers on subscribed Threads to their Tickets.
-3. Reap finished Worker turns into `worker` Triggers.
-4. Resume exited Workers that have new inputs.
-5. Launch pending Assignments up to `workers.max_running`.
-6. Ignore Triggers the gate refuses, then wake the Router if any remain.
-7. Send replies: terminal ones to the inbox, forge ones through `gh` or `glab`.
-8. Write the heartbeat.
+3. Stop Workers whose turn has run past `workers.turn_limit_minutes`. This runs
+   before the reap, so the stopped turn is reaped in the same pass.
+4. Reap finished Worker turns into `worker` Triggers. Reaping sweeps the
+   Worker's worktree: any process whose working directory is the worktree or
+   below it is sent SIGTERM, then SIGKILL after a three-second grace.
+5. Remove the worktree of each ended Ticket: sweep it, then
+   `git worktree remove` without `--force` in the main repository. The branch
+   stays. A worktree with uncommitted changes stays too, and the pass records an
+   error naming it.
+6. Check free memory. Below `workers.min_free_pct` the pass is held: steps 7 to 9
+   are skipped and the pass line reads `held=mem<pct>%`. The hold is logged when
+   it starts and when it clears, not on every held pass. An unreadable
+   `memory_pressure` does not hold.
+7. Resume exited Workers that have new inputs.
+8. Revive stopped Tickets that have new inputs.
+9. Launch pending Assignments up to `workers.max_running`.
+10. Ignore Triggers the gate refuses, then wake the Router if any remain.
+11. Send replies: terminal ones to the inbox, forge ones through `gh` or `glab`.
+12. Write the heartbeat.
+
+The pass line counts `reaped`, `expired` (turns stopped at the limit) and
+`removed` (worktrees removed).
 
 `deez super-clanker pass` runs one pass by hand.
 
@@ -48,12 +64,23 @@ Under the state root:
 
 | Path | Holds |
 |---|---|
-| `log/daemon.log` | One line per eventful pass |
+| `log/daemon.log` | One line per eventful pass; rotated to `daemon.log.1` past 5 MiB, one previous file kept |
+| `daemon.held` | Free-memory percentage while the daemon is holding launches; empty otherwise |
 | `log/launchd.err.log`, `log/watchdog.err.log` | launchd stderr for each agent |
 | `log/<assignment>.json`, `.err`, `.reaped` | One Worker turn; later turns add `.<n>` |
 | `inbox/terminal-<thread>.log` | Replies on a terminal Thread |
 | `daemon.heartbeat`, `daemon.lock.d/pid` | Daemon liveness |
 | `router.session`, `watchdog.session` | Resumable session ids |
+
+## Workers config
+
+`[workers]` in `sources.toml`:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `max_running` | 3 | Concurrent Workers |
+| `turn_limit_minutes` | 120 | A live Worker turn older than this is stopped |
+| `min_free_pct` | 30 | Free memory below this holds resume, revive and launch |
 
 ## Recovery
 
@@ -67,3 +94,11 @@ Under the state root:
 - **Expired Router session.** Every wake fails while `router.session` names a
   session `claude --resume` cannot find. Delete that file. The next wake opens
   a fresh session with the queued backlog.
+- **Held pass.** The pass line reads `held=mem<pct>%`. Run `memory_pressure` to
+  see free memory. Launches resume on their own once it reaches
+  `workers.min_free_pct`; lower the key to launch sooner.
+- **Worktree that will not be removed.** The ended Ticket's worktree has
+  uncommitted changes, and each pass reports it as an error and the Watchdog as an
+  orphan. Inspect it, commit or discard what is there, and the next pass removes
+  it. To drop it by hand, run `git worktree remove --force <path>` in the main
+  repository.

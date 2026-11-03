@@ -50,8 +50,9 @@ After `kill`, or once the Worker's turn has ended, read the session id from
 ## Change the policy
 
 In `sources.toml`, `[accept]` holds `mode` and `policy_version`. `[router]`
-holds the model and the wake and reply limits. `[workers]` holds the model and
-`max_running`. `[watchdog]` holds its model, interval and thresholds. Each
+holds the model and the wake and reply limits. `[workers]` holds the model,
+`max_running`, `turn_limit_minutes` and `min_free_pct`. `[watchdog]` holds its
+model, interval and thresholds. Each
 `[sources.<name>]` holds `enabled`, `mode`, `senders`, `bots`, `scopes`,
 `mentions` and `poll_seconds`.
 
@@ -67,6 +68,7 @@ reading the `would accept` decisions it recorded.
   before anything outward-facing, per **principle-never-block-on-reversible-work**.
 - The Router never edits code. It decides and dispatches.
 - Inferred work starts in observe mode.
+- A branch is never deleted. Removing an ended ticket's worktree leaves its branch.
 
 ## References
 
