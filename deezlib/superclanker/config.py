@@ -37,6 +37,8 @@ class RouterConfig:
 class WorkersConfig:
     model: str | None = None
     max_running: int = 3
+    turn_limit_minutes: int = 120
+    min_free_pct: int = 30
 
 
 @dataclass(frozen=True)
@@ -117,7 +119,9 @@ _ACCEPT = {"mode": _choice(AcceptMode), "policy_version": _text}
 _ROUTER = {
     "model": _text, "wake_cap_chars": _count, "inline_chars": _count, "im_reply_words": _count,
 }
-_WORKERS = {"model": _text, "max_running": _count}
+_WORKERS = {
+    "model": _text, "max_running": _count, "turn_limit_minutes": _count, "min_free_pct": _count,
+}
 _WATCHDOG = {
     "model": _text, "interval_seconds": _count, "max_turn_minutes": _count,
     "attention_hours": _count, "heartbeat_stale_seconds": _count,

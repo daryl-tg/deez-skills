@@ -74,6 +74,18 @@ def no_reap(store, root):
     return []
 
 
+def plenty_free():
+    return 100
+
+
+class FakeStop:
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, store, assignment_id, **kwargs):
+        self.calls.append((assignment_id, kwargs))
+
+
 class DaemonTest(unittest.TestCase):
     def setUp(self):
         tmp = tempfile.TemporaryDirectory()
@@ -92,11 +104,12 @@ class DaemonTest(unittest.TestCase):
     def sources(self, text):
         (self.root / "sources.toml").write_text(text, encoding="utf-8")
 
-    def one_pass(self, wake=None, reap=no_reap, revive=None, **now):
+    def one_pass(self, wake=None, reap=no_reap, revive=None, stop=None, free_pct=plenty_free, **now):
         return daemon.one_pass(
             self.store, config.load(self.root), self.root, HUB, wake=wake or self.wake,
             launch=self.workers.launch, resume=self.workers.resume,
-            revive=revive or self.workers.revive, reap=reap, **now,
+            revive=revive or self.workers.revive, reap=reap, stop=stop or FakeStop(),
+            free_pct=free_pct, **now,
         )
 
     def ask(self, text, thread="default"):
@@ -238,6 +251,74 @@ class DaemonTest(unittest.TestCase):
         launched.append(self.one_pass().launched)
         self.assertEqual(self.workers.launched, [first, second, third])
         self.assertEqual(launched, [2, 0, 1])
+
+    def test_turn_past_the_limit_is_stopped_before_reap(self):
+        self.sources("[workers]\nturn_limit_minutes = 60\n")
+        _ticket, assignment_id = self.ticket("long one")
+        started = self.store.start_assignment(assignment_id, "session", os.getpid(), self.root)
+        stop = FakeStop()
+        order = []
+
+        def reap(store, root):
+            order.append("reap")
+            return []
+
+        def recording_stop(store, assignment, **kwargs):
+            order.append("stop")
+            stop(store, assignment, **kwargs)
+
+        late = shifted(started.started_at, 61 * 60)
+        result = self.one_pass(reap=reap, stop=recording_stop, now=lambda: late)
+        self.assertEqual(stop.calls, [(assignment_id, {"reason": "turn exceeded 60 minutes"})])
+        self.assertEqual((order, result.expired), (["stop", "reap"], 1))
+        self.assertTrue(result.eventful)
+        self.assertIn("expired=1", result.line("t"))
+
+    def test_turn_within_the_limit_or_dead_is_not_stopped(self):
+        _ticket, assignment_id = self.ticket("short one")
+        started = self.store.start_assignment(assignment_id, "session", os.getpid(), self.root)
+        stop = FakeStop()
+        soon = shifted(started.started_at, 119 * 60)
+        self.assertEqual(self.one_pass(stop=stop, now=lambda: soon).expired, 0)
+        self.store.start_assignment(assignment_id, "session", dead_pid(), self.root)
+        late = shifted(started.started_at, 500 * 60)
+        self.assertEqual(self.one_pass(stop=stop, now=lambda: late).expired, 0)
+        self.assertEqual(stop.calls, [])
+
+    def test_pending_assignment_is_held_below_the_free_memory_threshold(self):
+        _ticket, assignment_id = self.ticket("heavy")
+        result = self.one_pass(free_pct=lambda: 10)
+        self.assertEqual((self.workers.launched, result.launched, result.held), ([], 0, 10))
+        self.assertIn("held=mem10%", result.line("t"))
+        self.assertTrue(result.eventful)
+        again = self.one_pass(free_pct=lambda: 10)
+        self.assertEqual(again.held, 10)
+        self.assertFalse(again.eventful)
+        released = self.one_pass(free_pct=lambda: 50)
+        self.assertEqual((self.workers.launched, released.held), ([assignment_id], None))
+        self.assertNotIn("held=", released.line("t"))
+
+    def test_hold_clearing_is_eventful_once(self):
+        self.one_pass(free_pct=lambda: 10)
+        cleared = self.one_pass(free_pct=lambda: 50)
+        self.assertTrue(cleared.eventful)
+        self.assertFalse(self.one_pass(free_pct=lambda: 50).eventful)
+
+    def test_held_pass_skips_resume_and_revive(self):
+        ticket, assignment_id = self.ticket("busy")
+        self.store.start_assignment(assignment_id, "session", dead_pid(), self.root)
+        self.store.add_input(ticket.id, "trigger", self.ask("more", "default").id)
+        self.one_pass(free_pct=lambda: 10)
+        self.assertEqual((self.workers.resumed, self.workers.revived), ([], []))
+
+    def test_free_memory_read_failure_does_not_block_launch(self):
+        _ticket, assignment_id = self.ticket("unknown memory")
+
+        def broken():
+            raise OSError("no memory_pressure")
+
+        result = self.one_pass(free_pct=broken)
+        self.assertEqual((self.workers.launched, result.held), ([assignment_id], None))
 
     def test_reaped_report_is_in_the_next_wake_batch(self):
         ticket, assignment_id = self.ticket("fix the typo")
@@ -394,8 +475,21 @@ class DaemonTest(unittest.TestCase):
         self.assertRegex(
             line,
             r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00  "
-            r"fanout=0 reaped=0 resumed=0 launched=0 wake=- replies=1 errors=0$",
+            r"fanout=0 reaped=0 expired=0 resumed=0 launched=0 wake=- replies=1 errors=0$",
         )
+
+    def test_log_rotates_to_a_single_previous_file_over_the_limit(self):
+        result = daemon.PassResult(0, 0, 0, 1, None, 0, ())
+        log = self.root / "log" / "daemon.log"
+        older = log.with_name("daemon.log.1")
+        daemon.log_pass(self.root, result, limit=100)
+        self.assertFalse(older.exists())
+        first = log.read_text(encoding="utf-8")
+        for _ in range(4):
+            daemon.log_pass(self.root, result, limit=100)
+        self.assertEqual(sorted(path.name for path in log.parent.iterdir()), ["daemon.log", "daemon.log.1"])
+        self.assertLessEqual(log.stat().st_size, 100 + len(first))
+        self.assertTrue(older.read_text(encoding="utf-8").startswith(first))
 
     def test_pass_and_inbox_verbs_print_the_line_and_the_reply(self):
         reply = self.queue_reply("pong from the router")
@@ -414,7 +508,7 @@ class DaemonTest(unittest.TestCase):
         self.assertEqual((passed[0], quiet[0]), (0, 0))
         self.assertRegex(
             passed[1],
-            r"^\S+  fanout=0 reaped=0 resumed=0 launched=0 wake=- replies=1 errors=0\n$",
+            r"^\S+  fanout=0 reaped=0 expired=0 resumed=0 launched=0 wake=- replies=1 errors=0\n$",
         )
         self.assertRegex(quiet[1], r"replies=0 errors=0\n$")
         self.assertEqual(

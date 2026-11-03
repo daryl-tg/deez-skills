@@ -9,6 +9,7 @@ from datetime import datetime
 from itertools import takewhile
 from pathlib import Path
 
+from deezlib import memguard
 from deezlib.superclanker import channels, compose, config, router, sources, workers
 from deezlib.superclanker.domain import Strength, utc_now
 from deezlib.superclanker.store import Store, SuperError
@@ -17,6 +18,7 @@ TERMINAL_PREFIX = "terminal:"
 BACKOFF = "backoff"
 BACKOFF_FIRST_SECONDS = 30
 BACKOFF_CEILING_SECONDS = 600
+LOG_LIMIT_BYTES = 5 * 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -29,26 +31,34 @@ class PassResult:
     replies_sent: int
     errors: tuple
     polled: int = 0
+    expired: int = 0
+    held: int | None = None
+    hold_changed: bool = False
 
     @property
     def eventful(self):
         counts = (
             self.polled, self.fanned_out, self.launched, self.resumed, self.reaped,
-            self.replies_sent,
+            self.replies_sent, self.expired, self.hold_changed,
         )
         return any(counts) or self.wake_id not in (None, BACKOFF) or bool(self.errors)
 
     def line(self, at):
         polled = f" polled={self.polled}" if self.polled else ""
+        held = f" held=mem{self.held}%" if self.held is not None else ""
         return (
-            f"{at}  fanout={self.fanned_out} reaped={self.reaped} resumed={self.resumed} "
-            f"launched={self.launched} wake={self.wake_id or '-'} replies={self.replies_sent} "
-            f"errors={len(self.errors)}{polled}"
+            f"{at}  fanout={self.fanned_out} reaped={self.reaped} expired={self.expired} "
+            f"resumed={self.resumed} launched={self.launched} wake={self.wake_id or '-'} "
+            f"replies={self.replies_sent} errors={len(self.errors)}{polled}{held}"
         )
 
 
 def heartbeat_path(root):
     return Path(root) / "daemon.heartbeat"
+
+
+def held_path(root):
+    return Path(root) / "daemon.held"
 
 
 def inbox_path(root, thread_id):
@@ -125,8 +135,43 @@ def _send_terminal_replies(store, root):
     return sent
 
 
+def _held_by_memory(settings, free_pct):
+    try:
+        free = free_pct()
+    except Exception:
+        return None
+    return free if free < settings.workers.min_free_pct else None
+
+
+def _record_hold(root, held):
+    path = held_path(root)
+    try:
+        previous = path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        previous = ""
+    current = "" if held is None else str(held)
+    if current == previous:
+        return False
+    workers._write_atomic(path, current + "\n")
+    return True
+
+
+def _expire_overlong_turns(store, settings, stop, now):
+    limit = settings.workers.turn_limit_minutes
+    expired = 0
+    for assignment in store.running_assignments():
+        if not workers.alive(assignment.pid) or assignment.started_at is None:
+            continue
+        if _seconds_since(assignment.started_at, now) <= limit * 60:
+            continue
+        stop(store, assignment.id, reason=f"turn exceeded {limit} minutes")
+        expired += 1
+    return expired
+
+
 def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.launch,
-             resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now):
+             resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now,
+             stop=workers.stop, free_pct=memguard.free_pct):
     errors = []
 
     def attempt(step, *args):
@@ -138,14 +183,21 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
 
     polled = _poll_due_sources(store, config, now)
     fanned_out = attempt(_fan_out, store, config) or 0
+    expired = attempt(_expire_overlong_turns, store, config, stop, now) or 0
     reaped = len(attempt(reap, store, root) or [])
+    held = _held_by_memory(config, free_pct)
+    hold_changed = _record_hold(root, held)
     resumed = 0
     for assignment in store.running_assignments():
+        if held is not None:
+            break
         if workers.alive(assignment.pid) or not store.undelivered_inputs(assignment.ticket_id):
             continue
         if attempt(resume, store, config, assignment.id, hub_root, root) is not None:
             resumed += 1
     for ticket_id in store.revivable():
+        if held is not None:
+            break
         if len(store.running_assignments()) >= config.workers.max_running:
             break
         if attempt(revive, store, config, ticket_id, hub_root, root) is not None:
@@ -153,6 +205,8 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     launched = 0
     running = len(store.running_assignments())
     for assignment in store.pending_assignments():
+        if held is not None:
+            break
         if running >= config.workers.max_running:
             break
         if attempt(launch, store, config, assignment.id, hub_root, root) is not None:
@@ -178,15 +232,17 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     workers._write_atomic(heartbeat_path(root), now() + "\n")
     return PassResult(
         fanned_out, launched, resumed, reaped, wake_id, replies_sent + forge_sent, tuple(errors),
-        polled,
+        polled, expired, held, hold_changed,
     )
 
 
-def log_pass(root, result):
+def log_pass(root, result, limit=LOG_LIMIT_BYTES):
     line = result.line(utc_now())
     if result.eventful:
         log = Path(root) / "log" / "daemon.log"
         log.parent.mkdir(parents=True, exist_ok=True)
+        if log.exists() and log.stat().st_size > limit:
+            os.replace(log, log.with_name(log.name + ".1"))
         with log.open("a", encoding="utf-8") as stream:
             stream.write(line + "\n")
     return line

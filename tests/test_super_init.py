@@ -89,7 +89,9 @@ class InitTest(unittest.TestCase):
             ("watchdog", config.WatchdogConfig),
         ):
             self.assertEqual(set(raw[section]), {f.name for f in fields(kind)})
-        self.assertEqual(set(raw["workers"]), {"max_running"})
+        self.assertEqual(
+            set(raw["workers"]), {"max_running", "turn_limit_minutes", "min_free_pct"}
+        )
 
 
 if __name__ == "__main__":

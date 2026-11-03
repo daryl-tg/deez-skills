@@ -94,6 +94,13 @@ class SuperConfigTest(unittest.TestCase):
                     config.load(self.root)
                 self.assertIn(key, str(raised.exception))
 
+    def test_worker_resource_limits_default_and_parse(self):
+        defaults = config.load(self.root).workers
+        self.assertEqual((defaults.turn_limit_minutes, defaults.min_free_pct), (120, 30))
+        self.write("[workers]\nturn_limit_minutes = 45\nmin_free_pct = 20\n")
+        tuned = config.load(self.root).workers
+        self.assertEqual((tuned.turn_limit_minutes, tuned.min_free_pct), (45, 20))
+
     def test_rules_are_sorted_stems(self):
         rules = self.root / "policy" / "rules"
         rules.mkdir(parents=True)
