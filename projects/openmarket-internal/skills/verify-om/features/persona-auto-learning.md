@@ -1,5 +1,7 @@
 # Persona auto-learning and loading into the card
 
+*Re-read on main 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0; #2275 merged as `ffce9accc` in v0.489.0, #2288 and #2289 in v0.491.0). CLI only, on the guest lane 18163: `persona show` on a fresh home read the default plus `MCP clients: off (…)` and `Learning: on, updates apply as you post (om config set agent.persona_learning off)`; `persona set` of ten short lines printed no `Room drafts` row (all carried, #2279); `persona set` of 40 lines (3,870 characters) printed `Room drafts: first 23 of 40 lines` in `set` and in `show` (#2288); 7,610 characters exit 2 `keep it at most 4000 characters`; `config set agent.persona_learning off` → `Learning: off`; `persona clear`. The hold and per-card learning routes are gone (#2289); nothing in this guide used them. Not re-driven: learning on a signed-in home, the fold into a card. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`cli/90-99`).*
+
 *Verified: 2026-11-03. Branch `daryl/persona-auto-learn` (PR #2275, merged as `ffce9accc`, in v0.489.0). Last driven tree `2d240ff0e` before rebase; the PR head was `cfd976391`. The live rows below predate the digest budget (#2279, `abc1e6bc9`), so the `first 8` rows they quote are the old output.*
 
 *Setup:*
@@ -56,6 +58,6 @@ Learning updates your persona as you post, with no approval step. Any persona yo
 ## Gotchas
 
 - **"HOME library mirror directory is not available" for the first minutes.** The fold needs the mirror health row, written after the mirror's first full pass. On a non-default home with no `OM_LIBRARY_DIR` the mirror never runs.
-- **Room drafts and the MCP voice carry voice rules past 8 only while the digest has free room** (#2279, after v0.489.0). Rules 9 and on join whole, in card order, until the 3000-unit budget; identity is never shortened for them, and a digest that needed trimming gets none. Pinned by `persona-digest-parity.test.ts` against selfmd `af0ac00`. *Pending live proof: source and tests only; a 10-line persona should show no `Room drafts` row.*
+- **Room drafts and the MCP voice carry voice rules past 8 only while the digest has free room** (#2279, after v0.489.0). Rules 9 and on join whole, in card order, until the 3000-unit budget; identity is never shortened for them, and a digest that needed trimming gets none. Pinned by `persona-digest-parity.test.ts` against selfmd `af0ac00`. *Driven 2026-11-04 on main `9acb5fb56`: a 10-line `persona set` showed no `Room drafts` row, and a 40-line one (3,870 characters) read `Room drafts: first 23 of 40 lines`.*
 - **MCP clients get the voice only with `om config set mcp.operator_voice on`** (off by default). `/rooms` drafts use the persona with no switch. `session_grants` reports `operatorVoice: on|off`.
 - **A folded card carries the template's six `Never do` rules.**

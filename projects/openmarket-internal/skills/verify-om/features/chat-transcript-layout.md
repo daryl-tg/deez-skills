@@ -1,5 +1,7 @@
 # Chat transcript layout (`om chat`)
 
+*Re-driven 2026-11-04 (nightly), smoke depth, tree `9acb5fb56` (origin/main, v0.491.0), guest lane 18163, fake model on 18164 (text only, no tool calls), tmux 140x40: in the workspace the sent line sat in the `┃` panel and the reply streamed unlabelled (`reply 2 line 1…6`); the `@nope hi` and `/agents a b` answers rendered as plain indented notices; `--no-workspace` replayed the same turns. Not re-driven: tool rows, fire and digest bands, the spinner wording, the chimes. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`tui/11`, `tui/15`, `tui/20`).*
+
 *Re-driven 2026-11-03 (nightly), tree `777ee7f21` (origin/main, v0.488.0), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.8; the first `up` died on a guest sign-in 429 (35 minutes) and the lane booted in 3 s at 19:55Z. Fake model on 18164, tmux 140x40. The default `om chat` is now the workspace (#2254), so the turn was driven there: `show my watches` in the `┃` user panel, `✓ watch_list → 7 watches` and the reply at column 6, the `While you were away · 2 events, 2 stories` band; the footer read `data limit hit 8m ago · om usage`. A `--no-workspace` session drove the persona turns: the `approval needed` card, `✗ declined persona_set`, `✓ approved persona_set` with its `· 10s` duration. Not driven: a fire band live, replay, the spinner, the 90-column re-wrap, notice strips, chimes. Evidence: `http://127.0.0.1:8098/vom-nightly-20261103/r1/` (`tui/09-14`, `tui/21-tool-turn.txt`).*
 
 *Re-driven 2026-11-02 (scheduled maintenance), tree `587ce2d0b` (origin/main, v0.480.3), lane on 18168 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 5. Fake model on 18170, tmux: the sent line `vom-maint-20261102 transcript probe` sat in the `┃` user panel and the fake reply (`reply 2 line 1…`) followed unlabelled and indented; earlier `/watches` commands also show in `┃` panels.*
@@ -19,7 +21,7 @@ frame itself (sidebar, cards, ctrl+x) is `chat-workspace-tui.md`.
 
 ## Sub-features
 
-- `turn` — your message is a clay `┃` bar on a raised tint, one padded row above and below; the panel spans the pane less a 2-column margin on each side, so it stops two columns short of the divider (`tui-user-panel.ts:27-31`). om's reply has no label, starts after a 5-column gutter (1-based column 6 in a `capture-pane` read) and wraps at the pane's width less the gutter and a 2-column margin (`turnRowWidth`, `tui-turn-row.ts:15-18`; the 100-column cap was removed in #2219). No `▣ om` footer and no `Worked for` row.
+- `turn` — your message is a clay `┃` bar on a raised tint, one padded row above and below; the panel spans the pane less a 2-column margin on each side, so it stops two columns short of the divider (`tui-user-panel.ts:27-31`). om's reply has no label, starts after a 5-column gutter (1-based column 6 in a `capture-pane` read) and wraps at the pane's width less the gutter and a 2-column margin (`turnRowWidth`, `tui-turn-row.ts:17-18`; the 100-column cap was removed in #2219). No `▣ om` footer and no `Worked for` row.
 - `tool-row` — one row per call, arguments truncated first; the result hangs on its own `→` row.
 - `hanging-wrap` — every wrapped row hangs under its own text, never back at column 0.
 - `code-block` — a muted tint, no fences, no bar.

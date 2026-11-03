@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0), guest lane on 18163, booted in 2 s with no 429. `enum --list` (`exchange_id` 38, with `CBOT`, `NYMEX`, `COMEX` after `CME`, #2283), `schema read condition_create` (`watch read` is `unknown_intent` listing the intents), `skill list` (`openmarket`, `openmarket-watch`, `openmarket-watch-prompts`; it takes no `--format`), `config show` (masked key), `config get firecrawl.offers` (`unset (default: on)`) and `chat.motion` (`stored as tui.motion`), both refusing a non on/off value, `wrun templates` 92, `wrun create @vom/probe … --template sma` writing `.wrun-scaffold` `{"scaffold_version": 113}`. New: the approvals inbox (`list`, `--kind`, `--kind bogus`, `approve nope`, `/rpc/v1/approvals/inbox`) and the `om todo` refusals. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`cli/80-86`, `cli/100-105`, `cli/170-177`).*
+
 *Re-driven 2026-11-03 (nightly), tree `777ee7f21` (origin/main, v0.488.0), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.8; the first `up` died on a guest sign-in 429 (35 minutes) and the lane booted in 3 s at 19:55Z. Before the boot: `config get chat.workspace` (`unset (default: on)`, #2254), `config get mcp.operator_voice` (`unset (default: off)`, #2250), `enum --list` (`exchange_id` 35), `indicator_template` 92, `wrun templates` 92, `wrun create @lane/vom-ema --template sma` at scaffold 111, `wrun build` (`historyIndependence {stamped:false, reason:"classic"}`, `history_warmup: null`), `skill list` (16; `--format` is refused `unknown option`), `skill show watch`, `skill show nope-skill` exit 2, `schema read`, `setup default`, and `om persona` (`show`, `set "" ` exit 2, `set --source verify`, `show --json`, `clear --if-source other` kept it). After: `config show` (`mcp_operator_voice`), `config key-info` (`tier om_guest`), `notis --since 7d --json` (the `cond-probe` fire rows), `series list` `[]`, `upgrade --show`, `config set agent.max_tool_calls 250` exit 2, `GET /secrets/status` `readiness:"unminted"`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261103/r1/` (`cli/*.txt`).*
 
 *Re-driven 2026-11-02 (scheduled maintenance), tree `587ce2d0b` (origin/main, v0.480.3), lane on 18168 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 5. `config show` (`api_key_set:true`, masked), `config key-info` (`tier om_guest`), `config get data.transport` (`default auto`), `enum --list` (`exchange_id` 35), `schema read`, `wrun list`, `series list` `{"series":[]}`, `upgrade --show`, `config set agent.max_tool_calls 250` exit 2 (`at most 249`), `subscriptions` exit 1 `account_required`, `setup default`, `approvals list`, `notis --since 7d --json`, `GET /secrets/status` `readiness:"unminted"`. Series: `series create s1 --watch lane-lifecycle --key v --scope local` → `@local/s1` 0.1.0; `publish s1 --price 9/mo --dry-run` → `seller_session_required`; `--price 1/mo` → `price_below_minimum`; `delete s1 --yes` → `relay:"missing"` (a `publish` before `create` answers `series_not_found`). **wrun at scaffold 110:** `wrun templates` lists `liquidation-map`; `wrun create @lane/liq --template liquidation-map <dir>` wrote `.wrun-scaffold` `scaffold_version: 110`. `config get chat.icons` / `set` / refusal: see [chat-tui-icons.md](./chat-tui-icons.md).*
@@ -35,7 +37,7 @@ bundled constants. None needs an account or a model.
   key claims (tier, expiry), and one setting's effective value, source, rule and
   default.
 - `config-set` / `config-list` (added 2026-11-02): about 85 settings keys live in
-  `CONFIG_KEYS` (`packages/cli/src/cmd/config-keys.ts:154`, rendered into
+  `CONFIG_KEYS` (`packages/cli/src/cmd/config-keys.ts:156`, rendered into
   `docs/CONFIG_KEYS.md`). `config get <key> --format json` reads `key`, `value`,
   `source` (`default` or `config`), `rule`, `default` and `description`;
   `config set charts.auto_open false` then `get` reads `value "false"`,
@@ -119,6 +121,10 @@ with no account:
 | Call | Observed |
 |---|---|
 | `approvals list` / `--format json` | `No pending approvals.` / `[]`; `GET /rpc/v1/approvals` returned `{"ok":true,"data":{"approvals":[]}}` |
+| `approvals list --kind draft` / `--kind bogus` (#2258: one inbox of five kinds, `chain`, `mcp`, `grant`, `draft`, `proposal`) | `No pending approvals.` / exit 2 `--kind must be one of: chain \| mcp \| grant \| draft \| proposal`; `GET /rpc/v1/approvals/inbox` returned `{"items":[],"counts":{"total":0,"byKind":{…all 0}}}` |
+| `approve nope` | exit 2 `nope is not an approval id` / ``Run `om approvals list` to see pending ids.`` |
+| `todo get 12` (#2291) | exit 1 `12 is a ticket number, which names a ticket only within its server` / `Pass spaceId and number.` |
+| `todo list --space x --format json` | exit 1 `room_social_failed` `Unauthorized` (401): a guest key reaches the relay and is refused; a real ticket needs a rooms account. Over MCP stdio `todo_get` answers `not_badge_bound`. |
 | `setup default` (driven 2026-10-31, `dfefe0a21`) | `{"default":null,"routing":"none","targets":[]}`; the verb's default `--format` is `json`, so a text read needs `--format text` |
 | `setup default nope`, also with `--force` (#2220) | exit 2 `channel_not_found`: `unknown channel 'nope' — no channels are configured`, hint `Run \`om setup list\` …`, `details.channels: []`. The `channel_failing` refusal and the `routing_note` line need a paired channel |
 | `nervous status --format json` | `{enabled:true, dailyBudgetPerSender:null, receipts:[…]}`. After an ingest fire it held a `watch_fired` receipt reading `no canvas resolved for (no symbol), stayed a notification` |
@@ -132,7 +138,7 @@ with no account:
 
 The away reads need the daemon GUI's per-boot session cookie, or a configured
 runner or desktop token, even on loopback. `/api/away/policy` is a `POST`. Do
-not drive `approvals approve|deny`, `follow review`, `research search-files` or
+not drive `approvals approve|deny` on a real row (an unknown id is safe, above), `follow review`, `research search-files` or
 `research make-image` from a lane: they need a human terminal or spend on a
 model.
 
@@ -168,8 +174,8 @@ model.
   `flow-vwap` starter is the thirty-first. A JSON assertion that reads only
   `description` misses this field.
 - **`wrun templates` gained `flow-vwap` in #2235 (`942d0eb54`, v0.480.3), and
-  `WRUN_SCAFFOLD_VERSION` is 111 since #2267 (`d8aaa7501`;
-  `packages/sdk/src/wrun-sdk-sources.ts:1217`; 108 at #2239, 109 at #2245, 110 at #2246).** The template sits in group `Order flow`
+  `WRUN_SCAFFOLD_VERSION` is 113 since #2283 (`bc828f721`;
+  `packages/sdk/src/wrun-sdk-sources.ts:1234`; 108 at #2239, 109 at #2245, 110 at #2246, 111 at #2267, 112 at #2273).** The template sits in group `Order flow`
   (the chart's price weighted by aggressive options premium, with sigma
   bands). **`wrun create` takes the package name first:** `wrun create
   @you/<name> --template flow-vwap <dir>`; a bare directory is refused
@@ -182,7 +188,9 @@ model.
   refreshes only those two files on its next build. Drive the create into a
   directory outside the product tree, and assert membership, not the count
   (driven 2026-11-01 at 107, 2026-11-02 at 108 and 110, 2026-11-03 at 111 with
-  `wrun create @lane/vom-ema --template sma <dir>`).
+  `wrun create @lane/vom-ema --template sma <dir>`, 2026-11-04 at 113 with
+  `wrun create @vom/probe <dir> --template sma`; `--template rsi` is not a
+  template and exits 2 `request_failed` listing the names).
 - **`wrun templates` lost six option recipes in v0.466.0** (`5a03ffb43`):
   `dealer-nodes`, `gamma-map`, `zero-dte-levels`, `vol-term-structure`,
   `vol-smile` and `iv-term-structure`. The list went from 97 to 91, and those

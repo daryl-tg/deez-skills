@@ -1,5 +1,7 @@
 # Agent creator lifecycle and private-state isolation
 
+*Re-driven 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0), guest lane on 18163, booted in 2 s with no 429; `INFO [roster] om-skills defaults installed 8 package(s)` at boot. With `OM_DEV=1` on the CLI: `roster list` six `registry` rows (argue, debugger, explain, fact-check, feature, librarian; brain `om` except debugger and feature), `agent runs` `{"ok":true,"result":{"items":[],"next":null}}` (the watch-door run is not a retained work run), `agent pause nope` exit 1 `Work run was not found.`, `roster measures` (`queueLatencyMs` p50 1442 after one watch-door run; it takes no `--format`). Without `OM_DEV`, `roster` is `unknown command`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`cli/200-204`).*
+
 *Re-driven 2026-11-03 (nightly), tree `777ee7f21` (origin/main, v0.488.0), lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 2.8; the first `up` died on a guest sign-in 429 (35 minutes) and the lane booted in 3 s at 19:55Z. With `OM_DEV=1` on the CLI: `roster list` six `registry` rows (argue, debugger, explain, fact-check, feature, librarian), `agent runs` `{"ok":true,"result":{"items":[],"next":null}}`, `agent pause nope` exit 1 `not_found`, `roster measures` zeroed. Evidence: `http://127.0.0.1:8098/vom-nightly-20261103/r1/` (`cli/140-143`).*
 
 *Re-driven 2026-11-02 (scheduled maintenance), tree `587ce2d0b` (origin/main, v0.480.3), lane on 18168 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), host load average about 5. Guest reads with `OM_DEV=1` on each call: `/healthz` executors `["coding","investigate"]`, `agent runs` empty, `agent runs run_x --proof` → `not_found` "Work proof was not found.", `roster list` (header `NAME ORIGIN VERSION BRAIN`, the `@om-core` defaults), `project unlink nope` → `not_found`.*
@@ -20,8 +22,10 @@
 > live in `packages/roster/` (moved from `packages/cli/src/runner/roster`).
 > The roster boots in every daemon unless the setting `roster.enabled` is `0`
 > or `false`. Only the CLI verbs are dev-gated: `om roster`, `om project`, and
-> the `runs`/`pause`/`cancel`/`steer`/`eval` subcommands of `om agent` register
-> only when the CLI process itself has `OM_DEV=1`. The GUI half (openmarket-chat
+> the `runs`/`pause`/`eval` subcommands of `om agent` register
+> only when the CLI process itself has `OM_DEV=1`. Since #2282 `om agent cancel`
+> is the always-on run cancel ([agents-cli-and-tui.md](agents-cli-and-tui.md)),
+> and `OM_DEV=1 om agent --help` on 2026-11-04 listed no `steer`. The GUI half (openmarket-chat
 > MR !75, the Agents surface in `/rooms`) belongs to `verify-om-chat` and was not
 > checked here. The closeout record below was driven on the branch and remains
 > historical. Only the guest-lane section was driven on main.
