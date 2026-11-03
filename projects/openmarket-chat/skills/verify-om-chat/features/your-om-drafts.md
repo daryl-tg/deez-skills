@@ -14,7 +14,7 @@ Open Your om and choose a recent conversation. Type without sending, choose anot
 
 ## Driving it with control-om-chat
 
-Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2449-2467` and binds local session switching/creation at `:2748-2800`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:518` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
+Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2438-2456` and binds local session switching/creation at `:2737-2789`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:518` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
 
 ```bash
 agent-browser network route "**/healthz*" --body '{"uptime_seconds":120,"pid":1,"version":"fixture","started_at":"2026-10-27T00:00:00Z","booting":false,"stalls":[],"channels":[],"loops":[]}'
@@ -43,14 +43,16 @@ With the `**/healthz*` stub in place on `?view=agent&alerts=quiet&omSessions=dra
 - **The fixture's New session path is stale.** The landing's first send calls
   `session.startNewOmSession()` (`ChatPane.tsx`, `prepareSend`; since
   `758ba4dd`), but the `omSessions=drafts` seed binds only `createOmSession`
-  (`tools/visual/shell-fixture.tsx:2793`). The unstubbed method resolves to INERT,
+  (`tools/visual/shell-fixture.tsx:2782`). The unstubbed method resolves to INERT,
   the active session never changes, and the send lands in the session that was
   already open (Research A in the 2026-10-27 drive). That is a fixture gap, not
   proof of a product carry bug. Prove the new-session send on a daemon origin.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `?view=agent&alerts=quiet&omSessions=drafts` with the `**/healthz*` stub: **Research A** keeps `alpha draft` across a switch to **Research B** (empty) and back; **Add context** lists **Add from library**, **Link a channel** and **Link a topic**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ag-10-om-drafts`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=agent&alerts=quiet&omSessions=drafts` with the `**/healthz*` stub: "draft for A" in **Message ✦ om** survives **Research B** → **Research A** (B empty); **Add context** opens the **Add context** menu. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`om-02-drafts`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `?view=agent&alerts=quiet&omSessions=drafts` with the `**/healthz*` stub: **Research A** keeps `alpha draft` across a switch to **Research B** (empty) and back; **Add context** lists **Add from library**, **Link a channel** and **Link a topic**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ag-10-om-drafts`).
 
 **Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=agent&alerts=quiet&omSessions=drafts` with the `**/healthz*` stub: the session nav (**New session**, **Watches**), **Add context** → menu **Add context** (Add from library, Link a channel, Link a topic) → **Link a channel** → the **Channels** listbox (14 options); at 390×844 **Open om conversations** → the **Chat** takeover. **Limitations:** the Research A/B draft bodies and **New session** were not re-read tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 

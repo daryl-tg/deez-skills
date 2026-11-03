@@ -35,7 +35,7 @@ tools/visual/shell-fixture.html?view=room&alerts=quiet&quiet=on
 The entry is on the **server header menu**, not the channel header's **More
 channel actions** (earlier passes looked there and recorded an absence that
 was never the gate). On `/rooms/` the root host's `daemonFeatures` is true, so
-`Sidebar.tsx:5959` renders **Clean up topics** between **Open World** and
+`Sidebar.tsx:5960` renders **Clean up topics** between **Open World** and
 **Notification Settings**:
 
 ```bash
@@ -62,7 +62,7 @@ with topic triage. Do not target the operator daemon.
 ## Gotchas
 
 - `quiet=on` seeds the quiet followed topics the sheet lists and the bottom-rail
-  button **Quiet topics 20** (`shell-fixture.tsx:2247-2261`; `showQuiet=1` also
+  button **Quiet topics 20** (`shell-fixture.tsx:2236-2250`; `showQuiet=1` also
   seeds the shown state). Pressing the button flips `aria-pressed` and shows the
   hidden rows (the sidebar's level-2 treeitems went 14 → 30 on 2026-10-31);
   read the attribute after the re-render, not in the click's own tick.
@@ -70,7 +70,7 @@ with topic triage. Do not target the operator daemon.
   writes the synced pref `om.chat.sidebarQuietTopics` (`"1"` while shown, key
   absent while hidden; `lib/prefs.ts`, `lib/quiet-topics.ts`). The shell
   fixture swaps `session.quietTopics` for a plain object that never reads or
-  writes the pref (`shell-fixture.tsx:2253-2260`), so a reload there cannot
+  writes the pref (`shell-fixture.tsx:2242-2249`), so a reload there cannot
   prove it. Use a real session: press **Quiet topics N**
   (`[data-quiet-topics-row]`, `aria-pressed`), read the key, reload. Source
   discovery 2026-10-30; live verification pending.
@@ -86,7 +86,9 @@ with topic triage. Do not target the operator daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `quiet=on`: server menu → **Clean up topics** sheet with **Retry**, **Select all in Not sorted**, **Cancel** and **Resolve 0 topics**; **Select all in Not sorted** → **Resolve 30 topics**. `/chat/`: the server menu has no **Clean up topics** (15 items). **Limitations:** unchanged; the sweep start was not pressed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`tc-*`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room&alerts=quiet&quiet=on`: `.sidebar-server-menu-trigger` → **Clean up topics** → the error fallback ("Could not reach om to sort these topics…", **Retry**, **Not sorted** 30) → checkbox **Select all in Not sorted** → **Resolve 30 topics**. **Limitations:** the sweep was not started. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`cleanup-03`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `quiet=on`: server menu → **Clean up topics** sheet with **Retry**, **Select all in Not sorted**, **Cancel** and **Resolve 0 topics**; **Select all in Not sorted** → **Resolve 30 topics**. `/chat/`: the server menu has no **Clean up topics** (15 items). **Limitations:** unchanged; the sweep start was not pressed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`tc-*`).
 
 **Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=room&alerts=quiet&quiet=on`: **Quiet topics 20** `aria-pressed` false → true, level-2 rows 15 → 35; server menu → **Clean up topics** sheet with **Could not reach om to sort these topics.**, the **Not sorted** group (31 checkboxes), **Retry** / **Cancel** / **Resolve 0 topics**; **Select all in Not sorted** → **Resolve 30 topics**; pressing it closed the sheet and set `data-fixture-topic-sweep="30"`. **Limitations:** `/chat/` has no entry (`topicCleanupAvailable` is false there); the real sweep and the persisted toggle need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 

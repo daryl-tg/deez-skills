@@ -19,7 +19,7 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4552` always does, so the **running app shows twenty**;
+  `Shell.tsx:4553` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
   product. To count twenty without a daemon, open Settings through the shell:
@@ -135,7 +135,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4513`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4515`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -145,7 +145,7 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2440-2445`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2429-2434`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -289,7 +289,7 @@ form seed.
 - **Notifications crashes the shell fixture's whole User settings surface.**
   `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:609`),
   and neither fixture's plain-object `alertsStub` has it
-  (`shell-fixture.tsx:1435`, `apps/cloud/tools/visual/shell-fixture.tsx:537`).
+  (`shell-fixture.tsx:1412`, `apps/cloud/tools/visual/shell-fixture.tsx:537`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
   settings could not load** / **Try again**. Any further page click finds no
   button, and **Try again** returns to My Account. Reload before driving the
@@ -338,7 +338,7 @@ form seed.
   only the account-wide radiogroups ("Which to-dos appear in chat or topics",
   "Whether to-do status updates appear in chat"). Proving that sub-feature
   needs a fixture change, not a different query.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4550` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4551` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -369,7 +369,9 @@ form seed.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): 12 `settings-fixture` pages (privacy is blank on both hosts, and `host=server&page=moderation` is blank on `/chat/`); **Light theme**, **Moss palette** and **Iris accent**; searching `vim` narrows to **Keyboard Shortcuts**; `zzqqx` reads **No setting matches “zzqqx”.**; **Convert webhooks to alerts · bitcoin**; **Invite link settings**; `Meta+/` → **Grammar & shortcuts** → **Close shortcuts**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`set-*`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) and `/chat/` (18161): `?view=settings` opens the dialog **Settings**. **Limitations:** the settings fixture pages were covered only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`smoke/`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): 12 `settings-fixture` pages (privacy is blank on both hosts, and `host=server&page=moderation` is blank on `/chat/`); **Light theme**, **Moss palette** and **Iris accent**; searching `vim` narrows to **Keyboard Shortcuts**; `zzqqx` reads **No setting matches “zzqqx”.**; **Convert webhooks to alerts · bitcoin**; **Invite link settings**; `Meta+/` → **Grammar & shortcuts** → **Close shortcuts**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`set-*`).
 
 **Previous record:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141): `page=appearance` **Light theme** → `data-theme` dark → light; **Settings navigation**; **Search settings** `vim` → Keyboard Shortcuts, `zzqqx` → **No setting matches “zzqqx”.**; `page=accessibility` **Resolve sound** on → off with `om.chat.resolveSound=false`; `page=audio` three processing switches on; `host=channel&page=webhooks&perms=owner` **Convert webhooks to alerts**; `page=shortcuts` Vim switch present. `/chat/` (18142): **Light theme** dark → light, **Settings navigation**. **Limitations:** the discard guard was not reached (`page=profile` has no editable input); the other page bodies were not re-driven, so the nightly record below stands for them. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
 

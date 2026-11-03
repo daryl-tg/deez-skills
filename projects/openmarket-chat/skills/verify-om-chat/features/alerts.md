@@ -47,8 +47,8 @@ agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=ale
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=room` | Strip firing: `.alert-strip` text `store-5xx · check pods` |
-| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1440-1448`) |
-| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`:1452-1453`) |
+| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1417-1425`) |
+| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`:1429-1430`) |
 | `shell-fixture.html?view=room&alerts=quiet` | No strip: use this for every non-alert proof |
 | `fixture.html?surface=alert-card` | The alert card with its four actions |
 
@@ -80,7 +80,7 @@ plain `generic` there.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
   channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:386-396`
   and opened in the product by `session.openAlertsTab`). The fixture's
-  plain-object `alertsStub` (`shell-fixture.tsx:1435`) lacks members the
+  plain-object `alertsStub` (`shell-fixture.tsx:1412`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,
   `setSelectedFeed`, `tapeFeedFilter` and `setTapeFeedFilter`. Which one throws
   first was not isolated. No error boundary wraps the panel, so `#root`
@@ -93,7 +93,9 @@ plain `generic` there.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the firing strip **store-5xx · check pods** with **I'm on it** and **Open**; `alerts=board` → **Alerts board**; `alerts=amber`; the `alert-card` gallery with **Discuss**, **I'm on it**, **Mark fixed** and **Flag noisy**. **Limitations:** `?panel=alerts` is still blank on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`al-*`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room&alerts=board` shows `store-5xx`; the route smoke mounted every alerts route except the carried blank `?panel=alerts` (both hosts). **Limitations:** the tape card was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`smoke/`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the firing strip **store-5xx · check pods** with **I'm on it** and **Open**; `alerts=board` → **Alerts board**; `alerts=amber`; the `alert-card` gallery with **Discuss**, **I'm on it**, **Mark fixed** and **Flag noisy**. **Limitations:** `?panel=alerts` is still blank on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`al-*`).
 
 **Previous record:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141): `view=room` strip **store-5xx · check pods**; `alerts=board` → dialog **Alerts board** with **All alerts**; `surface=alert-card` **Discuss**, **I'm on it**, **Mark fixed**, **Flag noisy** after a 2.5 s mount. `/chat/` (18142): `alerts=board` → **Alerts board**. **Limitations:** `?panel=alerts` still blanks the shell (`#root` empty at 3 s). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
 

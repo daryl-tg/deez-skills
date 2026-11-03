@@ -64,7 +64,9 @@ session methods.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `agent-draft-share-fixture.html`: **History**, fill **Message #agents-lab**, **Share with agent** → **Shared revision 1 with the agent**; `data-fixture-shared-revision=1` and the shared text match. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ag-07-share`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `agent-draft-share-fixture.html` mounts the loaded, unsent `#agents-lab` draft (**claude-code (repo:om)**, v1). **Limitations:** **Share with agent** was not pressed this pass; the 2026-11-03 record stands for it. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `agent-draft-share-fixture.html`: **History**, fill **Message #agents-lab**, **Share with agent** → **Shared revision 1 with the agent**; `data-fixture-shared-revision=1` and the shared text match. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ag-07-share`).
 
 **Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `agent-draft-share-fixture.html`: an edit to the draft → **Share with agent** → **Shared revision 1 with the agent.** Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 

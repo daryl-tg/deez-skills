@@ -2,7 +2,7 @@
 
 The desktop app (Electron, `desktop/`) injects `window.omShell` before the
 bundle runs. The shared Shell reads it and shows up to three status strips at
-the top of the app (`packages/chat-ui/src/components/Shell.tsx:3354-3356`).
+the top of the app (`packages/chat-ui/src/components/Shell.tsx:3355-3357`).
 Neither browser host has the bridge, so a person sees these strips only in the
 desktop app.
 
@@ -76,7 +76,7 @@ phase after load.
   launchd registration need the shell itself (`cd desktop && bun run probe` /
   `smoke`; agents never launch a visible window).
 - Defining `window.omShell` also turns on the Shell's other desktop-only paths
-  (`Shell.tsx:1400`, `:2709`: desktop setup and daemon recovery). A minimal stub
+  (`Shell.tsx:1400`, `:2710`: desktop setup and daemon recovery). A minimal stub
   without `getAppSetupStatus` keeps them quiet. Add only the methods you mean to
   drive.
 - The background strip needs all three of `getBackgroundStatus`,
@@ -87,4 +87,6 @@ phase after load.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18143) `?view=room&alerts=quiet` with the init-script bridge above: three strips rendered, **available: OM Chat 9.9.9 is verified and ready for your approval. / Install update**, **available: OpenMarket 1.2.3 is ready to update inside OM Chat. / Update OpenMarket** and **app-only: Background features run only while OM Chat is open. / Enable background**. Pressing the three buttons recorded `update:accept`, `daemon:{"action":"install"}` and `background:enable`, and no error overlay appeared. **Limitations:** only the `available` and `app-only` phases were driven. The other phases are read from source. Real Electron delivery is unverified. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`strip-01-desktop`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) through the `--init-script` `window.omShell` stub: **Install update** (OM Chat 9.9.9), **Update OpenMarket** (1.2.3) and **Enable background**; **Enable background** and **Update OpenMarket** recorded `background:enable` and `daemon:{"action":"install"}`. **Limitations:** unchanged; phase changes after load not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`strips-01`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18143) `?view=room&alerts=quiet` with the init-script bridge above: three strips rendered, **available: OM Chat 9.9.9 is verified and ready for your approval. / Install update**, **available: OpenMarket 1.2.3 is ready to update inside OM Chat. / Update OpenMarket** and **app-only: Background features run only while OM Chat is open. / Enable background**. Pressing the three buttons recorded `update:accept`, `daemon:{"action":"install"}` and `background:enable`, and no error overlay appeared. **Limitations:** only the `available` and `app-only` phases were driven. The other phases are read from source. Real Electron delivery is unverified. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`strip-01-desktop`).

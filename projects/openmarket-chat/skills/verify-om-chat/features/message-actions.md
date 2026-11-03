@@ -12,19 +12,19 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   🔥 / 😂, **Add reaction**, **Reply**, **Edit** (own message), **Turn into
   topic**, **Add to Channel To-dos** and **More**. Every button is named by
   `title` only.
-- **Message menu** (`MessageRow.tsx:3380-3560`). Opened by a right-click on
+- **Message menu** (`MessageRow.tsx:3383-3564`). Opened by a right-click on
   kyle's `#ops` row it lists 19 items: four quick reactions, **Add Reaction**,
   **Reply**, **Turn into topic...**, **Add to Channel To-dos**, **Forward**,
   **Edit Message**, **Copy Text**, **Copy Message Link**, **Bookmark
-  Message**, **Save to Your Library** (`:3469`), **Pin Message**, **Mark
-  Unread**, **Agent**, **Delete Message** and **Copy Message ID** (`:3550`). Opened from the hover
+  Message**, **Save to Your Library** (`:3472`), **Pin Message**, **Mark
+  Unread**, **Agent**, **Delete Message** and **Copy Message ID** (`:3554`). Opened from the hover
   toolbar's **More** it lists the same 19: the tile row (`MenuQuickBar`,
-  `:3385-3389`, with the four recent emoji above it) is unconditional, so the
+  `:3388-3392`, with the four recent emoji above it) is unconditional, so the
   quick tiles sit in the menu whether or not the toolbar is showing (measured
   2026-11-02 on both hosts, by a real click and by `eval`). The 11-entry
   reading recorded on 2026-10-31 and 2026-11-01 did not reproduce; read the
   whole menu after it has settled rather than trusting a count.
-- **Agent submenu** (`MessageRow.tsx:2225-2270`): **Copy for Agent**, **Mark
+- **Agent submenu** (`MessageRow.tsx:2228-2273`): **Copy for Agent**, **Mark
   for agent** (⌥M), **Ask about this...** and **Capture to doc from here**.
   **Copy for Agent (since here)** and **Summarize thread** appear only in
   their states (a later run of messages; a message with replies). **File as
@@ -34,7 +34,7 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   message: four quick reactions, **Add Reaction**, **Copy Text**, **Reply**,
   **Mark Unread**, **Forward**, **Pin Message**, **Edit Message**, **Delete
   Message** and **Copy Message ID**.
-- **Remove Link Previews** (`MessageRow.tsx:3527`) shows only on a message
+- **Remove Link Previews** (`MessageRow.tsx:3531`) shows only on a message
   with `unfurls`, which no fixture seeds.
 
 ## How to get to it (user POV)
@@ -81,14 +81,14 @@ The DM path is `?view=dm&dm=ana&alerts=quiet`: hover `#dm-msg-m2`, then click
 
 Open `shell-fixture.html?view=room&alerts=quiet&reply=1`. The composer shows
 the reply strip **Replying to dax** with a **Cancel reply** button
-(`Composer.tsx:5610`; the fixture seeds seq 103, `shell-fixture.tsx:2429`).
+(`Composer.tsx:5610`; the fixture seeds seq 103, `shell-fixture.tsx:2418`).
 Scroll `#msg-ops-104` into view, hover it, and click
 `#msg-ops-104 .msg-toolbar button[title="Reply"]`: the strip retargets to
 **Replying to kyle: @ana the alert fired twice last night …** and the composer
 textarea takes focus. Driven on `/rooms/` and `/chat/` at `936f5b64`.
 
-**Turn into topic** (`[data-turn-into-topic]`, `MessageRow.tsx:3249`) calls
-`session.openTopicDraft`, and **Add to Channel To-dos** (`:3263`) calls
+**Turn into topic** (`[data-turn-into-topic]`, `MessageRow.tsx:3252`) calls
+`session.openTopicDraft`, and **Add to Channel To-dos** (`:3266`) calls
 `openTodoPromote`. Neither is stubbed in the shell fixture, so both resolve to
 `INERT` and nothing opens: no aside, no dialog, no route change. Prove the
 offer (the buttons render by `title`) and leave the effect pending. The quick
@@ -98,7 +98,7 @@ reactions **React 👍 / 🔥 / 😂** were not pressed.
 
 `MessageTouchRow` (`MessageTouchRow.tsx:41-145`) spreads `useRowTouch`'s
 pointer handlers onto every `[data-message-row]` that is not pending
-(`MessageRow.tsx:2293`), and those handlers act only on `pointerType ===
+(`MessageRow.tsx:2296`), and those handlers act only on `pointerType ===
 "touch"` (`lib/touch.ts:108-200`). There is no coarse-pointer or
 `maxTouchPoints` gate, so a synthetic `PointerEvent` with `pointerType:
 "touch"` drives both gestures, **provided the dispatches are paced**: React
@@ -120,7 +120,7 @@ agent-browser eval '(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));cons
 
 Past `SWIPE_COMMIT_PX` (56) the pull gains resistance (70 → 60.9), and the
 release past the commit calls `session.setReplyTarget`, which the fixture
-implements (`shell-fixture.tsx:3443`). A long press is `pointerdown`, a 700 ms
+implements (`shell-fixture.tsx:3445`). A long press is `pointerdown`, a 700 ms
 wait, `pointerup` on the same row: it opens the row menu as a sheet,
 `div.msg-sheet[role=menu][data-mobile-sheet]` behind `.msg-sheet-backdrop`,
 22 menu items for `msg-ops-104`; Escape closes it.
@@ -154,7 +154,7 @@ before calling it a product gap.
 - **Every verb is a fixture no-op except the clipboard.** The shell fixture
   stubs `toggleBookmark`, `togglePin`, `markUnreadFrom`, `removeUnfurls`,
   `askAgentAboutMessage`, `summarizeThreadWithAgent` and `captureFromSeq`
-  as `noop` or `asyncNoop` (`shell-fixture.tsx:3484-3566`), and `openForward` never sets
+  as `noop` or `asyncNoop` (`shell-fixture.tsx:3486-3568`), and `openForward` never sets
   `forwardSource`. Prove the offer here; the effects need the daemon-pair lane.
   The copy verbs write to the clipboard, which this lane did not read back.
 - A data attribute set by `eval` can vanish when React re-renders the row.
@@ -162,7 +162,9 @@ before calling it a product gap.
 
 ## Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the `msg-ops-104` hover toolbar (nine title-named buttons); **More** opens 19 entries; the **Agent** submenu (**Copy for Agent**, **Mark for agent ⌥M**, **Ask about this...**, **Capture to doc from here**); `reply=1` reads **Replying to dax**; the `dm-msg-m2` bubble menu has 13 items on both hosts. **Limitations:** the `/rooms/` bubble menu missed twice before opening, so re-read after a short wait. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ma-*`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) and `/chat/` (18161): right-click on `msg-ops-104` (kyle) lists the 19 `menuitem`s; on `/rooms/` a row from dax lists 16 (no Edit Message, Pin Message or Delete Message). **Limitations:** the **Agent** submenu was not opened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`msg-02-menu`, `msg-03-menu-104`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the `msg-ops-104` hover toolbar (nine title-named buttons); **More** opens 19 entries; the **Agent** submenu (**Copy for Agent**, **Mark for agent ⌥M**, **Ask about this...**, **Capture to doc from here**); `reply=1` reads **Replying to dax**; the `dm-msg-m2` bubble menu has 13 items on both hosts. **Limitations:** the `/rooms/` bubble menu missed twice before opening, so re-read after a short wait. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ma-*`).
 
 **Previous record:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142): hover `#msg-ops-104` → toolbar **More** → 19 `menuitem`s on both (👍, 🔥, 😂, ❤️, React, Reply, Topic, To-do, Forward, Edit Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library, Pin Message, Mark Unread, Agent, Delete Message, Copy Message ID); `reply=1` → **Replying to dax** with **Cancel reply** on both. **Limitations:** the DM menu, right-click, swipe and long-press were not re-driven; a first scripted attempt after a viewport change returned 0 items (new gotcha). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
 

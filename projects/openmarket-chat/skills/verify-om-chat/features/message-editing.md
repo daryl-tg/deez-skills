@@ -91,7 +91,9 @@ Full server persistence and other clients receiving the edit require the local a
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143): hover `#msg-ops-104` → `.msg-toolbar button[title="Edit"]` mounts the focused **Edit message** textarea. **Limitations:** a click sent right after another route load missed once and worked when re-driven. Save and wire edits unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ma-rooms-03-edit`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): hover `#msg-ops-104` → `.msg-toolbar button[title="Edit"]` → the **Edit message** box. **Limitations:** save and `/chat/` not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`edit-01`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143): hover `#msg-ops-104` → `.msg-toolbar button[title="Edit"]` mounts the focused **Edit message** textarea. **Limitations:** a click sent right after another route load missed once and worked when re-driven. Save and wire edits unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ma-rooms-03-edit`).
 
 **Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137): hover **Message from kyle** → **Edit** (`--exact`) → the **Edit message** textbox mounted focused → typed and Enter → the row shows **(edited)**; `/chat/` (18138): the same **Edit** mounts no editor (the known no-op); **Edit Message** listed in the DM More menu on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 

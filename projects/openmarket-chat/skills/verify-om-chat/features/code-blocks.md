@@ -5,7 +5,7 @@
 - A fenced block in a message renders as `pre.code-wrap` inside the message's
   `.agent-md.agent-md-chat`, with a `.code-header` band (the language control,
   e.g. **Plain text**) and a copy control: `span.code-copy` with `role="button"`
-  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2354`).
+  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2364`).
 - Since `2350a0fd`, chat messages wrap long lines instead of scrolling them:
   `.agent-md-chat .code-wrap > code` is `white-space: pre-wrap` and
   `overflow-wrap: anywhere`, so an unbroken token breaks anywhere
@@ -26,7 +26,7 @@ however long the line is.
 
 The default `#ops` tape seeds one block: dax's
 `om alert list --room ops --since 24h` (`msg-ops-106`;
-`tools/visual/shell-fixture.tsx:1137`, and
+`tools/visual/shell-fixture.tsx:1114`, and
 `apps/cloud/tools/visual/shell-fixture.tsx:348` on `/chat/`). To prove wrapping,
 send a long unbroken line from the composer, because no seed has one.
 
@@ -65,7 +65,9 @@ Expect `pre-wrap`, `fits: true` and `copyInside: true` at 1440×900 and at
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the seeded tape renders one `pre` with its `span.code-copy[role=button]` **Copy**. **Limitations:** the wrapping proof (which needs the stylesheet injected) was not re-driven; the 2026-11-02 record stands. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/`.
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room`: one `.code-copy` control named **Copy**. **Limitations:** wrapping was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the seeded tape renders one `pre` with its `span.code-copy[role=button]` **Copy**. **Limitations:** the wrapping proof (which needs the stylesheet injected) was not re-driven; the 2026-11-02 record stands. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/`.
 
 **Previous record:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142), `view=room&alerts=quiet` at 1440×900 with `code-block.css` injected (`/rooms/src/…` and `/chat/src/…`): a sent 300-character fence reads `pre-wrap|true|true` (wraps, no horizontal overflow, **Copy** inside the block) on both hosts. **Limitations:** the 390 px width was not re-measured this pass. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
 

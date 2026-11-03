@@ -43,29 +43,26 @@ Say which one a frame shows, always.
 Four sidebar lenses, each stamped `data-home-library-lens-{id}` and carrying
 `aria-current="page"` when active: **Todos** (`?lens=todos`), **Shared docs**,
 **Agents** (`?lens=agents`), and **Archive** (`?lens=archive`). All four are
-present in this lane; Archive is the newest. **`?lens=agents` crashes in this
-lane (still at `afabb11c`).** The hash reaches `#/library/agents`, but the surface reads
-"Your Library could not load" with Try again / Reload OM Chat, and the console
-shows `TypeError: Cannot read properties of undefined (reading 'tone')` in
-`LibraryPersonaCard`. The cause is now isolated to the fixture. The shell fixture never
-stubs `session.libraryDaemon`, so the autofill proxy answers `INERT`
-(`shell-fixture.tsx:2564-2569`). `LibraryView.tsx:6959` awaits
-`daemon?.fetchPersona()`, gets the truthy `INERT` back and takes the `ready`
-branch (`:6960`). `personaStatusPresentation` (`:6168-6188`) then matches no
-`status.state` and returns `undefined`, and `.tone` throws (`:6405`). The
-production client rejects unlisted states (`src/lib/om-daemon.ts:1413`), so
-this is a fixture gap, not a product bug. Stubbing `libraryDaemon: null` would
-render the card's `unavailable` branch instead. Until the fixture changes, assert only
-the route for the Agents lens here, and report the crash rather than
-captioning it as the lens. **The `/chat/` fixture does not crash.** There
-`?view=library&lens=agents` reaches `/chat/library/agents` and renders the
-Agents lens, with a count of 1 and the access text "Read access lets an agent
-inspect notes and queue proposals…". Driven 2026-10-28 at `07f7d04c`. Prove
-the lens content on `/chat/` and only the route on `/rooms/`.
+present in this lane; Archive is the newest. **`?lens=agents` renders on both
+hosts since `e7c375ce`.** It crashed on `/rooms/` through 2026-11-03 ("Your
+Library could not load", `TypeError … reading 'tone'` in `LibraryPersonaCard`):
+the shell fixture never stubs `session.libraryDaemon`, so the autofill proxy
+answers `INERT` (`shell-fixture.tsx:2553-2558`), `LibraryView.tsx:6971` takes the
+`ready` branch, and `personaStatusPresentation` matched no state. It now has a
+`default` branch, "Unknown status" (`LibraryView.tsx:6168-6200`), and the
+production client no longer rejects unlisted states (`src/lib/om-daemon.ts:1393`
+checks only that `state` is a string). Driven 2026-11-04 at `ce14d4ba`:
+`/rooms/` `?view=library&lens=agents` reaches `#/library/agents` with h1
+**Agents**, the access text "Read access lets an agent inspect notes and queue
+proposals…", **Open Front Desk**, the **Agent persona note** card with **Sync
+now** and **LAST SYNC Unknown status**, and the **Living daily note** card.
+"Unknown status" is the fixture's `INERT` report, not a real persona state; a
+real state needs `backend=real`. On `/chat/` the same route reaches
+`/chat/library/agents` with the same access text.
 
-Archive renders `data-home-library-archive` (`LibraryView.tsx:8715`) with an
+Archive renders `data-home-library-archive` (`LibraryView.tsx:8727`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
-`data-home-archived-doc={docId}` (`:8765`).
+`data-home-archived-doc={docId}` (`:8777`).
 - Import a folder into Your Library (`ImportFolderModal.tsx`; `homeImport=open`), and the conversation To-dos panel (`TodosPanel.tsx`).
 
 ## How to get to it (user POV)
@@ -121,11 +118,11 @@ Other seeding routes confirmed present in the fixture: `?docs=500` (a
 writes `localStorage["om.chat.libraryList"]` and the `else` branch at
 `:134-135` removes it, so the next load without the parameter clears it;
 measured live: `flat`, then `null`), `?note=long|wrapped`, and
-`?libraryState=error` (`:4208`, applied only while the active view is library).
+`?libraryState=error` (`:4210`, applied only while the active view is library).
 
 ### Import folder and the To-dos panel (added 2026-10-27)
 
-- **Import folder:** `shell-fixture.html?view=home&alerts=quiet&homeImport=open` opens dialog **Import folder into Your Library** on `/rooms/`. On `/chat/` the same URL showed no dialog. `import=<phase>` (`shell-fixture.tsx:4157`) seeds later phases, which were not driven.
+- **Import folder:** `shell-fixture.html?view=home&alerts=quiet&homeImport=open` opens dialog **Import folder into Your Library** on `/rooms/`. On `/chat/` the same URL showed no dialog. `import=<phase>` (`shell-fixture.tsx:4159`) seeds later phases, which were not driven.
 - **To-dos panel:** the shell's `?panel=todos` crashes into the lazy-surface error **Todos could not load** with **Try again** and **Reload OM Chat** (`[data-lazy-surface-error="Todos"]`) on both hosts. The roster `members` seed has no `role`, and `TodosPanel.tsx:154` calls `member.role.toLocaleLowerCase()`. This is a fixture gap. The panel itself renders on the component gallery instead: `fixture.html?surface=conversation-qol` shows tabs **To-dos 4 / Bookmarks / Members / Pins**, the seeded row "Audit the launch copy" and **Add a to-do**. Promote (`todoPromote: null`) has no seed.
 
 - **Library to-dos lens per host:** `?view=library&lens=todos` routes to `#/library/todos` on `/rooms/` with "Review the launch checklist". On `/chat/` it routes to `/chat/library/todos` and shows the cloud fixture's own seed instead: a **Todos** heading with **1 open** beside it and "Share the customer notes". The two read as "Todos · 1 open" on screen but are separate text nodes, so `innerText.includes("Todos · 1 open")` is false; assert "1 open" and "Share the customer notes" (re-measured 2026-11-02 on `/chat/`). Both seeds are fine; assert the right one for each host.
@@ -137,7 +134,7 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 On `shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server`,
 right-click the **runbook.md** treeitem in the library panel, or focus it and
 press the ContextMenu key (`LibraryPanel.tsx:696`, `:1194`). Either one opens
-`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4594-4600`), a
+`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4595-4601`), a
 `menu` with no accessible name and 12 items: Open, Open in floating window,
 Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
 rename, Make read-only, Archive and Delete. Escape closes it. The full page's
@@ -148,7 +145,7 @@ The verbs are not proved: `setDocReadOnly` and `setDocRestriction` are
 unstubbed. The `/chat/` fixture stubs `openDocMenu` as a no-op
 (`apps/cloud/tools/visual/shell-fixture.tsx:2398`), so no menu opens there.
 The **Set topic index...** picker (`DocIndexPicker.tsx`) has no fixture route
-(`docIndexPicker: null`, `shell-fixture.tsx:4145`).
+(`docIndexPicker: null`, `shell-fixture.tsx:4147`).
 
 Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, absence on `/chat/`). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`doc-menu-*`).
 
@@ -157,10 +154,10 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, abs
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
 with `data-daily-note-day` set to the local day, `LibraryView.tsx:3232-3240`;
 the add menu lists it as **Daily note**, `:3770`, `:4137`; the `d` key at
-`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:38913`),
+`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:38993`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
-no doc pane, no `.library-daily-note` section (`:6533`), no toast, hash still
+no doc pane, no `.library-daily-note` section (`:6567`), no toast, hash still
 `#/library`. Driven 2026-11-01 on `/rooms/` at `936f5b64`. The daily note
 itself is live verification pending.
 
@@ -209,10 +206,10 @@ agent-browser eval "$D"                                   # mode "view", editor 
 Send ex commands one key at a time with `press`. `agent-browser keyboard type
 ":w"` inserts the literal text into the document, because it bypasses the Vim
 keymap, even in normal mode. `:w` cannot be proved here. The fixture's
-`session.docs` stub (`shell-fixture.tsx:3926-4002`) has no `publish` method, so
+`session.docs` stub (`shell-fixture.tsx:3928-4004`) has no `publish` method, so
 `:w`, like the **Publish** button, calls a method that does not exist. Driven,
 Publish stayed enabled and `fixtureDocDirty` stayed `true`. (The
-"Fixture publish is not configured" stub at `:4275` belongs to the checkpoint
+"Fixture publish is not configured" stub at `:4277` belongs to the checkpoint
 restore store, not to this pane.)
 
 ## Doc reader select-all
@@ -272,7 +269,7 @@ that already dismissed it never shows it.
   exactly `"Archived"` and a `Refresh` button: zero rows, no message, no
   failure text, and it stays that way. `session.archivedDocs` and
   `session.restoreDoc` are **not stubbed anywhere in the fixture**, so
-  `LibraryView.tsx:8702`'s `await session.archivedDocs(homeSpaceId)` resolves
+  `LibraryView.tsx:8714`'s `await session.archivedDocs(homeSpaceId)` resolves
   through the `INERT` proxy, which **answers instead of throwing**. `INERT`'s
   iterator is an empty generator, so the list renders empty and the `catch`
   never runs.
@@ -302,7 +299,9 @@ that already dismissed it never shows it.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the docked panel (`scope=server`, Channel 0 / Server 3) with **Choose where shared work lives**; the full page's **Today's note ⌘D**; the server doc reader (**Edit**, **Version history**); `docState=reconcile` → **Two versions of this doc**; `docState=history` at `9`; `docAccess=readonly` drops **Edit**. `/rooms/` only: right-clicking **runbook.md** opens the 12-item doc menu; `lens=todos` shows **Review the launch checklist**; `homeImport=open` → **Import folder into Your Library**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`lib-*`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): `?view=library` → `#/library`; `?view=library&lens=agents` → `#/library/agents` renders (h1 **Agents**, **LAST SYNC Unknown status**), the crash is gone. `/chat/` (18161): `/chat/library/agents`. **Limitations:** the doc menu, todos and archive lenses were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`lib-01-agents-lens`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the docked panel (`scope=server`, Channel 0 / Server 3) with **Choose where shared work lives**; the full page's **Today's note ⌘D**; the server doc reader (**Edit**, **Version history**); `docState=reconcile` → **Two versions of this doc**; `docState=history` at `9`; `docAccess=readonly` drops **Edit**. `/rooms/` only: right-clicking **runbook.md** opens the 12-item doc menu; `lens=todos` shows **Review the launch checklist**; `homeImport=open` → **Import folder into Your Library**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`lib-*`).
 
 **Previous record:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141): `panel=library&scope=server` presentation `side`; the location explainer shown, dismissed (`om.chat.libraryVenueExplainerAcknowledged:u1=1`) and still gone after a reload; `lens=todos` **Review the launch checklist**; `homeImport=open` **Import folder into Your Library**; `doc=server` **+ tag**. `/chat/` (18142): `panel=library&scope=server` presentation `side`; `lens=todos` **1 open** and **Share the customer notes** at `/chat/library/todos`. **Limitations:** the doc menu, Vim mode, select-all and Today's note were not re-driven in this pass; their nightly records stand. The doc outline toggle flips `aria-expanded` to `true` on `doc=journal`, but the outline renders only in view mode (`DocPane.tsx:1818`), so its body and **No headings in this note.** stay unproved. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
 

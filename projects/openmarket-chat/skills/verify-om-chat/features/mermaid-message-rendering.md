@@ -31,7 +31,7 @@ agent-browser snapshot -i -c
 
 The DM route is `tools/visual/shell-fixture.html?view=dm&dm=ana&alerts=quiet&mermaid=1`. On both routes, drive the button named `Open Mermaid diagram as PNG`, then check for the named preview region.
 
-Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1056`) shifts when seeds change:
+Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1033`) shifts when seeds change:
 
 ```bash
 agent-browser find role textbox fill --name 'Message #ops · $ for markets · /chart to post one' 'https://openmarket.xyz/chat/room/ops/msg/116'
@@ -62,7 +62,9 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `mermaid=1`: **Open Mermaid diagram as PNG** → **Mermaid diagram.png** and the region **Mermaid diagram PNG preview. Right-click or press Shift+F10 for actions.**; `doc=server&mermaid=labels` mounts after a 5 s wait. `/chat/` has no `mermaid=1` seed (as documented). **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`mm-*`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=dm&dm=ana&mermaid=1`: the **Open Mermaid diagram as PNG** button mounts after scrolling into view. **Limitations:** the preview region and the doc diagrams were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `mermaid=1`: **Open Mermaid diagram as PNG** → **Mermaid diagram.png** and the region **Mermaid diagram PNG preview. Right-click or press Shift+F10 for actions.**; `doc=server&mermaid=labels` mounts after a 5 s wait. `/chat/` has no `mermaid=1` seed (as documented). **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`mm-*`).
 
 **Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `mermaid=1`: **Open Mermaid diagram as PNG** → dialog **Mermaid diagram.png** with an `img`; `/chat/` (18138): `mermaid=1` seeds nothing (0 diagrams, 0 linked cards), as documented. **Limitations:** the DM diagram was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 

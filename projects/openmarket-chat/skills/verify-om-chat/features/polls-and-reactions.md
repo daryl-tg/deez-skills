@@ -118,6 +118,14 @@ session.
 
 ## Gotchas
 
+- **The reaction tools are hidden until the row is hovered.** On
+  `fixture.html?surface=reaction-polish` the two `.reaction-tool` buttons,
+  **Add a reaction** and **See who reacted**, are in the DOM with
+  `display: none` until the pointer is over the message row, so
+  `snapshot -i` omits them and `find role button --name "See who reacted"`
+  reports no match however long you wait. Run `agent-browser hover
+  '[data-message-row]'` first; the click then opens the **Reactions** dialog
+  and the tool takes `is-open` (2026-11-04, `/rooms/`).
 - **The `fixture.html` galleries mount slowly.** On a lane serving several
   sessions, `surface=poll-ux` had no **Create poll in #chat** text 1.8 s after
   `open` and had it at 3.5 s. Wait about 3.5 s, or wait for a named element,
@@ -159,7 +167,9 @@ session.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143): **Final results · 14 votes**; `poll-cache-fixture` **Show results** twice → **roster loads: 1**; **Create poll in #chat**; `reaction-polish` hover **Message from Mira Chen** → **See who reacted** → **Reactions** dialog. **Limitations:** the reaction scene families were not re-driven; their 2026-11-01 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`poll-01`, `rx-01`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): `poll-results-fixture` **Final results · 14 votes**; `fixture.html?surface=reaction-polish` → hover the row → **See who reacted** → the **Reactions** dialog (the tools are `display: none` until hover; see Gotchas). **Limitations:** the scene families and the vote settle were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`react-02`).
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143): **Final results · 14 votes**; `poll-cache-fixture` **Show results** twice → **roster loads: 1**; **Create poll in #chat**; `reaction-polish` hover **Message from Mira Chen** → **See who reacted** → **Reactions** dialog. **Limitations:** the reaction scene families were not re-driven; their 2026-11-01 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`poll-01`, `rx-01`).
 
 **Previous record:** 2026-11-02 (scheduled maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18141): `poll-results-fixture` **Final results · 14 votes**; `poll-cache-fixture` two **Show results** → `roster loads: 1`; `surface=poll-ux` **Create poll in #chat** with **ye** 8 · 80% and **nay** 2 · 20% after a 3.5 s mount; `surface=reaction-polish` hover **Message from Mira Chen** → **Add a reaction** → dialog **Choose an emoji**, and **See who reacted** → dialog **Reactions**. **Limitations:** no vote settle or scene lifetimes this pass; `/chat/` galleries not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261102/r1/`.
 

@@ -16,7 +16,7 @@ says about them.
 - **Info** content: About, Mutual servers with a count and chips, Member since,
   Connections (follower count), and **Block user** / **Unblock user** (`:793`).
 - The DM header's identity button (`A Online ana`) opens the same drawer.
-- The floating identity card (`?card=1`, `shell-fixture.tsx:3042`): a `dialog`
+- The floating identity card (`?card=1`, `shell-fixture.tsx:3031`): a `dialog`
   named **Profile for ana** (`.profile-popover`) with the avatar, name, the
   about line, ROLES (traders), `2 mutual servers · 128 followers` and the
   buttons **View ana (ops)'s full profile**, **Message**, **Mention**,
@@ -38,8 +38,8 @@ agent-browser find role tab click --name "Media" --exact      # aria-selected mo
 agent-browser find role button click --name "Close profile"   # the tablist unmounts
 ```
 
-`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3049`, origin
-`dm:ana`) and sets `rightPanel` to `profile` (`:3107`). Use it on the DM view;
+`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3038`, origin
+`dm:ana`) and sets `rightPanel` to `profile` (`:3096`). Use it on the DM view;
 the room view has no matching origin. The user path is the header button:
 open `?view=dm&dm=ana&alerts=quiet` and click
 `find role button --name "A Online ana"`. `Close profile` appears.
@@ -66,14 +66,14 @@ relay.
 
 - The sections have no `role="tabpanel"`. A query for the panel finds nothing,
   so read the drawer's text instead.
-- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:2977`). It
+- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:2966`). It
   proves layout and the tab and close mechanics, not that a real profile fetch
   works. Media, Links and To-dos switched selection but were not asserted for
   content.
 - Blocking is not exercised: the fixture does not persist it, and the Blocked
   tab under Connections crashes (see
   [direct-messages-and-home.md](direct-messages-and-home.md)).
-- **An agent's name is its owner's, with the persona beside it** (`DisplayName.tsx:52-158`, since `52a968b3`; this replaced the persona-handle-only rule of `01bf4481`). An agent row reads `<owner name> · <persona>`, for example "Daryl Boon · researcher" (`:121-125`; `test/ui/display-name-degraded.test.tsx:122`). With no picked persona it reads the owner's name alone. A degraded handle, the auto-wired badge's stock name `openmarket-chat` (`lib/wired-agent.ts:6`) and a name equal to the owner's name or account do not count as personas. If the owner has not loaded, the old handle-based name stays. Owner nicknames never relabel an agent, and the hover title keeps the handle. The shell fixture seeds one agent post, `#ops` seq 191 (`userId` `u-bot-4c81aa`, degraded handle `om-4c81aa`, `isAgent: true`; `tools/visual/shell-fixture.tsx:1228-1240`). It renders **om-mod-bot started a topic** with no ` · ` suffix on both hosts. No fixture seeds an agent with a picked persona, so the `Owner · persona` form is unit-test only.
+- **An agent's name is its owner's, with the persona beside it** (`DisplayName.tsx:52-158`, since `52a968b3`; this replaced the persona-handle-only rule of `01bf4481`). An agent row reads `<owner name> · <persona>`, for example "Daryl Boon · researcher" (`:121-125`; `test/ui/display-name-degraded.test.tsx:122`). With no picked persona it reads the owner's name alone. A degraded handle, the auto-wired badge's stock name `openmarket-chat` (`lib/wired-agent.ts:6`) and a name equal to the owner's name or account do not count as personas. If the owner has not loaded, the old handle-based name stays. Owner nicknames never relabel an agent, and the hover title keeps the handle. The shell fixture seeds one agent post, `#ops` seq 191 (`userId` `u-bot-4c81aa`, degraded handle `om-4c81aa`, `isAgent: true`; `tools/visual/shell-fixture.tsx:1205-1217`). It renders **om-mod-bot started a topic** with no ` · ` suffix on both hosts. No fixture seeds an agent with a picked persona, so the `Owner · persona` form is unit-test only.
 - **`profile=1` is a `/rooms/` seed only.** The `/chat/` shell fixture never
   reads `profile`, so `?view=dm&dm=ana&profile=1` there opens the DM with no
   drawer (measured 2026-10-29). The DM header button **ana Online ana** does not open it there either
@@ -83,7 +83,9 @@ relay.
 
 ### Verification record
 
-**Last verified:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `?view=dm&dm=ana&profile=1`: **Profile sections** (Info*, Media, Links, To-dos) → **Media** selected, hash stays `#/dm/ana`; **Close profile** unmounts the tablist within 1.2 s (at 1 s it still read as mounted). `person-presence-fixture.html` renders the four specimens. `/chat/` has no `profile=1` seed (as documented). **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`prof-*`, `pres-01`).
+**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room&profile=1`: the **Profile sections** tablist mounts. **Limitations:** the tabs and `card=1` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
+
+**Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `?view=dm&dm=ana&profile=1`: **Profile sections** (Info*, Media, Links, To-dos) → **Media** selected, hash stays `#/dm/ana`; **Close profile** unmounts the tablist within 1.2 s (at 1 s it still read as mounted). `person-presence-fixture.html` renders the four specimens. `/chat/` has no `profile=1` seed (as documented). **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`prof-*`, `pres-01`).
 
 **Previous record:** 2026-11-02 (nightly maintenance). **Product commit:** `3f8f24bc` (GitLab origin/main; rooms-client 0.108.0). **Scope:** `/rooms/` (18137) `?view=dm&dm=ana&alerts=quiet&profile=1`: **Profile sections** (Info, Media, Links, To-dos) → **Media** selected with the hash still `#/dm/ana`; **Close profile** clicked; `card=1` → **Profile for ana**; `person-presence-fixture.html` → the four presence specimens. **Limitations:** 400 ms after **Close profile** the `Profile sections` tablist still read as mounted, so the unmount was not re-proved tonight (the 2026-11-01 reading stands); the `/chat/` DM header still has no profile button. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261102/r1/`.
 
