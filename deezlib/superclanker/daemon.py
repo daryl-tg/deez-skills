@@ -218,8 +218,17 @@ def _take_lock(lock):
     return None
 
 
+SOURCE_DIR = Path(__file__).resolve().parent
+
+
+def source_stamp(source_dir=SOURCE_DIR):
+    return tuple(sorted(
+        (path.name, path.stat().st_mtime_ns) for path in Path(source_dir).rglob("*.py")
+    ))
+
+
 def run(root, hub_root, interval_seconds=5, passes=None, sleep=time.sleep,
-        load_config=config.load):
+        load_config=config.load, one_pass=one_pass, source_dir=SOURCE_DIR):
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
     lock = root / "daemon.lock.d"
@@ -236,6 +245,7 @@ def run(root, hub_root, interval_seconds=5, passes=None, sleep=time.sleep,
         store = Store.open(root)
         try:
             done = 0
+            started_with = source_stamp(source_dir)
             while True:
                 try:
                     result = one_pass(store, load_config(root), root, hub_root)
@@ -246,6 +256,9 @@ def run(root, hub_root, interval_seconds=5, passes=None, sleep=time.sleep,
                 log_pass(root, result)
                 done += 1
                 if stopping or (passes is not None and done >= passes):
+                    break
+                if source_stamp(source_dir) != started_with:
+                    print("daemon: source changed, exiting for launchd to restart it", file=sys.stderr)
                     break
                 sleep(interval_seconds)
                 if stopping:

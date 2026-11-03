@@ -450,3 +450,28 @@ class RefusedSettleTest(unittest.TestCase):
         self.assertEqual(calls, [])
         self.assertEqual(store.queued(), [])
         self.assertEqual(result.wake_id, None)
+
+
+class SourceChangeRestartTest(unittest.TestCase):
+    def test_daemon_exits_when_its_source_changes(self):
+        import os, tempfile, time
+        from pathlib import Path
+        from deezlib.superclanker import daemon
+        tmp = tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        src = root / "pkg"; src.mkdir(); (src / "a.py").write_text("x = 1\n")
+        stamp = daemon.source_stamp(src)
+        self.assertEqual(stamp, daemon.source_stamp(src))
+        later = time.time() + 5
+        os.utime(src / "a.py", (later, later))
+        self.assertNotEqual(stamp, daemon.source_stamp(src))
+        passes = []
+        def fake_pass(*a, **k):
+            passes.append(1)
+            if len(passes) == 2:
+                (src / "b.py").write_text("y = 2\n")
+            return daemon.PassResult(0, 0, 0, 0, None, 0, ())
+        code = daemon.run(root, root, interval_seconds=0, passes=10, sleep=lambda _s: None,
+                          one_pass=fake_pass, source_dir=src)
+        self.assertEqual(code, 0)
+        self.assertEqual(len(passes), 3)

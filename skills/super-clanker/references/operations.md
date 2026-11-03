@@ -15,6 +15,9 @@ launchd keeps `deez super-clanker daemon` alive. Each pass, about every five sec
 
 `deez super-clanker pass` runs one pass by hand.
 
+The daemon exits on its own when any file under `deezlib/superclanker/` changes,
+and launchd starts it again on the new code. A hub update needs no `kick`.
+
 ## Backoff
 
 After n consecutive failed wakes, the daemon waits
