@@ -299,7 +299,7 @@ class WorkersTest(unittest.TestCase):
         self.assertNotIn("--model", argv)
         self.assertEqual(
             argv[-1],
-            f"Read and execute, exactly, the handoff at {brief}. "
+            f"/clanker-mode Read and execute, exactly, the handoff at {brief}. "
             "Return the artifact and your own account of it.",
         )
         self.assertEqual(
