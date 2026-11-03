@@ -39,8 +39,9 @@ STOP_WARNING = (
 HELP = "\n".join([
     "a ask the Router      r answer the question   n note to Worker",
     "enter show             s stop Ticket           k kill Worker",
-    "R retry                Q requeue trigger       K kick the daemon",
-    "e toggle ended         / filter rows           : run any verb",
+    "t take over Ticket     x kill Memory process   Q requeue trigger",
+    "R retry                K kick the daemon       e toggle ended",
+    "/ filter rows          : run any verb          escape focus Tickets",
     "q quit                 ? this help",
 ])
 

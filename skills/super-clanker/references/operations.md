@@ -68,7 +68,7 @@ exist, then attaches to it. The session has two windows:
 
 | Window | Holds |
 |---|---|
-| `board` | The board. The title reads `board(!N)` while N items need you. |
+| `board` | The board. Inside tmux, the title reads `board(!N)` while N items need you. |
 | `main` | `claude --continue`, or `claude` if there is nothing to continue. |
 
 The session opens on `board`. Inside tmux, or with `--no-tmux`, the board runs
@@ -78,7 +78,7 @@ in the current terminal.
 
 The board runs Textual from a separate venv at
 `~/.local/share/deez-skills/venvs/ui`. The pin is `ui_launch.TEXTUAL_PIN`,
-now 8.2.8. The launcher builds the venv with `/opt/homebrew/bin/python3` when
+8.2.8. The launcher builds the venv with `/opt/homebrew/bin/python3` when
 it is missing or holds another Textual version. To rebuild it, run
 `rm -rf ~/.local/share/deez-skills/venvs/ui`. The next `ui` run creates it
 again. The hub and the daemon stay stdlib-only.
@@ -93,9 +93,10 @@ again. The hub and the daemon stay stdlib-only.
 | Log tab for the selected Worker | 5 s, only while the tab is open |
 
 The board opens `super.db` read-only and never writes it. Every change goes
-through a `deez super-clanker <verb>` subprocess. If a refresh fails, the board
-keeps the last good snapshot and shows `refresh failed`. If the state root or
-the database is missing, it shows `daemon not initialised`.
+through a `deez super-clanker <verb>` subprocess. If the database cannot be read or is locked, the
+board keeps the last good snapshot, and the header shows `STALE (<error>)`.
+`refresh failed` appears only when the snapshot function itself raises. If the
+state root or the database is missing, it shows `daemon not initialised`.
 
 ### Keys
 
@@ -103,7 +104,7 @@ The detail pane has the tabs Report, Log, Router, Memory and Sessions.
 
 | Key | Action | Confirm |
 |---|---|---|
-| `a` | Ask the Router (`ask`) | none |
+| `a` | Focus the ask box in the Router tab (`ask`) | none |
 | `r` | Answer the selected Ticket's question (`note`) | none |
 | `n` | Send a note to the selected Ticket's Worker (`note`) | none |
 | `enter` | Show the selected Ticket in the Report tab (`show`) | none |
@@ -114,6 +115,7 @@ The detail pane has the tabs Report, Log, Router, Memory and Sessions.
 | `Q` | Requeue the selected undecided trigger (`requeue`) | none |
 | `K` | Kick the daemon (`kick daemon`) | `y` |
 | `x` | Kill the selected process in the Memory tab | `y`, or a typed name |
+| `escape` | Return focus to the Ticket list | none |
 | `e` | Show or hide ended Tickets | none |
 | `/` | Filter rows. `-` clears the filter. | none |
 | `:` | Run any `super-clanker` verb | `y` for `stop`, `kill`, `retry` and `kick` |
@@ -128,13 +130,14 @@ process in it dies.
 
 `t` asks for `y`. It kills a live Worker with `kill`, waits up to 10 s for the
 process to exit, then resumes the session. In tmux, it opens `claude --resume
-<session id>` in a new window named for the Ticket, in the worktree. Outside
+<session id>` in a new window named for the Ticket slug, in the worktree. Outside
 tmux, the board suspends and runs the session in the same terminal.
 
 `t` refuses when:
 
 - the Ticket is already taken over from this board
 - the Ticket has no session id or no worktree
+- the Ticket is no longer on the board
 - another takeover is running
 - `claude` is not on PATH (checked inside tmux, before it kills anything)
 
