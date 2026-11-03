@@ -165,3 +165,25 @@ class SweepRealProcessTest(unittest.TestCase):
 
         self.assertIn(child.pid, swept)
         self.assertIsNotNone(child.wait(timeout=5))
+
+    def test_finds_leftovers_under_the_daemon_launchd_path(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        worktree = Path(tmp.name) / "k_1"
+        worktree.mkdir()
+        child = subprocess.Popen(
+            ["/bin/sleep", "600"], cwd=worktree, start_new_session=True,
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.addCleanup(child.wait)
+        self.addCleanup(lambda: child.poll() is None and child.kill())
+        launchd_path = "/usr/bin:/bin"
+
+        with mock.patch.dict(os.environ, {"PATH": launchd_path}):
+            deadline = time.monotonic() + 5
+            found = sweep.leftovers(worktree)
+            while child.pid not in found and time.monotonic() < deadline:
+                time.sleep(0.05)
+                found = sweep.leftovers(worktree)
+
+        self.assertIn(child.pid, found)
