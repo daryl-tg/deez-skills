@@ -2,6 +2,7 @@ import os
 import shutil
 import signal
 import sys
+import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
@@ -11,7 +12,8 @@ from pathlib import Path
 
 from deezlib import memguard
 from deezlib.superclanker import channels, compose, config, router, sources, workers
-from deezlib.superclanker.domain import Strength, utc_now
+from deezlib.superclanker.domain import Strength, TicketState, utc_now
+from deezlib.superclanker.sweep import sweep
 from deezlib.superclanker.store import Store, SuperError
 
 TERMINAL_PREFIX = "terminal:"
@@ -34,12 +36,13 @@ class PassResult:
     expired: int = 0
     held: int | None = None
     hold_changed: bool = False
+    removed: int = 0
 
     @property
     def eventful(self):
         counts = (
             self.polled, self.fanned_out, self.launched, self.resumed, self.reaped,
-            self.replies_sent, self.expired, self.hold_changed,
+            self.replies_sent, self.expired, self.hold_changed, self.removed,
         )
         return any(counts) or self.wake_id not in (None, BACKOFF) or bool(self.errors)
 
@@ -48,7 +51,7 @@ class PassResult:
         held = f" held=mem{self.held}%" if self.held is not None else ""
         return (
             f"{at}  fanout={self.fanned_out} reaped={self.reaped} expired={self.expired} "
-            f"resumed={self.resumed} launched={self.launched} wake={self.wake_id or '-'} "
+            f"removed={self.removed} resumed={self.resumed} launched={self.launched} wake={self.wake_id or '-'} "
             f"replies={self.replies_sent} errors={len(self.errors)}{polled}{held}"
         )
 
@@ -169,9 +172,43 @@ def _expire_overlong_turns(store, settings, stop, now):
     return expired
 
 
+def _repo_of(worktree, git):
+    common = git(
+        ["git", "-C", str(worktree), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        capture_output=True, text=True,
+    )
+    if common.returncode != 0:
+        raise SuperError(f"{worktree}: not a git worktree: {common.stderr.strip()}")
+    return Path(common.stdout.strip()).parent
+
+
+def _remove_worktree(worktree, git, sweeper):
+    sweeper(worktree)
+    removed = git(
+        ["git", "-C", str(_repo_of(worktree, git)), "worktree", "remove", str(worktree)],
+        capture_output=True, text=True,
+    )
+    if removed.returncode != 0:
+        raise SuperError(f"{worktree}: git worktree remove failed: {removed.stderr.strip()}")
+
+
+def _remove_ended_worktrees(store, root, git, sweeper, errors):
+    removed = 0
+    for worktree, ticket in workers.ticket_worktrees(store, root):
+        if ticket is None or ticket["state"] is not TicketState.ended:
+            continue
+        try:
+            _remove_worktree(worktree, git, sweeper)
+        except (SuperError, OSError) as exc:
+            errors.append(str(exc))
+        else:
+            removed += 1
+    return removed
+
+
 def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.launch,
              resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now,
-             stop=workers.stop, free_pct=None):
+             stop=workers.stop, free_pct=None, git=subprocess.run, sweeper=sweep):
     errors = []
 
     def attempt(step, *args):
@@ -185,6 +222,7 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     fanned_out = attempt(_fan_out, store, config) or 0
     expired = attempt(_expire_overlong_turns, store, config, stop, now) or 0
     reaped = len(attempt(reap, store, root) or [])
+    removed = _remove_ended_worktrees(store, root, git, sweeper, errors)
     held = _held_by_memory(config, free_pct or memguard.free_pct)
     hold_changed = _record_hold(root, held)
     resumed = 0
@@ -232,7 +270,7 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     workers._write_atomic(heartbeat_path(root), now() + "\n")
     return PassResult(
         fanned_out, launched, resumed, reaped, wake_id, replies_sent + forge_sent, tuple(errors),
-        polled, expired, held, hold_changed,
+        polled, expired, held, hold_changed, removed,
     )
 
 

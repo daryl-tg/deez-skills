@@ -195,13 +195,7 @@ def _source_errors(store, config):
 
 def _orphans(store, root):
     found = []
-    for path in sorted((Path(root) / "worktrees").glob("*/*")):
-        if not path.is_dir():
-            continue
-        try:
-            ticket = store.show(path.name) if path.name.startswith("k_") else None
-        except SuperError:
-            ticket = None
+    for path, ticket in workers.ticket_worktrees(store, root):
         if ticket is None:
             found.append(([], f"{path}: no ticket {path.name}"))
         elif ticket["state"] is TicketState.ended:

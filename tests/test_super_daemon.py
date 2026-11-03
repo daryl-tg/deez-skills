@@ -86,6 +86,21 @@ class FakeStop:
         self.calls.append((assignment_id, kwargs))
 
 
+class FakeSweeper:
+    def __init__(self):
+        self.swept = []
+
+    def __call__(self, worktree):
+        self.swept.append(Path(worktree))
+        return []
+
+
+def git(repo, *args):
+    return subprocess.run(
+        ["git", "-C", str(repo), *args], capture_output=True, text=True, check=True
+    ).stdout.strip()
+
+
 class DaemonTest(unittest.TestCase):
     def setUp(self):
         tmp = tempfile.TemporaryDirectory()
@@ -103,17 +118,34 @@ class DaemonTest(unittest.TestCase):
         self.addCleanup(self.store.close)
         self.wake = FakeWake()
         self.workers = FakeWorkers()
+        self.sweeper = FakeSweeper()
 
     def sources(self, text):
         (self.root / "sources.toml").write_text(text, encoding="utf-8")
 
-    def one_pass(self, wake=None, reap=no_reap, revive=None, stop=None, free_pct=plenty_free, **now):
+    def one_pass(self, wake=None, reap=no_reap, revive=None, stop=None, free_pct=plenty_free,
+                 sweeper=None, **now):
         return daemon.one_pass(
             self.store, config.load(self.root), self.root, HUB, wake=wake or self.wake,
             launch=self.workers.launch, resume=self.workers.resume,
             revive=revive or self.workers.revive, reap=reap, stop=stop or FakeStop(),
-            free_pct=free_pct, **now,
+            free_pct=free_pct, sweeper=sweeper or self.sweeper, **now,
         )
+
+    def repo_with_worktree(self, ticket):
+        repo = self.root.parent / "repo"
+        if not repo.exists():
+            repo.mkdir()
+            git(repo, "init", "-q", "-b", "main")
+            git(repo, "config", "user.name", "tester")
+            git(repo, "config", "user.email", "tester@example.com")
+            (repo / "file.txt").write_text("one\n", encoding="utf-8")
+            git(repo, "add", "file.txt")
+            git(repo, "commit", "-q", "-m", "first")
+        worktree = self.root / "worktrees" / repo.name / ticket.id
+        worktree.parent.mkdir(parents=True, exist_ok=True)
+        git(repo, "worktree", "add", "-q", "-b", f"daryl/{ticket.slug}", str(worktree))
+        return repo, worktree
 
     def ask(self, text, thread="default"):
         trigger, _receipt = terminal.ask(self.store, text, thread_name=thread)
@@ -301,6 +333,36 @@ class DaemonTest(unittest.TestCase):
         self.assertEqual((self.workers.launched, released.held), ([assignment_id], None))
         self.assertNotIn("held=", released.line("t"))
 
+    def test_ended_ticket_worktree_is_swept_and_removed_but_branch_is_kept(self):
+        ticket, _assignment_id = self.ticket("finished")
+        repo, worktree = self.repo_with_worktree(ticket)
+        self.store.stop(ticket.id, "daryl", "done")
+        result = self.one_pass()
+        self.assertFalse(worktree.exists())
+        self.assertIn(f"daryl/{ticket.slug}", git(repo, "branch", "--list", f"daryl/{ticket.slug}"))
+        self.assertEqual((result.removed, result.errors, self.sweeper.swept), (1, (), [worktree]))
+        self.assertTrue(result.eventful)
+        self.assertIn(" removed=1 ", result.line("t"))
+        self.assertEqual(self.one_pass().removed, 0)
+
+    def test_dirty_worktree_of_ended_ticket_is_kept_and_reported(self):
+        ticket, _assignment_id = self.ticket("dirty")
+        _repo, worktree = self.repo_with_worktree(ticket)
+        (worktree / "scratch.txt").write_text("unsaved\n", encoding="utf-8")
+        (worktree / "file.txt").write_text("changed\n", encoding="utf-8")
+        self.store.stop(ticket.id, "daryl", "done")
+        result = self.one_pass()
+        self.assertTrue(worktree.exists())
+        self.assertEqual((result.removed, len(result.errors)), (0, 1))
+        self.assertIn(str(worktree), result.errors[0])
+
+    def test_open_ticket_worktree_is_untouched(self):
+        ticket, _assignment_id = self.ticket("still going")
+        _repo, worktree = self.repo_with_worktree(ticket)
+        result = self.one_pass()
+        self.assertTrue(worktree.exists())
+        self.assertEqual((result.removed, result.errors, self.sweeper.swept), (0, (), []))
+
     def test_hold_clearing_is_eventful_once(self):
         self.one_pass(free_pct=lambda: 10)
         cleared = self.one_pass(free_pct=lambda: 50)
@@ -478,7 +540,7 @@ class DaemonTest(unittest.TestCase):
         self.assertRegex(
             line,
             r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00  "
-            r"fanout=0 reaped=0 expired=0 resumed=0 launched=0 wake=- replies=1 errors=0$",
+            r"fanout=0 reaped=0 expired=0 removed=0 resumed=0 launched=0 wake=- replies=1 errors=0$",
         )
 
     def test_log_rotates_to_a_single_previous_file_over_the_limit(self):
@@ -511,7 +573,7 @@ class DaemonTest(unittest.TestCase):
         self.assertEqual((passed[0], quiet[0]), (0, 0))
         self.assertRegex(
             passed[1],
-            r"^\S+  fanout=0 reaped=0 expired=0 resumed=0 launched=0 wake=- replies=1 errors=0\n$",
+            r"^\S+  fanout=0 reaped=0 expired=0 removed=0 resumed=0 launched=0 wake=- replies=1 errors=0\n$",
         )
         self.assertRegex(quiet[1], r"replies=0 errors=0\n$")
         self.assertEqual(

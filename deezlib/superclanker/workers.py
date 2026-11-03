@@ -102,6 +102,19 @@ def prepare_workspace(ticket, repo, slug, root, run=subprocess.run):
     return worktree, branch
 
 
+def ticket_worktrees(store, root):
+    found = []
+    for path in sorted((Path(root) / "worktrees").glob("*/*")):
+        if not path.is_dir():
+            continue
+        try:
+            ticket = store.show(path.name) if path.name.startswith("k_") else None
+        except SuperError:
+            ticket = None
+        found.append((path, ticket))
+    return found
+
+
 def _load(store, kind, record_id):
     shown = store.show(record_id)
     shown.pop("related")
