@@ -1,7 +1,8 @@
-import asyncio
 import importlib.util
-import time
+import subprocess
+import threading
 import unittest
+from unittest import mock
 from pathlib import Path
 
 DEEZ = Path("/hub/bin/deez")
@@ -9,7 +10,7 @@ TEXTUAL = importlib.util.find_spec("textual")
 
 if TEXTUAL:
     from deezlib.superclanker import procs, ui_model
-    from deezlib.superclanker.ui_app import BoardApp, VerbResult
+    from deezlib.superclanker.ui_app import BoardApp, VerbResult, run_verb
 
 
 def ticket(ticket_id, state="open", needs_you=False, question=None, assignment="a_1", slug=None):
@@ -33,11 +34,13 @@ def snapshot(rows=(), **changes):
 
 
 class Rig:
-    def __init__(self, snap, verb_delay=0.0, result=None):
+    def __init__(self, snap, gate=None, result=None, log_gate=None):
         self.snap = snap
         self.calls = []
+        self.started = []
         self.snapshots = 0
-        self.verb_delay = verb_delay
+        self.gate = gate
+        self.log_gate = log_gate
         self.result = result
 
     def snapshot_fn(self, root, previous, cadence):
@@ -45,9 +48,17 @@ class Rig:
         return self.snap
 
     def verb(self, argv):
-        time.sleep(self.verb_delay)
+        self.started.append(argv)
+        if self.log_gate and argv[2] == "log" and len(self.started) == 1:
+            self.log_gate.wait(10)
+        if self.gate:
+            self.gate.wait(10)
         self.calls.append(argv)
-        return self.result or VerbResult(argv, 0, "ok", "")
+        if self.result:
+            return self.result
+        if argv[2] == "log":
+            return VerbResult(argv, 0, f"LOG-{argv[3]}", "")
+        return VerbResult(argv, 0, "ok", "")
 
     def app(self):
         return BoardApp(Path("/state"), snapshot_fn=self.snapshot_fn, verb=self.verb, deez=DEEZ)
@@ -55,6 +66,18 @@ class Rig:
 
 def settle(pilot):
     return pilot.pause(0.3)
+
+
+async def until(pilot, condition):
+    for _ in range(200):
+        if condition():
+            return
+        await pilot.pause(0.05)
+    raise AssertionError("condition not reached")
+
+
+def plain(app, selector):
+    return str(app.query_one(selector).render())
 
 
 def toasts(app):
@@ -211,18 +234,20 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(any("exit 2" in note and "boom" in note for note in shown), shown)
 
     async def test_slow_verb_does_not_block_refresh(self):
-        rig = Rig(snapshot([ticket("k_1")]), verb_delay=3.0)
+        gate = threading.Event()
+        rig = Rig(snapshot([ticket("k_1")]), gate=gate)
         async with rig.app().run_test() as pilot:
             await settle(pilot)
             await pilot.press("a")
             await pilot.press(*"x")
             await pilot.press("enter")
+            await until(pilot, lambda: rig.started)
             before = rig.snapshots
-            await pilot.pause(2.4)
-            self.assertGreater(rig.snapshots, before)
+            pilot.app.refresh_snapshot()
+            await until(pilot, lambda: rig.snapshots > before)
             self.assertEqual(rig.calls, [])
-            await pilot.pause(1.5)
-        self.assertEqual(len(rig.calls), 1)
+            gate.set()
+            await until(pilot, lambda: rig.calls)
 
     async def test_not_initialised_notice(self):
         rig = Rig(snapshot(initialised=False, error="daemon not initialised", health=None))
@@ -252,6 +277,101 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
             header = str(pilot.app.query_one("#header").render())
         for text in ("41% free", "held: yes", "daemon ok 3s", "$1.84", "workers 1/3", "1.0 GB", "2.0 GB", "0.5 GB"):
             self.assertIn(text, header)
+
+    async def test_brackets_in_external_text_render_literally(self):
+        text = "2026 [ERROR] bad [/x] stuff"
+        rig = Rig(
+            snapshot(
+                [ticket("k_1", needs_you=True, question=text, slug="[b]slug[/b]")],
+                inbox_text=text,
+                top=[(9, 1024, text)],
+                peers=[ui_model.Peer(text, 9, text, text, "s")],
+            ),
+            result=VerbResult([], 0, text, ""),
+        )
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            self.assertIn(text, plain(pilot.app, "#router-text"))
+            self.assertIn(text, plain(pilot.app, "#memory-text"))
+            self.assertIn(text, plain(pilot.app, "#sessions-text"))
+            self.assertIn(text, plain(pilot.app, "#report-text"))
+            self.assertIn("[b]slug[/b]", " ".join(labels(pilot.app)))
+            pilot.app.query_one("#detail").active = "log"
+            await until(pilot, lambda: text in plain(pilot.app, "#log-text"))
+            await pilot.press("enter")
+            await until(pilot, lambda: any(text in note for note in toasts(pilot.app)))
+            await settle(pilot)
+
+    async def test_enter_runs_show(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            await self.select_ticket(pilot, "k_1")
+            await pilot.press("enter")
+            await settle(pilot)
+        self.assertEqual(rig.calls, [[str(DEEZ), "super-clanker", "show", "k_1"]])
+
+    async def test_show_output_survives_refresh_until_selection_changes(self):
+        rig = Rig(snapshot([ticket("k_1"), ticket("k_2")]), result=VerbResult([], 0, "SHOWN-OUTPUT", ""))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            await self.select_ticket(pilot, "k_1")
+            await pilot.press("enter")
+            await until(pilot, lambda: "SHOWN-OUTPUT" in plain(pilot.app, "#report-text"))
+            pilot.app.apply_snapshot(rig.snap)
+            await settle(pilot)
+            self.assertIn("SHOWN-OUTPUT", plain(pilot.app, "#report-text"))
+            await self.select_ticket(pilot, "k_2")
+            self.assertNotIn("SHOWN-OUTPUT", plain(pilot.app, "#report-text"))
+
+    async def test_palette_confirms_destructive_verbs(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            await pilot.press("colon")
+            await pilot.press(*"stop k_1 --reason x")
+            await pilot.press("enter")
+            await settle(pilot)
+            self.assertEqual(rig.calls, [])
+            await pilot.press("n")
+            await settle(pilot)
+            self.assertEqual(rig.calls, [])
+            await pilot.press("colon")
+            await pilot.press(*"kill a_1")
+            await pilot.press("enter")
+            await pilot.press("y")
+            await settle(pilot)
+        self.assertEqual(rig.calls, [[str(DEEZ), "super-clanker", "kill", "a_1"]])
+
+    async def test_log_reload_is_single_flight_and_drops_stale_result(self):
+        gate = threading.Event()
+        rig = Rig(snapshot([ticket("k_1", assignment="a_1"), ticket("k_2", assignment="a_2")]), log_gate=gate)
+        async with rig.app().run_test() as pilot:
+            await settle(pilot)
+            await self.select_ticket(pilot, "k_1")
+            pilot.app.query_one("#detail").active = "log"
+            await until(pilot, lambda: rig.started)
+            await self.select_ticket(pilot, "k_2")
+            pilot.app.apply_snapshot(rig.snap)
+            await settle(pilot)
+            self.assertEqual(len(rig.started), 1)
+            gate.set()
+            await until(pilot, lambda: "LOG-a_2" in plain(pilot.app, "#log-text"))
+            self.assertNotIn("LOG-a_1", plain(pilot.app, "#log-text"))
+        self.assertEqual([call[3] for call in rig.calls if call[2] == "log"], ["a_1", "a_2"])
+
+
+@unittest.skipUnless(TEXTUAL, "textual not installed")
+class RunVerbTest(unittest.TestCase):
+    def test_timeout_gives_124(self):
+        with mock.patch("subprocess.run", side_effect=subprocess.TimeoutExpired(["x"], 60)):
+            result = run_verb(["x"])
+        self.assertEqual(result.returncode, 124)
+
+    def test_oserror_gives_127(self):
+        with mock.patch("subprocess.run", side_effect=OSError("no such file")):
+            result = run_verb(["x"])
+        self.assertEqual((result.returncode, result.stderr), (127, "no such file"))
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
@@ -24,6 +25,7 @@ REFRESH_S = 2
 LOG_REFRESH_S = 5
 LOG_LINES = 80
 STDERR_TAIL_LINES = 3
+CONFIRMED_VERBS = ("stop", "kill", "retry", "kick")
 ROUTER_LOG_KEEP = 50
 KB_PER_GB = 1024 * 1024
 STOP_WARNING = (
@@ -69,7 +71,7 @@ class PromptScreen(ModalScreen):
 
     def compose(self):
         with Vertical(id="dialog"):
-            yield Label(self.title_text)
+            yield Label(self.title_text, markup=False)
             yield Input(value=self.value, id="prompt")
 
     def on_input_submitted(self, event):
@@ -91,7 +93,7 @@ class ConfirmScreen(ModalScreen):
 
     def compose(self):
         with Vertical(id="dialog"):
-            yield Static(self.text)
+            yield Static(self.text, markup=False)
             yield Static("y confirm / n cancel")
 
     def action_yes(self):
@@ -212,24 +214,26 @@ class BoardApp(App):
         self.verb_log = []
         self.refreshing = False
         self.log_loaded_at = None
-        self.log_target = None
+        self.shown = None
+        self.selected = None
+        self.log_inflight = False
 
     def compose(self):
-        yield Static("", id="header")
-        yield Static("", id="notice")
+        yield Static("", id="header", markup=False)
+        yield Static("", id="notice", markup=False)
         yield DataTable(id="rows", cursor_type="row")
         with TabbedContent(id="detail"):
             with TabPane("Report", id="report"):
-                yield Static("", id="report-text")
+                yield Static("", id="report-text", markup=False)
             with TabPane("Log", id="log"):
-                yield Static("", id="log-text")
+                yield Static("", id="log-text", markup=False)
             with TabPane("Router", id="router"):
-                yield Static("", id="router-text")
+                yield Static("", id="router-text", markup=False)
                 yield Input(placeholder="ask the Router", id="ask")
             with TabPane("Memory", id="memory"):
-                yield Static("", id="memory-text")
+                yield Static("", id="memory-text", markup=False)
             with TabPane("Sessions", id="sessions"):
-                yield Static("", id="sessions-text")
+                yield Static("", id="sessions-text", markup=False)
         yield Footer()
 
     def on_mount(self):
@@ -308,7 +312,7 @@ class BoardApp(App):
         for index, entry in enumerate(self.visible_entries()):
             key = f"{index}"
             self.entries[key] = entry
-            table.add_row(self.entry_label(entry), key=key)
+            table.add_row(Text(self.entry_label(entry)), key=key)
         keys = list(self.entries)
         target = next(
             (key for key in keys if self.identity(self.entries[key]) == previous and previous), None,
@@ -354,7 +358,15 @@ class BoardApp(App):
         entry = self.current_entry()
         return entry[1] if entry and entry[0] == "anomaly" else None
 
+    def on_data_table_row_selected(self, _event):
+        if self.current_ticket():
+            self.action_show()
+
     def on_data_table_row_highlighted(self, _event):
+        selected = self.current_key()
+        if selected != self.selected:
+            self.selected = selected
+            self.shown = None
         self.refresh_bindings()
         self.render_tabs()
         self.log_loaded_at = None
@@ -365,7 +377,10 @@ class BoardApp(App):
         if snap is None:
             return
         row = self.current_ticket()
-        self.query_one("#report-text", Static).update(report_text(row) if row else "")
+        pinned = self.shown if row and self.shown and self.shown[0] == row.ticket_id else None
+        self.query_one("#report-text", Static).update(
+            pinned[1] if pinned else report_text(row) if row else ""
+        )
         self.query_one("#router-text", Static).update(
             "\n".join([snap.inbox_text.rstrip(), *self.verb_log]).strip()
         )
@@ -394,15 +409,28 @@ class BoardApp(App):
         if self.query_one("#detail", TabbedContent).active != "log":
             return
         now = self.clock()
+        if self.log_inflight:
+            return
         if self.log_loaded_at is not None and now - self.log_loaded_at < LOG_REFRESH_S:
             return
         self.log_loaded_at = now
-        argv = self.argv("log", row.assignment_id, "--lines", str(LOG_LINES))
-        self.run_worker(lambda: self.fetch_log(argv), thread=True, exit_on_error=False)
+        self.log_inflight = True
+        assignment = row.assignment_id
+        argv = self.argv("log", assignment, "--lines", str(LOG_LINES))
+        self.run_worker(lambda: self.fetch_log(assignment, argv), thread=True, exit_on_error=False)
 
-    def fetch_log(self, argv):
+    def fetch_log(self, assignment, argv):
         result = self.verb(argv)
-        self.call_from_thread(self.query_one("#log-text", Static).update, result.stdout or result.stderr)
+        self.call_from_thread(self.log_done, assignment, result.stdout or result.stderr)
+
+    def log_done(self, assignment, text):
+        self.log_inflight = False
+        row = self.current_ticket()
+        if row is not None and row.assignment_id == assignment:
+            self.query_one("#log-text", Static).update(text)
+        else:
+            self.log_loaded_at = None
+            self.maybe_reload_log()
 
     def on_tabbed_content_tab_activated(self, _event):
         self.log_loaded_at = None
@@ -436,14 +464,14 @@ class BoardApp(App):
         if result.returncode != 0:
             tail = "\n".join(result.stderr.strip().splitlines()[-STDERR_TAIL_LINES:])
             summary = f"{name}: exit {result.returncode} {tail}".strip()
-            self.notify(summary, severity="error", timeout=10)
+            self.notify(summary, severity="error", timeout=10, markup=False)
         else:
             summary = f"{name}: ok"
             first = result.stdout.strip().splitlines()[:1]
-            self.notify(" ".join([summary, *first]))
+            self.notify(" ".join([summary, *first]), markup=False)
         self.verb_log = [*self.verb_log, f"> {summary}"][-ROUTER_LOG_KEEP:]
         if show_in is not None and result.returncode == 0:
-            self.query_one(show_in, Static).update(result.stdout)
+            self.shown = (show_in, result.stdout)
         self.render_tabs()
         self.refresh_snapshot()
 
@@ -491,7 +519,7 @@ class BoardApp(App):
     def action_show(self):
         row = self.current_ticket()
         self.query_one("#detail", TabbedContent).active = "report"
-        self.submit(self.argv("show", row.ticket_id), "#report-text")
+        self.submit(self.argv("show", row.ticket_id), row.ticket_id)
 
     def action_stop(self):
         row = self.current_ticket()
@@ -529,9 +557,15 @@ class BoardApp(App):
             try:
                 parts = shlex.split(text)
             except ValueError as exc:
-                self.notify(f"bad command: {exc}", severity="error")
+                self.notify(f"bad command: {exc}", severity="error", markup=False)
                 return
-            self.submit(self.argv(*parts))
+            if not parts:
+                return
+            argv = self.argv(*parts)
+            if parts[0] in CONFIRMED_VERBS:
+                self.confirm(f"Run {' '.join(parts)}?", argv)
+            else:
+                self.submit(argv)
 
         self.prompt("deez super-clanker", run)
 
