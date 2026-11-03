@@ -2,6 +2,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import tempfile
 import time
@@ -607,6 +608,32 @@ class WorkersTest(unittest.TestCase):
 
         (report,) = self.reports(assignment_id)
         self.assertEqual(report["text"], "120 minute limit reached")
+
+    def test_stop_turns_an_unsignalable_pid_into_a_super_error(self):
+        _trigger, _ticket_id, assignment_id = self.dispatch()
+        self.run_turn(assignment_id, "working")
+        self.store.start_assignment(assignment_id, "session", 99999999, self.root)
+
+        def refuse(pid, signum):
+            raise PermissionError(1, "Operation not permitted")
+
+        with self.assertRaises(SuperError):
+            workers.stop(self.store, assignment_id, kill=refuse, sweep=lambda worktree: [])
+
+        self.assertEqual(self.reports(assignment_id), [])
+
+    def test_terminate_signals_the_group_and_sweeps_without_a_report(self):
+        _trigger, _ticket_id, assignment_id = self.dispatch()
+        os.environ["FAKE_CLAUDE_SCRIPT"] = "sleep 30"
+        started = self.launch(assignment_id)
+        self.addCleanup(lambda: workers.alive(started.pid) and os.killpg(started.pid, signal.SIGKILL))
+        swept = []
+
+        workers.terminate(started, sweep=swept.append, grace_seconds=5)
+
+        self.assertFalse(workers.alive(started.pid))
+        self.assertEqual(swept, [started.worktree])
+        self.assertEqual(self.reports(assignment_id), [])
 
     def test_dispatch_records_repo_beside_playbook(self):
         repo = self.repo()

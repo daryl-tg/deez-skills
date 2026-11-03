@@ -28,12 +28,13 @@ def _cwd_listing(run):
 
 def leftovers(worktree, run=subprocess.run):
     root_parts = Path(worktree).resolve().parts
+    spared = {os.getpid(), os.getppid()}
     found = []
     pid = None
     for line in _cwd_listing(run).splitlines():
         if line.startswith("p") and line[1:].isdigit():
             pid = int(line[1:])
-        elif line.startswith("n") and pid is not None and pid != os.getpid():
+        elif line.startswith("n") and pid is not None and pid not in spared:
             if _inside(root_parts, line[1:]):
                 found.append(pid)
     return found

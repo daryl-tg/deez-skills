@@ -1,7 +1,10 @@
 import plistlib
 import signal
 import unittest
+from types import SimpleNamespace
+from unittest import mock
 
+from deezlib import memguard
 from deezlib.memguard import (
     Paused,
     Proc,
@@ -188,6 +191,19 @@ class ParseTest(unittest.TestCase):
     def test_parse_free_pct(self):
         out = "The system has 25769803776 (1572864 pages with a page size of 16384).\n\nSystem-wide memory free percentage: 12%\n"
         self.assertEqual(parse_free_pct(out), 12)
+
+    def test_free_pct_bounds_memory_pressure_with_a_timeout(self):
+        seen = []
+
+        def run(argv, **kwargs):
+            seen.append((argv, kwargs.get("timeout")))
+            return SimpleNamespace(stdout="System-wide memory free percentage: 41%\n")
+
+        with mock.patch.object(memguard.subprocess, "run", run):
+            self.assertEqual(memguard.free_pct(), 41)
+            self.assertEqual(memguard.free_pct(timeout_seconds=2), 41)
+
+        self.assertEqual(seen, [(["memory_pressure"], 5), (["memory_pressure"], 2)])
 
     def test_parse_top_converts_units_to_mb(self):
         out = "Processes: 900 total\n\nPID    MEM\n72868  6679M\n12     512K\n13     2G\n14     1024B\n"

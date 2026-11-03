@@ -563,6 +563,15 @@ class Store:
     def running_assignments(self):
         return self._select(Assignment, "state = ?", (AssignmentState.running,))
 
+    def stopped_assignments(self):
+        return self._select(
+            Assignment,
+            "pid IS NOT NULL "
+            "AND ticket_id IN (SELECT id FROM tickets WHERE ended_by IS NOT NULL) "
+            "AND rowid = (SELECT MAX(rowid) FROM assignments AS latest "
+            "WHERE latest.ticket_id = assignments.ticket_id)",
+        )
+
     def pending_assignments(self):
         return self._select(
             Assignment,

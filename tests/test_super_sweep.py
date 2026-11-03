@@ -37,6 +37,11 @@ class LeftoversTest(unittest.TestCase):
 
         self.assertEqual(sweep.leftovers("/wt/k_1", run=run), [31])
 
+    def test_parent_pid_is_excluded(self):
+        run = fake_lsof(lsof_output((os.getppid(), "/wt/k_1"), (32, "/wt/k_1")))
+
+        self.assertEqual(sweep.leftovers("/wt/k_1", run=run), [32])
+
     def test_private_alias_resolves_equal(self):
         with tempfile.TemporaryDirectory() as tmp:
             real = Path(tmp).resolve()

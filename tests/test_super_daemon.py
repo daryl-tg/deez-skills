@@ -7,6 +7,7 @@ import tempfile
 import time
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from functools import partial
 from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
@@ -14,6 +15,7 @@ from unittest import mock
 
 from deezlib import cli, memguard
 from deezlib.superclanker import config, daemon, router, workers
+from deezlib.superclanker import sweep as sweeping
 from deezlib.superclanker.domain import Strength, Trigger, trigger_id
 from deezlib.superclanker.sources import terminal
 from deezlib.superclanker.store import Store, SuperError
@@ -86,6 +88,25 @@ class FakeStop:
         self.calls.append((assignment_id, kwargs))
 
 
+class FakeTerminate:
+    def __init__(self, order=None):
+        self.terminated = []
+        self.order = order
+
+    def __call__(self, assignment):
+        self.terminated.append(assignment.id)
+        if self.order is not None:
+            self.order.append("terminate")
+
+
+def nothing_left(worktree):
+    return []
+
+
+def left_by(*pids):
+    return lambda worktree: list(pids)
+
+
 class FakeSweeper:
     def __init__(self):
         self.swept = []
@@ -125,13 +146,14 @@ class DaemonTest(unittest.TestCase):
         (self.root / "sources.toml").write_text(text, encoding="utf-8")
 
     def one_pass(self, wake=None, reap=no_reap, revive=None, stop=None, free_pct=plenty_free,
-                 sweeper=None, git=None, **now):
+                 sweeper=None, git=None, leftovers=nothing_left, terminate=None, **now):
         return daemon.one_pass(
             self.store, config.load(self.root), self.root, HUB, wake=wake or self.wake,
             launch=self.workers.launch, resume=self.workers.resume,
             revive=revive or self.workers.revive, reap=reap, stop=stop or FakeStop(),
             free_pct=free_pct, sweeper=sweeper or self.sweeper,
-            blocked=self.blocked, **({} if git is None else {"git": git}), **now,
+            blocked=self.blocked, leftovers=leftovers, terminate=terminate or FakeTerminate(),
+            **({} if git is None else {"git": git}), **now,
         )
 
     def repo_with_worktree(self, ticket):
@@ -305,7 +327,9 @@ class DaemonTest(unittest.TestCase):
             stop(store, assignment, **kwargs)
 
         late = shifted(started.started_at, 61 * 60)
-        result = self.one_pass(reap=reap, stop=recording_stop, now=lambda: late)
+        result = self.one_pass(
+            reap=reap, stop=recording_stop, leftovers=left_by(os.getpid()), now=lambda: late,
+        )
         self.assertEqual(stop.calls, [(assignment_id, {"reason": "turn exceeded 60 minutes"})])
         self.assertEqual((order, result.expired), (["stop", "reap"], 1))
         self.assertTrue(result.eventful)
@@ -316,11 +340,132 @@ class DaemonTest(unittest.TestCase):
         started = self.store.start_assignment(assignment_id, "session", os.getpid(), self.root)
         stop = FakeStop()
         soon = shifted(started.started_at, 119 * 60)
-        self.assertEqual(self.one_pass(stop=stop, now=lambda: soon).expired, 0)
+        mine = left_by(os.getpid())
+        self.assertEqual(self.one_pass(stop=stop, leftovers=mine, now=lambda: soon).expired, 0)
         self.store.start_assignment(assignment_id, "session", dead_pid(), self.root)
         late = shifted(started.started_at, 500 * 60)
-        self.assertEqual(self.one_pass(stop=stop, now=lambda: late).expired, 0)
+        self.assertEqual(self.one_pass(stop=stop, leftovers=mine, now=lambda: late).expired, 0)
         self.assertEqual(stop.calls, [])
+
+    def test_over_limit_pid_whose_cwd_left_the_worktree_is_not_stopped(self):
+        _ticket, assignment_id = self.ticket("reused pid")
+        started = self.store.start_assignment(assignment_id, "session", os.getpid(), self.root)
+        stop = FakeStop()
+        seen = []
+
+        def leftovers(worktree):
+            seen.append(Path(worktree))
+            return [os.getpid() + 1]
+
+        late = shifted(started.started_at, 500 * 60)
+        result = self.one_pass(stop=stop, leftovers=leftovers, now=lambda: late)
+        self.assertEqual((stop.calls, result.expired, result.errors), ([], 0, ()))
+        self.assertEqual(seen, [self.root])
+
+    def test_unsignalable_over_limit_worker_is_recorded_not_raised(self):
+        _ticket, assignment_id = self.ticket("foreign pid")
+        _other, other_id = self.ticket("second over limit", "other")
+        started = self.store.start_assignment(assignment_id, "session", os.getpid(), self.root)
+        self.store.start_assignment(other_id, "session", os.getpid(), self.root)
+        refused = []
+
+        def refuse(pid, signum):
+            refused.append(pid)
+            raise PermissionError(1, "Operation not permitted")
+
+        late = shifted(started.started_at, 500 * 60)
+        result = self.one_pass(
+            stop=partial(workers.stop, kill=refuse, sweep=nothing_left),
+            leftovers=left_by(os.getpid()), now=lambda: late,
+        )
+        self.assertEqual((result.expired, len(result.errors)), (0, 2))
+        self.assertIn(str(os.getpid()), result.errors[0])
+        self.assertEqual(refused.count(-os.getpid()), 2)
+        self.assertTrue((self.root / "daemon.heartbeat").exists())
+
+    def test_stopped_ticket_live_worker_is_terminated_before_its_worktree_is_removed(self):
+        ticket, assignment_id = self.ticket("stopped while running")
+        _repo, worktree = self.repo_with_worktree(ticket)
+        self.store.start_assignment(assignment_id, "session", os.getpid(), worktree)
+        self.store.stop(ticket.id, "router", "not needed")
+        order = []
+        terminate = FakeTerminate(order)
+
+        def sweeper(path):
+            order.append("remove")
+            return []
+
+        result = self.one_pass(
+            terminate=terminate, sweeper=sweeper, leftovers=left_by(os.getpid()),
+        )
+        self.assertEqual(terminate.terminated, [assignment_id])
+        self.assertEqual((order, result.removed, result.errors), (["terminate", "remove"], 1, ()))
+
+    def test_stopped_ticket_worker_outside_its_worktree_is_untouched(self):
+        ticket, assignment_id = self.ticket("stopped elsewhere")
+        self.store.start_assignment(assignment_id, "session", os.getpid(), self.root / "work" / ticket.id)
+        self.store.stop(ticket.id, "router", "not needed")
+        terminate = FakeTerminate()
+        result = self.one_pass(terminate=terminate, leftovers=left_by(os.getpid() + 1))
+        self.assertEqual((terminate.terminated, result.errors), ([], ()))
+
+    def test_stopped_ticket_with_dead_or_reaped_worker_is_not_inspected(self):
+        ticket, assignment_id = self.ticket("long gone")
+        self.store.start_assignment(assignment_id, "session", dead_pid(), self.root / "work" / ticket.id)
+        _later, reaped_id = self.ticket("reaped already", "other")
+        self.store.start_assignment(reaped_id, "session", os.getpid(), self.root / "work" / "k_x")
+        (self.root / "log").mkdir(parents=True, exist_ok=True)
+        (self.root / "log" / f"{reaped_id}.json").write_text("{}", encoding="utf-8")
+        (self.root / "log" / f"{reaped_id}.reaped").write_text("", encoding="utf-8")
+        for row in self.store.status():
+            self.store.stop(row["ticket"], "router", "not needed")
+        seen = []
+
+        def leftovers(worktree):
+            seen.append(worktree)
+            return [os.getpid()]
+
+        terminate = FakeTerminate()
+        self.one_pass(terminate=terminate, leftovers=leftovers)
+        self.assertEqual((terminate.terminated, seen), ([], []))
+
+    def test_failed_termination_of_a_stopped_worker_is_recorded_not_raised(self):
+        ticket, assignment_id = self.ticket("stubborn")
+        self.store.start_assignment(assignment_id, "session", os.getpid(), self.root / "work" / ticket.id)
+        self.store.stop(ticket.id, "router", "not needed")
+
+        def terminate(assignment):
+            raise SuperError(f"cannot signal worker pid {assignment.pid}")
+
+        result = self.one_pass(terminate=terminate, leftovers=left_by(os.getpid()))
+        self.assertEqual(result.errors, (f"cannot signal worker pid {os.getpid()}",))
+        self.assertTrue((self.root / "daemon.heartbeat").exists())
+
+    def test_stopped_scratch_ticket_worker_process_is_killed_once(self):
+        ticket, assignment_id = self.ticket("scratch work")
+        scratch = self.root / "work" / ticket.id
+        scratch.mkdir(parents=True)
+        child = subprocess.Popen(
+            ["sleep", "600"], cwd=scratch, start_new_session=True,
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.addCleanup(child.wait)
+        self.addCleanup(lambda: child.poll() is None and child.kill())
+        deadline = time.monotonic() + 5
+        while child.pid not in sweeping.leftovers(scratch) and time.monotonic() < deadline:
+            time.sleep(0.05)
+        self.store.start_assignment(assignment_id, "session", child.pid, scratch)
+        self.store.stop(ticket.id, "router", "not needed")
+        calls = []
+
+        def terminate(assignment):
+            calls.append(assignment.id)
+            workers.terminate(assignment, grace_seconds=1)
+
+        self.one_pass(terminate=terminate, leftovers=sweeping.leftovers)
+        self.assertIsNotNone(child.wait(timeout=5))
+        self.one_pass(terminate=terminate, leftovers=sweeping.leftovers)
+        self.assertEqual(calls, [assignment_id])
 
     def test_pending_assignment_is_held_below_the_free_memory_threshold(self):
         _ticket, assignment_id = self.ticket("heavy")
@@ -355,7 +500,7 @@ class DaemonTest(unittest.TestCase):
         self.store.stop(ticket.id, "daryl", "done")
         result = self.one_pass()
         self.assertTrue(worktree.exists())
-        self.assertEqual((result.removed, len(result.errors)), (0, 1))
+        self.assertEqual((result.removed, len(result.errors), self.sweeper.swept), (0, 1, []))
         self.assertIn(str(worktree), result.errors[0])
 
     def test_dropped_ticket_worktree_is_kept_for_revival(self):
@@ -376,7 +521,33 @@ class DaemonTest(unittest.TestCase):
         later = shifted(daemon.utc_now(), 601)
         third = self.one_pass(now=lambda: later)
         self.assertEqual((len(first.errors), len(second.errors), len(third.errors)), (1, 0, 1))
-        self.assertEqual(self.sweeper.swept, [worktree, worktree])
+        self.assertEqual(self.sweeper.swept, [])
+
+    def test_at_most_two_worktrees_are_removed_per_pass(self):
+        worktrees = []
+        for name in ("a", "b", "c"):
+            ticket, _assignment_id = self.ticket(f"finished {name}", name)
+            worktrees.append(self.repo_with_worktree(ticket)[1])
+            self.store.stop(ticket.id, "daryl", "done")
+        first = self.one_pass()
+        self.assertEqual((first.removed, sum(path.exists() for path in worktrees)), (2, 1))
+        self.assertEqual(self.one_pass().removed, 1)
+
+    def test_worktree_entry_that_cannot_be_resolved_is_skipped(self):
+        ticket, _assignment_id = self.ticket("looped")
+        _repo, worktree = self.repo_with_worktree(ticket)
+        self.store.stop(ticket.id, "daryl", "done")
+        real_resolve = Path.resolve
+
+        def resolve(path, *args, **kwargs):
+            if path.name == ticket.id:
+                raise RuntimeError("Symlink loop")
+            return real_resolve(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "resolve", resolve):
+            result = self.one_pass()
+        self.assertEqual((result.removed, result.errors, self.sweeper.swept), (0, (), []))
+        self.assertTrue(worktree.exists())
 
     def test_symlinked_worktree_entry_is_neither_swept_nor_removed(self):
         ticket, _assignment_id = self.ticket("linked")
@@ -411,7 +582,7 @@ class DaemonTest(unittest.TestCase):
         result = self.one_pass(git=slow_git)
         self.assertEqual((result.removed, len(result.errors)), (0, 1))
         self.assertTrue(worktree.exists())
-        self.assertEqual(seen, [daemon.GIT_TIMEOUT_SECONDS])
+        self.assertEqual(seen, [10])
 
     def test_open_ticket_worktree_is_untouched(self):
         ticket, _assignment_id = self.ticket("still going")
@@ -585,6 +756,20 @@ class DaemonTest(unittest.TestCase):
         self.assertEqual((code, slept), (0, [7]))
         self.assertFalse((self.root / "daemon.lock.d").exists())
         self.assertIs(signal.getsignal(signal.SIGTERM), before)
+
+    def test_run_hands_every_pass_the_same_removal_backoff(self):
+        handed = []
+
+        def fake_pass(store, settings, root, hub_root, **kwargs):
+            handed.append(kwargs["blocked"])
+            kwargs["blocked"]["seen"] = len(handed)
+            return daemon.PassResult(0, 0, 0, 0, None, 0, ())
+
+        daemon.run(self.root, HUB, interval_seconds=0, passes=2, sleep=lambda _s: None,
+                   one_pass=fake_pass)
+        self.assertIs(handed[0], handed[1])
+        self.assertEqual(handed[0], {"seen": 2})
+        self.assertFalse(hasattr(daemon, "failed_removals"))
 
     def test_daemon_log_is_quiet_on_empty_pass(self):
         log = self.root / "log" / "daemon.log"

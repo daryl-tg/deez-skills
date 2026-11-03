@@ -13,7 +13,7 @@ from pathlib import Path
 from deezlib import memguard
 from deezlib.superclanker import channels, compose, config, router, sources, workers
 from deezlib.superclanker.domain import Strength, TicketState, utc_now
-from deezlib.superclanker.sweep import sweep
+from deezlib.superclanker.sweep import leftovers as cwd_leftovers, sweep
 from deezlib.superclanker.store import Store, SuperError
 
 TERMINAL_PREFIX = "terminal:"
@@ -21,9 +21,9 @@ BACKOFF = "backoff"
 BACKOFF_FIRST_SECONDS = 30
 BACKOFF_CEILING_SECONDS = 600
 LOG_LIMIT_BYTES = 5 * 1024 * 1024
-GIT_TIMEOUT_SECONDS = 30
+GIT_TIMEOUT_SECONDS = 10
 REMOVAL_RETRY_SECONDS = 600
-failed_removals = {}
+MAX_REMOVALS_PER_PASS = 2
 
 
 @dataclass(frozen=True)
@@ -162,17 +162,35 @@ def _record_hold(root, held):
     return True
 
 
-def _expire_overlong_turns(store, settings, stop, now):
+def _expire_overlong_turns(store, settings, stop, leftovers, now, errors):
     limit = settings.workers.turn_limit_minutes
     expired = 0
     for assignment in store.running_assignments():
         if not workers.alive(assignment.pid) or assignment.started_at is None:
             continue
-        if _seconds_since(assignment.started_at, now) <= limit * 60:
+        if assignment.worktree is None or _seconds_since(assignment.started_at, now) <= limit * 60:
             continue
-        stop(store, assignment.id, reason=f"turn exceeded {limit} minutes")
+        if assignment.pid not in leftovers(assignment.worktree):
+            continue
+        try:
+            stop(store, assignment.id, reason=f"turn exceeded {limit} minutes")
+        except SuperError as exc:
+            errors.append(str(exc))
+            continue
         expired += 1
     return expired
+
+
+def _terminate_stopped_workers(store, root, leftovers, terminate, errors):
+    for assignment in store.stopped_assignments():
+        if assignment.worktree is None or workers.turn_reaped(root, assignment.id):
+            continue
+        if not workers.alive(assignment.pid) or assignment.pid not in leftovers(assignment.worktree):
+            continue
+        try:
+            terminate(assignment)
+        except (SuperError, OSError) as exc:
+            errors.append(str(exc))
 
 
 def _repo_of(worktree, git):
@@ -185,8 +203,20 @@ def _repo_of(worktree, git):
     return Path(common.stdout.strip()).parent
 
 
+def _require_clean(worktree, git):
+    status = git(
+        ["git", "-C", str(worktree), "status", "--porcelain"],
+        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
+    )
+    if status.returncode != 0:
+        raise SuperError(f"{worktree}: git status failed: {status.stderr.strip()}")
+    if status.stdout.strip():
+        raise SuperError(f"{worktree}: has uncommitted or untracked files; kept")
+
+
 def _remove_worktree(worktree, git, sweeper):
     repo = _repo_of(worktree, git)
+    _require_clean(worktree, git)
     sweeper(worktree)
     removed = git(
         ["git", "-C", str(repo), "worktree", "remove", str(worktree)],
@@ -197,12 +227,20 @@ def _remove_worktree(worktree, git, sweeper):
 
 
 def _inside_worktrees(root, path):
-    return not path.is_symlink() and path.resolve().is_relative_to((Path(root) / "worktrees").resolve())
+    try:
+        return not path.is_symlink() and path.resolve().is_relative_to(
+            (Path(root) / "worktrees").resolve()
+        )
+    except (OSError, RuntimeError, ValueError):
+        return False
 
 
 def _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors):
     removed = 0
+    attempts = 0
     for worktree, ticket in workers.ticket_worktrees(store, root):
+        if attempts >= MAX_REMOVALS_PER_PASS:
+            break
         if ticket is None or ticket["state"] is not TicketState.ended or ticket["ended_by"] is None:
             continue
         if not _inside_worktrees(root, worktree):
@@ -210,6 +248,7 @@ def _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors):
         failed_at = blocked.get(worktree)
         if failed_at is not None and _seconds_since(failed_at, now) < REMOVAL_RETRY_SECONDS:
             continue
+        attempts += 1
         try:
             _remove_worktree(worktree, git, sweeper)
         except (SuperError, OSError, subprocess.SubprocessError) as exc:
@@ -224,7 +263,8 @@ def _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors):
 def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.launch,
              resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now,
              stop=workers.stop, free_pct=None, git=subprocess.run, sweeper=sweep,
-             blocked=failed_removals):
+             blocked=None, leftovers=cwd_leftovers, terminate=workers.terminate):
+    blocked = {} if blocked is None else blocked
     errors = []
 
     def attempt(step, *args):
@@ -236,7 +276,8 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
 
     polled = _poll_due_sources(store, config, now)
     fanned_out = attempt(_fan_out, store, config) or 0
-    expired = attempt(_expire_overlong_turns, store, config, stop, now) or 0
+    expired = attempt(_expire_overlong_turns, store, config, stop, leftovers, now, errors) or 0
+    attempt(_terminate_stopped_workers, store, root, leftovers, terminate, errors)
     reaped = len(attempt(reap, store, root) or [])
     removed = _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors)
     held = _held_by_memory(config, free_pct or memguard.free_pct)
@@ -356,9 +397,12 @@ def run(root, hub_root, interval_seconds=5, passes=None, sleep=time.sleep,
         try:
             done = 0
             started_with = source_stamp(source_dir)
+            failed_removals = {}
             while True:
                 try:
-                    result = one_pass(store, load_config(root), root, hub_root)
+                    result = one_pass(
+                        store, load_config(root), root, hub_root, blocked=failed_removals,
+                    )
                 except SuperError as exc:
                     result = PassResult(0, 0, 0, 0, None, 0, (str(exc),))
                 for error in result.errors:

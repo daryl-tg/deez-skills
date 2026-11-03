@@ -278,8 +278,10 @@ def snapshot() -> List[Proc]:
     return procs
 
 
-def free_pct() -> int:
-    return parse_free_pct(subprocess.run(["memory_pressure"], capture_output=True, text=True).stdout)
+def free_pct(timeout_seconds: float = 5) -> int:
+    return parse_free_pct(subprocess.run(
+        ["memory_pressure"], capture_output=True, text=True, timeout=timeout_seconds,
+    ).stdout)
 
 
 def load_state() -> Dict[int, Paused]:

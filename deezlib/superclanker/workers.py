@@ -456,6 +456,12 @@ def _reapable(store):
     ]
 
 
+def turn_reaped(root, assignment_id):
+    log_dir = Path(root) / "log"
+    last = max(_turns(log_dir, assignment_id) - 1, 0)
+    return _marker(_turn_log(log_dir, assignment_id, last)).exists()
+
+
 def reap(store, root, sweep=sweep.sweep):
     log_dir = Path(root) / "log"
     emitted = []
@@ -492,13 +498,11 @@ def _signal(kill, pid, signum):
             return
         except ProcessLookupError:
             continue
+        except PermissionError as exc:
+            raise SuperError(f"cannot signal worker pid {pid}: {exc}") from exc
 
 
-def stop(store, assignment_id, kill=os.kill, grace_seconds=5, sweep=sweep.sweep,
-         reason="stopped by operator"):
-    assignment = _load(store, Assignment, assignment_id)
-    if assignment.state is AssignmentState.ended:
-        return None
+def terminate(assignment, kill=os.kill, sweep=sweep.sweep, grace_seconds=5):
     if alive(assignment.pid, kill):
         _signal(kill, assignment.pid, signal.SIGTERM)
         deadline = time.monotonic() + grace_seconds
@@ -508,4 +512,12 @@ def stop(store, assignment_id, kill=os.kill, grace_seconds=5, sweep=sweep.sweep,
             _signal(kill, assignment.pid, signal.SIGKILL)
     if assignment.worktree is not None:
         sweep(assignment.worktree)
+
+
+def stop(store, assignment_id, kill=os.kill, grace_seconds=5, sweep=sweep.sweep,
+         reason="stopped by operator"):
+    assignment = _load(store, Assignment, assignment_id)
+    if assignment.state is AssignmentState.ended:
+        return None
+    terminate(assignment, kill=kill, sweep=sweep, grace_seconds=grace_seconds)
     return store.report(assignment_id, ReportKind.failed, reason)
