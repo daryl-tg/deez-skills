@@ -610,3 +610,10 @@ class WorkerRoutesFromClankerModeTest(unittest.TestCase):
         })
         self.assertIn("playbook table", filled)
         self.assertNotIn("playbooks/feature.md", filled)
+
+
+class WorkerStartsInClankerModeTest(unittest.TestCase):
+    def test_launch_prompt_invokes_the_clanker_mode_command(self):
+        from deezlib.superclanker import workers
+        self.assertTrue(workers.launch_prompt("/b/brief.md").startswith("/clanker-mode "))
+        self.assertIn("/b/brief.md", workers.launch_prompt("/b/brief.md"))

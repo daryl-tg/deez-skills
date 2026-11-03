@@ -213,6 +213,13 @@ def _spawn(popen, argv, cwd, root, hub_root, output):
     return process.pid
 
 
+def launch_prompt(brief):
+    return (
+        f"/clanker-mode Read and execute, exactly, the handoff at {brief}. "
+        "Return the artifact and your own account of it."
+    )
+
+
 def launch(store, config, assignment_id, hub_root, root, dev_notes_root=None,
            popen=subprocess.Popen):
     hub_root, root = Path(hub_root), Path(root)
@@ -263,9 +270,7 @@ def launch(store, config, assignment_id, hub_root, root, dev_notes_root=None,
     sid = str(uuid.uuid4())
     argv = [
         "claude", "-p", "--agent", "clanker-agent", "--session-id", sid, *SESSION_FLAGS,
-        *_model(config),
-        f"Read and execute, exactly, the handoff at {brief}. "
-        "Return the artifact and your own account of it.",
+        *_model(config), launch_prompt(brief),
     ]
     pid = _spawn(popen, argv, cwd, root, hub_root, _turn_log(where.log, assignment_id, 0))
     started = store.start_assignment(assignment_id, sid, pid, cwd)
