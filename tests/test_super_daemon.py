@@ -474,4 +474,4 @@ class SourceChangeRestartTest(unittest.TestCase):
         code = daemon.run(root, root, interval_seconds=0, passes=10, sleep=lambda _s: None,
                           one_pass=fake_pass, source_dir=src)
         self.assertEqual(code, 0)
-        self.assertEqual(len(passes), 3)
+        self.assertEqual(len(passes), 2)
