@@ -3,7 +3,16 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-03 against product tree `215896e614`
+entry was last DRIVEN on 2026-11-04 against product tree `8436920004`
+(`origin/main`, 80 commits past `215896e614`), lane `18103`, a guest-JWT lane
+with the gateway name resolving through the system resolver all pass (load 3
+at the start, 13 at `doctor`). Proven that day: boot to 250 candles on
+COINBASE BTC-USD 1h with VWAP in about 10 s (`activeInterval` `1h`,
+`window.__BOOT_ERRORS__` `[]`, no `connection-status-chip`, `Indicators 1/3`)
+and the perp live edge on BINANCE.F ETHUSDT (`2289.72 +1.71%`, `24H VOLUME
+$5.57B`, `OPEN INTEREST $5.44B`, `FUNDING / COUNTDOWN +0.0100% · 03:14:32`).
+Not driven that day: the wake heal, the ring dump and the left-pan floor.
+Before that, DRIVEN on 2026-11-03 against product tree `215896e614`
 (`origin/main`, 131 commits past `a4488341f6`), lane `18103`, a guest lane
 carrying a guest JWT (`jwtStore.isGuest` true), with the browser launched
 with a `--host-resolver-rules` map for the gateway name (see Gotchas). Proven
@@ -103,6 +112,12 @@ Preconditions:
   answer, not that `/api` is down: all three ride `V2Service.fetchData` through the
   worker, the same transport as candles. Proven here — a stack whose `/api` calls
   were 500-ing still filled `$8.12B` / `$8.24B` / `+0.0043%`.
+  The OI and funding slots exist only on a derivative venue: since
+  `3db024ab19` and `cdfa9c212d` one rule (`src/utility/exchange/derivative-venue.leaf.ts`)
+  asks open interest, funding and liquidations only where the venue carries
+  them (Polymarket and the governed CME venues carry open interest alone), so a
+  spot chart such as COINBASE BTC-USD shows `24H VOLUME` and no OI or funding
+  by design.
 - **Proof.** Dismiss the guest modal and capture in the same step — it re-raises:
   `./control-kiyotaka browser find testid guest-signup-modal-close-btn click` then
   `./control-kiyotaka browser screenshot artifacts/<run>/<rev>/boot-candles.png`,
@@ -316,12 +331,13 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   ```
 - **The signup modal is not the only overlay that blocks a mid-drive click.** Any
   guest-walled control (`promptGuestLogin`) raises the sign-in dialog in the same
-  `.dialog-style.dialog-overlay` shell. Its visible heading is the walled
-  feature's name (`Chart Actions`, `Share Your Chart`) over `Sign in or create
-  an account`; a testid listing of the overlay starts with
-  `forgot-password-back-btn` and `forgot-password-send-btn` because a hidden
-  "Back to log in / Forgot your password?" pane sits first in the same shell
-  (driven 2026-11-01). Identify what is on top before dismissing: a
+  `.dialog-style.dialog-overlay` shell, since `4b8f78a775` a sheet with the
+  extra class `login-signup-overlay`. Its visible heading is the walled
+  feature's name (`Watchlist`, `Chart Actions`, `Share Your Chart`) over
+  `Sign in or create an account`; a testid listing of the overlay starts with
+  `login-signup-welcome-spoken` and `auth-mascot` (driven 2026-11-04; the
+  hidden `forgot-password-*` pane that used to come first is gone). Identify
+  what is on top before dismissing: a
   `[data-testid=guest-signup-modal-close-btn]` probe tells the two apart — it is
   absent on the wall, present on the signup modal.
   **The wall has no close button, but `Escape` clears it.** It carries no close
@@ -491,7 +507,13 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   (`src/utility/perf/data-worker-watchdog.util.ts`) replaces a data worker
   silent for 30 s of visible time or without its implementation for 40 s. Its
   commit says it is on in production and opt-in in dev, so a lane may never
-  show it.
+  show it. Since `734d51a814` the chip shows one glyph per state, read from
+  its `data-glyph` (`signal-none` connecting, `signal-weak` for `slowNetwork`
+  and high latency, `retry` reconnecting, `signal-off` offline, `alert`
+  disconnected) with a tone class `conn-chip--<tone>`, and a slow start also
+  reads `Slow network`; a degraded state must last 2 s before the chip shows
+  (source). A healthy guest lane has no `connection-status-chip` node at all
+  (driven 2026-11-04).
 - **Boot shows one loader now (source, `d4c822292e`, `c798f8a110`; driven
   2026-11-01).** The `index.html` start screen (`#skeleton-loader`) stays up
   until the first candles paint (`skeleton-loader:route-painted`, `.sk-cut`

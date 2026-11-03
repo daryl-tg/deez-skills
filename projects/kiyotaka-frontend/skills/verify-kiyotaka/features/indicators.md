@@ -4,7 +4,16 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-03 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-04 against
+product tree `8436920004` (`origin/main`), lane `18103`, a guest-JWT lane on
+the remote dev backend. Driven that day: an `open interest` search (`Official
+8`, `Community 2`), programmatic `OPEN_INTEREST`, `FUNDING_RATE` and
+`LIQUIDATIONS` mounts on the spot COINBASE BTC-USD pane (gated hidden, see the
+spot-pane bullet) beside a visible `AGGREGATED_OPEN_INTEREST`, the counter at
+`Indicators 5/3` with the `Plus workspace · locked` strip, a guest's click on
+a pane's merge button raising the `indicators` wall with no Plus prompt (see
+the pane-merge bullet), and `chartStore.removeIndicator` clearing every
+programmatic overlay. Before that, DRIVEN on 2026-11-03 against
 product tree `215896e614` (`origin/main`), lane `18103`, a guest-JWT lane whose
 `.env.local` proxies to the operator's remote backend. Driven that day: the
 dialog at 1440 px as a **split view** (the store card beside
@@ -251,12 +260,16 @@ Preconditions:
   click took several seconds to leave `metadata`, so an immediate re-read reports
   the overlay still mounted and the teardown looks broken.
   **The legend controls are only trustworthy on an overlay the DIALOG added.** On
-  an overlay added programmatically, neither `closeBtn.click()`, nor a real browser
-  click on that button, nor `chartStore.removeIndicator` removed it within 25s,
-  even though the button was connected, visible and `shouldShowCloseBtn` was true.
-  Whether that is the engine or the bypassed add path is unresolved — so prove any
-  legend claim on a dialog-added overlay, and do not report a removal bug from a
-  programmatic one.
+  an overlay added programmatically, neither `closeBtn.click()` nor a real
+  browser click on that button removed it within 25s on an earlier tree, even
+  though the button was connected, visible and `shouldShowCloseBtn` was true, so
+  prove any legend claim on a dialog-added overlay and do not report a removal
+  bug from a programmatic one. To clean up programmatic mounts, call the store
+  with the system origin: on 2026-11-04 (`8436920004`)
+  `await chartStore.removeIndicator(id, 0, {}, {origin:'system'})` took six
+  programmatic overlays (`OPEN_INTEREST`, `FUNDING_RATE`, `LIQUIDATIONS` and
+  three `AGGREGATED_*`) out of `metadata` within 4 s, and the counter went
+  back to `Indicators 1/3`.
 - **Guest cap — driven 2026-10-23, and the counter does NOT stay pinned.** A bare
   `addIndicator` still bypasses ENFORCEMENT: four successive adds all succeeded
   with no toast and no refusal. But the ticker counter tracks every one of them
@@ -527,5 +540,37 @@ Preconditions:
   (`packages/wrun-chart-host/src/utility/chart/window-owner.leaf.ts`) now get
   the window doors and skip the pane move. Check `shouldShowPinToChartBtn`
   before asserting `pinToChartBtn`.
+- **A spot pane refuses Open Interest, Funding Rate and Liquidations
+  (`cdfa9c212d`; driven 2026-11-04 as far as a guest reaches).** The add gate's
+  spot row (`RESTRICTED_MODES` in `src/store/chart.ts`, block list
+  `SPOT_BLOCKED_INDICATORS` in `src/constants/tradfi.constants.ts`, the venue
+  rule in `src/utility/exchange/derivative-venue.leaf.ts`) is meant to say why:
+  `Needs open interest data, which this market doesn't have`, `Needs funding
+  rate data, …` and `Needs liquidation data, …` (`handleIndexModeErrorMessage`
+  writes it into the engine's `errorMessage`). The aggregated and sector
+  versions stay allowed. On COINBASE BTC-USD 1h a guest's programmatic
+  `addIndicator('OPEN_INTEREST'|'FUNDING_RATE'|'LIQUIDATIONS', {}, 0)` mounted
+  each one gated (`isHidden` true, no pane on screen) while
+  `AGGREGATED_OPEN_INTEREST` drew its own pane; 2.5 s later the engine's
+  `settings.errorMessage.text` read `No data in range` (OI, liquidations) and
+  `Slow network` (funding), not the `Needs …` words, and no `Needs` text was
+  anywhere in the page. Whether the dialog path, which a guest cannot take,
+  shows the words is live verification pending on a signed-in session; read
+  the `errorMessage` from `window.tc[0].metadata` and the legend row.
+- **Pane merge is open to every plan (`ee80751357`; driven 2026-11-04).**
+  `FEATURE_LIMITS.paneMerge` is `{ free: true, plus: true }` and the Plus
+  sheet's pane merge line is gone, so a free account no longer meets `Pane
+  Merge is part of Plus`. A guest still meets the sign-in wall: with
+  `AGGREGATED_OPEN_INTEREST` and `AGGREGATED_FUNDING_RATE` in their own panes,
+  `metadata.find(m=>m.settings?.ovType==='AGGREGATED_FUNDING_RATE').legends.mergePaneBtn.click()`
+  raised the wall with `guestLoginFeatureId` `indicators` and no Plus text.
+  The target picker and the merge itself (`settings.hostPaneId` on the
+  member) need a signed-in session; `docs/features/indicators/pane-merge.md`
+  in the product is the contract.
+- **Options indicators carry shorter names (`db24918a6e`, source).** For
+  example `options flow by expiry` and `options implied move`
+  (`src/constants/indicator-names.ts`, `indicator-labels.builtin.json`); the
+  OPRA tier shows as filed. Re-read any name-based search or legend-text
+  assertion on an options indicator.
 - Some indicators are interval-sensitive: TPO sessions are daily, so at `1m` the
   profile is off-screen and the frame looks blank. Pin a sane interval first.

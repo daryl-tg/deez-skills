@@ -5,6 +5,16 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-04 against product tree `8436920004` (`origin/main`), lane
+`18103`, a guest-JWT lane with the gateway resolving. Driven that day: the
+Panels menu's 17 rows on COINBASE BTC-USD (`replay`, `heatmap`, `watchlist`,
+`scanner`, `etfScreener`, `news`, `chat`, `orderbook`, `tape`, `footprint`,
+`alerts`, `objects`, `journal`, `editor`, `marketStatsPanel`, `volumeStats`,
+`liquidityStats`), the Orderbook on BINANCE.F ETHUSDT (`orderbook-source-btn`,
+`orderbook-canvas`), the Tape printing there (`2,287.17▼`) with its docked
+Liquidations (13 `tape-liquidations-row`, `Prints` and `Levels`), and the
+alert create wall (`alert`). The panel source in
+`215896e614..8436920004` changed no testid. Before that,
 DRIVEN on 2026-11-03 against product tree `215896e614` (`origin/main`), lane
 `18103`, a guest-JWT lane with the gateway name mapped in the browser (see the
 README). Driven that day: every Panels row on BINANCE.F ETHUSDT (17 rows; 16

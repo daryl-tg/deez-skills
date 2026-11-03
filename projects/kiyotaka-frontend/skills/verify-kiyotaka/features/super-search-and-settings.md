@@ -6,6 +6,13 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-04 against product tree `8436920004` (`origin/main`), lane `18103`, a
+guest-JWT lane with the gateway resolving. Driven that day: `hide candles` and
+`show candles` (`metadata[0].isHidden` true then false), `editor` opening the
+drawer, `Meta+/` (nav `shortcuts`, `language`, `notes`), Release Notes (81
+versions, `4.49.0` first), the rebuilt one-card sign-in wall from the
+Watchlist seat (`watchlist`), its password pane, the `alert` wall, and
+`?twofa=true` (`auth-return`). Before that, DRIVEN on
 2026-11-03 against product tree `215896e614` (`origin/main`), lane `18103`, a
 guest-JWT lane with the gateway name mapped in the browser (see the README).
 Driven that day: `SPY / GLD`, which **charts the ETFs again** (`NYSE SPY /
@@ -327,18 +334,31 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `dialogStore.isOAuthTwoFADialogOpen` read `true`, with the dialog `Verify
   Code / Enter the 6-digit verification code from your authenticator app` on
   top. Press `Escape` to clear it. Completing either flow needs a real
-  sign-in.
-- **The wall's visible title is the feature's name.** The camera's wall is
-  headed `Share Your Chart`, Replay's `Chart Actions`, then `Sign in or create
-  an account / One email. We send you a code, no password.` with `Email me a
-  code`, `Sign in with a password instead`, `Use a passkey`, `Google` and `X`.
-  The `login-signup-*` ids are unchanged (`-submit-btn`, `-use-password-btn`,
-  `-passkey-btn`, `-google-btn`, `-twitter-btn`, `-forgot-password-btn`,
-  `-tos-link`), and a hidden `Back to log in / Forgot your password?` pane
-  (`forgot-password-back-btn`, `forgot-password-send-btn`) sits first in the
-  same overlay, so a testid listing starts with those two. `Escape` clears
-  every state of it (driven 2026-11-01 from the camera, Replay and the
-  forgot-password pane).
+  sign-in. Re-driven 2026-11-04 on `8436920004`: the same clean address and
+  one navigation entry, and the dialog is now a shell around the card's 2FA
+  panel, one code field instead of six boxes: `twofa-verify-close-btn`,
+  `twofa-verify-code-input`, `twofa-verify-back-btn`,
+  `twofa-verify-submit-btn` (`Verify & Continue`) and
+  `twofa-verify-recovery-link-btn` (`Use a recovery code instead`).
+- **The wall is one sign-in card, a sheet (`4b8f78a775`, driven
+  2026-11-04).** Its visible title is still the feature's name (the
+  Watchlist seat's wall is headed `Watchlist`, the camera's `Share Your
+  Chart`, Replay's `Chart Actions`), then `Sign in or create an account / One
+  email. We send you a code, no password.`, `Email me a code`, `Sign in with a
+  password instead`, and an `Or continue with` row of pills: `Passkey`,
+  `Google`, `X`. The overlay is `.dialog-style.dialog-overlay` with
+  `dialog-style--sheet backdrop-dim login-signup-overlay`; the page behind it
+  no longer scales or blurs (`d9636e8a6b`). A testid listing now starts with
+  `login-signup-welcome-spoken` and `auth-mascot`, then
+  `login-signup-field-message`, `-submit-btn`, `-use-password-btn`,
+  `-passkey-btn`, `-google-btn`, `-twitter-btn` and `-tos-link`; the hidden
+  `Back to log in / Forgot your password?` pane that used to sit first is gone.
+  `login-signup-use-password-btn` swaps in the password pane (`Email`,
+  `Password`, `Forgot Password`, `Log In`) with `-forgot-password-btn` and
+  `-use-code-btn`. `Escape` clears it (`isAuthenticationDialogOpen` false), but
+  the card leaves through an animation: while the tab is hidden the overlay
+  stays in the DOM as `dialog-style--leaving` (pointer events off), and the
+  overlay union reads `1` until the tab is visible again.
 - **A gateway outage reads as `Reconnecting…` in `connection-status-chip`
   (seen 2026-11-01).** From about 21:55 UTC the tailnet-only name
   `tsdb-gateway.int.ore.kiyotaka.ai` stopped resolving on the mini (public DNS

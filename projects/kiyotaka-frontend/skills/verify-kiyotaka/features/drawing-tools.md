@@ -45,7 +45,16 @@ the other tools (the vertical line's axis label from titan 1214 included:
 `toolbar-item-trendline:tool-submenu-arrow` opened no visible submenu on a
 click on 2026-11-01), the Shift constraint (engine-side, frame-only proof),
 favorites and their drag reorder (`FAVORITES` wall), the drawing-sync scope,
-and whether a guest's drawing persists across a reload.
+and whether a guest's drawing persists across a reload. Re-driven 2026-11-04 on
+`8436920004` (`origin/main`, lane `18103`, a guest JWT, the gateway resolving)
+on COINBASE BTC-USD 1h: the trend line placed with two clicks, its
+`.tool-quick-bar` now carrying `tqb-templates-btn` between `tqb-lock-btn` and
+`tqb-settings-btn` (16 `tqb-*` handles), the templates list opened from it with
+no wall, one `Escape` closing the list with the line still selected and a
+second deselecting it, `tqb-more-menu` listing eight rows with no
+`tqb-menu-templates`, and `tqb-remove-btn` deleting the line. Not driven that
+day: `Save as template…` as a guest, an FRVP's templates, the colour popover,
+the cancelled creation, the right-click menu and the magnet.
 
 ## Sub-features
 
@@ -57,6 +66,9 @@ and whether a guest's drawing persists across a reload.
 - `dt-cancel` `Escape` during a creation leaves no drawing behind.
 - `dt-context` a right-click on a drawing opens the app's menu for it (settings,
   clone, copy, lock, hide, order, show on, delete) above the chart's own rows.
+- `dt-templates` the floating toolbar's templates button lists the drawing's
+  saved looks, saves one, makes the current look the default for new drawings
+  or resets it; `Escape` closes one layer at a time.
 
 ## How to get to it (user POV)
 
@@ -88,7 +100,8 @@ the top overlay cleared.
   `.tool-quick-bar` and every control has a `tqb-` testid:
   `tqb-swatch-color-{0,1,2,custom}-btn` (line colour, with
   `tqb-swatch-glyph-color`), `tqb-swatch-fontColor-{0,1,2,custom}-btn` (text
-  colour), `tqb-cycle-lineStyle-btn`, `tqb-lock-btn`, `tqb-settings-btn`,
+  colour), `tqb-cycle-lineStyle-btn`, `tqb-lock-btn`, `tqb-templates-btn`
+  (since `20b0fce8b3`, only on a drawing with settings), `tqb-settings-btn`,
   `tqb-more-btn` and `tqb-remove-btn`. `toolbar-item-delete-icon-btn` is the
   LEFT toolbar's trash, not this bar's.
 - **`dt-colour`, driven 2026-10-29.** `find testid tqb-swatch-color-custom-btn
@@ -107,8 +120,24 @@ the top overlay cleared.
 - **The floating toolbar's more menu (driven 2026-11-03).** `find testid
   tqb-more-btn click` opens `tqb-more-menu`, its rows inside
   `.tqb-menu-scroll`, each led by an icon: `tqb-menu-clone`, `-copy`,
-  `-front`, `-back`, `-show-on-{all,andAbove,andBelow,only}` and
-  `-templates`. A guest got no `tqb-menu-sync-<scope>` row.
+  `-front`, `-back` and `-show-on-{all,andAbove,andBelow,only}`: eight rows
+  on 2026-11-04. The `-templates` row moved out to `tqb-templates-btn`
+  (`20b0fce8b3`). A guest got no `tqb-menu-sync-<scope>` row.
+- **`dt-templates`: the bar's templates list (driven 2026-11-04).** `find
+  testid tqb-templates-btn click` sets its `aria-expanded` to `true` and opens
+  `.settings-templates-menu--bar`, whose rows are the settings card's own:
+  `settings-templates-empty` (`No saved templates`),
+  `settings-template-save-as` (`Save as template…`),
+  `settings-template-save-default` (`Use these settings for new ones`, with
+  `settings-template-default-note`) and `settings-template-reset-defaults`; a
+  saved look adds `settings-template-<id>`, `-rename` and `-delete` (source).
+  There is no `settings-templates-trigger` on the bar. A guest met no wall on
+  opening it. Since `9033deb4d9` one `Escape` closes one layer: the first
+  closed the list (`aria-expanded` back to `false`) with `.tool-quick-bar`
+  still up, the second deselected the line; `tqb-more-menu` closes the same
+  way. An Escape from the drawing's own text field still ends the edit and
+  deselects (source). An FRVP's templates now open this same list instead of
+  its settings panel (`useFrvpProfileDoor`, source).
 - **`dt-context`: the right-click menu on a drawing (driven 2026-11-03).**
   Move the pointer onto the line (`mouse move 600 350` for a line from `400
   400` to `800 300`), then `mouse down right` and `mouse up right`. The app's

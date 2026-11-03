@@ -4,7 +4,14 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-03 against product tree `215896e614` (`origin/main`),
+was last DRIVEN on 2026-11-04 against product tree `8436920004` (`origin/main`),
+lane `18103`, a guest-JWT lane with the gateway resolving. Driven that day: the
+V2 dialog (v2 20, legacy 0), an `ETHUSDT` fill whose bare `ETHUSDT` row STILL
+charted a BINANCE.O put (now `29 Jan 2027 3,200 Put`, 127 bars) and whose
+`Ethereum` row went to BINANCE.F ETHUSDT, the footer's `Undo Change symbol`
+back to COINBASE BTC-USD, `tb-interval-pinned-1m-btn` and its `Undo Change
+interval` back to `1h`, and the `CME` tab, which failed for the guest (see
+Gotchas). Before that, DRIVEN on 2026-11-03 against product tree `215896e614` (`origin/main`),
 lane `18103`, a guest-JWT lane with the gateway name mapped in the browser
 (see the README). Driven that day: the V2 dialog (v2 20, legacy 0), an
 `ETHUSDT` fill whose bare `ETHUSDT` row STILL charted a BINANCE.O put
@@ -495,7 +502,20 @@ Preconditions:
   `resolveEnterTargetVenue` (`src/utility/symbol-search-v2/enter-target.util.ts`),
   which ranks by remembered venue, then `volume24hUsd`, and filters no
   instrument category; neither it nor `default-venue.util.ts` changed in
-  `a4488341f6..215896e614`. Product gap, not doc drift.
+  `a4488341f6..215896e614` or `215896e614..8436920004`. Product gap, not doc
+  drift. Re-confirmed 2026-11-04 on `8436920004`: the row charted `BINANCE.O
+  ETH/USDT 29 Jan 2027 3,200 Put` (127 bars), so which contract it lands on
+  moves with the option volumes.
+- **The `CME` tab can fail for a guest (driven 2026-11-04 on `8436920004`).**
+  The tab (`search-v2-category-cme-btn`; a hidden zero-size twin of the strip
+  shares the testid, so click it with `find role tab click --name "CME"`)
+  listed nothing and read `CME contracts aren’t loading right now` with a
+  `Retry` button, twice, and an `NQ1!` fill on `All` listed no row. That copy
+  is `cmeDiscoveryFailed` in `SymbolSelectionDialog.vue`: the gate lane's
+  discovery failed on both attempts (one silent retry under the skeleton). The
+  cause was not traced on the lane (no CME ring line was read), so a CME
+  chart, its `cme-delay-badge` and every CME recipe need that tab to list
+  contracts first.
 - **The bare `ETHUSDT` row arrives in a second batch (driven 2026-11-02 on
   `a4488341f6`).** Three seconds after the fill the list held only
   `asset-row-Ethereum|1-btn`; at eight seconds it held `asset-row-ETHUSDT|1-btn`
