@@ -1,6 +1,6 @@
 # Persona auto-learning and loading into the card
 
-*Verified: 2026-11-03. Branch `daryl/persona-auto-learn` (PR #2275, open, not on main). Last driven tree `2d240ff0e` before rebase; the PR head is `cfd976391`.*
+*Verified: 2026-11-03. Branch `daryl/persona-auto-learn` (PR #2275, merged as `ffce9accc`, in v0.489.0). Last driven tree `2d240ff0e` before rebase; the PR head was `cfd976391`. The live rows below predate the digest budget (#2279, `abc1e6bc9`), so the `first 8` rows they quote are the old output.*
 
 *Setup:*
 - *a test account, never the operator's: `@dboon_ref`, signed in with `om login --headless-json` on a scratch `OM_HOME`;*
@@ -41,7 +41,7 @@ Learning updates your persona as you post, with no approval step. Any persona yo
   - the label's last text is stored at `agent.persona_source_base.<sha>`.
 - **Moved head.** A learned update whose card moved mid-pass rebases onto it; the head wins a conflict.
 - **Show.**
-  - `om persona show` names the card (`Your persona (card: Persona/<slug>.md)`) and has rows `Learning: on, updates apply as you post (om config set agent.persona_learning off)`, `Updated: <age> ago, from N of your messages`, `From: <tool>` and `Room drafts: first 8 of N lines`.
+  - `om persona show` names the card (`Your persona (card: Persona/<slug>.md)`) and has rows `Learning: on, updates apply as you post (om config set agent.persona_learning off)`, `Updated: <age> ago, from N of your messages`, `From: <tool>` and `Room drafts: first N of M lines` only when the digest leaves lines out.
   - `persona_show` and `--json` keep `card: boolean` and add `learning`.
 
 ## Recipe
@@ -56,5 +56,6 @@ Learning updates your persona as you post, with no approval step. Any persona yo
 ## Gotchas
 
 - **"HOME library mirror directory is not available" for the first minutes.** The fold needs the mirror health row, written after the mirror's first full pass. On a non-default home with no `OM_LIBRARY_DIR` the mirror never runs.
-- **Room drafts read only the first 8 voice rules.** The cap is pinned by `persona-digest-parity.test.ts` against the Python oracle. Lines past 8, including a tool's appended lines, reach the `om chat` agent but not room drafts or the MCP voice.
+- **Room drafts and the MCP voice carry voice rules past 8 only while the digest has free room** (#2279, after v0.489.0). Rules 9 and on join whole, in card order, until the 3000-unit budget; identity is never shortened for them, and a digest that needed trimming gets none. Pinned by `persona-digest-parity.test.ts` against selfmd `af0ac00`. *Pending live proof: source and tests only; a 10-line persona should show no `Room drafts` row.*
+- **MCP clients get the voice only with `om config set mcp.operator_voice on`** (off by default). `/rooms` drafts use the persona with no switch. `session_grants` reports `operatorVoice: on|off`.
 - **A folded card carries the template's six `Never do` rules.**
