@@ -12,7 +12,7 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 
-from deezlib import cli
+from deezlib import cli, memguard
 from deezlib.superclanker import config, daemon, router, workers
 from deezlib.superclanker.domain import Strength, Trigger, trigger_id
 from deezlib.superclanker.sources import terminal
@@ -96,6 +96,9 @@ class DaemonTest(unittest.TestCase):
         )
         patcher.start()
         self.addCleanup(patcher.stop)
+        free = mock.patch.object(memguard, "free_pct", plenty_free)
+        free.start()
+        self.addCleanup(free.stop)
         self.store = Store.open(self.root)
         self.addCleanup(self.store.close)
         self.wake = FakeWake()

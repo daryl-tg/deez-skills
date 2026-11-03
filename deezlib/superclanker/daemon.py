@@ -171,7 +171,7 @@ def _expire_overlong_turns(store, settings, stop, now):
 
 def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.launch,
              resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now,
-             stop=workers.stop, free_pct=memguard.free_pct):
+             stop=workers.stop, free_pct=None):
     errors = []
 
     def attempt(step, *args):
@@ -185,7 +185,7 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     fanned_out = attempt(_fan_out, store, config) or 0
     expired = attempt(_expire_overlong_turns, store, config, stop, now) or 0
     reaped = len(attempt(reap, store, root) or [])
-    held = _held_by_memory(config, free_pct)
+    held = _held_by_memory(config, free_pct or memguard.free_pct)
     hold_changed = _record_hold(root, held)
     resumed = 0
     for assignment in store.running_assignments():
