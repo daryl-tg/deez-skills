@@ -13,6 +13,7 @@ from unittest import mock
 
 from deezlib import cli
 from deezlib.superclanker import config, workers
+from deezlib.superclanker import sweep as sweeping
 from deezlib.superclanker.domain import Ticket
 from deezlib.superclanker.sources import terminal
 from deezlib.superclanker.store import Store, SuperError
@@ -61,6 +62,9 @@ class WorkersTest(unittest.TestCase):
         self.addCleanup(patcher.stop)
         self.store = Store.open(self.root)
         self.addCleanup(self.store.close)
+        no_leftovers = mock.patch.object(sweeping, "leftovers", return_value=[])
+        no_leftovers.start()
+        self.addCleanup(no_leftovers.stop)
 
     def git(self, repo, *args):
         return subprocess.run(
@@ -358,6 +362,16 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual(self.store.show(ticket_id)["state"], "open")
         self.assertEqual(self.store.show(assignment_id)["state"], "ended")
 
+    def test_reap_sweeps_worktree_once_before_marking_reaped(self):
+        _trigger, _ticket_id, assignment_id = self.dispatch()
+        started = self.run_turn(assignment_id, "fixed the typo\nREPORT ready diff at /x")
+        swept = []
+
+        workers.reap(self.store, self.root, sweep=swept.append)
+        workers.reap(self.store, self.root, sweep=swept.append)
+
+        self.assertEqual(swept, [started.worktree])
+
     def test_reap_without_report_records_failed(self):
         _trigger, ticket_id, assignment_id = self.dispatch()
         os.environ["FAKE_CLAUDE_EXIT"] = "1"
@@ -571,6 +585,28 @@ class WorkersTest(unittest.TestCase):
         (report,) = self.reports(assignment_id)
         self.assertEqual((report["kind"], report["text"]), ("failed", "stopped by operator"))
         self.assertEqual(self.store.show(assignment_id)["state"], "ended")
+
+    def test_stop_sweeps_worktree_after_signalling_the_group(self):
+        _trigger, _ticket_id, assignment_id = self.dispatch()
+        started = self.run_turn(assignment_id, "working")
+        swept = []
+
+        workers.stop(self.store, assignment_id, sweep=swept.append)
+
+        self.assertEqual(swept, [started.worktree])
+        (report,) = self.reports(assignment_id)
+        self.assertEqual((report["kind"], report["text"]), ("failed", "stopped by operator"))
+
+    def test_stop_records_the_given_reason(self):
+        _trigger, _ticket_id, assignment_id = self.dispatch()
+        self.run_turn(assignment_id, "working")
+
+        workers.stop(
+            self.store, assignment_id, sweep=lambda worktree: [], reason="120 minute limit reached"
+        )
+
+        (report,) = self.reports(assignment_id)
+        self.assertEqual(report["text"], "120 minute limit reached")
 
     def test_dispatch_records_repo_beside_playbook(self):
         repo = self.repo()

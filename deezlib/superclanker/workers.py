@@ -22,6 +22,7 @@ from deezlib.superclanker.domain import (
     trigger_id,
     utc_now,
 )
+from deezlib.superclanker import sweep
 from deezlib.superclanker.router import _environment
 from deezlib.superclanker.store import InputKind, SuperError
 
@@ -442,7 +443,7 @@ def _reapable(store):
     ]
 
 
-def reap(store, root):
+def reap(store, root, sweep=sweep.sweep):
     log_dir = Path(root) / "log"
     emitted = []
     for assignment in _reapable(store):
@@ -453,6 +454,8 @@ def reap(store, root):
         marker = _marker(output)
         if marker.exists():
             continue
+        if assignment.worktree is not None:
+            sweep(assignment.worktree)
         report = _turn_report(
             store, assignment, output, _earlier_reports(log_dir, assignment.id, turns)
         )
@@ -478,7 +481,8 @@ def _signal(kill, pid, signum):
             continue
 
 
-def stop(store, assignment_id, kill=os.kill, grace_seconds=5):
+def stop(store, assignment_id, kill=os.kill, grace_seconds=5, sweep=sweep.sweep,
+         reason="stopped by operator"):
     assignment = _load(store, Assignment, assignment_id)
     if assignment.state is AssignmentState.ended:
         return None
@@ -489,4 +493,6 @@ def stop(store, assignment_id, kill=os.kill, grace_seconds=5):
             time.sleep(0.05)
         if alive(assignment.pid, kill):
             _signal(kill, assignment.pid, signal.SIGKILL)
-    return store.report(assignment_id, ReportKind.failed, "stopped by operator")
+    if assignment.worktree is not None:
+        sweep(assignment.worktree)
+    return store.report(assignment_id, ReportKind.failed, reason)
