@@ -133,14 +133,19 @@ def _listener_pids(run, port):
             capture_output=True, text=True, timeout=LSOF_TIMEOUT_SECONDS,
         )
     except (OSError, subprocess.SubprocessError):
-        return set()
+        return None
+    if listing.returncode not in (0, 1):
+        return None
     return {int(word) for word in (listing.stdout or "").split() if word.isdigit()}
 
 
 def port_listeners(run=subprocess.run):
     found = set()
     for port in PROTECTED_PORTS:
-        found |= _listener_pids(run, port)
+        pids = _listener_pids(run, port)
+        if pids is None:
+            return None
+        found |= pids
     return found
 
 
@@ -170,6 +175,8 @@ def ancestors(table, pid):
 
 
 def protected(table, own_pid, main_pids, listeners):
+    if listeners is None:
+        return None
     named = {
         proc.pid for proc in table.values()
         if any(marker in proc.command for marker in PROTECTED_COMMANDS)
@@ -182,6 +189,8 @@ def kill_refusal(table, target, protected_pids, uid, worker_pids):
         return "system process"
     if target not in table:
         return "not running"
+    if protected_pids is None:
+        return "protection unavailable"
     if table[target].uid != uid:
         return "another user's process"
     if target in worker_pids:
@@ -221,6 +230,8 @@ def _depth(table, pid, members):
 
 def kill_tree(target, read=read_table, kill=os.kill, sleep=time.sleep,
               clock=time.monotonic, grace_seconds=3):
+    if target.pid <= 1:
+        return []
     table = read()
     current = table.get(target.pid)
     if current is None or current.command != target.command or current.ppid != target.ppid:

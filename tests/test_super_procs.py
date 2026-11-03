@@ -98,8 +98,25 @@ class ProtectionTest(unittest.TestCase):
         )
 
     def test_port_listeners_and_main_session_tolerate_failure(self):
-        self.assertEqual(procs.port_listeners(run=raising(OSError)), set())
+        self.assertIsNone(procs.port_listeners(run=raising(OSError)))
         self.assertEqual(procs.main_session_pids(PEER_TABLE, run=raising(OSError)), set())
+
+    def test_port_listeners_non_zero_exit_is_unknown(self):
+        self.assertIsNone(procs.port_listeners(run=fake_run("", returncode=2)))
+
+    def test_port_listeners_exit_one_means_no_listener(self):
+        self.assertEqual(procs.port_listeners(run=fake_run("", returncode=1)), set())
+
+    def test_protected_is_none_when_listeners_unknown(self):
+        self.assertIsNone(procs.protected(PEER_TABLE, 11, set(), None))
+
+    def test_kill_refusal_fails_closed_without_protection(self):
+        self.assertEqual(
+            procs.kill_refusal(PEER_TABLE, 71, None, 501, set()),
+            "protection unavailable",
+        )
+        self.assertEqual(procs.kill_refusal(PEER_TABLE, 1, None, 501, set()), "system process")
+        self.assertEqual(procs.kill_refusal(PEER_TABLE, 999, None, 501, set()), "not running")
 
     def test_port_listeners_collects_pids_per_port(self):
         calls = []
@@ -130,6 +147,27 @@ class KillTreeTest(unittest.TestCase):
             kill=lambda pid, sig: sent.append((pid, sig)),
         )
         self.assertEqual(got, [])
+        self.assertEqual(sent, [])
+
+    def test_kill_refuses_when_ppid_changed(self):
+        moved = table_of(procs.Proc(70, 10, 501, 100, "claude peer"))
+        sent = []
+        got = procs.kill_tree(
+            self.target, read=lambda: moved,
+            kill=lambda pid, sig: sent.append((pid, sig)),
+        )
+        self.assertEqual(got, [])
+        self.assertEqual(sent, [])
+
+    def test_kill_refuses_system_pids(self):
+        sent = []
+        for pid in (0, 1):
+            proc = procs.Proc(pid, 0, 0, 10, "launchd")
+            got = procs.kill_tree(
+                proc, read=lambda proc=proc: table_of(proc),
+                kill=lambda p, sig: sent.append((p, sig)),
+            )
+            self.assertEqual(got, [])
         self.assertEqual(sent, [])
 
     def test_kill_terms_then_kills_survivors(self):
