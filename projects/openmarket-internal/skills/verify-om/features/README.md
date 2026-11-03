@@ -123,6 +123,8 @@ state, commands, and observable proof.
 - [Watch lifecycle from the CLI](./watch-lifecycle-cli.md)
 - [A watch step that wakes a roster agent](./watch-agent-step.md) — author, arm, fire
   and read an `ai` step that names `agent`; keyless-lane path proven 2026-11-03
+- [The roster task door and run pool](./roster-task-pool.md) — submit, pool, cap,
+  dedup, cancel and work mentions; a bare lane with a fake model needs no account
 - [The ops dashboard](./ops-dashboard.md) — the shell and the observation
   surfaces, redesigned in v0.400.0
 - [Watch authoring in the dashboard](./watch-authoring-ui.md) — new in v0.400.0:
