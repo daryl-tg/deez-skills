@@ -36,6 +36,10 @@ path out; the daemon already does so for the Router and the Workers.
   Worker turn's result and stderr, or a wake's or tick's result.
 - `rules [<name>]` lists the policy rules or prints one.
 - `policy set <rule> --mode <off|observe|auto>` changes one rule's mode.
+- `ui [--state <dir>] [--no-tmux]` opens the board, a terminal screen that
+  lists what needs you, every Ticket, memory by process tree and the peer
+  Claude sessions. It acts through the verbs above. See "The board" in
+  [Operations](references/operations.md).
 
 State lives in `~/.local/state/deez-skills/super/`, or in `$DEEZ_SUPER_STATE`.
 It holds `super.db`, `log/`, `inbox/` and `worktrees/<repo>/<ticket>`. Ticket
@@ -46,6 +50,10 @@ notes live in `~/Documents/dev-notes/<slug>/`.
 After `kill`, or once the Worker's turn has ended, read the session id from
 `deez super-clanker show a_…`. In the Worker's worktree, run
 `claude --resume <session id>`.
+
+On the board, select the Ticket and press `t`. The board kills a live Worker,
+then opens `claude --resume <session id>` in a new tmux window in the
+worktree. Outside tmux, it opens the session in the board's own terminal.
 
 Every process in that worktree dies on `kill`, on `stop`, and when a later turn
 of the Ticket is reaped, your shell, editor and `claude --resume` included.
