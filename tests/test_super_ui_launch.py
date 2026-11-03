@@ -13,13 +13,16 @@ DEEZ = Path("/hub/bin/deez")
 
 def recorder(*results):
     calls = []
+    envs = []
     queue = list(results)
 
     def run(argv, **kwargs):
         calls.append([str(part) for part in argv])
+        envs.append(kwargs.get("env"))
         code, err = queue.pop(0) if queue else (0, "")
         return SimpleNamespace(returncode=code, stderr=err, stdout="")
 
+    run.envs = envs
     return run, calls
 
 
@@ -50,6 +53,27 @@ class EnsureVenvTest(unittest.TestCase):
         self.assertIn("boom", str(caught.exception))
 
 
+    def test_ensure_venv_missing_python_creates_venv(self):
+        calls = []
+
+        def run(argv, **kwargs):
+            calls.append([str(part) for part in argv])
+            if len(calls) == 1:
+                raise FileNotFoundError(argv[0])
+            return SimpleNamespace(returncode=0, stderr="", stdout="")
+
+        self.assertEqual(ui_launch.ensure_venv(VENV, run=run), PYTHON)
+        self.assertEqual(len(calls), 3)
+
+    def test_ensure_venv_oserror_on_step_raises_super_error(self):
+        def run(argv, **kwargs):
+            raise OSError("denied")
+
+        with self.assertRaises(SuperError) as caught:
+            ui_launch.ensure_venv(VENV, run=run)
+        self.assertIn("venv", str(caught.exception))
+
+
 class TmuxPlanTest(unittest.TestCase):
     def test_tmux_plan_creates_session_with_board_and_main_windows(self):
         plan = ui_launch.tmux_plan({}, False, DEEZ, Path("/state"))
@@ -60,6 +84,7 @@ class TmuxPlanTest(unittest.TestCase):
                  str(DEEZ), "super-clanker", "ui", "--no-tmux", "--state", "/state"],
                 ["tmux", "new-window", "-t", "clanker", "-n", "main", "-c", str(Path.home()),
                  "sh", "-c", "claude --continue || claude"],
+                ["tmux", "select-window", "-t", "clanker:board"],
                 ["tmux", "attach", "-t", "clanker"],
             ],
         )
@@ -74,27 +99,80 @@ class TmuxPlanTest(unittest.TestCase):
         self.assertEqual(ui_launch.tmux_plan({"TMUX": "x"}, False, DEEZ, None), [])
 
 
+TMUX = "/opt/homebrew/bin/tmux"
+
+
+def which_found(name, path=None):
+    return TMUX
+
+
+def which_missing(name, path=None):
+    return None
+
+
 class LaunchTest(unittest.TestCase):
     def test_launch_no_tmux_execs_app_with_pythonpath(self):
         run, calls = recorder((0, ""))
         execs = []
         args = SimpleNamespace(state=Path("/state"), no_tmux=True)
-        ui_launch.launch(args, {"HOME": "/h"}, run=run, execve=lambda *a: execs.append(a), deez=DEEZ)
+        ui_launch.launch(
+            args, {"HOME": "/h", "PYTHONPATH": "/old"}, run=run,
+            execve=lambda *a: execs.append(a), deez=DEEZ,
+        )
         argv, env = execs[0][1], execs[0][2]
         self.assertEqual(argv[1:], ["-m", "deezlib.superclanker.ui_app", "--state", "/state"])
-        self.assertEqual(env["PYTHONPATH"], str(DEEZ.parents[1]))
+        self.assertEqual(env["PYTHONPATH"], f"{DEEZ.parents[1]}:/old")
         self.assertEqual(env["HOME"], "/h")
 
     def test_launch_default_builds_session_then_execs_attach(self):
-        run, calls = recorder((0, ""), (1, ""), (0, ""), (0, ""))
+        run, calls = recorder((0, ""), (1, ""), (0, ""), (0, ""), (0, ""))
         execs = []
         args = SimpleNamespace(state=None, no_tmux=False)
-        ui_launch.launch(args, {}, run=run, execve=lambda *a: execs.append(a), deez=DEEZ)
+        ui_launch.launch(
+            args, {"PATH": "/usr/bin"}, run=run,
+            execve=lambda *a: execs.append(a), deez=DEEZ, which=which_found,
+        )
         flat = [call[:2] for call in calls]
         self.assertIn(["tmux", "has-session"], flat)
         self.assertIn(["tmux", "new-session"], flat)
         self.assertIn(["tmux", "new-window"], flat)
+        self.assertIn(["tmux", "select-window"], flat)
+        self.assertEqual(execs[0][0], TMUX)
         self.assertEqual(execs[0][1], ["tmux", "attach", "-t", "clanker"])
+
+    def test_launch_gives_every_call_the_extended_path(self):
+        run, calls = recorder((0, ""), (1, ""), (0, ""), (0, ""), (0, ""))
+        execs = []
+        args = SimpleNamespace(state=None, no_tmux=False)
+        env = {"PATH": "/usr/bin:/opt/homebrew/bin"}
+        ui_launch.launch(
+            args, env, run=run, execve=lambda *a: execs.append(a),
+            deez=DEEZ, which=which_found,
+        )
+        expected = f"/opt/homebrew/bin:{Path.home()}/.local/bin:/usr/bin"
+        self.assertTrue(all(e["PATH"] == expected for e in run.envs))
+        self.assertEqual(execs[0][2]["PATH"], expected)
+
+    def test_launch_without_tmux_binary_raises(self):
+        run, calls = recorder((0, ""))
+        args = SimpleNamespace(state=None, no_tmux=False)
+        with self.assertRaises(SuperError) as caught:
+            ui_launch.launch(args, {}, run=run, execve=lambda *a: None, deez=DEEZ, which=which_missing)
+        self.assertIn("tmux not found", str(caught.exception))
+
+    def test_launch_has_session_oserror_raises_super_error(self):
+        probe = recorder((0, ""))[0]
+        n = []
+
+        def run(argv, **kwargs):
+            n.append(argv)
+            if len(n) == 1:
+                return probe(argv, **kwargs)
+            raise OSError("gone")
+
+        args = SimpleNamespace(state=None, no_tmux=False)
+        with self.assertRaises(SuperError):
+            ui_launch.launch(args, {}, run=run, execve=lambda *a: None, deez=DEEZ, which=which_found)
 
 
 class CliTest(unittest.TestCase):
