@@ -82,7 +82,7 @@ class WorkersTest(unittest.TestCase):
     def deez(self, *argv):
         out, err = StringIO(), StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = cli.main(["super", *argv])
+            code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
 
     def sources(self, text):
@@ -212,7 +212,7 @@ class WorkersTest(unittest.TestCase):
         self.assertIn(f"- note: playbook: {BUG_FIX}", inputs)
         self.assertIn("- note: the README moved to docs/", inputs)
         protocol = section(brief, "Report protocol")
-        self.assertIn(f"deez super report {assignment_id} --kind", protocol)
+        self.assertIn(f"deez super-clanker report {assignment_id} --kind", protocol)
         self.assertIn("REPORT <kind> <text>", protocol)
         self.assertEqual(self.store.undelivered_inputs(ticket_id), [])
 
@@ -497,7 +497,7 @@ class WorkersTest(unittest.TestCase):
     def test_worker_report_verb_is_not_duplicated_by_reap(self):
         _trigger, ticket_id, assignment_id = self.dispatch()
         os.environ["FAKE_CLAUDE_SCRIPT"] = (
-            f"deez super report {assignment_id} --kind ready --text 'diff at /x' "
+            f"deez super-clanker report {assignment_id} --kind ready --text 'diff at /x' "
             "--evidence /x/diff.patch > /dev/null"
         )
         self.run_turn(assignment_id, "done\nREPORT ready diff at /x")
@@ -517,7 +517,7 @@ class WorkersTest(unittest.TestCase):
     def test_worker_waiting_report_is_not_duplicated_by_reap(self):
         _trigger, _ticket_id, assignment_id = self.dispatch()
         os.environ["FAKE_CLAUDE_SCRIPT"] = (
-            f"deez super report {assignment_id} --kind waiting --text 'push the branch?' "
+            f"deez super-clanker report {assignment_id} --kind waiting --text 'push the branch?' "
             "--question 'push the branch?' > /dev/null"
         )
         self.run_turn(assignment_id, "REPORT waiting push the branch?")

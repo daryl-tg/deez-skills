@@ -67,7 +67,7 @@ class LaunchdTest(unittest.TestCase):
         written = plistlib.loads(self.plist_path.read_bytes())
         self.assertEqual(written, {
             "Label": "com.dboon.super-clanker",
-            "ProgramArguments": ["/hub/bin/deez", "super", "daemon"],
+            "ProgramArguments": ["/hub/bin/deez", "super-clanker", "daemon"],
             "RunAtLoad": True,
             "KeepAlive": True,
             "WorkingDirectory": str(self.root),
@@ -124,7 +124,7 @@ class LaunchdTest(unittest.TestCase):
         proof = self.tmp / "proof"
         out, err = StringIO(), StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = cli.main(["super", "install", "--state", str(proof)])
+            code = cli.main(["super-clanker", "install", "--state", str(proof)])
         target = self.home / "Library" / "LaunchAgents" / "com.dboon.super-clanker.plist"
         self.assertEqual((code, err.getvalue()), (0, ""))
         self.assertIn(f"would create {target}", out.getvalue())

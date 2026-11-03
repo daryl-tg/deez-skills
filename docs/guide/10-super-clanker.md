@@ -27,15 +27,15 @@ The files are under `deezlib/superclanker/`.
 ## One request, end to end
 
 ```
-deez super ask fix the typo in the README of deez-skills
+deez super-clanker ask fix the typo in the README of deez-skills
 ```
 
 1. `ask` stores a Trigger on `terminal:default`.
 2. The daemon's next pass gates it. You are a listed sender addressing the
    agent, so it is explicit.
 3. The daemon wakes the Router with the Trigger's first 200 characters and a
-   `deez super show` pointer.
-4. The Router runs `deez super dispatch` with a slug and the `bug-fix`
+   `deez super-clanker show` pointer.
+4. The Router runs `deez super-clanker dispatch` with a slug and the `bug-fix`
    playbook. That creates a Ticket, a Mandate and a pending Assignment.
 5. The daemon launches the Worker. It writes `brief.md`, `mandate.md` and
    `resume.md` into the Ticket's dev-notes folder and starts `claude -p`.
@@ -47,7 +47,7 @@ deez super ask fix the typo in the README of deez-skills
    your inbox.
 
 ```
-deez super inbox
+deez super-clanker inbox
 ```
 
 If the Worker needs you, it reports `waiting` with one question. The answer
@@ -55,16 +55,16 @@ you give on the same Thread goes straight back to that Worker.
 
 ## The first week
 
-Start in observe mode, which is what `deez super init` writes. Explicit
+Start in observe mode, which is what `deez super-clanker init` writes. Explicit
 requests work from day one. Inferred work, such as a defect a teammate mentions
 without addressing the agent, only records `would accept` decisions.
 
-Read them. `deez super show <trigger>` on each tells you whether the Router
+Read them. `deez super-clanker show <trigger>` on each tells you whether the Router
 would have started the right work. When one rule's record holds up, promote
 that rule alone:
 
 ```
-deez super policy set silent-repro --mode auto
+deez super-clanker policy set silent-repro --mode auto
 ```
 
 Leave the rest in observe. Promote the next rule when its own record earns it.

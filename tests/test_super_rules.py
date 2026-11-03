@@ -44,7 +44,7 @@ class RulesTest(unittest.TestCase):
     def deez(self, *argv):
         out, err = StringIO(), StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = cli.main(["super", *argv])
+            code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
 
     def overheard(self, event_id, text):

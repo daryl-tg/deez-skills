@@ -13,7 +13,7 @@ from deezlib.superclanker.store import SuperError
 
 WAKE_TIMEOUT_SECONDS = 600
 STDERR_TAIL_CHARS = 2000
-ALLOWED_TOOLS = "Bash(deez super *)"
+ALLOWED_TOOLS = "Bash(deez super-clanker *)"
 
 
 @dataclass(frozen=True)

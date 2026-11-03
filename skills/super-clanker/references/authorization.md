@@ -43,7 +43,7 @@ candidate.
    question and stops.
 2. `reap` turns the report into a Trigger on `worker:<ticket>`, which wakes
    the Router.
-3. The Router relays it with `deez super reply` on the request's Thread,
+3. The Router relays it with `deez super-clanker reply` on the request's Thread,
    then ignores the report.
 4. The daemon delivers it, and `status` flags the Ticket for attention.
 5. The operator answers on that Thread. The Ticket is subscribed, so the

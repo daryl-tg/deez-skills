@@ -68,7 +68,7 @@ class ComposeTest(unittest.TestCase):
 
         self.assertIn(f"## {long.id}  github  {PR}  daryl-tg  addressed  explicit/addressed", lines)
         self.assertIn("text: " + "x" * 200 + " …[+2300 chars]", lines)
-        self.assertIn(f"more: deez super show {long.id}", lines)
+        self.assertIn(f"more: deez super-clanker show {long.id}", lines)
 
     def test_short_content_inlines_parent_and_thread_tickets(self):
         ticket = self.ticket_on()
@@ -165,8 +165,8 @@ class ComposeTest(unittest.TestCase):
         self.assertLessEqual(len(listed), 1500)
         self.assertTrue(listed.startswith("# super-clanker wake\n"))
         self.assertIn("batch: 10 triggers", listed.splitlines())
-        self.assertIn("\n## verbs\ndeez super dispatch <trigger> --slug <kebab>", listed)
-        self.assertIn("deez super note <ticket> --text <text>", listed)
+        self.assertIn("\n## verbs\ndeez super-clanker dispatch <trigger> --slug <kebab>", listed)
+        self.assertIn("deez super-clanker note <ticket> --text <text>", listed)
         blocks = re.findall(r"^## (t_[0-9a-f]{10})  ", listed, re.M)
         tail = listed.split("\n## also queued\n", 1)[1].splitlines()
         self.assertTrue(blocks)
@@ -187,7 +187,7 @@ class ComposeCliTest(unittest.TestCase):
     def deez_super(self, *argv):
         out, err = StringIO(), StringIO()
         with mock.patch.dict(os.environ, self.env), redirect_stdout(out), redirect_stderr(err):
-            code = cli.main(["super", *argv])
+            code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
 
     def asked(self, *argv):

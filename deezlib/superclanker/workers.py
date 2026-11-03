@@ -274,7 +274,7 @@ def _inputs_message(store, ticket_id, inputs):
 def _require_reaped(log_dir, assignment_id):
     turns = _turns(log_dir, assignment_id)
     if turns and not _marker(_turn_log(log_dir, assignment_id, turns - 1)).exists():
-        raise SuperError(f"{assignment_id} finished a turn nobody reaped; run deez super reap first")
+        raise SuperError(f"{assignment_id} finished a turn nobody reaped; run deez super-clanker reap first")
     return turns
 
 

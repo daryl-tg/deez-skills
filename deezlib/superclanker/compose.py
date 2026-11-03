@@ -3,14 +3,14 @@ from deezlib.superclanker.store import SuperError
 SHRUNK_TEXT_CHARS = 50
 REPORT_CHARS = 60
 VERBS = (
-    "deez super dispatch <trigger> --slug <kebab> --playbook <clanker playbook file>"
+    "deez super-clanker dispatch <trigger> --slug <kebab> --playbook <clanker playbook file>"
     " [--scope <text>]",
-    "deez super attach <trigger> <ticket>",
-    "deez super ignore <trigger> --reason <text>",
-    "deez super stop <ticket> --reason <text>",
-    "deez super reply <thread> --text <text>",
-    "deez super note <ticket> --text <text>",
-    "deez super route <<'ROUTE' … ROUTE, one of the verbs above per line, for several decisions in one call",
+    "deez super-clanker attach <trigger> <ticket>",
+    "deez super-clanker ignore <trigger> --reason <text>",
+    "deez super-clanker stop <ticket> --reason <text>",
+    "deez super-clanker reply <thread> --text <text>",
+    "deez super-clanker note <ticket> --text <text>",
+    "deez super-clanker route <<'ROUTE' … ROUTE, one of the verbs above per line, for several decisions in one call",
 )
 
 
@@ -83,7 +83,7 @@ def _block(trigger, admission, recall, text_chars):
         f"{addressed}  {admission.strength}/{admission.basis}",
         f"text: {_spill(trigger.text, text_chars)}",
         *recall,
-        f"more: deez super show {trigger.id}",
+        f"more: deez super-clanker show {trigger.id}",
     ])
 
 

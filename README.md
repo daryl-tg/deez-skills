@@ -413,7 +413,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `reflect` |  | claude, codex | Mine a finished session for durable lessons and route each to a concrete skill edit, gated on approval. Use when the operator says reflect, or after a complex … |
 | `review` |  | claude, codex | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a branch, PR, or MR, dead-code checks, or 'wou… |
 | `super-clanker` |  | claude | Operate or extend super-clanker, the local Router that turns events into clanker-mode Workers. Load to ask it for work, read status, take over a Worker, or cha… |
-| `super-router` |  | claude | The Router of super-clanker. Woken headless with a batch of triggers, it decides each one through the deez super verbs and never executes work itself. |
+| `super-router` |  | claude | The Router of super-clanker. Woken headless with a batch of triggers, it decides each one through the deez super-clanker verbs and never executes work itself. |
 | `super-watchdog` |  | claude | The Watchdog of super-clanker. Woken headless only when its digest of anomalies is non-empty, it judges progress from evidence and repairs by cause through the… |
 | `test-engineer` |  | claude | Test strategy, coverage-gap analysis, regression design, flaky-test hardening, and running the repository's own gates. Use when a task needs test design or tes… |
 | `test-first` |  | claude, codex | Write the failing check before production code, at the fastest level that expresses the behavior, and report the failing-before evidence. Use before implementi… |

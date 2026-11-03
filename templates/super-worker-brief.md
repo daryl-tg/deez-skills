@@ -45,7 +45,7 @@ the operator, report `waiting` with one question and stop.
 Whenever your state changes, run
 
 ```
-deez super report {assignment_id} --kind <progress|waiting|ready|blocked|failed|dropped> --text <text> [--question <one question>] [--evidence <path>]
+deez super-clanker report {assignment_id} --kind <progress|waiting|ready|blocked|failed|dropped> --text <text> [--question <one question>] [--evidence <path>]
 ```
 
 - `waiting` carries exactly one question in `--question`.

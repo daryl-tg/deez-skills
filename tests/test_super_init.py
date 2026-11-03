@@ -32,7 +32,7 @@ class InitTest(unittest.TestCase):
     def deez(self, *argv):
         out, err = StringIO(), StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = cli.main(["super", *argv])
+            code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
 
     def test_init_writes_config_and_example_rule_and_keeps_existing_without_force(self):

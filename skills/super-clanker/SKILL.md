@@ -16,10 +16,10 @@ restarts. Each Worker is a clanker-mode lead for one Ticket.
 `deez` is `~/github/deez-skills/bin/deez`. Put that `bin` on PATH or spell the
 path out; the daemon already does so for the Router and the Workers.
 
-- `deez super ask <text>` hands the Router a request on the terminal thread.
-- `deez super status` lists Tickets, last reports and what needs attention.
-- `deez super inbox` prints the Router's replies on the terminal thread.
-- `deez super show <id>` prints one object and the ids of its neighbours.
+- `deez super-clanker ask <text>` hands the Router a request on the terminal thread.
+- `deez super-clanker status` lists Tickets, last reports and what needs attention.
+- `deez super-clanker inbox` prints the Router's replies on the terminal thread.
+- `deez super-clanker show <id>` prints one object and the ids of its neighbours.
 
 ## Operate it
 
@@ -44,7 +44,7 @@ notes live in `~/Documents/dev-notes/<slug>/`.
 ## Take over a Worker
 
 After `kill`, or once the Worker's turn has ended, read the session id from
-`deez super show a_…`. In the Worker's worktree, run
+`deez super-clanker show a_…`. In the Worker's worktree, run
 `claude --resume <session id>`.
 
 ## Change the policy

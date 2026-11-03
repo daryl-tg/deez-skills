@@ -99,7 +99,7 @@ class RouterTest(unittest.TestCase):
     def deez(self, *argv):
         out, err = StringIO(), StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = cli.main(["super", *argv])
+            code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
 
     def queued_ids(self):
@@ -160,7 +160,7 @@ class RouterTest(unittest.TestCase):
         self.assertEqual(argv[:2], ["-p", "--model"])
         self.assertEqual(argv[argv.index("--model") + 1], "haiku")
         self.assertEqual(argv[argv.index("--tools") + 1], "Bash")
-        self.assertEqual(argv[argv.index("--allowedTools") + 1], "Bash(deez super *)")
+        self.assertEqual(argv[argv.index("--allowedTools") + 1], "Bash(deez super-clanker *)")
         self.assertEqual(argv[argv.index("--permission-mode") + 1], "dontAsk")
         self.assertEqual(argv[argv.index("--output-format") + 1], "json")
         self.assertIn("--strict-mcp-config", argv)
@@ -175,7 +175,7 @@ class RouterTest(unittest.TestCase):
     def test_dispatch_from_router_creates_ticket(self):
         request = self.ask("fix the typo in README line 1")
         self.router_runs(
-            f"deez super dispatch {request.id} --slug fix-readme-typo --playbook bug-fix "
+            f"deez super-clanker dispatch {request.id} --slug fix-readme-typo --playbook bug-fix "
             f">> {self.out}"
         )
 
@@ -242,7 +242,7 @@ class RouterTest(unittest.TestCase):
     def test_undecided_batch_trigger_becomes_unavailable(self):
         handled = self.ask("fix the typo")
         forgotten = self.ask("and the other typo", thread="other")
-        self.router_runs(f"deez super ignore {handled.id} --reason 'chatter' >> {self.out}")
+        self.router_runs(f"deez super-clanker ignore {handled.id} --reason 'chatter' >> {self.out}")
 
         result = self.wake()
 
@@ -261,7 +261,7 @@ class RouterTest(unittest.TestCase):
             first.id, "fix-typo", "explicit", "terminal:default", [], "unset", "asked"
         )
         followup = self.ask(f"also the changelog for {ticket.id}", thread="side")
-        self.router_runs(f"deez super attach {followup.id} {ticket.id} >> {self.out}")
+        self.router_runs(f"deez super-clanker attach {followup.id} {ticket.id} >> {self.out}")
 
         result = self.wake()
 
@@ -332,7 +332,7 @@ class RouterTest(unittest.TestCase):
 
         self.assertEqual(
             ignore_after_accept,
-            (2, "", f"deez: {accepted.id} is already decided; see deez super show {accepted.id}\n"),
+            (2, "", f"deez: {accepted.id} is already decided; see deez super-clanker show {accepted.id}\n"),
         )
         self.assertEqual(dispatch_after_ignore[0], 2)
         self.assertEqual(attach_after_ignore[0], 2)
@@ -397,7 +397,7 @@ class RouterTest(unittest.TestCase):
     def test_wake_verb_prints_summary(self):
         self.assertEqual(self.deez("wake"), (0, "nothing to wake\n", ""))
         request = self.ask("fix the typo")
-        self.router_runs(f"deez super ignore {request.id} --reason chatter > /dev/null")
+        self.router_runs(f"deez super-clanker ignore {request.id} --reason chatter > /dev/null")
 
         code, out, _err = self.deez("wake")
 
@@ -455,7 +455,7 @@ class RouterTest(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertEqual(err.splitlines(), [
             "route line 1: wake is not routable",
-            "route line 2: deez super ignore: error: the following arguments are required: "
+            "route line 2: deez super-clanker ignore: error: the following arguments are required: "
             "--reason",
         ])
         self.assertEqual(out, f"3: ignored {request.id}\n")
@@ -520,8 +520,8 @@ class RouterTest(unittest.TestCase):
     def test_wake_records_permission_denials(self):
         request = self.ask("fix the typo")
         chained = (
-            f"deez super ignore {request.id} --reason chatter & "
-            "deez super reply terminal:default --text done"
+            f"deez super-clanker ignore {request.id} --reason chatter & "
+            "deez super-clanker reply terminal:default --text done"
         )
         outcome = {
             "result": "ok", "session_id": "s-1", "total_cost_usd": 0.002,
@@ -531,7 +531,7 @@ class RouterTest(unittest.TestCase):
         }
         self.claude.write_text(
             "#!/bin/sh\n"
-            f"deez super ignore {request.id} --reason chatter > /dev/null\n"
+            f"deez super-clanker ignore {request.id} --reason chatter > /dev/null\n"
             f"cat <<'OUTCOME'\n{json.dumps(outcome)}\nOUTCOME\n",
             encoding="utf-8",
         )
@@ -548,7 +548,7 @@ class RouterTest(unittest.TestCase):
     def test_router_prompt_forbids_chaining_and_self_attach(self):
         prompt = router.agent_prompt(HUB)
 
-        for phrase in ("deez super route <<", "&&", "never", "ignore"):
+        for phrase in ("deez super-clanker route <<", "&&", "never", "ignore"):
             self.assertIn(phrase, prompt)
         self.assertLess(len(prompt.split()), 400)
 
@@ -556,7 +556,7 @@ class RouterTest(unittest.TestCase):
         prompt = router.agent_prompt(HUB)
 
         cited = prompt.index("`--rule <name>`")
-        checked = prompt.index("`deez super rules`")
+        checked = prompt.index("`deez super-clanker rules`")
         self.assertLess(cited, checked)
         self.assertNotIn("Pick the clanker-mode playbook", prompt[cited:checked])
         self.assertIn("unknown rule", prompt[checked:])

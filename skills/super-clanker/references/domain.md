@@ -15,7 +15,7 @@ metadata, never an object.
 | Report | `r_` | progress, waiting, ready, blocked, failed or dropped. `waiting` carries one question. |
 
 Also: wake `w_`, reply `p_`, Worker input `i_`, Watchdog tick `x_`.
-`deez super show <id>` prints any of them with its neighbours.
+`deez super-clanker show <id>` prints any of them with its neighbours.
 
 ## Ticket
 

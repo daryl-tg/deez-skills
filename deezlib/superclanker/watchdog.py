@@ -18,7 +18,7 @@ from deezlib.superclanker.domain import (
 from deezlib.superclanker.store import SuperError
 
 SESSION_FILE = "watchdog.session"
-ALLOWED_TOOLS = ("Bash(deez super *)",)
+ALLOWED_TOOLS = ("Bash(deez super-clanker *)",)
 STALLED_REPORTS = (ReportKind.failed, ReportKind.blocked)
 LOOKBACK = timedelta(hours=24)
 WAKES_IN_LOOKBACK = 5000
@@ -211,7 +211,7 @@ def _orphans(store, root):
 
 def _more(items, fallback):
     ids = [record_id for refs, _line in items for record_id in refs]
-    return "; ".join(f"deez super show {record_id}" for record_id in ids) or fallback
+    return "; ".join(f"deez super-clanker show {record_id}" for record_id in ids) or fallback
 
 
 def _anomalies(store, config, root, now):
@@ -220,15 +220,15 @@ def _anomalies(store, config, root, now):
     return [
         (kind, items, _more(items, fallback))
         for kind, items, fallback in (
-            ("daemon down", _daemon_down(root, config, now), "deez super log launchd"),
+            ("daemon down", _daemon_down(root, config, now), "deez super-clanker log launchd"),
             ("unreaped turn", _unreaped(store, root), None),
             ("long turn", _long_turns(store, config, now), None),
             ("stalled ticket", _stalled(tickets), None),
             ("unanswered question", _unanswered(store, config, tickets, now), None),
             ("undecided", _undecided(store, wakes, now), None),
             ("failed wakes", _failed_wakes(wakes), None),
-            ("source errors", _source_errors(store, config), "deez super log daemon"),
-            ("orphan worktree", _orphans(store, root), "deez super status"),
+            ("source errors", _source_errors(store, config), "deez super-clanker log daemon"),
+            ("orphan worktree", _orphans(store, root), "deez super-clanker status"),
         )
         if items
     ]

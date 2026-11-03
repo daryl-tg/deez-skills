@@ -97,7 +97,7 @@ class WatchdogTest(unittest.TestCase):
     def deez(self, *argv):
         out, err = StringIO(), StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = cli.main(["super", *argv])
+            code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
 
     def argvs(self):
@@ -157,7 +157,7 @@ class WatchdogTest(unittest.TestCase):
             f"{assignment_id}.json has no .reaped marker",
             block(digest, "unreaped turn"),
         )
-        self.assertIn(f"more: deez super show {assignment_id}", block(digest, "unreaped turn"))
+        self.assertIn(f"more: deez super-clanker show {assignment_id}", block(digest, "unreaped turn"))
 
         workers.reap(self.store, self.root)
 
@@ -175,7 +175,7 @@ class WatchdogTest(unittest.TestCase):
             digest,
             "## stalled ticket\n"
             f"{ticket_id} fix-readme-typo: {assignment_id} ended with failed {report_id}: boom\n"
-            f"more: deez super show {ticket_id}; deez super show {assignment_id}",
+            f"more: deez super-clanker show {ticket_id}; deez super-clanker show {assignment_id}",
         )
 
         self.store.retry(ticket_id)
@@ -248,7 +248,7 @@ class WatchdogTest(unittest.TestCase):
         self.assertIn(f"router made no decision in {second.wake_id}", block(self.digest(), "undecided"))
 
         self.deez("requeue", asked.id)
-        os.environ["FAKE_CLAUDE_SCRIPT"] = f"deez super ignore {asked.id} --reason chatter"
+        os.environ["FAKE_CLAUDE_SCRIPT"] = f"deez super-clanker ignore {asked.id} --reason chatter"
         router.wake(self.store, self.settings(), self.root, HUB)
 
         self.assertEqual(self.store.queued(), [])
@@ -382,7 +382,7 @@ class WatchdogTest(unittest.TestCase):
 
         (argv,) = self.argvs()
         allowed = argv[argv.index("--allowedTools") + 1:argv.index("--permission-mode")]
-        self.assertEqual(allowed, ["Bash(deez super *)"])
+        self.assertEqual(allowed, ["Bash(deez super-clanker *)"])
 
     def test_tick_records_denials(self):
         chained = "launchctl list com.dboon.super-clanker; tail -n 40 log/launchd.err.log"
@@ -409,11 +409,11 @@ class WatchdogTest(unittest.TestCase):
         self.assertNotIn("launchctl", prompt)
         self.assertNotIn("claude logs", prompt)
         for phrase in (
-            "`;`", "`&&`", "`&`", "`|`", "deez super log launchd", "deez super kick daemon",
-            "deez super log <assignment>", "deez super log daemon",
+            "`;`", "`&&`", "`&`", "`|`", "deez super-clanker log launchd", "deez super-clanker kick daemon",
+            "deez super-clanker log <assignment>", "deez super-clanker log daemon",
         ):
             self.assertIn(phrase, prompt)
-        self.assertLess(prompt.index("deez super log launchd"), prompt.index("deez super kick daemon"))
+        self.assertLess(prompt.index("deez super-clanker log launchd"), prompt.index("deez super-clanker kick daemon"))
         self.assertLess(len(prompt.split()), 300)
 
     def test_failed_wakes_clear_after_a_successful_wake(self):
@@ -427,7 +427,7 @@ class WatchdogTest(unittest.TestCase):
         first = wake(1)
         self.assertEqual(
             block(self.digest(), "failed wakes"),
-            f"1 wake failed in 24 hours: {first} exit 1\nmore: deez super show {first}",
+            f"1 wake failed in 24 hours: {first} exit 1\nmore: deez super-clanker show {first}",
         )
 
         wake(0)
@@ -437,7 +437,7 @@ class WatchdogTest(unittest.TestCase):
         self.assertEqual(
             block(self.digest(), "failed wakes"),
             f"1 wake failed in 24 hours: {later_failure} exit 2\n"
-            f"more: deez super show {later_failure}",
+            f"more: deez super-clanker show {later_failure}",
         )
 
     def test_kick_runs_kickstart_for_the_daemon_label(self):
@@ -451,8 +451,8 @@ class WatchdogTest(unittest.TestCase):
         out = StringIO()
         with redirect_stdout(out):
             codes = (
-                cli._super_kick(self.root, parse(["super", "kick"]), run=run),
-                cli._super_kick(self.root, parse(["super", "kick", "watchdog"]), run=run),
+                cli._super_kick(self.root, parse(["super-clanker", "kick"]), run=run),
+                cli._super_kick(self.root, parse(["super-clanker", "kick", "watchdog"]), run=run),
             )
 
         uid = os.getuid()
@@ -545,7 +545,7 @@ class WatchdogTest(unittest.TestCase):
 
         written = plistlib.loads(watchdog_plist.read_bytes())
         self.assertEqual(written["Label"], "com.dboon.super-watchdog")
-        self.assertEqual(written["ProgramArguments"], [str(HUB / "bin" / "deez"), "super", "watchdog"])
+        self.assertEqual(written["ProgramArguments"], [str(HUB / "bin" / "deez"), "super-clanker", "watchdog"])
         self.assertEqual((written["StartInterval"], written["RunAtLoad"]), (900, False))
         self.assertNotIn("KeepAlive", written)
         self.assertEqual(written["StandardOutPath"], str(self.root / "log" / "watchdog.out.log"))

@@ -24,7 +24,7 @@ def _job(label, verb, log_name, hub_root, root, home):
     root, home = Path(root), Path(home)
     return {
         "Label": label,
-        "ProgramArguments": [str(Path(hub_root) / "bin" / "deez"), "super", verb],
+        "ProgramArguments": [str(Path(hub_root) / "bin" / "deez"), "super-clanker", verb],
         "WorkingDirectory": str(root),
         "StandardOutPath": str(root / "log" / f"{log_name}.out.log"),
         "StandardErrorPath": str(root / "log" / f"{log_name}.err.log"),

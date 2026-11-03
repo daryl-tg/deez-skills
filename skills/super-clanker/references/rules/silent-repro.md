@@ -10,4 +10,4 @@ reports `ready`. Nothing is delivered without the operator's word.
 
 The rule stays in `observe` until the operator has reviewed the recorded
 `would accept` decisions and runs
-`deez super policy set silent-repro --mode auto`.
+`deez super-clanker policy set silent-repro --mode auto`.

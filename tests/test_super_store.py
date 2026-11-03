@@ -197,7 +197,7 @@ class SuperCliTest(unittest.TestCase):
         out, err = StringIO(), StringIO()
         with mock.patch.dict(os.environ, {"DEEZ_SUPER_STATE": self.tmp.name}), \
                 redirect_stdout(out), redirect_stderr(err):
-            code = cli.main(["super", *argv])
+            code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
 
     def test_ask_prints_the_trigger_and_show_prints_its_thread(self):

@@ -48,7 +48,7 @@ def build_parser():
     checkpoint_parser.add_argument("--playbook", required=True)
     checkpoint_parser.add_argument("--resume-note", required=True, type=Path)
 
-    super_parser = subparsers.add_parser("super", help="Talk to the super-clanker store.")
+    super_parser = subparsers.add_parser("super-clanker", help="Talk to the super-clanker store.")
     super_verbs = super_parser.add_subparsers(dest="verb", required=True)
     ask_parser = super_verbs.add_parser("ask", help="Hand the router a request from this terminal.")
     ask_parser.add_argument("text", nargs="+")
@@ -336,7 +336,7 @@ def _super_decision_kinds(store, trigger_id):
 def _super_already_decided(trigger_id):
     from deezlib.superclanker.store import SuperError
 
-    return SuperError(f"{trigger_id} is already decided; see deez super show {trigger_id}")
+    return SuperError(f"{trigger_id} is already decided; see deez super-clanker show {trigger_id}")
 
 
 def _super_playbook(name):
@@ -487,7 +487,7 @@ def _route_args(parser, line):
     complaint = io.StringIO()
     try:
         with redirect_stdout(complaint), redirect_stderr(complaint):
-            return parser.parse_args(["super", *words])
+            return parser.parse_args(["super-clanker", *words])
     except SystemExit:
         said = complaint.getvalue().strip().splitlines() or [f"cannot parse {line}"]
         raise SuperError(said[-1]) from None
@@ -1015,7 +1015,7 @@ COMMANDS = {
     "clanker-hook": cmd_clanker_hook,
     "clanker-hooks": cmd_clanker_hooks,
     "clanker-checkpoint": cmd_clanker_checkpoint,
-    "super": cmd_super,
+    "super-clanker": cmd_super,
     "link": cmd_link,
     "doctor": cmd_doctor,
     "index": cmd_index,

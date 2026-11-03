@@ -2,7 +2,7 @@
 
 ## One daemon pass
 
-launchd keeps `deez super daemon` alive. Each pass, about every five seconds:
+launchd keeps `deez super-clanker daemon` alive. Each pass, about every five seconds:
 
 1. Poll each enabled source that is due.
 2. Fan out queued Triggers on subscribed Threads to their Tickets.
@@ -13,7 +13,7 @@ launchd keeps `deez super daemon` alive. Each pass, about every five seconds:
 7. Send replies: terminal ones to the inbox, forge ones through `gh` or `glab`.
 8. Write the heartbeat.
 
-`deez super pass` runs one pass by hand.
+`deez super-clanker pass` runs one pass by hand.
 
 ## Backoff
 
@@ -24,7 +24,7 @@ A wake running past 600 seconds is expired.
 
 ## The Watchdog
 
-launchd runs `deez super watchdog` every `watchdog.interval_seconds`. It wakes
+launchd runs `deez super-clanker watchdog` every `watchdog.interval_seconds`. It wakes
 its model only when the digest is not empty. The digest kinds, in order:
 
 1. daemon down
@@ -37,7 +37,7 @@ its model only when the digest is not empty. The digest kinds, in order:
 8. source errors
 9. orphan worktree
 
-`deez super watchdog --digest` prints it without a model call.
+`deez super-clanker watchdog --digest` prints it without a model call.
 
 ## Paths
 
@@ -54,13 +54,13 @@ Under the state root:
 
 ## Recovery
 
-- **Daemon down.** Read `deez super log launchd` for the last error. Then run
-  `deez super kick daemon`.
-- **Stalled ticket.** Read `deez super show <ticket>` and its last report.
-  Then run `deez super retry <ticket>`.
-- **Unreaped turn.** Run `deez super reap`.
+- **Daemon down.** Read `deez super-clanker log launchd` for the last error. Then run
+  `deez super-clanker kick daemon`.
+- **Stalled ticket.** Read `deez super-clanker show <ticket>` and its last report.
+  Then run `deez super-clanker retry <ticket>`.
+- **Unreaped turn.** Run `deez super-clanker reap`.
 - **Undecided trigger.** It was recorded `unavailable`. Run
-  `deez super requeue <trigger>`, and the next pass wakes the Router with it.
+  `deez super-clanker requeue <trigger>`, and the next pass wakes the Router with it.
 - **Expired Router session.** Every wake fails while `router.session` names a
   session `claude --resume` cannot find. Delete that file. The next wake opens
   a fresh session with the queued backlog.
