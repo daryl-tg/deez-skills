@@ -314,14 +314,17 @@ the engine read still passes, the a11y snapshot still returns, and the PNG shows
 last step's dialog over the chart you meant to capture. Check the dialog count
 and the visible text before every screenshot, and open the PNG afterwards.
 
-**A guest-walled click leaves a sign-in dialog with no close button — press
+**A guest-walled click leaves a sign-in card with no close button — press
 `Escape`.** Any control behind `promptGuestLogin` (multi-chart layouts, the
-Terminal toggle, the editor's write paths) raises the sign-in wall in the same
-`.dialog-style.dialog-overlay` shell the signup modal uses, and it reads as
-*"Back to log in / Forgot your password?"*. Its button list carries no close
-control, which reads as undismissable and has cost a lane reload per wall;
-`Escape` clears it outright — `isAuthenticationDialogOpen` goes `false`, the
-overlay count returns to `0`, and the next click lands. Probe
+Watchlist seat, the editor's write paths) raises the sign-in card in the same
+`.dialog-style.dialog-overlay` shell the signup modal uses, as a sheet with the
+extra class `login-signup-overlay`, headed by the walled feature's name over
+*"Sign in or create an account"*. Its button list carries no close control,
+which reads as undismissable and has cost a lane reload per wall; `Escape`
+clears it — `isAuthenticationDialogOpen` goes `false` and the next click
+lands. The card leaves through an animation, so on a tab that has drifted
+hidden it stays in the DOM as `dialog-style--leaving` and the overlay count
+reads `1` until the tab is visible again. Probe
 `[data-testid=guest-signup-modal-close-btn]` to tell the two overlays apart:
 absent on the wall, present on the signup modal.
 
@@ -392,7 +395,7 @@ while reproducing:
 
 It says whether the frontend did not ask, the worker did not answer, the result
 was superseded, the adapter rejected it, or the main thread was blocked. The
-runbook is `src/docs/debugging-diagnostics.md`; the build-free probe with
+runbook is `docs/features/diagnostics/debugging-diagnostics.md`; the build-free probe with
 `__qa.profile` / `__qa.runScenario` is `qa/chart-load-probe.js`.
 
 ## Helpers
