@@ -377,6 +377,17 @@ In a channel, open **More channel actions** (the header `…`). Its menu has 14 
 
 `find role menuitem click --name "Invite agent"` missed the item once while the menu was still opening. Take a snapshot and click the item by its ref instead. Driven on `/rooms/` and `/chat/` 2026-10-28 at `2dd7aad1` (frames 13, 42). The wired-badge state, the consent card and the **Channel agents** panel need a daemon with a wired badge.
 
+### The Agents page on /chat/ through the desk (added 2026-11-03, branch `daryl/agents-cloud-parity`)
+
+Not on main yet. On this branch the hosted `/chat/` Agents page reads and drives the owner's agents on their own daemon over Remote Control, with nothing desk-only. Every roster RPC has a `roster.*` operation name (`packages/rooms-client/src/roster/remote-routes.ts`, monorepo `c7c8c6f95`), the cloud host's roster transports send them through `remoteOperation` (`apps/cloud/src/lib/roster-desk.ts`), and roster support on `/chat/` comes from `roster.capabilities` instead of `/healthz` (`packages/chat-ui/src/lib/roster-support-state.ts`, `roster-desk-support.ts`). `/rooms` is unchanged.
+
+- **What a user sees on `/chat/agents`.** The desk's agents in the Map and Grid; **Templates** and **New agent** enabled; `your om` reads idle when the desk answers. The brain chips wear the om mark (**OM daemon**) and the official Claude and OpenAI marks (**Claude Code**, **Codex**; faded when not set up).
+- **Desk offline.** "Your desk is offline. Your agents load when om at your desk is running." within about 5 s of the lane stopping; it recovers by itself about 10 s after the desk returns. Not opted in reads "Remote control is off at your desk. Turn it on with om agent remote enable."
+- **Driven 2026-11-03 on the branch rig** (`/Users/dboon/Documents/dev-notes/om-agents-cloud-parity/rig/README.md`: relay 18120, store 18121, lane 18123, fake model 18124, cloud vite 4178 with `/chat/api` → store): **Run explain** paused and resumed explain on the desk; **Try it** returned the reply and three checks; **Check routing** ran `roster.instances.eval` ("Routes correctly 67%"); **Allow** granted explain into **ACP Rig / ops** ("explain can read and reply in ACP Rig / ops"); `@explain what is a funding rate` posted in `#general` from `/chat/` got explain's reply threaded under it within 3 s (run `door: mention`). `/rooms` Agents matched origin/main by pixel diff (60 px, status dots). Evidence: `http://127.0.0.1:8098/agents-cloud-parity/u7-r5/` (and `u7-r3`).
+- **Pending live (tests only):** work-run live polling (3 s, at most three runs), run Pause and Steer, vault and catalog writes, Needs-you decisions and **File as source** on `/chat/` (the rig had no work runs, vault, inbox items or room with history for them).
+
+Rig gotchas: run the cloud vite from the realpath `/Users/dboon/gitlab/...` (a `/Gitlab/` path splits vite's module graph and the Remote Control registry reads empty, so every operation answers `remote_offline` with zero frames); a fake model must send `post_reply` with `room` and `replyTo` or the desk refuses "Roster posts must stay in room <id>"; the first sidebar load marked never-read rooms `joined:false` (fixed on the branch at chat `c3f5ced0`), which empties the Allow picker.
+
 ### Agent page panels and Fleet health (added 2026-10-31)
 
 On `agent-center-fixture.html`, **Grid** ends in a `details.agents-health`
