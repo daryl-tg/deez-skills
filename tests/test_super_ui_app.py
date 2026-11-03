@@ -69,10 +69,11 @@ class Rig:
             return VerbResult(argv, 0, f"LOG-{argv[3]}", "")
         return VerbResult(argv, 0, "ok", "")
 
-    def app(self):
+    def app(self, **options):
+        options.setdefault("protect", lambda table: set())
         return BoardApp(
             Path("/state"), snapshot_fn=self.snapshot_fn, verb=self.verb, deez=DEEZ,
-            clock=self.clock, refresh_s=3600,
+            clock=self.clock, refresh_s=3600, **options,
         )
 
 
@@ -307,7 +308,7 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
         async with rig.app().run_test() as pilot:
             await settle(pilot)
             self.assertIn(text, plain(pilot.app, "#router-text"))
-            self.assertIn(text, plain(pilot.app, "#memory-text"))
+            self.assertIn(text, " ".join(str(cell) for cell in pilot.app.query_one("#memory-rows").get_row_at(0)))
             self.assertIn(text, plain(pilot.app, "#sessions-text"))
             self.assertIn(text, plain(pilot.app, "#report-text"))
             self.assertIn("[b]slug[/b]", " ".join(labels(pilot.app)))
@@ -390,6 +391,44 @@ class BoardTest(unittest.IsolatedAsyncioTestCase):
             await until(pilot, lambda: "LOG-a_2" in plain(pilot.app, "#log-text"))
             self.assertNotIn("LOG-a_1", plain(pilot.app, "#log-text"))
         self.assertEqual([call[3] for call in rig.calls if call[2] == "log"], ["a_1", "a_2"])
+
+
+@unittest.skipUnless(TEXTUAL, "textual not installed")
+class AlertTest(unittest.IsolatedAsyncioTestCase):
+    async def test_no_alert_on_first_snapshot(self):
+        rig = Rig(snapshot([ticket("k_9", needs_you=True)]))
+        rings, windows = [], []
+        with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
+            async with rig.app(bell=lambda: rings.append(1), tmux=windows.append, in_tmux=lambda: True).run_test() as pilot:
+                await settle(pilot)
+        self.assertEqual((rings, windows), ([], []))
+
+    async def test_bell_and_rename_when_needs_you_rises(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        rings, windows = [], []
+        with mock.patch.dict("os.environ", {"TMUX_PANE": "%7"}):
+            async with rig.app(bell=lambda: rings.append(1), tmux=windows.append, in_tmux=lambda: True).run_test() as pilot:
+                await settle(pilot)
+                pilot.app.apply_snapshot(snapshot([ticket("k_1"), ticket("k_9", needs_you=True)]))
+                await settle(pilot)
+                self.assertEqual(len(rings), 1)
+                self.assertEqual(windows, [["tmux", "rename-window", "-t", "%7", "board(!1)"]])
+                pilot.app.apply_snapshot(snapshot([ticket("k_1"), ticket("k_9", needs_you=True)]))
+                await settle(pilot)
+                self.assertEqual(len(rings), 1)
+                pilot.app.apply_snapshot(snapshot([ticket("k_1")]))
+                await settle(pilot)
+        self.assertEqual(windows[-1], ["tmux", "rename-window", "-t", "%7", "board"])
+        self.assertEqual(len(windows), 2)
+
+    async def test_outside_tmux_rings_without_rename(self):
+        rig = Rig(snapshot([ticket("k_1")]))
+        rings, windows = [], []
+        async with rig.app(bell=lambda: rings.append(1), tmux=windows.append, in_tmux=lambda: False).run_test() as pilot:
+            await settle(pilot)
+            pilot.app.apply_snapshot(snapshot([ticket("k_9", needs_you=True)]))
+            await settle(pilot)
+        self.assertEqual((len(rings), windows), (1, []))
 
 
 @unittest.skipUnless(TEXTUAL, "textual not installed")

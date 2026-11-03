@@ -322,7 +322,7 @@ def _assemble(root, previous, store, moment, taken_at, mid, slow,
     return replace(base, **values)
 
 
-def _attention(snapshot):
+def attention_count(snapshot):
     return (
         sum(row.needs_you for row in snapshot.rows)
         + sum(len(items) for _kind, items in snapshot.anomalies)
@@ -334,4 +334,4 @@ def needs_you_rose(previous, current):
         return False
     if (previous.held is None) != (current.held is None):
         return True
-    return _attention(current) > _attention(previous)
+    return attention_count(current) > attention_count(previous)

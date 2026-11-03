@@ -16,7 +16,11 @@ from textual.widgets import DataTable, Footer, Input, Label, Static, TabbedConte
 
 from deezlib.superclanker import procs
 from deezlib.superclanker.store import state_root
-from deezlib.superclanker.ui_model import Cadence, build_snapshot
+from deezlib.superclanker.ui_format import header_text, report_text, ticket_label
+from deezlib.superclanker.ui_memory import MemoryMixin, memory_table, protect_table
+from deezlib.superclanker.ui_model import Cadence, attention_count, build_snapshot, needs_you_rose
+from deezlib.superclanker.ui_takeover import TakeoverMixin, run_tmux
+from deezlib.superclanker.workers import alive
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 VERB_TIMEOUT_S = 60
@@ -27,7 +31,6 @@ LOG_LINES = 80
 STDERR_TAIL_LINES = 3
 CONFIRMED_VERBS = ("stop", "kill", "retry", "kick")
 ROUTER_LOG_KEEP = 50
-KB_PER_GB = 1024 * 1024
 STOP_WARNING = (
     "Stop {ticket}? The worktree is removed (if clean) and any process in it, "
     "a takeover session included, is killed."
@@ -114,65 +117,7 @@ class HelpScreen(ModalScreen):
         self.dismiss(None)
 
 
-def _gb(kb):
-    return f"{kb / KB_PER_GB:.1f}"
-
-
-def _age(seconds):
-    for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
-        if seconds >= size:
-            return f"{seconds // size}{unit}"
-    return f"{seconds}s"
-
-
-def _tree_kb(snap, groups):
-    return sum(procs.tree_rss_kb(snap.table, pids) for pids in groups)
-
-
-def header_text(snap):
-    if not snap.initialised:
-        return "daemon not initialised"
-    health = snap.health
-    if health is None:
-        daemon = "daemon ?"
-    elif health.alive and health.heartbeat_age_s is not None:
-        daemon = f"daemon ok {health.heartbeat_age_s}s"
-    else:
-        daemon = "daemon DOWN"
-    free = "?" if snap.free_pct is None else f"{snap.free_pct}%"
-    spend = "?" if snap.spend_today is None else f"${snap.spend_today:.2f}"
-    anomalies = sum(len(items) for _kind, items in snap.anomalies)
-    stale = f"  STALE ({snap.error})" if snap.stale else ""
-    attribution = snap.attribution
-    workers = attribution.workers if attribution else {}
-    peers = attribution.peers if attribution else {}
-    other = attribution.other if attribution else set()
-    return "\n".join([
-        f"mem {free} free · held: {'no' if snap.held is None else 'yes'} · {daemon} · "
-        f"watchdog {anomalies} · today {spend}{stale}",
-        f"workers {len(workers)}/{snap.max_running} · {_gb(_tree_kb(snap, workers.values()))} GB   "
-        f"claude peers {len(peers)} · {_gb(_tree_kb(snap, peers.values()))} GB   "
-        f"other {_gb(_tree_kb(snap, [other]))} GB",
-    ])
-
-
-def ticket_label(row):
-    size = "-" if row.rss_kb is None else f"{_gb(row.rss_kb)} GB"
-    ask = f'  "{row.question}"' if row.question else ""
-    return (
-        f"{row.ticket_id}  {row.state}  {row.worker_state or '-'}  {row.slug}  "
-        f"{row.last_report or '-'}  {size}  {_age(row.age_s)}{ask}"
-    )
-
-
-def report_text(row):
-    return "\n".join([
-        f"{row.ticket_id}  {row.slug}  {row.state}", f"repo {row.repo}  worker {row.worker_state or '-'}",
-        f"last report: {row.last_report or '-'}", f"question: {row.question or '-'}",
-    ])
-
-
-class BoardApp(App):
+class BoardApp(MemoryMixin, TakeoverMixin, App):
     CSS = """
     #header { height: 3; padding: 0 1; background: $boost; }
     #notice { color: $warning; padding: 0 1; }
@@ -188,6 +133,8 @@ class BoardApp(App):
         Binding("enter", "show", "show"),
         Binding("s", "stop", "stop"),
         Binding("k", "kill", "kill"),
+        Binding("t", "takeover", "takeover"),
+        Binding("x", "memory_kill", "kill process"),
         Binding("R", "retry", "retry"),
         Binding("Q", "requeue", "requeue"),
         Binding("K", "kick", "kick"),
@@ -199,8 +146,14 @@ class BoardApp(App):
     ]
 
     def __init__(self, root, *, snapshot_fn=build_snapshot, verb=run_verb,
-                 deez=REPO_ROOT / "bin/deez", clock=time.monotonic, refresh_s=REFRESH_S):
+                 deez=REPO_ROOT / "bin/deez", clock=time.monotonic, refresh_s=REFRESH_S,
+                 protect=protect_table, kill_tree=procs.kill_tree, tmux=run_tmux,
+                 in_tmux=lambda: "TMUX" in os.environ, bell=None, pid_alive=alive, sleep=time.sleep):
         super().__init__()
+        self.init_memory(protect, kill_tree)
+        self.init_takeover(tmux, in_tmux, pid_alive, sleep)
+        self.ring = bell or self.bell
+        self.alerted = False
         self.root = Path(root)
         self.snapshot_fn = snapshot_fn
         self.verb = verb
@@ -232,7 +185,7 @@ class BoardApp(App):
                 yield Static("", id="router-text", markup=False)
                 yield Input(placeholder="ask the Router", id="ask")
             with TabPane("Memory", id="memory"):
-                yield Static("", id="memory-text", markup=False)
+                yield memory_table()
             with TabPane("Sessions", id="sessions"):
                 yield Static("", id="sessions-text", markup=False)
         yield Footer()
@@ -265,12 +218,28 @@ class BoardApp(App):
 
     def apply_snapshot(self, snap):
         self.refreshing = False
-        self.snap = snap
+        previous, self.snap = self.snap, snap
+        self.alert(previous, snap)
+        self.refresh_protection()
         self.query_one("#header", Static).update(header_text(snap))
         self.query_one("#notice", Static).update("" if snap.initialised else "daemon not initialised")
         self.render_rows()
         self.render_tabs()
         self.maybe_reload_log()
+
+    def alert(self, previous, snap):
+        count = attention_count(snap)
+        pane = os.environ.get("TMUX_PANE")
+        title = None
+        if needs_you_rose(previous, snap):
+            self.ring()
+            title = f"board(!{max(count, 1)})"
+            self.alerted = True
+        elif count == 0 and self.alerted:
+            title = "board"
+            self.alerted = False
+        if title and pane and self.in_tmux():
+            self.tmux(["tmux", "rename-window", "-t", pane, title])
 
     def visible_entries(self):
         snap = self.snap
@@ -299,7 +268,8 @@ class BoardApp(App):
     def entry_label(self, entry):
         kind, value = entry
         if kind == "ticket":
-            return f"! {ticket_label(value)}" if value.needs_you else ticket_label(value)
+            label = ticket_label(value) + (" (taken over)" if value.ticket_id in self.taken_over else "")
+            return f"! {label}" if value.needs_you else label
         if kind == "anomaly":
             return f"! anomaly {value[0]}  {value[2]}"
         return value
@@ -359,11 +329,13 @@ class BoardApp(App):
         entry = self.current_entry()
         return entry[1] if entry and entry[0] == "anomaly" else None
 
-    def on_data_table_row_selected(self, _event):
-        if self.current_ticket():
+    def on_data_table_row_selected(self, event):
+        if event.data_table.id == "rows" and self.current_ticket():
             self.action_show()
 
-    def on_data_table_row_highlighted(self, _event):
+    def on_data_table_row_highlighted(self, event):
+        if event.data_table.id != "rows":
+            return
         selected = self.current_key()
         if selected != self.selected:
             self.selected = selected
@@ -385,23 +357,10 @@ class BoardApp(App):
         self.query_one("#router-text", Static).update(
             "\n".join([snap.inbox_text.rstrip(), *self.verb_log]).strip()
         )
-        self.query_one("#memory-text", Static).update(self.memory_text())
+        self.render_memory()
         self.query_one("#sessions-text", Static).update(
             "\n".join(f"{p.name}  {p.pid}  {p.status}  {p.cwd}" for p in snap.peers) or "no peer sessions"
         )
-
-    def memory_text(self):
-        attribution = self.snap.attribution
-        lines = []
-        for pid, rss_kb, command in self.snap.top:
-            group = "other"
-            if attribution:
-                if any(pid in pids for pids in attribution.workers.values()):
-                    group = "worker"
-                elif any(pid in pids for pids in attribution.peers.values()):
-                    group = "peer"
-            lines.append(f"{group:7} {pid:>7}  {_gb(rss_kb):>5} GB  {command}")
-        return "\n".join(lines) or "no processes"
 
     def maybe_reload_log(self):
         row = self.current_ticket()
@@ -445,8 +404,10 @@ class BoardApp(App):
         anomaly = self.current_anomaly()
         if action in ("reply", "note", "stop", "retry"):
             return row is not None and (action != "stop" or row.state == "open")
-        if action == "show":
+        if action in ("show", "takeover"):
             return row is not None
+        if action == "memory_kill":
+            return self.can_kill_memory()
         if action == "kill":
             return row is not None and row.worker_state == "running"
         if action == "requeue":
@@ -477,11 +438,10 @@ class BoardApp(App):
         self.refresh_snapshot()
 
     def confirm(self, text, argv):
-        def decided(yes):
-            if yes:
-                self.submit(argv)
+        self.ask(text, lambda: self.submit(argv))
 
-        self.push_screen(ConfirmScreen(text), decided)
+    def ask(self, text, then):
+        self.push_screen(ConfirmScreen(text), lambda yes: yes and then())
 
     def prompt(self, title, then):
         def answered(text):
