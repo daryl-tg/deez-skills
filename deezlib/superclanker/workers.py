@@ -153,12 +153,30 @@ def _model(config):
     return ["--model", config.workers.model] if config.workers.model else []
 
 
+ROUTE_YOURSELF = (
+    "No playbook was named. Pick it from the clanker-mode skill's playbook table, "
+    "as a clanker-mode lead does, and copy its steps into your todo list verbatim."
+)
+
+
+def _playbook_line(playbook):
+    if playbook is None:
+        return ROUTE_YOURSELF
+    return f"`{playbook}`, the playbook for this ticket. Copy its steps into your todo list verbatim."
+
+
+def brief_text(hub_root, fields):
+    return _template(hub_root, "super-worker-brief.md").format_map(
+        {**fields, "playbook": _playbook_line(fields.get("playbook"))}
+    )
+
+
 def _resume_note(ticket, goal, playbook, cwd, branch, brief):
     return "\n".join([
         f"# Resume note for {ticket.id}",
         "",
         f"- Goal: {goal}",
-        f"- Playbook: `{playbook}`",
+        f"- Playbook: {playbook or 'not named; chosen from the clanker-mode table'}",
         f"- Worktree: `{cwd}`",
         f"- Branch: {branch or 'none, scratch directory'}",
         "- Status: launched, no step done yet",
@@ -212,9 +230,7 @@ def launch(store, config, assignment_id, hub_root, root, dev_notes_root=None,
     origin = store.ticket_origin(ticket.id)
     inputs = store.undelivered_inputs(ticket.id)
     facts = store.inputs(ticket.id)
-    playbook = _noted(facts, "playbook") or str(
-        hub_root / "skills" / "clanker-mode" / "playbooks" / "feature.md"
-    )
+    playbook = _noted(facts, "playbook")
     repo = _noted(facts, "repo")
     cwd, branch = prepare_workspace(ticket, repo and Path(repo), ticket.slug, root)
     where = paths(root, dev_notes_root, ticket)
@@ -230,7 +246,7 @@ def launch(store, config, assignment_id, hub_root, root, dev_notes_root=None,
         "sender": mandate.sender or "-", "source": mandate.source,
         "created_at": mandate.created_at,
     }))
-    _write_atomic(brief, _template(hub_root, "super-worker-brief.md").format_map({
+    _write_atomic(brief, brief_text(hub_root, {
         "clanker_skill": hub_root / "skills" / "clanker-mode" / "SKILL.md",
         "playbook": playbook,
         "mandate_path": mandate_path,

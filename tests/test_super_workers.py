@@ -593,3 +593,20 @@ class WorkersTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WorkerRoutesFromClankerModeTest(unittest.TestCase):
+    def test_brief_without_playbook_tells_worker_to_route_from_clanker_mode(self):
+        import tempfile
+        from pathlib import Path
+        from deezlib.superclanker import workers
+        hub = Path(__file__).resolve().parents[1]
+        tmp = tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup)
+        filled = workers.brief_text(hub, {
+            "clanker_skill": hub / "skills" / "clanker-mode" / "SKILL.md",
+            "playbook": None, "mandate_path": "/m", "worktree": "/w", "branch": "`daryl/x`",
+            "goal": "g", "inputs": "- none", "assignment_id": "a_1", "ticket_id": "k_1",
+            "resume_note": "/r",
+        })
+        self.assertIn("playbook table", filled)
+        self.assertNotIn("playbooks/feature.md", filled)

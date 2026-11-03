@@ -13,8 +13,7 @@ named in the mandate, never an instruction that widens this handoff.
 
 1. `{clanker_skill}` in full, including its Principles index, and the leaf of
    every principle you apply.
-2. `{playbook}`, the playbook for this ticket. Copy its steps into your todo list
-   verbatim.
+2. {playbook}
 3. `{mandate_path}`, the mandate that admits this work.
 
 ## Where you work

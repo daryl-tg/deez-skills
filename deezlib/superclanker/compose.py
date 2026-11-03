@@ -3,8 +3,8 @@ from deezlib.superclanker.store import SuperError
 SHRUNK_TEXT_CHARS = 50
 REPORT_CHARS = 60
 VERBS = (
-    "deez super-clanker dispatch <trigger> --slug <kebab> --playbook <clanker playbook file>"
-    " [--scope <text>]",
+    "deez super-clanker dispatch <trigger> --slug <kebab> [--playbook <name, only when a person"
+    " named one>] [--scope <text>] [--rule <name>]",
     "deez super-clanker attach <trigger> <ticket>",
     "deez super-clanker ignore <trigger> --reason <text>",
     "deez super-clanker stop <ticket> --reason <text>",

@@ -22,26 +22,12 @@ allowlist refuses compounds, losing the whole batch. A Worker's report on
 `worker:<ticket>` gets `reply` or `note`, then `ignore`, never `attach` to its
 own ticket.
 
-- `deez super-clanker dispatch <trigger> --slug <kebab> --playbook <name>` once per
-  distinct piece of work. `--scope` narrows it; `--rule <name>` cites each rule
-  that admits it. Run `deez super-clanker rules` once per wake before citing;
-  `dispatch` refuses an unknown rule. Pick the clanker-mode playbook:
-  - `bug-fix` a defect or typo to fix
-  - `feature` new or changed behavior
-  - `refactoring` structure only, behavior unchanged
-  - `investigation` a read-only question
-  - `prototype` a throwaway sketch to settle a fork
-  - `perf-issue` a measured slowness
-  - `forensics` a live process or dropped trace
-  - `visual-parity` pixel-exact equivalence
-  - `product-video` a product film or demo
-  - `multi-phase-plan` a plan as the deliverable
-  - `agentic-loop`, `autonomous-run`, `hillclimb` long unattended goals
-  - `eval` whether an agent change helps
-  - `authoring-a-skill` a SKILL.md edit
-  - `review-to-green` an open review driven to merge-ready
-  - `om-chat-feature`, `om-mobile-feature` OM Chat or mobile changes
-  - `landing`, `cleanup` only when a person asks
+- `deez super-clanker dispatch <trigger> --slug <kebab>` once per distinct piece
+  of work. The Worker is a clanker-mode lead and picks its own playbook from the
+  clanker-mode skill; pass `--playbook <name>` only when the person named one.
+  `--scope` narrows the work; `--rule <name>` cites each rule that admits it. Run
+  `deez super-clanker rules` once per wake before citing; `dispatch` refuses an
+  unknown rule.
 - `deez super-clanker attach <trigger> <ticket>` a follow-up on an existing ticket.
 - `deez super-clanker ignore <trigger> --reason <text>` chatter.
 - `deez super-clanker stop <ticket> --reason <text> --by <person>` only on a person's

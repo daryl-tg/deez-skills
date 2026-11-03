@@ -565,3 +565,36 @@ class RouterTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WorkerRoutesItselfTest(unittest.TestCase):
+    def test_router_prompt_has_no_playbook_table(self):
+        from pathlib import Path
+        body = Path(__file__).resolve().parents[1].joinpath("agents", "super-router.md").read_text()
+        self.assertNotIn("Pick the clanker-mode playbook", body)
+        self.assertNotIn("`bug-fix` a defect", body)
+        self.assertIn("clanker-mode", body)
+
+    def test_dispatch_without_playbook_leaves_routing_to_the_worker(self):
+        import io, os, tempfile
+        from contextlib import redirect_stdout, redirect_stderr
+        from pathlib import Path
+        from unittest import mock
+        from deezlib import cli
+        from deezlib.superclanker.store import Store
+        from deezlib.superclanker.sources import terminal
+        tmp = tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / "sources.toml").write_text('[sources.terminal]\nsenders = ["tester"]\n')
+        store = Store.open(root)
+        trigger, _receipt = terminal.ask(store, "fix it", actor="tester")
+        store.close()
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.dict(os.environ, {"DEEZ_SUPER_STATE": str(root)}), \
+                redirect_stdout(out), redirect_stderr(err):
+            code = cli.main(["super-clanker", "dispatch", trigger.id, "--slug", "fix-it"])
+        self.assertEqual((code, err.getvalue()), (0, ""))
+        self.assertIn("playbook chosen by the worker", out.getvalue())
+        store = Store.open(root); self.addCleanup(store.close)
+        ticket_id = out.getvalue().split("ticket ")[1].split()[0]
+        self.assertEqual([i.text for i in store.inputs(ticket_id) if i.text.startswith("playbook:")], [])

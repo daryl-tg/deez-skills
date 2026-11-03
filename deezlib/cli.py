@@ -65,7 +65,7 @@ def build_parser():
     dispatch_parser = super_verbs.add_parser("dispatch", help="Accept a trigger as a ticket.")
     dispatch_parser.add_argument("trigger")
     dispatch_parser.add_argument("--slug", required=True)
-    dispatch_parser.add_argument("--playbook", required=True)
+    dispatch_parser.add_argument("--playbook")
     dispatch_parser.add_argument("--scope")
     dispatch_parser.add_argument("--rule", action="append", default=[])
     dispatch_parser.add_argument("--repo", type=Path)
@@ -385,7 +385,7 @@ def _super_dispatch(store, args):
     root, settings = _super_settings()
     if not KEBAB.fullmatch(args.slug):
         raise SuperError(f"slug {args.slug!r} is not kebab-case")
-    playbook = _super_playbook(args.playbook)
+    playbook = _super_playbook(args.playbook) if args.playbook else None
     repo = args.repo and args.repo.expanduser().resolve()
     if repo and not repo.is_dir():
         raise SuperError(f"--repo {args.repo} is not a directory")
@@ -412,12 +412,13 @@ def _super_dispatch(store, args):
         trigger.id, args.slug, verdict.strength, args.scope or trigger.thread_id, args.rule,
         settings.accept.policy_version, f"dispatch by router: {verdict.basis}",
     )
-    store.add_input(ticket.id, "note", f"playbook: {playbook}")
+    if playbook:
+        store.add_input(ticket.id, "note", f"playbook: {playbook}")
     if repo:
         store.add_input(ticket.id, "note", f"repo: {repo}")
     print(
         f"accept {trigger.id} → ticket {ticket.id} mandate {verdict.strength} {verdict.basis} "
-        f"playbook {playbook}"
+        f"playbook {playbook or 'chosen by the worker'}"
     )
 
 
