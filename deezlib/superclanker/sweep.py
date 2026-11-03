@@ -4,6 +4,7 @@ import subprocess
 import time
 from pathlib import Path
 
+LSOF = "/usr/sbin/lsof"
 LSOF_TIMEOUT_SECONDS = 10
 POLL_SECONDS = 0.05
 
@@ -18,7 +19,7 @@ def _inside(root_parts, path):
 def _cwd_listing(run):
     try:
         listing = run(
-            ["lsof", "-a", "-d", "cwd", "-Fpn"], capture_output=True, text=True,
+            [LSOF, "-a", "-d", "cwd", "-Fpn"], capture_output=True, text=True,
             timeout=LSOF_TIMEOUT_SECONDS,
         )
     except (OSError, subprocess.SubprocessError):
