@@ -63,7 +63,7 @@ and stylesheet moved under `packages/chat-ui/`:
 
 ```
 src/components/Shell.tsx      ->  1 line: export * from "@openmarket/chat-ui/components/Shell";
-packages/chat-ui/src/components/Shell.tsx   ->  the real 4512 lines
+packages/chat-ui/src/components/Shell.tsx   ->  the real component (about 5,000 lines)
 ```
 
 `src/lib/`, `src/styles.css` and `src/world/` are shims by the same rule, and
@@ -190,9 +190,10 @@ port instead, and record the pid so teardown can find it:
 ```bash
 cd <tree>/apps/cloud
 lsof -iTCP:<port> -sTCP:LISTEN >/dev/null && echo BUSY   # preflight
+mkdir -p ../../.control-om-chat
 nohup bunx vite --port <port> --strictPort --host 127.0.0.1 \
-  > ../../.cloud-lane-<port>.log 2>&1 &
-echo $! > ../../.cloud-lane-<port>.pid
+  > ../../.control-om-chat/cloud-lane-<port>.log 2>&1 &
+echo $! > ../../.control-om-chat/cloud-lane-<port>.pid
 # -> http://127.0.0.1:<port>/chat/
 agent-browser open "http://127.0.0.1:<port>/chat/tools/visual/shell-fixture.html?view=topic&topic=cpi-print-aug&alerts=quiet"
 ```
@@ -204,8 +205,10 @@ Give `agent-browser screenshot` an **absolute** path when you run two sessions:
 a relative path resolves against the directory that *session was launched
 from*, not your shell's cwd, so the second host's frame fails with `No such
 file or directory` while the first one's saves fine.
-Stop it with `kill "$(cat .cloud-lane-<port>.pid)"`: `control-om-chat down` does
-not know it exists. Proven on GitHub `41a57adc` (imported here by `8b0ff076`) with the
+Stop it with `kill "$(cat .control-om-chat/cloud-lane-<port>.pid)"` and delete the
+pidfile: `control-om-chat down` does not know it exists. Keep both files under
+`.control-om-chat/`, which `info/exclude` hides; a `.cloud-lane-*` file at the
+repo root shows up in `git status` as an untracked leak. Proven on GitHub `41a57adc` (imported here by `8b0ff076`) with the
 search-and-filters thread recipe, which passed step for step on both hosts.
 
 ## Doctor
@@ -423,6 +426,40 @@ agent-browser eval '(()=>{const t = document.querySelector("textarea");
 there. Confirm a control does something before you build a proof on it, and if
 it does not, say so rather than photographing a click that did nothing.
 
+**A page that is not the newest in its browser is hidden.** In a shared
+headless browser, only the most recently created page is visible. Every other
+page reports `document.hidden === true` and never fires
+`requestAnimationFrame`, so reaction scenes, the sheet spring and other motion
+proofs silently do nothing there. A mid-session `set viewport` can leave a page
+hidden too. Read `eval "document.hidden"` before a motion proof, and run that
+proof in a session created just before it.
+
+**`find role` acts with `click`, `fill`, `check`, `hover` and `text` only.**
+It has no `focus` and no `select`. Focus a separator or slider with
+`eval "document.querySelector('<css>').focus()"`, and pick a combobox option
+with `agent-browser select '<css>' <value>`.
+
+**`mouse wheel` and `scroll up` never reach an inner scroller.** They scroll
+the page, not the tape, so a scroll-disarm proof reads as a no-op. Focus the
+scroller and send `press PageUp` instead.
+
+**An `open` that changes only the hash does not reload the fixture.** Pressed
+and open state from the previous URL persists. Change a query parameter, or
+run `agent-browser reload` after the `open`.
+
+**Stub a desktop bridge with an init script.** Write the stub (for example
+`window.omShell = {...}`) to a file and start the session with
+`agent-browser --init-script <file> open about:blank`, then open the fixture.
+The stub runs before the bundle, so the desktop strips mount and their buttons
+call your stub.
+
+**The `/chat/` Settings dialog mounts about five seconds after load.** Wait for
+its heading before you drive it; an earlier `find` answers "Element not found".
+
+**`evidence publish` reads from `ARTIFACTS`.** `ARTIFACTS=<dir> control-om-chat
+evidence publish <run-id> <revision>` publishes frames kept outside the tree,
+such as an evidence folder under `~/dev-notes-artifacts/`.
+
 ## Helpers
 
 `helpers/new-evidence-manifest.sh <run-id> <revision> "<goal>"` — scaffolds
@@ -436,3 +473,15 @@ The feature map in `features/` is the maintained source for routes and handles,
 and it goes stale the way any documentation does. `maintain-verification-skill`
 is the upkeep pass — run it when a mapped handle stops resolving, when a new
 user-facing surface lands, or when a gotcha above turns out to be fixed.
+
+After proving a map change, commit and push only the changed `features/*.md`
+straight to the hub's `main`, from the hub root:
+
+```sh
+bin/deez sync-feature-maps openmarket-chat verify-om-chat <file.md>... [--repo <hub worktree>]
+```
+
+Pass `--repo` when you edited in an isolated hub worktree. This is the one
+standing push to `main` and it covers map Markdown only. `SKILL.md`, wrappers,
+helpers and the registry go through ordinary review. No map change means
+nothing to publish.
