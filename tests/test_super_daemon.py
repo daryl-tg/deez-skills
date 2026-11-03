@@ -119,17 +119,19 @@ class DaemonTest(unittest.TestCase):
         self.wake = FakeWake()
         self.workers = FakeWorkers()
         self.sweeper = FakeSweeper()
+        self.blocked = {}
 
     def sources(self, text):
         (self.root / "sources.toml").write_text(text, encoding="utf-8")
 
     def one_pass(self, wake=None, reap=no_reap, revive=None, stop=None, free_pct=plenty_free,
-                 sweeper=None, **now):
+                 sweeper=None, git=None, **now):
         return daemon.one_pass(
             self.store, config.load(self.root), self.root, HUB, wake=wake or self.wake,
             launch=self.workers.launch, resume=self.workers.resume,
             revive=revive or self.workers.revive, reap=reap, stop=stop or FakeStop(),
-            free_pct=free_pct, sweeper=sweeper or self.sweeper, **now,
+            free_pct=free_pct, sweeper=sweeper or self.sweeper,
+            blocked=self.blocked, **({} if git is None else {"git": git}), **now,
         )
 
     def repo_with_worktree(self, ticket):
@@ -355,6 +357,61 @@ class DaemonTest(unittest.TestCase):
         self.assertTrue(worktree.exists())
         self.assertEqual((result.removed, len(result.errors)), (0, 1))
         self.assertIn(str(worktree), result.errors[0])
+
+    def test_dropped_ticket_worktree_is_kept_for_revival(self):
+        ticket, _assignment_id = self.ticket("dropped")
+        _repo, worktree = self.repo_with_worktree(ticket)
+        self.store.end_ticket(ticket.id, "dropped")
+        result = self.one_pass()
+        self.assertTrue(worktree.exists())
+        self.assertEqual((result.removed, result.errors, self.sweeper.swept), (0, (), []))
+
+    def test_failed_removal_is_retried_only_after_ten_minutes(self):
+        ticket, _assignment_id = self.ticket("dirty")
+        _repo, worktree = self.repo_with_worktree(ticket)
+        (worktree / "file.txt").write_text("changed\n", encoding="utf-8")
+        self.store.stop(ticket.id, "daryl", "done")
+        first = self.one_pass()
+        second = self.one_pass()
+        later = shifted(daemon.utc_now(), 601)
+        third = self.one_pass(now=lambda: later)
+        self.assertEqual((len(first.errors), len(second.errors), len(third.errors)), (1, 0, 1))
+        self.assertEqual(self.sweeper.swept, [worktree, worktree])
+
+    def test_symlinked_worktree_entry_is_neither_swept_nor_removed(self):
+        ticket, _assignment_id = self.ticket("linked")
+        outside = self.root.parent / "elsewhere"
+        outside.mkdir()
+        link = self.root / "worktrees" / "repo" / ticket.id
+        link.parent.mkdir(parents=True)
+        link.symlink_to(outside)
+        self.store.stop(ticket.id, "daryl", "done")
+        result = self.one_pass()
+        self.assertEqual((result.removed, result.errors, self.sweeper.swept), (0, (), []))
+        self.assertTrue(outside.exists())
+
+    def test_non_git_worktree_directory_is_not_swept(self):
+        ticket, _assignment_id = self.ticket("plain")
+        plain = self.root / "worktrees" / "repo" / ticket.id
+        plain.mkdir(parents=True)
+        self.store.stop(ticket.id, "daryl", "done")
+        result = self.one_pass()
+        self.assertEqual((result.removed, len(result.errors), self.sweeper.swept), (0, 1, []))
+
+    def test_git_timeout_lands_in_errors(self):
+        ticket, _assignment_id = self.ticket("slow")
+        _repo, worktree = self.repo_with_worktree(ticket)
+        self.store.stop(ticket.id, "daryl", "done")
+        seen = []
+
+        def slow_git(argv, **kwargs):
+            seen.append(kwargs.get("timeout"))
+            raise subprocess.TimeoutExpired(argv, kwargs.get("timeout"))
+
+        result = self.one_pass(git=slow_git)
+        self.assertEqual((result.removed, len(result.errors)), (0, 1))
+        self.assertTrue(worktree.exists())
+        self.assertEqual(seen, [daemon.GIT_TIMEOUT_SECONDS])
 
     def test_open_ticket_worktree_is_untouched(self):
         ticket, _assignment_id = self.ticket("still going")

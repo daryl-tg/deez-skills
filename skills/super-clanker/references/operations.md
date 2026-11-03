@@ -8,13 +8,14 @@ launchd keeps `deez super-clanker daemon` alive. Each pass, about every five sec
 2. Fan out queued Triggers on subscribed Threads to their Tickets.
 3. Stop Workers whose turn has run past `workers.turn_limit_minutes`. This runs
    before the reap, so the stopped turn is reaped in the same pass.
-4. Reap finished Worker turns into `worker` Triggers. Reaping sweeps the
-   Worker's worktree: any process whose working directory is the worktree or
+4. Reap finished Worker turns into `worker` Triggers. Reaping, and the
+   `stop` verb, sweep the Worker's worktree: any process whose working directory is the worktree or
    below it is sent SIGTERM, then SIGKILL after a three-second grace.
-5. Remove the worktree of each ended Ticket: sweep it, then
+5. Remove the worktree of each Ticket ended by the `stop` verb: sweep it, then
    `git worktree remove` without `--force` in the main repository. The branch
-   stays. A worktree with uncommitted changes stays too, and the pass records an
-   error naming it.
+   stays. A Ticket ended by a `dropped` report keeps its worktree, because it can
+   still be revived. A worktree with uncommitted changes stays too: the pass
+   records an error naming it and tries again after ten minutes.
 6. Check free memory. Below `workers.min_free_pct` the pass is held: steps 7 to 9
    are skipped and the pass line reads `held=mem<pct>%`. The hold is logged when
    it starts and when it clears, not on every held pass. An unreadable

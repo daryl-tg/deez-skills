@@ -21,6 +21,9 @@ BACKOFF = "backoff"
 BACKOFF_FIRST_SECONDS = 30
 BACKOFF_CEILING_SECONDS = 600
 LOG_LIMIT_BYTES = 5 * 1024 * 1024
+GIT_TIMEOUT_SECONDS = 30
+REMOVAL_RETRY_SECONDS = 600
+failed_removals = {}
 
 
 @dataclass(frozen=True)
@@ -175,7 +178,7 @@ def _expire_overlong_turns(store, settings, stop, now):
 def _repo_of(worktree, git):
     common = git(
         ["git", "-C", str(worktree), "rev-parse", "--path-format=absolute", "--git-common-dir"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
     )
     if common.returncode != 0:
         raise SuperError(f"{worktree}: not a git worktree: {common.stderr.strip()}")
@@ -183,32 +186,45 @@ def _repo_of(worktree, git):
 
 
 def _remove_worktree(worktree, git, sweeper):
+    repo = _repo_of(worktree, git)
     sweeper(worktree)
     removed = git(
-        ["git", "-C", str(_repo_of(worktree, git)), "worktree", "remove", str(worktree)],
-        capture_output=True, text=True,
+        ["git", "-C", str(repo), "worktree", "remove", str(worktree)],
+        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
     )
     if removed.returncode != 0:
         raise SuperError(f"{worktree}: git worktree remove failed: {removed.stderr.strip()}")
 
 
-def _remove_ended_worktrees(store, root, git, sweeper, errors):
+def _inside_worktrees(root, path):
+    return not path.is_symlink() and path.resolve().is_relative_to((Path(root) / "worktrees").resolve())
+
+
+def _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors):
     removed = 0
     for worktree, ticket in workers.ticket_worktrees(store, root):
-        if ticket is None or ticket["state"] is not TicketState.ended:
+        if ticket is None or ticket["state"] is not TicketState.ended or ticket["ended_by"] is None:
+            continue
+        if not _inside_worktrees(root, worktree):
+            continue
+        failed_at = blocked.get(worktree)
+        if failed_at is not None and _seconds_since(failed_at, now) < REMOVAL_RETRY_SECONDS:
             continue
         try:
             _remove_worktree(worktree, git, sweeper)
-        except (SuperError, OSError) as exc:
+        except (SuperError, OSError, subprocess.SubprocessError) as exc:
+            blocked[worktree] = now()
             errors.append(str(exc))
         else:
+            blocked.pop(worktree, None)
             removed += 1
     return removed
 
 
 def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.launch,
              resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now,
-             stop=workers.stop, free_pct=None, git=subprocess.run, sweeper=sweep):
+             stop=workers.stop, free_pct=None, git=subprocess.run, sweeper=sweep,
+             blocked=failed_removals):
     errors = []
 
     def attempt(step, *args):
@@ -222,7 +238,7 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     fanned_out = attempt(_fan_out, store, config) or 0
     expired = attempt(_expire_overlong_turns, store, config, stop, now) or 0
     reaped = len(attempt(reap, store, root) or [])
-    removed = _remove_ended_worktrees(store, root, git, sweeper, errors)
+    removed = _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors)
     held = _held_by_memory(config, free_pct or memguard.free_pct)
     hold_changed = _record_hold(root, held)
     resumed = 0
