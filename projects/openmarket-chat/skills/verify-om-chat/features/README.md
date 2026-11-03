@@ -439,7 +439,7 @@ Nightly pass, 2026-11-04: product tree `ce14d4ba` (GitLab origin/main, rooms-cli
   - `1d3583d9`: a role label that the role editor does not show.
 - **Source:** four read-only readers.
   - Three covered the persona and Away rewrite, group DM pictures with agent faces and mentions, and the cloud desk with `lib/todos`.
-  - The fourth audited every map citation into the 131 changed files. About 170 citations were remapped mechanically through the `git diff -U0` hunks and spot-checked by content.
+  - The fourth audited every map citation into the 131 changed files. 254 citations were remapped mechanically through the `git diff -U0` hunks and spot-checked by content.
   - Six citations were hand-fixed: the deleted `AgentCenterSurface` notice, `PersonaPanel` `Edit`, the `om-daemon.ts` state check, the `openAlertsTab` line, the world-presence line and the persona-scene range.
 - **Live:**
   - A DOM-probe smoke of 147 `/rooms/` routes (18160) and 136 `/chat/` routes (18161) mounted everything except `panel=alerts`, the topic `panel=members` and `view=gif` (all known).
