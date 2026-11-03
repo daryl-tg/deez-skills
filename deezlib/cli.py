@@ -376,6 +376,17 @@ def _super_wake(store, args):
     )
 
 
+PATH_TOKEN = re.compile(r"(?<![\w/])(~/[^\s\"'`,;:]+|/[^\s\"'`,;:]+)")
+
+
+def _repo_in_text(text):
+    for token in PATH_TOKEN.findall(text):
+        candidate = Path(token.rstrip(".)")).expanduser()
+        if (candidate / ".git").exists():
+            return candidate.resolve()
+    return None
+
+
 def _super_dispatch(store, args):
     from deezlib.superclanker import router, rules
     from deezlib.superclanker.config import AcceptMode
@@ -389,8 +400,10 @@ def _super_dispatch(store, args):
     repo = args.repo and args.repo.expanduser().resolve()
     if repo and not repo.is_dir():
         raise SuperError(f"--repo {args.repo} is not a directory")
-    cited = rules.require(root, args.rule)
     trigger = _super_trigger(store, args.trigger)
+    if repo is None:
+        repo = _repo_in_text(trigger.text)
+    cited = rules.require(root, args.rule)
     if not store.undecided([trigger.id]) and DecisionKind.accept not in _super_decision_kinds(
         store, trigger.id
     ):
@@ -418,7 +431,7 @@ def _super_dispatch(store, args):
         store.add_input(ticket.id, "note", f"repo: {repo}")
     print(
         f"accept {trigger.id} → ticket {ticket.id} mandate {verdict.strength} {verdict.basis} "
-        f"playbook {playbook or 'chosen by the worker'}"
+        f"playbook {playbook or 'chosen by the worker'}{f' repo {repo}' if repo else ''}"
     )
 
 

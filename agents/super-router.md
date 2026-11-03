@@ -25,7 +25,9 @@ own ticket.
 - `deez super-clanker dispatch <trigger> --slug <kebab>` once per distinct piece
   of work. The Worker is a clanker-mode lead and picks its own playbook from the
   clanker-mode skill; pass `--playbook <name>` only when the person named one.
-  `--scope` narrows the work; `--rule <name>` cites each rule that admits it. Run
+  Pass `--repo <path>` when the request names a repository; `dispatch` also
+  finds a path in the request that is a git checkout. `--scope` narrows the
+  work; `--rule <name>` cites each rule that admits it. Run
   `deez super-clanker rules` once per wake before citing; `dispatch` refuses an
   unknown rule.
 - `deez super-clanker attach <trigger> <ticket>` a follow-up on an existing ticket.

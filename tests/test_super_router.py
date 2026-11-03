@@ -598,3 +598,36 @@ class WorkerRoutesItselfTest(unittest.TestCase):
         store = Store.open(root); self.addCleanup(store.close)
         ticket_id = out.getvalue().split("ticket ")[1].split()[0]
         self.assertEqual([i.text for i in store.inputs(ticket_id) if i.text.startswith("playbook:")], [])
+
+
+class DispatchFindsTheRepoTest(unittest.TestCase):
+    def test_dispatch_takes_the_repo_named_in_the_request(self):
+        import io, os, subprocess, tempfile
+        from contextlib import redirect_stdout, redirect_stderr
+        from pathlib import Path
+        from unittest import mock
+        from deezlib import cli
+        from deezlib.superclanker.store import Store
+        from deezlib.superclanker.sources import terminal
+        tmp = tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name) / "state"; repo = Path(tmp.name) / "proj"
+        repo.mkdir(); subprocess.run(["git", "init", "-q", str(repo)], check=True)
+        root.mkdir(); (root / "sources.toml").write_text('[sources.terminal]\nsenders = ["tester"]\n')
+        store = Store.open(root)
+        trigger, _r = terminal.ask(store, f"fix the typo in README.md of {repo} and commit", actor="tester")
+        store.close()
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.dict(os.environ, {"DEEZ_SUPER_STATE": str(root)}), \
+                redirect_stdout(out), redirect_stderr(err):
+            code = cli.main(["super-clanker", "dispatch", trigger.id, "--slug", "fix-typo"])
+        self.assertEqual((code, err.getvalue()), (0, ""))
+        ticket_id = out.getvalue().split("ticket ")[1].split()[0]
+        store = Store.open(root); self.addCleanup(store.close)
+        notes = [i.text for i in store.inputs(ticket_id) if i.text.startswith("repo:")]
+        self.assertEqual(notes, [f"repo: {repo.resolve()}"])
+        self.assertIn(f"repo {repo.resolve()}", out.getvalue())
+
+    def test_router_prompt_says_to_pass_the_repo(self):
+        from pathlib import Path
+        body = Path(__file__).resolve().parents[1].joinpath("agents", "super-router.md").read_text()
+        self.assertIn("--repo", body)
