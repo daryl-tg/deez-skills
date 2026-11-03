@@ -13,12 +13,12 @@
 
 - *On main since `e7c375ce` (MR !147, squash of `339a90d8`):* automatic learning removes Proposed changes, the learning hold with **Resume from reviewed voice**, and the per-profile "stays fixed" branch with **Allow learning into this profile**. **Learning details** reads "om updates this voice as you post. Undo any update from History." A hold or proposal from an older daemon renders nothing. The Library persona card labels `default_voice` ("Default voice"), `fold_pending` ("Adding your text"), `refused_scan`, `skill_conflict`, `skill_unavailable` and an unknown state ("Unknown status"). Driven 2026-11-03 on the candidate (`/rooms` 18099: `personaState=ready|hold|profiles`, `persona-panel-fixture?state=pending`; `/chat/` 18100: offline Voice). Fixture limit: the shell fixture has no handler for the global learning write, so **Learn from my messages** toasts "Learning is off." but stays on. The Library card labels are unit-tested only (the fixture always reports `unchanged`). The `pending`/`pending-long` proposal recipes below no longer show proposals; re-drive and retire them at the next maintenance pass.
 
-- *Pending (MR !151, branch `daryl/persona-hub-rows` at `25c85ffe`, not on main):* the Persona hub becomes dense settings rows. Voice:
+- *On main since `417164da` (MR !151):* the Persona hub becomes dense settings rows. Voice:
   - a chain line (*Your messages → card → Away replies*);
   - rows Persona (picker `button` named by the card), Learning (`button` **Details**, `switch` **Learn from my messages**), Rules, Boundaries, Examples, Voice cards (**Import**, **Create**, **More**);
   - **Edit** and **Try it** in the header.
 
-  **Details** opens a **Learning details** dialog with the automatic-learning copy. Away coverage and Activity become rows too (`away-panel-fixture.html?view=away|activity&state=active`). Driven 2026-11-03 on `/rooms` 18110 and `/chat/` 18111: every `.ui-settings-row` 46px, Voice buttons 28px, CLS 0, no sideways scroll at 320/390. Once merged, the handles in the recipes below change (no "Learning details" text toggle, no Manage voice cards disclosure).
+  **Details** opens a **Learning details** dialog with the automatic-learning copy. Away coverage and Activity become rows too (`away-panel-fixture.html?view=away|activity&state=active`). Driven 2026-11-03 on `/rooms` 18110 and `/chat/` 18111: every `.ui-settings-row` 46px, Voice buttons 28px, CLS 0, no sideways scroll at 320/390. The handles in the recipes below predate it ("Learning details" text toggle, Manage voice cards disclosure); re-drive and update them at the next maintenance pass.
 
 ## How to get to it (user POV)
 
