@@ -95,6 +95,72 @@ class LoadTest(Seeded):
         self.assertEqual(world.dossiers, [])
 
 
+def write_transcript(path, entries):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = []
+    for at, content in entries:
+        lines.append(json.dumps({"type": "assistant", "timestamp": at, "message": {"content": content}}))
+    lines.append(json.dumps({"type": "user", "timestamp": "2026-11-04T06:09:00Z",
+                             "message": {"content": [{"type": "tool_result", "content": "ok"}]}}))
+    path.write_text("\n".join(lines) + "\n")
+
+
+class ActivityTest(Seeded):
+    def test_answer_is_the_latest_turns_final_message(self):
+        ticket, assignment, _ = self.ticket(1, report="ready")
+        log = self.root / "log"
+        log.mkdir(exist_ok=True)
+        (log / f"{assignment.id}.json").write_text(json.dumps({"result": "first turn"}))
+        (log / f"{assignment.id}.1.json").write_text(json.dumps({"result": "second turn"}))
+        (log / f"{assignment.id}.10.json").write_text(json.dumps({"result": "tenth turn\nREPORT ready done"}))
+
+        dossier = center_model.load(self.root).dossiers[0]
+
+        self.assertEqual(dossier.answer, "tenth turn")
+
+    def test_earlier_answers_are_kept_oldest_first(self):
+        ticket, first, _ = self.ticket(1, report="ready")
+        log = self.root / "log"
+        log.mkdir(exist_ok=True)
+        (log / f"{first.id}.json").write_text(json.dumps({"result": "the findings write-up"}))
+        (log / f"{first.id}.1.json").write_text(json.dumps({"result": "answer to a follow-up"}))
+
+        dossier = center_model.load(self.root).dossiers[0]
+
+        self.assertEqual(dossier.answer, "answer to a follow-up")
+        self.assertEqual(dossier.earlier_answers, ["the findings write-up"])
+
+    def test_activity_reads_the_worker_session_transcript(self):
+        ticket, assignment, _ = self.ticket(1)
+        projects = self.root.parent / "projects"
+        write_transcript(projects / "-w-1" / "sid-1.jsonl", [
+            ("2026-11-04T06:01:00Z", [{"type": "thinking", "thinking": "hmm"},
+                                      {"type": "text", "text": "Reading the handler first."}]),
+            ("2026-11-04T06:02:00Z", [{"type": "tool_use", "name": "Bash",
+                                       "input": {"command": "git log --oneline -3\necho done"}}]),
+            ("2026-11-04T06:03:00Z", [{"type": "tool_use", "name": "Read",
+                                       "input": {"file_path": "/repo/src/tape.ts"}}]),
+            ("2026-11-04T06:04:00Z", [{"type": "tool_use", "name": "Agent",
+                                       "input": {"description": "map the relay", "prompt": "long"}}]),
+        ])
+        dossier = center_model.load(self.root).dossiers[0]
+
+        lines = center_model.activity(dossier, projects)
+
+        self.assertEqual([(line.kind, line.text) for line in lines], [
+            ("say", "Reading the handler first."),
+            ("Bash", "git log --oneline -3"),
+            ("Read", "/repo/src/tape.ts"),
+            ("Agent", "map the relay"),
+        ])
+
+    def test_activity_without_a_transcript_is_empty(self):
+        self.ticket(1, start=False)
+        dossier = center_model.load(self.root).dossiers[0]
+
+        self.assertEqual(center_model.activity(dossier, self.root / "none"), [])
+
+
 class StageTest(Seeded):
     def stage_of(self, ticket):
         world = center_model.load(self.root)
@@ -290,6 +356,52 @@ class AppTest(Seeded):
         self.run_app(Verbs(), script)
 
         self.assertEqual(offsets, [0])
+
+    def test_dossier_shows_the_answer_and_the_activity_feed(self):
+        ticket, assignment, _ = self.ticket(1, report="ready")
+        log = self.root / "log"
+        log.mkdir(exist_ok=True)
+        (log / f"{assignment.id}.json").write_text(json.dumps({"result": "Root cause: a cold-boot race."}))
+        projects = self.root.parent / "projects"
+        write_transcript(projects / "-w-1" / "sid-1.jsonl", [
+            ("2026-11-04T06:02:00Z", [{"type": "tool_use", "name": "Grep", "input": {"pattern": "awayCoverage"}}]),
+        ])
+        texts = []
+
+        async def script(app, pilot):
+            texts.append(str(app.query_one("#dossier-text").render()))
+
+        async def go():
+            app = CenterApp(self.root, verb=Verbs(), deez=DEEZ, refresh_s=3600, projects=projects)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                await script(app, pilot)
+        asyncio.run(go())
+
+        self.assertIn("ANSWER", texts[0])
+        self.assertIn("Root cause: a cold-boot race.", texts[0])
+        self.assertIn("ACTIVITY", texts[0])
+        self.assertIn("awayCoverage", texts[0])
+        self.assertLess(texts[0].index("ACTIVITY"), texts[0].index("REQUEST"))
+        self.assertLess(texts[0].index("ANSWER"), texts[0].index("COST"))
+
+    def test_i_loads_the_ticket_into_the_prompt_and_asks_about_it(self):
+        ticket, _, _ = self.ticket(1)
+        verbs = Verbs()
+        labels = []
+
+        async def script(app, pilot):
+            await pilot.press("i")
+            await pilot.pause()
+            labels.append(str(app.query_one("#prompt").render()))
+            await pilot.press(*"why the race?")
+            await pilot.press("enter")
+
+        self.run_app(verbs, script)
+
+        self.assertIn(f"[task {ticket.id}]", labels[0])
+        self.assertEqual(verbs.calls[0][:4], [str(DEEZ), "super-clanker", "ask", "--"])
+        self.assertEqual(verbs.calls[0][4], f"About ticket {ticket.id} (slug-1): why the race?")
 
     def test_failed_verb_is_shown_in_the_router_log(self):
         self.ticket(1)

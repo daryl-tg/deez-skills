@@ -659,6 +659,11 @@ class DispatchFindsTheRepoTest(unittest.TestCase):
 
 
 class RouterReportsReadyTest(unittest.TestCase):
+    def test_router_prompt_sends_questions_about_a_ticket_to_its_worker(self):
+        prompt = (HUB / "agents" / "super-router.md").read_text(encoding="utf-8")
+        self.assertIn("About ticket", prompt)
+        self.assertIn("attach", prompt.split("About ticket", 1)[1][:300])
+
     def test_router_prompt_replies_on_a_ready_report(self):
         from pathlib import Path
         body = Path(__file__).resolve().parents[1].joinpath("agents", "super-router.md").read_text()

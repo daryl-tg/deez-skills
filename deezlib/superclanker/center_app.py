@@ -165,7 +165,7 @@ def stale_list_text(stale):
 
 
 MAIN_KEYS = [("TAB", "PANEL"), ("↑↓←→", "MOVE"), ("V", "VIEW"), ("Z", "ZOOM"), ("N", "NEW TASK"),
-             ("^T", "ASK/NOTE"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
+             ("^T", "ASK/NOTE"), ("I", "ASK ABOUT TASK"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
 ZOOM_KEYS = [("ESC", "BACK"), ("Z", "BACK"), ("↑↓←→", "MOVE"), ("Q", "QUIT")]
 
 
@@ -230,7 +230,7 @@ def kv(t, label, value, style=WHITE):
     t.append(f"{value}\n", style=style)
 
 
-def dossier_text(d, full):
+def dossier_text(d, full, activity=()):
     t = Text()
     if d is None:
         t.append("no ticket selected", style=DIM)
@@ -254,6 +254,16 @@ def dossier_text(d, full):
         t.append(" BLOCKED ", style=f"bold #000000 on {RED}")
         t.append(f" {d.last_text}\n", style=RED)
     t.append("\n")
+    rule(t, "LATEST REPORT")
+    t.append(f"{kind:<9}", style=f"bold {KIND_COLOR.get(kind, DIM)}")
+    t.append(f"{d.last_text or '-'}\n", style=WHITE)
+    answer_text(t, d.answer, full)
+    if full and d.earlier_answers:
+        rule(t, f"EARLIER ANSWERS ({len(d.earlier_answers)}, newest first)")
+        for earlier in reversed(d.earlier_answers):
+            t.append(earlier.rstrip() + "\n\n", style="#BBBBBB")
+    activity_text(t, activity, full)
+    rule(t, "DETAILS")
     kv(t, "LINK", d.link or "-", CYAN if d.link else DIM)
     kv(t, "PLAYBOOK", d.playbook or "-")
     kv(t, "REPO", d.repo or "-")
@@ -274,9 +284,6 @@ def dossier_text(d, full):
     rule(t, "MANDATE")
     scope = d.scope or "-"
     t.append((scope if full else scope[:220] + ("…" if len(scope) > 220 else "")) + "\n", style=WHITE)
-    rule(t, "LATEST REPORT")
-    t.append(f"{kind:<9}", style=f"bold {KIND_COLOR.get(kind, DIM)}")
-    t.append(f"{d.last_text or '-'}\n", style=WHITE)
     rule(t, "EVIDENCE")
     for e in d.evidence or []:
         t.append(f"{e}\n", style=CYAN)
@@ -301,6 +308,34 @@ def dossier_text(d, full):
             t.append(f"{e.kind:<9}", style=KIND_COLOR.get(e.kind, DIM))
             t.append(f"{e.text}\n", style=WHITE)
     return t
+
+
+ANSWER_CHARS = 1500
+ACTIVITY_LINES = 30
+ACTIVITY_COLOR = {"say": WHITE, "Bash": AMBER, "Read": CYAN, "Edit": GREEN, "Write": GREEN,
+                  "Grep": CYAN, "Glob": CYAN, "Agent": YELLOW, "Task": YELLOW}
+
+
+def answer_text(t, answer, full):
+    rule(t, "ANSWER")
+    if not answer:
+        t.append("no answer yet\n", style=DIM)
+        return
+    shown = answer if full or len(answer) <= ANSWER_CHARS else answer[:ANSWER_CHARS] + "\n… z shows the rest"
+    t.append(shown.rstrip() + "\n", style=WHITE)
+
+
+def activity_text(t, lines, full):
+    lines = list(lines)
+    rule(t, f"ACTIVITY ({len(lines)})")
+    if not lines:
+        t.append("no transcript yet\n", style=DIM)
+        return
+    for line in lines if full else lines[-ACTIVITY_LINES:]:
+        t.append(f"{clock(line.at)} ", style=DIM)
+        t.append(f"{fit(line.kind, 6)} ", style=f"bold {ACTIVITY_COLOR.get(line.kind, DIM)}")
+        t.append((line.text if full else fit(line.text, 200).rstrip()) + "\n",
+                 style=WHITE if line.kind == "say" else "#BBBBBB")
 
 
 def bar(n, total, width, color):
@@ -908,7 +943,9 @@ def attachment_label(attachments):
     labels = []
     images = 0
     for kind, value in attachments:
-        if kind == "image":
+        if kind == "task":
+            labels.append(f"[task {value.split()[0]}]")
+        elif kind == "image":
             images += 1
             labels.append(f"[image {images}]")
         else:
@@ -919,7 +956,9 @@ def attachment_label(attachments):
 def compose_message(text, attachments):
     pasted = [value for kind, value in attachments if kind == "text"]
     images = [value for kind, value in attachments if kind == "image"]
-    parts = [text or ("See the attached images." if images else "")]
+    task = next((value for kind, value in attachments if kind == "task"), None)
+    opening = text or ("See the attached images." if images else "")
+    parts = [f"About ticket {task}: {opening}" if task else opening]
     parts += pasted
     if images:
         parts.append("Attached images (open each with the Read tool):\n" + "\n".join(images))
@@ -978,7 +1017,7 @@ class ReviewStale(Screen):
         body = Text()
         body.append(" STALE ", style=f"bold #000000 on {RED}")
         body.append(f" {reason}\n\n", style=f"bold {RED}")
-        body.append_text(dossier_text(d, False))
+        body.append_text(dossier_text(d, False, self.app.activity_of(d)))
         self.query_one("#review-text", Static).update(body)
 
     def action_archive(self):
@@ -1025,7 +1064,8 @@ class Zoom(Screen):
                     yield GraphView(classes="live")
             elif self.panel == "DOSSIER":
                 with VerticalScroll():
-                    yield Static(dossier_text(self.app.selected(), True), markup=False)
+                    chosen = self.app.selected()
+                    yield Static(dossier_text(chosen, True, self.app.activity_of(chosen)), markup=False)
             elif self.panel == "SYSTEM":
                 with VerticalScroll():
                     yield Static(system_text(w), markup=False)
@@ -1110,12 +1150,14 @@ class CenterApp(App):
         ("escape", "blotter", "blotter"),
         ("ctrl+t", "target", "target"),
         ("ctrl+v", "attach_clipboard", "attach image"),
+        ("i", "inquire", "ask about task"),
         ("a", "archive_all", "archive stale"),
         ("r", "review", "review stale"),
     ]
 
     def __init__(self, root, *, verb=run_verb, deez=REPO_ROOT / "bin/deez", refresh_s=REFRESH_S,
-                 load=center_model.load, probe=None, now=None, grab_image=clipboard.grab_image):
+                 load=center_model.load, probe=None, now=None, grab_image=clipboard.grab_image,
+                 projects=Path.home() / ".claude" / "projects"):
         super().__init__()
         self.root = Path(root)
         self.verb = verb
@@ -1125,6 +1167,8 @@ class CenterApp(App):
         self.probe = probe or self.probe_host
         self.now = now or utcnow
         self.grab_image = grab_image
+        self.projects = Path(projects)
+        self.activity_cache = {}
         self.attachments = []
         self.stale = []
         self.archiving = set()
@@ -1172,7 +1216,7 @@ class CenterApp(App):
                         yield Static(system_compact(w), id="sysinfo", markup=False)
             with Vertical(id="right"):
                 with Panel(id="p-dossier"):
-                    yield Band("DOSSIER", "z full report", name_id="dossier-name")
+                    yield Band("DOSSIER", "i ask about it · z full report", name_id="dossier-name")
                     with VerticalScroll(id="dossier-scroll"):
                         yield Static(id="dossier-text", markup=False)
                 with Panel(id="p-router"):
@@ -1323,7 +1367,7 @@ class CenterApp(App):
     def refresh_panels(self, reset_scroll):
         main = self.screen_stack[0]
         d = self.selected()
-        main.query_one("#dossier-text", Static).update(dossier_text(d, False))
+        main.query_one("#dossier-text", Static).update(dossier_text(d, False, self.activity_of(d)))
         main.query_one("#dossier-name", Static).update(Text(f"DOSSIER  {d.id}" if d else "DOSSIER"))
         main.query_one("#sysinfo", Static).update(system_compact(self.world))
         rows = ordered(self.world)
@@ -1403,6 +1447,31 @@ class CenterApp(App):
             prompt.append(attachment_label(self.attachments), style=f"bold {CYAN}")
             prompt.append(" > ")
         self.query_one("#prompt", Label).update(prompt)
+
+    def activity_of(self, d):
+        if d is None or not d.session:
+            return []
+        path = next(self.projects.glob(f"*/{d.session}.jsonl"), None)
+        try:
+            stamp = (path, path.stat().st_mtime_ns, path.stat().st_size) if path else None
+        except OSError:
+            stamp = None
+        cached = self.activity_cache.get(d.session)
+        if cached and cached[0] == stamp:
+            return cached[1]
+        lines = center_model.activity(d, self.projects) if stamp else []
+        self.activity_cache[d.session] = (stamp, lines)
+        return lines
+
+    def action_inquire(self):
+        d = self.selected()
+        if self.in_zoom() or d is None:
+            return
+        self.attachments = [a for a in self.attachments if a[0] != "task"]
+        self.attachments.insert(0, ("task", f"{d.id} ({d.slug})"))
+        self.mode = "ask"
+        self.update_prompt()
+        self.query_one("#input", Input).focus()
 
     def attach(self, attachment):
         self.attachments.append(attachment)

@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sqlite3
 import tempfile
 from dataclasses import dataclass, field
@@ -26,6 +27,14 @@ class Turn:
     model: str
     duration_s: float
     stop: str
+    result: str = ""
+
+
+@dataclass
+class ActivityLine:
+    at: datetime | None
+    kind: str
+    text: str
 
 
 @dataclass
@@ -68,6 +77,8 @@ class Dossier:
     turns: list[Turn]
     router_cost: float
     events: list[Event] = field(default_factory=list)
+    answer: str | None = None
+    earlier_answers: list[str] = field(default_factory=list)
 
     @property
     def worker_cost(self):
@@ -145,6 +156,7 @@ def read_turns(log_dir, assignment_id):
             assignment_id, index, float(body.get("total_cost_usd") or 0), int(body.get("num_turns") or 0),
             ",".join(model.removeprefix("claude-") for model in models) or "-",
             (body.get("duration_ms") or 0) / 1000, body.get("stop_reason") or "-",
+            body.get("result") if isinstance(body.get("result"), str) else "",
         ))
     return found
 
@@ -235,6 +247,9 @@ def _dossier(query, ticket, log_dir):
         router_cost=float(router_cost or 0),
     )
     dossier.events = _events(dossier, assignments)
+    found = answers(dossier.turns)
+    dossier.answer = found[-1] if found else None
+    dossier.earlier_answers = found[:-1]
     return dossier
 
 
@@ -328,3 +343,66 @@ def stale_tickets(world, root, now):
         if reason:
             found.append((dossier, reason))
     return found
+
+
+REPORT_TAIL = re.compile(r"\n*^REPORT (progress|waiting|ready|blocked|failed|dropped) .*\Z", re.M | re.S)
+ACTIVITY_LIMIT = 400
+TOOL_FIELDS = ("command", "file_path", "path", "pattern", "description", "url", "query", "prompt")
+
+
+def answers(turns):
+    order = list(dict.fromkeys(turn.assignment for turn in turns))
+    ranked = sorted(turns, key=lambda turn: (order.index(turn.assignment), turn.n))
+    cleaned = (REPORT_TAIL.sub("", turn.result).strip() for turn in ranked if turn.result)
+    return [text for text in cleaned if text]
+
+
+def _tool_text(name, given):
+    if not isinstance(given, dict):
+        return name
+    for key in TOOL_FIELDS:
+        value = given.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip().splitlines()[0]
+    return next((str(value) for value in given.values()), "")
+
+
+def _transcript(dossier, projects_dir):
+    if not dossier.session:
+        return None
+    return next(Path(projects_dir).glob(f"*/{dossier.session}.jsonl"), None)
+
+
+def activity(dossier, projects_dir, limit=ACTIVITY_LIMIT):
+    path = _transcript(dossier, projects_dir)
+    if path is None:
+        return []
+    found = []
+    try:
+        with path.open(encoding="utf-8", errors="replace") as stream:
+            for raw in stream:
+                try:
+                    entry = json.loads(raw)
+                except ValueError:
+                    continue
+                if not isinstance(entry, dict) or entry.get("type") != "assistant":
+                    continue
+                at = _parse_stamp(entry.get("timestamp"))
+                for part in (entry.get("message") or {}).get("content") or []:
+                    if not isinstance(part, dict):
+                        continue
+                    if part.get("type") == "text" and (part.get("text") or "").strip():
+                        found.append(ActivityLine(at, "say", " ".join(part["text"].split())))
+                    elif part.get("type") == "tool_use":
+                        name = part.get("name") or "tool"
+                        found.append(ActivityLine(at, name, _tool_text(name, part.get("input"))))
+    except OSError:
+        return []
+    return found[-limit:]
+
+
+def _parse_stamp(raw):
+    try:
+        return parse_time(raw.replace("Z", "+00:00")) if isinstance(raw, str) else None
+    except ValueError:
+        return None
