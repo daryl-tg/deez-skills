@@ -13,7 +13,8 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import ModalScreen, Screen
 from textual.widget import Widget
-from textual.widgets import DataTable, Input, Label, RichLog, Static
+from textual.message import Message as TextualMessage
+from textual.widgets import DataTable, Label, RichLog, Static, TextArea
 
 from deezlib import memguard
 from deezlib.superclanker import center_model, clipboard
@@ -913,30 +914,66 @@ class StatusBar(Static):
         self.update(status_text(self.app.world))
 
 
-class PromptInput(Input):
-    BINDINGS = [Binding("ctrl+v", "attach_clipboard", "attach image", show=False)]
+INLINE_PASTE_LINES = 6
+
+
+class PromptArea(TextArea):
+    BINDINGS = [
+        Binding("ctrl+v", "attach_clipboard", "attach image", show=False),
+        Binding("ctrl+j,shift+enter", "newline", "new line", show=False),
+    ]
+
+    class Submitted(TextualMessage):
+        def __init__(self, area, value):
+            super().__init__()
+            self.area = area
+            self.value = value
+
+    def __init__(self, **kwargs):
+        super().__init__(soft_wrap=True, show_line_numbers=False, tab_behavior="focus",
+                         compact=True, highlight_cursor_line=False, **kwargs)
+
+    @property
+    def value(self):
+        return self.text
+
+    @value.setter
+    def value(self, text):
+        self.text = text
+        self.move_cursor(self.document.end)
 
     def action_attach_clipboard(self):
         self.app.attach_clipboard()
 
-    def _on_paste(self, event):
-        images = clipboard.image_paths(event.text or "")
+    def action_newline(self):
+        self.insert("\n")
+
+    async def _on_paste(self, event):
+        text = event.text or ""
+        images = clipboard.image_paths(text)
         if images:
             for image in images:
                 self.app.attach(("image", str(image)))
-        elif len((event.text or "").strip().splitlines()) > 1:
-            self.app.attach(("text", event.text.strip()))
+        elif len(text.strip().splitlines()) > INLINE_PASTE_LINES:
+            self.app.attach(("text", text.strip()))
         else:
-            return
+            await super()._on_paste(event)
         event.stop()
         event.prevent_default()
 
-    def _on_key(self, event):
-        if event.key == "backspace" and not self.value and self.app.attachments:
+    async def _on_key(self, event):
+        if event.key == "enter":
+            event.stop()
+            event.prevent_default()
+            self.post_message(self.Submitted(self, self.text))
+            return
+        if event.key == "backspace" and not self.text and self.app.attachments:
             self.app.attachments.pop()
             self.app.update_prompt()
             event.stop()
             event.prevent_default()
+            return
+        await super()._on_key(event)
 
 
 def attachment_label(attachments):
@@ -1072,7 +1109,7 @@ class Zoom(Screen):
                     yield Static(Text("TAPE · newest first", style=f"bold {AMBER}"), markup=False)
                     yield Static(tape_text(w), id="ztape", markup=False)
             else:
-                yield RichLog(id="zlog", wrap=True, markup=False, highlight=False)
+                yield RichLog(id="zlog", wrap=True, markup=False, highlight=False, min_width=1)
         yield Static(legend_text(ZOOM_KEYS), classes="legend")
 
     def on_mount(self):
@@ -1134,11 +1171,11 @@ class CenterApp(App):
     #blotter-foot {{ height: 2; padding: 0 1; background: #0D0D0D; overflow: hidden; }}
     VerticalScroll {{ overflow-x: hidden; background: #000000; scrollbar-size: 1 1; padding: 0 1; }}
     Static {{ background: #000000; }}
-    #inputrow {{ height: 1; background: #0D0D0D; }}
+    #inputrow {{ height: auto; max-height: 7; background: #0D0D0D; }}
     #prompt {{ width: auto; color: {AMBER}; text-style: bold; padding: 0 0 0 1; background: #0D0D0D; }}
-    Input {{ border: none; height: 1; padding: 0 1; background: #0D0D0D; color: {WHITE}; }}
-    Input:focus {{ border: none; background: #1A1200; }}
-    Input > .input--placeholder {{ color: {DIM}; }}
+    PromptArea {{ border: none; height: auto; max-height: 6; width: 1fr; padding: 0 1; background: #0D0D0D; color: {WHITE}; }}
+    PromptArea:focus {{ border: none; background: #1A1200; }}
+    PromptArea > .text-area--placeholder {{ color: {DIM}; }}
     RichLog {{ background: #000000; padding: 0 3 0 0; overflow-x: hidden; scrollbar-size-horizontal: 0; scrollbar-size: 1 1; height: 1fr; }}
     """
 
@@ -1221,10 +1258,10 @@ class CenterApp(App):
                         yield Static(id="dossier-text", markup=False)
                 with Panel(id="p-router"):
                     yield Band("ROUTER", "^t target · enter send · n new task")
-                    yield RichLog(id="log", wrap=True, markup=False, highlight=False)
+                    yield RichLog(id="log", wrap=True, markup=False, highlight=False, min_width=1)
                     with Horizontal(id="inputrow"):
                         yield Label("", id="prompt", markup=False)
-                        yield PromptInput(id="input", placeholder="type here · ctrl+v pastes an image")
+                        yield PromptArea(id="input", placeholder="type here · enter sends · ctrl+j new line · ctrl+v image")
         yield Static(legend_text(MAIN_KEYS), classes="legend")
 
     def on_mount(self):
@@ -1326,6 +1363,7 @@ class CenterApp(App):
 
     def on_resize(self, event):
         self.call_after_refresh(self.rebuild_all_tables)
+        self.call_after_refresh(self.render_log)
 
     def rebuild_table(self, tb):
         fill_blotter(tb, self.world, tb.id == "zblotter", {k for k in self.flash if self.flashing(k)})
@@ -1471,14 +1509,14 @@ class CenterApp(App):
         self.attachments.insert(0, ("task", f"{d.id} ({d.slug})"))
         self.mode = "ask"
         self.update_prompt()
-        self.query_one("#input", Input).focus()
+        self.query_one("#input", PromptArea).focus()
 
     def attach(self, attachment):
         self.attachments.append(attachment)
         self.update_prompt()
 
     def attach_clipboard(self):
-        self.query_one("#input", Input).focus()
+        self.query_one("#input", PromptArea).focus()
         self.run_worker(self.grab_in_thread, thread=True, group="clipboard")
 
     def grab_in_thread(self):
@@ -1531,14 +1569,14 @@ class CenterApp(App):
             return
         self.mode = "new"
         self.update_prompt()
-        self.query_one("#input", Input).focus()
+        self.query_one("#input", PromptArea).focus()
 
     def action_target(self):
         if self.in_zoom():
             return
         self.mode = "note" if self.mode != "note" else "ask"
         self.update_prompt()
-        self.query_one("#input", Input).focus()
+        self.query_one("#input", PromptArea).focus()
 
     def action_blotter(self):
         if self.in_zoom():
@@ -1553,12 +1591,12 @@ class CenterApp(App):
         if not self.in_zoom():
             self.attach_clipboard()
 
-    def on_input_submitted(self, ev):
+    def on_prompt_area_submitted(self, ev):
         typed = ev.value.strip()
         if not typed and not self.attachments:
             return
         text = compose_message(typed, self.attachments)
-        ev.input.value = ""
+        ev.area.value = ""
         self.attachments = []
         self.update_prompt()
         d = self.selected()

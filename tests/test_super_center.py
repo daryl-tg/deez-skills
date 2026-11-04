@@ -403,6 +403,21 @@ class AppTest(Seeded):
         self.assertEqual(verbs.calls[0][:4], [str(DEEZ), "super-clanker", "ask", "--"])
         self.assertEqual(verbs.calls[0][4], f"About ticket {ticket.id} (slug-1): why the race?")
 
+    def test_router_replies_wrap_inside_the_panel(self):
+        self.ticket(1)
+        self.store.reply("terminal:default", "finding " * 80)
+        widths = []
+
+        async def script(app, pilot):
+            await pilot.pause()
+            log = app.query_one("#log")
+            widths.append((max(line.cell_length for line in log.lines), log.scrollable_content_region.width))
+
+        self.run_app(Verbs(), script)
+
+        longest, room = widths[0]
+        self.assertLessEqual(longest, room)
+
     def test_failed_verb_is_shown_in_the_router_log(self):
         self.ticket(1)
 
@@ -598,13 +613,27 @@ class AttachmentTest(Seeded):
         self.assertEqual(values, [""])
         self.assertIn(str(shot.resolve()), verbs.calls[0][-1])
 
-    def test_multi_line_paste_is_kept_whole(self):
+    def test_short_multi_line_paste_goes_into_the_box(self):
         self.ticket(1)
         verbs = Verbs()
-        labels = []
 
         async def script(app, pilot):
             app.query_one("#input").post_message(events.Paste("line one\nline two\nline three"))
+            await pilot.pause()
+            await pilot.press("enter")
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(verbs.calls[0][-1], "line one\nline two\nline three")
+
+    def test_long_paste_becomes_a_chip_and_is_kept_whole(self):
+        self.ticket(1)
+        verbs = Verbs()
+        labels = []
+        pasted = "\n".join(f"line {n}" for n in range(12))
+
+        async def script(app, pilot):
+            app.query_one("#input").post_message(events.Paste(pasted))
             await pilot.pause()
             labels.append(str(app.query_one("#prompt").render()))
             await pilot.press(*"see paste")
@@ -612,8 +641,8 @@ class AttachmentTest(Seeded):
 
         self.run_app(verbs, script)
 
-        self.assertIn("[pasted 3 lines]", labels[0])
-        self.assertIn("line one\nline two\nline three", verbs.calls[0][-1])
+        self.assertIn("[pasted 12 lines]", labels[0])
+        self.assertIn(pasted, verbs.calls[0][-1])
 
     def test_single_line_paste_types_into_the_box(self):
         values = []
@@ -626,6 +655,31 @@ class AttachmentTest(Seeded):
         self.run_app(Verbs(), script)
 
         self.assertEqual(values, ["fix the tape"])
+
+    def test_long_message_wraps_so_all_of_it_shows(self):
+        heights = []
+
+        async def script(app, pilot):
+            await pilot.press(*("word " * 60))
+            await pilot.pause()
+            heights.append(app.query_one("#input").size.height)
+
+        self.run_app(Verbs(), script)
+
+        self.assertGreaterEqual(heights[0], 3)
+
+    def test_ctrl_j_adds_a_line_without_sending(self):
+        self.ticket(1)
+        verbs = Verbs()
+
+        async def script(app, pilot):
+            await pilot.press("a", "ctrl+j", "b")
+            await pilot.pause()
+            await pilot.press("enter")
+
+        self.run_app(verbs, script)
+
+        self.assertEqual([call[-1] for call in verbs.calls], ["a\nb"])
 
     def test_backspace_on_an_empty_box_drops_the_last_attachment(self):
         verbs = Verbs()
