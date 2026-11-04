@@ -146,8 +146,10 @@ class WorkersTest(unittest.TestCase):
         )
         mandate = (folder / "mandate.md").read_text(encoding="utf-8")
         for fact in (ticket_id, SLUG, "terminal:default", "explicit", "daryl",
-                     "dispatch by router: addressed", "push"):
+                     "dispatch by router: addressed", "default branch", "pull request"):
             self.assertIn(fact, mandate)
+        self.assertNotIn("push any branch", mandate)
+        self.assertNotIn("open or update a review", mandate)
 
         _other, other_ticket, other_assignment = self.dispatch(
             "tidy the changelog", "tidy-changelog", thread="other"

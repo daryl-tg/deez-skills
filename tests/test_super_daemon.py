@@ -559,22 +559,68 @@ class DaemonTest(unittest.TestCase):
         self.assertEqual((result.removed, result.errors), (1, ()))
         self.assertIn(work, self.sweeper.swept)
 
-    def test_scratch_clone_is_kept_when_archived_open_or_dirty(self):
-        archived, _ = self.ticket("archived", "a")
-        kept = self.scratch_clone(archived)
+    def pushed_clone(self, ticket):
+        remote = self.root.parent / f"remote-{ticket.id}.git"
+        subprocess.run(["git", "init", "-q", "--bare", str(remote)], check=True)
+        work = self.root / "work" / ticket.id
+        clone = work / "wt"
+        clone.parent.mkdir(parents=True)
+        subprocess.run(["git", "clone", "-q", str(remote), str(clone)], check=True, capture_output=True)
+        git(clone, "config", "user.email", "tester@example.com")
+        git(clone, "config", "user.name", "tester")
+        (clone / "file.txt").write_text("one\n", encoding="utf-8")
+        git(clone, "add", "file.txt")
+        git(clone, "commit", "-q", "-m", "first")
+        git(clone, "push", "-q", "origin", "HEAD")
+        return work
+
+    def test_stopped_or_archived_scratch_clone_with_everything_pushed_is_removed(self):
+        stopped, _ = self.ticket("stopped", "a")
+        first = self.pushed_clone(stopped)
+        self.store.stop(stopped.id, "daryl", "done")
+        archived, _ = self.ticket("archived", "b")
+        second = self.pushed_clone(archived)
         self.store.archive(archived.id, "daryl", "stale")
+
+        result = self.one_pass()
+
+        self.assertFalse(first.exists() or second.exists())
+        self.assertEqual((result.removed, result.errors), (2, ()))
+
+    def test_empty_scratch_dir_of_an_ended_ticket_is_removed(self):
+        ticket, _ = self.ticket("empty")
+        work = self.root / "work" / ticket.id
+        work.mkdir(parents=True)
+        self.store.stop(ticket.id, "daryl", "done")
+
+        result = self.one_pass()
+
+        self.assertFalse(work.exists())
+        self.assertEqual(result.removed, 1)
+
+    def test_scratch_clone_is_kept_when_open_dropped_dirty_or_holding_unpushed_commits(self):
+        unpushed, _ = self.ticket("unpushed", "a")
+        local_only = self.scratch_clone(unpushed)
+        self.store.archive(unpushed.id, "daryl", "stale")
         running, _ = self.ticket("running", "b")
         live = self.scratch_clone(running)
-        dirty, _ = self.ticket("dirty", "c")
+        dropped, _ = self.ticket("dropped", "c")
+        revivable = self.pushed_clone(dropped)
+        self.store.end_ticket(dropped.id, "dropped")
+        dirty, _ = self.ticket("dirty", "d")
         unsaved = self.scratch_clone(dirty, dirty=True)
         self.store.close_merged(dirty.id, "https://github.com/o/r/pull/2")
 
         result = self.one_pass()
 
-        self.assertTrue(kept.exists() and live.exists() and unsaved.exists())
+        for kept in (local_only, live, revivable, unsaved):
+            self.assertTrue(kept.exists(), kept)
         self.assertEqual(result.removed, 0)
-        self.assertEqual(len(result.errors), 1)
-        self.assertIn(str(unsaved), result.errors[0])
+        self.assertEqual(len(result.errors), 2)
+        joined = " ".join(result.errors)
+        self.assertIn(str(local_only), joined)
+        self.assertIn("no remote", joined)
+        self.assertIn(str(unsaved), joined)
 
     def test_pass_closes_merged_reviews(self):
         calls = []

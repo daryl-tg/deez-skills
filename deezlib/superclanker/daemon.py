@@ -250,12 +250,14 @@ def _inside_worktrees(root, path):
         return False
 
 
-def _merged(store, ticket_id):
+def _ended_outcome(store, ticket_id):
     try:
         shown = store.show(ticket_id)
     except SuperError:
-        return False
-    return shown["state"] is TicketState.ended and store.outcome(ticket_id) == "merged"
+        return None
+    if shown["state"] is not TicketState.ended or shown["ended_by"] is None:
+        return None
+    return store.outcome(ticket_id) or "stopped"
 
 
 def _scratch_repos(path):
@@ -263,10 +265,24 @@ def _scratch_repos(path):
             if candidate.is_dir() and (candidate / ".git").exists()]
 
 
-def _remove_merged_scratch(store, root, git, sweeper, blocked, now, errors):
+def _require_pushed(repo, git):
+    local = git(
+        ["git", "-C", str(repo), "log", "--branches", "--not", "--remotes", "--oneline", "-1"],
+        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
+    )
+    if local.returncode != 0:
+        raise SuperError(f"{repo}: git log failed: {local.stderr.strip()}")
+    if local.stdout.strip():
+        raise SuperError(f"{repo}: has commits on no remote; kept")
+
+
+def _remove_ended_scratch(store, root, git, sweeper, blocked, now, errors):
     removed = 0
     for path in sorted((Path(root) / "work").glob("k_*")):
-        if path.is_symlink() or not path.is_dir() or not _merged(store, path.name):
+        if path.is_symlink() or not path.is_dir():
+            continue
+        outcome = _ended_outcome(store, path.name)
+        if outcome is None:
             continue
         failed_at = blocked.get(path)
         if failed_at is not None and _seconds_since(failed_at, now) < REMOVAL_RETRY_SECONDS:
@@ -274,6 +290,8 @@ def _remove_merged_scratch(store, root, git, sweeper, blocked, now, errors):
         try:
             for repo in _scratch_repos(path):
                 _require_clean(repo, git)
+                if outcome != "merged":
+                    _require_pushed(repo, git)
             sweeper(path)
             shutil.rmtree(path)
         except (SuperError, OSError, subprocess.SubprocessError) as exc:
@@ -333,7 +351,7 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     _closed, review_errors = close_reviews(store)
     errors.extend(review_errors)
     removed = _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors)
-    removed += _remove_merged_scratch(store, root, git, sweeper, blocked, now, errors)
+    removed += _remove_ended_scratch(store, root, git, sweeper, blocked, now, errors)
     held = _held_by_memory(config, free_pct or memguard.free_pct)
     hold_changed = _record_hold(root, held)
     resumed = 0

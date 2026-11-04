@@ -64,9 +64,11 @@ path out; the daemon already does so for the Router and the Workers.
   opens the selected Ticket's review in the browser.
 - A merged review closes its Ticket by itself. Every 2 minutes the daemon asks
   `gh` or `glab` about each open Ticket's pull or merge request link. A merged
-  one ends the Ticket with outcome `merged`, replies on a terminal thread, and
-  removes the Ticket's worktree or `work/<ticket>` scratch clone when its
-  repositories are clean. Branches stay.
+  one ends the Ticket with outcome `merged` and replies on a terminal thread.
+- The daemon removes an ended Ticket's worktree or `work/<ticket>` scratch
+  directory (stopped, archived or merged; never a dropped one, which may be
+  revived) when nothing would be lost: no uncommitted files and, unless merged,
+  no commit that is on no remote. Branches stay.
 
 State lives in `~/.local/state/deez-skills/super/`, or in `$DEEZ_SUPER_STATE`.
 It holds `super.db`, `log/`, `inbox/` and `worktrees/<repo>/<ticket>`. Ticket

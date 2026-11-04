@@ -14,11 +14,16 @@
 | Source | {source} |
 | Created at | {created_at} |
 
+## The Worker may
+
+- push its own feature branch and open a pull request or merge request, ready
+  for review, once the change is verified, unless the scope above says not to
+
 ## The Worker must not
 
-- push any branch
-- open or update a review, pull request or merge request
+- merge, or push the default branch
+- force-push a branch someone else pushed
 - post to any room or channel
-- merge
 - delete branches
-- touch any path outside its worktree and the ticket's dev-notes folder
+- touch any path outside its worktree, the ticket's dev-notes folder and the
+  push from the repository's main checkout
