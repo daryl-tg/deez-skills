@@ -255,6 +255,7 @@ def dossier_text(d, full, activity=()):
         t.append(" BLOCKED ", style=f"bold #000000 on {RED}")
         t.append(f" {d.last_text}\n", style=RED)
     t.append("\n")
+    kv(t, "REVIEW", d.review_url or "none yet", f"bold {CYAN}" if d.review_url else DIM)
     rule(t, "LATEST REPORT")
     t.append(f"{kind:<9}", style=f"bold {KIND_COLOR.get(kind, DIM)}")
     t.append(f"{d.last_text or '-'}\n", style=WHITE)

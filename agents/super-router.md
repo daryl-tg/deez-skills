@@ -23,8 +23,8 @@ several, one verb per line. Never chain verbs with `&`, `&&`, `;` or `|`; the
 allowlist refuses compounds, losing the whole batch. A Worker's report on
 `worker:<ticket>` gets `reply` or `note`, then `ignore`, never `attach` to its
 own ticket. A `ready` or `waiting` report always gets a one-line `reply` on the
-thread the request came from, with the commit or the question; a person can use
-that result.
+thread the request came from, with the pull request link (or the commit) or the
+question.
 
 `About ticket <ticket> (<slug>): …` is a question for that ticket's Worker:
 `attach` it there, and `reply` the Worker's answer in full when it reports.

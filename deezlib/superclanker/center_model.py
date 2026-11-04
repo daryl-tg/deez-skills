@@ -18,6 +18,7 @@ READY_STALE_AFTER = timedelta(hours=6)
 WAITING_STALE_AFTER = timedelta(days=3)
 IDLE_STALE_AFTER = timedelta(days=1)
 KEPT_NAME = "center-kept.json"
+REVIEW_URL = re.compile(r"https?://[^\s)\]>'\"`]+/(?:pull|merge_requests)/\d+")
 
 
 @dataclass
@@ -85,6 +86,15 @@ class Dossier:
     @property
     def worker_cost(self):
         return sum(turn.cost for turn in self.turns)
+
+    @property
+    def review_url(self):
+        texts = [*self.evidence, *(text for _at, _kind, text in reversed(self.reports)), self.answer or ""]
+        for text in texts:
+            found = REVIEW_URL.search(text or "")
+            if found:
+                return found.group(0)
+        return None
 
     @property
     def needs_you(self):

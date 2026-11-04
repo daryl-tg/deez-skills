@@ -192,7 +192,7 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual((folder / "resume.md").read_text(encoding="utf-8"), "step 2 of 5 done\n")
         self.assertIn(fresh, (folder / "brief.md").read_text(encoding="utf-8"))
 
-    def test_brief_cites_playbook_mandate_and_forbids_delivery(self):
+    def test_brief_cites_playbook_mandate_and_carries_the_task_to_a_review(self):
         _trigger, ticket_id, assignment_id = self.dispatch("fix the typo\nin README line 3")
         self.store.add_input(ticket_id, "note", "the README moved to docs/")
 
@@ -202,7 +202,7 @@ class WorkersTest(unittest.TestCase):
         headings = re.findall(r"^## (.+)$", brief, re.M)
         self.assertEqual(
             headings,
-            ["Goal, in one line", "Read first", "Where you work", "You must not", "Inputs",
+            ["Goal, in one line", "Read first", "Where you work", "Deliver", "You must not", "Inputs",
              "Report protocol"],
         )
         self.assertIn("fix the typo in README line 3", section(brief, "Goal, in one line"))
@@ -210,9 +210,13 @@ class WorkersTest(unittest.TestCase):
         self.assertIn(str(HUB / "skills" / "clanker-mode" / "SKILL.md"), read_first)
         self.assertIn(str(BUG_FIX), read_first)
         self.assertIn(str(self.notes / SLUG / "mandate.md"), read_first)
+        deliver = section(brief, "Deliver")
+        for word in ("push", "pull request", "merge request", "never draft", "--evidence", "ready"):
+            self.assertIn(word, deliver)
         forbidden = section(brief, "You must not")
-        for word in ("push", "review", "merge", "room", "delete branches"):
+        for word in ("merge", "default branch", "force-push", "room", "delete branches"):
             self.assertIn(word, forbidden)
+        self.assertNotIn("- push any branch", forbidden)
         inputs = section(brief, "Inputs")
         self.assertIn(f"- note: playbook: {BUG_FIX}", inputs)
         self.assertIn("- note: the README moved to docs/", inputs)

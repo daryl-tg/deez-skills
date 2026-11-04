@@ -87,6 +87,20 @@ class LoadTest(Seeded):
 
         self.assertEqual(center_model.load(self.root).max_running, 6)
 
+    def test_review_url_comes_from_the_reports(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        self.store.report(assignment.id, "ready", "PR open: https://github.com/daryl-tg/deez-skills/pull/42.",
+                          evidence=["https://github.com/daryl-tg/deez-skills/pull/42"])
+        other, second, _ = self.ticket(2, report="progress")
+        self.store.report(second.id, "ready", "MR https://gitlab.com/om/rooms-client/-/merge_requests/812")
+        plain, _, _ = self.ticket(3, report="ready")
+
+        found = {d.id: d.review_url for d in center_model.load(self.root).dossiers}
+
+        self.assertEqual(found[ticket.id], "https://github.com/daryl-tg/deez-skills/pull/42")
+        self.assertEqual(found[other.id], "https://gitlab.com/om/rooms-client/-/merge_requests/812")
+        self.assertIsNone(found[plain.id])
+
     def test_terminal_thread_interleaves_asks_and_replies(self):
         self.ticket(1, text="first ask")
         self.store.reply("terminal:default", "dispatched")
@@ -384,6 +398,7 @@ class AppTest(Seeded):
         asyncio.run(go())
 
         self.assertIn("ANSWER", texts[0])
+        self.assertIn("REVIEW", texts[0])
         self.assertIn("Root cause: a cold-boot race.", texts[0])
         self.assertIn("ACTIVITY", texts[0])
         self.assertIn("awayCoverage", texts[0])

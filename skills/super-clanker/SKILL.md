@@ -88,8 +88,11 @@ reading the `would accept` decisions it recorded.
 
 ## What never happens
 
-- A Worker never pushes, opens a review, posts or merges. It stops at a
-  verified local candidate, per **principle-visual-approval-gates-delivery**.
+- A Worker never merges, pushes the default branch or posts. It carries a
+  verified change to a pull request or merge request, ready for review, and
+  reports `ready` with its URL. A mandate that forbids pushing, or a playbook
+  that needs the operator's visual approval first, stops it short of the review,
+  per **principle-visual-approval-gates-delivery**.
 - A Worker proceeds on reversible work without asking and reports `waiting`
   before anything outward-facing, per **principle-never-block-on-reversible-work**.
 - The Router never edits code. It decides and dispatches.
