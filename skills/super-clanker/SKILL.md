@@ -43,7 +43,11 @@ path out; the daemon already does so for the Router and the Workers.
 - `center [--state <dir>]` opens the command center. It shows the Tickets as a
   table, a kanban or a graph, with each Ticket's full dossier, the system tape
   and the Router thread. Its input runs `ask`, or `note` for the selected
-  Ticket. It reloads from the state every 2 seconds. A red strip counts stale
+  Ticket. `ctrl+v` attaches the image on the clipboard (a screenshot or a
+  copied image file), and a dropped image file attaches too. A multi-line
+  paste is kept whole. Attachments show as chips; backspace on an empty box
+  drops the last one. Images are saved under `<state>/attachments/` and sent
+  as paths the Worker opens. It reloads from the state every 2 seconds. A red strip counts stale
   Tickets: `ready` and untouched for 6 hours, waiting on you for 3 days, quiet
   for a day, or `dropped` a day ago with the worktree kept. `a` archives them
   all after a `y`; `r` reviews them one at a time (archive, keep or skip). Kept

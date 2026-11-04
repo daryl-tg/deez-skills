@@ -14,6 +14,8 @@ TEXTUAL = importlib.util.find_spec("textual")
 DEEZ = Path("/hub/bin/deez")
 
 if TEXTUAL:
+    from textual import events
+
     from deezlib.superclanker.center_app import CenterApp
     from deezlib.superclanker.ui_app import VerbResult
 
@@ -362,6 +364,163 @@ class CleanupPromptTest(Seeded):
         self.assertEqual(len(verbs.calls), 1)
         self.assertEqual(verbs.calls[0][2], "archive")
         self.assertEqual(len(center_model.read_kept(self.root)), 1)
+
+
+@unittest.skipUnless(TEXTUAL, "textual not installed")
+class AttachmentTest(Seeded):
+    def setUp(self):
+        super().setUp()
+        self.shots = self.root.parent / "shots"
+        self.shots.mkdir()
+        self.grabs = []
+
+    def grab(self, dest):
+        self.grabs.append(dest)
+        path = self.shots / f"clip-{len(self.grabs)}.png"
+        path.write_bytes(b"png")
+        return path
+
+    def run_app(self, verbs, script, grab=None):
+        async def go():
+            app = CenterApp(self.root, verb=verbs, deez=DEEZ, refresh_s=3600, grab_image=grab or self.grab)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                app.query_one("#input").focus()
+                await script(app, pilot)
+                await app.workers.wait_for_complete()
+                await pilot.pause()
+        asyncio.run(go())
+
+    def test_ctrl_v_attaches_the_clipboard_image_to_the_ask(self):
+        self.ticket(1)
+        verbs = Verbs()
+        labels = []
+
+        async def script(app, pilot):
+            await pilot.press("ctrl+v")
+            await pilot.pause()
+            labels.append(str(app.query_one("#prompt").render()))
+            await pilot.press(*"what is this")
+            await pilot.press("enter")
+
+        self.run_app(verbs, script)
+
+        self.assertIn("[image 1]", labels[0])
+        self.assertEqual(self.grabs, [self.root / "attachments"])
+        text = verbs.calls[0][-1]
+        self.assertTrue(text.startswith("what is this"))
+        self.assertIn(str(self.shots / "clip-1.png"), text)
+
+    def test_ctrl_v_without_an_image_says_so(self):
+        verbs = Verbs()
+        logs = []
+
+        async def script(app, pilot):
+            await pilot.press("ctrl+v")
+            await pilot.pause()
+            logs.append(app.log_text())
+
+        self.run_app(verbs, script, grab=lambda dest: None)
+
+        self.assertIn("no image on the clipboard", logs[0])
+        self.assertEqual(verbs.calls, [])
+
+    def test_dropped_image_path_attaches_instead_of_typing(self):
+        self.ticket(1)
+        shot = self.shots / "Screen Shot.png"
+        shot.write_bytes(b"png")
+        verbs = Verbs()
+        values = []
+
+        async def script(app, pilot):
+            app.query_one("#input").post_message(events.Paste(str(shot).replace(" ", "\\ ")))
+            await pilot.pause()
+            values.append(app.query_one("#input").value)
+            await pilot.press("enter")
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(values, [""])
+        self.assertIn(str(shot.resolve()), verbs.calls[0][-1])
+
+    def test_multi_line_paste_is_kept_whole(self):
+        self.ticket(1)
+        verbs = Verbs()
+        labels = []
+
+        async def script(app, pilot):
+            app.query_one("#input").post_message(events.Paste("line one\nline two\nline three"))
+            await pilot.pause()
+            labels.append(str(app.query_one("#prompt").render()))
+            await pilot.press(*"see paste")
+            await pilot.press("enter")
+
+        self.run_app(verbs, script)
+
+        self.assertIn("[pasted 3 lines]", labels[0])
+        self.assertIn("line one\nline two\nline three", verbs.calls[0][-1])
+
+    def test_single_line_paste_types_into_the_box(self):
+        values = []
+
+        async def script(app, pilot):
+            app.query_one("#input").post_message(events.Paste("fix the tape"))
+            await pilot.pause()
+            values.append(app.query_one("#input").value)
+
+        self.run_app(Verbs(), script)
+
+        self.assertEqual(values, ["fix the tape"])
+
+    def test_backspace_on_an_empty_box_drops_the_last_attachment(self):
+        verbs = Verbs()
+        labels = []
+
+        async def script(app, pilot):
+            await pilot.press("ctrl+v")
+            await pilot.press("ctrl+v")
+            await pilot.press("backspace")
+            await pilot.pause()
+            labels.append(str(app.query_one("#prompt").render()))
+
+        self.run_app(verbs, script)
+
+        self.assertIn("[image 1]", labels[0])
+        self.assertNotIn("[image 2]", labels[0])
+
+    def test_images_alone_can_be_sent_and_then_clear(self):
+        self.ticket(1)
+        verbs = Verbs()
+        labels = []
+
+        async def script(app, pilot):
+            await pilot.press("ctrl+v")
+            await pilot.press("enter")
+            await pilot.pause()
+            labels.append(str(app.query_one("#prompt").render()))
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(len(verbs.calls), 1)
+        self.assertIn(str(self.shots / "clip-1.png"), verbs.calls[0][-1])
+        self.assertNotIn("[image", labels[0])
+
+    def test_note_carries_attachments_to_the_ticket(self):
+        ticket, _, _ = self.ticket(1)
+        verbs = Verbs()
+
+        async def script(app, pilot):
+            await pilot.press("ctrl+t")
+            await pilot.press("ctrl+v")
+            await pilot.press(*"this one")
+            await pilot.press("enter")
+
+        self.run_app(verbs, script)
+
+        call = verbs.calls[0]
+        self.assertEqual(call[2:4], ["note", ticket.id])
+        self.assertTrue(call[4].startswith("--text=this one"))
+        self.assertIn(str(self.shots / "clip-1.png"), call[4])
 
 
 if __name__ == "__main__":

@@ -7,14 +7,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from rich.text import Text
+from textual import events
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import ModalScreen, Screen
 from textual.widget import Widget
 from textual.widgets import DataTable, Input, Label, RichLog, Static
 
 from deezlib import memguard
-from deezlib.superclanker import center_model
+from deezlib.superclanker import center_model, clipboard
 from deezlib.superclanker.center_model import STAGES, Message
 from deezlib.superclanker.store import state_root
 from deezlib.superclanker.ui_app import run_verb
@@ -876,6 +878,54 @@ class StatusBar(Static):
         self.update(status_text(self.app.world))
 
 
+class PromptInput(Input):
+    BINDINGS = [Binding("ctrl+v", "attach_clipboard", "attach image", show=False)]
+
+    def action_attach_clipboard(self):
+        self.app.attach_clipboard()
+
+    def _on_paste(self, event):
+        images = clipboard.image_paths(event.text or "")
+        if images:
+            for image in images:
+                self.app.attach(("image", str(image)))
+        elif len((event.text or "").strip().splitlines()) > 1:
+            self.app.attach(("text", event.text.strip()))
+        else:
+            return
+        event.stop()
+        event.prevent_default()
+
+    def _on_key(self, event):
+        if event.key == "backspace" and not self.value and self.app.attachments:
+            self.app.attachments.pop()
+            self.app.update_prompt()
+            event.stop()
+            event.prevent_default()
+
+
+def attachment_label(attachments):
+    labels = []
+    images = 0
+    for kind, value in attachments:
+        if kind == "image":
+            images += 1
+            labels.append(f"[image {images}]")
+        else:
+            labels.append(f"[pasted {len(value.splitlines())} lines]")
+    return " ".join(labels)
+
+
+def compose_message(text, attachments):
+    pasted = [value for kind, value in attachments if kind == "text"]
+    images = [value for kind, value in attachments if kind == "image"]
+    parts = [text or ("See the attached images." if images else "")]
+    parts += pasted
+    if images:
+        parts.append("Attached images (open each with the Read tool):\n" + "\n".join(images))
+    return "\n\n".join(part for part in parts if part)
+
+
 class ConfirmArchive(ModalScreen):
     BINDINGS = [("y", "answer(True)", "archive"), ("n", "answer(False)", "cancel"),
                 ("escape", "answer(False)", "cancel")]
@@ -1059,12 +1109,13 @@ class CenterApp(App):
         ("v", "view", "view"),
         ("escape", "blotter", "blotter"),
         ("ctrl+t", "target", "target"),
+        ("ctrl+v", "attach_clipboard", "attach image"),
         ("a", "archive_all", "archive stale"),
         ("r", "review", "review stale"),
     ]
 
     def __init__(self, root, *, verb=run_verb, deez=REPO_ROOT / "bin/deez", refresh_s=REFRESH_S,
-                 load=center_model.load, probe=None, now=None):
+                 load=center_model.load, probe=None, now=None, grab_image=clipboard.grab_image):
         super().__init__()
         self.root = Path(root)
         self.verb = verb
@@ -1073,6 +1124,8 @@ class CenterApp(App):
         self.load_world = load
         self.probe = probe or self.probe_host
         self.now = now or utcnow
+        self.grab_image = grab_image
+        self.attachments = []
         self.stale = []
         self.archiving = set()
         self.world = center_model.World([], {}, 0.0)
@@ -1127,7 +1180,7 @@ class CenterApp(App):
                     yield RichLog(id="log", wrap=True, markup=False, highlight=False)
                     with Horizontal(id="inputrow"):
                         yield Label("", id="prompt", markup=False)
-                        yield Input(id="input", placeholder="type here")
+                        yield PromptInput(id="input", placeholder="type here · ctrl+v pastes an image")
         yield Static(legend_text(MAIN_KEYS), classes="legend")
 
     def on_mount(self):
@@ -1343,7 +1396,30 @@ class CenterApp(App):
             "note": f"this ticket {d.id if d else ''} (note) > ",
             "new": "new task > ",
         }[self.mode]
-        self.query_one("#prompt", Label).update(Text(label))
+        prompt = Text(label)
+        if self.attachments:
+            prompt = Text(label.rstrip("> ") + " ")
+            prompt.append(attachment_label(self.attachments), style=f"bold {CYAN}")
+            prompt.append(" > ")
+        self.query_one("#prompt", Label).update(prompt)
+
+    def attach(self, attachment):
+        self.attachments.append(attachment)
+        self.update_prompt()
+
+    def attach_clipboard(self):
+        self.query_one("#input", Input).focus()
+        self.run_worker(self.grab_in_thread, thread=True, group="clipboard")
+
+    def grab_in_thread(self):
+        found = self.grab_image(self.root / "attachments")
+        self.call_from_thread(self.grabbed, found)
+
+    def grabbed(self, found):
+        if found is None:
+            self.say("no image on the clipboard (copy a screenshot or an image file, then ctrl+v)")
+            return
+        self.attach(("image", str(found)))
 
     def in_zoom(self):
         return len(self.screen_stack) > 1
@@ -1403,11 +1479,18 @@ class CenterApp(App):
         ids = {"TABLE": "#blotter", "KANBAN": "#kanban", "GRAPH": "#graph"}
         self.query_one(ids[self.view_mode]).focus()
 
+    def action_attach_clipboard(self):
+        if not self.in_zoom():
+            self.attach_clipboard()
+
     def on_input_submitted(self, ev):
-        text = ev.value.strip()
-        ev.input.value = ""
-        if not text:
+        typed = ev.value.strip()
+        if not typed and not self.attachments:
             return
+        text = compose_message(typed, self.attachments)
+        ev.input.value = ""
+        self.attachments = []
+        self.update_prompt()
         d = self.selected()
         if self.mode == "note" and d:
             self.say(f"note {d.id}: {text}")
