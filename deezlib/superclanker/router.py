@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from deezlib.superclanker import compose
-from deezlib.superclanker.domain import Strength
+from deezlib.superclanker.domain import Strength, usage_tokens
 from deezlib.superclanker.gate import admit
 from deezlib.superclanker.store import SuperError
 
@@ -117,7 +117,8 @@ def wake(store, config, root, hub_root, runner=subprocess.run):
     result = outcome.get("result")
     denials = _denied_commands(outcome)
     store.end_wake(
-        wake_id, completed.returncode, cost, outcome.get("session_id", sid), result, denials
+        wake_id, completed.returncode, cost, outcome.get("session_id", sid), result, denials,
+        tokens=sum(usage_tokens(outcome).values()),
     )
     left = store.undecided(ids)
     if left:

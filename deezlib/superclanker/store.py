@@ -56,6 +56,7 @@ class Wake:
     session_id: str | None
     result: str | None
     denials: tuple | None
+    tokens: int | None = None
 
 
 @dataclass(frozen=True)
@@ -136,7 +137,7 @@ CREATE TABLE IF NOT EXISTS fanouts (
     PRIMARY KEY (trigger_id, ticket_id));
 CREATE TABLE IF NOT EXISTS wakes (
     id TEXT PRIMARY KEY, started_at TEXT NOT NULL, ended_at TEXT, trigger_ids TEXT NOT NULL,
-    exit_code INTEGER, cost_usd REAL, session_id TEXT, result TEXT, denials TEXT);
+    exit_code INTEGER, cost_usd REAL, session_id TEXT, result TEXT, denials TEXT, tokens INTEGER);
 CREATE TABLE IF NOT EXISTS replies (
     id TEXT PRIMARY KEY, thread_id TEXT NOT NULL, text TEXT NOT NULL,
     created_at TEXT NOT NULL, sent_at TEXT);
@@ -287,6 +288,8 @@ class Store:
         wake_columns = {row[1] for row in connection.execute("PRAGMA table_info(wakes)")}
         if "denials" not in wake_columns:
             connection.execute("ALTER TABLE wakes ADD COLUMN denials TEXT")
+        if "tokens" not in wake_columns:
+            connection.execute("ALTER TABLE wakes ADD COLUMN tokens INTEGER")
         tick_columns = {row[1] for row in connection.execute("PRAGMA table_info(ticks)")}
         if "denials" not in tick_columns:
             connection.execute("ALTER TABLE ticks ADD COLUMN denials TEXT")
@@ -519,13 +522,13 @@ class Store:
             self._insert(wake)
         return wake.id
 
-    def end_wake(self, wake_id, exit_code, cost_usd, session_id, result, denials=None):
+    def end_wake(self, wake_id, exit_code, cost_usd, session_id, result, denials=None, tokens=None):
         with self._transaction():
             self._require(Wake, wake_id)
             self._db.execute(
                 "UPDATE wakes SET ended_at = ?, exit_code = ?, cost_usd = ?, session_id = ?, "
-                "result = ?, denials = ? WHERE id = ?",
-                (utc_now(), exit_code, cost_usd, session_id, result, _encode(denials), wake_id),
+                "result = ?, denials = ?, tokens = ? WHERE id = ?",
+                (utc_now(), exit_code, cost_usd, session_id, result, _encode(denials), tokens, wake_id),
             )
 
     def inflight_wake(self):

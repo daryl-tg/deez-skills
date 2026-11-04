@@ -2,6 +2,7 @@ import asyncio
 from datetime import timedelta
 import importlib.util
 import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -101,6 +102,57 @@ class LoadTest(Seeded):
         self.assertEqual(found[other.id], "https://gitlab.com/om/rooms-client/-/merge_requests/812")
         self.assertIsNone(found[plain.id])
 
+    def write_turn(self, assignment_id, suffix="", models=None):
+        log = self.root / "log"
+        log.mkdir(exist_ok=True)
+        usage = models or {"claude-opus-5-5": {"inputTokens": 18, "cacheCreationInputTokens": 50000,
+                                               "cacheReadInputTokens": 350000, "outputTokens": 6500}}
+        (log / f"{assignment_id}{suffix}.json").write_text(json.dumps({"modelUsage": usage, "num_turns": 3}))
+
+    def test_tokens_add_up_every_model_a_worker_used(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        self.write_turn(assignment.id, models={
+            "claude-opus-5-5": {"inputTokens": 10, "cacheCreationInputTokens": 1000, "cacheReadInputTokens": 20000, "outputTokens": 500},
+            "claude-haiku-5-5": {"inputTokens": 5, "cacheCreationInputTokens": 200, "cacheReadInputTokens": 3000, "outputTokens": 100},
+        })
+        self.write_turn(assignment.id, ".1")
+
+        dossier = center_model.load(self.root).dossiers[0]
+
+        first = dossier.turns[0]
+        self.assertEqual((first.tokens_in, first.tokens_cached, first.tokens_out), (1215, 23000, 600))
+        self.assertEqual(first.tokens, 24815)
+        self.assertEqual(dossier.tokens, 24815 + 406518)
+
+    def test_tokens_today_counts_worker_runs_and_router_wakes(self):
+        ticket, assignment, trigger = self.ticket(1, report="progress")
+        self.write_turn(assignment.id)
+        wake = self.store.begin_wake([trigger.id])
+        self.store.end_wake(wake, 0, 0.05, "s", "ok", tokens=1000)
+
+        world = center_model.load(self.root)
+
+        self.assertEqual(world.tokens_today, 406518 + 1000)
+
+    def test_a_database_from_before_wake_tokens_still_loads(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        self.write_turn(assignment.id)
+        self.store.close()
+        raw = sqlite3.connect(self.root / "super.db")
+        raw.execute("ALTER TABLE wakes DROP COLUMN tokens")
+        raw.commit()
+        raw.close()
+
+        world = center_model.load(self.root)
+
+        self.assertEqual(world.tokens_today, 406518)
+
+    def test_format_tokens_is_short(self):
+        self.assertEqual(
+            [center_model.fmt_tokens(n) for n in (0, 812, 6500, 406518, 1234567)],
+            ["0", "812", "6.5k", "407k", "1.2M"],
+        )
+
     def test_terminal_thread_interleaves_asks_and_replies(self):
         self.ticket(1, text="first ask")
         self.store.reply("terminal:default", "dispatched")
@@ -172,6 +224,37 @@ class ActivityTest(Seeded):
             ("Read", "/repo/src/tape.ts"),
             ("Agent", "map the relay"),
         ])
+
+    def test_running_turn_tokens_come_from_the_transcript(self):
+        self.ticket(1, report="progress")
+        projects = self.root.parent / "projects"
+        session = projects / "-w-1" / "sid-1.jsonl"
+        session.parent.mkdir(parents=True)
+
+        def entry(message_id, out):
+            return json.dumps({"type": "assistant", "timestamp": "2026-11-04T06:05:00Z", "message": {
+                "id": message_id, "content": [],
+                "usage": {"input_tokens": 10, "cache_creation_input_tokens": 100,
+                          "cache_read_input_tokens": 1000, "output_tokens": out}}})
+
+        session.write_text("\n".join([entry("m1", 5), entry("m1", 50), entry("m2", 20)]) + "\n")
+        subagent = session.with_suffix("") / "subagents" / "agent-1.jsonl"
+        subagent.parent.mkdir(parents=True)
+        subagent.write_text(entry("s1", 7) + "\n")
+        dossier = center_model.load(self.root).dossiers[0]
+
+        self.assertEqual(center_model.inflight_tokens(dossier, projects), (1110 + 50) + (1110 + 20) + (1110 + 7))
+
+    def test_finished_turns_are_not_counted_again_from_the_transcript(self):
+        ticket, assignment, _ = self.ticket(1, report="ready")
+        log = self.root / "log"
+        log.mkdir(exist_ok=True)
+        (log / f"{assignment.id}.json").write_text(json.dumps({"modelUsage": {}}))
+        projects = self.root.parent / "projects"
+        write_transcript(projects / "-w-1" / "sid-1.jsonl", [("2026-11-04T06:02:00Z", [])])
+        dossier = center_model.load(self.root).dossiers[0]
+
+        self.assertEqual(center_model.inflight_tokens(dossier, projects), 0)
 
     def test_activity_without_a_transcript_is_empty(self):
         self.ticket(1, start=False)
@@ -433,7 +516,7 @@ class AppTest(Seeded):
         self.assertIn("ACTIVITY", texts[0])
         self.assertIn("awayCoverage", texts[0])
         self.assertLess(texts[0].index("ACTIVITY"), texts[0].index("REQUEST"))
-        self.assertLess(texts[0].index("ANSWER"), texts[0].index("COST"))
+        self.assertLess(texts[0].index("ANSWER"), texts[0].index("TOKENS"))
 
     def test_i_loads_the_ticket_into_the_prompt_and_asks_about_it(self):
         ticket, _, _ = self.ticket(1)
@@ -533,6 +616,53 @@ class AppTest(Seeded):
 
         self.assertEqual(opened, [])
         self.assertIn("no review link", logs[0])
+
+    def test_blotter_dossier_and_status_show_tokens_not_dollars(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        log = self.root / "log"
+        log.mkdir(exist_ok=True)
+        (log / f"{assignment.id}.json").write_text(json.dumps({"total_cost_usd": 4.2, "modelUsage": {
+            "claude-opus-5-5": {"inputTokens": 18, "cacheCreationInputTokens": 50000,
+                                "cacheReadInputTokens": 350000, "outputTokens": 6500}}}))
+        seen = {}
+
+        async def script(app, pilot):
+            table = app.query_one("#blotter")
+            seen["row"] = " ".join(str(cell) for cell in table.get_row(ticket.id))
+            seen["header"] = " ".join(str(column.label) for column in table.columns.values())
+            seen["status"] = str(app.query_one(".status").render())
+            seen["dossier"] = str(app.query_one("#dossier-text").render())
+
+        self.run_app(Verbs(), script)
+
+        self.assertIn("TOKENS", seen["header"])
+        self.assertNotIn("COST", seen["header"])
+        self.assertIn("407k", seen["row"])
+        self.assertNotIn("$", seen["row"])
+        self.assertIn("tokens today 407k", seen["status"])
+        self.assertNotIn("$", seen["status"])
+        self.assertIn("TOKENS", seen["dossier"])
+        self.assertIn("cache 350k", seen["dossier"])
+        self.assertNotIn("$", seen["dossier"])
+
+    def test_running_task_shows_tokens_so_far(self):
+        ticket, _, _ = self.ticket(1, report="progress")
+        projects = self.root.parent / "projects"
+        session = projects / "-w-1" / "sid-1.jsonl"
+        session.parent.mkdir(parents=True)
+        session.write_text(json.dumps({"type": "assistant", "timestamp": "2026-11-04T06:05:00Z", "message": {
+            "id": "m1", "content": [], "usage": {"input_tokens": 0, "cache_creation_input_tokens": 0,
+                                                 "cache_read_input_tokens": 52000, "output_tokens": 1000}}}) + "\n")
+        rows = []
+
+        async def go():
+            app = CenterApp(self.root, verb=Verbs(), deez=DEEZ, refresh_s=3600, projects=projects)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                rows.append(" ".join(str(cell) for cell in app.query_one("#blotter").get_row(ticket.id)))
+        asyncio.run(go())
+
+        self.assertIn("53k", rows[0])
 
     def test_failed_verb_is_shown_in_the_router_log(self):
         self.ticket(1)

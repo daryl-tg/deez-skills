@@ -175,6 +175,13 @@ class RouterTest(unittest.TestCase):
         self.assertNotIn("debounce it", conversation)
         self.assertIn(f"## {request.id}  terminal", prompt)
 
+    def test_wake_records_the_tokens_it_used(self):
+        self.ask("fix the typo")
+
+        result = self.wake()
+
+        self.assertEqual(self.store.show(result.wake_id)["tokens"], 135)
+
     def test_wake_passes_agent_prompt_and_allowlist(self):
         request = self.ask("fix the typo in README")
 

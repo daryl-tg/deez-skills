@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from deezlib.superclanker import config
+from deezlib.superclanker.domain import usage_tokens
 from deezlib.superclanker.reviews import find_review_url
 from deezlib.superclanker.store import SuperError
 from deezlib.superclanker.ui_model import local_midnight_utc
@@ -31,6 +32,14 @@ class Turn:
     duration_s: float
     stop: str
     result: str = ""
+    tokens_in: int = 0
+    tokens_cached: int = 0
+    tokens_out: int = 0
+    at: datetime | None = None
+
+    @property
+    def tokens(self):
+        return self.tokens_in + self.tokens_cached + self.tokens_out
 
 
 @dataclass
@@ -82,6 +91,11 @@ class Dossier:
     events: list[Event] = field(default_factory=list)
     answer: str | None = None
     earlier_answers: list[str] = field(default_factory=list)
+    inflight: int = 0
+
+    @property
+    def tokens(self):
+        return sum(turn.tokens for turn in self.turns) + self.inflight
 
     @property
     def worker_cost(self):
@@ -119,6 +133,7 @@ class World:
     heartbeat_s: float | None = None
     error: str | None = None
     demo: bool = False
+    tokens_today: int = 0
 
     @property
     def workers_running(self):
@@ -163,13 +178,20 @@ def read_turns(log_dir, assignment_id):
         if not isinstance(body, dict):
             continue
         models = list((body.get("modelUsage") or {}).keys())
+        counted = usage_tokens(body)
+        try:
+            at = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc)
+        except OSError:
+            at = None
         found.append(Turn(
             assignment_id, index, float(body.get("total_cost_usd") or 0), int(body.get("num_turns") or 0),
             ",".join(model.removeprefix("claude-") for model in models) or "-",
             (body.get("duration_ms") or 0) / 1000, body.get("stop_reason") or "-",
             body.get("result") if isinstance(body.get("result"), str) else "",
+            counted["inputTokens"] + counted["cacheCreationInputTokens"],
+            counted["cacheReadInputTokens"], counted["outputTokens"], at,
         ))
-    return found
+    return sorted(found, key=lambda turn: turn.n)
 
 
 def _note_value(notes, prefix):
@@ -297,7 +319,15 @@ def load(root, now=None):
         dossiers = [_dossier(query, ticket, root / "log") for ticket in tickets]
         midnight = local_midnight_utc(now or datetime.now(timezone.utc))
         spend = query("SELECT COALESCE(SUM(cost_usd), 0) AS c FROM wakes WHERE started_at >= ?", midnight)[0]["c"]
-        return World(dossiers, _threads(query), float(spend or 0), max_running=_max_running(root))
+        wake_columns = {row["name"] for row in query("PRAGMA table_info(wakes)")}
+        router_tokens = (
+            query("SELECT COALESCE(SUM(tokens), 0) AS t FROM wakes WHERE started_at >= ?", midnight)[0]["t"]
+            if "tokens" in wake_columns else 0
+        )
+        start = datetime.fromisoformat(midnight)
+        worker_tokens = sum(turn.tokens for d in dossiers for turn in d.turns if turn.at and turn.at >= start)
+        return World(dossiers, _threads(query), float(spend or 0), max_running=_max_running(root),
+                     tokens_today=int(router_tokens or 0) + worker_tokens)
     finally:
         connection.close()
 
@@ -433,3 +463,53 @@ def review_label(url):
         return None
     number = url.rstrip("/").rsplit("/", 1)[-1]
     return f"MR !{number}" if "/merge_requests/" in url else f"PR #{number}"
+
+
+def fmt_tokens(count):
+    count = int(count or 0)
+    if count < 1000:
+        return str(count)
+    if count < 10_000:
+        return f"{count / 1000:.1f}k"
+    if count < 1_000_000:
+        return f"{round(count / 1000)}k"
+    return f"{count / 1_000_000:.1f}M"
+
+
+USAGE_FIELDS = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens")
+
+
+def _transcript_usage(path, since):
+    final = {}
+    try:
+        with path.open(encoding="utf-8", errors="replace") as stream:
+            for raw in stream:
+                try:
+                    entry = json.loads(raw)
+                except ValueError:
+                    continue
+                if not isinstance(entry, dict) or entry.get("type") != "assistant":
+                    continue
+                at = _parse_stamp(entry.get("timestamp"))
+                if since and at and at <= since:
+                    continue
+                message = entry.get("message") or {}
+                usage = message.get("usage")
+                if isinstance(usage, dict):
+                    final[message.get("id") or len(final)] = sum(
+                        value for key in USAGE_FIELDS if isinstance(value := usage.get(key), int)
+                    )
+    except OSError:
+        return 0
+    return sum(final.values())
+
+
+def inflight_tokens(dossier, projects_dir):
+    if dossier.worker_state != "running":
+        return 0
+    path = _transcript(dossier, projects_dir)
+    if path is None:
+        return 0
+    since = max((turn.at for turn in dossier.turns if turn.at), default=None)
+    paths = [path, *sorted((path.with_suffix("") / "subagents").glob("*.jsonl"))]
+    return sum(_transcript_usage(each, since) for each in paths)

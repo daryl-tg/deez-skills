@@ -73,8 +73,8 @@ def short_repo(r):
     return Path(r).name if r else "-"
 
 
-def total_cost(d):
-    return d.worker_cost + d.router_cost
+def tokens(count):
+    return center_model.fmt_tokens(count)
 
 
 def age(moment):
@@ -135,8 +135,8 @@ def status_text(world):
     t.append("to-merge ", style=DIM)
     t.append(str(merges), style=f"bold {CYAN if merges else DIM}")
     t.append(*sep)
-    t.append("spend ", style=DIM)
-    t.append(f"${world.spend_today:.2f}", style=WHITE)
+    t.append("tokens today ", style=DIM)
+    t.append(tokens(world.tokens_today), style=WHITE)
     t.append(*sep)
     t.append("mem ", style=DIM)
     t.append(f"{mem_text(world)} free", style=WHITE)
@@ -213,10 +213,9 @@ def blotter_row(d, wide, flash):
             Text(fit(d.actor, 8), style=DIM),
             Text(fit(d.state, 6), style=DIM),
             Text(fit(len(d.reports), 3, True), style=WHITE),
-            Text(fit(f"${d.worker_cost:.2f}", 7, True), style=WHITE),
-            Text(fit(f"${d.router_cost:.2f}", 7, True), style=DIM),
+            Text(fit(tokens(sum(turn.tokens_out for turn in d.turns)), 6, True), style=DIM),
         ]
-    cells.append(Text(fit(f"${total_cost(d):.2f}", 7 if wide else 6, True), style=f"bold {WHITE}"))
+    cells.append(Text(fit(tokens(d.tokens), 6, True), style=f"bold {WHITE}"))
     if flash:
         for c in cells:
             c.stylize("reverse")
@@ -229,12 +228,12 @@ def fill_blotter(table, world, wide, flashing=()):
     cols = [("!", 1), ("ID", 10 if wide else 8), ("WRK", 7), ("RPT", 8), ("SLUG", 24 if wide else 14),
             ("SRC", 6 if wide else 4), ("REPO", 16 if wide else 9), ("PLAYBOOK", 13 if wide else 8), ("AGE", 4)]
     if wide:
-        cols += [("ACTOR", 8), ("STATE", 6), ("RPTS", 3), ("WORKER", 7), ("ROUTER", 7)]
-    cols.append(("COST", 7 if wide else 6))
+        cols += [("ACTOR", 8), ("STATE", 6), ("RPTS", 3), ("OUT", 6)]
+    cols.append(("TOKENS", 6))
     used = sum(w + 1 for _, w in cols)
     last_w = max(12, avail - used - 1)
     for label, w in cols:
-        right = label in ("AGE", "COST", "WORKER", "ROUTER", "RPTS")
+        right = label in ("AGE", "TOKENS", "OUT", "RPTS")
         table.add_column(Text(fit(label, w, right), style=f"bold {AMBER}"), width=w + 1)
     table.add_column(Text(fit("LAST REPORT", last_w), style=f"bold {AMBER}"), width=last_w + 1)
     for d in ordered(world):
@@ -296,15 +295,18 @@ def dossier_text(d, full, activity=()):
     kv(t, "REPO", d.repo or "-")
     kv(t, "TREE", ("…/" + "/".join(Path(d.worktree).parts[-2:])) if d.worktree else "-")
     kv(t, "WORKER", f"{d.assignment or '-'}  sess {(d.session or '-')[:12]}  pid {d.pid or '-'}")
-    rule(t, "COST")
+    rule(t, "TOKENS")
     for i, u in enumerate(d.turns):
-        t.append(f"worker {i}  ", style=DIM)
-        t.append(f"${u.cost:>5.2f}", style=WHITE)
-        t.append(f"  {u.turns:>3} turns  {u.model:<12} {u.duration_s:>5.0f}s  {u.stop}\n", style=DIM)
-    t.append("router    ", style=DIM)
-    t.append(f"${d.router_cost:>5.2f}\n", style=WHITE)
-    t.append("TOTAL     ", style=f"bold {AMBER}")
-    t.append(f"${total_cost(d):>5.2f}\n", style=f"bold {WHITE}")
+        t.append(f"run {i:<3} ", style=DIM)
+        t.append(f"{tokens(u.tokens):>6}", style=WHITE)
+        t.append(f"  in {tokens(u.tokens_in)} · cache {tokens(u.tokens_cached)} · out {tokens(u.tokens_out)}", style=DIM)
+        t.append(f"  {u.turns} turns  {u.model}  {u.duration_s:.0f}s\n", style=DIM)
+    if d.inflight:
+        t.append("running  ", style=DIM)
+        t.append(f"{tokens(d.inflight):>6}", style=GREEN)
+        t.append("  this run so far\n", style=DIM)
+    t.append("TOTAL    ", style=f"bold {AMBER}")
+    t.append(f"{tokens(d.tokens):>6}\n", style=f"bold {WHITE}")
     rule(t, "REQUEST")
     req = d.request or "-"
     t.append((req if full else req[:220] + ("…" if len(req) > 220 else "")) + "\n", style=WHITE)
@@ -379,11 +381,9 @@ def system_text(world):
     t.append(f"{world.workers_running}/{world.max_running}  ", style=f"bold {WHITE}")
     t.append_text(bar(world.workers_running, world.max_running, 14, GREEN))
     t.append("\n")
-    wc = sum(d.worker_cost for d in world.dossiers)
-    rc = sum(d.router_cost for d in world.dossiers)
-    t.append(f"{'SPEND':<9}", style=DIM)
-    t.append(f"${world.spend_today:.2f} today", style=f"bold {WHITE}")
-    t.append(f"   worker ${wc:.2f}  router ${rc:.2f}\n", style=DIM)
+    t.append(f"{'TOKENS':<9}", style=DIM)
+    t.append(f"{tokens(world.tokens_today)} today", style=f"bold {WHITE}")
+    t.append(f"   all tasks {tokens(sum(d.tokens for d in world.dossiers))}\n", style=DIM)
     t.append(f"{'MEMORY':<9}", style=DIM)
     t.append(f"{mem_text(world)} free  ", style=f"bold {WHITE}")
     t.append_text(mem_bar(world, 14))
@@ -418,8 +418,8 @@ def system_compact(world):
     t.append(f"{world.workers_running}/{world.max_running} ", style=f"bold {WHITE}")
     t.append_text(bar(world.workers_running, world.max_running, 8, GREEN))
     t.append(*sep)
-    t.append("SPEND ", style=DIM)
-    t.append(f"${world.spend_today:.2f}", style=f"bold {WHITE}")
+    t.append("TOKENS ", style=DIM)
+    t.append(tokens(world.tokens_today), style=f"bold {WHITE}")
     t.append(*sep)
     t.append("MEM ", style=DIM)
     t.append(f"{mem_text(world)} ", style=f"bold {WHITE}")
@@ -577,7 +577,7 @@ class KanbanView(Widget, can_focus=True):
         elif row == 1:
             body = fit(f"   {d.slug}", lw - 1)
         else:
-            body = fit(f"   {age(app.since.get(d.id))} · ${total_cost(d):.2f}", lw - 1)
+            body = fit(f"   {age(app.since.get(d.id))} · {tokens(d.tokens)} tok", lw - 1)
         t = Text(no_wrap=True, overflow="crop")
         t.append("▌", style=f"{edge_color} on {CARD}" if d.id != sel and not app.flashing(d.id) else style)
         t.append(body, style=style)
@@ -672,7 +672,7 @@ def session_label(d):
 
 def session_meta(d):
     runs = len({turn.assignment for turn in d.turns}) or (1 if d.assignment else 0)
-    return f"{d.worker_state} · ${total_cost(d):.2f} · {runs} run{'' if runs == 1 else 's'} · {age(d.created)}"
+    return f"{d.worker_state} · {tokens(d.tokens)} tokens · {runs} run{'' if runs == 1 else 's'} · {age(d.created)}"
 
 
 class GraphView(Widget, can_focus=True):
@@ -851,9 +851,8 @@ class GraphView(Widget, can_focus=True):
         for n in src_names:
             put(X_SRC, src_y[n], fit(f"{n} {len(src_groups[n])}", W_SRC), node_style(("src", n), AMBER))
         today = sum(1 for e, _ in all_events(app.world) if e.at.astimezone().date() == datetime.now().astimezone().date())
-        rc = sum(d.router_cost for d in app.world.dossiers)
         last = next((m.text for m in reversed(app.world.threads.get("terminal:default", [])) if m.who == "router"), "-")
-        for i, line in enumerate(["◈ ROUTER", f"{today} events today", f"${rc:.2f} router", f"» {last}"]):
+        for i, line in enumerate(["◈ ROUTER", f"{today} events today", f"{tokens(app.world.tokens_today)} tok today", f"» {last}"]):
             put(X_RT, router_top + i, fit(line, W_RT), f"bold #000000 on {AMBER}")
 
         for d in order:
@@ -1327,6 +1326,9 @@ class CenterApp(App):
             self.probe(world)
         except Exception as exc:
             world.error = world.error or f"probe failed: {exc}"
+        for d in world.dossiers:
+            d.inflight = center_model.inflight_tokens(d, self.projects)
+            world.tokens_today += d.inflight
         return world
 
     def reload(self):

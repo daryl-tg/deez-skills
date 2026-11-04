@@ -155,3 +155,17 @@ def trigger_id(source, source_event_id):
 
 def utc_now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+TOKEN_FIELDS = ("inputTokens", "cacheCreationInputTokens", "cacheReadInputTokens", "outputTokens")
+
+
+def usage_tokens(outcome):
+    models = (outcome or {}).get("modelUsage") if isinstance(outcome, dict) else None
+    totals = dict.fromkeys(TOKEN_FIELDS, 0)
+    for usage in (models or {}).values():
+        if isinstance(usage, dict):
+            for key in TOKEN_FIELDS:
+                value = usage.get(key)
+                totals[key] += value if isinstance(value, int) else 0
+    return totals

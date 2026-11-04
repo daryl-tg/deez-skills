@@ -52,6 +52,10 @@ path out; the daemon already does so for the Router and the Workers.
   for a day, or `dropped` a day ago with the worktree kept. `a` archives them
   all after a `y`; `r` reviews them one at a time (archive, keep or skip). Kept
   Tickets stay off the strip until they move again.
+- The command center counts tokens, not dollars: per Ticket, every model its
+  Worker used across all runs (fresh input, cache reads, output), plus the run
+  in flight read from the Worker's session transcript. `tokens today` adds the
+  Router's wakes.
 - `archive <ticket> --reason <text> [--by <person>]` ends a Ticket with the
   outcome `archived`, so the daemon removes its worktree if it is clean.
 - A Ticket whose Worker reported `ready` with an open pull or merge request is

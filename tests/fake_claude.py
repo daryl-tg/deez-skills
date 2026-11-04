@@ -20,7 +20,9 @@ def main(argv):
         print(f"fake claude failed with {exit_code}", file=sys.stderr)
     session = flag_value(argv, "--session-id") or flag_value(argv, "--resume")
     result = os.environ.get("FAKE_CLAUDE_RESULT", "ok")
-    print(json.dumps({"result": result, "session_id": session, "total_cost_usd": 0.001}))
+    usage = {"claude-haiku-5-5": {"inputTokens": 10, "outputTokens": 5, "cacheReadInputTokens": 100,
+                                  "cacheCreationInputTokens": 20}}
+    print(json.dumps({"result": result, "session_id": session, "total_cost_usd": 0.001, "modelUsage": usage}))
     return exit_code
 
 
