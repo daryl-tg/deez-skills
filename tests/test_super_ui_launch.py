@@ -159,6 +159,18 @@ class LaunchTest(unittest.TestCase):
         self.assertEqual(env["PYTHONPATH"], f"{DEEZ.parents[1]}:/old")
         self.assertEqual(env["HOME"], "/h")
 
+    def test_launch_center_execs_the_command_center_in_the_venv(self):
+        run, calls = recorder((0, ""))
+        execs = []
+        args = SimpleNamespace(state=Path("/state"))
+        ui_launch.launch_center(
+            args, {"HOME": "/h"}, run=run, execve=lambda *a: execs.append(a), deez=DEEZ,
+        )
+        argv, env = execs[0][1], execs[0][2]
+        self.assertEqual(argv[0], str(ui_launch.VENV / "bin" / "python"))
+        self.assertEqual(argv[1:], ["-m", "deezlib.superclanker.center_app", "--state", "/state"])
+        self.assertEqual(env["PYTHONPATH"], str(DEEZ.parents[1]))
+
     def test_launch_default_builds_session_then_execs_attach(self):
         run, calls = recorder((0, ""), (1, ""), (0, ""), (0, ""), (0, ""))
         execs = []
@@ -242,6 +254,12 @@ class CliTest(unittest.TestCase):
         self.assertEqual(args.state, Path("/tmp/s"))
         self.assertTrue(args.no_tmux)
         self.assertIn("ui", cli.STORELESS_SUPER_VERBS)
+
+    def test_cli_center_verb_parses_state_and_skips_the_store(self):
+        args = cli.build_parser().parse_args(["super-clanker", "center", "--state", "/tmp/s"])
+        self.assertEqual(args.verb, "center")
+        self.assertEqual(args.state, Path("/tmp/s"))
+        self.assertIn("center", cli.STORELESS_SUPER_VERBS)
 
 
 if __name__ == "__main__":

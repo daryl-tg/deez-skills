@@ -140,6 +140,8 @@ def build_parser():
     ui_parser = super_verbs.add_parser("ui", help="Open the board in an isolated venv and tmux.")
     ui_parser.add_argument("--state", type=Path)
     ui_parser.add_argument("--no-tmux", action="store_true")
+    center_parser = super_verbs.add_parser("center", help="Open the command center in the ui venv.")
+    center_parser.add_argument("--state", type=Path)
 
     link = subparsers.add_parser("link", help="Link registry entries into runtimes.")
     link.add_argument("--profile", default=None, help="Profile to install.")
@@ -656,6 +658,12 @@ def _super_ui(_root, args):
     return ui_launch.launch(args, os.environ)
 
 
+def _super_center(_root, args):
+    from deezlib.superclanker import ui_launch
+
+    return ui_launch.launch_center(args, os.environ)
+
+
 def _super_kick(_root, args, run=None):
     import subprocess
 
@@ -833,6 +841,7 @@ STORELESS_SUPER_VERBS = {
     "rules": _super_rules,
     "policy": _super_policy,
     "ui": _super_ui,
+    "center": _super_center,
 }
 
 

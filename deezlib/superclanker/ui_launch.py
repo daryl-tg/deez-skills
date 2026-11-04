@@ -98,8 +98,23 @@ def _window_names(run, env):
     return (listing.stdout or "").splitlines()
 
 
-def app_argv(python, state):
-    return [str(python), "-m", "deezlib.superclanker.ui_app", *_state_args(state)]
+def app_argv(python, state, module="ui_app"):
+    return [str(python), "-m", f"deezlib.superclanker.{module}", *_state_args(state)]
+
+
+def _exec_app(python, state, env, execve, deez, module):
+    existing = env.get("PYTHONPATH")
+    hub = str(Path(deez).parents[1])
+    env = {**env, "PYTHONPATH": f"{hub}{os.pathsep}{existing}" if existing else hub}
+    argv = app_argv(python, state, module)
+    execve(argv[0], argv, env)
+    return 0
+
+
+def launch_center(args, env, run=subprocess.run, execve=os.execve, deez=REPO_ROOT / "bin/deez"):
+    env = child_env(env)
+    python = ensure_venv(run=run, env=env)
+    return _exec_app(python, getattr(args, "state", None), env, execve, deez, "center_app")
 
 
 def launch(args, env, run=subprocess.run, execve=os.execve, deez=REPO_ROOT / "bin/deez", which=shutil.which):
@@ -117,9 +132,4 @@ def launch(args, env, run=subprocess.run, execve=os.execve, deez=REPO_ROOT / "bi
             _step(run, step, env)
         execve(tmux, plan[-1], env)
         return 0
-    existing = env.get("PYTHONPATH")
-    hub = str(Path(deez).parents[1])
-    env = {**env, "PYTHONPATH": f"{hub}{os.pathsep}{existing}" if existing else hub}
-    argv = app_argv(python, state)
-    execve(argv[0], argv, env)
-    return 0
+    return _exec_app(python, state, env, execve, deez, "ui_app")

@@ -40,6 +40,10 @@ path out; the daemon already does so for the Router and the Workers.
   lists what needs you, every Ticket, memory by process tree and the peer
   Claude sessions. It acts through the verbs above. See "The board" in
   [Operations](references/operations.md).
+- `center [--state <dir>]` opens the command center. It shows the Tickets as a
+  table, a kanban or a graph, with each Ticket's full dossier, the system tape
+  and the Router thread. Its input runs `ask`, or `note` for the selected
+  Ticket. It reloads from the state every 2 seconds.
 
 State lives in `~/.local/state/deez-skills/super/`, or in `$DEEZ_SUPER_STATE`.
 It holds `super.db`, `log/`, `inbox/` and `worktrees/<repo>/<ticket>`. Ticket
