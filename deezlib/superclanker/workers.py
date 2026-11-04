@@ -445,6 +445,14 @@ def _report_trigger(assignment, report):
     )
 
 
+def push_report(store, assignment_id, report):
+    if report.kind is ReportKind.progress:
+        return None
+    assignment = _load(store, Assignment, assignment_id)
+    trigger = _report_trigger(assignment, report)
+    return trigger if store.receive(trigger) == "stored" else None
+
+
 def _reapable(store):
     running = store.running_assignments()
     seen = {assignment.id for assignment in running}

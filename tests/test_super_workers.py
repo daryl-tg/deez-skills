@@ -15,7 +15,7 @@ from unittest import mock
 from deezlib import cli
 from deezlib.superclanker import config, workers
 from deezlib.superclanker import sweep as sweeping
-from deezlib.superclanker.domain import Ticket
+from deezlib.superclanker.domain import Ticket, trigger_id
 from deezlib.superclanker.sources import terminal
 from deezlib.superclanker.store import Store, SuperError
 
@@ -509,6 +509,22 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual(self.store.assignment_for(ticket_id).id, assignment_id)
         self.assertEqual(len(self.argvs()), 1)
 
+    def pushed(self, ticket_id):
+        return [t for t in self.store.queued() if t.thread_id == f"worker:{ticket_id}"]
+
+    def test_attention_report_verb_pushes_to_the_router_at_once(self):
+        _trigger, ticket_id, assignment_id = self.dispatch()
+
+        self.deez("report", assignment_id, "--kind", "progress", "--text", "halfway")
+        self.assertEqual(self.pushed(ticket_id), [])
+
+        self.deez("report", assignment_id, "--kind", "blocked", "--text", "need a login")
+        (trigger,) = self.pushed(ticket_id)
+        (_progress, blocked) = self.reports(assignment_id)
+        self.assertEqual(trigger.id, trigger_id("worker", blocked["id"]))
+        self.assertEqual(trigger.text, "REPORT blocked need a login")
+        self.assertEqual(trigger.meta["assignment"], assignment_id)
+
     def test_worker_report_verb_is_not_duplicated_by_reap(self):
         _trigger, ticket_id, assignment_id = self.dispatch()
         os.environ["FAKE_CLAUDE_SCRIPT"] = (
@@ -517,7 +533,8 @@ class WorkersTest(unittest.TestCase):
         )
         self.run_turn(assignment_id, "done\nREPORT ready diff at /x")
 
-        (trigger,) = workers.reap(self.store, self.root)
+        (trigger,) = self.pushed(ticket_id)
+        self.assertEqual(workers.reap(self.store, self.root), [])
 
         (report,) = self.reports(assignment_id)
         self.assertEqual(
@@ -530,14 +547,15 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual(self.store.show(ticket_id)["state"], "open")
 
     def test_worker_waiting_report_is_not_duplicated_by_reap(self):
-        _trigger, _ticket_id, assignment_id = self.dispatch()
+        _trigger, ticket_id, assignment_id = self.dispatch()
         os.environ["FAKE_CLAUDE_SCRIPT"] = (
             f"deez super-clanker report {assignment_id} --kind waiting --text 'push the branch?' "
             "--question 'push the branch?' > /dev/null"
         )
         self.run_turn(assignment_id, "REPORT waiting push the branch?")
 
-        (trigger,) = workers.reap(self.store, self.root)
+        (trigger,) = self.pushed(ticket_id)
+        self.assertEqual(workers.reap(self.store, self.root), [])
 
         (report,) = self.reports(assignment_id)
         self.assertEqual(trigger.meta["report"], report["id"])
@@ -557,7 +575,7 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual(refused[0], 2)
         self.assertIn("--question", refused[2])
         self.assertEqual(accepted[0], 0)
-        self.assertRegex(accepted[1], rf"^report r_[0-9a-f]{{10}} waiting on {assignment_id}\n$")
+        self.assertRegex(accepted[1], rf"^report r_[0-9a-f]{{10}} waiting on {assignment_id} pushed to the router\n$")
         (report,) = self.reports(assignment_id)
         self.assertEqual((report["kind"], report["question"]), ("waiting", "push the branch?"))
 

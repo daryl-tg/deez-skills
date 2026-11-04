@@ -606,8 +606,11 @@ def _super_report(store, args):
     _super_record(store, "assignment", "a_", args.assignment)
     if args.kind == "waiting" and not args.question:
         raise SuperError("a waiting report carries exactly one --question")
+    from deezlib.superclanker import workers
+
     report = store.report(args.assignment, args.kind, args.text, args.question, args.evidence)
-    print(f"report {report.id} {report.kind} on {args.assignment}")
+    pushed = workers.push_report(store, args.assignment, report)
+    print(f"report {report.id} {report.kind} on {args.assignment}{' pushed to the router' if pushed else ''}")
 
 
 def _super_pass(store, _args):
