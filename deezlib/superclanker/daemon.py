@@ -11,7 +11,7 @@ from itertools import takewhile
 from pathlib import Path
 
 from deezlib import memguard
-from deezlib.superclanker import channels, compose, config, router, sources, workers
+from deezlib.superclanker import channels, compose, config, reviews, router, sources, workers
 from deezlib.superclanker.domain import Strength, TicketState, utc_now
 from deezlib.superclanker.pushes import nudge, nudge_mark, nudge_path
 from deezlib.superclanker.sweep import leftovers as cwd_leftovers, sweep
@@ -250,6 +250,41 @@ def _inside_worktrees(root, path):
         return False
 
 
+def _merged(store, ticket_id):
+    try:
+        shown = store.show(ticket_id)
+    except SuperError:
+        return False
+    return shown["state"] is TicketState.ended and store.outcome(ticket_id) == "merged"
+
+
+def _scratch_repos(path):
+    return [candidate for candidate in [path, *sorted(path.iterdir())]
+            if candidate.is_dir() and (candidate / ".git").exists()]
+
+
+def _remove_merged_scratch(store, root, git, sweeper, blocked, now, errors):
+    removed = 0
+    for path in sorted((Path(root) / "work").glob("k_*")):
+        if path.is_symlink() or not path.is_dir() or not _merged(store, path.name):
+            continue
+        failed_at = blocked.get(path)
+        if failed_at is not None and _seconds_since(failed_at, now) < REMOVAL_RETRY_SECONDS:
+            continue
+        try:
+            for repo in _scratch_repos(path):
+                _require_clean(repo, git)
+            sweeper(path)
+            shutil.rmtree(path)
+        except (SuperError, OSError, subprocess.SubprocessError) as exc:
+            blocked[path] = now()
+            errors.append(str(exc))
+        else:
+            blocked.pop(path, None)
+            removed += 1
+    return removed
+
+
 def _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors):
     removed = 0
     attempts = 0
@@ -278,7 +313,8 @@ def _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors):
 def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.launch,
              resume=workers.resume, revive=workers.revive, reap=workers.reap, now=utc_now,
              stop=workers.stop, free_pct=None, git=subprocess.run, sweeper=sweep,
-             blocked=None, leftovers=cwd_leftovers, terminate=workers.terminate):
+             blocked=None, leftovers=cwd_leftovers, terminate=workers.terminate,
+             close_reviews=reviews.close_merged):
     blocked = {} if blocked is None else blocked
     errors = []
 
@@ -294,7 +330,10 @@ def one_pass(store, config, root, hub_root, wake=router.wake, launch=workers.lau
     expired = attempt(_expire_overlong_turns, store, config, stop, leftovers, now, errors) or 0
     attempt(_terminate_stopped_workers, store, root, leftovers, terminate, errors)
     reaped = len(attempt(reap, store, root) or [])
+    _closed, review_errors = close_reviews(store)
+    errors.extend(review_errors)
     removed = _remove_ended_worktrees(store, root, git, sweeper, blocked, now, errors)
+    removed += _remove_merged_scratch(store, root, git, sweeper, blocked, now, errors)
     held = _held_by_memory(config, free_pct or memguard.free_pct)
     hold_changed = _record_hold(root, held)
     resumed = 0

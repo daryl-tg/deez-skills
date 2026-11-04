@@ -54,6 +54,11 @@ path out; the daemon already does so for the Router and the Workers.
   Tickets stay off the strip until they move again.
 - `archive <ticket> --reason <text> [--by <person>]` ends a Ticket with the
   outcome `archived`, so the daemon removes its worktree if it is clean.
+- A merged review closes its Ticket by itself. Every 2 minutes the daemon asks
+  `gh` or `glab` about each open Ticket's pull or merge request link. A merged
+  one ends the Ticket with outcome `merged`, replies on a terminal thread, and
+  removes the Ticket's worktree or `work/<ticket>` scratch clone when its
+  repositories are clean. Branches stay.
 
 State lives in `~/.local/state/deez-skills/super/`, or in `$DEEZ_SUPER_STATE`.
 It holds `super.db`, `log/`, `inbox/` and `worktrees/<repo>/<ticket>`. Ticket

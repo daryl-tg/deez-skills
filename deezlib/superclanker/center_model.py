@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from deezlib.superclanker import config
+from deezlib.superclanker.reviews import find_review_url
 from deezlib.superclanker.store import SuperError
 from deezlib.superclanker.ui_model import local_midnight_utc
 
@@ -18,7 +19,6 @@ READY_STALE_AFTER = timedelta(hours=6)
 WAITING_STALE_AFTER = timedelta(days=3)
 IDLE_STALE_AFTER = timedelta(days=1)
 KEPT_NAME = "center-kept.json"
-REVIEW_URL = re.compile(r"https?://[^\s)\]>'\"`]+/(?:pull|merge_requests)/\d+")
 
 
 @dataclass
@@ -89,12 +89,7 @@ class Dossier:
 
     @property
     def review_url(self):
-        texts = [*self.evidence, *(text for _at, _kind, text in reversed(self.reports)), self.answer or ""]
-        for text in texts:
-            found = REVIEW_URL.search(text or "")
-            if found:
-                return found.group(0)
-        return None
+        return find_review_url([*self.evidence, *(text for _at, _kind, text in reversed(self.reports)), self.answer or ""])
 
     @property
     def needs_you(self):

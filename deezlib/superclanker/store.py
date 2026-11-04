@@ -441,12 +441,18 @@ class Store:
         return replace(ticket, state=TicketState.ended, ended_at=ended_at, ended_by=by)
 
     def archive(self, ticket_id, by, reason):
+        return self._close(ticket_id, by, f"archived: {reason}", TicketOutcome.archived)
+
+    def close_merged(self, ticket_id, url):
+        return self._close(ticket_id, "merge", f"merged: {url}", TicketOutcome.merged)
+
+    def _close(self, ticket_id, by, reason, outcome):
         with self._transaction():
             ticket = self._require(Ticket, ticket_id)
             ended_at = ticket.ended_at or utc_now()
             self._db.execute(
                 "UPDATE tickets SET state = ?, ended_at = ?, ended_by = ?, outcome = ? WHERE id = ?",
-                (TicketState.ended, ended_at, by, TicketOutcome.archived, ticket_id),
+                (TicketState.ended, ended_at, by, outcome, ticket_id),
             )
             self._db.execute(
                 "UPDATE mandates SET withdrawn_at = COALESCE(withdrawn_at, ?) WHERE id = ?",
@@ -458,9 +464,15 @@ class Store:
             )
             self._insert(Decision(
                 new_id(Decision), ticket.thread_id, (), DecisionKind.stop, Strength.explicit,
-                f"archived: {reason}", utc_now(),
+                reason, utc_now(),
             ))
             return self._require(Ticket, ticket_id)
+
+    def ticket_reports(self, ticket_id):
+        return self._select(
+            Report, "assignment_id IN (SELECT id FROM assignments WHERE ticket_id = ?)",
+            (ticket_id,), "ORDER BY rowid DESC",
+        )
 
     def subscribe(self, ticket_id, thread_id, context_only=False):
         with self._transaction():

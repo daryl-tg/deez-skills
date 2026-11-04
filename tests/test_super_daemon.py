@@ -107,6 +107,10 @@ def left_by(*pids):
     return lambda worktree: list(pids)
 
 
+def no_reviews(store, now=None):
+    return [], []
+
+
 class FakeSweeper:
     def __init__(self):
         self.swept = []
@@ -146,9 +150,11 @@ class DaemonTest(unittest.TestCase):
         (self.root / "sources.toml").write_text(text, encoding="utf-8")
 
     def one_pass(self, wake=None, reap=no_reap, revive=None, stop=None, free_pct=plenty_free,
-                 sweeper=None, git=None, leftovers=nothing_left, terminate=None, **now):
+                 sweeper=None, git=None, leftovers=nothing_left, terminate=None,
+                 close_reviews=no_reviews, **now):
         return daemon.one_pass(
             self.store, config.load(self.root), self.root, HUB, wake=wake or self.wake,
+            close_reviews=close_reviews,
             launch=self.workers.launch, resume=self.workers.resume,
             revive=revive or self.workers.revive, reap=reap, stop=stop or FakeStop(),
             free_pct=free_pct, sweeper=sweeper or self.sweeper,
@@ -527,6 +533,60 @@ class DaemonTest(unittest.TestCase):
         self.assertTrue(worktree.exists())
         self.assertEqual((result.removed, len(result.errors), self.sweeper.swept), (0, 1, []))
         self.assertIn(str(worktree), result.errors[0])
+
+    def scratch_clone(self, ticket, dirty=False):
+        work = self.root / "work" / ticket.id
+        clone = work / "wt"
+        clone.mkdir(parents=True)
+        git(clone, "init", "-q")
+        git(clone, "config", "user.email", "tester@example.com")
+        git(clone, "config", "user.name", "tester")
+        (clone / "file.txt").write_text("one\n", encoding="utf-8")
+        git(clone, "add", "file.txt")
+        git(clone, "commit", "-q", "-m", "first")
+        if dirty:
+            (clone / "file.txt").write_text("changed\n", encoding="utf-8")
+        return work
+
+    def test_merged_ticket_scratch_clone_is_swept_and_removed(self):
+        ticket, _assignment_id = self.ticket("merged work")
+        work = self.scratch_clone(ticket)
+        self.store.close_merged(ticket.id, "https://github.com/o/r/pull/1")
+
+        result = self.one_pass()
+
+        self.assertFalse(work.exists())
+        self.assertEqual((result.removed, result.errors), (1, ()))
+        self.assertIn(work, self.sweeper.swept)
+
+    def test_scratch_clone_is_kept_when_archived_open_or_dirty(self):
+        archived, _ = self.ticket("archived", "a")
+        kept = self.scratch_clone(archived)
+        self.store.archive(archived.id, "daryl", "stale")
+        running, _ = self.ticket("running", "b")
+        live = self.scratch_clone(running)
+        dirty, _ = self.ticket("dirty", "c")
+        unsaved = self.scratch_clone(dirty, dirty=True)
+        self.store.close_merged(dirty.id, "https://github.com/o/r/pull/2")
+
+        result = self.one_pass()
+
+        self.assertTrue(kept.exists() and live.exists() and unsaved.exists())
+        self.assertEqual(result.removed, 0)
+        self.assertEqual(len(result.errors), 1)
+        self.assertIn(str(unsaved), result.errors[0])
+
+    def test_pass_closes_merged_reviews(self):
+        calls = []
+
+        def close_reviews(store, now=None):
+            calls.append(store)
+            return ["k_merged"], ["github: HTTP 502"]
+
+        result = self.one_pass(close_reviews=close_reviews)
+
+        self.assertEqual(calls, [self.store])
+        self.assertIn("github: HTTP 502", result.errors)
 
     def test_dropped_ticket_worktree_is_kept_for_revival(self):
         ticket, _assignment_id = self.ticket("dropped")
