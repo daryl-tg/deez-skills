@@ -106,6 +106,15 @@ class ComposeTest(unittest.TestCase):
         self.assertNotIn(followup.id, prompt)
         self.assertIn(f"## {elsewhere.id}  ", prompt)
 
+    def test_terminal_asks_go_to_the_router_not_the_open_terminal_tickets(self):
+        ticket = self.ticket_on("terminal:default")
+        ask = replace(self.received("start a new task", "terminal:default"), source="terminal")
+
+        router_batch, fanout = partition([ask], self.store)
+
+        self.assertEqual(([t.id for t in router_batch], fanout), ([ask.id], {}))
+        self.assertIsNotNone(ticket)
+
     def test_stop_on_subscribed_thread_reaches_router_too(self):
         ticket = self.ticket_on()
         stop = self.received("  STOP this, wrong repo ")
@@ -216,11 +225,11 @@ class ComposeCliTest(unittest.TestCase):
         self.assertEqual(again, (0, printed, ""))
         lines = printed.splitlines()
         self.assertEqual(lines[0], f"not admitted: {stranger.id}")
-        self.assertIn(f"fanout: {followup} → {ticket.id}", lines)
+        self.assertNotIn(f"fanout: {followup} → {ticket.id}", lines)
         self.assertIn(
             f"## {fresh}  terminal  terminal:other  dboon  addressed  explicit/addressed", lines
         )
-        self.assertNotIn(f"## {followup}", printed)
+        self.assertIn(f"## {followup}  terminal  terminal:default  dboon", printed)
         self.assertNotIn(f"## {stranger.id}", printed)
         self.assertEqual([t.id for t in store.queued()], queued_before)
         self.assertCountEqual(queued_before, [stranger.id, followup, fresh])

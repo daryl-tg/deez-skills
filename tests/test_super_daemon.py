@@ -175,6 +175,21 @@ class DaemonTest(unittest.TestCase):
         trigger, _receipt = terminal.ask(self.store, text, thread_name=thread)
         return trigger
 
+    def forge(self, text, number=1, event=None):
+        self.sources('[sources.github]\nenabled = true\nmode = "explicit-only"\nsenders = ["daryl-tg"]\n')
+        event = event or f"pr{number}-{len(self.store.queued())}-{text[:8]}"
+        trigger = Trigger(
+            trigger_id("github", event), "github", event, f"github:dboon/x#{number}", "daryl-tg", True,
+            text, None, "2026-11-02T10:00:00+00:00", {},
+        )
+        self.store.receive(trigger)
+        return trigger
+
+    def forge_ticket(self, text, number=1):
+        opened = self.forge(text, number, event=f"open-{number}")
+        ticket = self.store.accept(opened.id, f"slug-{number}", Strength.explicit, "x", [], "p1", "asked")
+        return ticket, self.store.assignment_for(ticket.id).id
+
     def ticket(self, text, thread="default"):
         trigger = self.ask(text, thread)
         ticket = self.store.accept(
@@ -219,10 +234,20 @@ class DaemonTest(unittest.TestCase):
         self.one_pass()
         self.assertEqual(self.wake.batches, [[first.id], [arrivals[0].id]])
 
-    def test_fanout_records_input_and_resumes_idle_worker(self):
+    def test_terminal_ask_reaches_the_router_while_a_terminal_ticket_is_open(self):
         ticket, assignment_id = self.ticket("fix the typo")
         self.store.start_assignment(assignment_id, "session", dead_pid(), self.root)
-        follow_up = self.ask("also the second typo")
+        new_task = self.ask("start something else")
+        result = self.one_pass()
+        self.assertEqual(result.fanned_out, 0)
+        self.assertEqual(self.wake.batches, [[new_task.id]])
+        self.assertEqual(self.store.undelivered_inputs(ticket.id), [])
+        self.assertEqual(self.workers.resumed, [])
+
+    def test_fanout_records_input_and_resumes_idle_worker(self):
+        ticket, assignment_id = self.forge_ticket("fix the typo")
+        self.store.start_assignment(assignment_id, "session", dead_pid(), self.root)
+        follow_up = self.forge("also the second typo")
         result = self.one_pass()
         inputs = self.store.undelivered_inputs(ticket.id)
         self.assertEqual(result.fanned_out, 1)
@@ -245,13 +270,13 @@ class DaemonTest(unittest.TestCase):
             "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
             "FAKE_CLAUDE_LOG": str(argv_log),
         })
-        ticket, assignment_id = self.ticket("fix the typo")
+        ticket, assignment_id = self.forge_ticket("fix the typo")
         self.store.start_assignment(assignment_id, "sid-1", dead_pid(), self.root)
         self.store.report(assignment_id, "ready", "fixed it")
         stopped, stopped_assignment = self.ticket("tidy the changelog", "other")
         self.store.stop(stopped.id, "daryl", "not needed")
         self.store.add_input(stopped.id, "note", "late fact")
-        follow_up = self.ask("the second typo is still there")
+        follow_up = self.forge("the second typo is still there")
 
         result = self.one_pass(revive=workers.revive)
 

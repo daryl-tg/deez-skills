@@ -22,7 +22,7 @@ def is_stop(trigger):
 def partition(triggers, store):
     router_batch, fanout = [], {}
     for trigger in triggers:
-        targets = store.fanout_targets(trigger.thread_id)
+        targets = [] if trigger.source == "terminal" else store.fanout_targets(trigger.thread_id)
         for ticket_id in targets:
             fanout.setdefault(ticket_id, []).append(trigger)
         if not targets or is_stop(trigger):
