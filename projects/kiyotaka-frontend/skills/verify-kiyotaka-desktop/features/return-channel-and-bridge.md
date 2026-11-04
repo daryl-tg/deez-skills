@@ -6,20 +6,22 @@ The main process tries three parsers in order, sign-in (`openmarket://oauth/call
 (`openmarket://checkout`) and return; anything none of them takes is dropped as `desktop: dropped openmarket://<host>`.
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
 window shows a chart page. The bridge's members are `version`, `onReturn`, `updates` and `analytics`, plus
-`browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last driven 2026-11-04
-by the `returns` scenario on tree `8436920004` (`origin/main`, the shell's `desktop/src/` unchanged since `30481b57f8`)
-against the dev lane, warmed in Chromium first (250 bars in the engine): 20 of 21 checks in 73 s including the
-`pnpm package:dev` pack, the same split as on every run from 2026-10-27 to 2026-11-03. On 2026-11-03 the first run
+`browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last driven 2026-11-05
+by the `returns` scenario on tree `bf1c9bac3c` (`origin/main`, the shell's `desktop/src/` unchanged since `30481b57f8`)
+against the dev lane, warmed in Chromium first (a BTC title, but 0 bars in the engine: the streaming host did not
+resolve): 20 of 21 checks in 73 s including the `pnpm package:dev` pack, the same split as on every run from 2026-10-27
+to 2026-11-04. On 2026-11-03 the first run
 straight after `lane up` threw in `waitForCandles` (`launch.mjs:94`, no BTC title in 60 s) before any check, because the
 cold vite's first chart load failed its dynamic imports and the router never started (see the [index](./README.md)).
 The shell logged `desktop: dropped openmarket://elsewhere`, a `desktop: return <id>` line for `abc`, `second`, the
 handoff's uuid, `before-subscribe`, `held` and `cold`, and `desktop: external .../desktop/sign?r=...` (a
 `solana-connect` request) for the handoff step. The red one, `bridgeTwoMembers`, still expects `onReturn, version`
-while the bridge holds `analytics, browserSignIn, onReturn, updates, version` (`version` 0.1.7, `launch.mjs:431`);
-that is a stale lane assertion, not a regression. `unit-03-return.png` showed the `onReturn {"id":"abc",...}` banner
-over the 1h candles, with the guest signup prompt ("See what moves price.") over the chart. On 2026-11-01 and
-2026-11-03 the same frame had no history ("Reconnecting...", two bars) because the dev lane's streaming host was
-unreachable; the scenario's checks need a canvas, not a price, so a green `returns` says nothing about candles, and only
+while the bridge holds `analytics, browserSignIn, onReturn, updates, version` (`launch.mjs:431`; `bridgeVersion` on
+the next line reads 0.1.7 and passes); that is a stale lane assertion, not a regression. On 2026-11-04
+`unit-03-return.png` showed the `onReturn {"id":"abc",...}` banner over the 1h candles, with the guest signup prompt
+("See what moves price.") over the chart. On 2026-11-01, 2026-11-03 and 2026-11-05 the same frame had no history (two
+bars under "Reconnecting..." or, on 2026-11-05, "Your network is slow" and "Loading chart...") because the dev lane's
+streaming host was unreachable; the scenario's checks need a canvas, not a price, so a green `returns` says nothing about candles, and only
 the frame does. Windows registration
 and delivery are unproven on a real machine. The sign-in and checkout links are covered in
 [browser sign-in and checkout](./browser-signin-and-checkout.md).

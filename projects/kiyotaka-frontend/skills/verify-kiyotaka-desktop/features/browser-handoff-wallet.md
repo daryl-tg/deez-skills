@@ -11,23 +11,28 @@ read exactly as the trading store writes it, at most six fraction digits), `evm-
 and `solana-connect`, and every request carries `issuedAt`, the app's clock when it opened the page; an old request
 reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent, approveBuilderFee, usdClassTransfer,
 personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no transaction
-signing). Last driven 2026-11-04 on tree `8436920004` (`origin/main`; none of the sign, handoff or page files
-changed since `2646a76a83`), with the console session locked, on a testnet lane warmed in Chromium first (251 bars).
+signing). Last driven 2026-11-05 on tree `bf1c9bac3c` (`origin/main`; none of the sign, handoff or page files
+changed since `2646a76a83`), with the console session locked, on a testnet lane warmed in Chromium first (a priced
+title, `80,114.7 ▲ BTC - USD`, though the mainnet lane before it held 0 bars: the streaming host did not resolve).
 The sign page was proved by hand in Chromium, one state at a time: a fresh `hl-approve-agent` request drew
 `desktop-sign-page-title` "Authorize a trading key", the summary (key name, agent address, Valid until, Hyperliquid
 Testnet, Account), `desktop-sign-origin` and `desktop-sign-no-wallet`; a day-old `issuedAt` drew `desktop-sign-expired`
 "This signing request has expired"; a truncated `r` drew `desktop-sign-invalid` "This signing link isn't valid"; and the
 `hl-usd-class-transfer` kind drew "Transfer USDC" with Transfer "Spot to perps", Amount "25.5 USDC", Network
 "Hyperliquid Testnet" and Account (`toPerp: false` and `100` read "Perps to spot" and "100 USDC"), while an amount of
-`1.2345678` drew `desktop-sign-invalid`. The `hl` scenario ran twice, 193 s and 191 s. The first got the connect and
-the first approveAgent back (three `desktop: external .../desktop/sign?r=...`, two `desktop: return <id>`), then, on the
-crossed-chain request, found and clicked the MetaMask row and still got no return (`the sign page did not hand back a
-return`, `signInBrowser` at `handoff.mjs:317` from `hlScenario` at 619). The second went through the connect and two
-approveAgent round trips (three `desktop: external`, three `desktop: return`) and then timed out at the
-`personal_sign` request (`timed out waiting for the shell to hand the sign page to the browser`, `waitFor` at
-`handoff.mjs:226` from `nextSignPage` at 238 from `hlScenario` at 645), `completed: false`. The same pair happened on
-2026-11-03: one run stopped on the crossed-chain request (that day at the wallet row, `handoff.mjs:307`), and the
-next reached the `personal_sign` stop. The `personal_sign` stop has repeated on every candle-lane run since 2026-10-27
+`1.2345678` drew `desktop-sign-invalid` (on 2026-11-05 only in a fresh browser session; see Gotchas). The `hl`
+scenario ran twice, 153 s and 206 s. The first stopped on the very first request, the connect: one `desktop: external
+.../desktop/sign?r=...`, then the sign page showed no MetaMask row for 90 s (`desktop-sign-wallet` filtered by
+`MetaMask`, `signInBrowser` at `handoff.mjs:307` from `hlScenario` at 495). The lane log held `Failed to fetch
+dynamically imported module` lines and a `[VUE_ROUTER_R0011] Unexpected error when starting the router` in that
+window, about a minute after the pack made vite reload every open page on the lane (see the [index](./README.md)), so
+read it as a page that never booted, not a wallet result; the cause is not isolated. The second went through the connect and two approveAgent round trips
+(three `desktop: external`, three `desktop: return`) and then timed out at the `personal_sign` request (`timed out
+waiting for the shell to hand the sign page to the browser`, `waitFor` at `handoff.mjs:226` from `nextSignPage` at 238
+from `hlScenario` at 645), `completed: false`. On 2026-11-04 one run stopped on the crossed-chain request
+(`handoff.mjs:317` from 619, the MetaMask row clicked and no return) and the next reached the `personal_sign` stop; on
+2026-11-03 one stopped at the crossed-chain request's wallet row (`handoff.mjs:307`) and the next reached the same
+stop. The `personal_sign` stop has repeated on every candle-lane run since 2026-10-27
 (`7290d33d10`), at very different loads, so its cause is in the lane or the page, not load or data. Neither stop is
 isolated. A `waitForChart` stop (`handoff.mjs:230`) means the page never booted: on 2026-10-28, 2026-11-01 and the
 first run of 2026-11-03 that was a dev lane with no candles or a cold vite (see the [index](./README.md)). The
@@ -100,13 +105,14 @@ Preconditions:
   `waitForChart` waits for a BTC title and a canvas, not for history: on 2026-11-03 a lane with 2 bars passed it once
   warm, and a cold lane failed it. Read a `waitForChart` stop as a page that never booted, warm the lane (see the
   [index](./README.md)) and run again before reading it as the scenario's.
-- **The three lanes on 2026-11-04.** `run sign` onboarded MetaMask 13.50.0 and failed `desktop-sign-summary` after
-  60 s as before (no `issuedAt`, 71 s in all); `run handoff hl` stopped once on the crossed-chain request
-  (`handoff.mjs:317` from 619) and once at the `personal_sign` stop (645); `run handoff solana` stopped at the Phantom
-  pin in 17 s. Only `hl` reached a wallet prompt.
+- **The three lanes on 2026-11-05.** `run sign` onboarded MetaMask 13.50.0 and failed `desktop-sign-summary` after
+  60 s as before (no `issuedAt`, 79 s in all); `run handoff hl` stopped once on the connect request's wallet row
+  (`handoff.mjs:307` from 495, a page that never booted after the pack's reload) and once at the `personal_sign` stop
+  (645); `run handoff solana` stopped at the Phantom pin in 22 s. Only `hl` reached a wallet prompt. On 2026-11-04 the
+  `hl` pair was the crossed-chain stop (`handoff.mjs:317` from 619) and the `personal_sign` stop.
 - **Wallet Standard face.** `control-kiyotaka-desktop run handoff <dir> solana`. When green, all 7 checks pass; the
   wallet's features are exactly `solana:signMessage`, `standard:connect` and `standard:events`. On every run from
-  2026-10-27 to 2026-11-04 it stopped at `Phantom CRX is not the pinned 26.32.0 build` (`handoff.mjs:95`).
+  2026-10-27 to 2026-11-05 it stopped at `Phantom CRX is not the pinned 26.32.0 build` (`handoff.mjs:95`).
 - **Proof.** The lane summaries and their PNGs, among them `unit-09-handoff-prompt.png` and
   `unit-09-oneclick-signmessage.png`; for the hand drive, one frame per state plus the testids read.
 
@@ -133,3 +139,8 @@ Preconditions:
   states are proved. Since `49461bebcd` (2026-11-02's tree) the Balances tab withholds Transfer for a wallet in
   Hyperliquid's unified account or portfolio margin mode (the venue refuses `usdClassTransfer` there), so a
   signed-in drive of that trip needs a wallet in the default mode.
+- A long-lived browser session can stop booting pages. On 2026-11-05 the session kept open across two packs drew five
+  sign states, then sat on `#skeleton-loader` for the bad-amount request for two minutes with the tab visible, twice;
+  the body read "Startup is taking longer than expected" and the console held `Failed to fetch dynamically imported
+  module`. `browser close`, a fresh session warmed on `/chart/` and the same URL drew `desktop-sign-invalid` at once.
+  The cause is not isolated. Read a stuck page in a long-lived session as the session, not the sign page.

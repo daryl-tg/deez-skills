@@ -11,7 +11,7 @@ There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
-from 2026-10-27 to 2026-11-04, under high and low machine load; the last was 2026-11-04 on tree `8436920004` (`origin/main`),
+from 2026-10-27 to 2026-11-05, under high and low machine load; the last was 2026-11-05 on tree `bf1c9bac3c` (`origin/main`),
 in 63 s: `locator.click: Timeout 30000ms exceeded` at `launch.mjs:230`, after `desktop: loaded
 https://openmarket.xyz/chart/`, with the `dialog-style dialog-overlay backdrop-dim` element "intercepts pointer
 events" over `chart-watermark-link`. That overlay is the guest signup prompt ("See what moves price.", Join for free;
@@ -20,7 +20,8 @@ events" over `chart-watermark-link`. That overlay is the guest signup prompt ("S
 (`firstRunStartBlocker`, `src/components/onboarding/first-run-handoff.ts`). On 2026-11-04 the same prompt showed
 over the returns frame in the shell and in Chromium on the dev lane. It is a product-lane gap, not load: `launch.mjs`
 clicks "Got it" on the "Draw by holding" tip and waits up to 10 s for `.dialog-overlay` to detach (`launch.mjs:219`,
-`:224`), then clicks the watermark without closing this prompt. `launch.mjs` did not change between `30481b57f8` and `8436920004`.
+`:224`), then clicks the watermark without closing this prompt. `launch.mjs` did not change between `30481b57f8` and
+`bf1c9bac3c`, nor did `GuestSignupPromptDialog.vue` or `useGuestSignupPrompt.ts` between `8436920004` and `bf1c9bac3c`.
 The context menu and the chart CSV download were last driven live by the gaps lane's guest rows (see
 [Electron gaps](./electron-gaps.md)); since `12906d4136` a field on the chart page gets the native edit menu too (only
 the plot, `#main-chart`, cancels the event).
@@ -65,7 +66,7 @@ Preconditions:
   `navigationStayedOnChart`, `navigationOpenedInBrowser`, `windowOpenDocs`, `windowOpenSign`,
   `windowOpenChartInPlace`, `updateCheckSkippedUnpackaged`, `darwinStaysOpenWithNoWindow`,
   `darwinSecondInstanceReopens` and `darwinActivateReopens`. It saves `unit-02-external-link.png`.
-- **Known red since 2026-10-27 (last 2026-11-04).** The scenario clicks "Got it" on the "Draw by holding" tip, then clicks `chart-watermark-link`.
+- **Known red since 2026-10-27 (last 2026-11-05).** The scenario clicks "Got it" on the "Draw by holding" tip, then clicks `chart-watermark-link`.
   A `.dialog-overlay` (the guest signup prompt, `guest-signup-modal-close-btn`) intercepts the click and Playwright times out after 30 s at
   `launch.mjs:230`, so no summary prints. Until the lane dismisses that dialog, report every links sub-feature as
   pending and quote the timeout. The parity sweep closes the same prompt itself.

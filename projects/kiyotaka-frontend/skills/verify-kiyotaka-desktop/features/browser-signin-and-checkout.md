@@ -9,18 +9,26 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-04 on tree
-`8436920004` (`origin/main`) in Chromium on the dev lane (live candles, 250 bars in the engine), one page at a time
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-05 on tree
+`bf1c9bac3c` (`origin/main`) in Chromium on the dev lane (a BTC title but 0 bars: the streaming host did not resolve,
+which these pages do not need), one page at a time
 through `about:blank` with the tab re-fronted before each read: the return page (valid: `desktop-return-title`
 "Signed in. Open OpenMarket to finish", `desktop-return-open`, href with no hash; invalid: `desktop-return-invalid`),
 the four checkout-return states ("Payment received", "Checkout cancelled", "Billing updated", and
 `desktop-checkout-return-invalid` with `desktop-checkout-return-chart`, each with the query wiped), the signin page's
 redirect to `/chart/auth?redirect=/desktop/signin` ("Sign in or create an account"), and the super-search command
 (`super-search-result-featureCommands:desktop-app-btn`, "Download the OpenMarket desktop app", the only result for
-"desktop app", typed through the input event after the "Draw by holding" tip was closed with `ink-tutorial-close`).
-The sign-in card on `/chart/auth` read `login-signup-submit-btn` "Email me a code", `-use-password-btn`,
-`-passkey-btn` "Passkey", `-google-btn`, `-twitter-btn` and `-tos-link`; `-forgot-password-btn` shows only in the
-password step. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
+"desktop app", set through the input event; with no candles no overlay covered the search button). The sign-in card on
+`/chart/auth` read `login-signup-submit-btn` "Email me a code", `-use-password-btn`, `-passkey-btn` "Passkey",
+`-google-btn`, `-twitter-btn` "X" and `-tos-link`; `-forgot-password-btn` shows only in the password step. Since
+`37afa417b0` (2026-11-04, after `8436920004`) the Turnstile widget sits under the address it vouches for
+(`login-signup-turnstile`, between the email field and `login-signup-submit-btn`, read live in document order on
+2026-11-05), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
+(`humanCheckPending`), "Email me a code" stays disabled and `login-signup-field-message` reads "Complete the security
+check above to continue." The code step's resend renders its own check, `login-signup-code-turnstile`, under the step
+only when a new code is asked for. The dev lane's test sitekey never asks: its widget drew no box and held
+`XXXX.DUMMY.TOKEN.XXXX`, and the button turned on as soon as an address was typed. The disabled state is source-read
+only. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
 sit in one row of outlined pills under "Or continue with", a successful password, code, passkey or 2FA sign-in shows a
 welcome screen (`login-signup-welcome`) and then reloads once behind index.html's sign-in handoff card
 (`handOffSignIn`, `src/utility/auth/signin-handoff.util.ts`), and `ResendCountdown.vue` is new. The shell's browser
@@ -28,9 +36,11 @@ sign-in does not take that path: its PKCE exchange is in the main process (`desk
 `browser-signin.ts`) and never calls `handOffSignIn`. The `DesktopBrowserSignIn` row (`login-signup-browser-btn`,
 gated on the bridge's `browserSignIn`) and the passkey gate (`PasskeyService.isSupported()` is false under
 `window.openmarketDesktop`) are unchanged. The four desktop pages, `featureCommands.ts`'s `desktop-app` command (id,
-aliases, gate) and `ProfilePanel.vue`'s `desktop-app` row did not change between `1af9ebbe07` and `8436920004`. The
+aliases, gate) and `ProfilePanel.vue`'s `desktop-app` row did not change between `1af9ebbe07` and `bf1c9bac3c`.
+`2f56d17937` and `2ab15d9784` restyle the page's own sign-in leave (the welcome fade and the reload's handoff card),
+which the shell's browser sign-in never takes. The
 shell's production sign-in screen with no passkey row was last captured 2026-10-28 on `5365748ef3`, before the
-one-card rebuild; from 2026-10-29 to 2026-11-04 the console session was locked, so `capture` got no frame or was not
+one-card rebuild; from 2026-10-29 to 2026-11-05 the console session was locked, so `capture` got no frame or was not
 attempted (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or
@@ -48,6 +58,9 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
 - `signin-start-page` `/desktop/signin` reads "Sign in to the OpenMarket app" and "Checking your sign-in…" while it
   checks the account, then sends a signed-out visitor to `/auth?redirect=/desktop/signin`.
 - `signin-no-passkey` the shell's sign-in screen has no Passkey pill; Chromium's does (`login-signup-passkey-btn`).
+- `signin-human-check` the Turnstile widget (`login-signup-turnstile`) sits between the address and "Email me a code";
+  an unticked Cloudflare checkbox keeps the button off with "Complete the security check above to continue." Placement
+  live in Chromium on the dev lane; the disabled state needs a sitekey that asks, so it is source-read only.
 - `checkout-return-page` `/desktop/checkout-return` reads "Payment received" (`?product=<p>&session_id=cs_...`),
   "Checkout cancelled" (`?product=<p>`) or "Billing updated" (`?flow=portal`) with `desktop-checkout-return-open`, wipes
   the query, and shows `desktop-checkout-return-invalid` with `desktop-checkout-return-chart` for anything else.
@@ -86,6 +99,13 @@ Preconditions:
 - **No passkey in the shell.** `control-kiyotaka-desktop capture <dir>/shell-login-prod.png --prod --path '?login=1'`
   shows no Passkey pill; the same dialog in Chromium (`browser ... click '[data-testid="profile-guest-mode-btn"]'`)
   shows one.
+- **The card and its human check.** In Chromium on `/chart/auth` (the signin page lands there), read every
+  `[data-testid^=login-signup]` with its text and `disabled`, then type an address and read again. The address field
+  has no testid: it is `input[name=email]`, and the native-setter and `input`-event form below fills it. Prove the
+  placement with `compareDocumentPosition`: the email input, then `login-signup-turnstile`, then
+  `login-signup-submit-btn`. On the dev lane the submit is disabled while the address is empty and enabled once it is
+  typed; a disabled submit with the field message "Complete the security check above to continue." needs a sitekey
+  that asks for the checkbox.
 - **Download door.** In Chromium, once the chart shows its guest button, close whatever overlay covers it (the
   "Draw by holding" tip's `ink-tutorial-close` or the guest signup prompt's `guest-signup-modal-close-btn`; see
   Gotchas) and poll until no `.dialog-overlay` remains, then click `global-nav-search-btn`,

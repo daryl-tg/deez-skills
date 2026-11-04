@@ -26,10 +26,11 @@ false): its shell half is a `capture.js` launch, and a locked screen gives it no
 [launch](./shell-launch-and-window.md)). Chromium's half wrote its frame. The runs of 2026-10-27, 2026-10-28,
 2026-10-29, 2026-10-31, 2026-11-02 and 2026-11-04, at very different loads, give the same cascade, so it is drift
 between the sweep and the web tree, not load. On 2026-11-01 (`2646a76a83`) and 2026-11-03 (`1af9ebbe07`) the sweep
-packed the app and threw in `waitForCandles` (`parity.mjs:457`, 180 s) before any step, because the dev lane's v2
+packed the app and threw in `waitForCandles` (`parity.mjs:457`, 180 s) before any step, and on 2026-11-05
+(`bf1c9bac3c`) it was not run (0 bars in the lane's engine), because the dev lane's v2
 streaming host (`tsdb-gateway.int.ore.kiyotaka.ai`) was unreachable or did not resolve while the lane's REST health
-read `ok`; that was an environment block, not a sweep finding (see the [index](./README.md)). A source read on
-2026-11-04 found no testid the sweep uses that went dead between `1af9ebbe07` and `8436920004`; the dead alternatives
+read `ok`; that was an environment block, not a sweep finding (see the [index](./README.md)). Source reads on
+2026-11-04 and 2026-11-05 found no testid the sweep uses that went dead between `1af9ebbe07` and `bf1c9bac3c`; the dead alternatives
 it carries are older (`global-nav-pulse-btn` at `parity.mjs:220`, beside the live `pulse-main-feed` and
 `pulse-main-notice`; `option-chain-row` in `si-option-chain`, beside the live `option-chain-strike*`;
 `live-streams-card` and `marketplace-card` in masks; `workspace-more-0-btn` in the signed-in layouts rows). The
