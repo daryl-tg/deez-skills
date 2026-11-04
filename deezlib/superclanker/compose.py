@@ -2,6 +2,8 @@ from deezlib.superclanker.store import SuperError
 
 SHRUNK_TEXT_CHARS = 50
 REPORT_CHARS = 60
+CONVERSATION_MESSAGES = 8
+MESSAGE_CHARS = 200
 VERBS = (
     "deez super-clanker dispatch <trigger> --slug <kebab> [--playbook <name, only when a person"
     " named one>] [--scope <text>] [--rule <name>]",
@@ -97,8 +99,39 @@ def _header(config, count):
     ])
 
 
+def _open_ticket(row, store):
+    line = f"{row['ticket']} {row['slug']} · worker {row['assignment']}"
+    report = store.last_report(row["ticket"])
+    if report is None:
+        return f"- {line} · no report yet"
+    line += f' · {report.kind} "{_clip(report.text, REPORT_CHARS)}"'
+    if report.question and row["attention"]:
+        line += f" · asks: {_clip(report.question, MESSAGE_CHARS)}"
+    return f"- {line}"
+
+
+def _open_tickets(store):
+    lines = [_open_ticket(row, store) for row in store.status() if row["state"] == "open"]
+    return "\n".join(["## open tickets", *(lines or ["- none"])])
+
+
+def _conversation(thread_id, batch_ids, store):
+    messages = [
+        f"- {who}: {_clip(text, MESSAGE_CHARS)}"
+        for _at, who, text, message_id in store.thread_messages(thread_id, CONVERSATION_MESSAGES + len(batch_ids))
+        if message_id not in batch_ids
+    ][-CONVERSATION_MESSAGES:]
+    return "\n".join([f"## recent conversation on {thread_id}", *(messages or ["- none"])])
+
+
+def _state(items, store):
+    batch_ids = {trigger.id for trigger, _admission in items}
+    threads = dict.fromkeys(t.thread_id for t, _a in items if t.source == "terminal")
+    return [_open_tickets(store), *(_conversation(thread, batch_ids, store) for thread in threads)]
+
+
 def wake_prompt(items, config, store):
-    header = _header(config, len(items))
+    header = "\n\n".join([_header(config, len(items)), *_state(items, store)])
     entries = [
         (trigger, admission, _recall(trigger, config, store)) for trigger, admission in items
     ]

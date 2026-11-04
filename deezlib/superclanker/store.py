@@ -349,6 +349,20 @@ class Store:
         )
         return found[0] if found else None
 
+    def last_report(self, ticket_id):
+        return self._last_report(ticket_id)
+
+    def thread_messages(self, thread_id, limit):
+        rows = self._db.execute(
+            "SELECT at, who, text, id FROM ("
+            " SELECT received_at AS at, CASE WHEN source = 'terminal' THEN 'you' ELSE COALESCE(actor, source) END AS who,"
+            " text, id, rowid AS seq FROM triggers WHERE thread_id = ?"
+            " UNION ALL SELECT created_at, 'router', text, id, rowid FROM replies WHERE thread_id = ?"
+            ") ORDER BY at DESC, seq DESC LIMIT ?",
+            (thread_id, thread_id, limit),
+        ).fetchall()
+        return list(reversed(rows))
+
     def receive(self, trigger):
         with self._transaction():
             self._insert(Thread(trigger.thread_id, trigger.source, trigger.received_at), "OR IGNORE")

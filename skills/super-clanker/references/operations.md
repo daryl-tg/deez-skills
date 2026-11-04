@@ -217,7 +217,8 @@ Under the state root:
 | `log/<assignment>.json`, `.err`, `.reaped` | One Worker turn; later turns add `.<n>` |
 | `inbox/terminal-<thread>.log` | Replies on a terminal Thread |
 | `daemon.heartbeat`, `daemon.lock.d/pid` | Daemon liveness |
-| `router.session`, `watchdog.session` | Resumable session ids |
+| `watchdog.session` | Resumable Watchdog session id |
+| `nudge` | Written by `ask`, `note`, `reply`, Router verbs and pushed reports; the daemon starts its next pass when it changes |
 
 ## Workers config
 
@@ -238,9 +239,6 @@ Under the state root:
 - **Unreaped turn.** Run `deez super-clanker reap`.
 - **Undecided trigger.** It was recorded `unavailable`. Run
   `deez super-clanker requeue <trigger>`, and the next pass wakes the Router with it.
-- **Expired Router session.** Every wake fails while `router.session` names a
-  session `claude --resume` cannot find. Delete that file. The next wake opens
-  a fresh session with the queued backlog.
 - **Held pass.** The pass line reads `held=mem<pct>%`. Run `memory_pressure` to
   see free memory. Launches resume on their own once it reaches
   `workers.min_free_pct`; lower the key to launch sooner.

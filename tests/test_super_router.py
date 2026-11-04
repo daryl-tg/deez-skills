@@ -12,7 +12,7 @@ from unittest import mock
 
 from deezlib import cli
 from deezlib.superclanker import config, router
-from deezlib.superclanker.domain import Trigger, trigger_id
+from deezlib.superclanker.domain import Strength, Trigger, trigger_id
 from deezlib.superclanker.sources import terminal
 from deezlib.superclanker.store import Store, SuperError
 
@@ -134,21 +134,46 @@ class RouterTest(unittest.TestCase):
             "decision ignore: not admitted: source", summaries(self.store.show(unconfigured.id))
         )
 
-    def test_wake_creates_session_once_then_resumes(self):
+    def test_every_wake_is_a_fresh_session(self):
         self.ask("first request")
         self.wake()
         self.ask("second request")
         self.wake()
 
         first, second = self.argvs()
-        sid = first[first.index("--session-id") + 1]
-        self.assertRegex(sid, UUID)
-        self.assertNotIn("--resume", first)
-        self.assertEqual(second[second.index("--resume") + 1], sid)
-        self.assertNotIn("--session-id", second)
-        session_file = self.root / "router.session"
-        self.assertEqual(session_file.read_text(encoding="utf-8").strip(), sid)
-        self.assertEqual(stat.S_IMODE(session_file.stat().st_mode), 0o600)
+        sids = [argv[argv.index("--session-id") + 1] for argv in (first, second)]
+        for sid in sids:
+            self.assertRegex(sid, UUID)
+        self.assertNotEqual(sids[0], sids[1])
+        self.assertNotIn("--resume", first + second)
+        self.assertFalse((self.root / "router.session").exists())
+
+    def test_wake_prompt_carries_open_tickets_and_the_recent_conversation(self):
+        earlier = self.ask("fix the tape scroll")
+        ticket = self.store.accept(
+            earlier.id, "tape-scroll", Strength.explicit, "local", [], "p1", "asked"
+        )
+        assignment = self.store.assignment_for(ticket.id)
+        self.store.start_assignment(assignment.id, "sid", 1, self.root)
+        self.store.report(assignment.id, "waiting", "two fixes fit", question="Clamp or debounce?")
+        self.store.reply("terminal:default", "Started tape-scroll.")
+        ended = self.ask("old work")
+        gone = self.store.accept(ended.id, "old-work", Strength.explicit, "local", [], "p1", "asked")
+        self.store.stop(gone.id, "daryl", "done")
+        request = self.ask("debounce it")
+
+        prompt = self.deez("wake", "--dry-run")[1]
+
+        tickets = prompt.split("## open tickets", 1)[1].split("##", 1)[0]
+        self.assertIn(f"{ticket.id} tape-scroll", tickets)
+        self.assertIn('waiting "two fixes fit"', tickets)
+        self.assertIn("asks: Clamp or debounce?", tickets)
+        self.assertNotIn(gone.id, tickets)
+        conversation = prompt.split("## recent conversation on terminal:default", 1)[1].split("##", 1)[0]
+        self.assertIn("you: fix the tape scroll", conversation)
+        self.assertIn("router: Started tape-scroll.", conversation)
+        self.assertNotIn("debounce it", conversation)
+        self.assertIn(f"## {request.id}  terminal", prompt)
 
     def test_wake_passes_agent_prompt_and_allowlist(self):
         request = self.ask("fix the typo in README")

@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import tempfile
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -32,21 +31,6 @@ class Triage:
     router_items: list
 
 
-def session_id(root):
-    path = Path(root) / "router.session"
-    try:
-        return path.read_text(encoding="utf-8").strip(), False
-    except FileNotFoundError:
-        pass
-    sid = str(uuid.uuid4())
-    handle, temp = tempfile.mkstemp(dir=root, prefix=".router.session.")
-    with os.fdopen(handle, "w", encoding="utf-8") as stream:
-        stream.write(sid + "\n")
-    os.chmod(temp, 0o600)
-    os.replace(temp, path)
-    return sid, True
-
-
 def agent_prompt(hub_root):
     text = (Path(hub_root) / "agents" / "super-router.md").read_text(encoding="utf-8")
     _before, _frontmatter, body = text.split("---\n", 2)
@@ -71,13 +55,13 @@ def triage(store, config):
     return Triage(refused, [item for item in admitted if item[0].id in batch_ids])
 
 
-def _command(config, hub_root, sid, is_new, prompt):
+def _command(config, hub_root, sid, prompt):
     return [
         "claude", "-p", "--model", config.router.model, "--tools", "Bash",
         "--allowedTools", ALLOWED_TOOLS, "--permission-mode", "dontAsk",
         "--output-format", "json", "--strict-mcp-config", "--setting-sources", "project,local",
         "--append-system-prompt", agent_prompt(hub_root),
-        "--session-id" if is_new else "--resume", sid, prompt,
+        "--session-id", sid, prompt,
     ]
 
 
@@ -113,11 +97,11 @@ def wake(store, config, root, hub_root, runner=subprocess.run):
         return None
     ids = [trigger.id for trigger, _ in plan.router_items]
     prompt = compose.wake_prompt(plan.router_items, config, store)
-    sid, is_new = session_id(root)
+    sid = str(uuid.uuid4())
     wake_id = store.begin_wake(ids)
     try:
         completed = runner(
-            _command(config, hub_root, sid, is_new, prompt), cwd=root,
+            _command(config, hub_root, sid, prompt), cwd=root,
             env=_environment(root, hub_root), capture_output=True, text=True,
             timeout=WAKE_TIMEOUT_SECONDS,
         )
@@ -128,8 +112,6 @@ def wake(store, config, root, hub_root, runner=subprocess.run):
         store.end_wake(
             wake_id, completed.returncode, None, None, completed.stderr[-STDERR_TAIL_CHARS:]
         )
-        if is_new:
-            (Path(root) / "router.session").unlink(missing_ok=True)
         raise SuperError(f"router wake {wake_id} failed with exit {completed.returncode}")
     cost = outcome.get("total_cost_usd")
     result = outcome.get("result")
