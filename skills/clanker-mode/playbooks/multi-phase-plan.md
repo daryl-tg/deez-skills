@@ -11,7 +11,8 @@ several reviews. The plan is the deliverable. Do not implement.
    timing, behavior, or whether an API works goes to `playbooks/prototype.md`.
    Keep the scratch path and the screenshots for Appendix A. Ask the operator
    only about a product or preference call no run can settle, and give options
-   when you do, per **principle-never-block-on-reversible-work**.
+   when you do, per **principle-never-block-on-reversible-work**. Several open
+   calls go in rounds, per `playbooks/grilling.md`.
 3. **Explore in delegates.** The **explore** role over each affected subsystem
    returns file pointers, conventions, test commands, and entry points. No
    inlined dumps, per **principle-guard-the-context-window**.

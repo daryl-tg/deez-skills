@@ -5,7 +5,7 @@ and Codex on every machine. Skills live here once and are symlinked into both
 runtimes, so there is no second copy to drift.
 
 The architecture is [pstack](https://github.com/cursor/plugins/tree/main/pstack),
-adapted for two runtimes instead of one. Thirty-nine principles, twenty-five
+adapted for two runtimes instead of one. Thirty-nine principles, twenty-six
 playbooks, one router.
 
 ```mermaid
@@ -25,7 +25,7 @@ flowchart TB
 
   subgraph work["what one request runs"]
     router["$clanker-mode<br/>the router. used from Claude Code"]
-    pb["1 of 25 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
+    pb["1 of 26 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
     prin["38 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
     role["5 roles<br/>explore, executor, test-engineer,<br/>code-reviewer, verifier"]
     craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, show-me"]
@@ -90,10 +90,10 @@ That is it. Everything else the router reaches for when a step needs it.
 
 ## usage
 
-`$clanker-mode` matches your task to one of twenty-five playbooks and runs it.
+`$clanker-mode` matches your task to one of twenty-six playbooks and runs it.
 
 <details>
-<summary>the twenty-five playbooks</summary>
+<summary>the twenty-six playbooks</summary>
 
 | playbook | for |
 |---|---|
@@ -106,6 +106,7 @@ That is it. Everything else the router reaches for when a step needs it.
 | [om-mobile-feature](./skills/clanker-mode/playbooks/om-mobile-feature.md) | an OpenFloor mobile change. device verification once, at the end |
 | [om-mobile-completion](./skills/clanker-mode/playbooks/om-mobile-completion.md) | the terminal phase for mobile. lands by squash-merge through the MR |
 | [prototype](./skills/clanker-mode/playbooks/prototype.md) | a throwaway sketch that settles a design or an empirical fork |
+| [grilling](./skills/clanker-mode/playbooks/grilling.md) | open decisions settled with the operator, a round of numbered questions at a time |
 | [perf-issue](./skills/clanker-mode/playbooks/perf-issue.md) | a slowness with a number on it. baseline, fix, post-fix number |
 | [forensics](./skills/clanker-mode/playbooks/forensics.md) | a live process or a dropped trace, read down to a cited diagnosis |
 | [visual-parity](./skills/clanker-mode/playbooks/visual-parity.md) | pixel-exact equivalence, decided by image diff and never by eye |
@@ -293,7 +294,7 @@ only, so Claude subagents implement and Codex install support is dormant.
 that citation only resolves if the leaf exists on the delegate's side. Codex
 support is dormant, and the rule stays so a resubscribe needs no rebuild.
 
-Playbooks are plain markdown inside the router, not registry entries, so twenty-five
+Playbooks are plain markdown inside the router, not registry entries, so twenty-six
 of them cost nothing at session start and can still be read by absolute path
 from either runtime.
 
