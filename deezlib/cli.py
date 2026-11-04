@@ -79,6 +79,10 @@ def build_parser():
     stop_parser.add_argument("ticket")
     stop_parser.add_argument("--reason", required=True)
     stop_parser.add_argument("--by")
+    archive_parser = super_verbs.add_parser("archive", help="End a stale ticket as archived and release its worktree.")
+    archive_parser.add_argument("ticket")
+    archive_parser.add_argument("--reason", required=True)
+    archive_parser.add_argument("--by")
     reply_parser = super_verbs.add_parser("reply", help="Queue a reply on a thread.")
     reply_parser.add_argument("thread")
     reply_parser.add_argument("--text", required=True)
@@ -260,6 +264,8 @@ def _super_field(value):
 def _super_show(store, args):
     shown = store.show(args.id)
     related = shown.pop("related")
+    if args.id.startswith("k_"):
+        shown["outcome"] = store.outcome(args.id)
     for key, value in shown.items():
         print(f"{key}: {_super_field(value)}")
     print("related:")
@@ -465,6 +471,12 @@ def _super_ignore(store, args):
         raise _super_already_decided(args.trigger)
     store.ignore(args.trigger, args.reason)
     print(f"ignored {args.trigger}")
+
+
+def _super_archive(store, args):
+    _super_record(store, "ticket", "k_", args.ticket)
+    store.archive(args.ticket, args.by or "you", args.reason)
+    print(f"archived {args.ticket}")
 
 
 def _super_stop(store, args):
@@ -817,6 +829,7 @@ SUPER_VERBS = {
     "attach": _super_attach,
     "ignore": _super_ignore,
     "stop": _super_stop,
+    "archive": _super_archive,
     "reply": _super_reply,
     "note": _super_note,
     "route": _super_route,

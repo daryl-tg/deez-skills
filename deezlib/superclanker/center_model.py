@@ -1,7 +1,9 @@
 import json
+import os
 import sqlite3
+import tempfile
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from deezlib.superclanker.ui_model import local_midnight_utc
@@ -9,6 +11,10 @@ from deezlib.superclanker.ui_model import local_midnight_utc
 DB_NAME = "super.db"
 STAGES = ["INBOX", "QUEUED", "RUNNING", "NEEDS YOU", "READY", "ENDED"]
 ATTENTION_KINDS = ("waiting", "blocked", "failed")
+READY_STALE_AFTER = timedelta(hours=6)
+WAITING_STALE_AFTER = timedelta(days=3)
+IDLE_STALE_AFTER = timedelta(days=1)
+KEPT_NAME = "center-kept.json"
 
 
 @dataclass
@@ -261,3 +267,64 @@ def load(root, now=None):
         return World(dossiers, _threads(query), float(spend or 0))
     finally:
         connection.close()
+
+
+def last_activity(dossier):
+    return max((event.at for event in dossier.events if event.at), default=dossier.created)
+
+
+def activity_mark(dossier):
+    return f"{last_activity(dossier).isoformat()}#{len(dossier.events)}"
+
+
+def span(delta):
+    seconds = max(delta.total_seconds(), 0)
+    for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
+        if seconds >= size:
+            return f"{int(seconds // size)}{unit}"
+    return f"{int(seconds)}s"
+
+
+def stale_reason(dossier, now):
+    idle = now - last_activity(dossier)
+    if dossier.state != "open":
+        if dossier.outcome == "dropped" and dossier.ended_by is None and idle >= IDLE_STALE_AFTER:
+            return f"dropped {span(idle)} ago, worktree kept"
+        return None
+    current = stage(dossier)
+    if current in ("RUNNING", "QUEUED", "INBOX"):
+        return None
+    if current == "READY":
+        return f"ready, untouched {span(idle)}" if idle >= READY_STALE_AFTER else None
+    if current == "NEEDS YOU":
+        return f"{dossier.last_kind}, waiting on you {span(idle)}" if idle >= WAITING_STALE_AFTER else None
+    return f"quiet {span(idle)}" if idle >= IDLE_STALE_AFTER else None
+
+
+def read_kept(root):
+    try:
+        kept = json.loads((Path(root) / KEPT_NAME).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return kept if isinstance(kept, dict) else {}
+
+
+def keep(root, dossier):
+    kept = read_kept(root)
+    kept[dossier.id] = activity_mark(dossier)
+    handle, temp = tempfile.mkstemp(dir=root, prefix=".center-kept.")
+    with os.fdopen(handle, "w", encoding="utf-8") as stream:
+        json.dump(kept, stream, indent=2, sort_keys=True)
+    os.replace(temp, Path(root) / KEPT_NAME)
+
+
+def stale_tickets(world, root, now):
+    kept = read_kept(root)
+    found = []
+    for dossier in world.dossiers:
+        if kept.get(dossier.id) == activity_mark(dossier):
+            continue
+        reason = stale_reason(dossier, now)
+        if reason:
+            found.append((dossier, reason))
+    return found

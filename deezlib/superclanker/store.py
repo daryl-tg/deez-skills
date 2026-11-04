@@ -42,6 +42,7 @@ class TicketOutcome(StrEnum):
     closed = "closed"
     dropped = "dropped"
     done = "done"
+    archived = "archived"
 
 
 @dataclass(frozen=True)
@@ -425,6 +426,28 @@ class Store:
             ))
         return replace(ticket, state=TicketState.ended, ended_at=ended_at, ended_by=by)
 
+    def archive(self, ticket_id, by, reason):
+        with self._transaction():
+            ticket = self._require(Ticket, ticket_id)
+            ended_at = ticket.ended_at or utc_now()
+            self._db.execute(
+                "UPDATE tickets SET state = ?, ended_at = ?, ended_by = ?, outcome = ? WHERE id = ?",
+                (TicketState.ended, ended_at, by, TicketOutcome.archived, ticket_id),
+            )
+            self._db.execute(
+                "UPDATE mandates SET withdrawn_at = COALESCE(withdrawn_at, ?) WHERE id = ?",
+                (ended_at, ticket.mandate_id),
+            )
+            self._db.execute(
+                "UPDATE assignments SET state = ?, ended_at = COALESCE(ended_at, ?) WHERE ticket_id = ? AND state != ?",
+                (AssignmentState.ended, ended_at, ticket_id, AssignmentState.ended),
+            )
+            self._insert(Decision(
+                new_id(Decision), ticket.thread_id, (), DecisionKind.stop, Strength.explicit,
+                f"archived: {reason}", utc_now(),
+            ))
+            return self._require(Ticket, ticket_id)
+
     def subscribe(self, ticket_id, thread_id, context_only=False):
         with self._transaction():
             self._require(Ticket, ticket_id)
@@ -737,6 +760,10 @@ class Store:
                     (AssignmentState.ended, report.created_at, assignment_id, AssignmentState.ended),
                 )
         return report
+
+    def outcome(self, ticket_id):
+        row = self._db.execute("SELECT outcome FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
+        return row[0] if row else None
 
     def show(self, obj_id):
         kind = next(

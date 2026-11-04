@@ -200,6 +200,26 @@ class SuperStoreTest(unittest.TestCase):
         self.assertEqual(self.store.show(assignment)["state"], "ended")
         self.assertEqual(self.store.status()[0]["assignment"], "ended")
 
+    def test_archive_ends_the_ticket_with_an_archived_outcome(self):
+        _trigger, ticket = self.accepted_ticket()
+
+        archived = self.store.archive(ticket.id, "dboon", "stale")
+
+        self.assertEqual((archived.state, archived.ended_by), ("ended", "dboon"))
+        shown = self.store.show(ticket.id)
+        self.assertEqual((shown["state"], shown["ended_by"]), ("ended", "dboon"))
+        self.assertEqual(self.store.outcome(ticket.id), "archived")
+        self.assertIsNotNone(self.store.show(shown["mandate_id"])["withdrawn_at"])
+
+    def test_archive_claims_a_dropped_ticket_so_its_worktree_can_go(self):
+        _trigger, ticket = self.accepted_ticket()
+        self.store.end_ticket(ticket.id, "dropped")
+
+        archived = self.store.archive(ticket.id, "dboon", "stale")
+
+        self.assertEqual(archived.ended_by, "dboon")
+        self.assertEqual(self.store.outcome(ticket.id), "archived")
+
     def test_waiting_report_asks_for_attention_and_ready_ends_the_assignment(self):
         _trigger, ticket = self.accepted_ticket()
         assignment = next(i for i in related_ids(self.store.show(ticket.id)) if i.startswith("a_"))
@@ -249,6 +269,19 @@ class SuperCliTest(unittest.TestCase):
                 redirect_stdout(out), redirect_stderr(err):
             code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
+
+    def test_archive_verb_archives_a_dispatched_ticket(self):
+        _code, asked, _ = self.deez_super("ask", "tidy", "the", "tape")
+        trigger = re.search(r"trigger (t_[0-9a-f]{10})", asked).group(1)
+        _code, dispatched, _ = self.deez_super("dispatch", trigger, "--slug", "tidy-tape")
+        ticket = re.search(r"ticket (k_[0-9a-f]{10})", dispatched).group(1)
+
+        code, archived, _ = self.deez_super("archive", ticket, "--reason", "stale", "--by", "dboon")
+
+        self.assertEqual((code, archived), (0, f"archived {ticket}\n"))
+        _code, shown, _ = self.deez_super("show", ticket)
+        self.assertIn("outcome: archived\n", shown)
+        self.assertIn("ended_by: dboon\n", shown)
 
     def test_ask_prints_the_trigger_and_show_prints_its_thread(self):
         code, asked, _ = self.deez_super("ask", "hello", "there")

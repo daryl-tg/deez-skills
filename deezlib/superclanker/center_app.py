@@ -1,4 +1,5 @@
 import argparse
+import getpass
 import os
 import sys
 import time
@@ -8,7 +9,7 @@ from pathlib import Path
 from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
-from textual.screen import Screen
+from textual.screen import ModalScreen, Screen
 from textual.widget import Widget
 from textual.widgets import DataTable, Input, Label, RichLog, Static
 
@@ -136,6 +137,28 @@ def legend_text(items):
     for key, label in items:
         t.append(f" {key} ", style=f"bold reverse {AMBER}")
         t.append(f" {label} ", style=WHITE)
+    return t
+
+
+def stale_strip_text(stale):
+    t = Text(no_wrap=True, overflow="ellipsis")
+    t.append(f" {len(stale)} STALE ", style=f"bold #000000 on {RED}")
+    t.append("  ")
+    t.append(" A ", style=f"bold reverse {AMBER}")
+    t.append(" archive all  ", style=WHITE)
+    t.append(" R ", style=f"bold reverse {AMBER}")
+    t.append(" review one by one  ", style=WHITE)
+    names = ", ".join(f"{d.slug} ({reason})" for d, reason in stale[:3])
+    t.append(names + (" …" if len(stale) > 3 else ""), style=DIM)
+    return t
+
+
+def stale_list_text(stale):
+    t = Text()
+    for d, reason in stale:
+        t.append(f"{d.id}  ", style=CYAN)
+        t.append(f"{fit(d.slug, 28)} ", style=WHITE)
+        t.append(f"{reason}\n", style=DIM)
     return t
 
 
@@ -853,6 +876,82 @@ class StatusBar(Static):
         self.update(status_text(self.app.world))
 
 
+class ConfirmArchive(ModalScreen):
+    BINDINGS = [("y", "answer(True)", "archive"), ("n", "answer(False)", "cancel"),
+                ("escape", "answer(False)", "cancel")]
+    CSS = f"""
+    ConfirmArchive {{ align: center middle; background: #000000 70%; }}
+    #confirm {{ width: 100; height: auto; max-height: 30; border: solid {AMBER}; background: #000000; padding: 1 2; }}
+    """
+
+    def __init__(self, stale):
+        super().__init__()
+        self.stale = stale
+
+    def compose(self):
+        with Vertical(id="confirm"):
+            yield Static(Text(f"ARCHIVE {len(self.stale)} STALE TASKS?", style=f"bold {AMBER}"))
+            yield Static(stale_list_text(self.stale), markup=False)
+            yield Static(legend_text([("Y", "ARCHIVE"), ("N", "CANCEL")]))
+
+    def action_answer(self, yes):
+        self.dismiss(yes)
+
+
+class ReviewStale(Screen):
+    BINDINGS = [("a", "archive", "archive"), ("k", "keep", "keep"), ("s", "skip", "skip"),
+                ("escape", "done", "done")]
+
+    def __init__(self, stale):
+        super().__init__()
+        self.stale = list(stale)
+        self.index = 0
+
+    def compose(self):
+        yield StatusBar(classes="status")
+        with Panel(classes="zoomed"):
+            yield Band("REVIEW STALE", "a archive · k keep · s skip · esc done", name_id="review-name")
+            with VerticalScroll():
+                yield Static(id="review-text", markup=False)
+        yield Static(legend_text([("A", "ARCHIVE"), ("K", "KEEP"), ("S", "SKIP"), ("ESC", "DONE")]), classes="legend")
+
+    def on_mount(self):
+        self.show_current()
+
+    def show_current(self):
+        if self.index >= len(self.stale):
+            self.action_done()
+            return
+        d, reason = self.stale[self.index]
+        self.query_one("#review-name", Static).update(
+            Text(f"REVIEW STALE {self.index + 1}/{len(self.stale)}  {d.id}"))
+        body = Text()
+        body.append(" STALE ", style=f"bold #000000 on {RED}")
+        body.append(f" {reason}\n\n", style=f"bold {RED}")
+        body.append_text(dossier_text(d, False))
+        self.query_one("#review-text", Static).update(body)
+
+    def action_archive(self):
+        self.app.archive([self.stale[self.index]])
+        self.advance()
+
+    def action_keep(self):
+        self.app.keep(self.stale[self.index][0])
+        self.advance()
+
+    def action_skip(self):
+        self.advance()
+
+    def advance(self):
+        self.index += 1
+        self.show_current()
+
+    def action_done(self):
+        if self.app.screen is self:
+            self.app.pop_screen()
+            self.app.after_change()
+
+
 class Zoom(Screen):
     BINDINGS = [("escape", "back", "back"), ("z", "back", "back")]
 
@@ -921,6 +1020,7 @@ class CenterApp(App):
     #right {{ width: 3fr; }}
     #p-blotter {{ height: 1fr; }}
     #p-system {{ height: 10; }}
+    #stale-strip {{ height: 1; background: #1A0000; display: none; }}
     #p-dossier {{ height: 1fr; }}
     #p-router {{ height: 1fr; }}
     Panel {{ border: solid #3A2A00; background: #000000; }}
@@ -959,10 +1059,12 @@ class CenterApp(App):
         ("v", "view", "view"),
         ("escape", "blotter", "blotter"),
         ("ctrl+t", "target", "target"),
+        ("a", "archive_all", "archive stale"),
+        ("r", "review", "review stale"),
     ]
 
     def __init__(self, root, *, verb=run_verb, deez=REPO_ROOT / "bin/deez", refresh_s=REFRESH_S,
-                 load=center_model.load, probe=None):
+                 load=center_model.load, probe=None, now=None):
         super().__init__()
         self.root = Path(root)
         self.verb = verb
@@ -970,6 +1072,9 @@ class CenterApp(App):
         self.refresh_s = refresh_s
         self.load_world = load
         self.probe = probe or self.probe_host
+        self.now = now or utcnow
+        self.stale = []
+        self.archiving = set()
         self.world = center_model.World([], {}, 0.0)
         self.local = []
         self.loading = False
@@ -1001,6 +1106,7 @@ class CenterApp(App):
         yield StatusBar(classes="status")
         with Horizontal(id="cols"):
             with Vertical(id="left"):
+                yield Static(id="stale-strip", markup=False)
                 with Panel(id="p-blotter"):
                     yield Band("BLOTTER · TABLE", "v view · ↑↓←→ move · enter open · z zoom", name_id="blotter-name")
                     yield DataTable(id="blotter", cursor_type="row", cell_padding=0)
@@ -1085,6 +1191,8 @@ class CenterApp(App):
             self.since[d.id] = max((e.at for e in d.events), default=d.created)
             if mark and previous.get(d.id) != (self.stage[d.id], d.last_at):
                 self.mark(d)
+        self.stale = [(d, reason) for d, reason in center_model.stale_tickets(world, self.root, self.now())
+                      if d.id not in self.archiving]
         ids = {d.id for d in world.dossiers}
         if self.selected_id not in ids:
             self.selected_id = ordered(world)[0].id if world.dossiers else None
@@ -1107,6 +1215,8 @@ class CenterApp(App):
 
     def verb_done(self, result):
         verb = result.argv[2] if len(result.argv) > 2 else "?"
+        if verb == "archive" and len(result.argv) > 3:
+            self.archiving.discard(result.argv[3])
         if result.returncode == 0:
             self.say(f"{verb}: {' '.join(result.stdout.split()) or 'ok'}")
         else:
@@ -1176,7 +1286,42 @@ class CenterApp(App):
             for s in scr.query("#ztape"):
                 s.update(tape_text(self.world))
 
+    def render_stale(self):
+        strip = self.screen_stack[0].query_one("#stale-strip", Static)
+        strip.display = bool(self.stale)
+        strip.update(stale_strip_text(self.stale) if self.stale else "")
+
+    def action_archive_all(self):
+        if self.in_zoom() or not self.stale:
+            return
+        chosen = list(self.stale)
+
+        def answered(yes):
+            if yes:
+                self.archive(chosen)
+
+        self.push_screen(ConfirmArchive(chosen), answered)
+
+    def action_review(self):
+        if self.in_zoom() or not self.stale:
+            return
+        self.push_screen(ReviewStale(self.stale))
+
+    def archive(self, items):
+        by = getpass.getuser()
+        for d, reason in items:
+            self.archiving.add(d.id)
+            self.submit([str(self.deez), "super-clanker", "archive", d.id, "--reason", f"stale: {reason}", "--by", by])
+        self.stale = [(d, reason) for d, reason in self.stale if d.id not in self.archiving]
+        self.render_stale()
+
+    def keep(self, dossier):
+        center_model.keep(self.root, dossier)
+        self.stale = [(d, reason) for d, reason in self.stale if d.id != dossier.id]
+        self.render_stale()
+
     def after_change(self):
+        self.render_stale()
         self.rebuild_all_tables()
         self.refresh_panels(False)
         self.refresh_views()

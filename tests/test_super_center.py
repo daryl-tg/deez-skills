@@ -1,4 +1,5 @@
 import asyncio
+from datetime import timedelta
 import importlib.util
 import json
 import tempfile
@@ -111,6 +112,59 @@ class StageTest(Seeded):
         self.assertEqual(self.stage_of(ended), "ENDED")
 
 
+class StaleTest(Seeded):
+    def dossier(self, ticket):
+        return next(d for d in center_model.load(self.root).dossiers if d.id == ticket.id)
+
+    def test_ready_ticket_goes_stale_after_six_quiet_hours(self):
+        ticket, _, _ = self.ticket(1, report="ready")
+        d = self.dossier(ticket)
+        quiet = center_model.last_activity(d)
+
+        self.assertIsNone(center_model.stale_reason(d, quiet + timedelta(hours=5)))
+        self.assertIn("ready", center_model.stale_reason(d, quiet + timedelta(hours=7)))
+
+    def test_waiting_ticket_goes_stale_after_three_days(self):
+        ticket, _, _ = self.ticket(1, report="waiting", question="ok?")
+        d = self.dossier(ticket)
+        quiet = center_model.last_activity(d)
+
+        self.assertIsNone(center_model.stale_reason(d, quiet + timedelta(days=2)))
+        self.assertIn("waiting", center_model.stale_reason(d, quiet + timedelta(days=4)))
+
+    def test_running_worker_is_never_stale(self):
+        ticket, _, _ = self.ticket(1, report="progress")
+        d = self.dossier(ticket)
+
+        self.assertIsNone(center_model.stale_reason(d, center_model.last_activity(d) + timedelta(days=30)))
+
+    def test_dropped_ticket_holding_its_worktree_goes_stale_after_a_day(self):
+        ticket, _, _ = self.ticket(1, report="dropped")
+        self.store.end_ticket(ticket.id, "dropped")
+        d = self.dossier(ticket)
+
+        self.assertIn("dropped", center_model.stale_reason(d, center_model.last_activity(d) + timedelta(days=2)))
+
+    def test_archived_or_stopped_ticket_is_not_stale(self):
+        ticket, _, _ = self.ticket(1, report="ready")
+        self.store.archive(ticket.id, "dboon", "stale")
+        d = self.dossier(ticket)
+
+        self.assertIsNone(center_model.stale_reason(d, center_model.last_activity(d) + timedelta(days=30)))
+
+    def test_kept_ticket_is_skipped_until_it_moves_again(self):
+        ticket, assignment, _ = self.ticket(1, report="ready")
+        d = self.dossier(ticket)
+        later = center_model.last_activity(d) + timedelta(days=1)
+        center_model.keep(self.root, d)
+
+        self.assertEqual(center_model.stale_tickets(center_model.load(self.root), self.root, later), [])
+
+        self.store.add_input(ticket.id, "note", "one more thing")
+        moved = center_model.load(self.root)
+        self.assertEqual(center_model.stale_tickets(moved, self.root, later + timedelta(days=1))[0][0].id, ticket.id)
+
+
 class Verbs:
     def __init__(self):
         self.calls = []
@@ -206,6 +260,108 @@ class AppTest(Seeded):
         app = self.run_app(failing, script)
 
         self.assertIn("boom: no daemon", app.log_text())
+
+
+@unittest.skipUnless(TEXTUAL, "textual not installed")
+class CleanupPromptTest(Seeded):
+    def run_app(self, verbs, script, days_later=2):
+        async def go():
+            ticket_now = center_model.load(self.root)
+            moment = max(center_model.last_activity(d) for d in ticket_now.dossiers) + timedelta(days=days_later)
+            app = CenterApp(self.root, verb=verbs, deez=DEEZ, refresh_s=3600, now=lambda: moment)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                await script(app, pilot)
+                await app.workers.wait_for_complete()
+                await pilot.pause()
+        asyncio.run(go())
+
+    def test_strip_counts_stale_tickets(self):
+        self.ticket(1, report="ready")
+        self.ticket(2, report="progress")
+        seen = []
+
+        async def script(app, pilot):
+            seen.append(str(app.query_one("#stale-strip").render()))
+
+        self.run_app(Verbs(), script)
+
+        self.assertIn("1 STALE", seen[0])
+
+    def test_archive_all_asks_first_then_archives_each(self):
+        first, _, _ = self.ticket(1, report="ready")
+        second, _, _ = self.ticket(2, report="ready")
+        verbs = Verbs()
+        before_yes = []
+
+        async def script(app, pilot):
+            await pilot.press("a")
+            await pilot.pause()
+            before_yes.append(list(verbs.calls))
+            await pilot.press("y")
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(before_yes, [[]])
+        archived = sorted(call[3] for call in verbs.calls)
+        self.assertEqual(archived, sorted([first.id, second.id]))
+        self.assertEqual(verbs.calls[0][:3], [str(DEEZ), "super-clanker", "archive"])
+        self.assertIn("--by", verbs.calls[0])
+
+    def test_declining_archives_nothing(self):
+        self.ticket(1, report="ready")
+        verbs = Verbs()
+
+        async def script(app, pilot):
+            await pilot.press("a")
+            await pilot.pause()
+            await pilot.press("n")
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(verbs.calls, [])
+
+    def test_failed_archive_puts_the_ticket_back_in_the_strip(self):
+        self.ticket(1, report="ready")
+        strips = []
+
+        def failing(argv):
+            return VerbResult(argv, 1, "", "database is locked")
+
+        async def script(app, pilot):
+            await pilot.press("a")
+            await pilot.pause()
+            await pilot.press("y")
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            strips.append(str(app.query_one("#stale-strip").render()))
+
+        self.run_app(failing, script)
+
+        self.assertIn("1 STALE", strips[0])
+
+    def test_review_keeps_one_and_archives_the_next(self):
+        self.ticket(1, report="ready")
+        self.ticket(2, report="ready")
+        verbs = Verbs()
+        strips = []
+
+        async def script(app, pilot):
+            await pilot.press("r")
+            await pilot.pause()
+            await pilot.press("k")
+            await pilot.pause()
+            await pilot.press("a")
+            await pilot.pause()
+            strips.append(str(app.query_one("#stale-strip").render()))
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(len(verbs.calls), 1)
+        self.assertEqual(verbs.calls[0][2], "archive")
+        self.assertEqual(len(center_model.read_kept(self.root)), 1)
 
 
 if __name__ == "__main__":
