@@ -31,6 +31,9 @@ and the playbook's proof is done):
 1. Rebase {branch} on the latest default branch and rerun the checks you ran.
 2. Push it from the repository's main checkout:
    `git -C "$(git -C {worktree} rev-parse --path-format=absolute --git-common-dir)/.." push -u origin {branch}`.
+   If you built it in a clone of your own, first fetch the branch into the
+   repository's main checkout (`git -C <main checkout> fetch <your clone> <branch>:<branch>`),
+   then push from the main checkout.
 3. Open a pull request (GitHub, `gh pr create`) or merge request (GitLab,
    `glab mr create`) from the repository's template. Open it ready for review,
    never draft. Put no Claude attribution in it: no co-author trailer, no
