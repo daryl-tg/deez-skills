@@ -106,7 +106,7 @@ That is it. Everything else the router reaches for when a step needs it.
 | [om-mobile-feature](./skills/clanker-mode/playbooks/om-mobile-feature.md) | an OpenFloor mobile change. device verification once, at the end |
 | [om-mobile-completion](./skills/clanker-mode/playbooks/om-mobile-completion.md) | the terminal phase for mobile. lands by squash-merge through the MR |
 | [prototype](./skills/clanker-mode/playbooks/prototype.md) | a throwaway sketch that settles a design or an empirical fork |
-| [grilling](./skills/clanker-mode/playbooks/grilling.md) | open decisions settled with the operator, a round of numbered questions at a time |
+| [grill-me](./skills/clanker-mode/playbooks/grill-me.md) | open decisions settled with the operator, a round of numbered questions at a time |
 | [perf-issue](./skills/clanker-mode/playbooks/perf-issue.md) | a slowness with a number on it. baseline, fix, post-fix number |
 | [forensics](./skills/clanker-mode/playbooks/forensics.md) | a live process or a dropped trace, read down to a cited diagnosis |
 | [visual-parity](./skills/clanker-mode/playbooks/visual-parity.md) | pixel-exact equivalence, decided by image diff and never by eye |

@@ -103,7 +103,7 @@ unread.
   call the grant covers, act, and report it with the alternative in plain words,
   never a shorthand token for the operator to type back. Genuine product and
   preference calls still get asked. Two or more open at once go in one round,
-  through `playbooks/grilling.md`.
+  through `playbooks/grill-me.md`.
 - Frozen spec or plan → **stop and ask which execution path**: Claude
   subagents per task, or the current session inline. This gate is
   never auto-picked. It is the one carve-out from not blocking.
@@ -246,7 +246,7 @@ before any task-specific todos. A step you skip stays in the list with
 | `playbooks/om-mobile-feature.md` | An OpenFloor mobile change |
 | `playbooks/om-mobile-completion.md` | The terminal phase for mobile. Lands by squash-merge through the MR |
 | `playbooks/prototype.md` | A throwaway sketch that settles a design or empirical fork |
-| `playbooks/grilling.md` | Open decisions settled with the operator, one round of questions at a time |
+| `playbooks/grill-me.md` | Open decisions settled with the operator, one round of questions at a time |
 | `playbooks/perf-issue.md` | A slowness with a number on it, fixed against a baseline |
 | `playbooks/forensics.md` | A live process or a dropped trace, read to a cited diagnosis |
 | `playbooks/visual-parity.md` | Pixel-exact equivalence, decided by image diff |

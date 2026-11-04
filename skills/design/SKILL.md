@@ -15,7 +15,7 @@ artifact of architect, and the decomposition of writing-plans.
   keep. Present the question and the probe in two sentences, get a nod, find out
   cheaply, report a recommendation. Anything built is labelled throwaway.
 - **Bounded** — a well-scoped change to a flow that already exists in this repo.
-  Ask the questions that matter in one round, per `playbooks/grilling.md`,
+  Ask the questions that matter in one round, per `playbooks/grill-me.md`,
   present a short design in chat, stop.
 - **Architectural** — new subsystems, or changes that restructure how components
   fit. Full process below.

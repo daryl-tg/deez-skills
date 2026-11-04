@@ -1,4 +1,4 @@
-### Grilling
+### Grill me
 
 **You own the questions. The operator owns the answers.** For "grill me",
 "interview me", "make sure we agree before you start", and for any point where
@@ -27,7 +27,7 @@ decision against outside opinions is **llm-council**, not this.
 
 **Not under a full-autonomy grant.** Inside `playbooks/autonomous-run.md` or
 `playbooks/agentic-loop.md`, decide the calls the grant covers and report each
-with its alternative. Grilling needs an operator who is present.
+with its alternative. This playbook needs an operator who is present.
 
 A round looks like this:
 
