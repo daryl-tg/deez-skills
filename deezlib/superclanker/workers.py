@@ -29,7 +29,7 @@ from deezlib.superclanker.store import InputKind, SuperError
 REPORT_LINE = re.compile(r"^REPORT (progress|waiting|ready|blocked|failed|dropped) (.*)$", re.M)
 ERR_TAIL_CHARS = 300
 SESSION_FLAGS = (
-    "--permission-mode", "bypassPermissions", "--output-format", "json", "--strict-mcp-config",
+    "--permission-mode", "bypassPermissions", "--output-format", "json",
 )
 NO_REPORT = "worker exited without a report"
 TICKET_MARK = ".ticket"
