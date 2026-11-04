@@ -54,6 +54,10 @@ path out; the daemon already does so for the Router and the Workers.
   Tickets stay off the strip until they move again.
 - `archive <ticket> --reason <text> [--by <person>]` ends a Ticket with the
   outcome `archived`, so the daemon removes its worktree if it is clean.
+- A Ticket whose Worker reported `ready` with an open pull or merge request is
+  `TO MERGE` in the command center: a cyan `⇡` and `PR #n` or `MR !n` in the
+  table, its own kanban lane, and a `to-merge` count in the status strip. `o`
+  opens the selected Ticket's review in the browser.
 - A merged review closes its Ticket by itself. Every 2 minutes the daemon asks
   `gh` or `glab` about each open Ticket's pull or merge request link. A merged
   one ends the Ticket with outcome `merged`, replies on a terminal thread, and

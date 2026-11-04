@@ -1,6 +1,7 @@
 import argparse
 import getpass
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -39,12 +40,18 @@ KIND_COLOR = {"progress": WHITE, "waiting": YELLOW, "blocked": RED, "failed": RE
 WORKER_COLOR = {"running": GREEN, "pending": YELLOW, "ended": DIM}
 SRC_SHORT = {"terminal": "term", "github": "gh", "gitlab": "gl", "omchat": "omc"}
 MODES = ["TABLE", "KANBAN", "GRAPH"]
-STAGE_COLOR = {"INBOX": AMBER, "QUEUED": YELLOW, "RUNNING": GREEN, "NEEDS YOU": YELLOW, "READY": GREEN, "ENDED": DIM}
-STAGE_GLYPH = {"INBOX": "◌", "QUEUED": "◔", "RUNNING": "▶", "NEEDS YOU": "?", "READY": "✓", "ENDED": "■"}
+STAGE_COLOR = {"INBOX": AMBER, "QUEUED": YELLOW, "RUNNING": GREEN, "NEEDS YOU": YELLOW, "TO MERGE": CYAN,
+               "READY": GREEN, "ENDED": DIM}
+STAGE_GLYPH = {"INBOX": "◌", "QUEUED": "◔", "RUNNING": "▶", "NEEDS YOU": "?", "TO MERGE": "⇡", "READY": "✓",
+               "ENDED": "■"}
 MARKER = {"progress": ("◆", WHITE), "waiting": ("?", YELLOW), "blocked": ("✕", RED), "failed": ("✕", RED),
           "ready": ("✓", GREEN), "note": ("✉", CYAN)}
 REFRESH_S = 2.0
 PEERS_DIR = Path.home() / ".claude" / "sessions"
+
+
+def open_in_browser(url):
+    subprocess.Popen(["open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def utcnow():
@@ -101,7 +108,7 @@ def daemon_text(world, t):
 
 
 def ordered(world):
-    return sorted(world.dossiers, key=lambda d: (not d.needs_you, -d.created.timestamp()))
+    return sorted(world.dossiers, key=lambda d: (not d.needs_you, not d.awaiting_merge, -d.created.timestamp()))
 
 
 def status_text(world):
@@ -123,6 +130,10 @@ def status_text(world):
     t.append(*sep)
     t.append("needs-you ", style=DIM)
     t.append(str(needs), style=f"bold {RED if needs else DIM}")
+    t.append(*sep)
+    merges = sum(1 for d in world.dossiers if d.awaiting_merge)
+    t.append("to-merge ", style=DIM)
+    t.append(str(merges), style=f"bold {CYAN if merges else DIM}")
     t.append(*sep)
     t.append("spend ", style=DIM)
     t.append(f"${world.spend_today:.2f}", style=WHITE)
@@ -166,17 +177,31 @@ def stale_list_text(stale):
 
 
 MAIN_KEYS = [("TAB", "PANEL"), ("↑↓←→", "MOVE"), ("V", "VIEW"), ("Z", "ZOOM"), ("N", "NEW TASK"),
-             ("^T", "ASK/NOTE"), ("I", "ASK ABOUT TASK"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
+             ("^T", "ASK/NOTE"), ("I", "ASK ABOUT TASK"), ("O", "OPEN PR"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
 ZOOM_KEYS = [("ESC", "BACK"), ("Z", "BACK"), ("↑↓←→", "MOVE"), ("Q", "QUIT")]
+
+
+def attention_cell(d):
+    if d.needs_you:
+        return Text("!", style=f"bold {RED}")
+    if d.awaiting_merge:
+        return Text("⇡", style=f"bold {CYAN}")
+    return Text(" ")
+
+
+def report_cell(d, kind):
+    if d.state == "open" and d.review_url:
+        return Text(fit(center_model.review_label(d.review_url), 8), style=f"bold {CYAN}")
+    return Text(fit(kind, 8), style=KIND_COLOR.get(kind, DIM))
 
 
 def blotter_row(d, wide, flash):
     kind = d.last_kind or "-"
     cells = [
-        Text("!" if d.needs_you else " ", style=f"bold {RED}"),
+        attention_cell(d),
         Text(fit(d.id[2:], 10 if wide else 8), style=CYAN),
         Text(fit(d.worker_state, 7), style=WORKER_COLOR.get(d.worker_state, DIM)),
-        Text(fit(kind, 8), style=KIND_COLOR.get(kind, DIM)),
+        report_cell(d, kind),
         Text(fit(d.slug, 24 if wide else 14), style=f"bold {WHITE}"),
         Text(fit(SRC_SHORT.get(d.source, d.source), 6 if wide else 4), style=DIM),
         Text(fit(short_repo(d.repo), 16 if wide else 9), style=WHITE),
@@ -486,7 +511,8 @@ class KanbanView(Widget, can_focus=True):
     def render(self):
         w, h = self.size.width, self.size.height
         gap = 1
-        lw = max(8, (w - gap * 5) // 6)
+        lanes_n = len(STAGES)
+        lw = max(8, (w - gap * (lanes_n - 1)) // lanes_n)
         lanes = self.lanes()
         sel = self.app.selected_id
         per = max(1, (h - 2) // 4)
@@ -566,8 +592,8 @@ class KanbanView(Widget, can_focus=True):
 
 
 
-OUTCOMES = [("IN FLIGHT", AMBER, "◉"), ("WAITING", YELLOW, "?"), ("BLOCKED", RED, "✕"), ("READY", GREEN, "✓"),
-            ("ENDED", DIM, "■")]
+OUTCOMES = [("IN FLIGHT", AMBER, "◉"), ("WAITING", YELLOW, "?"), ("BLOCKED", RED, "✕"), ("TO MERGE", CYAN, "⇡"),
+            ("READY", GREEN, "✓"), ("ENDED", DIM, "■")]
 OUTCOME_INDEX = {name: i for i, (name, _, _) in enumerate(OUTCOMES)}
 DIR_N, DIR_S, DIR_E, DIR_W = 1, 2, 4, 8
 BOX = {4: "─", 8: "─", 12: "─", 1: "│", 2: "│", 3: "│", 6: "┌", 10: "┐", 5: "└", 9: "┘", 7: "├", 11: "┤",
@@ -584,8 +610,8 @@ def outcome_of(app, d):
     stage = app.stage.get(d.id, "ENDED")
     if stage == "ENDED":
         return "ENDED"
-    if stage == "READY":
-        return "READY"
+    if stage in ("READY", "TO MERGE"):
+        return stage
     if stage == "NEEDS YOU":
         return "BLOCKED" if d.last_kind in ("blocked", "failed") else "WAITING"
     return "IN FLIGHT"
@@ -1195,13 +1221,14 @@ class CenterApp(App):
         ("ctrl+t", "target", "target"),
         ("ctrl+v", "attach_clipboard", "attach image"),
         ("i", "inquire", "ask about task"),
+        ("o", "open_review", "open review"),
         ("a", "archive_all", "archive stale"),
         ("r", "review", "review stale"),
     ]
 
     def __init__(self, root, *, verb=run_verb, deez=REPO_ROOT / "bin/deez", refresh_s=REFRESH_S,
                  load=center_model.load, probe=None, now=None, grab_image=clipboard.grab_image,
-                 projects=Path.home() / ".claude" / "projects"):
+                 projects=Path.home() / ".claude" / "projects", opener=None):
         super().__init__()
         self.root = Path(root)
         self.verb = verb
@@ -1212,6 +1239,7 @@ class CenterApp(App):
         self.now = now or utcnow
         self.grab_image = grab_image
         self.projects = Path(projects)
+        self.opener = opener or open_in_browser
         self.activity_cache = {}
         self.attachments = []
         self.stale = []
@@ -1260,7 +1288,7 @@ class CenterApp(App):
                         yield Static(system_compact(w), id="sysinfo", markup=False)
             with Vertical(id="right"):
                 with Panel(id="p-dossier"):
-                    yield Band("DOSSIER", "i ask about it · z full report", name_id="dossier-name")
+                    yield Band("DOSSIER", "o open PR · i ask about it · z full report", name_id="dossier-name")
                     with VerticalScroll(id="dossier-scroll"):
                         yield Static(id="dossier-text", markup=False)
                 with RouterPanel(id="p-router"):
@@ -1507,6 +1535,16 @@ class CenterApp(App):
         lines = center_model.activity(d, self.projects) if stamp else []
         self.activity_cache[d.session] = (stamp, lines)
         return lines
+
+    def action_open_review(self):
+        d = self.selected()
+        if self.in_zoom() or d is None:
+            return
+        if not d.review_url:
+            self.say(f"no review link on {d.id} yet")
+            return
+        self.opener(d.review_url)
+        self.say(f"opened {d.review_url}")
 
     def action_inquire(self):
         d = self.selected()

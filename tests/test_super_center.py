@@ -252,6 +252,36 @@ class StaleTest(Seeded):
         self.assertEqual(center_model.stale_tickets(moved, self.root, later + timedelta(days=1))[0][0].id, ticket.id)
 
 
+class MergeTest(Seeded):
+    def with_review(self, index, url="https://github.com/o/r/pull/42"):
+        ticket, assignment, _ = self.ticket(index, report="progress")
+        self.store.report(assignment.id, "ready", f"PR open: {url}", evidence=[url])
+        return ticket
+
+    def dossier(self, ticket):
+        return next(d for d in center_model.load(self.root).dossiers if d.id == ticket.id)
+
+    def test_ready_with_an_open_review_waits_on_your_merge(self):
+        waiting = self.dossier(self.with_review(1))
+        plain = self.dossier(self.ticket(2, report="ready")[0])
+
+        self.assertEqual(center_model.stage(waiting), "TO MERGE")
+        self.assertTrue(waiting.awaiting_merge)
+        self.assertEqual(center_model.stage(plain), "READY")
+        self.assertFalse(plain.awaiting_merge)
+
+    def test_review_label_names_pull_and_merge_requests(self):
+        self.assertEqual(center_model.review_label("https://github.com/o/r/pull/42"), "PR #42")
+        self.assertEqual(center_model.review_label("https://gitlab.com/g/p/-/merge_requests/812"), "MR !812")
+
+    def test_waiting_merge_goes_stale_after_three_days(self):
+        d = self.dossier(self.with_review(1))
+        quiet = center_model.last_activity(d)
+
+        self.assertIsNone(center_model.stale_reason(d, quiet + timedelta(days=1)))
+        self.assertIn("merge", center_model.stale_reason(d, quiet + timedelta(days=4)))
+
+
 class Verbs:
     def __init__(self):
         self.calls = []
@@ -457,6 +487,53 @@ class AppTest(Seeded):
 
         self.assertEqual(focused, ["input", "input"])
 
+    def test_blotter_and_status_show_tasks_waiting_on_your_merge(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        self.store.report(assignment.id, "ready", "PR open: https://github.com/o/r/pull/42", evidence=["https://github.com/o/r/pull/42"])
+        seen = []
+
+        async def script(app, pilot):
+            table = app.query_one("#blotter")
+            seen.append(" ".join(str(cell) for cell in table.get_row(ticket.id)))
+            seen.append(str(app.query_one(".status").render()))
+
+        self.run_app(Verbs(), script)
+
+        self.assertIn("PR #42", seen[0])
+        self.assertIn("⇡", seen[0])
+        self.assertIn("to-merge 1", seen[1])
+
+    def test_o_opens_the_selected_review(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        self.store.report(assignment.id, "ready", "PR open: https://github.com/o/r/pull/42", evidence=["https://github.com/o/r/pull/42"])
+        opened = []
+
+        async def go():
+            app = CenterApp(self.root, verb=Verbs(), deez=DEEZ, refresh_s=3600, opener=opened.append)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                await pilot.press("o")
+                await pilot.pause()
+        asyncio.run(go())
+
+        self.assertEqual(opened, ["https://github.com/o/r/pull/42"])
+
+    def test_o_without_a_review_says_so(self):
+        self.ticket(1, report="progress")
+        opened, logs = [], []
+
+        async def go():
+            app = CenterApp(self.root, verb=Verbs(), deez=DEEZ, refresh_s=3600, opener=opened.append)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                await pilot.press("o")
+                await pilot.pause()
+                logs.append(app.log_text())
+        asyncio.run(go())
+
+        self.assertEqual(opened, [])
+        self.assertIn("no review link", logs[0])
+
     def test_failed_verb_is_shown_in_the_router_log(self):
         self.ticket(1)
 
@@ -502,6 +579,25 @@ class GraphTest(Seeded):
         column = lines[title_row].index("slug 1")
         self.assertIn("sid-1", lines[title_row - 1][column - 2:])
         self.assertIn("AGENT SESSIONS", lines[0])
+
+    def test_every_kanban_lane_fits_on_the_header_row(self):
+        self.ticket(1, report="progress")
+        rows = []
+
+        async def go():
+            app = CenterApp(self.root, verb=Verbs(), deez=DEEZ, refresh_s=3600)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                await pilot.press("v")
+                await pilot.pause()
+                kanban = app.query_one("#kanban")
+                rows.append((str(kanban.render()).splitlines()[0], kanban.size.width))
+        asyncio.run(go())
+
+        header, width = rows[0]
+        self.assertLessEqual(len(header), width)
+        for stage in center_model.STAGES:
+            self.assertIn(stage.split()[0], header)
 
     def test_clicking_a_session_selects_it_and_clicking_again_opens_it(self):
         first, _, _ = self.ticket(1, report="progress")

@@ -13,7 +13,7 @@ from deezlib.superclanker.store import SuperError
 from deezlib.superclanker.ui_model import local_midnight_utc
 
 DB_NAME = "super.db"
-STAGES = ["INBOX", "QUEUED", "RUNNING", "NEEDS YOU", "READY", "ENDED"]
+STAGES = ["INBOX", "QUEUED", "RUNNING", "NEEDS YOU", "TO MERGE", "READY", "ENDED"]
 ATTENTION_KINDS = ("waiting", "blocked", "failed")
 READY_STALE_AFTER = timedelta(hours=6)
 WAITING_STALE_AFTER = timedelta(days=3)
@@ -92,6 +92,10 @@ class Dossier:
         return find_review_url([*self.evidence, *(text for _at, _kind, text in reversed(self.reports)), self.answer or ""])
 
     @property
+    def awaiting_merge(self):
+        return stage(self) == "TO MERGE"
+
+    @property
     def needs_you(self):
         return self.state == "open" and self.last_kind in ATTENTION_KINDS
 
@@ -138,7 +142,7 @@ def stage(dossier):
     if dossier.needs_you and (not running or reported_after_start):
         return "NEEDS YOU"
     if dossier.last_kind == "ready" and (not running or reported_after_start):
-        return "READY"
+        return "TO MERGE" if dossier.review_url else "READY"
     if running:
         return "RUNNING"
     if dossier.assignment is None:
@@ -323,6 +327,8 @@ def stale_reason(dossier, now):
     current = stage(dossier)
     if current in ("RUNNING", "QUEUED", "INBOX"):
         return None
+    if current == "TO MERGE":
+        return f"review open, waiting on your merge {span(idle)}" if idle >= WAITING_STALE_AFTER else None
     if current == "READY":
         return f"ready, untouched {span(idle)}" if idle >= READY_STALE_AFTER else None
     if current == "NEEDS YOU":
@@ -420,3 +426,10 @@ def _parse_stamp(raw):
         return parse_time(raw.replace("Z", "+00:00")) if isinstance(raw, str) else None
     except ValueError:
         return None
+
+
+def review_label(url):
+    if not url:
+        return None
+    number = url.rstrip("/").rsplit("/", 1)[-1]
+    return f"MR !{number}" if "/merge_requests/" in url else f"PR #{number}"
