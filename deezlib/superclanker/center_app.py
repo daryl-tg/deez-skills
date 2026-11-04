@@ -597,23 +597,6 @@ def ticket_color(app, d):
     return STAGE_COLOR[stage]
 
 
-def workers_of(d):
-    ids = []
-    for t in d.turns:
-        if t.assignment not in ids:
-            ids.append(t.assignment)
-    out = []
-    for i, aid in enumerate(ids):
-        ts = [t for t in d.turns if t.assignment == aid]
-        state = d.worker_state if i == len(ids) - 1 else "ended"
-        out.append((aid, state, sum(t.cost for t in ts), sum(t.turns for t in ts)))
-    if not out and d.assignment:
-        out.append((d.assignment, d.worker_state, 0.0, 0))
-    if not out and d.worker_state in ("running", "ended"):
-        out.append((f"a_{d.id[-4:]}", d.worker_state, 0.0, 0))
-    return out
-
-
 def graph_order(app):
     return sorted(app.world.dossiers, key=lambda d: (OUTCOME_INDEX[outcome_of(app, d)], -app.since[d.id].timestamp()))
 
@@ -646,6 +629,25 @@ def place_nodes(wants, height, lo, hi):
     return {k: y for k, y, _ in placed}
 
 
+CARD_ROWS = 3
+CARD_GAP = 1
+CARD_MAX_WIDTH = 60
+
+
+def session_title(d):
+    return (d.slug or d.id).replace("-", " ").strip()
+
+
+def session_label(d):
+    sid = d.session[:8] if d.session else "no session yet"
+    return f"{sid} · {d.id}"
+
+
+def session_meta(d):
+    runs = len({turn.assignment for turn in d.turns}) or (1 if d.assignment else 0)
+    return f"{d.worker_state} · ${total_cost(d):.2f} · {runs} run{'' if runs == 1 else 's'} · {age(d.created)}"
+
+
 class GraphView(Widget, can_focus=True):
     BINDINGS = [("up", "move(-1)"), ("down", "move(1)"), ("enter", "open")]
 
@@ -653,6 +655,7 @@ class GraphView(Widget, can_focus=True):
         super().__init__(**kw)
         self.voff = 0
         self.last_sel = None
+        self.hits = []
 
     def on_mouse_scroll_down(self, event):
         self.voff += 2
@@ -664,8 +667,25 @@ class GraphView(Widget, can_focus=True):
         self.refresh()
         event.stop()
 
+    def on_click(self, event):
+        offset = event.get_content_offset(self)
+        if offset is None:
+            return
+        hit = next((did for x0, y0, x1, y1, did in self.hits
+                    if x0 <= offset.x < x1 and y0 <= offset.y < y1), None)
+        if hit is None:
+            return
+        event.stop()
+        self.focus()
+        if hit == self.app.selected_id:
+            self.app.action_open()
+        else:
+            self.app.pick(hit)
+
     def action_move(self, dy):
         rows = graph_order(self.app)
+        if not rows:
+            return
         idx = next((i for i, d in enumerate(rows) if d.id == self.app.selected_id), 0)
         self.app.pick(rows[min(max(idx + dy, 0), len(rows) - 1)].id)
 
@@ -676,44 +696,39 @@ class GraphView(Widget, can_focus=True):
         app = self.app
         W, H = self.size.width, self.size.height
         order = graph_order(app)
+        self.hits = []
         if W < 70 or H < 8 or not order:
             return Text("")
         sel = app.selected()
         vis = H - 2
-        works = {d.id: workers_of(d) for d in order}
-        blocks = [max(1, len(works[d.id])) for d in order]
-        unit = 2 if sum(blocks) * 2 <= vis else 1
-        ys, cur = {}, 0
-        for d, b in zip(order, blocks):
-            ys[d.id] = cur
-            cur += b * unit
-        total = cur - unit + 1 if order else 0
+        pitch = CARD_ROWS + CARD_GAP
+        ys = {d.id: i * pitch for i, d in enumerate(order)}
+        total = len(order) * pitch - CARD_GAP
         idx = next((i for i, d in enumerate(order) if d.id == app.selected_id), 0)
-        sy, sh = ys[order[idx].id], (blocks[idx] - 1) * unit + 1
+        sy = ys[order[idx].id]
         if total <= vis:
             self.voff = 0
         else:
             if self.last_sel != app.selected_id:
                 if sy < self.voff:
                     self.voff = sy
-                elif sy + sh > self.voff + vis:
-                    self.voff = sy + sh - vis
+                elif sy + CARD_ROWS > self.voff + vis:
+                    self.voff = sy + CARD_ROWS - vis
                 self.last_sel = app.selected_id
             self.voff = max(0, min(self.voff, total - vis))
         off = self.voff
         lo, hi = off, off + min(vis, total) - 1
 
-        widths = [10, 13, 21, 19, 13]
-        gap = min(9, max(3, (W - sum(widths)) // 4))
-        extra = max(0, W - sum(widths) - 4 * gap)
-        widths[2] += extra // 2
-        widths[3] += extra - extra // 2
+        widths = [12, 16, 0, 14]
+        room = W - widths[0] - widths[1] - widths[3]
+        widths[2] = max(30, min(CARD_MAX_WIDTH, room - 15))
+        gap = max(5, (room - widths[2]) // 3)
         xs, x = [], 0
         for w in widths:
             xs.append(x)
             x += w + gap
-        X_SRC, X_RT, X_TK, X_WK, X_OUT = xs
-        W_SRC, W_RT, W_TK, W_WK, W_OUT = widths
+        X_SRC, X_RT, X_SS, X_OUT = xs
+        W_SRC, W_RT, W_SS, W_OUT = widths
 
         chars = [[" "] * W for _ in range(H)]
         styles = [[""] * W for _ in range(H)]
@@ -727,13 +742,17 @@ class GraphView(Widget, can_focus=True):
                     chars[ly][px + i] = ch
                     styles[ly][px + i] = style
 
-        for i, title in enumerate(["SOURCES", "ROUTER", "TICKETS", "WORKERS", "OUTCOME"]):
+        for i, title in enumerate(["SOURCES", "ROUTER", "AGENT SESSIONS", "OUTCOME"]):
             for k, ch in enumerate(title):
-                chars[0][xs[i] + k] = ch
-                styles[0][xs[i] + k] = f"bold {AMBER}"
+                if xs[i] + k < W:
+                    chars[0][xs[i] + k] = ch
+                    styles[0][xs[i] + k] = f"bold {AMBER}"
         for xx in range(W):
             chars[1][xx] = "─"
             styles[1][xx] = "#3A2A00"
+
+        def title_y(d):
+            return ys[d.id] + 1
 
         centre = (lo + hi) // 2
         router_top = max(lo, min(centre - 1, hi - 3))
@@ -742,58 +761,40 @@ class GraphView(Widget, can_focus=True):
         src_groups = {}
         for d in order:
             src_groups.setdefault(d.source, []).append(d)
-        src_names = [s for s in SOURCE_ORDER if s in src_groups] + [s for s in src_groups if s not in SOURCE_ORDER]
+        src_names = [n for n in SOURCE_ORDER if n in src_groups] + [n for n in src_groups if n not in SOURCE_ORDER]
         wants = []
-        for s in src_names:
-            mean = sum(ys[d.id] for d in src_groups[s]) / len(src_groups[s])
-            wants.append((s, int(min(max(mean, lo), hi)), 1))
+        for n in src_names:
+            mean = sum(title_y(d) for d in src_groups[n]) / len(src_groups[n])
+            wants.append((n, int(min(max(mean, lo), hi)), 1))
         src_y = place_nodes(wants, 1, lo, hi)
         out_groups = {}
         for d in order:
             out_groups.setdefault(outcome_of(app, d), []).append(d)
         wants = []
         for name, ds in out_groups.items():
-            mean = sum(ys[d.id] for d in ds) / len(ds)
+            mean = sum(title_y(d) for d in ds) / len(ds)
             wants.append((name, int(min(max(mean, lo), hi)), 1))
         out_y = place_nodes(wants, 1, lo, hi)
 
-        edges = []
-        routes = {}
-        for s in src_names:
-            cells = route_cells(X_SRC + W_SRC, src_y[s], X_RT - 1, router_mid)
-            edges.append((cells, AMBER, sel is not None and sel.source == s))
+        edges, routes = [], {}
+        for n in src_names:
+            cells = route_cells(X_SRC + W_SRC, src_y[n], X_RT - 1, router_mid)
+            edges.append((cells, AMBER, sel is not None and sel.source == n))
         for d in order:
             hl = sel is not None and d.id == sel.id
-            route = []
-            cells = route_cells(X_RT + W_RT, router_mid, X_TK - 1, ys[d.id])
-            edges.append((cells, ticket_color(app, d), hl))
-            route += cells
-            ws = works[d.id]
-            oc = OUTCOMES[OUTCOME_INDEX[outcome_of(app, d)]][1]
-            oy = out_y[outcome_of(app, d)]
-            if not ws:
-                cells = route_cells(X_TK + W_TK, ys[d.id], X_WK - 1, ys[d.id])
-                edges.append((cells, DIM, hl))
-                route += cells
-                cells = route_cells(X_WK + W_WK, ys[d.id], X_OUT - 1, oy)
-                edges.append((cells, oc, hl))
-                route += cells
-            for k, (aid, state, _, _) in enumerate(ws):
-                wy = ys[d.id] + k * unit
-                cells = route_cells(X_TK + W_TK, ys[d.id], X_WK - 1, wy)
-                edges.append((cells, WORKER_COLOR.get(state, DIM), hl))
-                cells2 = route_cells(X_WK + W_WK, wy, X_OUT - 1, oy)
-                edges.append((cells2, oc, hl))
-                if k == 0:
-                    route += cells + cells2
-            routes[d.id] = route
+            into = route_cells(X_RT + W_RT, router_mid, X_SS - 1, title_y(d))
+            edges.append((into, ticket_color(app, d), hl))
+            name = outcome_of(app, d)
+            out = route_cells(X_SS + W_SS, title_y(d), X_OUT - 1, out_y[name])
+            edges.append((out, OUTCOMES[OUTCOME_INDEX[name]][1], hl))
+            routes[d.id] = into + out
 
         bits, estyle, arrows = {}, {}, {}
         for want_hl in (False, True):
             for cells, color, hl in edges:
                 if hl != want_hl:
                     continue
-                style = f"bold {color}" if hl else dim(color, 0.5)
+                style = f"bold {color}" if hl else dim(color, 0.55)
                 for i, (cx, cy) in enumerate(cells):
                     b = bits.get((cx, cy), 0)
                     if i == 0:
@@ -815,45 +816,41 @@ class GraphView(Widget, can_focus=True):
 
         path_ids = set()
         if sel is not None:
-            path_ids = {("src", sel.source), ("tk", sel.id), ("out", outcome_of(app, sel))}
+            path_ids = {("src", sel.source), ("out", outcome_of(app, sel))}
 
         def node_style(key, color):
-            if key in path_ids:
-                return f"bold #000000 on {color}"
-            return dim(color, 0.6)
+            return f"bold #000000 on {color}" if key in path_ids else f"bold {dim(color, 0.8)}"
 
-        for s in src_names:
-            put(X_SRC, src_y[s], fit(f"{s} {len(src_groups[s])}", W_SRC), node_style(("src", s), AMBER))
+        for n in src_names:
+            put(X_SRC, src_y[n], fit(f"{n} {len(src_groups[n])}", W_SRC), node_style(("src", n), AMBER))
         today = sum(1 for e, _ in all_events(app.world) if e.at.astimezone().date() == datetime.now().astimezone().date())
         rc = sum(d.router_cost for d in app.world.dossiers)
         last = next((m.text for m in reversed(app.world.threads.get("terminal:default", [])) if m.who == "router"), "-")
         for i, line in enumerate(["◈ ROUTER", f"{today} events today", f"${rc:.2f} router", f"» {last}"]):
             put(X_RT, router_top + i, fit(line, W_RT), f"bold #000000 on {AMBER}")
+
         for d in order:
-            key = ("tk", d.id)
+            y = ys[d.id]
             color = ticket_color(app, d)
             glyph = "◉" if app.stage[d.id] == "RUNNING" else STAGE_GLYPH[app.stage[d.id]]
             if d.last_kind in ("blocked", "failed") and app.stage[d.id] == "NEEDS YOU":
                 glyph = "✕"
+            chosen = d.id == app.selected_id
             if app.flashing(d.id):
-                style = f"bold #000000 on {WHITE}"
-            elif d.id == app.selected_id:
-                style = f"bold #000000 on {AMBER}"
-            elif key in path_ids:
-                style = f"bold #000000 on {color}"
+                title_style = f"bold #000000 on {WHITE}"
+            elif chosen:
+                title_style = f"bold #000000 on {AMBER}"
             else:
-                style = dim(color, 0.6)
-            put(X_TK, ys[d.id], fit(f"{glyph} {d.id[2:]} {d.slug}", W_TK), style)
-            ws = works[d.id]
-            hl = d.id == app.selected_id
-            if not ws:
-                put(X_WK, ys[d.id], fit("· no worker yet", W_WK), dim(DIM, 0.8))
-            for k, (aid, state, cost, turns) in enumerate(ws):
-                wc = WORKER_COLOR.get(state, DIM)
-                st = f"bold #000000 on {wc}" if hl else dim(wc, 0.6)
-                if app.flashing(d.id):
-                    st = f"bold #000000 on {WHITE}"
-                put(X_WK, ys[d.id] + k * unit, fit(f"{aid[-7:]} {state[0]} ${cost:.2f} {turns}t", W_WK), st)
+                title_style = f"bold {WHITE}"
+            label_style = f"{DIM} on {BAND}" if chosen else DIM
+            put(X_SS, y, fit(f"  {session_label(d)}", W_SS), label_style)
+            put(X_SS, y + 1, fit(f"{glyph} {session_title(d)}", W_SS), title_style)
+            if not chosen and not app.flashing(d.id):
+                put(X_SS, y + 1, glyph, f"bold {color}")
+            put(X_SS, y + 2, fit(f"  {session_meta(d)}", W_SS), f"{DIM} on {BAND}" if chosen else "#5A5A5A")
+            top = y - off + 2
+            if top + CARD_ROWS > 2 and top < H:
+                self.hits.append((X_SS, top, X_SS + W_SS, top + CARD_ROWS, d.id))
         for name, ds in out_groups.items():
             color, glyph = next((c, g) for n, c, g in OUTCOMES if n == name)
             put(X_OUT, out_y[name], fit(f"{glyph} {name} {len(ds)}", W_OUT), node_style(("out", name), color))

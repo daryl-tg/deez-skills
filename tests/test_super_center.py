@@ -459,6 +459,59 @@ class AppTest(Seeded):
 
 
 @unittest.skipUnless(TEXTUAL, "textual not installed")
+class GraphTest(Seeded):
+    def run_graph(self, script):
+        async def go():
+            app = CenterApp(self.root, verb=Verbs(), deez=DEEZ, refresh_s=3600)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                await pilot.press("v", "v")
+                await pilot.pause()
+                await script(app, pilot)
+        asyncio.run(go())
+
+    def lines(self, app):
+        return str(app.query_one("#graph").render()).splitlines()
+
+    def test_session_card_shows_the_muted_session_id_above_the_title(self):
+        self.ticket(1, text="fix tape", report="progress")
+        found = []
+
+        async def script(app, pilot):
+            found.append(self.lines(app))
+
+        self.run_graph(script)
+
+        lines = found[0]
+        title_row = next(i for i, line in enumerate(lines) if "slug 1" in line)
+        column = lines[title_row].index("slug 1")
+        self.assertIn("sid-1", lines[title_row - 1][column - 2:])
+        self.assertIn("AGENT SESSIONS", lines[0])
+
+    def test_clicking_a_session_selects_it_and_clicking_again_opens_it(self):
+        first, _, _ = self.ticket(1, report="progress")
+        self.ticket(2, report="progress")
+        seen = []
+
+        async def script(app, pilot):
+            lines = self.lines(app)
+            row = next(i for i, line in enumerate(lines) if "slug 1" in line)
+            column = lines[row].index("slug 1")
+            graph = app.query_one("#graph")
+            offset = (column + graph.styles.padding.left, row)
+            await pilot.click("#graph", offset=offset)
+            await pilot.pause()
+            seen.append(app.selected_id)
+            await pilot.click("#graph", offset=offset)
+            await pilot.pause()
+            seen.append(type(app.screen).__name__)
+
+        self.run_graph(script)
+
+        self.assertEqual(seen, [first.id, "Zoom"])
+
+
+@unittest.skipUnless(TEXTUAL, "textual not installed")
 class CleanupPromptTest(Seeded):
     def run_app(self, verbs, script, days_later=2):
         async def go():
