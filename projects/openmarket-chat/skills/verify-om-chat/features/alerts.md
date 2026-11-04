@@ -12,7 +12,7 @@ in [settings-and-appearance.md](settings-and-appearance.md).
 - **No channel-header beacon since `dc6a9a47`** (2026-10-01). `ChatPane.tsx`
   stopped mounting `AlertsBeacon`; the file survives only for the board's
   `BOARD_WIDTH`. A channel with a live alert feed gets an **Alerts** door on
-  the right-edge dock instead (`RightPanels.tsx:178-199`, gated by
+  the right-edge dock instead (`RightPanels.tsx:179-200`, gated by
   `rightSlotTabsFor`), and the sidebar carries the ringing count. The fixture's
   `#ops` has no live feed, so its dock shows Library, Bookmarks, Members and
   Pins only, and the door is live verification pending (re-measured
@@ -78,7 +78,7 @@ plain `generic` there.
   true since at least `5820fbea`, so do not judge alert visuals from the shell;
   use `fixture.html?surface=alert-card` or the bundled app.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
-  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:386-396`
+  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:388-398`
   and opened in the product by `session.openAlertsTab`). The fixture's
   plain-object `alertsStub` (`shell-fixture.tsx:1412`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,

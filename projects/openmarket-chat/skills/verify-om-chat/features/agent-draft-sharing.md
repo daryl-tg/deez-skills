@@ -46,6 +46,16 @@ session methods.
 
 ## Gotchas
 
+- **A re-stage after a topic round trip is source-only.** Since `d626fc89`, when
+  you load and edit an agent draft, leave the topic, and the agent re-stages
+  while you are away, coming back keeps your edit and the dock reads "v<N>
+  waiting; your text is untouched." with **Load v<N>** and **Keep mine**
+  (`AgentDraftDock.tsx:311`), not "Edited privately from v<N>; the agent still
+  sees its original." (`:294`). The fixture mounts the dock over a bare
+  `textarea` with no Composer, draft store or topic navigation, so it cannot
+  reproduce the round trip. `packages/chat-ui/test/agent/draft-replace-loaded.test.tsx`
+  is the only proof; live verification is pending a daemon-pair lane with a
+  badge agent.
 - The standalone fixture supplies a local `onShare` callback. It proves the
   dock's explicit share state and receipt, not daemon persistence, agent
   visibility, or remote review.

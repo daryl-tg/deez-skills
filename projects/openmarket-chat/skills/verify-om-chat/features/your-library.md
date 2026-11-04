@@ -47,9 +47,9 @@ present in this lane; Archive is the newest. **`?lens=agents` renders on both
 hosts since `e7c375ce`.** It crashed on `/rooms/` through 2026-11-03 ("Your
 Library could not load", `TypeError … reading 'tone'` in `LibraryPersonaCard`):
 the shell fixture never stubs `session.libraryDaemon`, so the autofill proxy
-answers `INERT` (`shell-fixture.tsx:2553-2558`), `LibraryView.tsx:6971` takes the
+answers `INERT` (`shell-fixture.tsx:2553-2558`), `LibraryView.tsx:6972` takes the
 `ready` branch, and `personaStatusPresentation` matched no state. It now has a
-`default` branch, "Unknown status" (`LibraryView.tsx:6168-6200`), and the
+`default` branch, "Unknown status" (`LibraryView.tsx:6169-6201`), and the
 production client no longer rejects unlisted states (`src/lib/om-daemon.ts:1393`
 checks only that `state` is a string). Driven 2026-11-04 at `ce14d4ba`:
 `/rooms/` `?view=library&lens=agents` reaches `#/library/agents` with h1
@@ -60,9 +60,9 @@ now** and **LAST SYNC Unknown status**, and the **Living daily note** card.
 real state needs `backend=real`. On `/chat/` the same route reaches
 `/chat/library/agents` with the same access text.
 
-Archive renders `data-home-library-archive` (`LibraryView.tsx:8727`) with an
+Archive renders `data-home-library-archive` (`LibraryView.tsx:8728`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
-`data-home-archived-doc={docId}` (`:8777`).
+`data-home-archived-doc={docId}` (`:8778`).
 - Import a folder into Your Library (`ImportFolderModal.tsx`; `homeImport=open`), and the conversation To-dos panel (`TodosPanel.tsx`).
 
 ## How to get to it (user POV)
@@ -134,12 +134,12 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 On `shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server`,
 right-click the **runbook.md** treeitem in the library panel, or focus it and
 press the ContextMenu key (`LibraryPanel.tsx:696`, `:1194`). Either one opens
-`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4595-4601`), a
+`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4600-4606`), a
 `menu` with no accessible name and 12 items: Open, Open in floating window,
 Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
 rename, Make read-only, Archive and Delete. Escape closes it. The full page's
 **More note actions** button and doc links in messages open the same menu
-(`LibraryView.tsx:5522`, `MessageText.tsx:1756`).
+(`LibraryView.tsx:5523`, `MessageText.tsx:1756`).
 
 The verbs are not proved: `setDocReadOnly` and `setDocRestriction` are
 unstubbed. The `/chat/` fixture stubs `openDocMenu` as a no-op
@@ -152,12 +152,12 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, abs
 ### Today's note (added 2026-11-01)
 
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
-with `data-daily-note-day` set to the local day, `LibraryView.tsx:3232-3240`;
-the add menu lists it as **Daily note**, `:3770`, `:4137`; the `d` key at
-`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:38993`),
+with `data-daily-note-day` set to the local day, `LibraryView.tsx:3233-3241`;
+the add menu lists it as **Daily note**, `:3771`, `:4138`; the `d` key at
+`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:39005`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
-no doc pane, no `.library-daily-note` section (`:6567`), no toast, hash still
+no doc pane, no `.library-daily-note` section (`:6568`), no toast, hash still
 `#/library`. Driven 2026-11-01 on `/rooms/` at `936f5b64`. The daily note
 itself is live verification pending.
 
@@ -269,7 +269,7 @@ that already dismissed it never shows it.
   exactly `"Archived"` and a `Refresh` button: zero rows, no message, no
   failure text, and it stays that way. `session.archivedDocs` and
   `session.restoreDoc` are **not stubbed anywhere in the fixture**, so
-  `LibraryView.tsx:8714`'s `await session.archivedDocs(homeSpaceId)` resolves
+  `LibraryView.tsx:8715`'s `await session.archivedDocs(homeSpaceId)` resolves
   through the `INERT` proxy, which **answers instead of throwing**. `INERT`'s
   iterator is an empty generator, so the list renders empty and the `catch`
   never runs.
@@ -299,7 +299,9 @@ that already dismissed it never shows it.
 
 ### Verification record
 
-**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): `?view=library` → `#/library`; `?view=library&lens=agents` → `#/library/agents` renders (h1 **Agents**, **LAST SYNC Unknown status**), the crash is gone. `/chat/` (18161): `/chat/library/agents`. **Limitations:** the doc menu, todos and archive lenses were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`lib-01-agents-lens`).
+**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `view=library&lens=agents` → `#/library/agents`, reading **LAST SYNC** **Unknown status**. **Limitations:** the other lenses only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`35`).
+
+**Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): `?view=library` → `#/library`; `?view=library&lens=agents` → `#/library/agents` renders (h1 **Agents**, **LAST SYNC Unknown status**), the crash is gone. `/chat/` (18161): `/chat/library/agents`. **Limitations:** the doc menu, todos and archive lenses were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`lib-01-agents-lens`).
 
 **Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): the docked panel (`scope=server`, Channel 0 / Server 3) with **Choose where shared work lives**; the full page's **Today's note ⌘D**; the server doc reader (**Edit**, **Version history**); `docState=reconcile` → **Two versions of this doc**; `docState=history` at `9`; `docAccess=readonly` drops **Edit**. `/rooms/` only: right-clicking **runbook.md** opens the 12-item doc menu; `lens=todos` shows **Review the launch checklist**; `homeImport=open` → **Import folder into Your Library**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`lib-*`).
 

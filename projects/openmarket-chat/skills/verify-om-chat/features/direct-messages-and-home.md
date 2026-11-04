@@ -156,8 +156,8 @@ Driven 2026-11-04 at `ce14d4ba` on `/rooms/` (`gdm-01` to `gdm-05`). The `/chat/
 
 ### New DM, Create or join a server, Getting started (added 2026-10-28)
 
-- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:747`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4450`); the old `NewDmModal` was deleted in `228c35f9`. The sidebar DMS header `+` (**New message**, `Sidebar.tsx:4682`) opens the same **New Message** dialog, and Escape returns focus to the `+`. It lives in the DMS group, which the sidebar shows on `?view=dm` and `?view=home`, not on `?view=room`. Driven on both hosts 2026-10-29. Starting the DM needs the daemon-pair lane.
-- **Create or join a server:** the rail button **Create or join a server** (`Shell.tsx:4107`) opens a dialog named **Create or Join a Server**, with **Create a server** and **Join with invite link** (`Modals.tsx:119-160`). **Create a server** moves to **Create your server**, with **Server name**, **Back** and **Create server**. Creating a server, and the channel, topic and doc modals, were not driven.
+- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:747`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4455`); the old `NewDmModal` was deleted in `228c35f9`. The sidebar DMS header `+` (**New message**, `Sidebar.tsx:4682`) opens the same **New Message** dialog, and Escape returns focus to the `+`. It lives in the DMS group, which the sidebar shows on `?view=dm` and `?view=home`, not on `?view=room`. Driven on both hosts 2026-10-29. Starting the DM needs the daemon-pair lane.
+- **Create or join a server:** the rail button **Create or join a server** (`Shell.tsx:4112`) opens a dialog named **Create or Join a Server**, with **Create a server** and **Join with invite link** (`Modals.tsx:119-160`). **Create a server** moves to **Create your server**, with **Server name**, **Back** and **Create server**. Creating a server, and the channel, topic and doc modals, were not driven.
 - **Getting started checklist:** the checklist shows only for an enrolled account or a first-run candidate with zero spaces and zero DMs (`HomeHub.tsx:621-625`, `:284`), and the fixture always has spaces. Seed it in the browser before loading Home:
 
   ```bash
@@ -175,7 +175,7 @@ Verified 2026-10-28 at `2dd7aad1` on `/rooms/` and `/chat/` (nightly maintenance
 
 ### Create Category name prompt (added 2026-10-28)
 
-On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:37`) opens `NamePromptModal` (`Modals.tsx:162`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2853`, `:6598`) and was not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. The other display-name modals have no seed. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu), which the fixture leaves unstubbed with `nameEditPrompt: null` (`shell-fixture.tsx:3040`). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
+On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:37`) opens `NamePromptModal` (`Modals.tsx:162`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2853`, `:6599`) and was not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. The other display-name modals have no seed. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu), which the fixture leaves unstubbed with `nameEditPrompt: null` (`shell-fixture.tsx:3040`). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
 
 Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-create-category-name-prompt.png`).
 
@@ -183,7 +183,7 @@ Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenan
 
 On `shell-fixture.html?view=dm&alerts=quiet`, dispatch a `contextmenu` event
 on the `.channel-row-identity` of **Direct message with ana, 2 unread**
-(`Sidebar.tsx:6442-6587`). The menu opens with an identity header (**ana**)
+(`Sidebar.tsx:6443-6588`). The menu opens with an identity header (**ana**)
 and seven items: **Follow**, **Invite to Server** (a submenu), **Add to Desk**,
 **Close DM**, **Block**, **Copy @ana** and **Copy user ID**. A followed peer
 would read **Unfollow** or **Cancel follow request**, a Desk DM **Remove from
@@ -198,7 +198,7 @@ unstubbed, so the offer is proved and every effect is pending. Driven on
 the pinned **Message requests** row above the DMs. On
 `shell-fixture.html?view=dm&requests=3&alerts=quiet` the sidebar shows a
 `treeitem` named **3 message requests** (`Sidebar.tsx:4614`); clicking it
-changes nothing (`openMessageRequests`, `lib/session.ts:38089`, is unstubbed,
+changes nothing (`openMessageRequests`, `lib/session.ts:38101`, is unstubbed,
 so the click resolves to `INERT`), and the hash stays `#/dm/ana`. The
 Connections **Requests** tab's **Messages 0** tab (`FriendsPane.tsx:1171`) is
 the other door and renders **No message requests waiting.** without the seed.
@@ -298,7 +298,9 @@ formatter, only the pill and the headline do. No channel or topic seed exceeds
 
 ### Verification record
 
-**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): Home **2 unread across 1 conversation.**; `?view=dm&dm=ana` → `#/dm/ana`; the **Edit group** dialog, picture set, save, remove and the `groupPicture=1` seed (see Group DM name, picture and add). `/chat/` (18161): Home headline; no group DM seed. **Limitations:** rename and add are INERT; the relay picture upload is not provable here. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`home-01`, `gdm-01` to `gdm-05`).
+**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `view=dm&dm=OM%20chatters`: **Edit group name and picture** opens the dialog **Edit group**. **Limitations:** the picture save and Home headline were not re-driven; their 2026-11-04 record stands. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`34`).
+
+**Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): Home **2 unread across 1 conversation.**; `?view=dm&dm=ana` → `#/dm/ana`; the **Edit group** dialog, picture set, save, remove and the `groupPicture=1` seed (see Group DM name, picture and add). `/chat/` (18161): Home headline; no group DM seed. **Limitations:** rename and add are INERT; the relay picture upload is not provable here. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`home-01`, `gdm-01` to `gdm-05`).
 
 **Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): Home **New DM** → **New Message** (**Search connections**); **Create or Join a Server**; the DM with ana; Connections empty state; Requests **FOLLOWER REQUESTS — NAN**; Blocked **People could not load**; 9 subscribe rows and the empty directory; the server header menu → **Create Category** (16 items on `/rooms/`, 15 on `/chat/`). `/rooms/` only: **OM chatters** → **Add to group**; `rail=counts` **99+ unread across 4 conversations.** (the vex DM is still named **120 unread**); the 8-item DM row menu; `requests=3` → **3 message requests**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`dm-*`).
 

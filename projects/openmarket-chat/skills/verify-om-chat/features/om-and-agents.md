@@ -119,7 +119,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   **"Agents, needs your om running"**. An armed count does not mask away: the
   desktop label states both, **"Agents, N armed, your om is not running"**,
   and only a connected, armed om reads the bare **"Agents, N armed"**
-  (`Shell.tsx:3099-3114`; mobile segments `Shell.tsx:3627-3672`). So an
+  (`Shell.tsx:3099-3114`; mobile segments `Shell.tsx:3628-3673`). So an
   `--exact` match on the bare name misses several different ways, and matching
   the mobile string on desktop misses too. Away is a whole-app state, a
   different thing from the daemon not running.
@@ -127,7 +127,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3800`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3805`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
   (`Shell.tsx:3105`, `:3110`). Two states is the old shape; matching on it
   during a flaky connect misses silently.
@@ -136,9 +136,9 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   remote device answers over the relay, the doors read
   **"Your om, connected remotely"** and **"Agents, connected remotely"**, or
   **"…, remote control off"** when a device is reachable but none is selected
-  (`Shell.tsx:1551`; accessible names at `:3112`, `:3639`, `:3664`,
-  `:3802`). The tooltips spell it with a colon instead, "Agents: connected
-  remotely" (`:3089`, `:3784`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
+  (`Shell.tsx:1551`; accessible names at `:3112`, `:3640`, `:3665`,
+  `:3807`). The tooltips spell it with a colon instead, "Agents: connected
+  remotely" (`:3089`, `:3789`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
   answers `remoteControl: () => null` (`shell-fixture.tsx:4146`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
@@ -169,8 +169,8 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:4042-4085` for spaces; the zone-1 feature folders use the same
-  markers at `Shell.tsx:3862-3900`).
+  (`Shell.tsx:4047-4090` for spaces; the zone-1 feature folders use the same
+  markers at `Shell.tsx:3867-3905`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -288,7 +288,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:274`), supplied by `Shell.tsx:4553`. That is
+  remains (`UserSettings.tsx:279`), supplied by `Shell.tsx:4558`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
@@ -303,7 +303,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:5550-5551`),
+  composer with no lane toggle and no target (`Composer.tsx:5582-5583`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -459,9 +459,23 @@ Since `d7cc0c8f` an agent's post wears a face that says whose agent it is
 
 Faces show only in the cozy layout: the default chassis rows render no
 `[data-avatar-face]`. On `shell-fixture.html?view=topic&topic=cpi-print-aug&message=cozy&alerts=quiet`
-the **om** (**APP**) post "target unchanged 4.25-4.50%…" wears the mono mascot
+the **om** (**AGENT**) post "target unchanged 4.25-4.50%…" wears the mono mascot
 on a tile with no corner mark, on `/rooms/` and `/chat/` (driven 2026-11-04 at
-`ce14d4ba`, `avatar-01-agent-tile`). Clear `om.chat.messageDisplay` after (see
+`ce14d4ba`, `avatar-01-agent-tile`; re-driven 2026-11-05 at `873a57ce`). Since
+`b99778ec` the mascot has no headset: the `svg` holds only the blob `path`, the
+visor `rect` and two eye `circle`s.
+
+**The AGENT chip** (since `b99778ec`; ink since `713f95f4`). An agent's name
+carries `span.agent-chip.agent` reading **AGENT** (it read "✦ APP"), with
+`aria-label` **OM Agent** and a one-colour mascot glyph
+(`.agent-chip-glyph.is-mascot`). Verified agents read **AGENT** after a check
+and are labelled **Verified Agent**. A webhook still reads a grey **APP** and a
+system post **SYSTEM**; the shell fixture seeds no webhook row, so the APP chip
+is source-only (`AgentBadge.tsx`). The chip prints `--on-agent`: on the
+cpi-print-aug **om** post it measured ink `rgb(8, 10, 13)` on `rgb(147, 161,
+175)` in dark and `rgb(241, 243, 246)` on `rgb(78, 90, 102)` with `theme=light`,
+the same on both hosts. There is no `data-*` on the chip; assert the class and
+text. Clear `om.chat.messageDisplay` after (see
 the README). The owner-picture face is **live verification pending**: no
 fixture seeds an agent entry whose owner has an avatar (`profileFor` returns no
 avatar), so it needs a fixture seed or a daemon-pair lane with a badge agent.
@@ -530,7 +544,9 @@ avatar), so it needs a fixture seed or a daemon-pair lane with a badge agent.
 
 ### Verification record
 
-**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): the shell `?view=agent&panel=voice|away|activity` pages (**VOICE**, **AWAY** **ON**, **ACTIVITY**); `away-panel-fixture` states; the legacy `view=agents&panel=persona` failure copy; the om (APP) mascot tile under `message=cozy`; `remote-home-fixture?state=approval` (**Approve**, **Deny**); the `**/healthz*` stub lane for drafts and watches. `/chat/` (18161): Agents Map and Grid with the desk-offline notice; Voice and Away desk-offline. **Limitations:** the owner-picture agent face; the desk rig was not repeated on main. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`away-*`, `om-01`, `avatar-01`, `chat-01` to `chat-04`).
+**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) and `/chat/` (18171) `view=topic&topic=cpi-print-aug`: the **om** post's chip reads **AGENT** / **OM Agent** with the mascot glyph, and its ink in dark and `theme=light`; with `message=cozy` the mono mascot tile has no headset; the Appearance preview's Helper Agent carries the same chip. `persona-panel-fixture.html` and `away-panel-fixture.html` mount (route smoke and a text probe). **Limitations:** the webhook APP chip has no fixture row; the owner-picture face is still pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`16`, `17`, `36`).
+
+**Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): the shell `?view=agent&panel=voice|away|activity` pages (**VOICE**, **AWAY** **ON**, **ACTIVITY**); `away-panel-fixture` states; the legacy `view=agents&panel=persona` failure copy; the om (APP) mascot tile under `message=cozy`; `remote-home-fixture?state=approval` (**Approve**, **Deny**); the `**/healthz*` stub lane for drafts and watches. `/chat/` (18161): Agents Map and Grid with the desk-offline notice; Voice and Away desk-offline. **Limitations:** the owner-picture agent face; the desk rig was not repeated on main. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`away-*`, `om-01`, `avatar-01`, `chat-01` to `chat-04`).
 
 **Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143): `view=agents` (**Map**, **Grid**, **Templates**, **New agent**, **All agents, 1**, **Needs you, 0**, **Running, 0**); `panel=voice|away|activity` route to `#/agents/*`; the `agent-center-fixture` (**Needs you, 9**); `#/agents/a/inst_argue` (Overview / Activity / Access / Settings, **Run argue**, **Memory used** 29); `roster=none`; seven `remote-home-fixture` states (`unsupported` reads **not supported by this device**); four `agent-presentation-fixture` states; `away-panel-fixture`. `/chat/`: **Agents** and the offline Voice page. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ag-*`).
 

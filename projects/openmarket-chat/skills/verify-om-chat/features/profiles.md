@@ -83,7 +83,9 @@ relay.
 
 ### Verification record
 
-**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room&profile=1`: the **Profile sections** tablist mounts. **Limitations:** the tabs and `card=1` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
+**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `view=dm&dm=ana&profile=1`: tablist **Profile sections** reads Info, Media, Links, To-dos. **Limitations:** `/chat/` only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`33`).
+
+**Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room&profile=1`: the **Profile sections** tablist mounts. **Limitations:** the tabs and `card=1` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
 
 **Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `?view=dm&dm=ana&profile=1`: **Profile sections** (Info*, Media, Links, To-dos) → **Media** selected, hash stays `#/dm/ana`; **Close profile** unmounts the tablist within 1.2 s (at 1 s it still read as mounted). `person-presence-fixture.html` renders the four specimens. `/chat/` has no `profile=1` seed (as documented). **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`prof-*`, `pres-01`).
 

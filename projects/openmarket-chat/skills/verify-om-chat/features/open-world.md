@@ -33,7 +33,7 @@ fixture cannot reach.
   (measured at `f7d7c987`).
 - A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
   font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
-  home session (`Shell.tsx:4551`; lazy import at `:245`). Reach it through
+  home session (`Shell.tsx:4556`; lazy import at `:245`). Reach it through
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
@@ -271,7 +271,9 @@ template for its waits.
 
 ### Verification record
 
-**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `mocks/world-solo/index.html?worldprobe=1` in a fresh session: `data-world-ready="true"`, two canvases; `tools/openscape-preview/` (18162) mounts its canvas and chat pane. **Limitations:** emotes, nameplates, camera and the chat pane controls were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`world-01`, `scape-01`).
+**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `mocks/world-solo/index.html?worldprobe=1` in a fresh visible session: `data-world-ready`, two canvases. `tools/openscape-preview/` (18172) mounts one canvas with the Town_Visitor, Rowan, Mira and Ash nameplates. **Limitations:** HUD, emotes and camera not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`40`, `41`).
+
+**Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `mocks/world-solo/index.html?worldprobe=1` in a fresh session: `data-world-ready="true"`, two canvases; `tools/openscape-preview/` (18162) mounts its canvas and chat pane. **Limitations:** emotes, nameplates, camera and the chat pane controls were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`world-01`, `scape-01`).
 
 **Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `mocks/world-solo/index.html?worldprobe=1` on `/rooms/` (18143): two canvases, `data-world-ready="true"`, **No #world channel** with **Hide** → **Open chat**, **Follow player** / **Enter fullscreen**, five looks. `tools/openscape-preview/` (18145): **#world conversation** **History loaded**; the `error`, `offline`, `missing` and `readonly` states; for `empty`, the log reads **No messages yet.** while the status stays **History loaded**; a local send shows **Awaiting confirmation** and **Confirm locally** clears it; **Hide** collapses. **Limitations:** the emote wheel, nameplates and camera were not re-driven; their 2026-11-01 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`world-*`).
 

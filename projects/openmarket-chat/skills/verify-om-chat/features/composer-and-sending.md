@@ -73,7 +73,7 @@ Read the gotchas for where the line now falls.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
 - Send disabled while empty; Enter-to-send versus newline. The **Send message**
-  button renders when `isMobile || showSendButton` (`Composer.tsx:6466`). The
+  button renders when `isMobile || showSendButton` (`Composer.tsx:6498`). The
   ordinary room and DM composer is therefore phone-width only, and desktop
   sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:434`) and the
   remote-control pane (`RemoteControlPane.tsx:345`) also show it on desktop,
@@ -93,7 +93,7 @@ Read the gotchas for where the line now falls.
   its unit tests; the recipe below drives a subset of them.
   The mode badge is
   `<span class="composer-vim-mode" data-vim-mode="normal|insert|visual|visual-line">`
-  (`Composer.tsx:6549-6559`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
+  (`Composer.tsx:6581-6591`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
   a pending operator in `.composer-vim-pending`. Enter sends only in insert
   mode. Escape belongs to Vim, so it no longer cancels a reply. Touch screens
   (coarse pointer) never get Vim. With the setting off none of this renders,
@@ -172,7 +172,7 @@ agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text
 
 Related handles that do resolve. In the composer row itself:
 `"Summon your om here"` (on a private om lane the same button is `"Back to the room"`,
-`Composer.tsx:5747-5748`), `"Add attachment or action"`,
+`Composer.tsx:5779-5780`), `"Add attachment or action"`,
 `"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
 On a message or the recovery banner: `"Add reaction"`,
 `"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
@@ -232,7 +232,7 @@ In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** 
 ### Chart card and cashtag pill (added 2026-10-28)
 
 - **Chart card:** send a message that is only a chart URI, such as `om://chart/BTC?i=15m`. The grammar is `CHART_URI_RE` (`lib/message-preview.ts:17`). The sent row renders a chart card reading **BTC · 15m · LIVE** with **Copy link**.
-- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2609-2613`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3059`), so the peek cannot be proved here.
+- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2612-2616`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3059`), so the peek cannot be proved here.
 - **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture parses `?draft=` (`apps/cloud/tools/visual/shell-fixture.tsx:1239-1242`), but its composer still loads empty on a room or a DM (re-measured 2026-10-30), so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
 - **Not seeded:** `UnfurlCard` (no fixture seeds `entry.unfurls`, and a send never adds one) and `WebhookEmbedBlock` (it needs `metadata.embeds` on a webhook sender; the gallery's webhook rows have none, `tools/visual/fixture.tsx:1430-1490`).
 
@@ -284,15 +284,15 @@ Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
 `/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
 Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
 renders the guide page **Slash commands**. Running a command is pending: the
-real handler is `ChatSession.handleSlash` (`lib/session.ts:43239`, called at
-`:15237`, `:15462` and `:15794`), and the fixture's send only appends the text, so `/nick`,
+real handler is `ChatSession.handleSlash` (`lib/session.ts:43251`, called at
+`:15238`, `:15463` and `:15795`), and the fixture's send only appends the text, so `/nick`,
 `/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
 authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
 ### Paste: a link over a selection, an image into the composer (added 2026-11-01)
 
-Both paths are pure client code behind `Composer.tsx:6012-6097`, so a
+Both paths are pure client code behind `Composer.tsx:6044-6129`, so a
 synthetic `ClipboardEvent` drives them on either host (driven 2026-11-01 on
 `/rooms/` and `/chat/` at `936f5b64`):
 
@@ -327,7 +327,7 @@ drop, and stay pending.
 
 ### The older-messages banner past 99 (added 2026-11-02)
 
-`ChatPane.tsx:3269` prints **You're viewing older messages · 99+ new below**
+`ChatPane.tsx:3270` prints **You're viewing older messages · 99+ new below**
 once the count behind the banner passes 99 (`formatUnreadCount`,
 `lib/animated-count-parts.ts:35-42`, since `4cd3434f`). No fixture seed raises
 a room's new-below count that high (`bulk=120` pads the tape but the reader
@@ -453,7 +453,9 @@ labels past 99.
 
 ### Verification record
 
-**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) and `/chat/` (18161): the new trailing-punctuation mention (composer token and two sent pills, rows 16 → 17); `/` lists 29 commands on `/rooms/`. **Limitations:** the other send paths were not re-driven; their 2026-11-03 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`mention-01`, `mention-02-tape-rooms`, `mention-02-tape-chat`, `chat-05-mention`).
+**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) and `/chat/` (18171) `view=room`: typing in **Message #ops** and pressing Enter echoed the row locally (16 → 17 rows). **Limitations:** mentions, slash commands, attachments and the trailing-punctuation pill were not re-driven; their 2026-11-04 record stands. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`31`, `43`).
+
+**Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) and `/chat/` (18161): the new trailing-punctuation mention (composer token and two sent pills, rows 16 → 17); `/` lists 29 commands on `/rooms/`. **Limitations:** the other send paths were not re-driven; their 2026-11-03 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`mention-01`, `mention-02-tape-rooms`, `mention-02-tape-chat`, `chat-05-mention`).
 
 **Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) and `/chat/` (18144): a local send appends a row (16 → 17); the `@traders` pill (`rgb(209, 154, 58)`); the `$BTC` cashtag; `/` lists 29 commands and `/shr` narrows to `/shrug`; a link pasted over a selection gives `see [docs](https://example.com/x) here`; an image paste stages **probe.png Ready · 1 KB**; **Choose emoji or GIF** → **Choose a GIF** with **Search KLIPY**; **Send message** is `disabled` at 390. `/rooms/` only: the chart URI draft renders a card whose text nodes read **BTC**, **15m**, **LIVE** and **Copy link**; a fenced `?draft=` gives one `[data-code-panel]`; Vim mode (`dw` → `world`, `v$` selects 0–5); the `history=detached` banner without a count. **Limitations:** `/chat/` still parses `?draft=` without showing it; delivery stays on the daemon-pair lane. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`comp-*`, `banner-01`).
 

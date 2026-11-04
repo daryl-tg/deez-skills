@@ -167,7 +167,9 @@ session.
 
 ### Verification record
 
-**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): `poll-results-fixture` **Final results · 14 votes**; `fixture.html?surface=reaction-polish` → hover the row → **See who reacted** → the **Reactions** dialog (the tools are `display: none` until hover; see Gotchas). **Limitations:** the scene families and the vote settle were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`react-02`).
+**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `fixture.html?surface=reaction-polish`: hover the row, **See who reacted** opens the dialog **Reactions**. **Limitations:** polls and reaction scenes only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`38`).
+
+**Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): `poll-results-fixture` **Final results · 14 votes**; `fixture.html?surface=reaction-polish` → hover the row → **See who reacted** → the **Reactions** dialog (the tools are `display: none` until hover; see Gotchas). **Limitations:** the scene families and the vote settle were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`react-02`).
 
 **Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143): **Final results · 14 votes**; `poll-cache-fixture` **Show results** twice → **roster loads: 1**; **Create poll in #chat**; `reaction-polish` hover **Message from Mira Chen** → **See who reacted** → **Reactions** dialog. **Limitations:** the reaction scene families were not re-driven; their 2026-11-01 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`poll-01`, `rx-01`).
 
