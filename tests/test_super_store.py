@@ -283,6 +283,24 @@ class SuperCliTest(unittest.TestCase):
         self.assertIn("outcome: archived\n", shown)
         self.assertIn("ended_by: dboon\n", shown)
 
+    def test_tell_revives_an_idle_worker_without_waking_the_router(self):
+        _code, asked, _ = self.deez_super("ask", "tidy")
+        trigger = re.search(r"trigger (t_[0-9a-f]{10})", asked).group(1)
+        _code, dispatched, _ = self.deez_super("dispatch", trigger, "--slug", "tidy")
+        ticket = re.search(r"ticket (k_[0-9a-f]{10})", dispatched).group(1)
+        store = Store.open(Path(self.tmp.name))
+        self.addCleanup(store.close)
+        assignment = store.assignment_for(ticket)
+        store.start_assignment(assignment.id, "sid", 1, "/w")
+        store.report(assignment.id, "ready", "done locally")
+
+        code, told, _ = self.deez_super("tell", ticket, "--text", "open the pull request")
+
+        self.assertEqual((code, told), (0, f"told {ticket}\n"))
+        self.assertEqual(store.revivable(), [ticket])
+        self.assertEqual(store.queued(), [])
+        self.assertTrue((Path(self.tmp.name) / "nudge").exists())
+
     def test_ask_note_and_reply_nudge_the_daemon(self):
         nudge = Path(self.tmp.name) / "nudge"
         marks = []

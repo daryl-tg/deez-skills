@@ -19,6 +19,9 @@ path out; the daemon already does so for the Router and the Workers.
 - `deez super-clanker ask <text>` hands the Router a request on the terminal thread.
 - `deez super-clanker status` lists Tickets, last reports and what needs attention.
 - `deez super-clanker inbox` prints the Router's replies on the terminal thread.
+- `deez super-clanker tell <ticket> --text <text>` sends your message straight to
+  that Ticket's Worker and revives it if it is idle. The Router's `note` only
+  queues a fact for the Worker's next run.
 - `deez super-clanker show <id>` prints one object and the ids of its neighbours.
 
 ## Operate it

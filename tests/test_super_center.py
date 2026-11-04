@@ -414,7 +414,7 @@ class AppTest(Seeded):
 
         self.run_app(verbs, script)
 
-        self.assertEqual(verbs.calls, [[str(DEEZ), "super-clanker", "note", ticket.id, "--text=use main"]])
+        self.assertEqual(verbs.calls, [[str(DEEZ), "super-clanker", "tell", ticket.id, "--text=use main"]])
 
     def test_reload_shows_tickets_created_after_launch(self):
         self.ticket(1)
@@ -1045,7 +1045,7 @@ class AttachmentTest(Seeded):
         self.run_app(verbs, script)
 
         call = verbs.calls[0]
-        self.assertEqual(call[2:4], ["note", ticket.id])
+        self.assertEqual(call[2:4], ["tell", ticket.id])
         self.assertTrue(call[4].startswith("--text=this one"))
         self.assertIn(str(self.shots / "clip-1.png"), call[4])
 

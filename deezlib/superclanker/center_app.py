@@ -1649,7 +1649,7 @@ class CenterApp(App):
         d = self.selected()
         if self.mode == "note" and d:
             self.say(f"note {d.id}: {text}")
-            self.submit([str(self.deez), "super-clanker", "note", d.id, f"--text={text}"])
+            self.submit([str(self.deez), "super-clanker", "tell", d.id, f"--text={text}"])
         else:
             self.submit([str(self.deez), "super-clanker", "ask", "--", text])
         if self.mode == "new":

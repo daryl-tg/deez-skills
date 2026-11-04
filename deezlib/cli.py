@@ -86,6 +86,9 @@ def build_parser():
     reply_parser = super_verbs.add_parser("reply", help="Queue a reply on a thread.")
     reply_parser.add_argument("thread")
     reply_parser.add_argument("--text", required=True)
+    tell_parser = super_verbs.add_parser("tell", help="Send a person's message to a ticket's worker, reviving it if idle.")
+    tell_parser.add_argument("ticket")
+    tell_parser.add_argument("--text", required=True)
     note_parser = super_verbs.add_parser("note", help="Queue a fact for a ticket's worker.")
     note_parser.add_argument("ticket")
     note_parser.add_argument("--text", required=True)
@@ -497,6 +500,16 @@ def _super_reply(store, args):
     print(f"reply {reply.id} queued for {args.thread}")
 
 
+def _super_tell(store, args):
+    from deezlib.superclanker.sources import terminal
+
+    _super_record(store, "ticket", "k_", args.ticket)
+    trigger, _receipt = terminal.ask(store, args.text, thread_name=f"tell-{args.ticket}")
+    store.record_fanout(trigger.id, [args.ticket])
+    store.add_input(args.ticket, "trigger", trigger.id)
+    print(f"told {args.ticket}")
+
+
 def _super_note(store, args):
     _super_record(store, "ticket", "k_", args.ticket)
     store.add_input(args.ticket, "note", args.text)
@@ -832,6 +845,7 @@ SUPER_VERBS = {
     "attach": _super_attach,
     "ignore": _super_ignore,
     "stop": _super_stop,
+    "tell": _super_tell,
     "archive": _super_archive,
     "reply": _super_reply,
     "note": _super_note,
@@ -861,7 +875,7 @@ STORELESS_SUPER_VERBS = {
 }
 
 
-NUDGING_SUPER_VERBS = {"ask", "note", "reply", "dispatch", "attach", "route", "stop", "archive", "retry", "requeue"}
+NUDGING_SUPER_VERBS = {"ask", "tell", "note", "reply", "dispatch", "attach", "route", "stop", "archive", "retry", "requeue"}
 
 
 def _nudges_the_daemon(args):
