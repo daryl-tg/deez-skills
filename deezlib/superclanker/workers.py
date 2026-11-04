@@ -9,6 +9,7 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
+from deezlib.superclanker.pushes import report_trigger
 from deezlib.superclanker.domain import (
     Assignment,
     AssignmentState,
@@ -425,34 +426,6 @@ def _turn_report(store, assignment, output, earlier):
     return store.report(assignment.id, ReportKind.failed, _no_report_text(output.with_suffix(".err")))
 
 
-def _report_trigger(assignment, report):
-    ticket_id = assignment.ticket_id
-    return Trigger(
-        id=trigger_id("worker", report.id),
-        source="worker",
-        source_event_id=report.id,
-        thread_id=f"worker:{ticket_id}",
-        actor=f"worker:{ticket_id}",
-        addressed=True,
-        text=f"REPORT {report.kind} {report.text}",
-        parent_id=None,
-        received_at=utc_now(),
-        meta={
-            "ticket": ticket_id, "assignment": assignment.id, "report": report.id,
-            "question": report.question,
-            "evidence": list(report.evidence) if report.evidence else None,
-        },
-    )
-
-
-def push_report(store, assignment_id, report):
-    if report.kind is ReportKind.progress:
-        return None
-    assignment = _load(store, Assignment, assignment_id)
-    trigger = _report_trigger(assignment, report)
-    return trigger if store.receive(trigger) == "stored" else None
-
-
 def _reapable(store):
     running = store.running_assignments()
     seen = {assignment.id for assignment in running}
@@ -491,7 +464,7 @@ def reap(store, root, sweep=sweep.sweep):
             continue
         if report.kind is ReportKind.dropped:
             store.end_ticket(assignment.ticket_id, "dropped")
-        trigger = _report_trigger(assignment, report)
+        trigger = report_trigger(assignment, report)
         stored = store.receive(trigger) == "stored"
         _write_atomic(marker, report.id)
         if stored:

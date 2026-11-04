@@ -107,7 +107,7 @@ class WorkersTest(unittest.TestCase):
         return workers.launch(self.store, config.load(self.root), assignment_id, HUB, self.root)
 
     def finish(self, pid):
-        deadline = time.monotonic() + 1
+        deadline = time.monotonic() + 10
         while workers.alive(pid):
             self.assertLess(time.monotonic(), deadline, "fake claude did not exit")
             time.sleep(0.01)

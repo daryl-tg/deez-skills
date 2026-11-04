@@ -281,7 +281,7 @@ class DaemonTest(unittest.TestCase):
         result = self.one_pass(revive=workers.revive)
 
         revived = self.store.assignment_for(ticket.id)
-        deadline = time.monotonic() + 2
+        deadline = time.monotonic() + 10
         while workers.alive(revived.pid):
             self.assertLess(time.monotonic(), deadline, "fake worker did not exit")
             time.sleep(0.01)

@@ -13,6 +13,7 @@ from pathlib import Path
 from deezlib import memguard
 from deezlib.superclanker import channels, compose, config, router, sources, workers
 from deezlib.superclanker.domain import Strength, TicketState, utc_now
+from deezlib.superclanker.pushes import nudge, nudge_mark, nudge_path
 from deezlib.superclanker.sweep import leftovers as cwd_leftovers, sweep
 from deezlib.superclanker.store import Store, SuperError
 
@@ -60,21 +61,6 @@ class PassResult:
 
 
 NUDGE_STEP_SECONDS = 0.25
-
-
-def nudge_path(root):
-    return Path(root) / "nudge"
-
-
-def nudge(root):
-    workers._write_atomic(nudge_path(root), f"{time.time_ns()} {os.getpid()}\n")
-
-
-def nudge_mark(root):
-    try:
-        return nudge_path(root).read_text(encoding="utf-8")
-    except OSError:
-        return ""
 
 
 def wait_for_nudge(root, seconds, seen, sleep, stopping):

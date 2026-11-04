@@ -606,10 +606,10 @@ def _super_report(store, args):
     _super_record(store, "assignment", "a_", args.assignment)
     if args.kind == "waiting" and not args.question:
         raise SuperError("a waiting report carries exactly one --question")
-    from deezlib.superclanker import workers
+    from deezlib.superclanker import pushes
 
     report = store.report(args.assignment, args.kind, args.text, args.question, args.evidence)
-    pushed = workers.push_report(store, args.assignment, report)
+    pushed = pushes.push_report(store, args.assignment, report)
     print(f"report {report.id} {report.kind} on {args.assignment}{' pushed to the router' if pushed else ''}")
 
 
@@ -883,9 +883,9 @@ def cmd_super(args):
         finally:
             store.close()
         if _nudges_the_daemon(args):
-            from deezlib.superclanker import daemon
+            from deezlib.superclanker import pushes
 
-            daemon.nudge(root)
+            pushes.nudge(root)
     except (SuperError, OSError) as exc:
         print(f"deez: {exc}", file=sys.stderr)
         return 2
