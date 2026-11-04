@@ -248,6 +248,49 @@ class AppTest(Seeded):
 
         self.assertEqual(app.view_mode, "TABLE")
 
+    def test_reload_keeps_the_dossier_scrolled_where_you_left_it(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        for index in range(40):
+            self.store.report(assignment.id, "progress", f"step {index}")
+            self.store.add_input(ticket.id, "note", f"fact {index}")
+        offsets = []
+
+        async def script(app, pilot):
+            scroller = app.query_one("#dossier-scroll")
+            scroller.scroll_end(animate=False)
+            await pilot.pause()
+            offsets.append(scroller.scroll_y)
+            for _ in range(2):
+                app.reload()
+                await app.workers.wait_for_complete()
+                await pilot.pause()
+            offsets.append(scroller.scroll_y)
+
+        self.run_app(Verbs(), script)
+
+        self.assertGreater(offsets[0], 0)
+        self.assertEqual(offsets[1], offsets[0])
+
+    def test_picking_another_ticket_starts_its_dossier_at_the_top(self):
+        first, assignment, _ = self.ticket(1, report="progress")
+        for index in range(40):
+            self.store.add_input(first.id, "note", f"fact {index}")
+        self.ticket(2, report="progress")
+        offsets = []
+
+        async def script(app, pilot):
+            app.query_one("#blotter").focus()
+            scroller = app.query_one("#dossier-scroll")
+            scroller.scroll_end(animate=False)
+            await pilot.pause()
+            await pilot.press("down")
+            await pilot.pause()
+            offsets.append(scroller.scroll_y)
+
+        self.run_app(Verbs(), script)
+
+        self.assertEqual(offsets, [0])
+
     def test_failed_verb_is_shown_in_the_router_log(self):
         self.ticket(1)
 

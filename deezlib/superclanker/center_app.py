@@ -1303,8 +1303,9 @@ class CenterApp(App):
             self.push_screen(Zoom("DOSSIER"))
 
     def pick(self, did):
+        moved = did != self.selected_id
         self.selected_id = did
-        self.refresh_panels(True)
+        self.refresh_panels(moved)
         self.refresh_views()
         self.update_prompt()
 
