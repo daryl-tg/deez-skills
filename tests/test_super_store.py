@@ -283,6 +283,22 @@ class SuperCliTest(unittest.TestCase):
         self.assertIn("outcome: archived\n", shown)
         self.assertIn("ended_by: dboon\n", shown)
 
+    def test_ask_note_and_reply_nudge_the_daemon(self):
+        nudge = Path(self.tmp.name) / "nudge"
+        marks = []
+        _code, asked, _ = self.deez_super("ask", "tidy")
+        marks.append(nudge.read_text())
+        trigger = re.search(r"trigger (t_[0-9a-f]{10})", asked).group(1)
+        _code, dispatched, _ = self.deez_super("dispatch", trigger, "--slug", "tidy")
+        ticket = re.search(r"ticket (k_[0-9a-f]{10})", dispatched).group(1)
+        marks.append(nudge.read_text())
+        self.deez_super("note", ticket, "--text", "use main")
+        marks.append(nudge.read_text())
+        self.deez_super("reply", "terminal:default", "--text", "on it")
+        marks.append(nudge.read_text())
+
+        self.assertEqual(len(set(marks)), 4)
+
     def test_ask_prints_the_trigger_and_show_prints_its_thread(self):
         code, asked, _ = self.deez_super("ask", "hello", "there")
         self.assertEqual(code, 0)

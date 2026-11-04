@@ -861,6 +861,15 @@ STORELESS_SUPER_VERBS = {
 }
 
 
+NUDGING_SUPER_VERBS = {"ask", "note", "reply", "dispatch", "attach", "route", "stop", "archive", "retry", "requeue"}
+
+
+def _nudges_the_daemon(args):
+    if args.verb == "report":
+        return args.kind != "progress"
+    return args.verb in NUDGING_SUPER_VERBS
+
+
 def cmd_super(args):
     from deezlib.superclanker.store import Store, SuperError, state_root
 
@@ -873,6 +882,10 @@ def cmd_super(args):
             status = SUPER_VERBS[args.verb](store, args)
         finally:
             store.close()
+        if _nudges_the_daemon(args):
+            from deezlib.superclanker import daemon
+
+            daemon.nudge(root)
     except (SuperError, OSError) as exc:
         print(f"deez: {exc}", file=sys.stderr)
         return 2

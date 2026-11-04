@@ -778,9 +778,34 @@ class DaemonTest(unittest.TestCase):
 
         before = signal.getsignal(signal.SIGTERM)
         code = daemon.run(self.root, HUB, interval_seconds=7, sleep=sleep_then_terminate)
-        self.assertEqual((code, slept), (0, [7]))
+        self.assertEqual((code, slept), (0, [daemon.NUDGE_STEP_SECONDS]))
         self.assertFalse((self.root / "daemon.lock.d").exists())
         self.assertIs(signal.getsignal(signal.SIGTERM), before)
+
+    def test_nudge_during_a_pass_starts_the_next_pass_at_once(self):
+        passes = []
+
+        def fake_pass(store, settings, root, hub_root, **kwargs):
+            passes.append(len(passes))
+            if len(passes) == 1:
+                daemon.nudge(root)
+            return daemon.PassResult(0, 0, 0, 0, None, 0, ())
+
+        slept = []
+        daemon.run(self.root, HUB, interval_seconds=5, passes=2, sleep=slept.append, one_pass=fake_pass)
+        self.assertEqual((len(passes), slept), (2, []))
+
+    def test_nudge_during_the_wait_cuts_it_short(self):
+        slept = []
+
+        def sleep(seconds):
+            slept.append(seconds)
+            if len(slept) == 3:
+                daemon.nudge(self.root)
+
+        daemon.run(self.root, HUB, interval_seconds=5, passes=2, sleep=sleep,
+                   one_pass=lambda *a, **k: daemon.PassResult(0, 0, 0, 0, None, 0, ()))
+        self.assertEqual(len(slept), 3)
 
     def test_run_hands_every_pass_the_same_removal_backoff(self):
         handed = []
@@ -800,7 +825,8 @@ class DaemonTest(unittest.TestCase):
         log = self.root / "log" / "daemon.log"
         _code, _out, slept = self.run_daemon(passes=2)
         self.assertFalse(log.exists())
-        self.assertEqual(slept, [5])
+        self.assertAlmostEqual(sum(slept), 5)
+        self.assertLessEqual(max(slept), daemon.NUDGE_STEP_SECONDS)
         self.queue_reply()
         self.run_daemon(passes=2)
         [line] = log.read_text(encoding="utf-8").splitlines()

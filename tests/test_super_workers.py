@@ -515,8 +515,11 @@ class WorkersTest(unittest.TestCase):
     def test_attention_report_verb_pushes_to_the_router_at_once(self):
         _trigger, ticket_id, assignment_id = self.dispatch()
 
+        nudge = self.root / "nudge"
+        nudge.unlink(missing_ok=True)
         self.deez("report", assignment_id, "--kind", "progress", "--text", "halfway")
         self.assertEqual(self.pushed(ticket_id), [])
+        self.assertFalse(nudge.exists())
 
         self.deez("report", assignment_id, "--kind", "blocked", "--text", "need a login")
         (trigger,) = self.pushed(ticket_id)
@@ -524,6 +527,7 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual(trigger.id, trigger_id("worker", blocked["id"]))
         self.assertEqual(trigger.text, "REPORT blocked need a login")
         self.assertEqual(trigger.meta["assignment"], assignment_id)
+        self.assertTrue(nudge.exists())
 
     def test_worker_report_verb_is_not_duplicated_by_reap(self):
         _trigger, ticket_id, assignment_id = self.dispatch()

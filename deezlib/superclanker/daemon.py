@@ -59,6 +59,35 @@ class PassResult:
         )
 
 
+NUDGE_STEP_SECONDS = 0.25
+
+
+def nudge_path(root):
+    return Path(root) / "nudge"
+
+
+def nudge(root):
+    workers._write_atomic(nudge_path(root), f"{time.time_ns()} {os.getpid()}\n")
+
+
+def nudge_mark(root):
+    try:
+        return nudge_path(root).read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
+def wait_for_nudge(root, seconds, seen, sleep, stopping):
+    waited = 0.0
+    while waited < seconds and not stopping:
+        if nudge_mark(root) != seen:
+            return True
+        step = min(NUDGE_STEP_SECONDS, seconds - waited)
+        sleep(step)
+        waited += step
+    return nudge_mark(root) != seen
+
+
 def heartbeat_path(root):
     return Path(root) / "daemon.heartbeat"
 
@@ -399,6 +428,7 @@ def run(root, hub_root, interval_seconds=5, passes=None, sleep=time.sleep,
             started_with = source_stamp(source_dir)
             failed_removals = {}
             while True:
+                seen = nudge_mark(root)
                 try:
                     result = one_pass(
                         store, load_config(root), root, hub_root, blocked=failed_removals,
@@ -414,7 +444,7 @@ def run(root, hub_root, interval_seconds=5, passes=None, sleep=time.sleep,
                 if source_stamp(source_dir) != started_with:
                     print("daemon: source changed, exiting for launchd to restart it", file=sys.stderr)
                     break
-                sleep(interval_seconds)
+                wait_for_nudge(root, interval_seconds, seen, sleep, stopping)
                 if stopping:
                     break
         finally:
