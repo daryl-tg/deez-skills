@@ -50,8 +50,8 @@ list by word-splitting a path.
 
 **`$WORKTREE` must be a linked worktree, not a primary checkout.** Ryan's user-level
 `PreToolUse` hook (`~/.claude/hooks/worktree-gate-pretooluse.sh`) denies `Edit` and `Write`
-in a primary checkout until that session has recorded a worktree decision. A headless
-agent loads the hook, has no way to record a decision, and `--permission-prompts none`
+in a primary checkout and tells the session to enter a linked worktree instead. A headless
+agent loads the hook, cannot re-root itself into a worktree, and `--permission-prompts none`
 turns the denial silent — every fix edit fails and the night produces nothing. Do not
 work around the gate. Check it as the brief's first command, while Ryan is still there:
 
