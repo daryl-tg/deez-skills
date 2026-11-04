@@ -3,7 +3,13 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Created 2026-10-27 from a live drive on product tree
+lock, settings and delete. Last re-driven 2026-11-05 on `87a325f4ab`
+(`origin/main`, 123 commits past `8436920004`, lane `18103`, a guest JWT) on
+COINBASE BTC-USD 1h: a trend line placed by two clicks with 16 `tqb-*`
+handles including `tqb-templates-btn`, `tqb-more-menu` with its eight rows,
+and `tqb-remove-btn` removing it (`.tool-quick-bar` gone). Nothing a user sees
+in the drawing tools changed in that range; its `perf(safari)` commits are
+engine-side (source). Created 2026-10-27 from a live drive on product tree
 `7290d33d10` (53 behind `origin/main` `df3fdcb62e`), lane `18103`, a real
 guest-JWT lane, on CRYPTOCAP BTC.D 1h. Driven: a guest placed a trend line and
 deleted it. Re-driven 2026-10-28 on `29c9cda0a2` (`origin/main`, lane

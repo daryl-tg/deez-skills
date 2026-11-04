@@ -1,10 +1,18 @@
 # Clip guest page
 
 A chart clip's public link, `/chart/clip/<id>`, plays for anyone: a guest sees
-the clip's poster player (picture, voice, captions), its title, author and
-market, and a Copy link button, with Take over, Open the chart and Reply sending
-them to sign in. A clip that is not public, a malformed id and a server error
-each show their own state. Created 2026-11-02 from a live drive on product tree
+the clip as a video with captions, its title, author and market, and a Copy
+link button, with Open on my chart (when the clip carries a chart snapshot) and
+Reply (when the clip is not itself a reply) sending them to sign in. A clip
+that is not public, a malformed id and a server error each show their own
+state. Re-driven 2026-11-05 on `87a325f4ab` (`origin/main`, lane `18103`, a
+guest JWT): `/chart/clip/zzz` rendered the same three handles
+(`clip-guest-page`, `clip-guest-private`, `clip-guest-home-link` to
+`/chart/`), the text `This clip is not public Open the chart`, no sign-in wall
+and no `clip-video-player`. That range rewrote the clip as a recorded video of
+the pane plus a chart snapshot (`54331e6699`): the poster player and its
+scene, hand and overlay layers are deleted, and the Take over door is gone
+(source). A public clip is still not driven (no id). Created 2026-11-02 from a live drive on product tree
 `a4488341f6` (`origin/main`), lane `18103`, a guest lane with no JWT: a
 made-up id (`/chart/clip/zzz`) rendered `clip-guest-page` with
 `clip-guest-private` (`This clip is not public`) and `clip-guest-home-link`
@@ -12,7 +20,8 @@ made-up id (`/chart/clip/zzz`) rendered `clip-guest-page` with
 `8436920004` (a guest JWT): the same three handles and no wall;
 `ClipGuestPage.vue` has no diff in `215896e614..8436920004` (the clip
 recorder and player now replay the author's surfaces, typed text, clicks and
-keys, `6b7ef2cd2a`, which this page only shows on a published clip).
+keys, `6b7ef2cd2a`, which this page only shows on a published clip; replaced
+by the video recording in `54331e6699`).
 Re-driven 2026-11-03 on
 `215896e614` (a guest JWT): the same three handles and text; `ClipGuestPage.vue`
 and the `ClipGuest` route have no diff since `a4488341f6` (the clip commits in
@@ -24,10 +33,10 @@ between changed the recorder and the Board's hand overlay only). A real public c
 
 - `clip-private` a clip that is not public, or an id that is not a clip, shows
   the private state with a way back to the chart.
-- `clip-play` a public clip plays with its title, author, market and Copy link
-  (live verification pending: needs a published clip id).
-- `clip-signin-doors` Take over, Open the chart and Reply go to
-  `/auth?redirect=/board/clips/<id>` for a guest (source only).
+- `clip-play` a public clip plays as a video with its title, author, market and
+  Copy link (live verification pending: needs a published clip id).
+- `clip-signin-doors` Open on my chart and Reply send a guest to the sign-in
+  page, which returns to the clip on the Board (source only).
 
 ## How to get to it (user POV)
 
@@ -55,11 +64,19 @@ boot is needed; the page is its own route.
   `src/services/academy-guest.service.ts`).
 - **`clip-play`.** With a real public id, poll `clip-guest-title`,
   `clip-guest-author` and `clip-guest-market`; `clip-guest-copy-link-btn`
-  copies the link. A server error other than 401, 403 or 404 shows
-  `clip-guest-retry-btn`. Source only.
-- **`clip-signin-doors`.** `clip-guest-take-over-btn`,
-  `clip-guest-open-chart-btn` and `clip-guest-reply-btn` navigate to
-  `/auth?redirect=/board/clips/<id>`; that is where a guest stops. Source only.
+  copies the link. The player is `clip-video-player` around a `clip-video`
+  element, with `clip-player-intro`, `clip-player-outro` (its
+  `clip-player-outro-open-btn`) and a bar (`clip-player-bar`, `-play-btn`,
+  `-time`, `-scrubber`, `-speed-btn`, `-mute-btn`, `-cc-btn`, `-open-btn`); a
+  video that cannot play shows `clip-video-error`. A server error other than
+  401, 403 or 404 shows `clip-guest-retry-btn`. Source only
+  (`src/components/clips/ClipVideoPlayer.vue`, `ClipPlayerBar.vue`).
+- **`clip-signin-doors`.** `clip-guest-open-chart-btn` (only when the clip has
+  a `snapshotUrl`) and `clip-guest-reply-btn` (hidden on a clip that is itself
+  a reply) push the `Auth` route with `redirect` set to the clip's Board path
+  (`AcademyClip`, `clips/:id`); that is where a guest stops. A signed-in
+  visitor is sent straight to that Board path. `clip-guest-take-over-btn` no
+  longer exists (0 source matches on `87a325f4ab`). Source only.
 - **The Board is not a guest door.** `/chart/board/clips` (and `clips/:id`,
   `setup/:key`, `c/:slug` under the Board) carry `meta.authorized: true` plus
   the `om-board` and `chart-clips` flags; a guest open of `/chart/board/clips`
@@ -78,8 +95,8 @@ boot is needed; the page is its own route.
   same tab starts from a fresh boot: dismiss the overlays and wait for candles
   again, and re-front the tab (it drifted `hidden` after the reload on
   2026-11-02; see [chart boot](./chart-boot-and-data-plane.md) Gotchas).
-- **Clips are recorded on the author's chart and the wall plays them on the
-  viewer's own chart (source, `d5d9e33713`, `ec8e001d2d`, `479b782d5c`,
+- **Clips are recorded as a video of the author's pane with a chart snapshot
+  (source, `54331e6699`; before it `d5d9e33713`, `ec8e001d2d`, `479b782d5c`,
   `f63becdf6a`, `79b1c41da2`, `f6e068a812`).** The Board's `clips` and
   `clips/:id` routes render `chart.vue` itself with `immersive: true`, and a
   guest gets no record button (`clip-record*`: 0 in the DOM, driven

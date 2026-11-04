@@ -6,6 +6,15 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-05 against product tree `87a325f4ab` (`origin/main`, 123 commits past
+`8436920004`), lane `18103`, a guest-JWT lane. Driven that day: `carbon`
+listing `super-search-result-themes:color:CarbonCore-btn`, whose click set
+`theme-carbon`; `editor` opening the drawer (`New indicator`, `No indicators
+yet`, `No script open`) with no wall; `Meta+/` (nav `shortcuts`, `language`,
+`notes`) and Release Notes (`4.49.0` newest); the camera's `screenshot` wall
+and its sign-in card with the Turnstile hold (see the wall bullet); and
+`/chart/?twofa=true` (address cleaned, `twofa-verify-code-input` shown).
+Before that, DRIVEN on
 2026-11-04 against product tree `8436920004` (`origin/main`), lane `18103`, a
 guest-JWT lane with the gateway resolving. Driven that day: `hide candles` and
 `show candles` (`metadata[0].isHidden` true then false), `editor` opening the
@@ -151,7 +160,10 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `terracotta`: the row `super-search-result-themes:color:Percept-btn` is now
   titled **Terracotta** (`en.json` renamed the display name; the id and the
   `theme-percept` class did not change, and the alias still matches `percept`).
-  The other colour ids are Seoul, Shanghai, Classic, Sourgum, Carbon and Quartz,
+  The other colour ids are Seoul, Shanghai, Classic, Sourgum, Carbon and Quartz
+  (Carbon's row is `themes:color:CarbonCore`; since `2a87dabdda` its volume
+  bars are translucent greys and the candles show through them, driven
+  2026-11-05),
   plus `themes:shuffle`. **Modes, driven 2026-11-01:** `dark` lists one row,
   `themes:mode:dark` titled `Dark Mode OFF`; its click flipped `body--light` to
   `body--dark` and a second click back. There is no `themes:mode:light` row.
@@ -359,8 +371,24 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   the card leaves through an animation: while the tab is hidden the overlay
   stays in the DOM as `dialog-style--leaving` (pointer events off), and the
   overlay union reads `1` until the tab is visible again.
+  **`Email me a code` waits for Cloudflare's checkbox (`37afa417b0`, driven
+  2026-11-05 for clean traffic).** The card now lists
+  `login-signup-turnstile` after `auth-mascot`, and a hidden
+  `cf-turnstile-response` input. With an empty email the submit is disabled;
+  after filling an email on the lane the token was present (21 characters), no
+  checkbox drew (`login-signup-turnstile` 0 px high, no `is-challenging`) and
+  `Email me a code` was enabled. When Cloudflare does show its checkbox the
+  button stays disabled and the field message reads `Complete the security
+  check above to continue.` until it is ticked (source; the code panel's
+  `login-signup-code-turnstile` says `Complete the check above to continue.`),
+  and a submit waits up to 5 s for the token. Never submit: that sends a real
+  code. The sign-in form also fades out before the card shrinks to the welcome
+  (`2ab15d9784`, source).
 - **A gateway outage reads as `Reconnecting…` in `connection-status-chip`
-  (seen 2026-11-01).** From about 21:55 UTC the tailnet-only name
+  (seen 2026-11-01; on desktop since `b2623958e8` the yellow
+  `connection-strip` says it instead, `Still reconnecting` with a Reload
+  button after 30 s, driven 2026-11-05; see
+  [chart boot](./chart-boot-and-data-plane.md)).** From about 21:55 UTC the tailnet-only name
   `tsdb-gateway.int.ore.kiyotaka.ai` stopped resolving on the mini (public DNS
   answers NXDOMAIN; only `100.100.100.100` knows it), the console filled with
   `v2 Streaming socket error` and `v2 Orderbook socket error`, OI and funding
@@ -398,7 +426,8 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   deleted, `8826196f40`) and `runUndo` undoes every record of a run; nothing a
   guest sees changed (`askLaneOn` still needs a signed-in session).
   `src/store/feature-flags.ts` only memoises its map (`flagsSnapshot`);
-  `GUEST_DEFAULT_FLAGS` is still `{}`.
+  `GUEST_DEFAULT_FLAGS` was `{}` then; since `726acfee48` and `b5d0fe6b0f`
+  it is `{gateway-v3: false}` (a guest never rides the v3 wire).
 - **The appearance modes carry testids (driven 2026-11-02).** The Preferences
   page's modes are `appearance-mode-{dark,gray,light,cream}` beside the 13
   `language-option-*` rows and the 8 `preferences-theme-*` tiles. The Release

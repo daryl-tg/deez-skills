@@ -5,7 +5,17 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-04 against product tree `8436920004` (`origin/main`), lane
+DRIVEN on 2026-11-05 against product tree `87a325f4ab` (`origin/main`, 123
+commits past `8436920004`), lane `18103`, a guest-JWT lane. Driven that day:
+the Panels menu's 17 rows on COINBASE BTC-USD, the same seven walls
+(`chart-actions`, `watchlist`, `terminal`, `news`, `community-chat`,
+`volume-footprint`, `script-editor`) and `tb-options-btn`'s `terminal` wall,
+the rows that open with no wall (`heatmap`, `etfScreener`, `objects`,
+`journal`, `marketStatsPanel`, `volumeStats`, `liquidityStats`), the Orderbook
+and the Tape on BINANCE.F ETHUSDT (`orderbook-canvas`; `crypto-tape-last-price`
+`2,418.50▲` with `tape-liquidations`; the Tape row took the Orderbook's place),
+and Alerts from `tb-panels-row-alerts` with its History tab (no
+`alert-history-undelivered` row). Before that, DRIVEN on 2026-11-04 against product tree `8436920004` (`origin/main`), lane
 `18103`, a guest-JWT lane with the gateway resolving. Driven that day: the
 Panels menu's 17 rows on COINBASE BTC-USD (`replay`, `heatmap`, `watchlist`,
 `scanner`, `etfScreener`, `news`, `chat`, `orderbook`, `tape`, `footprint`,
@@ -155,6 +165,22 @@ an open panel.
   The menu item has no accessible role. Click it with
   `eval "document.querySelector('[data-testid=alert-add-menu-price-btn]').click()"`,
   because `find text "Price"` matches a covered element.
+  **A failed delivery now shows (source, `1d48f6b088`).** A fired alert that
+  could not reach Telegram raises a `kscript-alert-delivery-failed-content`
+  notice (toast, notification panel and compact row), its History card reads
+  `Not delivered to Telegram` (`alert-history-undelivered`), and opening the
+  History tab re-reads the rows. A Telegram or webhook save can be refused
+  with a named reason. A guest cannot fire an alert, so on 2026-11-05 the
+  History tab opened (`aria-selected` `true`) with no undelivered row; the
+  notice itself is not driven.
+- **A US stock's Tape docks an Option flow section (source, `4a1cce27a2`,
+  `bd1ad5dff9`, `7441f653fd`).** Under Dark pool the stock Tape now docks
+  option trades of $1M premium or more in their own section with its own dock
+  setting (`Option flow section` in the Tape's settings menu; the old `Opts`
+  toggle is gone). In a short panel every docked section keeps its head and
+  two rows and the live rows give way first. Late-report prints no longer
+  enter Dark pool or the Tape's last price. A stock Tape needs the
+  `us-equities-full` flag, which a guest reads off.
 - **`rp-objects`.** `tb-panels-row-objects` opened `Objects`
   (`Nothing on this chart yet`) with no wall.
 - **`rp-etf`.** `tb-panels-row-etfScreener` opened `etf-screener-panel` with

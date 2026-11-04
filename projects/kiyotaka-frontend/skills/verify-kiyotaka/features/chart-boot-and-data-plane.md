@@ -3,7 +3,21 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-04 against product tree `8436920004`
+entry was last DRIVEN on 2026-11-05 against product tree `87a325f4ab`
+(`origin/main`, 123 commits past `8436920004`), lane `18103`, a guest-JWT lane
+(`feature-flags` `gateway-v3` read `false`). Proven that day: boot to 250
+candles on COINBASE BTC-USD 1h (`window.__BOOT_ERRORS__` `[]`, metadata
+`Main, Vol`, `Indicators 0/3`: the VWAP the 2026-11-04 boot drew within 10 s
+was missing at first candles and through the first indicator drives, and was
+on the chart after a symbol undo and on every reload after it; whether it is a
+late guest default or came back with the undo was not traced), the new desktop connection strip through the
+browser's offline switch (`offline`, then `back`, then gone; no
+`connection-status-chip`), the strip's `long` state with its Reload button when
+the gateway name dropped off the system resolver at about 20:33 UTC, and the
+perp live edge on BINANCE.F ETHUSDT (`2,417.84 +5.66%`, `24H VOLUME $12.92B`,
+`OPEN INTEREST $5.75B`, `FUNDING / COUNTDOWN +0.0055% · 03:16:35`) after a
+relaunch with the resolver map. Not driven that day: the wake heal, the ring
+dump and the left-pan floor. Before that, DRIVEN on 2026-11-04 against product tree `8436920004`
 (`origin/main`, 80 commits past `215896e614`), lane `18103`, a guest-JWT lane
 with the gateway name resolving through the system resolver all pass (load 3
 at the start, 13 at `doctor`). Proven that day: boot to 250 candles on
@@ -64,6 +78,8 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
 - `boot-candles` candles reach the engine and draw.
 - `boot-live` the live edge updates (price, 24h volume, open interest, funding).
 - `boot-worker` the worker is alive, so websockets can open at all.
+- `boot-strip` on desktop, a degraded or lost connection raises one yellow
+  strip above the ticker bar that says what is wrong and when it is back.
 - `wake-heal` after a hidden or sleeping stretch, the wake backfills every blank
   slot the outage left, including slots before lone bars a trickling feed drew.
 
@@ -497,6 +513,29 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   `UNREACHABLE` because its probe uses the system resolver, so record that
   you drove past it. Read the address from `nslookup … 100.100.100.100` on the
   day rather than copying `10.1.1.10`.
+- **On desktop a yellow strip replaced the chip (driven 2026-11-05 on
+  `87a325f4ab`; `b2623958e8`).** `connection-strip`
+  (`src/components/banners/ConnectionStrip.vue`, mounted in `ChartArea.vue`
+  when not mobile) carries `data-state` and the children
+  `connection-strip-lead` and `connection-strip-body`:
+
+  | `data-state` | Lead | When |
+  |---|---|---|
+  | `stall` | `Your network is slow` | degraded for 3 s |
+  | `offline` | `You're offline` | the browser is offline |
+  | `long` | `Still reconnecting`, plus `connection-strip-reload` (`Reload`) | still degraded after 30 s |
+  | `back` | `Back to live` / `Caught up.` | for 2 s after recovery |
+
+  Live: `./control-kiyotaka browser set offline on` raised `offline` within
+  2 s; `set offline off` showed `back` for about 2 s and then no node. When the
+  gateway name stopped resolving the strip stood at `long` with the Reload
+  button. `connection-status-chip` was absent the whole time:
+  `ConnectionStatusChip.vue` shows only when the strip does not, so on desktop
+  the chip bullets below describe the mobile shell. A healthy lane has neither
+  node. The same commit embeds the data worker in the bundle, so it starts
+  without a separate download. Since `af8856d595` any worker message counts as
+  liveness, and an `exhausted` worker that stayed silent gets one more
+  replacement every 300 s of visible time (source).
 - **The connection chip has a `Slow network` state and a worker watchdog
   (source, `0c4e1493f7`, `7e92b90d2f`; read on `215896e614`, not driven).**
   `useConnectionLatency.ts` adds the status `slowNetwork` (label `Slow
@@ -528,8 +567,16 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   `dial-failed`, `did-not-open` or `cool-down`; `v3-read-bounced` on a re-send),
   and a lane that never reopens fails after 50 s with `data plane unavailable
   (gate acquire timeout on <lane>)`. Whether a guest rides v3 depends on
-  `gatewayProtocolFor`; do not assert v3 on a guest lane, and read a `—` in the
-  live edge as either lane's silence.
+  `gatewayProtocolFor`. A guest never rides v3 on this tree:
+  `GUEST_DEFAULT_FLAGS` bakes `gateway-v3` to `false` (`b5d0fe6b0f`, after
+  `726acfee48` had turned it on for a day), and a live guest read
+  `isOn('gateway-v3')` `false` on 2026-11-05. Read a `—` in the live edge as
+  v2 silence, or as a hidden tab (on 2026-11-05 the ticker's price slot read
+  `—` while the tab was hidden and the price as soon as it was re-fronted).
+- **The candle cache was reset once (source, `a3f815101e`).** The OHLCV cache
+  database moved to version 5, so the first load of a browser profile on this
+  tree drops the old store and boots cold (no `ohlcv-cache-read`); reloads after
+  that read the cache again.
 - **Left pans after a symbol switch keep loading (source, `47056ca94c`,
   `7268a45a6c`, `bf5f78f037`, `120d5d5d32`; not driven).** The engine's
   lazy-load boundary resets on every switch (`lazy-load-left-boundary-reset`),

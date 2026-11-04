@@ -4,7 +4,17 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-04 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-05 against
+product tree `87a325f4ab` (`origin/main`, 123 commits past `8436920004`),
+lane `18103`, a guest-JWT lane on the remote dev backend (`See all 243`
+official). Driven that day: an `rsi` search (`Official 4`, `Community 12`)
+whose `RSI` row Add raised the `indicators` wall with the words left
+unselected (the wall stops the add, so the new select-after-add was not
+reached), programmatic `BITCOIN_DOMINANCE` (`Indicators 1/3`) and
+`TIME_PRICE_OPPORTUNITY` (`Indicators 2/3`) mounts, the TPO settings card's
+new `Trading hour` list (see the TPO bullet), and both removed through
+`legends.closeBtn`. Not reached: a capped strip picture (every cover the dev
+backend served was a 112 x 112 square). Before that, DRIVEN on 2026-11-04 against
 product tree `8436920004` (`origin/main`), lane `18103`, a guest-JWT lane on
 the remote dev backend. Driven that day: an `open interest` search (`Official
 8`, `Community 2`), programmatic `OPEN_INTEREST`, `FUNDING_RATE` and
@@ -426,6 +436,35 @@ Preconditions:
     `-<fieldKey>-row` testid comes and goes.
   - The regular TPO marks each profile's open and close block (`cb070d70a5`),
     with Color-tab switches `highlightOpen` and `highlightClose`.
+  - **TPO follows the chart's session by default (driven 2026-11-05;
+    `b9cc632661`, `4d858bf835`, `af3004b625`).** A new TPO stores
+    `tradingHour: null` with `tradingHourVersion: 2`, which the settings card
+    shows as `Trading hour` `Chart session`. Its list, read live: `Chart
+    session` (`Follows the chart: regular hours on a stock chart that shows
+    them, else the whole day`), `All hours`, `Pre-Market`, `Regular`,
+    `Post-Market` (New York time), `Asia` and `Asia full` (Tokyo time),
+    `London` and `London full` (London time), `New York` and `New York full`,
+    `Pre-Close` (UTC) and `Custom`, with a `Custom sessions` switch above it.
+    Open the card with `legends.settingsBtn.click()` and the list with the
+    `.combo-box__trigger` that holds `Chart session`. On a crypto chart Chart
+    session draws the whole day; the regular-hours case needs a US stock
+    chart with the `us-equities-full` flag, which a guest reads off. TPO and
+    range profiles now draw on US stock charts instead of `No data in range`
+    (`e5dee82216`, source), and the order-flow and session tools start a
+    regular-hours stock day at 09:30 (`e4bda0a273`, source).
+  - **Store pictures cap their zoom (source, `ad2c5fc913`, `422b70b2ba`).** A
+    strip-shaped cover drawn past 1.5 screen pixels per picture pixel is drawn
+    at that cap on its right end over a `#0d0c11` ground, and its layer carries
+    `data-picture-fit="capped"`; opening such a card's page skips the flight.
+    Not driven: on 2026-11-05 the dev backend served only 112 x 112 square
+    covers, so no `[data-picture-fit]` node existed.
+  - **After an add the search words are selected (source, `2fba2696fa`).** The
+    next name typed replaces them. A guest's dialog Add raises the
+    `indicators` wall first, so this needs a signed-in session.
+  - **Order-flow tools pause on a stock's free `Price only` feed (source,
+    `315fa465d9`).** Their legend chip reads `Paused. {feed} has no trades.`
+    and the legend card offers Back to Trades and Get real-time. Needs the
+    `us-equities-full` flag, so not guest-reachable.
   - The Indicators dialog's favourite star reads disabled, with its reason in
     the title, on a row that cannot take one (`f6ba61116e`); a guest's
     favourite write is walled.

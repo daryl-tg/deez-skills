@@ -12,6 +12,13 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-05 on tree `87a325f4ab` (`origin/main`, lane `18103`, a
+guest JWT): still unreachable.** On a fresh guest boot `typeof
+window.__voiceControl` read `undefined` and `voice-control-mic-btn` was absent;
+the range's voice-adjacent commits (`f9adfb4c53` the STT token's server
+clock, `54331e6699` the clip voice) are not guest-visible, and
+`voiceControlEnabled()` is still `isSignedInSession()` (source).
+
 **Re-checked 2026-11-03 on tree `215896e614` (`origin/main`, lane `18103`, a
 guest JWT): still unreachable.** After the full guest pass the page held no
 `[data-testid^=voice]` node at all. Source on that tree: the key menu is

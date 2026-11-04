@@ -4,7 +4,15 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-04 against product tree `8436920004` (`origin/main`),
+was last DRIVEN on 2026-11-05 against product tree `87a325f4ab` (`origin/main`,
+123 commits past `8436920004`), lane `18103`, a guest-JWT lane. Driven that
+day: the V2 dialog (v2 20, legacy 0), an `ETHUSDT` fill whose bare `ETHUSDT`
+row STILL charted a Binance option put (`BINANCE_OPTIONS`
+`ETH-261113-2275-P`, 252 bars) and whose `Ethereum` row went to BINANCE.F
+ETHUSDT, `footer-undo-btn` (`Undo Change symbol`) and `footer-redo-btn` back
+and forth, the new dollar-pair lead for a typed currency (`JPY`, `eur`) with
+the `EUR/USD` row charting FX_OTC `EUR/USD`, and the quick search's typed
+`XAUUSD` row (see `sym-forex`). Before that, DRIVEN on 2026-11-04 against product tree `8436920004` (`origin/main`),
 lane `18103`, a guest-JWT lane with the gateway resolving. Driven that day: the
 V2 dialog (v2 20, legacy 0), an `ETHUSDT` fill whose bare `ETHUSDT` row STILL
 charted a BINANCE.O put (now `29 Jan 2027 3,200 Put`, 127 bars) and whose
@@ -112,6 +120,30 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   prediction markets behind venue chips, and a pick charts the event.
 - `sym-quick` hovering the symbol button opens a quick-search list, and a pick
   switches the symbol without the full dialog.
+- `sym-forex` a typed currency leads with its dollar pair in market order, and
+  a typed metal or forex pair is listed at once.
+
+- **`sym-forex`, driven 2026-11-05 on `87a325f4ab` (`105356d766`,
+  `0b49c541a9`, `6ff6849f09`).** The search no longer asks the gateway for
+  forex pairs by symbol. In the dialog, `JPY` listed
+  `asset-row-spot-forex:USD/JPY-btn` (`USDJPY`) first and `eur` listed
+  `asset-row-spot-forex:EUR/USD-btn` first: EUR, GBP, AUD and NZD lead the
+  dollar, every other currency follows it. Clicking the EUR/USD row charted
+  `FX_OTC` `EUR/USD` (252 bars, metadata `Main` only). In the quick search,
+  `fill "XAUUSD"` listed `quick-search-v2-group-unresolved:forex:XAU-btn`
+  (`XAUUSD Gold (one troy ounce)`) within 1.5 s, with no network wait.
+- **US stock search opens on Trades and says `Price only` (source,
+  `96bba21815`, `16ccf3acae`, `b3e8779d3a`, `e1f0b7f6ec`).** The free feed
+  formerly called Live price is now `Price only`; the typed feed word `live` is
+  gone (`aapl iex` and `aapl trades` remain). The dialog and the quick search
+  draw the same feed block (`stock-feed-group-trades`,
+  `stock-feed-row-trades-all`, `stock-feed-addon-row`,
+  `asset-list-stock-feed-<feedId>-btn`,
+  `quick-search-v2-stock-feed-<groupKey>-<feedId>-btn`), and a delayed stock
+  chart's legend tag opens a go-live card (`stock-go-live-card`,
+  `-get-realtime`, `-switch-price-only`). All of it sits behind the
+  `us-equities-full` flag, which a guest reads off, so none of it is
+  guest-reachable.
 - `tb-undo` the footer's undo and redo buttons (`footer-undo-btn`,
   `footer-redo-btn`; there is no `tb-undo` testid) put back a symbol switch, a
   compare, an interval, a chart type, a chart setting, the session, the price

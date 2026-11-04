@@ -8,6 +8,11 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
+Last re-driven 2026-11-05 against `87a325f4ab` (`origin/main`, lane `18103`,
+a guest JWT) from `tb-panels-row-watchlist`, which set `guestLoginFeatureId =
+"watchlist"`; the range's watchlist commits (`f9adfb4c53` server time,
+`7505314279` one watchlist read per boot) changed no handle (source). Every
+sub-feature behind the wall stays unverified.
 This entry was created on 2026-10-23 against product tree `2a1ed750db`; the
 wall was re-driven on 2026-10-27 against `7290d33d10` (lane `18103`, real guest
 JWT: `tb-watchlist-toggle-btn` set `guestLoginFeatureId = "watchlist"`). On
