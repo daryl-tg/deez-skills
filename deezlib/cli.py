@@ -435,8 +435,9 @@ def _super_dispatch(store, args):
             store.ignore(trigger.id, f"would accept: {args.slug} via {named}")
             print(f"would accept {trigger.id} as {args.slug} (observe mode, nothing started)")
             return
+    admitting = args.rule if verdict.strength is Strength.inferred else []
     ticket = store.accept(
-        trigger.id, args.slug, verdict.strength, args.scope or trigger.thread_id, args.rule,
+        trigger.id, args.slug, verdict.strength, args.scope or trigger.thread_id, admitting,
         settings.accept.policy_version, f"dispatch by router: {verdict.basis}",
     )
     if playbook:

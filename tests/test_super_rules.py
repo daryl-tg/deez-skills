@@ -1,3 +1,4 @@
+import re
 import os
 import tempfile
 import unittest
@@ -140,6 +141,9 @@ class RulesTest(unittest.TestCase):
         explicit = self.deez("dispatch", asked.id, "--slug", "fix-red-asked", *dispatch[2:])
         self.assertEqual(explicit[0], 0, explicit[2])
         self.assertIn(f"accept {asked.id} → ticket", explicit[1])
+        ticket = re.search(r"ticket (k_[0-9a-f]{10})", explicit[1]).group(1)
+        mandate = self.store.show(self.store.show(ticket)["mandate_id"])
+        self.assertEqual(tuple(mandate["rules"]), ())
 
 
 if __name__ == "__main__":
