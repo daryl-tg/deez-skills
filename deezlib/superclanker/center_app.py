@@ -905,6 +905,15 @@ class Panel(Vertical):
     pass
 
 
+class RouterPanel(Panel):
+    def on_click(self, event):
+        self.app.query_one("#input").focus()
+
+
+class RouterLog(RichLog, can_focus=False):
+    pass
+
+
 class StatusBar(Static):
     def on_mount(self):
         self.refresh_status()
@@ -1256,9 +1265,9 @@ class CenterApp(App):
                     yield Band("DOSSIER", "i ask about it · z full report", name_id="dossier-name")
                     with VerticalScroll(id="dossier-scroll"):
                         yield Static(id="dossier-text", markup=False)
-                with Panel(id="p-router"):
+                with RouterPanel(id="p-router"):
                     yield Band("ROUTER", "^t target · enter send · n new task")
-                    yield RichLog(id="log", wrap=True, markup=False, highlight=False, min_width=1)
+                    yield RouterLog(id="log", wrap=True, markup=False, highlight=False, min_width=1)
                     with Horizontal(id="inputrow"):
                         yield Label("", id="prompt", markup=False)
                         yield PromptArea(id="input", placeholder="type here · enter sends · ctrl+j new line · ctrl+v image")

@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from deezlib.superclanker import config
+from deezlib.superclanker.store import SuperError
 from deezlib.superclanker.ui_model import local_midnight_utc
 
 DB_NAME = "super.db"
@@ -264,6 +266,13 @@ def _threads(query):
     return threads
 
 
+def _max_running(root):
+    try:
+        return config.load(root).workers.max_running
+    except (SuperError, OSError, ValueError):
+        return World.max_running
+
+
 def load(root, now=None):
     root = Path(root)
     database = root / DB_NAME
@@ -279,7 +288,7 @@ def load(root, now=None):
         dossiers = [_dossier(query, ticket, root / "log") for ticket in tickets]
         midnight = local_midnight_utc(now or datetime.now(timezone.utc))
         spend = query("SELECT COALESCE(SUM(cost_usd), 0) AS c FROM wakes WHERE started_at >= ?", midnight)[0]["c"]
-        return World(dossiers, _threads(query), float(spend or 0))
+        return World(dossiers, _threads(query), float(spend or 0), max_running=_max_running(root))
     finally:
         connection.close()
 

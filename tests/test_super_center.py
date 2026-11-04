@@ -82,6 +82,11 @@ class LoadTest(Seeded):
         self.assertTrue(dossier.needs_you)
         self.assertAlmostEqual(world.spend_today, 0.25)
 
+    def test_worker_cap_comes_from_sources_toml(self):
+        (self.root / "sources.toml").write_text("[workers]\nmax_running = 6\n")
+
+        self.assertEqual(center_model.load(self.root).max_running, 6)
+
     def test_terminal_thread_interleaves_asks_and_replies(self):
         self.ticket(1, text="first ask")
         self.store.reply("terminal:default", "dispatched")
@@ -417,6 +422,25 @@ class AppTest(Seeded):
 
         longest, room = widths[0]
         self.assertLessEqual(longest, room)
+
+    def test_clicking_the_router_panel_puts_you_in_the_prompt(self):
+        self.ticket(1)
+        self.store.reply("terminal:default", "earlier reply")
+        focused = []
+
+        async def script(app, pilot):
+            app.query_one("#blotter").focus()
+            await pilot.click("#log")
+            await pilot.pause()
+            focused.append(app.focused.id if app.focused else None)
+            app.query_one("#blotter").focus()
+            await pilot.click("#p-router")
+            await pilot.pause()
+            focused.append(app.focused.id if app.focused else None)
+
+        self.run_app(Verbs(), script)
+
+        self.assertEqual(focused, ["input", "input"])
 
     def test_failed_verb_is_shown_in_the_router_log(self):
         self.ticket(1)
