@@ -1,13 +1,15 @@
 # Chat shell mode (`!` in `om chat`)
 
+*Re-verified 2026-11-05 (r2) after the operator asked for magenta: the shell tone is the new `shell` token `#d16fc4` (SGR `38;2;209;111;196`), 2 sequences on the empty shell composer, 3 on a shell row's bar, 0 teal anywhere. Evidence: `http://127.0.0.1:8098/vom-bang-shell/r2/`.*
+
 *Verified: 2026-11-05, branch `daryl/bang-shell-composer` (uncommitted tree on `a0a8c7b8b`), bare lane 18121 (dummy `OM_API_KEY`, dead service URLs), fake openai-compatible model 18122, tmux 140x40, default workspace. Driven: `enter`, `run`, `agent-reads`, `consumed-once`, `recall`, `stop`. Not driven live: the queue while a turn runs (unit-tested), rooms and DMs sending `!` as text, the plain `--no-workspace` layout, a 1 MiB output. Evidence: `http://127.0.0.1:8098/vom-bang-shell/r1/` (`tui/*.txt`, `tui/fake-model-requests.log`).*
 
 A line starting with `!` in the agent composer runs in the user's shell, prints inline, and rides the user's next message to the model. Source: `packages/cli/src/agent/channels/tui-shell-run.ts` and the `composerMode` machine in `cli-tui-core.ts`.
 
 ## Sub-features
 
-- `enter` — `!` on an empty composer moves into the prompt (`!` instead of `❯`); rules and text turn `verify` teal `#57afa6` (SGR `38;2;87;175;166`). Backspace on an empty composer leaves. Any wholesale text replacement (↑, ctrl+r, draft restore) sets the mode from the new text.
-- `run` — the echoed row has a teal `┃` (a message's is clay `217;119;87`) and keeps its `!`; output in the code tone, last 40 lines, then a faint `exit N · 1.2s`. `$SHELL -c`, stdin empty, 120 s timeout. stdout prints before stderr, not interleaved.
+- `enter` — `!` on an empty composer moves into the prompt (`!` instead of `❯`); rules and text turn the `shell` magenta `#d16fc4` (SGR `38;2;209;111;196`; r1 was `verify` teal). Backspace on an empty composer leaves. Any wholesale text replacement (↑, ctrl+r, draft restore) sets the mode from the new text.
+- `run` — the echoed row has a magenta `┃` (a message's is clay `217;119;87`) and keeps its `!`; output in the code tone, last 40 lines, then a faint `exit N · 1.2s`. `$SHELL -c`, stdin empty, 120 s timeout. stdout prints before stderr, not interleaved.
 - `agent-reads` — no model call on the run. The next message's user row carries `The user ran these commands…` with each command, its exit and up to 8,000 chars of output tail (16,000 across runs).
 - `consumed-once` — the message after that carries none.
 - `recall` — ↑ brings `!` entries back in shell mode, chat entries back under `❯`.
@@ -23,7 +25,7 @@ A line starting with `!` in the agent composer runs in the user's shell, prints 
 2. Fake model: a `Bun.serve` that logs the last user message and replies naming any `VOM_BANG_*` markers it saw, else `No shell output reached me this turn.`
 3. `tmux -L vombang new-session -d -s p -x 140 -y 40`, then `send-keys` a script that exports the same LLM env plus `COLORTERM=truecolor` and runs `control-om om -- chat`.
 4. Runs with unique markers: `!echo VOM_BANG_X`, then a plain message; assert the reply names the marker and the next one does not.
-5. Capture `capture-pane -p -e` and `-p`; count `38;2;87;175;166` in idle vs shell frames.
+5. Capture `capture-pane -p -e` and `-p`; count `38;2;209;111;196` in idle vs shell frames.
 
 ## Gotchas
 
