@@ -4,7 +4,18 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-05 against product tree `87a325f4ab` (`origin/main`,
+was last DRIVEN on 2026-11-06 against product tree `8bcd72f8f5` (`origin/main`,
+119 commits past `87a325f4ab`), lane `18103`, a guest-JWT lane with the gateway
+name mapped in the browser. Driven that day: the V2 dialog (v2 20, legacy 0);
+an `AAPL` fill listing ONE stock row (`asset-row-AAPL|4-btn`, `AAPL Apple Inc.
+Equities`) whose click charted POLYGON `AAPL/USD` (252 bars) with the bare
+ticker everywhere a user reads it (`EQUITIES · TRADES · ALL US EXCHANGES AAPL`
+on the symbol button, `344.99 ▲ AAPL` as the tab title, `Trades · All US
+exchanges` in the legend) (see `sym-stock`); the chevron interval menu on AAPL
+with no seconds section against BTC's `tape`, `1s` … `30s`; and an `ETHUSDT`
+fill whose bare `ETHUSDT` row STILL charted a Binance option put
+(`BINANCE_OPTIONS` `ETH-261113-2250-P`, title `ETH - 261113 - 2250 - P`).
+Before that, DRIVEN on 2026-11-05 against product tree `87a325f4ab` (`origin/main`,
 123 commits past `8436920004`), lane `18103`, a guest-JWT lane. Driven that
 day: the V2 dialog (v2 20, legacy 0), an `ETHUSDT` fill whose bare `ETHUSDT`
 row STILL charted a Binance option put (`BINANCE_OPTIONS`
@@ -122,6 +133,8 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   switches the symbol without the full dialog.
 - `sym-forex` a typed currency leads with its dollar pair in market order, and
   a typed metal or forex pair is listed at once.
+- `sym-stock` a typed US stock lists one row, opens on its Trades feed across
+  all US exchanges, reads as the bare ticker, and offers no seconds intervals.
 - `sym-om-series` a pane holding the operator's own om series (`OM`
   `series:<id>`, pushed by the om daemon) lists it under `YOUR SERIES` in both
   pickers, and a pick switches back and repaints it with no daemon push.
@@ -154,18 +167,27 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   `FX_OTC` `EUR/USD` (252 bars, metadata `Main` only). In the quick search,
   `fill "XAUUSD"` listed `quick-search-v2-group-unresolved:forex:XAU-btn`
   (`XAUUSD Gold (one troy ounce)`) within 1.5 s, with no network wait.
-- **US stock search opens on Trades and says `Price only` (source,
-  `96bba21815`, `16ccf3acae`, `b3e8779d3a`, `e1f0b7f6ec`).** The free feed
-  formerly called Live price is now `Price only`; the typed feed word `live` is
-  gone (`aapl iex` and `aapl trades` remain). The dialog and the quick search
-  draw the same feed block (`stock-feed-group-trades`,
-  `stock-feed-row-trades-all`, `stock-feed-addon-row`,
-  `asset-list-stock-feed-<feedId>-btn`,
-  `quick-search-v2-stock-feed-<groupKey>-<feedId>-btn`), and a delayed stock
-  chart's legend tag opens a go-live card (`stock-go-live-card`,
-  `-get-realtime`, `-switch-price-only`). All of it sits behind the
-  `us-equities-full` flag, which a guest reads off, so none of it is
-  guest-reachable.
+- **`sym-stock`: one search row per US stock, open to guests (driven
+  2026-11-06 on `8bcd72f8f5`).** Since `a743605d03` the dialog and the quick
+  search list ONE row per stock, captioned `<Name> · Equities`, with no feed
+  block and no exchange cell; the old `stock-feed-group-trades` and
+  `asset-list-stock-feed-<feedId>-btn` rows are gone and feed words such as
+  `aapl iex` are ignored. Enter or a click opens the listing on `All US
+  exchanges`, the Trades feed. The exchange pick moved into the Tape's Time
+  and sales (see the right-side panels guide, `rp-stock-tape`). Since
+  `bda0563ab1` a guest reads `us-equities-full` ON (`GUEST_DEFAULT_FLAGS`), so
+  this is guest-reachable: `fill "AAPL"` listed `asset-row-AAPL|4-btn` first,
+  then a tokenized `Apple Inc. · Crypto` row and the AAPL ETFs, and the click
+  charted POLYGON `AAPL/USD`. **The display is the bare ticker** (`8bcf77ee46`):
+  read the symbol button, the tab title or the legend, never
+  `window.tc[0].metadata[0].symbol`, which stays `AAPL/USD`. A delayed stock
+  chart's legend carries `stock-feed-chip` (`Trades · All US exchanges`) and
+  `stock-feed-add-realtime-btn`; the go-live card (`stock-go-live-card`) is
+  not driven. **A US stock offers no seconds intervals** (`8465b1e6fb`): on
+  AAPL `tb-interval-chevron-btn` opened only `tb-interval-section-minutes`,
+  `-hours` and `-days` (12 options, `1m` to `1Y`), where BTC also shows
+  `tb-interval-section-seconds` with `tape`, `1s`, `5s`, `15s` and `30s`; a
+  saved seconds interval lands on `1m`.
 - `tb-undo` the footer's undo and redo buttons (`footer-undo-btn`,
   `footer-redo-btn`; there is no `tb-undo` testid) put back a symbol switch, a
   compare, an interval, a chart type, a chart setting, the session, the price
@@ -617,7 +639,8 @@ Preconditions:
   `LayoutsMenu.vue`; the rows keep their first position. It is not the
   ticker-bar `tb-layout-*` picker and is not driven. `global-nav-create-btn`
   (`NavCreateButton.vue`) renders only with the Board flag on; absent for a
-  guest (driven), as is `stock-feed-chip`.
+  guest (driven). `stock-feed-chip` is no longer absent for a guest: it shows
+  in a US stock's legend (driven 2026-11-06).
 
 - **`sym-ime`, driven 2026-10-29 on `78ec9625d9` with synthetic events.** The
   testid sits on the `INPUT` itself, so dispatch on

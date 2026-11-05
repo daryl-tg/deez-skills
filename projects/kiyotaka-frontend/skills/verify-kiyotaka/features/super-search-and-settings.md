@@ -6,6 +6,13 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-06 against product tree `8bcd72f8f5` (`origin/main`, 119 commits past
+`87a325f4ab`), lane `18103`, a guest-JWT lane. Driven that day: `anchored vwap`
+listing an indicator row with its cover and a tool row tagged `Drawing tool`
+(see `ss-rows`), `release notes` to the Release Notes page (82 versions,
+`4.53.0 Latest Spotlight The US tape.` first) and the `4.53.0` spotlight with
+its `Open AAPL on Trades` (see `set-notes`), `editor` to the drawer, and the
+`watchlist` wall. Before that, DRIVEN on
 2026-11-05 against product tree `87a325f4ab` (`origin/main`, 123 commits past
 `8436920004`), lane `18103`, a guest-JWT lane. Driven that day: `carbon`
 listing `super-search-result-themes:color:CarbonCore-btn`, whose click set
@@ -95,11 +102,15 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
 ## Sub-features
 
 - `ss-open` the capsule opens Super Search with no guest gate.
+- `ss-rows` an indicator row leads with its store cover, a drawing-tool row
+  says `Drawing tool`, and the foot names what Enter does (`Add`, `Draw`,
+  `Open`).
 - `ss-theme` a `dark` or `light` query toggles the theme, and a theme name
   (`volt`, `percept`, ...) applies that colour theme.
 - `ss-formula` a ratio query such as `SPY / GLD` plots a formula chart.
 - `set-shortcuts` `Meta+/` opens Settings on the Keyboard Shortcuts page.
-- `set-notes` the Release Notes page lists versions.
+- `set-notes` the Release Notes page lists versions, and a release's
+  Spotlight badge replays its spotlight.
 - `ss-ask-commands` a query lists app commands as palette rows (hide candles,
   swap candle colours, and the rest) and a click runs them.
 - `guest-wall` a walled control raises the sign-in dialog and names its feature.
@@ -213,8 +224,35 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `settings-pages-body` and `keyboard-shortcuts-search-input`. A guest's nav is
   `settings-pages-nav-{shortcuts,language,notes}-btn`. Close with
   `settings-pages-close-btn`.
+- **`ss-rows` (driven 2026-11-06 on `8bcd72f8f5`, `6c0164fd35`).** Typing
+  `anchored vwap` listed `super-search-result-wrun-registry:wrun-registry:@om-core/anchored-vwap-btn`
+  leading with its store cover (`.isp img`), then
+  `super-search-result-tools:AnchoredVwap:Tool-btn` with a bare tool glyph
+  (`.ss-row-tool-glyph`) and the kind line `.ss-row-kind` reading `Drawing
+  tool`, then the `as window` row and `super-search-result-indicators:VWAP-btn`
+  (`.isp` with no image: a built-in with no cover gets the store's Official
+  picture box). Indicator rows no longer show a category pill in the Top band.
+  The foot's Enter hint follows the active row: `Draw` on the tool row and
+  `Add` after one `ArrowDown` (read the `kbd` parents; the hint has no
+  testid). Only real drawing instruments carry `Drawing tool`; magnet,
+  switch and Remove rows do not.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
   `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  **Driven 2026-11-06 on `8bcd72f8f5`:** the Super Search row
+  `super-search-result-settings:tab:notes-btn` (query `release notes`) opened
+  the page with 82 rows, `4.53.0 Latest Spotlight The US tape. November 5,
+  2026` first: its audience is `stocks`, and a guest reads `us-equities-full`
+  ON. A version row's click only selects it. **The spotlight opens from the
+  row's `Spotlight` badge**, which has no testid:
+  `browser click '[data-testid="release-notes-version-4.53.0-btn"] .rn-ver__badge--spotlight'`.
+  It raised the `The US tape.` spotlight (`NEW IN V4.53.0`, `Raw trade
+  streams. Full order flow. Dark pools.`, `Free with a 15-minute delay,
+  real-time for $19 a month`) with `release-spotlight-us-tape-open-btn`
+  (`Open AAPL on Trades`) and `release-spotlight-us-tape-got-it-btn`, closed
+  by `feature-spotlight-close-btn`. `Open AAPL on Trades` closed the spotlight
+  and the settings page and charted POLYGON `AAPL/USD` (tab title `AAPL`). A
+  guest never gets it at boot: the auto-open needs a known account creation
+  date (source).
   Poll for the rows: a nav click made straight after `Meta+/` once left the page
   on Keyboard Shortcuts, and a second open and click switched it within 2 s.
   The nav ids are unchanged (`settings-pages-nav-{shortcuts,language,notes}-btn`)

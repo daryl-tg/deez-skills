@@ -4,7 +4,14 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-05 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-06 against
+product tree `8bcd72f8f5` (`origin/main`, 119 commits past `87a325f4ab`), lane
+`18103`, a guest-JWT lane on the remote dev backend. Driven that day: an `rsi`
+search (`Official 4`, `Community 12`) whose `Add to chart` raised the sign-in
+card (the add stopped at the wall, counter still `Indicators 1/3`), and on
+COINBASE BTC-USD `15m` a programmatic `SESSION_VOLUME_PROFILE` whose docked
+card read `Session Daily` and carried the new in-place settings search (see
+`ind-settings-search` and `ind-session-default`). Before that, DRIVEN on 2026-11-05 against
 product tree `87a325f4ab` (`origin/main`, 123 commits past `8436920004`),
 lane `18103`, a guest-JWT lane on the remote dev backend (`See all 243`
 official). Driven that day: an `rsi` search (`Official 4`, `Community 12`)
@@ -95,6 +102,10 @@ indicators were not driven.
 - `ind-legend` the legend's settings / visibility / close controls work.
 - `ind-catalog` official indicators are listed when the catalog is seeded.
 - `ind-limit` the guest cap is enforced.
+- `ind-settings-search` a long built-in's settings card filters its rows in
+  place from a search field.
+- `ind-session-default` a session volume profile on an intraday chart defaults
+  to the Daily session.
 - `ind-share-link` a package link opens the Indicators dialog on that package:
   `?indicator=@scope/name`, and since `58903c3f75` also a chartless
   `?wrunRef=@scope/name[@x.y.z]`, which the route rewrites to the share link.
@@ -314,6 +325,33 @@ Preconditions:
   `setting-term-card` was up left the panel open. Since
   `a3fde686d1` a frame shows on the click while the settings chunk loads, so
   poll for the card's own fields before you assert them.
+- **`ind-settings-search`: search a built-in's settings in place (driven
+  2026-11-06 on `8bcd72f8f5`).** Since `1235632725` and `fb01153fbe` the
+  docked card shows a magnifier (`settings-search-btn`, `Search settings`)
+  when the overlay is not the main chart, the device is not a phone, it is not
+  a script row, and the form owns its own page rail (TPO, footprint) or has
+  more than 12 rows. A card of 12 rows or fewer has no magnifier, so the
+  10-row `BITCOIN_DOMINANCE` card is a negative. Wrun indicators keep their own
+  filter. `Cmd+F` opens the field while the card holds focus; `Escape` ends the
+  search first and closes the card on the next press. On a programmatic
+  `SESSION_VOLUME_PROFILE` (62 `.i-overlay-settings-row`) the magnifier came
+  about 5 s after the card (poll for it), and `find testid
+  settings-search-input fill "wid"` left 6 rows visible (`Session`, `Display`,
+  `Bar width 70`, `Level lines`, `Width Default` …), the card carrying
+  `data-settings-searching` and `data-search-ready`; hidden rows carry
+  `data-search-hidden`. `fill "zzzz"` showed `settings-search-empty`: `No
+  settings match “zzzz” Some settings show only when another setting is on.`
+  Matching is by word start on the row name, its group head and its option
+  names; the match highlight uses the CSS Custom Highlight API, so no DOM span
+  marks it.
+- **`ind-session-default` (driven 2026-11-06 on `8bcd72f8f5`).** Since
+  `13acd4683c` a `SESSION_VOLUME_PROFILE` (and the aggregated one) with no saved
+  session type defaults to Daily from `1m` up to below `1d`, and to Targeted
+  below `1m` and from `1d` up; Delta, OI and Liquidation profiles keep
+  Targeted. Assert the drawn session, not the stored word: on BTC `15m`
+  `settings.sessionType` read `null` and `settings.session` `86400000`, and the
+  card's Session row read `Session Daily`. The `1d` switch back to Targeted is
+  not driven.
 - **Every settings row explains itself — driven 2026-10-29.** Since
   `899c3b1af2` a row label is a `setting-term` (`src/components/common/SettingTerm.vue`).
   `BITCOIN_DOMINANCE`'s card carried 10 (`Width`, `Smoothing effect`,

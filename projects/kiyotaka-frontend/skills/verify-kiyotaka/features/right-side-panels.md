@@ -5,7 +5,14 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-05 against product tree `87a325f4ab` (`origin/main`, 123
+DRIVEN on 2026-11-06 against product tree `8bcd72f8f5` (`origin/main`, 119
+commits past `87a325f4ab`), lane `18103`, a guest-JWT lane with the gateway
+name mapped in the browser. Driven that day: the guest stock Tape on POLYGON
+AAPL (see `rp-stock-tape`; it mounts only with the stocks gate routed, and no
+print arrived), the Panels menu on AAPL (16 rows, no `orderbook`), the crypto
+Tape on COINBASE BTC-USD printing with its docked Liquidations, the Orderbook
+there (`orderbook-canvas`), the `watchlist` wall from its row, and Alerts from
+its seat with no wall. Before that, DRIVEN on 2026-11-05 against product tree `87a325f4ab` (`origin/main`, 123
 commits past `8436920004`), lane `18103`, a guest-JWT lane. Driven that day:
 the Panels menu's 17 rows on COINBASE BTC-USD, the same seven walls
 (`chart-actions`, `watchlist`, `terminal`, `news`, `community-chat`,
@@ -92,6 +99,10 @@ panels, which a guest is not offered.
   glyph and a tag icon, a Heatmap view, a markets menu, and a docked
   Liquidations section with Prints and Levels views. It is the one tape for
   every market; the Trades and Liquidations panel is retired (`ad67d47c62`).
+- `rp-stock-tape` on a US stock the Tape is the stock Tape, open to guests
+  since `bda0563ab1` on the 15-minute delayed lane: Time and sales with an
+  exchange pick, docked Dark pool and Option flow sections that resize, and a
+  detail card beside a Dark pool, Option flow or Heatmap row.
 - `rp-stats` the Market, Volume and Liquidity Stats panels open.
 - `rp-journal` the Journal panel opens.
 - `rp-walled` the Scanner, Footprint, Chat, News, Watchlist, Editor and Replay
@@ -179,8 +190,42 @@ an open panel.
   setting (`Option flow section` in the Tape's settings menu; the old `Opts`
   toggle is gone). In a short panel every docked section keeps its head and
   two rows and the live rows give way first. Late-report prints no longer
-  enter Dark pool or the Tape's last price. A stock Tape needs the
-  `us-equities-full` flag, which a guest reads off.
+  enter Dark pool or the Tape's last price. The Option flow section shows by
+  default (`496e83f2ed`). Since `bda0563ab1` a guest reads `us-equities-full`
+  ON (it is in `GUEST_DEFAULT_FLAGS`), so a guest gets the stock Tape; see
+  `rp-stock-tape` below.
+- **`rp-stock-tape` (driven 2026-11-06 on `8bcd72f8f5`, chrome only).** Chart
+  POLYGON AAPL from its one search row (`asset-row-AAPL|4-btn`), then open
+  `Panels` → `tb-panels-row-tape`. **The stock Tape needs the stocks gate
+  routed, and the operator's `.env.local` does not route it.** Without
+  `VITE_STOCKS_V2_WEB_SOCKET_DOMAIN` the Tape's market lookup fails at once
+  (the dump's `stock-tape-lookup` line: `outcome failed`, `v2 streaming
+  websocket connection failed`) and the panel falls back to the old trades
+  stream: an `AAPL/USD` head over `No trades match filters`, with no
+  `stock-tape-*` handle. To see the stock Tape, export the two stocks lines
+  from the product's `.env.sample`
+  (`VITE_STOCKS_V2_WEB_SOCKET_DOMAIN=wss://stream.stocks.openmarket.xyz/v2/`,
+  `VITE_STOCKS_LIVE_FEED_URL=wss://stream.stocks.openmarket.xyz/ws`) before
+  `up`; the process env wins over `.env.local`. With them the panel mounted:
+  `stock-tape-panel`, `stock-tape-ticker` `AAPL`, `stock-tape-delay-line`
+  `Delayed 15 minutes · Real-time` (`stock-tape-get-realtime-btn`),
+  `stock-tape-venue-selector-btn` `All venues`, `stock-tape-waiting`
+  `Waiting for trades...`, `stock-tape-dark-pool` (`Today`, `Prints` and
+  `Levels`, `stock-tape-dark-pool-resize-handle`), and
+  `stock-tape-option-flow` (`No option trades of $1M premium or more`,
+  `stock-tape-option-flow-resize-handle`). The venue menu
+  (`stock-tape-venue-menu`) held only `stock-tape-venue-menu-all-btn` (checked):
+  the venues come from the prints. **No print arrived**: the gate answered
+  nothing for this guest (`StreamMarkets timed out after 15000ms`), the Dark
+  pool read `Dark pool prints did not load`, and the AAPL chart itself stalled
+  on `Still loading... slow network` at 0 bars, so relaunch without the two
+  exports for the rest of a pass. Not driven: a venue pick
+  (`localStorage['stockTape.venuePicks']`, kept per pane), the row cards
+  (`stock-tape-dark-pool-card`, `stock-tape-option-flow-card`,
+  `stock-tape-heatmap-card`), a resize, and the off-exchange no-side rule.
+  The crypto Tape shares the `stock-tape-row*` handles (`stock-tape-list`,
+  `stock-tape-row-price`), so a `stock-tape-row` count is not a stock proof:
+  read `stock-tape-panel` or `stock-tape-ticker`.
 - **`rp-objects`.** `tb-panels-row-objects` opened `Objects`
   (`Nothing on this chart yet`) with no wall.
 - **`rp-etf`.** `tb-panels-row-etfScreener` opened `etf-screener-panel` with

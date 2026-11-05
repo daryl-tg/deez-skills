@@ -8,7 +8,11 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-Last re-driven 2026-11-05 against `87a325f4ab` (`origin/main`, lane `18103`,
+Last re-driven 2026-11-06 against `8bcd72f8f5` (`origin/main`, lane `18103`, a
+guest JWT) from `tb-panels-row-watchlist`: `guestLoginFeatureId` read
+`watchlist`, the card headed `Watchlist` over `Sign in or create an account`,
+and `Escape` set `isAuthenticationDialogOpen` back to `false`. Before that,
+re-driven 2026-11-05 against `87a325f4ab` (`origin/main`, lane `18103`,
 a guest JWT) from `tb-panels-row-watchlist`, which set `guestLoginFeatureId =
 "watchlist"`; the range's watchlist commits (`f9adfb4c53` server time,
 `7505314279` one watchlist read per boot) changed no handle (source). Every

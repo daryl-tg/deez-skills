@@ -5,7 +5,10 @@ the clip as a video with captions, its title, author and market, and a Copy
 link button, with Open on my chart (when the clip carries a chart snapshot) and
 Reply (when the clip is not itself a reply) sending them to sign in. A clip
 that is not public, a malformed id and a server error each show their own
-state. Re-driven 2026-11-05 on `87a325f4ab` (`origin/main`, lane `18103`, a
+state. Re-driven 2026-11-06 on `8bcd72f8f5` (`origin/main`, lane `18103`, a
+guest JWT): `/chart/clip/zzz` rendered `clip-guest-page`, `clip-guest-private`
+and `clip-guest-home-link` (`This clip is not public`, `Open the chart`).
+Re-driven 2026-11-05 on `87a325f4ab` (`origin/main`, lane `18103`, a
 guest JWT): `/chart/clip/zzz` rendered the same three handles
 (`clip-guest-page`, `clip-guest-private`, `clip-guest-home-link` to
 `/chart/`), the text `This clip is not public Open the chart`, no sign-in wall

@@ -8,7 +8,11 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-05 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-06 against
+`8bcd72f8f5` (`origin/main`, lane `18103`, a guest JWT): the Super Search
+`editor` row `super-search-result-panels:Editor-btn` opened the drawer with no
+wall (`New indicator`, `No indicators yet`, `No script open`, one
+`.cm-editor`). Re-driven 2026-11-05 against
 `87a325f4ab` (`origin/main`, lane `18103`, a guest JWT): the Super Search
 `editor` row opened the drawer with no wall (`New indicator`, `No indicators
 yet`, `No script open`, `kscript-run-btn` present, no `kscript-frozen-bar`),

@@ -3,7 +3,14 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-05 against product tree `87a325f4ab`
+entry was last DRIVEN on 2026-11-06 against product tree `8bcd72f8f5`
+(`origin/main`, 119 commits past `87a325f4ab`), lane `18103`, a guest-JWT lane
+(`gateway-v3` `false`, `us-equities-full` `true`) with the gateway name mapped
+to `10.1.1.10` in the browser (both resolvers answered NXDOMAIN; see the
+README). Proven that day: boot to 250 candles on COINBASE BTC-USD 1h within
+about 10 s of `open`, with VWAP on the chart; the strip's `offline` and `back`
+under the new waits; and the new service notices from an injected notice
+(see `boot-strip` and `boot-notices`). Before that, DRIVEN on 2026-11-05 against product tree `87a325f4ab`
 (`origin/main`, 123 commits past `8436920004`), lane `18103`, a guest-JWT lane
 (`feature-flags` `gateway-v3` read `false`). Proven that day: boot to 250
 candles on COINBASE BTC-USD 1h (`window.__BOOT_ERRORS__` `[]`, metadata
@@ -80,6 +87,9 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
 - `boot-worker` the worker is alive, so websockets can open at all.
 - `boot-strip` on desktop, a degraded or lost connection raises one yellow
   strip above the ticker bar that says what is wrong and when it is back.
+- `boot-notices` an admin's service notice shows as a banner over the chart,
+  closes into a top-bar pill that opens the status list, and says when it is
+  back to normal.
 - `wake-heal` after a hidden or sleeping stretch, the wake backfills every blank
   slot the outage left, including slots before lone bars a trickling feed drew.
 
@@ -143,6 +153,28 @@ Preconditions:
   must read `0`.
   Then **open the PNG**: it must show drawn candlesticks, not a dialog. The
   engine read is the side effect; the frame is the only proof pixels arrived.
+- **`boot-notices`: service notices (driven 2026-11-06 on `8bcd72f8f5`,
+  `c88d56c7c9`).** An admin's notice for the whole app or for named parts
+  shows as `service-notice-banner` over the chart; its close
+  (`service-notice-banner-close`) folds it into `service-notice-pill` in the
+  top bar, whose click opens `service-notice-list`. A guest polls
+  `GET /maintenance/notices` every 60 s; a signed-in page also reads them off
+  `/auth/alive`. A notice at severity 100 or more opens the old maintenance
+  popup instead, and one naming `sign-in` shows as `service-notice-inline` in
+  the sign-in card. The footer maintenance line is gone. No dev seam feeds a
+  notice and the dev backend serves none, so inject one through the store
+  (the next 60 s poll overwrites it):
+  `$pinia._s.get('maintenance').setNotices([{id:'qa',parts:[],status:'down',bannerMessage:'QA',resolutionMessage:'',startTimestamp:Date.now()-60000,endTimestamp:null,severity:0}],'poll')`.
+  Live: the banner read `data-kind` `active` (`The app is having an outage
+  <message> Started 1m ago · Until resolved`); its close left the pill at
+  `data-kind` `warn` reading `1`; the pill opened the list with one `active`
+  row. The same id again with `endTimestamp` in the past and a
+  `resolutionMessage` raised the banner at `resolved` (`Everything is back to
+  normal … Lasted 1m · Resolved just now`), gone within 10 s, with the pill
+  at `resolved`. Clean up with `setNotices([],'poll')` and empty the store's
+  `dismissedNoticeKeys` and `shownBannerIds`, which persist per device.
+  A partial notice (`parts:['cme']`) reaches the banner only while that part
+  is in use; not driven.
 
 ## Driving the wake heal
 
@@ -512,22 +544,38 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   browser without the map and lands on `about:blank`. `doctor` keeps reading
   `UNREACHABLE` because its probe uses the system resolver, so record that
   you drove past it. Read the address from `nslookup … 100.100.100.100` on the
-  day rather than copying `10.1.1.10`.
-- **On desktop a yellow strip replaced the chip (driven 2026-11-05 on
-  `87a325f4ab`; `b2623958e8`).** `connection-strip`
-  (`src/components/banners/ConnectionStrip.vue`, mounted in `ChartArea.vue`
-  when not mobile) carries `data-state` and the children
-  `connection-strip-lead` and `connection-strip-body`:
+  day rather than copying `10.1.1.10`. **On 2026-11-06 the tailnet resolver
+  answered NXDOMAIN too**, and `10.1.1.10` still served the gateway
+  (`curl --resolve tsdb-gateway.int.ore.kiyotaka.ai:443:10.1.1.10
+  https://tsdb-gateway.int.ore.kiyotaka.ai/v2/` answered `400`, the websocket
+  path without an upgrade). With that address in `KIYO_BROWSER_ARGS`, `doctor`
+  passed and the lane drew live candles all pass. So try the last known
+  address before calling the pass blocked.
+- **A yellow strip replaced the chip (driven 2026-11-06 on `8bcd72f8f5`;
+  `b2623958e8`, waits from `c16de1bf2e`).** `connection-strip`
+  (`src/components/banners/ConnectionStrip.vue`, mounted in `ChartArea.vue`;
+  since `22fc0cede7` also on the phone's Chart tab, where 30 s of `long`
+  reloads the page once with a 5 min cooldown) carries `data-state` and the
+  children `connection-strip-lead` and `connection-strip-body`:
 
   | `data-state` | Lead | When |
   |---|---|---|
-  | `stall` | `Your network is slow` | degraded for 3 s |
-  | `offline` | `You're offline` | the browser is offline |
-  | `long` | `Still reconnecting`, plus `connection-strip-reload` (`Reload`) | still degraded after 30 s |
+  | `stall` | `Your network is slow` | degraded for 15 s (was 3 s) |
+  | `offline` | `You're offline` | the browser is offline, confirmed for 3 s |
+  | `long` | `Still reconnecting`, plus `connection-strip-reload` (`Reload`) | 30 s into the stall, or at once when nothing retries |
   | `back` | `Back to live` / `Caught up.` | for 2 s after recovery |
 
-  Live: `./control-kiyotaka browser set offline on` raised `offline` within
-  2 s; `set offline off` showed `back` for about 2 s and then no node. When the
+  The footer's Wi-Fi meter turns amber after 5 s pending and a pane's live
+  label waits 5 s. Since `1e45e23e73` the strip says reconnecting only on
+  transport evidence (a down socket, a failed dial, a stalled worker), never
+  on a tab-return catch-up, and since `69247f4c27` a socket found dead on a
+  tab return is said at once (source). The `stall` and `long` waits are not
+  driven: they need a blocked socket host, not `set offline`.
+  Live 2026-11-06: `./control-kiyotaka browser set offline on` raised
+  `offline` (`You're offline` / `The chart catches up when your connection is
+  back.`) at the 5 s poll (none at 4 s); `set offline off` showed `back`
+  within 1 s. On 2026-11-05: `offline` within 2 s; `set offline off` showed
+  `back` for about 2 s and then no node. When the
   gateway name stopped resolving the strip stood at `long` with the Reload
   button. `connection-status-chip` was absent the whole time:
   `ConnectionStatusChip.vue` shows only when the strip does not, so on desktop
@@ -550,8 +598,8 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   its `data-glyph` (`signal-none` connecting, `signal-weak` for `slowNetwork`
   and high latency, `retry` reconnecting, `signal-off` offline, `alert`
   disconnected) with a tone class `conn-chip--<tone>`, and a slow start also
-  reads `Slow network`; a degraded state must last 2 s before the chip shows
-  (source). A healthy guest lane has no `connection-status-chip` node at all
+  reads `Slow network`; since `c16de1bf2e` a degraded state must last 15 s
+  before the chip shows, the strip's own rule (source). A healthy guest lane has no `connection-status-chip` node at all
   (driven 2026-11-04).
 - **Boot shows one loader now (source, `d4c822292e`, `c798f8a110`; driven
   2026-11-01).** The `index.html` start screen (`#skeleton-loader`) stays up

@@ -12,6 +12,12 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-06 on tree `8bcd72f8f5` (`origin/main`, lane `18103`, a
+guest JWT): still unreachable.** `typeof window.__voiceControl` read
+`undefined`, `voice-control-mic-btn` was absent and no node carried a voice
+testid or label. In `87a325f4ab..8bcd72f8f5` only incidental edits reached
+`src/agent-bridge/voice/` (`8bcf77ee46` bare stock tickers, `96c64ceeb2`
+paper trading); nothing changed who can reach voice (source).
 **Re-driven 2026-11-05 on tree `87a325f4ab` (`origin/main`, lane `18103`, a
 guest JWT): still unreachable.** On a fresh guest boot `typeof
 window.__voiceControl` read `undefined` and `voice-control-mic-btn` was absent;
