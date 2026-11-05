@@ -121,7 +121,7 @@ state, commands, and observable proof.
   provable with no credentials. Start here.
 - [Daemon lifecycle and health](./daemon-lifecycle-and-health.md)
 - [Watch lifecycle from the CLI](./watch-lifecycle-cli.md)
-- [Watch archive and the auto-archive sweep](./watch-archive.md) — on #2357, not on main yet
+- [Watch archive and the auto-archive sweep](./watch-archive.md) — #2357, on main since `9bbf2de24`
 - [A watch step that wakes a roster agent](./watch-agent-step.md) — author, arm, fire
   and read an `ai` step that names `agent` and your `ask`; on main since #2287, keyless-lane path proven 2026-11-04
 - [Your installed agents from the CLI and om chat](./agents-cli-and-tui.md) — new

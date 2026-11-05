@@ -1,6 +1,6 @@
 # Watch archive and the auto-archive sweep
 
-*Verified 2026-11-05 on branch `daryl/watch-archive-sweep` (PR #2357, tree `33bd51ea2` over main `a0a8c7b8b`, v0.492.0), lane on 18103, source build. Not on main yet: re-prove after #2357 lands. Driven: the daemon sweep on reboot, `watch archive` with one refusal, `watch remove` on an archived id, `watch unarchive`, `watch list --archived`, `config get watch.auto_archive`. Not driven: the TUI and GUI (no archived view exists), a delivered notice (the lane had no channel, so it stayed held). Evidence: `http://127.0.0.1:8098/watch-archive-sweep/r1/`.*
+*Verified 2026-11-05 on branch `daryl/watch-archive-sweep` (PR #2357, tree `33bd51ea2` over main `a0a8c7b8b`, v0.492.0), lane on 18103, source build. #2357 merged to main as `9bbf2de24` with the same tree; the next pass re-proves it on main. Driven: the daemon sweep on reboot, `watch archive` with one refusal, `watch remove` on an archived id, `watch unarchive`, `watch list --archived`, `config get watch.auto_archive`. Not driven: the TUI and GUI (no archived view exists), a delivered notice (the lane had no channel, so it stayed held). Evidence: `http://127.0.0.1:8098/watch-archive-sweep/r1/`.*
 
 ## What it is
 
