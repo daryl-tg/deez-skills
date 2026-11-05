@@ -1,5 +1,7 @@
 # Chat shell mode (`!` in `om chat`)
 
+*On main since #2362 (squash `a4e42d7bd`, 2026-11-05). The proofs below ran on its branch tree before the merge; not yet re-driven on main.*
+
 *Re-verified 2026-11-05 (r2) after the operator asked for magenta: the shell tone is the new `shell` token `#d16fc4` (SGR `38;2;209;111;196`), 2 sequences on the empty shell composer, 3 on a shell row's bar, 0 teal anywhere. Evidence: `http://127.0.0.1:8098/vom-bang-shell/r2/`.*
 
 *Verified: 2026-11-05, branch `daryl/bang-shell-composer` (uncommitted tree on `a0a8c7b8b`), bare lane 18121 (dummy `OM_API_KEY`, dead service URLs), fake openai-compatible model 18122, tmux 140x40, default workspace. Driven: `enter`, `run`, `agent-reads`, `consumed-once`, `recall`, `stop`. Not driven live: the queue while a turn runs (unit-tested), rooms and DMs sending `!` as text, the plain `--no-workspace` layout, a 1 MiB output. Evidence: `http://127.0.0.1:8098/vom-bang-shell/r1/` (`tui/*.txt`, `tui/fake-model-requests.log`).*
