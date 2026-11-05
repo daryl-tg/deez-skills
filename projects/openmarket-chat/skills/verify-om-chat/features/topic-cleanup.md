@@ -35,7 +35,7 @@ tools/visual/shell-fixture.html?view=room&alerts=quiet&quiet=on
 The entry is on the **server header menu**, not the channel header's **More
 channel actions** (earlier passes looked there and recorded an absence that
 was never the gate). On `/rooms/` the root host's `daemonFeatures` is true, so
-`Sidebar.tsx:5961` renders **Clean up topics** between **Open World** and
+`Sidebar.tsx:6023` renders **Clean up topics** between **Open World** and
 **Notification Settings**:
 
 ```bash
@@ -86,7 +86,9 @@ with topic triage. Do not target the operator daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `quiet=on`: server menu → **Clean up topics** opens the sheet with **Retry** and **Resolve 0 topics**; the `checkbox` **Select all in Not sorted** → **Resolve 30 topics**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`39`).
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `quiet=on`: server menu → **Clean up topics** opens the sheet with **Retry**, **Select all in Not sorted**, **Cancel** and **Resolve 0 topics**. `/chat/` has no item (daemon builds only). **Limitations:** the sweep not started this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `quiet=on`: server menu → **Clean up topics** opens the sheet with **Retry** and **Resolve 0 topics**; the `checkbox` **Select all in Not sorted** → **Resolve 30 topics**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`39`).
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room&alerts=quiet&quiet=on`: `.sidebar-server-menu-trigger` → **Clean up topics** → the error fallback ("Could not reach om to sort these topics…", **Retry**, **Not sorted** 30) → checkbox **Select all in Not sorted** → **Resolve 30 topics**. **Limitations:** the sweep was not started. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`cleanup-03`).
 

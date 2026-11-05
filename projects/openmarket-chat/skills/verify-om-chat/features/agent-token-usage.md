@@ -46,7 +46,9 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `agent-usage-fixture.html` renders **Used 1 tool** and "2.0s · 12.3k tokens"; `agent-presentation-fixture.html?state=collapsed` shows **Expand tool activity**. **Limitations:** the 1.3M and `failed` states were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `agent-usage-fixture.html`: **Used 1 tool**, "2.0s · 12.3k tokens"; `agent-presentation-fixture.html?state=collapsed`: **Expand tool activity**. **Limitations:** other states not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `agent-usage-fixture.html` renders **Used 1 tool** and "2.0s · 12.3k tokens"; `agent-presentation-fixture.html?state=collapsed` shows **Expand tool activity**. **Limitations:** the 1.3M and `failed` states were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
 
 **Previous record:** 2026-11-03 (nightly maintenance). **Product commit:** `ba4389e7` (GitLab origin/main; rooms-client 0.108.0; one CI-only commit past `3f8f24bc`). **Scope:** `/rooms/` (18143) `agent-usage-fixture.html`: `.agent-answer-meta` reads **12:00 PM · 1 tool · 2.0s · 12.3k tokens**; **Expand tool activity** / **Collapse tool activity**. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261103/r1/` (`ag-06-usage`).
 

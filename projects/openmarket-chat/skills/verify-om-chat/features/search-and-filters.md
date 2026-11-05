@@ -174,7 +174,9 @@ Driven 2026-10-31 on `/rooms/` (18135); the scope picker also on `/chat/`
 
 ### Verification record
 
-**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `panel=search` reads **1 results**; `searchState=error` mounts on both hosts (route smoke). **Limitations:** the `from:@ana` grammar was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`37`, `smoke/`).
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `panel=search`: "1 results". **Limitations:** filters and sort not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `panel=search` reads **1 results**; `searchState=error` mounts on both hosts (route smoke). **Limitations:** the `from:@ana` grammar was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`37`, `smoke/`).
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): **Search #ops** → **From a specific user from: user** → **@ana ana (ops)** gives `from:@ana `. **Limitations:** results, **Sort** and the error state were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`search-01`).
 

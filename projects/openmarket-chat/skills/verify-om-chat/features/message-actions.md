@@ -86,7 +86,7 @@ The DM path is `?view=dm&dm=ana&alerts=quiet`: hover `#dm-msg-m2`, then click
 
 Open `shell-fixture.html?view=room&alerts=quiet&reply=1`. The composer shows
 the reply strip **Replying to dax** with a **Cancel reply** button
-(`Composer.tsx:5642`; the fixture seeds seq 103, `shell-fixture.tsx:2418`).
+(`Composer.tsx:5799`; the fixture seeds seq 103, `shell-fixture.tsx:2418`).
 Scroll `#msg-ops-104` into view, hover it, and click
 `#msg-ops-104 .msg-toolbar button[title="Reply"]`: the strip retargets to
 **Replying to kyle: @ana the alert fired twice last night …** and the composer
@@ -189,7 +189,9 @@ button, so use `msg-ops-110`.
 
 ## Verification record
 
-**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) and `/chat/` (18171) at 1440×700: `msg-ops-110` **More** near the bottom flips the 16-entry menu up to end 4 px above the button; a right-click at y 681 flips it to end 2 px above the cursor (`/rooms/`); a sidebar `contextmenu` dispatched below the fold (y 917) seated its 3-entry menu (**Create Category**, **Invite People**) at `bottom 692`, inside the 8 px margin. **Limitations:** the user, People-pane and **Agent** flyout flips were not driven; the late-row re-placement is proved only by `test/context-menu-position.test.ts`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`18`–`22`).
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `msg-ops-104` toolbar **More**: 19 entries on both (four quick tiles, React … Copy Message ID); no revisit or ticket item was added. **Limitations:** menu flips and the **Agent** flyout not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) and `/chat/` (18171) at 1440×700: `msg-ops-110` **More** near the bottom flips the 16-entry menu up to end 4 px above the button; a right-click at y 681 flips it to end 2 px above the cursor (`/rooms/`); a sidebar `contextmenu` dispatched below the fold (y 917) seated its 3-entry menu (**Create Category**, **Invite People**) at `bottom 692`, inside the 8 px margin. **Limitations:** the user, People-pane and **Agent** flyout flips were not driven; the late-row re-placement is proved only by `test/context-menu-position.test.ts`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`18`–`22`).
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) and `/chat/` (18161): right-click on `msg-ops-104` (kyle) lists the 19 `menuitem`s; on `/rooms/` a row from dax lists 16 (no Edit Message, Pin Message or Delete Message). **Limitations:** the **Agent** submenu was not opened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`msg-02-menu`, `msg-03-menu-104`).
 

@@ -48,23 +48,36 @@ Read the gotchas for where the line now falls.
 - Agents in the `@` menu (roster-gated, `01bf4481`): an agents group with
   `<owner> | <name>` rows, dimmed not-ready rows (`aria-disabled="true"`, the
   refusal reason in place of the detail) that cannot be committed, and an `om`
-  router row (`lib/composer-complete.ts:467-524`, `ComposerAutocomplete.tsx:178-215`).
+  router row (`lib/composer-complete.ts:548-605`, `ComposerAutocomplete.tsx:186-223`).
   No fixture reports roster support, so none of it renders on the fixture lane.
 - A bare `@` lists the whole server (`5e38077c`): every member in roster order,
   then every role, in a scrolling `listbox` named **MEMBERS & ROLES** (or
   **MEMBERS** with no role rows). `mentionCandidates` now defaults to no limit
-  (`lib/composer-complete.ts:416`). Before, a 10-row budget kept half for roles
+  (`lib/composer-complete.ts:497`). Before, a 10-row budget kept half for roles
   (`:465-472`). The composer and the inline editor pass no budget; only the
   OpenScape chat still passes 20 (`world/WorldChatPane.tsx:183`). On the shell
   fixture's `#ops`, the list has 13 options: 5 members (ana, dax, kyle, mira, rho)
   and 8 roles (admin, everyone, Full Stack, here, member, mod, owner, traders).
   The old budget would have shown 10: 5 members plus 5 roles.
-- A code-fence panel behind the text. `#799` paints a full-width panel behind
-  each fenced region of the draft, incomplete fences included, and dims the
-  fence marker lines with `.composer-token-code-marker` (`color: var(--text-faint)`
-  — dimmed, never removed). Do not look for `#797` here: that commit touches
+- A code-fence panel behind the text. `#799` paints a panel behind each fenced
+  region of the draft, incomplete fences included. Since `496e9cf9` and
+  `132c4256` the opening and closing fence lines are the panel's padding, and
+  the panel runs from the middle of one to the middle of the other
+  (`lib/composer-code-panels.ts`). Fence text (`.composer-token-code-fence`) is
+  transparent while the caret is outside the block. With the caret inside it
+  gains `.is-editing` and shows faint. The language sits top right in
+  `.composer-code-panel-language`. `.composer-token-code-marker` no longer
+  exists. Do not look for `#797` here: that commit touches
   only `src/editor/live-preview.ts`, so the cursor-based *hiding* of fence
   markers is a doc-editor behaviour, not a composer one.
+- Ticket references (`2a683fce`, `96164fbc`). On a Projects server, typing `!`
+  lists tickets (`Composer.tsx` `composeTicketTrigger`, `session.todos.lookup`),
+  and a picked ticket sends itself. In the tape, a ticket link inside a
+  sentence renders as a `TodoRefTag` with its number and status chip. A link
+  alone on its line renders the card `section[aria-label="Ticket !<n>"]`
+  (`components/projects/TodoRefCard.tsx`). An unreadable ticket shows
+  `[data-ticket-hidden]`. **Live verification pending**: neither fixture stubs
+  `session.todos`, so the list and the refs cannot resolve there.
 - Replies, mentions (`@user`, role tags), slash commands, `$` market refs, and
   library-reference pills. `ac43c466` extended the bound-name trick already used
   for topics and multiword roles to `om://doc`, `om://folder` and `om://tag`
@@ -73,9 +86,9 @@ Read the gotchas for where the line now falls.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
 - Send disabled while empty; Enter-to-send versus newline. The **Send message**
-  button renders when `isMobile || showSendButton` (`Composer.tsx:6498`). The
+  button renders when `isMobile || showSendButton` (`Composer.tsx:6692`). The
   ordinary room and DM composer is therefore phone-width only, and desktop
-  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:434`) and the
+  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:437`) and the
   remote-control pane (`RemoteControlPane.tsx:345`) also show it on desktop,
   with an `sr-only` "Send" label.
 - Sent text must not come back as a draft after a reload or a revisit
@@ -93,7 +106,7 @@ Read the gotchas for where the line now falls.
   its unit tests; the recipe below drives a subset of them.
   The mode badge is
   `<span class="composer-vim-mode" data-vim-mode="normal|insert|visual|visual-line">`
-  (`Composer.tsx:6581-6591`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
+  (`Composer.tsx:6775-6785`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
   a pending operator in `.composer-vim-pending`. Enter sends only in insert
   mode. Escape belongs to Vim, so it no longer cancels a reply. Touch screens
   (coarse pointer) never get Vim. With the setting off none of this renders,
@@ -143,8 +156,19 @@ agent-browser snapshot -i -c | grep "Send message"        # [disabled]
 # ?draft= feeds the same `text` state the fence parser reads:
 agent-browser open ".../shell-fixture.html?view=room&draft=%60%60%60js%0Aconsole.log(1)%0A%60%60%60"
 agent-browser eval '(()=>document.querySelectorAll("[data-code-panel]").length)()'
-#   1, with [data-code-region] at 3 and two .composer-token-code-marker spans
-#   for the fence lines — dimmed, still in the DOM
+#   1, with [data-code-region] at 4, three .composer-token-code-fence spans whose
+#   color is rgba(0, 0, 0, 0) with the caret elsewhere, the label "js", and no
+#   .composer-token-code-marker (re-driven 2026-11-06 at ea399e62)
+
+# The dedicated harness (since 496e9cf9) mounts the real Composer alone over a
+# literal stub session (room "deals"), so nothing in it is INERT. It takes
+# ?draft=<urlencoded>, &theme=dark|light and &width=<px> (default 640) and is
+# /rooms/-only:
+agent-browser open "$(control-om-chat url 'tools/visual/composer-code-panel-fixture.html?draft=hello%0A%60%60%60ts%0Aconst%20a%3D1%0A%60%60%60&theme=dark&width=640')"
+#   [data-code-panel] top 43px, height 44px, computed left 4px (8 px outside the
+#   12 px text column); label "ts"; fences transparent
+# Put the caret inside the block (focus the textarea, setSelectionRange into
+# "const", press ArrowRight): two fences gain .is-editing and read rgb(139, 145, 152)
 
 # A library-reference pill (ac43c466) — typing the URI is enough:
 agent-browser click "textarea"
@@ -172,7 +196,7 @@ agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text
 
 Related handles that do resolve. In the composer row itself:
 `"Summon your om here"` (on a private om lane the same button is `"Back to the room"`,
-`Composer.tsx:5779-5780`), `"Add attachment or action"`,
+`Composer.tsx:5936-5937`), `"Add attachment or action"`,
 `"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
 On a message or the recovery banner: `"Add reaction"`,
 `"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
@@ -241,7 +265,7 @@ Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenan
 ### Typed role mention pill (added 2026-10-30)
 
 Since `389f414e` a role name typed as `@traders` is painted like its
-`om://role` pill (`Markdown.tsx:497`, `:2010`, `:2098`). Both shell fixtures
+`om://role` pill (`Markdown.tsx:503`, `:2049`, `:2137`). Both shell fixtures
 name the role `traders` and colour it `#d19a3a` (`shell-fixture.tsx:3196-3197`;
 cloud `:1716`). Click the composer textbox (its name starts **Message #ops**;
 the full name is **Message #ops · $ for markets · /chart to post one**), type
@@ -284,7 +308,7 @@ Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
 `/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
 Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
 renders the guide page **Slash commands**. Running a command is pending: the
-real handler is `ChatSession.handleSlash` (`lib/session.ts:43251`, called at
+real handler is `ChatSession.handleSlash` (`lib/session.ts:43316`, called at
 `:15238`, `:15463` and `:15795`), and the fixture's send only appends the text, so `/nick`,
 `/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
@@ -292,7 +316,7 @@ authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
 ### Paste: a link over a selection, an image into the composer (added 2026-11-01)
 
-Both paths are pure client code behind `Composer.tsx:6044-6129`, so a
+Both paths are pure client code behind `Composer.tsx:6238-6323`, so a
 synthetic `ClipboardEvent` drives them on either host (driven 2026-11-01 on
 `/rooms/` and `/chat/` at `936f5b64`):
 
@@ -327,7 +351,7 @@ drop, and stay pending.
 
 ### The older-messages banner past 99 (added 2026-11-02)
 
-`ChatPane.tsx:3270` prints **You're viewing older messages · 99+ new below**
+`ChatPane.tsx:3291` prints **You're viewing older messages · 99+ new below**
 once the count behind the banner passes 99 (`formatUnreadCount`,
 `lib/animated-count-parts.ts:35-42`, since `4cd3434f`). No fixture seed raises
 a room's new-below count that high (`bulk=120` pads the tape but the reader
@@ -453,7 +477,9 @@ labels past 99.
 
 ### Verification record
 
-**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) and `/chat/` (18171) `view=room`: typing in **Message #ops** and pressing Enter echoed the row locally (16 → 17 rows). **Limitations:** mentions, slash commands, attachments and the trailing-punctuation pill were not re-driven; their 2026-11-04 record stands. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`31`, `43`).
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=room`: a typed message sends (16 → 17 rows). `/rooms/` shell `?draft=` fence: 1 panel, 4 regions, transparent fences, label `js`, no marker spans; `composer-code-panel-fixture.html`: panel left 4px, faint fences with the caret inside. **Limitations:** `!` ticket references need a Projects server and are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) and `/chat/` (18171) `view=room`: typing in **Message #ops** and pressing Enter echoed the row locally (16 → 17 rows). **Limitations:** mentions, slash commands, attachments and the trailing-punctuation pill were not re-driven; their 2026-11-04 record stands. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`31`, `43`).
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) and `/chat/` (18161): the new trailing-punctuation mention (composer token and two sent pills, rows 16 → 17); `/` lists 29 commands on `/rooms/`. **Limitations:** the other send paths were not re-driven; their 2026-11-03 records stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`mention-01`, `mention-02-tape-rooms`, `mention-02-tape-chat`, `chat-05-mention`).
 

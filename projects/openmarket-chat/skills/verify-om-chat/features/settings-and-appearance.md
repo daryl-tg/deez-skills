@@ -19,7 +19,7 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4558` always does, so the **running app shows twenty**;
+  `Shell.tsx:4608` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
   product. To count twenty without a daemon, open Settings through the shell:
@@ -35,10 +35,16 @@ interaction end to end.
   radiogroup, **Message display** (Cozy / Compact), sits alongside them.
 - Chat background (since `59f4b22c` and `873a57ce`): a personal picture behind
   the messages (**Chat only**) or behind the whole window (**Whole window**),
-  with a **Dim** slider. It is uploaded to the account and follows the user to
-  other devices. The **Advanced** section's **LIVE PREVIEW** shows only
+  with a **Dim** slider (0–100 %). Since `e60bfd73`, `2f4c247d` and `746aaabd`
+  the set state is a live preview you drag to position the picture, with a
+  **Zoom** group (Fit, Fill or a percentage). It is uploaded to the account and
+  follows the user to other devices. The **Advanced** section's **LIVE PREVIEW** shows only
   placeholder people (Avery Lane, Helper Agent, You) on `example.com`, never
   the user's own contacts (`8d487dc1`).
+- Avatar positioning (`2f4c247d`): picking a new avatar under **Profiles**
+  opens **Position your avatar**, where you drag the part that shows before
+  anything uploads.
+- The settings nav has no build or version footer since `55a41da9`.
 - High-contrast mode and its interaction with every palette. The system
   contrast preset follows `prefers-contrast: more` independently of the
   explicit high-contrast switch (`packages/chat-ui/src/components/settings/appearance.ts`, `prefers-contrast: more` at `:311`).
@@ -54,7 +60,7 @@ interaction end to end.
   alert cards in that channel's tape (`WebhooksPage.tsx:600`,
   `ConvertWebhooksStepper.tsx:342,419`).
 - Keyboard Shortcuts carries an **Editing** group with one switch, **Vim mode**
-  (`UserSettings.tsx:1295`, `878049d8`/`b1ed7135`). It is off by default and
+  (`UserSettings.tsx:1305`, `878049d8`/`b1ed7135`). It is off by default and
   stored as `localStorage["om.chat.vimMode"]` (`"true"`/`"false"`). It is synced and
   scoped per account (`lib/prefs.ts`) and turns on Vim keys in the message box
   ([composer-and-sending.md](composer-and-sending.md)) and the doc editor
@@ -63,7 +69,7 @@ interaction end to end.
   Keyboard Shortcuts.
 - Settings search, the Esc-to-close rail behavior, and the open/close
   transition. Since `06ee56bd` the dialog also closes on **browser Back**:
-  `SettingsShell.tsx:192` calls `useOverlayHistoryDismiss`
+  `SettingsShell.tsx:189` calls `useOverlayHistoryDismiss`
   (`packages/chat-ui/src/lib/overlay-history.ts`), so Esc is no longer the only dismissal path.
 - The **Grammar & shortcuts** modal (`ShortcutsModal.tsx`; keymap `mod+/`, `lib/keymap.ts:145`), the **Log Out** confirmation, and the server **Invites** page's invite-link dialog (`InviteLinkDialog.tsx`).
 
@@ -202,7 +208,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
 - **Appearance** (`settings-fixture.html?host=user&page=appearance`) carries
   three switches above the radiogroups: **Show link previews** (on by default;
   clicking it writes `localStorage["om.chat.linkPreviews"]="false"`, clicking
-  again `"true"`; `UserSettings.tsx:1856`, `lib/prefs.ts`), **Underline links**
+  again `"true"`; `UserSettings.tsx:1866`, `lib/prefs.ts`), **Underline links**
   and **High contrast mode**. The radiogroups read **Theme** (Dark theme /
   Light theme / Sync with OS theme), **Palette** (five), **Chat layout**
   (Bubbles / Streamlined / Custom; the fixture starts on Custom), **Server
@@ -212,18 +218,24 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
 - **Profiles** (`?page=profiles`): heading **Profiles**, the display-name field
   (`justintg`), a custom-status field (`long $BTC`) with **Clear custom status
   after**, **Tell people who you are**, **Change avatar**, and the presence
-  choices **Online** / **Idle** / **Do not disturb** (`UserSettings.tsx:1247-1249`).
+  choices **Online** / **Idle** / **Do not disturb** (`UserSettings.tsx:1257-1259`).
   The presence radios have no accessible name, and clicking **Idle** changed
-  nothing in the fixture (no setter is stubbed).
+  nothing in the fixture (no setter is stubbed). The hint under the avatar
+  reads "Click the avatar to change it, then drag to choose which part shows.
+  Max 2MB." Feed the hidden `input[type=file][accept="image/*"]` with
+  `agent-browser upload` and a `dialog` **Position your avatar** opens
+  (`settings/AvatarCropDialog.tsx`) with a `slider` **Avatar position**
+  ("Whole picture shown" for a square picture), **Cancel** and **Save**.
+  **Cancel** closes it and uploads nothing (driven 2026-11-06 on both hosts).
 - **To-dos** (`?page=todos`): two radiogroups, **Which to-dos appear in chat or
   topics** (All to-dos / Only mine / None) and **Whether to-do status updates
-  appear in chat** (Show updates / Hide updates) (`UserSettings.tsx:641-673`).
+  appear in chat** (Show updates / Hide updates) (`UserSettings.tsx:638-670`).
 - **Privacy**: `settings-fixture.html?host=user&page=privacy` renders a blank
   page (no nav, no body) on this lane; use the shell route
   `shell-fixture.html?view=settings&settingsPage=privacy&alerts=quiet`, which
   shows heading **Privacy** and the switch **Private account**. The
   who-can-message choices Everyone / People you follow / No one
-  (`UserSettings.tsx:1010-1024`) are a select, not radios.
+  (`UserSettings.tsx:1007-1021`) are a select, not radios.
 
 Driven 2026-10-31 on `/rooms/` (18135) at `936f5b64`.
 
@@ -263,12 +275,12 @@ proves nothing here.
 ### Motion and feedback sounds (added 2026-11-02)
 
 `settings-fixture.html?host=user&page=accessibility` has a **Motion and
-feedback** card (`settings/UserSettings.tsx:2075-2100`) with four switches:
+feedback** card (`settings/UserSettings.tsx:2085-2110`) with four switches:
 **Enable reduced motion**, **Resolve sound**, **GOAT ceremony sound** and
 **GOAT bleat**. On a fresh lane the three sound switches read
 `aria-checked="true"` and reduced motion reads `false`. `find role switch click
 --name "Resolve sound"` turns it off and writes `om.chat.resolveSound=false`
-to `localStorage` (`lib/prefs.ts:440`); assert the key, not only the switch.
+to `localStorage` (`lib/prefs.ts:447`); assert the key, not only the switch.
 The chime itself (`lib/resolve-chime.ts`) plays on a topic resolve and is not
 observable in a headless lane.
 
@@ -284,8 +296,8 @@ device, so only the switch states are provable here.
 
 Type into **Search settings** (`input[aria-label="Search settings"]`) a string
 nothing matches, such as `zzqqx`: the nav empties and reads **No setting
-matches “zzqqx”.** with curly quotes (`settings/SettingsShell.tsx:286`). The
-**Discard unsaved changes?** alertdialog at `SettingsShell.tsx:444` is not
+matches “zzqqx”.** with curly quotes (`settings/SettingsShell.tsx:283`). The
+**Discard unsaved changes?** alertdialog at `SettingsShell.tsx:435` is not
 reached on the lane: `page=profile` exposes no text input to dirty, so leaving
 the page raises nothing. Live verification is pending a page with an editable
 form seed.
@@ -294,30 +306,49 @@ form seed.
 
 User path: **Settings** → **Appearance** → **CHAT BACKGROUND** (a `region`
 with `data-settings-group="chat-background"`, between Accent and Advanced;
-`ChatBackgroundSettings.tsx`, mounted at `UserSettings.tsx:1591`). Click
+`ChatBackgroundSettings.tsx`, mounted at `UserSettings.tsx:1601`). Click
 **Upload picture**, pick a PNG, JPEG or WebP, then choose **Chat only** or
 **Whole window** and set **Dim**. **Remove** clears it.
 
-Handles, as driven on 2026-11-05:
+Handles, as driven on 2026-11-06 at `ea399e62` on `/rooms/`. The position
+picker and **Zoom in** were also driven on `/chat/`:
 
-- Empty: `img` **No chat background**, `button` **Upload picture**, and a
-  `radiogroup` **Cover** with `radio` **Chat only** (checked) and **Whole
-  window**, both disabled (`aria-disabled="true"` on the group). No **Remove**
-  and no slider.
-- Set: **Replace picture**, **Remove**, the slider `#om-chat-background-dim`
-  (50–95 %, step 5, default 90; each ArrowLeft lowers it by 5 and the readout
-  follows), and the preview `img` **Your chat background, dimmed as it
-  appears** (`.chat-bg-preview.is-set`). With **Whole window** it reads **Your
-  background behind the whole window, dimmed as it appears** (`.is-window`).
+- The group opens with the hint "Only you see it. It follows your account to
+  your other devices."
+- Empty: the drop zone reads **No picture yet** and "PNG, JPEG or WebP, up to
+  5 MB. You can also drop a picture here.", with `button` **Upload picture**.
+  The `radiogroup` **Cover** (`radio` **Chat only**, checked, and **Whole
+  window**) is disabled (`aria-disabled="true"`), and so is the **Dim** range
+  `#om-chat-background-dim`, which already shows 90 %. There is no **Remove**.
+- Set: a live preview (`settings/ChatBackgroundPreview.tsx`) replaces the old
+  preview `img`. It draws a stage card with a fake sidebar (**CHANNELS**,
+  `# general`, `# design`, `# markets`), sample lines ("Avery Lane Notes are
+  up", "Looks good, ship it") and a **Message #general** box over the picture.
+  - A `slider` with `aria-roledescription="position picker"`, named
+    **Background position in the chat**, or **Background position in the whole
+    window** under **Whole window**. Its `aria-valuetext` starts at "50% from
+    top". After two **Zoom in** clicks, ArrowUp twice and ArrowLeft once read
+    "40% from top, 45% from left".
+  - A `group` **Zoom** with **Zoom out**, **Zoom in**, a readout and **Reset**.
+    The readout reads **Fit**, **Fill** or a percentage. A square picture
+    starts on **Fill** with **Reset** disabled. One **Zoom in** gives 120 %,
+    two give 140 %, and **Reset** returns to **Fill**.
+  - The hint reads "Drag to move, pinch to zoom". Source also has "Zoom in to
+    move the picture" for when there is nothing to move; that one was not seen
+    live.
+  - **Replace picture**, **Remove**, **Cover** and **Dim**. Dim runs 0–100 %
+    in steps of 5. Below 50 % it adds the note "Text may be hard to read."
 - The hidden file input is `input[aria-label="Choose a chat background
   picture"]`; feed it with `agent-browser upload '<that selector>' <file>`.
 - The pref is `localStorage["om.chat.chatBackground"]`, shaped
   `{"default":{"url","key","dim"}}`, plus `"cover":"window"` only in window
-  mode. **Remove** deletes the key and shows the receipt **Chat background
-  removed**.
+  mode. Zooming adds `zoom` and `aspect`, and moving adds `position:{x,y}`
+  (`lib/chat-background.ts`). **Reset** drops all three. A seed with only
+  `url`, `key` and `dim` still parses. **Remove** deletes the key, shows the
+  receipt **Chat background removed** and returns to **No picture yet**.
 - Painting is CSS on `<html>`: `data-chat-background=""`, `--chat-bg-image`,
   `--chat-bg-dim`, and `data-chat-background-cover="window"` in window mode
-  (`lib/chat-background.ts:251`). **Chat only** paints the message scroller
+  (`lib/chat-background.ts:350`). **Chat only** paints the message scroller
   (`[data-chat-backdrop]`, the `role=log` tape). **Whole window** paints
   `.app-shell` once and turns the five `[data-chat-backdrop-plane]` panels
   translucent.
@@ -345,7 +376,7 @@ The **LIVE PREVIEW** (`[aria-label="Message appearance preview"]`, tablist
 Agent (with the **AGENT** chip) and You on the **Server** tab, and **Avery
 Lane** with "The new layout is ready on example.com" and an **Example Domain**
 card on **Direct message**. It never reads "Jiin", "# design" or
-`openmarket.xyz` (`UserSettings.tsx:1632`).
+`openmarket.xyz` (`UserSettings.tsx:1642`).
 
 ## Gotchas
 
@@ -409,7 +440,7 @@ card on **Direct message**. It never reads "Jiin", "# design" or
   only the account-wide radiogroups ("Which to-dos appear in chat or topics",
   "Whether to-do status updates appear in chat"). Proving that sub-feature
   needs a fixture change, not a different query.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4556` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4606` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -440,7 +471,9 @@ card on **Direct message**. It never reads "Jiin", "# design" or
 
 ### Verification record
 
-**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `settings-fixture.html?host=user&page=appearance`: **CHAT BACKGROUND** empty state, the GIF, unreadable-file and inert-upload toasts, a seeded picture (**Replace picture**, **Remove**, **Dim** 90 % → 80 %), **Whole window** ↔ **Chat only** with `data-chat-background-cover` and the stored `cover`, **Remove** → **Chat background removed**; the **LIVE PREVIEW** Server and Direct message tabs (Avery Lane, Helper Agent **AGENT**, no Jiin or openmarket.xyz). `/rooms/` and `/chat/` (18171) shell fixture `view=settings&settingsPage=appearance`: **Whole window** paints `.app-shell` with the picture and five translucent `[data-chat-backdrop-plane]` panels; **Chat only** paints the `role=log` `[data-chat-backdrop]` on `/chat/`. **Limitations:** a successful upload needs a live host; the other settings pages were covered only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`01`–`15`, `smoke/`).
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) shell fixture `view=settings&settingsPage=appearance`: **CHAT BACKGROUND** empty (**No picture yet**, Cover and Dim disabled, Dim 0–100 step 5); a seeded picture shows the position picker **Background position in the chat** and the **Zoom** group (**Fill** → 140 % after two **Zoom in**, ArrowUp ×2 + ArrowLeft → "40% from top, 45% from left", stored `zoom`, `aspect`, `position`); **Whole window** renames the slider and sets `data-chat-background-cover="window"`; **Reset** returns to **Fill**; Dim 30 % shows "Text may be hard to read."; **Remove** → **Chat background removed**; no build footer. `settings-fixture.html?host=user&page=profiles`: the new avatar hint and **Position your avatar** (**Avatar position**, **Cancel**, **Save**). `/chat/` (18181): the picker, **Zoom in** → 120 %, no footer, and the avatar dialog. **Limitations:** a successful upload, pinch and pointer drag of the picture, and the avatar **Save** upload were not proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `settings-fixture.html?host=user&page=appearance`: **CHAT BACKGROUND** empty state, the GIF, unreadable-file and inert-upload toasts, a seeded picture (**Replace picture**, **Remove**, **Dim** 90 % → 80 %), **Whole window** ↔ **Chat only** with `data-chat-background-cover` and the stored `cover`, **Remove** → **Chat background removed**; the **LIVE PREVIEW** Server and Direct message tabs (Avery Lane, Helper Agent **AGENT**, no Jiin or openmarket.xyz). `/rooms/` and `/chat/` (18171) shell fixture `view=settings&settingsPage=appearance`: **Whole window** paints `.app-shell` with the picture and five translucent `[data-chat-backdrop-plane]` panels; **Chat only** paints the `role=log` `[data-chat-backdrop]` on `/chat/`. **Limitations:** a successful upload needs a live host; the other settings pages were covered only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`01`–`15`, `smoke/`).
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) and `/chat/` (18161): `?view=settings` opens the dialog **Settings**. **Limitations:** the settings fixture pages were covered only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`smoke/`).
 

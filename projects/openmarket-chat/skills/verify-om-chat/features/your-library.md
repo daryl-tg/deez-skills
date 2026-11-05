@@ -134,12 +134,12 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 On `shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server`,
 right-click the **runbook.md** treeitem in the library panel, or focus it and
 press the ContextMenu key (`LibraryPanel.tsx:696`, `:1194`). Either one opens
-`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4600-4606`), a
+`DocContextMenu` (`DocContextMenu.tsx`, mounted at `Shell.tsx:4649-4655`), a
 `menu` with no accessible name and 12 items: Open, Open in floating window,
 Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
 rename, Make read-only, Archive and Delete. Escape closes it. The full page's
 **More note actions** button and doc links in messages open the same menu
-(`LibraryView.tsx:5523`, `MessageText.tsx:1756`).
+(`LibraryView.tsx:5523`, `MessageText.tsx:1845`).
 
 The verbs are not proved: `setDocReadOnly` and `setDocRestriction` are
 unstubbed. The `/chat/` fixture stubs `openDocMenu` as a no-op
@@ -154,7 +154,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, abs
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
 with `data-daily-note-day` set to the local day, `LibraryView.tsx:3233-3241`;
 the add menu lists it as **Daily note**, `:3771`, `:4138`; the `d` key at
-`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:39005`),
+`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:39069`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
 no doc pane, no `.library-daily-note` section (`:6568`), no toast, hash still
@@ -299,7 +299,9 @@ that already dismissed it never shows it.
 
 ### Verification record
 
-**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `view=library&lens=agents` → `#/library/agents`, reading **LAST SYNC** **Unknown status**. **Limitations:** the other lenses only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`35`).
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=library&lens=agents` → `#/library/agents` (`/chat/library/agents`) with no error; the route smoke re-confirmed `panel=todos` (**Todos could not load**) on both hosts. **Limitations:** other lenses only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `view=library&lens=agents` → `#/library/agents`, reading **LAST SYNC** **Unknown status**. **Limitations:** the other lenses only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`35`).
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): `?view=library` → `#/library`; `?view=library&lens=agents` → `#/library/agents` renders (h1 **Agents**, **LAST SYNC Unknown status**), the crash is gone. `/chat/` (18161): `/chat/library/agents`. **Limitations:** the doc menu, todos and archive lenses were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`lib-01-agents-lens`).
 

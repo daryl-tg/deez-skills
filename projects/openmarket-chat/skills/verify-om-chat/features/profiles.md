@@ -23,6 +23,17 @@ says about them.
   **Follow**, **Block ana** and **Send to ana**. Driven 2026-10-31 on
   `/rooms/` (`?view=dm&dm=ana&alerts=quiet&card=1`). The name popover
   (`ProfilePopover.tsx`) is source-only.
+- **Working on**, an agent's live status in its card (`513bc114`, `23a7fb3d`,
+  `AgentProfileCard.tsx:195`). It is a `region` **Working on**, with a counts
+  line such as "1 working · 1 waiting", one `li[data-state]` per item, a state
+  dot (`role=img` named by the state), the title, room chip, step and age, and
+  an **Open <title>** link for https links. A note line reads "Paused for the
+  deploy window · 4m", or "No recent activity". It appears only once the relay
+  answers `agent_status` (`ProfilePopover.tsx`), and opened from an agent's
+  message it shows only that agent. The live subscription is **live
+  verification pending**: `?card=1` is the human `ana`, and no shell fixture
+  stubs `observeAgentStatus`. The gallery renders the card itself; see
+  Driving it.
 
 ## How to get to it (user POV)
 
@@ -36,6 +47,20 @@ with the × button.
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=dm&dm=ana&alerts=quiet&profile=1')"
 agent-browser find role tab click --name "Media" --exact      # aria-selected moves; hash stays #/dm/ana
 agent-browser find role button click --name "Close profile"   # the tablist unmounts
+```
+
+The agent **Working on** card renders only in the component gallery, in its
+"Agent-native" section (`KitchenSink.tsx`). It works on both hosts and mounts
+about 4 s after load:
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/fixture.html')"
+agent-browser eval '(()=>JSON.stringify([...document.querySelectorAll("[aria-label=\"Working on\"]")].map(s=>s.innerText.replace(/\n/g," / "))))()'
+#   three regions on both hosts; text read on /rooms/ (2026-11-06, ea399e62):
+#   "WORKING ON / 1 working · 1 waiting / Backfilling CME options / #cme-data / Day 3 of 10 / 4m / Open / …"
+#   "WORKING ON / No recent activity"
+#   "… 1 working · 1 waiting · 1 blocked …" (the redacted card: rooms read "a private room")
+#   state dots img "working", "waiting", "blocked"; link "Open Backfilling CME options" (https)
 ```
 
 `?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3038`, origin
@@ -83,7 +108,9 @@ relay.
 
 ### Verification record
 
-**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `view=dm&dm=ana&profile=1`: tablist **Profile sections** reads Info, Media, Links, To-dos. **Limitations:** `/chat/` only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`33`).
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `?profile=1`: **Profile sections** Info, Media, Links, To-dos. `fixture.html` on both hosts: three **Working on** regions; on `/rooms/` the counts, the state dots and **Open Backfilling CME options**. **Limitations:** the live agent-status subscription is pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `view=dm&dm=ana&profile=1`: tablist **Profile sections** reads Info, Media, Links, To-dos. **Limitations:** `/chat/` only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`33`).
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room&profile=1`: the **Profile sections** tablist mounts. **Limitations:** the tabs and `card=1` were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
 

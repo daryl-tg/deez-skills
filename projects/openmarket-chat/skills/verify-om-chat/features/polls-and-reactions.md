@@ -167,7 +167,9 @@ session.
 
 ### Verification record
 
-**Last verified:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `fixture.html?surface=reaction-polish`: hover the row, **See who reacted** opens the dialog **Reactions**. **Limitations:** polls and reaction scenes only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`38`).
+**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `fixture.html?surface=reaction-polish`: **See who reacted** opens **Reactions**. **Limitations:** polls and scenes only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+
+**Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `fixture.html?surface=reaction-polish`: hover the row, **See who reacted** opens the dialog **Reactions**. **Limitations:** polls and reaction scenes only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`38`).
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160): `poll-results-fixture` **Final results · 14 votes**; `fixture.html?surface=reaction-polish` → hover the row → **See who reacted** → the **Reactions** dialog (the tools are `display: none` until hover; see Gotchas). **Limitations:** the scene families and the vote settle were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`react-02`).
 
