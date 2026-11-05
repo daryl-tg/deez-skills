@@ -122,6 +122,28 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   switches the symbol without the full dialog.
 - `sym-forex` a typed currency leads with its dollar pair in market order, and
   a typed metal or forex pair is listed at once.
+- `sym-om-series` a pane holding the operator's own om series (`OM`
+  `series:<id>`, pushed by the om daemon) lists it under `YOUR SERIES` in both
+  pickers, and a pick switches back and repaints it with no daemon push.
+
+- **`sym-om-series`, driven 2026-11-05 on branch `daryl/om-series-picker`
+  (`c2dbec6f8d`, unmerged), guest lane `18111` with the gateway unreachable.**
+  A guest lane has no collab socket, so seed the store the way
+  `collab.applySetSeries` would: export a real frame from the om DB
+  (`collab_sticky_payloads.payload_json`, `kind='series'`), then in the page
+  `import('/chart/src/utility/chart/om-series.util.ts')`, `parseSetSeriesData`
+  it, `useOmSeriesStore().clearSession(<selectedWorkspace shortId or id,
+  guest-workspace>)` and `apply` it. Skip the `clearSession` and the painter
+  stays off (`OmSeriesHost` `selectionMatchesSession`), so the pane switches
+  and reads 0 rows. Seeded on `COINBASE BTC-USD` the frame applies as
+  `consumed`. A click on the symbol button opens the full dialog with
+  `asset-list-section-om-series` above Assets and
+  `asset-list-om-series-series:<id>-btn` (accessible name = the series title);
+  a resting pointer opens the quick list with the same `YOUR SERIES` row.
+  Either pick: pane `OM series:<id>`, `mainOwner[0]` set, main `rawData` 1900
+  rows, last value equal to the frame's. `footer-undo-btn` back to the market
+  and a second pick repainted all 1900 rows. A typed `claude` kept the block,
+  `zzzq` hid it. Dialog rows are click-only.
 
 - **`sym-forex`, driven 2026-11-05 on `87a325f4ab` (`105356d766`,
   `0b49c541a9`, `6ff6849f09`).** The search no longer asks the gateway for
