@@ -1,5 +1,7 @@
 # Roster ACP host launch and teardown
 
+*Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted at 19:18Z with no guest 429, host load average 10 falling to about 3.3. `__roster-acp claude /usr/bin/true` from the source CLI exit 2 `om __roster-acp must run in its own process group (spawn it detached) or under the roster guardian.` Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/roster-acp.txt`).*
+
 *Re-driven 2026-11-05 (nightly), tree `3a0ea623e` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted in 2 s at 19:19Z with no guest 429, host load average about 4.4. `__roster-acp claude /usr/bin/true` from the source CLI exit 2 `om __roster-acp must run in its own process group (spawn it detached) or under the roster guardian.` Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`cli/roster-acp.out`).*
 
 *Re-driven 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted in 2 s at 19:19Z with no guest 429, host load average about 3.5. `__roster-acp claude /usr/bin/true` from the source CLI exit 2 `om __roster-acp must run in its own process group (spawn it detached) or under the roster guardian.` The teardown ladder was not driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`cli/193`).*

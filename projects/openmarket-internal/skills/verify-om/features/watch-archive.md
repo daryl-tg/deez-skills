@@ -1,29 +1,80 @@
 # Watch archive and the auto-archive sweep
 
-*Verified 2026-11-05 on branch `daryl/watch-archive-sweep` (PR #2357, tree `33bd51ea2` over main `a0a8c7b8b`, v0.492.0), lane on 18103, source build. #2357 merged to main as `9bbf2de24` with the same tree; the next pass re-proves it on main. Driven: the daemon sweep on reboot, `watch archive` with one refusal, `watch remove` on an archived id, `watch unarchive`, `watch list --archived`, `config get watch.auto_archive`. Not driven: the TUI and GUI (no archived view exists), a delivered notice (the lane had no channel, so it stayed held). Evidence: `http://127.0.0.1:8098/watch-archive-sweep/r1/`.*
+*Re-driven 2026-11-06 (nightly) on main, tree `50fcc594b` (origin/main, v0.492.0; #2357 squashed as `9bbf2de24`), guest lane on 18163, booted at 19:18Z with no guest 429; a guest lane boots fine when the guest sign-in answers. Driven: `config get watch.auto_archive` (`unset (default: on)`); the sweep on reboot after a rewind, which logged `auto-archive archived 1, refused 1 (probe-upstream: watch_has_consumers)` and held the notice `Archived 1 unused watch` (`Paused 30+ days: 1`, `See:`, `Undo:` rows); `watch list --archived`; `watch archive probe-upstream probe-quiet` (one archived, one refused, exit 1); `watch remove` on an archived id (exit 2); `watch unarchive`; MCP `watch_unarchive`. Not reproduced: the finished-7-days branch (an expired once-condition was kept; README, known product gaps). Not driven: a delivered notice, any archived view in the TUI or GUI. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/arch-*`, `cli/mcp-stdio.jsonl`).*
 
-## What it is
+*Verified 2026-11-05 on branch `daryl/watch-archive-sweep` (PR #2357, tree `33bd51ea2` over main `a0a8c7b8b`, v0.492.0), bare lane on 18103, source build: the sweep archived 2 (a paused watch and a finished once-condition) and refused 1. Evidence: `http://127.0.0.1:8098/watch-archive-sweep/r1/`*
 
-- `om watch archive <id...>` pauses each watch, then moves `watches/<id>.json` to `watches/archive/<id>.json`. No live reader looks in the subfolder.
-- `om watch unarchive <id>` moves it back paused, with `updated_at` restamped.
-- `om watch list --archived` (`watch_list` `archived: true`) lists the archive with who archived each and why.
-- The `watch-archive` daemon lane runs on the housekeeping tick, gated to once per 24 h by the settings row `watch_archive_sweep_at`. It takes a watch paused 30+ days with no fire, or one whose every source ended 7+ days ago. `watch.auto_archive` (default on) turns it off.
+`om watch archive <id...>` pauses each watch and moves it out of the live list
+into an archive. `om watch unarchive <id>` brings it back, paused. `om watch
+list --archived` shows the archive with who archived each watch and why. Once a
+day the daemon archives watches paused 30+ days with no fire, and watches whose
+every source ended 7+ days ago, and holds one notice listing them. A watch that
+another watch reads is never archived. `watch.auto_archive off` turns the sweep
+off.
 
-## Recipe
+## Sub-features
 
-1. The lane must boot with no guest mint: `--env OM_API_KEY=om_dummy_proto` plus every service URL at `http://127.0.0.1:9` (see the bare-lane recipe). A keyless lane died after its banner on a guest 429.
-2. Seed through the lane CLI: two `--inbound` watches paused (`probe-paused`, `probe-upstream`), one running (`probe-quiet`), `probe-reader --upstream probe-upstream`, and a once condition with `--once --expires <future>` (`probe-finished`).
-3. `control-om down`, then rewind with a scratch Bun script against the lane home:
-   - `updated_at` 31 days back on the two paused watches;
-   - the condition source's `expires_at` 8 days back;
-   - `watch_archive_sweep_at` in `om.sqlite` `settings` 25 h back.
-   The first boot's empty pass already stamped the gate, so without the rewind the sweep waits a day.
-4. `control-om up` again. Within seconds the lane log reads `auto-archive archived 2, refused 1 (probe-upstream: watch_has_consumers)`. `watches/archive/` holds `probe-paused` and `probe-finished`.
-5. The digest is in `undelivered_notices` and `notis_notices` (`held`): `Archived 2 unused watches`, `Paused 30+ days: 1`, `Finished 7+ days: 1`, `See:` and `Undo:` rows.
-6. `watch archive probe-upstream probe-quiet` archives one and refuses one (exit 1). `watch remove probe-paused --yes` on an archived id refuses `it is archived` (exit 2). `watch unarchive probe-paused` answers `Unarchived probe-paused: paused`.
+- `archive`: `watch archive <id...>` moves `watches/<id>.json` to
+  `watches/archive/<id>.json`. A watch with readers is refused `Not archived
+  <id>: read by <reader>` / `Fix: archive or edit <reader> first`; the command
+  exits 1 when any id is refused and ends with `Undo: om watch unarchive <id>`.
+- `unarchive`: `watch unarchive <id>` answers `Unarchived <id>: paused` and
+  `Resume: om watch resume <id>`.
+- `list`: `watch list --archived` prints `<id>  <label>  <kinds>  archived
+  <date> · <reason>` (`paused 30+ days`, `manual`), then `Unarchive: om watch
+  unarchive <id>`. JSON puts them under `archived[]` with `{at, by, reason}`.
+- `remove-guard`: `watch remove <archived id> --yes` exits 2 `not removed: it
+  is archived` with `om watch unarchive <id>, then remove it`.
+- `sweep`: the housekeeping tick runs it once per 24 h, gated by the settings
+  row `watch_archive_sweep_at`. It skips package, paper-desk and money-step
+  watches and broken running ones (`runner/watching/archive-sweep.ts:20-100`).
+- `notice`: one held or delivered notice, `Archived N unused watch(es)`, with
+  a row per reason, `See: om watch list --archived` and `Undo: om watch
+  unarchive <id>`.
+- `mcp`: `watch_archive` and `watch_unarchive` are on MCP stdio.
+
+## How to get to it (user POV)
+
+Run `om watch archive <id>` on a watch you no longer use, or leave the daily
+sweep on. `om watch list --archived` shows what went, and `om notis` the
+sweep's notice. There is no archived view in om chat or the dashboard.
+
+## Driving it with control-om
+
+Preconditions: a lane the run started. The first boot's empty sweep stamps the
+gate, so the sweep needs its clocks rewound with the lane stopped.
+
+1. Seed through the lane CLI: `--inbound` watches `probe-paused`,
+   `probe-upstream` and `probe-quiet`; `probe-reader --upstream
+   probe-upstream`; a once condition with `--once --expires <future>`
+   (`probe-finished`). Pause `probe-paused` and `probe-upstream`. Put the
+   commands in a script under the scratch folder: inline JSON in a
+   `control-om` call trips the worktree guard in an isolated session.
+2. `control-om down`, then with a scratch Bun script against
+   `.control-om/home-<port>/accounts/guest/`:
+   - set `updated_at` 31 days back in `watches/probe-paused.json` and
+     `watches/probe-upstream.json`;
+   - set the condition source's `expires_at` 8 days back in
+     `watches/probe-finished.json`;
+   - set `watch_archive_sweep_at` in `om.sqlite`'s `settings` 25 h back.
+3. `control-om up` again. Within seconds the lane log has `auto-archive archived
+   N, refused 1 (probe-upstream: watch_has_consumers)` and `watches/archive/`
+   holds `probe-paused`. On the branch run N was 2 with `probe-finished`; on
+   main tonight it was 1.
+4. `control-om om -- notis` shows the held notice; `watch list --archived`
+   shows `probe-paused … paused 30+ days`.
+5. `watch archive probe-upstream probe-quiet` archives one and refuses one
+   (exit 1). `watch remove probe-paused --yes` exits 2. `watch unarchive
+   probe-paused` answers `Unarchived probe-paused: paused`.
 
 ## Gotchas
 
-- The kernel logs an archive move as `removed <id> (watch_archive, mutation kernel)`. That is the move, not a delete.
-- `control-om` calls with JSON or computed values trip the worktree guard in an isolated session. Put the seed steps in a script under `.control-om/` and run `bash .control-om/<script>.sh`.
-- The dashboard on a source lane without `bun run build:dashboard` shows only the stub page, so it is no evidence for this surface.
+- The kernel logs an archive move as `removed <id> (watch_archive, mutation
+  kernel)`. That is the move, not a delete.
+- The sweep runs within a second of boot. An enabled condition watch whose
+  facts are not read yet is kept (`unread`), which may be why the rewound
+  condition stayed live on main; rewinding its file did not make `watch show`
+  read it as ended.
+- A paused upstream still has readers, so the sweep refuses it by design.
+- The dashboard on a source lane without `bun run build:dashboard` shows only
+  the stub page, so it is no evidence for this surface.

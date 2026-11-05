@@ -1,5 +1,7 @@
 # Chat workspace TUI (`om chat`)
 
+*Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), bare lane on 18165 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18164, tmux 140x40, three accept_all fires on `ws-fired`. A fresh home opened the workspace with `What's new · 1 of 14` (`Workspace is now the default`) and ctrl+x `.` showed `2 of 14` `Agents show what they work on`; the `While you were away` band listed the three stories. A click on the FIRES row `Pool reopens` opened its card with the foot `esc close · enter open · l link · r read more` and `Source  example.com`; `r` grew it with the foot `… r less · [om watch history ws-fired]`, `r` shrank it, `l` left it open, and Enter opened the one-frame watch page (Latest on the left, Settings on the right, `nothing kept yet` / `[h] shows the 3 filtered-out items`). `h` listed the three fires as `filtered out … not sent: no notification channel`; `/` opened `search: ▏  enter keeps · esc clears`, `sauna` narrowed to one row, Enter kept `search: "sauna" · / edits · esc clears`, `zzz` read `nothing matches the search`, and Esc cleared it before Esc went back. `/watches` and `/usage` opened as list-and-panel frames. Not driven: the transcript card's `r`, the wheel in a grown card, a step's on/off switch, `/notis`, `/follows`, `/packages`, `/wallet`, the provider picker, the away-story click. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`tui/01-open.txt` to `tui/20-usage-page.txt`).*
+
 *Re-driven 2026-11-05 (nightly), tree `3a0ea623e` (origin/main, v0.492.0), bare lane on 18165 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18164, tmux 140x40. A fresh home opened the workspace with `What's new · 1 of 11` and ctrl+x `.` paged all eleven titles; ctrl+x `a` opened the agents overlay; `/setup` then one Esc repainted the chat and sidebar at once (#2326); `/provider` and `/provider 1` answered `No AI providers connected yet.` on the env-configured fake provider (#2311; the picker needs a stored credential). Not re-driven: the sidebar card clicks, the panel picker, `om sidebar set`, the away-band click (#2315). Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`tui/10`…`tui/17`).*
 
 *Re-driven 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0), guest lane on 18163 with seeded watches and fires, fake model on 18164, private tmux server at 140x40. Plain `launch.sh` opened the workspace (`1 1`): no top bar, `▾ WATCHES  3 fired · 0 paused` with nine rows (`lane-agent`, `cond-probe`, `calendar-probe` and the feed `broken` on a keyless lane), `▾ FIRES  5 today`, the `While you were away · 5 events, 5 stories` banner and `catch-up  down 6m`, and the What's new card `1 of 8`. ctrl+x listed `b hide sidebar`, `p panels`, `a agents` (new, #2282), `w What's new: turn it off`, `x`, `.`, `,`; ctrl+x `.` paged through all eight entries (titles above). A fake-model turn streamed `reply 2 line 1…6`. The mode line `⏵⏵ auto-approve on` and the footer start at column 3, where the input's text starts after `❯ ` (#2285). `--no-workspace` opened plain chat (`1 0`), replayed the turn and showed `What's new · 1 of 7` on `Your agents draw themselves`. Not re-driven: the panel picker, card clicks and scroll, `om sidebar set`, the AGENTS sidebar module, Turn it off. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`tui/01-03`, `tui/14-15`, `tui/20`).*
@@ -64,7 +66,11 @@ announces the change on a **What's new** card that turns it off in one press.
 - `watches-module` — `N fired · M paused` header in plain ink. The dot's colour is health (#2219): green ok, yellow `late` or `needs you`, red `broken`, no colour `◌` paused. Its fill is recency: `●` fired in 24 h with an ink age, `○` quiet. A watch whose only broken rows are late source clocks (`source_stale`, `source_never_checked`) reads `late` in yellow and shows under `show attention`; that state is unit-tested only (a lane cannot stage a source overdue while om runs). The FIRES `N today` header is ink. The footer drops its watch count while the sidebar shows.
 - `watch-card` — a click opens State, Source, Value, Chain, Recent fires beside the clicked row (its top level with the row, or ending on it near the bottom); Esc or a click in the chat closes it, while a click on the card or a drag across the chat leaves it open.
 - `card-scroll` — (on main since #2207) the card fits the body's rows; the wheel over it scrolls its body under a pinned foot with a `┃` thumb and never moves the chat. A watch card lists 20 recent fires.
-- `card-open-page` — (on main since #2207) the foot reads `esc close · o open · [om …]` on watch, fire and usage cards; `o` on an empty composer opens the watch page (a fire: its watch) or `/usage`; with a draft `o` types. Paper, positions and calendar read `esc close · [om …]`.
+- `card-open-page` — (#2207; Enter since #2328) the foot reads `esc close · enter open · [om …]` on watch, fire and usage cards; Enter on an empty composer closes the card and opens the watch page (a fire: its watch) or `/usage`; with a draft, Enter sends it and the card stays. `o` now always types. Paper, positions and calendar read `esc close · [om …]`.
+- `read-more` (#2307): `r` on an empty composer grows a sidebar or transcript card in place to the transcript's size, the foot reads `r less`; PgUp, PgDn and the wheel scroll it, `r` shrinks it, Esc closes it. A fire shows its whole text, link, source and delivery.
+- `fire-link` (#2363): `l` on an empty composer opens a fire card's link in the browser and leaves the card open; the foot reads `esc close · enter open · l link · r read more`. A fire with no link has no `l`.
+- `latest-search` (#2363): `/` on a watch page opens `search: ▏  enter keeps · esc clears` under Latest and narrows it as you type; Enter keeps `search: "<text>" · / edits · esc clears`; no match reads `nothing matches the search`; Esc clears the search before it leaves the page.
+- `page-frame` (#2309): the watch page is one screen, Latest on the left and Settings on the right (rows you change in place, each with its `[key]`); `/watches`, `/news fires`, `/notis`, `/follows`, `/packages`, `/usage` and `/wallet` show a list with a detail panel that follows the cursor. `/watches` rows carry no icons.
 - `fire-card-click` — (#2225, on main since `b85950bb7`, v0.480.2) a left click on a fire card in the transcript opens the sidebar's fire card (one `fireDetailCard` for both entry points) level with the clicked line at the transcript pane's right edge: beside the sidebar, or two columns from the screen's edge with the sidebar hidden; it needs 110 columns either way. On a folded card a story line opens that story; the title and the `+N earlier` line open the newest. Esc closes it, `o` opens the watch page, press-and-drag still selects text, and plain `om chat` (no mouse) is unchanged.
 - `sidebar-layout` — `om sidebar` / `set <module...> [--watches-show all|fired|attention]` / `reset`; the agent tool `sidebar_layout` (terminal chat only).
 - `paper-module` — one row per paper account (name, cash, realized P&L), `N accounts` header.
@@ -72,7 +78,7 @@ announces the change on a **What's new** card that turns it off in one press.
 - `fires-module` — on by default under WATCHES: every watch's newest fires, two lines a fire (title and age, then the watch), `N today` header, a card per fire. A home with a stored layout keeps it; `om sidebar reset` takes the default.
 - `collapse` — a click on `▾ NAME` folds a panel to `▸ NAME`, stored as `collapsed` in the layout.
 - `command-menu` — ctrl+x opens a centered `ctrl+x commands` menu of the keys it takes next (`b` hides or shows the sidebar, `p` opens the panel picker). A listed key, enter or a click runs a row; esc, ctrl+x or a click outside closes it; any other key closes it and types. It scrolls past 8 rows.
-- `whats-new-card` — a 49-column `What's new` card at the foot of the transcript pane (or above the composer in plain chat), one entry per recent CHANGELOG item, newest layout switch first. On a fresh home at v0.492.0 it reads `What's new · 1 of 11`: `Workspace is now the default` / `Chat, sidebar and composer on one screen.` / `Prefer the scrollback chat? Turn it off.` / `[ Turn it off ]   ctrl+x for commands`; the eleven entries, in order, are `Workspace is now the default`, `Your agents draw themselves`, `A page for each agent`, `Tune an agent with words`, `An agent is a folder`, `Portraits that move`, `Pick your AI provider`, `Give a watch's agent your ask`, `Pause Firecrawl offers`, `MCP clients write in your voice`, `Nerd Font icons` (see [chat icons](./chat-tui-icons.md)). Plain chat leaves out the workspace entry, so it reads one fewer and opens on `Your agents draw themselves`. The count grows with each release that adds a `whats-new` block; assert on the entry titles, not the ordinal. The `‹ ›` arrows, ctrl+x `.` (next) and ctrl+x `,` (previous) page; ctrl+x `w` runs the entry on screen (`What's new: turn it off` on the first); ✕ or ctrl+x `x` dismisses it (stored in `tui.whats_new.dismissed`). `Turn it off` stores `chat.workspace off` and reopens the same conversation as plain chat with no card. An entry shows only within 60 days of its date, only while its setting is not already applied, and at 49 columns or wider; the workspace entry shows only in a workspace, and an entry that turns the workspace on only in plain chat at 110 columns or wider (`shared/whats-new.ts:69-80`).
+- `whats-new-card` — a 49-column `What's new` card at the foot of the transcript pane (or above the composer in plain chat), one entry per recent CHANGELOG item, newest layout switch first. On a fresh home at `50fcc594b` it reads `What's new · 1 of 14`: `Workspace is now the default` / `Chat, sidebar and composer on one screen.` / `Prefer the scrollback chat? Turn it off.` / `[ Turn it off ]   ctrl+x for commands`; the fourteen entries, in order, are `Workspace is now the default`, `Agents show what they work on`, `Archive the watches you stopped using`, `Search a watch's Latest list`, `Your agents draw themselves`, `A page for each agent`, `Tune an agent with words`, `An agent is a folder`, `Portraits that move`, `Pick your AI provider`, `Give a watch's agent your ask`, `Pause Firecrawl offers`, `MCP clients write in your voice`, `Nerd Font icons` (see [chat icons](./chat-tui-icons.md)). Plain chat leaves out the workspace entry, so it reads one fewer and opens on `Agents show what they work on`. The count grows with each release that adds a `whats-new` block; assert on the entry titles, not the ordinal. The `‹ ›` arrows, ctrl+x `.` (next) and ctrl+x `,` (previous) page; ctrl+x `w` runs the entry on screen (`What's new: turn it off` on the first); ✕ or ctrl+x `x` dismisses it (stored in `tui.whats_new.dismissed`). `Turn it off` stores `chat.workspace off` and reopens the same conversation as plain chat with no card. An entry shows only within 60 days of its date, only while its setting is not already applied, and at 49 columns or wider; the workspace entry shows only in a workspace, and an entry that turns the workspace on only in plain chat at 110 columns or wider (`shared/whats-new.ts:69-80`).
 - `setup-esc` (#2326): `/setup` opens the CONNECTIONS page (`ACCOUNT`, `AI PROVIDERS`, `ADD A CHANNEL`); one Esc repaints the split-view chat at once, transcript and sidebar, rather than leaving the pane blank.
 - `provider-picker` (#2311): a bare `/provider` opens a picker titled `provider · esc keeps <current>` with `<provider> ← current` rows and `can't answer: <cause>` on a provider that cannot; `/provider <name|#>` answers `Provider switched to …`, `… is already active`, or `… can't answer: <cause>.` with the fallback that answers meanwhile. A provider given only by `OPENMARKET_LLM_*` env (the fake-model lane) is not a connected provider: `/provider` answers `No AI providers connected yet. \`/setup\` connects one.` and `/provider 1` adds `(or \`om init\` from a shell)`, while the footer reads `openai-compatible/fake`. The picker itself needs a stored provider credential (live verification pending).
 - `away-story-click` (#2315, source only): in the `While you were away` band a click on a story row opens that fire's card (Esc closes it); the quiet, failing and `/news for the rest` rows open nothing. Live verification pending: it needs fires landing during an away window and SGR mouse input through tmux.
@@ -168,12 +174,12 @@ nothing, and it streams long replies, which the scroll checks need.
 - **What's new card (fresh lane).** It needs a home with `chat.workspace` unset
   and no dismissals. Run `./launch.sh` with no flag and wait about 15 s. The
   workspace opens (`display -p '#{mouse_any_flag} #{alternate_on}'` reads `1 1`)
-  with a `╭─ What's new · 1 of 11 ── ‹ › ✕ ╮` box at the foot of the transcript pane:
+  with a `╭─ What's new · 1 of 14 ── ‹ › ✕ ╮` box at the foot of the transcript pane:
   `Workspace is now the default` and `[ Turn it off ]   ctrl+x for commands`.
   `C-x` opens a menu with `b hide sidebar`, `p panels`, `a agents`
   (see [agents-cli-and-tui.md](agents-cli-and-tui.md)),
   `w What's new: turn it off`, `x What's new: close this one`, `. What's new: next`
-  and `, What's new: previous`. `.` pages to the next entry (`Your agents draw themselves`), and the `w` row then
+  and `, What's new: previous`. `.` pages to the next entry (`Agents show what they work on`), and the `w` row then
   reads `turn it on` (it follows the entry on screen). On the first entry press
   `C-x` then `w`: the chat reopens plain (`0 0`), with no card, and
   `control-om om -- config get chat.workspace` reads `chat.workspace = off` /
@@ -228,11 +234,11 @@ nothing, and it streams long replies, which the scroll checks need.
   with the clicked row. Press Escape: the card closes. The flip near the
   bottom needs more rows than the lane seeds; `tui-workspace-mode.test.ts`
   pins it at 140x28.
-- **Card scroll and `o` (on main since #2207).** Seed a
+- **Card scroll and Enter (#2207; Enter replaced `o` in #2328).** Seed a
   second accept_all watch with 20 pushes (`event push … --text "<run> Story NN …"`
   from a script file; the worktree guard refuses a computed loop inline).
   Click its row: the card fills the body, shows a `┃` thumb in its right
-  border and the pinned foot `esc close · o open · [om watch show <slug>…`.
+  border and the pinned foot `esc close · enter open · r read more · [om watch show <slug>…`.
   - Scroll: `raw $'\e[<65;70;15M'` five times scrolls the body to its end
     (the 20th fire shows, the thumb sits low, the foot stays). Compare
     columns 1-49 of the captures before and after: identical.
@@ -240,11 +246,11 @@ nothing, and it streams long replies, which the scroll checks need.
     turn, reopen the card, wheel up (`64`) over it twelve times (columns
     1-49 unchanged), then the control at column 20, which moves the
     transcript (`reply 1 line 37` becomes `line 35`).
-  - `o` on an empty composer opens the watch page (`👀 <slug>`, LATEST tab).
+  - Enter on an empty composer opens the watch page (`👀 <slug>`, Latest beside Settings).
     From a FIRES card it opens the watch that fired.
-  - Type `n` then `o` with the card open: the composer reads `❯ no` and the
-    card stays.
-  - One Esc from the page `o` opened lands on the chat (since `fab6211db`;
+  - Type `n` then Enter with the card open: the draft sends and the card
+    stays. `o` types like any letter.
+  - One Esc from the page Enter opened lands on the chat (since `fab6211db`;
     before it, on the `/watches` list). A typed `/watches <slug>` still
     steps back to the list on Esc, so after one, check where Esc landed
     before the next click, or the click lands in the list. Evidence:
@@ -304,14 +310,14 @@ nothing, and it streams long replies, which the scroll checks need.
   `event push ws-fired --text "<run-unique>" --title "<headline>" --summary "<one line>" --kind filing --format json`;
   the card lands in the transcript within 5 s (`capture-pane -p`, grep the headline for its row). Click it with
   `raw $'\e[<0;COL;ROWM'; raw $'\e[<0;COL;ROWm'` (1-based) and expect a `╭─╮` box whose foot reads
-  `esc close · o open · [om watch history ws-fired]`, its top border on the clicked row and its right border at the
+  `esc close · enter open · [om watch history ws-fired]` (plus `l link` when the fire has a URL and `r read more`), its top border on the clicked row and its right border at the
   divider. A push with no `--title` draws `filing · new story` as the fire's words, so title the pushes you need to
   tell apart. Two pushes a few seconds apart fold into `N updates since HH:MM` with one story row each (a `wake` or
   hint band between them starts a new card instead); click a story row for that fire, the title row for the newest.
-  `o` opens the watch page (esc returns). ctrl+x then `b` hides the sidebar; the same click then puts the box at
+  Enter opens the watch page (esc returns). ctrl+x then `b` hides the sidebar; the same click then puts the box at
   column 138 of 140. `capture-pane -e` keeps the colours for a PNG render.
   A fire whose watch was removed opens a card reading the headline, a blank
-  row and `no longer stored`, with the foot `esc close · o open` and no
+  row and `no longer stored`, with the foot `esc close · enter open` and no
   command (driven 2026-10-31). The card's right border sits two columns left
   of the divider, and its bottom border lands ON the clicked row when the card
   would otherwise run past the pane's bottom.

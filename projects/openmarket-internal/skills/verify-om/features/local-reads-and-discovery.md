@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted at 19:18Z with no guest 429, host load average 10 falling to about 3.3. `config show` (masked key), `setup default`, `enum --domain exchange_id` (38), `wrun templates` 93 (new: `dark-pool-prints`), `wrun create @vom/probe116 <dir> --template dark-pool-prints` (`.wrun-scaffold` `116`, `dark_pool` and `plot.flags` in the files), `schema read condition_create`, `skill list`, `notis` (the archive notice, `held`), `persona show`, `memory list` (the migrated memories), `approvals list` and `--kind bogus`, `approve nope`; `todo list|get|label list|similar --space openmarket` all `room_social_failed` 401; `agent status set|clear` exit 2 `Guests can view but not chat — sign up to participate`. Not re-driven: `wrun build`, the away reads. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/config-show.txt`, `cli/todo-*`, `cli/agent-status-*`, `cli/wrun-*`).*
+
 *Re-driven 2026-11-05 (nightly), tree `3a0ea623e` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted in 2 s at 19:19Z with no guest 429, host load average about 4.4. `config show` (masked key), `enum --list` (`exchange_id` 38), `wrun list`, `wrun templates` 92, `skill list`, `schema read condition_create`, `config get chat.motion` (`stored as tui.motion`), `approvals list` `[]`, `notis`, `persona show`; `todo list --format json` without `--space` exits 1 `required option '--space <spaceId>' not specified`. Not re-driven: `wrun create`, the memory round trip. Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`cli/config-show.out`, `cli/enum-list.out`, `cli/todo.out`).*
 
 *Re-driven 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0), guest lane on 18163, booted in 2 s with no 429. `enum --list` (`exchange_id` 38, with `CBOT`, `NYMEX`, `COMEX` after `CME`, #2283), `schema read condition_create` (`watch read` is `unknown_intent` listing the intents), `skill list` (`openmarket`, `openmarket-watch`, `openmarket-watch-prompts`; it takes no `--format`), `config show` (masked key), `config get firecrawl.offers` (`unset (default: on)`) and `chat.motion` (`stored as tui.motion`), both refusing a non on/off value, `wrun templates` 92, `wrun create @vom/probe … --template sma` writing `.wrun-scaffold` `{"scaffold_version": 113}`. New: the approvals inbox (`list`, `--kind`, `--kind bogus`, `approve nope`, `/rpc/v1/approvals/inbox`) and the `om todo` refusals. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`cli/80-86`, `cli/100-105`, `cli/170-177`).*
@@ -39,7 +41,7 @@ bundled constants. None needs an account or a model.
   key claims (tier, expiry), and one setting's effective value, source, rule and
   default.
 - `config-set` / `config-list` (added 2026-11-02): about 85 settings keys live in
-  `CONFIG_KEYS` (`packages/cli/src/cmd/config-keys.ts:156`, rendered into
+  `CONFIG_KEYS` (`packages/cli/src/cmd/config-keys.ts:157`, rendered into
   `docs/CONFIG_KEYS.md`). `config get <key> --format json` reads `key`, `value`,
   `source` (`default` or `config`), `rule`, `default` and `description`;
   `config set charts.auto_open false` then `get` reads `value "false"`,
@@ -127,6 +129,8 @@ with no account:
 | `approve nope` | exit 2 `nope is not an approval id` / ``Run `om approvals list` to see pending ids.`` |
 | `todo get 12` (#2291) | exit 1 `12 is a ticket number, which names a ticket only within its server` / `Pass spaceId and number.` |
 | `todo list --space x --format json` | exit 1 `room_social_failed` `Unauthorized` (401): a guest key reaches the relay and is refused; a real ticket needs a rooms account. Over MCP stdio `todo_get` answers `not_badge_bound`. |
+| `todo label list`, `todo similar <words>`, `todo get <n>` with `--space openmarket --format json` (#2341, #2342; driven 2026-11-06, `50fcc594b`) | each exit 1 `room_social_failed` `Unauthorized` (401), like `todo list`. The write verbs (`create`, `update`, `comment`, `follow`, `delete`, `label create\|rename\|merge\|delete`) need a rooms account; over MCP stdio `todo_create` answers `not_badge_bound`. |
+| `agent status set --file <json>` / `agent status clear` (#2359; driven 2026-11-06) | exit 2 `Guests can view but not chat — sign up to participate`: the status rides the relay as the signed-in user. |
 | `setup default` (driven 2026-10-31, `dfefe0a21`) | `{"default":null,"routing":"none","targets":[]}`; the verb's default `--format` is `json`, so a text read needs `--format text` |
 | `setup default nope`, also with `--force` (#2220) | exit 2 `channel_not_found`: `unknown channel 'nope' — no channels are configured`, hint `Run \`om setup list\` …`, `details.channels: []`. The `channel_failing` refusal and the `routing_note` line need a paired channel |
 | `nervous status --format json` | `{enabled:true, dailyBudgetPerSender:null, receipts:[…]}`. After an ingest fire it held a `watch_fired` receipt reading `no canvas resolved for (no symbol), stayed a notification` |
@@ -176,8 +180,8 @@ model.
   `flow-vwap` starter is the thirty-first. A JSON assertion that reads only
   `description` misses this field.
 - **`wrun templates` gained `flow-vwap` in #2235 (`942d0eb54`, v0.480.3), and
-  `WRUN_SCAFFOLD_VERSION` is 113 since #2283 (`bc828f721`;
-  `packages/sdk/src/wrun-sdk-sources.ts:1234`; 108 at #2239, 109 at #2245, 110 at #2246, 111 at #2267, 112 at #2273).** The template sits in group `Order flow`
+  `WRUN_SCAFFOLD_VERSION` is 116 since #2379 (`da1531b1e`;
+  `packages/sdk/src/wrun-sdk-sources.ts:1266`; 108 at #2239, 109 at #2245, 110 at #2246, 111 at #2267, 112 at #2273, 113 at #2283, 114 at #2336, 115 at #2339). #2379 also added the `dark-pool-prints` template (93 in all), whose workspace carries the `dark_pool` input and `plot.flags`.** The template sits in group `Order flow`
   (the chart's price weighted by aggressive options premium, with sigma
   bands). **`wrun create` takes the package name first:** `wrun create
   @you/<name> --template flow-vwap <dir>`; a bare directory is refused

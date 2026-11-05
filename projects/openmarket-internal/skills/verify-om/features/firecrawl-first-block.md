@@ -86,6 +86,8 @@ Recipe, on a run-owned lane with a fixture key:
 3. The lane log (`.control-om/lane-<port>.log`) carries no `[firecrawl-offer]` line while paused. `config set firecrawl.offers on`, and the next pass logs `[firecrawl-offer] <host>: no answer` (no model on a guest lane) and the row returns to `ok`.
 4. `OM_FIRECRAWL_API_KEY=<fixture> control-om om -- setup firecrawl --deny 127.0.0.1 --format json` answers `declined: ["127.0.0.1"]` (the same JSON carries `"action":"allowed"` and `hosts: []`). A bad value, `config set firecrawl.offers maybe`, exits 2 `firecrawl.offers must be on or off.`; on a lane with no key the drain row reads `inactive`, `no Firecrawl key`, whatever the setting.
 
+**Since #2337 (`a664e1a3a`, source only, 2026-11-06) the offer is an approval row.** The drain (`runner/firecrawl/offer-drain.ts`) opens a ledger row that lives 24 h, titled `Read <host> through Firecrawl?` with Watch, Source and Why rows. Only private DMs and om chat show it, `om approvals list` lists it and `om approve <id>` answers it ([approvals-ledger.md](approvals-ledger.md)), `setup firecrawl --deny <host>` closes an open one (`cmd/setup-firecrawl.ts:188`), and pausing the offers stops new rows but leaves open ones. Step 3's `no answer` log line was written before that change: re-check it on the next live pass. Live verification pending: a fixture key and a seeded refusing host.
+
 Not drivable on a guest lane: the card itself (no model) and the exhausted-credits hold (needs a 402 from the vendor fixture); both are unit-pinned in `firecrawl-offer-drain.test.ts`.
 
 ## Gotchas

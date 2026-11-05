@@ -1,5 +1,7 @@
 # Chat TUI icon modes (`chat.icons`)
 
+*Re-driven 2026-11-06 (nightly), count only, tree `50fcc594b` (origin/main, v0.492.0), bare lane on 18165 with a scripted fake model on 18164: the card read `What's new · 1 of 14` and `2 of 14` on a fresh home, so `Nerd Font icons` sits at `14 of 14` by the source's order (not paged to tonight). The switch was not pressed. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`tui/01-open.txt`, `tui/02-whatsnew-2.txt`).*
+
 *Re-driven 2026-11-05 (nightly), ordinal only, tree `3a0ea623e` (origin/main, v0.492.0), bare lane on 18165 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18164: `Nerd Font icons` is entry `11 of 11` on a fresh home. The switch itself was not pressed tonight. Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`tui/11-whats-new-titles.txt`).*
 
 *Re-driven 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0), guest lane 18163, fake model on 18164, tmux 140x40: the workspace card's `Nerd Font icons` entry is now `8 of 8` (`Watch and source icons as Nerd Font glyphs.` / `Boxes? Set chat.icons emoji to go back.` / `[ Turn it on ]`), reached with seven ctrl+x `.`. `Turn it on` was not pressed and the glyphs were not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`tui/03-wn-8.txt`).*
@@ -14,7 +16,7 @@
 
 ## Sub-features
 
-- `whats-new-try`: the card `Nerd Font icons` and its `[ Turn it on ]` button (ctrl+x `w` while that entry is on screen) store `chat.icons = nerd`. It is the last of eleven entries in the workspace (`11 of 11` at v0.492.0; one fewer in plain chat): page to it with ctrl+x `.` (or the card's `›`), and back with ctrl+x `,`.
+- `whats-new-try`: the card `Nerd Font icons` and its `[ Turn it on ]` button (ctrl+x `w` while that entry is on screen) store `chat.icons = nerd`. It is the last of fourteen entries in the workspace (`14 of 14` at `50fcc594b`; one fewer in plain chat): page to it with ctrl+x `.` (or the card's `›`), and back with ctrl+x `,`.
 - `live-switch`: the next `/watches` draw in the same session uses the new mode.
 - `config-key`: `om config get chat.icons` names the key, the `emoji or nerd or ascii` rule and the `tui.icons` row.
 - `env-override`: `OM_TUI_ICONS=nerd|ascii|emoji` outranks the stored setting; an unknown value falls back to the setting.
@@ -28,7 +30,7 @@ Run `om chat` (the workspace by default; `--no-workspace` shows no card), wide e
 1. Seed a few watches with different source kinds (`watch create … --source feed:…`, `--source x:@…`, an inbound watch).
 2. Start chat with no override: `OM_TUI_ICONS= OM_LANE_PORT=<port> control-om om -- chat`, in a terminal multiplexer pane that can be read back.
 3. Read the card, open `/watches`, and capture the emoji rows. Esc.
-4. Press ctrl+x then `.` until the card reads `Nerd Font icons` (`What's new · 11 of 11` on a fresh home at v0.492.0; the ordinal moves as releases add entries), then ctrl+x and `w`. Check `control-om om -- config get chat.icons` reads `nerd`.
+4. Press ctrl+x then `.` until the card reads `Nerd Font icons` (`What's new · 14 of 14` on a fresh home at `50fcc594b`; the ordinal moves as releases add entries), then ctrl+x and `w`. Check `control-om om -- config get chat.icons` reads `nerd`.
 5. Open `/watches` again and read the code points of the first glyph on each row (private-use code points U+E000 to U+F8FF and U+F0000 and up mean nerd mode).
 
 ## Gotchas

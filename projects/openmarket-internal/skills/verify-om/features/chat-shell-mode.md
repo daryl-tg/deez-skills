@@ -1,6 +1,6 @@
 # Chat shell mode (`!` in `om chat`)
 
-*On main since #2362 (squash `a4e42d7bd`, 2026-11-05). The proofs below ran on its branch tree before the merge; not yet re-driven on main.*
+*Re-driven 2026-11-06 (nightly) on main, tree `50fcc594b` (origin/main, v0.492.0; #2362 squashed as `a4e42d7bd`), bare lane 18165 (dummy `OM_API_KEY`, dead service URLs), scratch fake model 18164, tmux 140x40, default workspace. Driven: `enter` (the empty shell composer carries SGR `38;2;209;111;196`), `run` (`!echo vom1106-shell` printed the line, then `exit 0 · 0.0s`), and `agent-reads` (the fake model saw no request for the `!` line; the next message's request carried the command's output and `exit 0`, and the reply said so). Not re-driven on main: `consumed-once`, `recall`, `stop`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`tui/16-bang.txt`, `tui/17-bang-run.txt`, `tui/18-after-msg.txt`).*
 
 *Re-verified 2026-11-05 (r2) after the operator asked for magenta: the shell tone is the new `shell` token `#d16fc4` (SGR `38;2;209;111;196`), 2 sequences on the empty shell composer, 3 on a shell row's bar, 0 teal anywhere. Evidence: `http://127.0.0.1:8098/vom-bang-shell/r2/`.*
 
