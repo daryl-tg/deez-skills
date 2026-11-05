@@ -636,6 +636,63 @@ class AppTest(Seeded):
         self.assertIn("https://github.com/o/r/pull/42", call[4])
         self.assertIn("rebase", logs[0].lower())
 
+    def tells(self, verbs):
+        return [c for c in verbs.calls if c[2:3] == ["tell"]]
+
+    def test_y_approves_what_the_worker_asks_once(self):
+        ticket, _, _ = self.ticket(1, report="waiting", question="push daryl/x and open the PR?")
+        verbs, logs = Verbs(), []
+
+        async def script(app, pilot):
+            await pilot.press("y")
+            await pilot.pause()
+            await pilot.press("y")
+            await pilot.pause()
+            logs.append(app.log_text())
+
+        self.run_app(verbs, script)
+
+        (call,) = self.tells(verbs)
+        self.assertEqual(call[:4], [str(DEEZ), "super-clanker", "tell", ticket.id])
+        self.assertIn("Approved", call[4])
+        self.assertIn("push daryl/x and open the PR?", call[4])
+        self.assertIn("approved", logs[0])
+        self.assertIn("already approved", logs[0])
+
+    def test_clicking_approve_approves(self):
+        ticket, _, _ = self.ticket(1, report="waiting", question="ship it?")
+        verbs, shown = Verbs(), []
+
+        async def script(app, pilot):
+            shown.append(app.query_one("#approve").display)
+            await pilot.click("#approve")
+            await pilot.pause()
+            shown.append(str(app.query_one("#approve").render()))
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(shown[0], True)
+        self.assertIn("APPROVED", shown[1])
+        self.assertIn("waiting on the worker", shown[1])
+        (call,) = self.tells(verbs)
+        self.assertEqual(call[3], ticket.id)
+
+    def test_nothing_to_approve_hides_the_bar_and_y_sends_nothing(self):
+        self.ticket(1, report="progress")
+        verbs, shown, logs = Verbs(), [], []
+
+        async def script(app, pilot):
+            shown.append(app.query_one("#approve").display)
+            await pilot.press("y")
+            await pilot.pause()
+            logs.append(app.log_text())
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(shown, [False])
+        self.assertEqual(self.tells(verbs), [])
+        self.assertIn("nothing to approve", logs[0])
+
     def test_b_without_a_review_asks_nothing(self):
         self.ticket(1, report="progress")
         verbs, logs = Verbs(), []

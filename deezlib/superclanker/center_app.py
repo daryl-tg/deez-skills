@@ -177,12 +177,20 @@ def stale_list_text(stale):
 
 
 MAIN_KEYS = [("TAB", "PANEL"), ("↑↓←→", "MOVE"), ("V", "VIEW"), ("Z", "ZOOM"), ("N", "NEW TASK"),
-             ("^T", "ASK/NOTE"), ("I", "ASK ABOUT TASK"), ("O", "OPEN PR"), ("B", "REBASE PR"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
+             ("^T", "ASK/NOTE"), ("I", "ASK ABOUT TASK"), ("O", "OPEN PR"), ("B", "REBASE PR"), ("Y", "APPROVE"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
 def rebase_request(url):
     return (f"Rebase {url} onto the latest default branch so the operator can merge it. "
             "Fetch, rebase, resolve any conflicts, rerun the tests that cover the change, "
             "push your branch with --force-with-lease from the main checkout, "
             "then report ready with the URL once the forge shows it mergeable.")
+
+
+APPROVE_LABEL = " ✓ APPROVE  · press y or click to say yes to what it asks"
+APPROVED_LABEL = " ✓ APPROVED  · waiting on the worker"
+
+
+def approval(question):
+    return f"Approved. Yes to what you asked: {question} Go ahead."
 
 
 ZOOM_KEYS = [("ESC", "BACK"), ("Z", "BACK"), ("↑↓←→", "MOVE"), ("Q", "QUIT")]
@@ -940,6 +948,11 @@ class RouterPanel(Panel):
         self.app.query_one("#input").focus()
 
 
+class ApproveBar(Static):
+    def on_click(self, event):
+        self.app.action_approve()
+
+
 class RouterLog(RichLog, can_focus=False):
     pass
 
@@ -1187,6 +1200,8 @@ class CenterApp(App):
     #p-blotter {{ height: 1fr; }}
     #p-system {{ height: 10; }}
     #stale-strip {{ height: 1; background: #1A0000; display: none; }}
+    #approve {{ height: 1; background: {YELLOW}; color: #000000; text-style: bold; display: none; }}
+    #approve:hover {{ background: #FFFFFF; }}
     #p-dossier {{ height: 1fr; }}
     #p-router {{ height: 1fr; }}
     Panel {{ border: solid #3A2A00; background: #000000; }}
@@ -1229,6 +1244,7 @@ class CenterApp(App):
         ("i", "inquire", "ask about task"),
         ("o", "open_review", "open review"),
         ("b", "rebase_review", "rebase review"),
+        ("y", "approve", "approve"),
         ("a", "archive_all", "archive stale"),
         ("r", "review", "review stale"),
     ]
@@ -1238,6 +1254,7 @@ class CenterApp(App):
                  projects=Path.home() / ".claude" / "projects", opener=None):
         super().__init__()
         self.root = Path(root)
+        self.approved = {}
         self.verb = verb
         self.deez = Path(deez)
         self.refresh_s = refresh_s
@@ -1296,6 +1313,7 @@ class CenterApp(App):
             with Vertical(id="right"):
                 with Panel(id="p-dossier"):
                     yield Band("DOSSIER", "o open PR · b rebase PR · i ask about it · z full report", name_id="dossier-name")
+                    yield ApproveBar(APPROVE_LABEL, id="approve", markup=False)
                     with VerticalScroll(id="dossier-scroll"):
                         yield Static(id="dossier-text", markup=False)
                 with RouterPanel(id="p-router"):
@@ -1452,6 +1470,7 @@ class CenterApp(App):
         d = self.selected()
         main.query_one("#dossier-text", Static).update(dossier_text(d, False, self.activity_of(d)))
         main.query_one("#dossier-name", Static).update(Text(f"DOSSIER  {d.id}" if d else "DOSSIER"))
+        self.show_approve_bar(d)
         main.query_one("#sysinfo", Static).update(system_compact(self.world))
         rows = ordered(self.world)
         pos = next((i for i, r in enumerate(rows) if d and r.id == d.id), 0) + 1
@@ -1565,6 +1584,30 @@ class CenterApp(App):
             return
         self.say(f"asked {d.id} to rebase {d.review_url}")
         self.submit([str(self.deez), "super-clanker", "tell", d.id, f"--text={rebase_request(d.review_url)}"])
+
+    def show_approve_bar(self, d):
+        bar = self.screen_stack[0].query_one("#approve", Static)
+        bar.display = self.approvable(d)
+        sent = bool(d) and self.approved.get(d.id) == d.question
+        bar.update(APPROVED_LABEL if sent else APPROVE_LABEL)
+
+    def approvable(self, d):
+        return bool(d and d.needs_you and d.question)
+
+    def action_approve(self):
+        d = self.selected()
+        if self.in_zoom() or d is None:
+            return
+        if not self.approvable(d):
+            self.say(f"nothing to approve on {d.id}")
+            return
+        if self.approved.get(d.id) == d.question:
+            self.say(f"already approved {d.id}; waiting on its worker")
+            return
+        self.approved[d.id] = d.question
+        self.show_approve_bar(d)
+        self.say(f"approved {d.id}: {d.question}")
+        self.submit([str(self.deez), "super-clanker", "tell", d.id, f"--text={approval(d.question)}"])
 
     def action_inquire(self):
         d = self.selected()
