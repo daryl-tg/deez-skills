@@ -1,6 +1,6 @@
 ---
 name: principle-never-block-on-reversible-work
-description: "Apply when tempted to ask permission for reversible work. Proceed and present the result. Does not apply to the planning gate or to irreversible actions."
+description: "Apply when tempted to ask permission for reversible work. Proceed and present the result. Does not apply to irreversible actions."
 disable-model-invocation: true
 ---
 
@@ -17,12 +17,10 @@ waiting on attention.
 driving the app for verification, taking notes, splitting tasks, trying an
 approach to see whether it works.
 
-**Two carve-outs, and they are hard.**
+**One carve-out, and it is hard.** A frozen plan is not one. It goes straight
+to subagent execution with no question.
 
-1. **The planning gate.** When a spec or plan is frozen, stop and ask which
-   execution path to take. This is an explicit standing instruction and is made
-   fresh every time, never auto-picked. This principle does not override it.
-2. **Irreversible or outward-facing actions.** Force-push, deploying, deleting
+**Irreversible or outward-facing actions.** Force-push, deploying, deleting
    data, pushing at all, merging, sending a message to another person,
    announcing. Confirm first unless durably authorized. Approval in one context
    does not extend to the next.

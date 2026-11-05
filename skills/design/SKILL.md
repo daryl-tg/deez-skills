@@ -67,9 +67,8 @@ Present the design and **stop**. This gate is not opt-in and is not skipped
 because the design looks obvious. Presenting and starting in the same breath is
 skipping it.
 
-When the spec is frozen, ask which execution path takes it forward. That choice
-is made every time and never auto-picked. This is the standing carve-out from
-**principle-never-block-on-reversible-work**.
+When the spec is frozen, build it through Claude subagents without asking which
+execution path. The design agreement above is the gate. There is no second one.
 
 For architectural work, write the design to the task's dev-notes folder, per
 **principle-planning-docs-live-outside-the-repo**, and have it reviewed before

@@ -6,8 +6,8 @@ orchestrates and never hands the loop away.
 Goals go to the **executor** role as Claude subagents. There is no other
 execution path.
 
-**Entering this playbook pre-answers the execution gate for the whole run.** Do
-not re-ask per goal.
+**This is the default way a frozen plan runs.** There is no execution-path
+question, before the run or per goal.
 
 **Stays with the lead by rule**, whatever the goal says: tiny edits, anything
 needing session-only tools, all git mutations and pushes, and every review or

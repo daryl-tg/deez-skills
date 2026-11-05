@@ -114,9 +114,10 @@ unread.
   ordered landing across repositories or a production rollout that must go out
   in stages. Inside the pass, each unit still ends in a check, per
   **principle-sequence-verifiable-units**.
-- Frozen spec or plan → **stop and ask which execution path**: Claude
-  subagents per task, or the current session inline. This gate is
-  never auto-picked. It is the one carve-out from not blocking.
+- Frozen spec or plan → **build it through Claude subagents, without asking.**
+  Run it through `playbooks/agentic-loop.md`. There is no execution-path
+  question. The lead stays inline only for tiny edits, session-only tools, or
+  when the operator asks for inline.
 - Broken skill mid-task → fix it in its own change. Do not block, do not
   silently work around it.
 

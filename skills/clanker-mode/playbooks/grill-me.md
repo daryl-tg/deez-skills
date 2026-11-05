@@ -22,8 +22,7 @@ decision against outside opinions is **llm-council**, not this.
    the next frontier.
 5. **Stop when the frontier is empty.** Every branch visited, nothing assumed
    silently. Play the settled tree back and act only after the operator
-   confirms it. If the result is a frozen spec, the execution-path question
-   still follows.
+   confirms it. A frozen spec then goes straight to subagent execution.
 
 **Not under a full-autonomy grant.** Inside `playbooks/autonomous-run.md` or
 `playbooks/agentic-loop.md`, decide the calls the grant covers and report each

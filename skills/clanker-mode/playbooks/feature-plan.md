@@ -3,7 +3,7 @@
 **You own the plan and the pass that builds it.** The plan is a checklist the
 build runs box by box and the operator audits from the evidence. Use it for a
 feature too large to build without a written plan. One plan covers the whole
-feature, and the same run builds all of it after the execution gate. It never
+feature, and the same run builds all of it through subagents. It never
 splits into phases, per **principle-sequence-verifiable-units**.
 
 1. **Skip the plan when the change is one or two files with an obvious
@@ -35,10 +35,9 @@ splits into phases, per **principle-sequence-verifiable-units**.
    lesson in structure rather than in prose, per
    **principle-encode-lessons-in-structure**. What it cannot check is whether a
    box is checkable by evidence rather than by opinion. Read for that yourself.
-7. **Ask the execution path, then keep going.** Post the plan path and ask
-   which execution path the operator wants. That gate is never auto-picked.
-   Once it is answered, build every unit in one pass, inline or through
-   `playbooks/agentic-loop.md`. Do not stop between units, and do not hand back
+7. **Post the plan path and keep going.** Do not ask which execution path.
+   Build every unit in one pass through `playbooks/agentic-loop.md`, with Claude
+   subagents as the executors. Do not stop between units, and do not hand back
    a partial build.
 
 **Verification.** Tests alone are not sufficient. A unit is verified when its
@@ -124,4 +123,4 @@ Each question that stays unproven.>
 
 **Reply:** the plan path, the check script's output, the units with their
 dependencies, which units are review-gated, what the prototypes proved and what
-stays unproven, and the execution-path question.
+stays unproven, and the build's result.
