@@ -4,7 +4,7 @@ from pathlib import Path
 from deezlib import plancheck
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PLAYBOOK = REPO_ROOT / "skills/clanker-mode/playbooks/multi-phase-plan.md"
+PLAYBOOK = REPO_ROOT / "skills/clanker-mode/playbooks/feature-plan.md"
 
 GOOD = """# Pinned messages plan
 
@@ -74,7 +74,7 @@ class PlanCheckTest(unittest.TestCase):
 
     def test_the_playbook_skeleton_passes_its_own_checker(self):
         skeleton = plancheck.skeleton(PLAYBOOK.read_text(encoding="utf-8"))
-        self.assertIsNotNone(skeleton, "multi-phase-plan.md carries no fenced skeleton")
+        self.assertIsNotNone(skeleton, "feature-plan.md carries no fenced skeleton")
         self.assertEqual(self.problems(skeleton), [])
 
     def test_missing_how_to_read_fails(self):

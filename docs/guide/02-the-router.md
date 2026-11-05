@@ -28,7 +28,7 @@ Chat and OM Mobile, each with a feature and a completion playbook). Six widen
 the middle, where a plain feature is the wrong shape: prototype before the
 build, grill me when the open questions are the operator's to answer, perf
 issue and forensics when the answer is a number or an artifact, visual parity
-for pixel work, multi-phase plan when the plan is the deliverable.
+for pixel work, feature plan when a feature needs a written plan before the one pass that builds it.
 Four run the loops, one predicate at a time (autonomous run), one metric
 (hillclimb), one plan of goals (agentic loop), or one experiment on the agent
 itself (eval). One films a feature as a continuous UI motion film (product

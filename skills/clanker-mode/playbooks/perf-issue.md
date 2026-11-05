@@ -62,7 +62,7 @@ ties to a measurement. Reading source is not measuring.
 7. Run `playbooks/opening-a-review.md`.
 
 Sustained improvement against a metric, rather than one fix, is a plan of goals.
-Write it with `playbooks/multi-phase-plan.md` and run it with
+Write it with `playbooks/feature-plan.md` and run it with
 `playbooks/agentic-loop.md`.
 
 **Reply:** the baseline number, the post-fix number, the delta, the artifact

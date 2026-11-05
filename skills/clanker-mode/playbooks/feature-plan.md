@@ -1,8 +1,10 @@
-### Multi-phase plan
+### Feature plan
 
-**You own the plan, not the code.** The plan is a checklist an executor runs box
-by box and the operator audits from the evidence. For work that spans phases or
-several reviews. The plan is the deliverable. Do not implement.
+**You own the plan and the pass that builds it.** The plan is a checklist the
+build runs box by box and the operator audits from the evidence. Use it for a
+feature too large to build without a written plan. One plan covers the whole
+feature, and the same run builds all of it after the execution gate. It never
+splits into phases, per **principle-sequence-verifiable-units**.
 
 1. **Skip the plan when the change is one or two files with an obvious
    approach.** Say so and stop. A plan for a one-file change is ceremony that
@@ -19,9 +21,10 @@ several reviews. The plan is the deliverable. Do not implement.
 4. **Write the plan into the task's dev-notes folder** by absolute path, as
    `YYYY-MM-DD-<topic>-plan.md`, per
    **principle-planning-docs-live-outside-the-repo**. Never into the repo. Copy
-   the skeleton below and fill every placeholder. One section per review. One
-   review is one change with its own evidence, per
-   **principle-sequence-verifiable-units**.
+   the skeleton below and fill every placeholder. One section per unit. Every
+   unit is built in the same run and ships in one review, per
+   **principle-sequence-verifiable-units**. Never write a phase 2 or a deferred
+   follow-up. Scope that is in the feature is in the plan.
 5. **Write it to the docs standard.** Draft under **writing-docs**, then
    run **unslop** over it. The body is a how-to.
    Explanation and reference live in the appendices. Every heading states the
@@ -32,16 +35,20 @@ several reviews. The plan is the deliverable. Do not implement.
    lesson in structure rather than in prose, per
    **principle-encode-lessons-in-structure**. What it cannot check is whether a
    box is checkable by evidence rather than by opinion. Read for that yourself.
-7. **Hand back and stop.** Post the plan path, then ask which execution path the
-   operator wants. That gate is never auto-picked, and this playbook ends at it.
+7. **Ask the execution path, then keep going.** Post the plan path and ask
+   which execution path the operator wants. That gate is never auto-picked.
+   Once it is answered, build every unit in one pass, inline or through
+   `playbooks/agentic-loop.md`. Do not stop between units, and do not hand back
+   a partial build.
 
 **Verification.** Tests alone are not sufficient. A unit is verified when its
 unit box and its real-surface box are both checked, per
 **principle-prove-on-the-real-surface**. The real-surface box names the scenario,
 how it is driven through the repo's `verify-<app>` skill, the screenshot it
 saves, and the predicate that passes. A unit that changes an interaction is
-review-gated on the operator seeing it, per
-**principle-visual-approval-gates-delivery**. A unit that changes no interaction
+review-gated on the operator seeing it in the one evidence revision published
+for the whole candidate, per **principle-visual-approval-gates-delivery**. The
+gate is not a stop between units. A unit that changes no interaction
 writes `Review gate. None.` and no boxes under it.
 
 ````markdown
@@ -88,14 +95,16 @@ its unit box and its real-surface box are both checked.
 - [ ] <Scenario.> Driven through `verify-<app>`. Saves `<slug>.png`. Passes when
       <predicate>.
 
-**Review gate.** <The operator reviews the published evidence before delivery.
-Write "None." with no boxes when the unit changes no interaction.>
+**Review gate.** <The interaction the operator reviews in the candidate's one
+evidence revision. Write "None." with no boxes when the unit changes no
+interaction.>
 
-- [ ] Publish the evidence and hold for the operator's sign-off.
+- [ ] Add this unit's evidence to the candidate's revision.
 
 ## Close
 
-- [ ] Every box above is checked with its evidence.
+- [ ] Every box above is checked with its evidence, in one run.
+- [ ] One evidence revision is published and the operator signed it off.
 - [ ] The terminal gate and the family completion playbook ran once, for the
       whole candidate.
 

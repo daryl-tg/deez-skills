@@ -1,7 +1,8 @@
 ### Feature
 
 **You own the design. Plan, review, verify.** Delegate implementation; stay in
-the lead.
+the lead. Plan and build the whole feature in one pass. No phases and no
+deferred follow-ups.
 
 1. Route to the **explore** role over the affected subsystem.
 2. Run the **design** skill for anything crossing a function boundary. Skipping
@@ -21,7 +22,9 @@ the lead.
      serialize.
    - Shared mutable state. Default to splitting the target, per
      **principle-separate-before-serializing-shared-state**.
-   - Smallest safe decomposition. If one worker is best, name why.
+   - One owner by default. The whole feature goes to one worker with the
+     whole plan, never phase by phase. Split off a workstream only when its
+     files are disjoint and it needs none of the shared context, and name why.
 5. **Failing check first**, then delegate implementation to the **executor**
    role with a specific scope: file paths, the named data shape, success
    criteria. Review the diff yourself.

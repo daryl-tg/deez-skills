@@ -168,7 +168,7 @@ def build_parser():
     new_parser.add_argument("--project", help="Owning repository for a project skill.")
 
     plan_parser = subparsers.add_parser(
-        "check-plan", help="Check a multi-phase plan against the skeleton."
+        "check-plan", help="Check a feature plan against the skeleton."
     )
     plan_parser.add_argument("path")
 

@@ -111,7 +111,7 @@ That is it. Everything else the router reaches for when a step needs it.
 | [forensics](./skills/clanker-mode/playbooks/forensics.md) | a live process or a dropped trace, read down to a cited diagnosis |
 | [visual-parity](./skills/clanker-mode/playbooks/visual-parity.md) | pixel-exact equivalence, decided by image diff and never by eye |
 | [product-video](./skills/clanker-mode/playbooks/product-video.md) | a product reel or feature demo, filmed as one continuous UI motion film |
-| [multi-phase-plan](./skills/clanker-mode/playbooks/multi-phase-plan.md) | work spanning phases. the plan is the deliverable, not the code |
+| [feature-plan](./skills/clanker-mode/playbooks/feature-plan.md) | a feature too large to build without a written plan. planned whole, built in the same run |
 | [agentic-loop](./skills/clanker-mode/playbooks/agentic-loop.md) | a multi-goal plan run as one bounded loop, dispatching to executor subagents |
 | [autonomous-run](./skills/clanker-mode/playbooks/autonomous-run.md) | one predicate, driven unattended until it holds. no delivery mid-run |
 | [hillclimb](./skills/clanker-mode/playbooks/hillclimb.md) | one metric, driven to a target. one change, one measurement, keep or revert |
@@ -312,7 +312,7 @@ bin/link        preview the install. --apply to make it so
 bin/new         scaffold and register a skill
 bin/adopt       pull an existing skill in from elsewhere; --project for a project skill
 bin/index       regenerate the table below
-bin/check-plan  check a multi-phase plan against the skeleton its playbook publishes
+bin/check-plan  check a feature plan against the skeleton its playbook publishes
 bin/sync        commit and push all hub changes; never use for map-only persistence
 bin/deez sync-feature-maps <project> <skill> <files...>
                 commit and push only selected feature-map Markdown

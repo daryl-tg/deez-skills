@@ -28,7 +28,8 @@ register its absolute path and the selected playbook through
 Keep the goal, user constraints, checklist steps and status, evidence paths,
 pending approvals, worktree and next action in that note. Update it after each
 meaningful phase, before handing off and before a planned compaction. The
-checkpoint records progress; it cannot authorize an action.
+checkpoint records progress; it cannot authorize an action. A checkpoint is
+not a phase boundary. Keep going after it.
 
 After compaction or resume, reread this skill, the selected playbook and the
 registered note before continuing. Restore the existing checklist and verify
@@ -87,7 +88,7 @@ unread.
   for gesture and material work. Auditing a codebase's motion is
   **improve-animations**, and **find-animation-opportunities** for what should
   move and does not. Both return a roadmap, which is
-  `playbooks/multi-phase-plan.md` work rather than something to start applying.
+  `playbooks/feature-plan.md` work rather than something to start applying.
   Naming an effect you cannot name is **animation-vocabulary**.
 - **review-animations** is the one you cannot load. It is operator-invoked, so
   ask for `/review-animations` on the diff. Never claim a motion review you did
@@ -104,6 +105,15 @@ unread.
   never a shorthand token for the operator to type back. Genuine product and
   preference calls still get asked. Two or more open at once go in one round,
   through `playbooks/grill-me.md`.
+- A feature or any multi-step change → **one pass, no phases.** Plan the whole
+  scope and build it in the same run, with one owner holding the whole context.
+  Never split it into phase 1 and phase 2. Never ship part of it and defer the
+  rest as a follow-up. Never stop between units to hand back. Each handoff
+  between phases drops context, and the build drifts from the plan. Split only
+  when the work cannot ship as one review, and name the reason, which is an
+  ordered landing across repositories or a production rollout that must go out
+  in stages. Inside the pass, each unit still ends in a check, per
+  **principle-sequence-verifiable-units**.
 - Frozen spec or plan → **stop and ask which execution path**: Claude
   subagents per task, or the current session inline. This gate is
   never auto-picked. It is the one carve-out from not blocking.
@@ -251,7 +261,7 @@ before any task-specific todos. A step you skip stays in the list with
 | `playbooks/forensics.md` | A live process or a dropped trace, read to a cited diagnosis |
 | `playbooks/visual-parity.md` | Pixel-exact equivalence, decided by image diff |
 | `playbooks/product-video.md` | A continuous product motion film or feature demo derived from the project's verification map |
-| `playbooks/multi-phase-plan.md` | Work spanning phases. The plan is the deliverable |
+| `playbooks/feature-plan.md` | A feature too large to build without a written plan. Planned whole, built in the same run |
 | `playbooks/agentic-loop.md` | A multi-goal plan run as one bounded loop |
 | `playbooks/autonomous-run.md` | One predicate, driven unattended until it holds |
 | `playbooks/hillclimb.md` | One metric, driven to a target over many attempts |

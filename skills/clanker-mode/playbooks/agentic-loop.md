@@ -13,6 +13,10 @@ not re-ask per goal.
 needing session-only tools, all git mutations and pushes, and every review or
 validation step.
 
+**A goal is a whole feature,** or a part that needs none of another goal's
+context. A goal is never a phase of a feature. Splitting one feature across
+delegates drops context between them, and their parts stop agreeing.
+
 1. **Read the approved plan** from its dev-notes folder by absolute path. If the
    plan is not frozen, stop: that is the planning gate, and it is not this
    playbook's to skip.

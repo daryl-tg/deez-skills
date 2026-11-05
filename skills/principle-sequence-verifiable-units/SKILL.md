@@ -20,6 +20,12 @@ proceed. Rebase onto clean trunk first so every check measures against the real
 baseline. When a lever does the edits the per-unit check is nearly free — run it
 anyway.
 
+**Units are not phases.** A unit is a check inside one continuous pass by one
+owner. It is never a phase handed to a later session, a separate delegate, or a
+separate review. Build every unit of a feature in the same run. Stopping
+between units drops the context the next unit needs, the parts drift from the
+plan, and the work left over gets done carelessly or not at all.
+
 **Delivery.** Stack commits in the order that proves the work. The canonical
 shape is the failing check first, then the fix on top: the first unit shows the
 bug is real, the next shows it resolved, so a reviewer sees both the problem and

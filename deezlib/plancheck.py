@@ -1,4 +1,4 @@
-"""Check a multi-phase plan against the skeleton its playbook publishes.
+"""Check a feature plan against the skeleton its playbook publishes.
 
 Adapted from pstack's `check-plan.mjs`. The rules that survived are the ones
 that make a plan auditable by someone who did not write it: every unit carries
