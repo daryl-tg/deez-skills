@@ -122,6 +122,7 @@ state, commands, and observable proof.
 - [Daemon lifecycle and health](./daemon-lifecycle-and-health.md)
 - [Watch lifecycle from the CLI](./watch-lifecycle-cli.md)
 - [Watch archive and the auto-archive sweep](./watch-archive.md) — #2357, on main since `9bbf2de24`
+- [Watches with blanks](./watches-with-blanks.md) — branch `daryl/generic-watches`, unmerged; stream follow, registry install, `om want` and search are pending proof
 - [A watch step that wakes a roster agent](./watch-agent-step.md) — author, arm, fire
   and read an `ai` step that names `agent` and your `ask`; on main since #2287, keyless-lane path proven 2026-11-04
 - [Your installed agents from the CLI and om chat](./agents-cli-and-tui.md) — new
