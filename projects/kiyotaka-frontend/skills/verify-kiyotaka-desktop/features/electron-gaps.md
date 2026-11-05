@@ -32,8 +32,9 @@ with the console session locked:
 On 2026-11-01 (`2646a76a83`) and 2026-11-03 (`1af9ebbe07`) the lane threw `page.waitForFunction: Timeout 180000ms
 exceeded` in `waitForCandles` (`gaps.mjs:505`) from `bootHosts` before any row, because the dev lane had no candle
 history (the v2 streaming host was unreachable or did not resolve; see the [index](./README.md)); that was an
-environment block, not a row result. On 2026-11-05 (`bf1c9bac3c`) the lane was not run for the same reason (0 bars in
-the engine); `gaps.mjs` is unchanged and no testid it uses went dead since `8436920004`. The same 16 rows passed on 2026-10-31 (`5475ab32d5`) and 2026-11-02
+environment block, not a row result. On 2026-11-05 (`bf1c9bac3c`) and 2026-11-06 (`8bcd72f8f5`) the lane was not run for
+the same reason (0 and 1 bars in the engine); `gaps.mjs` is unchanged and no testid it uses went dead since
+`8436920004`. The same 16 rows passed on 2026-10-31 (`5475ab32d5`) and 2026-11-02
 (`39b22dd2ec`) under the old document-wide cancel.
 On 2026-10-29, on `30481b57f8`, the same 15 non-key rows passed. On 2026-10-28, on `5365748ef3`, the lane threw twice
 before any row in `bootHosts` (`page.goto`), and on 2026-11-01 once, in `waitForCandles`. The signed-in rows have not

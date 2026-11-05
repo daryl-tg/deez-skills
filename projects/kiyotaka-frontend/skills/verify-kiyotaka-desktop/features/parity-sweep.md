@@ -27,10 +27,13 @@ false): its shell half is a `capture.js` launch, and a locked screen gives it no
 2026-10-29, 2026-10-31, 2026-11-02 and 2026-11-04, at very different loads, give the same cascade, so it is drift
 between the sweep and the web tree, not load. On 2026-11-01 (`2646a76a83`) and 2026-11-03 (`1af9ebbe07`) the sweep
 packed the app and threw in `waitForCandles` (`parity.mjs:457`, 180 s) before any step, and on 2026-11-05
-(`bf1c9bac3c`) it was not run (0 bars in the lane's engine), because the dev lane's v2
+(`bf1c9bac3c`) and 2026-11-06 (`8bcd72f8f5`, 1 bar) it was not run, because the dev lane's v2
 streaming host (`tsdb-gateway.int.ore.kiyotaka.ai`) was unreachable or did not resolve while the lane's REST health
 read `ok`; that was an environment block, not a sweep finding (see the [index](./README.md)). Source reads on
-2026-11-04 and 2026-11-05 found no testid the sweep uses that went dead between `1af9ebbe07` and `bf1c9bac3c`; the dead alternatives
+2026-11-04, 2026-11-05 and 2026-11-06 found no testid the sweep uses that went dead between `1af9ebbe07` and
+`8bcd72f8f5`. Since `bda0563ab1` (after `bf1c9bac3c`) a guest gets the US stocks tape (`UsEquitiesFull` on for guests,
+`src/constants/guest-default-flags.constants.ts`), so a guest step on a stock symbol sees its trades and time and
+sales; no guest step has run against that yet; the dead alternatives
 it carries are older (`global-nav-pulse-btn` at `parity.mjs:220`, beside the live `pulse-main-feed` and
 `pulse-main-notice`; `option-chain-row` in `si-option-chain`, beside the live `option-chain-strike*`;
 `live-streams-card` and `marketplace-card` in masks; `workspace-more-0-btn` in the signed-in layouts rows). The

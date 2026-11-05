@@ -9,12 +9,13 @@ shows its own "A new version of the OpenMarket app is ready." toast through `ope
 policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice in the title bar or block the site below a
 `minVersion`; both channel policies are `off`. A merge to `main` that changes `desktop/package.json`, or a hand-pushed
 `desktop-v*` tag, runs `desktop release` (macOS, with Windows unless `DESKTOP_SKIP_WINDOWS=1`), `desktop release
-linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `bf1c9bac3c`
-(`origin/main`, 2026-11-05) is still 0.1.7. The update round trip was last driven 2026-11-05 by the `update` scenario on
-that tree, after `notify` in one `run launch ... notify update` (164 s for both, with three packs): 14 of 15 checks, the
-same split as on every run since 2026-10-27, up to the
+linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `8bcd72f8f5`
+(`origin/main`, 2026-11-06) is 0.1.9 (`bbeb2ee20e` took it to 0.1.8, `354da31277` to 0.1.9, both for the crash
+recovery). The update round trip was last driven 2026-11-06 by the `update` scenario on that tree, after `notify` in one
+`run launch ... notify update` (154 s for both, with three packs) with `UPDATE_FEED_PORT=18151`, since another run held
+`18150`: 14 of 15 checks, the same split as on every run since 2026-10-27, up to the
 boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature: `desktop: update check
-http://127.0.0.1:18150/ beta`, `desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`, `Code
+http://127.0.0.1:<feed port>/ beta`, `desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`, `Code
 signature at URL file://.../ShipIt/update.../OpenMarket.app/ did not pass validation: code failed to satisfy specified
 code requirement(s)`, `desktop: update error ...`, `desktop: update not staged 0.1.0-beta.2`; the feed served
 `GET /policy.json`, `GET /beta-mac.yml`, `GET /beta-mac.yml`, `GET /OpenMarket-0.1.0-beta.2-mac-arm64.zip`). The red
@@ -52,7 +53,7 @@ key and the bucket.
 Preconditions:
 
 - `doctor --prod` exit `0`. Port `18150` free (`lsof -nP -iTCP:18150 -sTCP:LISTEN`); `UPDATE_FEED_PORT` picks another
-  agent port.
+  agent port: export it before `run launch`, and the wrapper's environment reaches the lane (2026-11-06, `18151`).
 
 - **Update round trip.** `control-kiyotaka-desktop run launch <dir> update`. It packs `0.1.0-beta.1` and
   `0.1.0-beta.2`, serves a feed on `127.0.0.1:18150`, launches beta.1, publishes beta.2 and clicks Check for Updates
@@ -66,7 +67,9 @@ Preconditions:
 - **Unit level.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test` runs `updater`,
   `update-bridge`, `titlebar`, `policy`, `build-site`, `dev-lane`, and `tests/scripts/release-tag.test.ts`,
   `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27, 2026-10-29 (`30481b57f8`),
-  2026-10-31 (`5475ab32d5`, in 2.2 s), 2026-11-01 (`2646a76a83`, in 2.2 s), 2026-11-02 (`39b22dd2ec`, in 2.3 s), 2026-11-03 (`1af9ebbe07`, in 2.3 s), 2026-11-04 (`8436920004`, in 2.5 s) and 2026-11-05 (`bf1c9bac3c`, in 2.4 s);
+  2026-10-31 (`5475ab32d5`, in 2.2 s), 2026-11-01 (`2646a76a83`, in 2.2 s), 2026-11-02 (`39b22dd2ec`, in 2.3 s), 2026-11-03 (`1af9ebbe07`, in 2.3 s), 2026-11-04 (`8436920004`, in 2.5 s) and 2026-11-05 (`bf1c9bac3c`, in 2.4 s). On 2026-11-06 (`8bcd72f8f5`) the suite
+  had 38 files and 463 tests, all passed in 2.4 s, the three new files being `crash-reporter`, `process-gone` and
+  `report-hand-over`;
   on 2026-10-30 the subprocess tests timed out under machine load. Not a live proof.
 - **Upload set.** The publish script refuses unless every file it uploads exists and each feed file names the
   version, so a dry run needs a release build in `DIST_DIR` or placeholders. With placeholders, run:

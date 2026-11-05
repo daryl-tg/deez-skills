@@ -6,9 +6,10 @@ a native notification. An installed build keeps its profile in `OpenMarket`; an 
 The shell also hands eight analytics events (`app-opened`, `update-installed`, `update-ready`, `signin-started`,
 `signin-completed`, `signin-failed`, `policy-shown`, `beta-notice-dismissed`) to the page through
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
-Last driven 2026-11-05 by the `notify` scenario on tree `bf1c9bac3c` (`origin/main`, the shell's `desktop/src/`
-unchanged since `30481b57f8`): 12 of 17 checks, run with `update` in 164 s for both, the same split as every run from
-2026-10-29 to 2026-11-04. The bundle read `OpenMarket`,
+Since 0.1.8 the shell also reports its crashes and failed loads as three more `desktop:` events, which ride their own
+channel and the page's beacon instead (see [crash recovery and reports](./crash-recovery-and-reports.md)). Last driven
+2026-11-06 by the `notify` scenario on tree `8bcd72f8f5` (`origin/main`, desktop 0.1.9): 12 of 17 checks, run with
+`update` in 154 s for both, the same split as every run since 2026-10-29 (164 s on `bf1c9bac3c` on 2026-11-05). The bundle read `OpenMarket`,
 `xyz.openmarket.desktop`, `icon.icns` and `Signature=adhoc` (`unit-04-bundle-icon.png` is the mascot icon), and the OS
 answered `Added notification request: [ hasError: 0 hasCompletionHandler: 1 ]`. Four reds are the same as on every run
 since 2026-10-27. The fifth, `screenUnlocked`, is the lane reading a locked console session (`screenLocked: true` in the
@@ -26,7 +27,9 @@ no live driver; `desktop/tests/main/analytics.test.ts` covers it.
 - `notify-native` the page's `Notification` fires `show`, and the OS accepts the request.
 - `notify-banner` the banner and the dock appear on screen.
 - `identity-analytics` the eight shell events reach the page's PostHog as `desktop:<event>`, and every web event
-  carries `client: 'desktop'` and `desktopVersion`. Live verification pending: no lane observes PostHog.
+  carries `client: 'desktop'` and `desktopVersion`. Live verification pending: no lane observes PostHog. The three
+  crash events (`page-crashed`, `process-crashed`, `page-load-failed`) are not on this channel from 0.1.9; the crash
+  lane proves they reach a page, with a stub page standing in for the chart's beacon.
 
 ## How to get to it (user POV)
 

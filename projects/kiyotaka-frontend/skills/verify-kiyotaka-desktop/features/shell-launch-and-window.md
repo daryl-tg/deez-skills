@@ -5,16 +5,16 @@ a dev lane overrides it with `OPENMARKET_DESKTOP_URL`), takes a single-instance 
 first window, and remembers the window's position, size and maximized state across launches. The window has no system
 title bar: a 36 px bar view above the page carries Back, Forward, the page title and an update button, and draws its
 own tooltips; on Windows and Linux the menu bar stays hidden until Alt. A packaged release build shows a one-time
-"You're on the OpenMarket desktop beta 🎉" notice on first launch. Last driven 2026-11-05 on product tree `bf1c9bac3c`
-(`origin/main`, desktop 0.1.7; the shell's `desktop/src/` unchanged since `30481b57f8`) with the console session locked
-and the machine at a load average of 3 to 10 on 10 cores. The `window` scenario on production passed 9 of 12 in 102 s,
-the same split as every run from 2026-10-29 to 2026-11-04: the first launch logged `desktop: loaded
-https://openmarket.xyz/chart/` with the title `80,088.0 ▼ BTC - USD`, 15 canvases and a candle frame
-(`unit-01-chart.png` shows the 1h BTC-USD candles with VWAP, not the splash), the second instance focused it
-(`desktop: second instance, focusing`, exit 0, one window), and the saved bounds (moved to 120,110 at 1280 by 800,
-maximized) matched on relaunch (`relaunchBoundsEqualMoved` true). The three relaunch checks (`relaunchBtcTitle`,
+"You're on the OpenMarket desktop beta 🎉" notice on first launch. When the page's process dies, the bar's view covers the window with a recovery screen and the
+page reloads; see [crash recovery and reports](./crash-recovery-and-reports.md). Last driven 2026-11-06 on product tree
+`8bcd72f8f5` (`origin/main`, desktop 0.1.9) with the console session locked and the machine at a load average of 3 to 7
+on 10 cores. The `window` scenario on production passed 9 of 12 in 103 s, the same split as every run since 2026-10-29:
+the first launch logged `desktop: loaded https://openmarket.xyz/chart/` with the title `76,053.0 ▼ BTC - USD`, 15
+canvases and a candle frame (`unit-01-chart.png` shows the 1h BTC-USD candles with VWAP, not the splash), the second
+instance focused it (`desktop: second instance, focusing`, exit 0, one window), and the saved bounds (moved to 120,110
+at 1280 by 800, maximized) matched on relaunch (`relaunchBoundsEqualMoved` true). The three relaunch checks (`relaunchBtcTitle`,
 `relaunchCanvas`, `relaunchMaximized`) went red because the relaunch is a `capture.js` launch, which a locked screen
-leaves with no frame (`relaunchCapture: {}`). No `capture` was attempted from 2026-10-31 to 2026-11-05 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The
+leaves with no frame (`relaunchCapture: {}`). No `capture` was attempted from 2026-10-31 to 2026-11-06 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The
 last captures were on 2026-10-28 on `5365748ef3`: the dev-lane frame showed the boot splash, and the production frames
 showed candles and the sign-in screen. The `window` scenario was last 12 of 12 that day. The title bar, the Alt menu bar
 and the beta notice have no live driver (unit tests in `desktop/tests/main/` only; the beta notice never shows on a dev
@@ -33,7 +33,10 @@ lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
   Cloudflare checkbox keeps the button off with "Complete the security check above to continue." under the fields.
   The shell frame of the new card is not yet captured.
 - `launch-titlebar` the bar's Back, Forward, title and update button, disabled while a block or sign-in screen covers
-  the window. Live verification pending: `capture` grabs the page view only, so the bar is never in a frame.
+  the window. Live verification pending: `capture` grabs the page view only, so the bar is never in a frame. The crash
+  lane's frames are screenshots of the bar's own view, which grows to cover the window for a recovery screen: on
+  2026-11-06 they showed Back, Forward, the page title ("Stub chart", or the URL while the load failed) and a round
+  arrow at the right above the screen. That proves the bar draws; its buttons and tooltips are still undriven.
 - `launch-beta-notice` the one-time beta notice on a packaged release build. Live verification pending: no lane packs
   a non-dev-lane build.
 

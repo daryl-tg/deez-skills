@@ -9,8 +9,12 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Last driven 2026-11-05 on tree
-`bf1c9bac3c` (`origin/main`) in Chromium on the dev lane (a BTC title but 0 bars: the streaming host did not resolve,
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-06, on tree `8bcd72f8f5`
+(`origin/main`; none of these pages changed since `bf1c9bac3c`), the return page (valid and invalid), the four
+checkout-return states and the signin redirect read exactly as below in Chromium on the dev lane, each opened through
+`about:blank` (a hash-only change to the same route keeps the page already shown, so an invalid `#to=` opened straight
+after a valid one still reads "Signed in"). The super-search command and the sign-in card were last driven 2026-11-05
+on tree `bf1c9bac3c` (`origin/main`) in Chromium on the dev lane (a BTC title but 0 bars: the streaming host did not resolve,
 which these pages do not need), one page at a time
 through `about:blank` with the tab re-fronted before each read: the return page (valid: `desktop-return-title`
 "Signed in. Open OpenMarket to finish", `desktop-return-open`, href with no hash; invalid: `desktop-return-invalid`),
