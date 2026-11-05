@@ -617,6 +617,39 @@ class AppTest(Seeded):
         self.assertEqual(opened, [])
         self.assertIn("no review link", logs[0])
 
+    def test_b_asks_the_worker_to_rebase_its_review(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        self.store.report(assignment.id, "ready", "PR open: https://github.com/o/r/pull/42", evidence=["https://github.com/o/r/pull/42"])
+        verbs, logs = Verbs(), []
+
+        async def script(app, pilot):
+            await pilot.press("b")
+            await pilot.pause()
+            await app.workers.wait_for_complete()
+            logs.append(app.log_text())
+
+        self.run_app(verbs, script)
+
+        (call,) = [c for c in verbs.calls if c[2:3] == ["tell"]]
+        self.assertEqual(call[:4], [str(DEEZ), "super-clanker", "tell", ticket.id])
+        self.assertIn("rebase", call[4].lower())
+        self.assertIn("https://github.com/o/r/pull/42", call[4])
+        self.assertIn("rebase", logs[0].lower())
+
+    def test_b_without_a_review_asks_nothing(self):
+        self.ticket(1, report="progress")
+        verbs, logs = Verbs(), []
+
+        async def script(app, pilot):
+            await pilot.press("b")
+            await pilot.pause()
+            logs.append(app.log_text())
+
+        self.run_app(verbs, script)
+
+        self.assertEqual([c for c in verbs.calls if c[2:3] == ["tell"]], [])
+        self.assertIn("no review link", logs[0])
+
     def test_blotter_dossier_and_status_show_tokens_not_dollars(self):
         ticket, assignment, _ = self.ticket(1, report="progress")
         log = self.root / "log"

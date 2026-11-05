@@ -177,7 +177,14 @@ def stale_list_text(stale):
 
 
 MAIN_KEYS = [("TAB", "PANEL"), ("↑↓←→", "MOVE"), ("V", "VIEW"), ("Z", "ZOOM"), ("N", "NEW TASK"),
-             ("^T", "ASK/NOTE"), ("I", "ASK ABOUT TASK"), ("O", "OPEN PR"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
+             ("^T", "ASK/NOTE"), ("I", "ASK ABOUT TASK"), ("O", "OPEN PR"), ("B", "REBASE PR"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
+def rebase_request(url):
+    return (f"Rebase {url} onto the latest default branch so the operator can merge it. "
+            "Fetch, rebase, resolve any conflicts, rerun the tests that cover the change, "
+            "push your branch with --force-with-lease from the main checkout, "
+            "then report ready with the URL once the forge shows it mergeable.")
+
+
 ZOOM_KEYS = [("ESC", "BACK"), ("Z", "BACK"), ("↑↓←→", "MOVE"), ("Q", "QUIT")]
 
 
@@ -1221,6 +1228,7 @@ class CenterApp(App):
         ("ctrl+v", "attach_clipboard", "attach image"),
         ("i", "inquire", "ask about task"),
         ("o", "open_review", "open review"),
+        ("b", "rebase_review", "rebase review"),
         ("a", "archive_all", "archive stale"),
         ("r", "review", "review stale"),
     ]
@@ -1287,7 +1295,7 @@ class CenterApp(App):
                         yield Static(system_compact(w), id="sysinfo", markup=False)
             with Vertical(id="right"):
                 with Panel(id="p-dossier"):
-                    yield Band("DOSSIER", "o open PR · i ask about it · z full report", name_id="dossier-name")
+                    yield Band("DOSSIER", "o open PR · b rebase PR · i ask about it · z full report", name_id="dossier-name")
                     with VerticalScroll(id="dossier-scroll"):
                         yield Static(id="dossier-text", markup=False)
                 with RouterPanel(id="p-router"):
@@ -1547,6 +1555,16 @@ class CenterApp(App):
             return
         self.opener(d.review_url)
         self.say(f"opened {d.review_url}")
+
+    def action_rebase_review(self):
+        d = self.selected()
+        if self.in_zoom() or d is None:
+            return
+        if not d.review_url:
+            self.say(f"no review link on {d.id} to rebase")
+            return
+        self.say(f"asked {d.id} to rebase {d.review_url}")
+        self.submit([str(self.deez), "super-clanker", "tell", d.id, f"--text={rebase_request(d.review_url)}"])
 
     def action_inquire(self):
         d = self.selected()
