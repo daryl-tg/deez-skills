@@ -164,6 +164,14 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   the pick drew 1900 rows. Drive strip tabs by a pointer at the VISIBLE tab's
   centre: the quick dropdown carries a hidden strip with the same testids, so
   `find testid ... click` can land on the dialog overlay and close the dialog.
+  Since `53959f6178` every entry point (Yours tab, All block, quick-list
+  section) sits behind the `feeds` flag (`isFeedsSurfaceEnabled`). A local
+  lane forces `feeds` on (`DEV_FORCED_FLAGS`); prove the off state with
+  `localStorage.setItem('kiyo.flag-overrides','{"feeds":false}')` and a reload
+  (the flag store reads overrides at load). Driven 2026-11-06: on, tab and
+  section shown; off, both gone with the series still in the store. With the
+  gateway reachable a guest gets a "Join for free" modal that blocks the hover;
+  close it first.
 
 - **`sym-forex`, driven 2026-11-05 on `87a325f4ab` (`105356d766`,
   `0b49c541a9`, `6ff6849f09`).** The search no longer asks the gateway for
