@@ -3,7 +3,11 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last re-driven 2026-11-06 on `8bcd72f8f5`
+lock, settings and delete. Last re-driven 2026-11-07 on `dced88e06a`
+(`origin/main`, 81 commits past `8bcd72f8f5`, engine `1268`, lane `18103`, a
+guest JWT) on COINBASE BTC-USD 1h: `toolbar-item-trendline:tool-icon-btn`,
+two clicks, 16 `tqb-*` handles (`tqb-remove-btn` last), and `Delete`
+removing the line (0 `tqb-*`). Before that, re-driven 2026-11-06 on `8bcd72f8f5`
 (`origin/main`, 119 commits past `87a325f4ab`, lane `18103`, a guest JWT) on
 COINBASE BTC-USD 15m: `toolbar-item-trendline:tool-icon-btn`, two clicks, a
 `.tool-quick-bar` with 16 `tqb-*` handles including `tqb-templates-btn`, and

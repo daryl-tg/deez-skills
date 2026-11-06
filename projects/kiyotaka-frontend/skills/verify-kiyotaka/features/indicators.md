@@ -4,7 +4,13 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-06 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-07 against
+product tree `dced88e06a` (`origin/main`, 81 commits past `8bcd72f8f5`), lane
+`18103`, a guest-JWT lane on the remote dev backend: an `rsi` search
+(`Official 4`, `Community 12`). Since `d02874f2a8` every wrun indicator runs
+on US equities, NASDAQ tapes included, and an app-layer overlay such as the
+stock Tape's `Dark pool prints` gets no window door and no gear or close in
+its legend (source). Before that, DRIVEN on 2026-11-06 against
 product tree `8bcd72f8f5` (`origin/main`, 119 commits past `87a325f4ab`), lane
 `18103`, a guest-JWT lane on the remote dev backend. Driven that day: an `rsi`
 search (`Official 4`, `Community 12`) whose `Add to chart` raised the sign-in

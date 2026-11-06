@@ -3,7 +3,15 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-06 against product tree `8bcd72f8f5`
+entry was last DRIVEN on 2026-11-07 against product tree `dced88e06a`
+(`origin/main`, 81 commits past `8bcd72f8f5`), lane `18103`, a guest-JWT lane
+with the gateway name mapped to `10.1.1.10` in the browser (both resolvers
+answered NXDOMAIN). Proven that day: boot to 250 candles on COINBASE BTC-USD
+1h within about 10 s of `open`, with VWAP and `Indicators 1/3`; the perp live
+edge on BINANCE.F ETHUSDT (`24H VOLUME $7.97B`, `OPEN INTEREST $5.29B`,
+`FUNDING / COUNTDOWN +0.0058% · 03:39:28`); the strip's `offline` and `back`,
+with `back` parked while the tab was hidden (see `boot-strip`); and a Dark to
+Light flip. Before that, DRIVEN on 2026-11-06 against product tree `8bcd72f8f5`
 (`origin/main`, 119 commits past `87a325f4ab`), lane `18103`, a guest-JWT lane
 (`gateway-v3` `false`, `us-equities-full` `true`) with the gateway name mapped
 to `10.1.1.10` in the browser (both resolvers answered NXDOMAIN; see the
@@ -571,6 +579,13 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   on a tab-return catch-up, and since `69247f4c27` a socket found dead on a
   tab return is said at once (source). The `stall` and `long` waits are not
   driven: they need a blocked socket host, not `set offline`.
+  Live 2026-11-07 on `dced88e06a`: `offline` within 6 s and `back` (`Back to
+  live` / `Caught up.`) within 1 s of `set offline off`, but **`back` stayed
+  up for over 20 s while the tab had drifted hidden**, and the node was gone
+  the moment the tab was re-fronted. Read `document.visibilityState` before
+  calling a stuck `back` a regression. Since `6a61d91e3d` a stall of 3 s or
+  more that clears inside the 15 s wait is reported as a quiet episode, with
+  nothing on screen (source).
   Live 2026-11-06: `./control-kiyotaka browser set offline on` raised
   `offline` (`You're offline` / `The chart catches up when your connection is
   back.`) at the 5 s poll (none at 4 s); `set offline off` showed `back`

@@ -8,7 +8,15 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-06 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-07 against
+`dced88e06a` (`origin/main`, lane `18103`, a guest JWT): `editor` in Super
+Search, then `super-search-result-panels:Editor-btn`, opened the drawer with
+no wall (`kscript-run-btn`, `kscript-slots-btn`, `script-explorer-new-btn`,
+`No indicators yet.`) and no venue banner on COINBASE BTC-USD;
+`kscript-close-editor-btn` closed it. The venue wall now classifies by plane
+(`opra`, `stocks` or `cme`); a stocks plane would read `Custom scripts can't
+use {venue} stock data yet`, but since `d02874f2a8` every US tape is
+scriptable, so that banner is a fallback only (source). Re-driven 2026-11-06 against
 `8bcd72f8f5` (`origin/main`, lane `18103`, a guest JWT): the Super Search
 `editor` row `super-search-result-panels:Editor-btn` opened the drawer with no
 wall (`New indicator`, `No indicators yet`, `No script open`, one

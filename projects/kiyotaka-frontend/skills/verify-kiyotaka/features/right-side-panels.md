@@ -5,7 +5,19 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-06 against product tree `8bcd72f8f5` (`origin/main`, 119
+DRIVEN on 2026-11-07 against product tree `dced88e06a` (`origin/main`, 81
+commits past `8bcd72f8f5`), lane `18103`, a guest-JWT lane with the gateway
+name mapped in the browser. Driven that day on COINBASE BTC-USD: the Panels
+menu's 17 rows plus a `tb-panels-row-tape-on` node while the Tape was open
+(see Gotchas), the seven walls unchanged (`chart-actions`, `watchlist`,
+`terminal`, `news`, `community-chat`, `volume-footprint`, `script-editor`),
+the rows that open with no wall (`orderbook`, `etfScreener`, `journal`,
+`alerts`, `marketStatsPanel`, `volumeStats`, `liquidityStats`, `heatmap`),
+the Orderbook's DOM ladder drawing live with no delay notice, and the crypto
+Tape printing (`crypto-tape-last-price` `75,755.95▼`, `tape-liquidations`,
+no `tape-delay-notice`). On POLYGON AAPL the Tape fell back to `AAPL/USD`
+`No trades match filters` (stocks gate unrouted). Before that, DRIVEN on
+2026-11-06 against product tree `8bcd72f8f5` (`origin/main`, 119
 commits past `87a325f4ab`), lane `18103`, a guest-JWT lane with the gateway
 name mapped in the browser. Driven that day: the guest stock Tape on POLYGON
 AAPL (see `rp-stock-tape`; it mounts only with the stocks gate routed, and no
@@ -126,6 +138,18 @@ an open panel.
   `find testid tb-panels-row-<id> click`. Read the open panel's header text: the
   panel title (`Orderbook`, `Alerts`, `Objects`, `ETF screener`) is the first
   text in the right-side header.
+- **An open panel adds a `-on` node to its row (driven 2026-11-07).** With
+  the Tape open, `[data-testid^=tb-panels-row-]` matched 18 nodes: the 17 rows
+  and `tb-panels-row-tape-on` inside the Tape row (`TBPanelsMenu.vue` marks
+  any `row.isOn`). Count rows with `:not([data-testid$=-on])`.
+- **Delay notices on panels are per screen (source, `63c1fa257a`).** The
+  Orderbook (`orderbook-delay-notice`, `orderbook-dom-delay-notice`,
+  `orderbook-delta-delay-notice`), the fallback trades stream
+  (`tape-delay-notice`) and the alert forms show their own delay line only
+  for a delayed CME, stock-tape or OPRA plane that no chart on screen already
+  labels, and always on mobile. Crypto shows none (driven 2026-11-07). The
+  DOM ladder also caps each side at 5000 rows and starts governed CME
+  groupings at the finest served size (`9d09f1365d`, source).
 - **The row count follows the chart's market (driven 2026-11-03).** On
   BINANCE.F ETHUSDT the menu listed 17 `tb-panels-row-*`; on the NYSE `SPY /
   GLD` formula it listed 16, without `orderbook`. Count on a crypto perp
@@ -226,6 +250,16 @@ an open panel.
   The crypto Tape shares the `stock-tape-row*` handles (`stock-tape-list`,
   `stock-tape-row-price`), so a `stock-tape-row` count is not a stock proof:
   read `stock-tape-panel` or `stock-tape-ticker`.
+  **Dark pool prints on the followed chart (source, `c106437eb7`,
+  `841ea60455`; not driven).** While the stock Tape is in Trades view with
+  its Dark pool section open and the gate armed, the chart the Tape follows
+  gets an auto-mounted `Dark pool prints` layer that is not in the
+  Indicators list. Its legend row (`.is-wrun-app-layer`) carries only an eye,
+  always shown; hiding it adds `.is-wrun-app-layer-hidden` and writes the
+  panel setting `darkPoolOnChart` (default on). Collapsing the section, the
+  Heatmap view, Dark pool off or a parked panel remove the layer. A capped
+  day reads `stock-tape-dark-pool-cut` (`Not every print of this day is
+  shown: …`). Needs a printing stocks gate, which this lane lacks.
 - **`rp-objects`.** `tb-panels-row-objects` opened `Objects`
   (`Nothing on this chart yet`) with no wall.
 - **`rp-etf`.** `tb-panels-row-etfScreener` opened `etf-screener-panel` with

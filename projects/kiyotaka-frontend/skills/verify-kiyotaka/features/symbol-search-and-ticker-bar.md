@@ -4,7 +4,19 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-06 against product tree `8bcd72f8f5` (`origin/main`,
+was last DRIVEN on 2026-11-07 against product tree `dced88e06a` (`origin/main`,
+81 commits past `8bcd72f8f5`), lane `18103`, a guest-JWT lane with the gateway
+name mapped in the browser. Driven that day: the V2 dialog (v2 20, legacy 0,
+no `search-v2-category-yours-btn` on a pane with no om series); an `ETHUSDT`
+fill whose `venue-row-BINANCE_FUTURES|ETHUSDT-btn` charted BINANCE.F ETHUSDT
+(333 bars) and whose bare `asset-row-ETHUSDT|1-btn` STILL charted a Binance
+option, a call this time (`BINANCE_OPTIONS` `ETH-261109-2275-C`, 11 bars,
+`BINANCE.O ETH/USDT 9 Nov 2026 2,275 Call`); `footer-undo-btn` (`Undo Change
+symbol`) back from it; an `AAPL` fill whose `asset-row-AAPL|4-btn` still
+showed its price (`342.96 ↓ 0.36%`, see Gotchas) and charted POLYGON
+`AAPL/USD` (252 bars, `343.59 ▼ AAPL`); and `tb-interval-pinned-1m-btn` to
+`1m` (431 bars) with `Undo Change interval` back to `1h`. Before that, DRIVEN
+on 2026-11-06 against product tree `8bcd72f8f5` (`origin/main`,
 119 commits past `87a325f4ab`), lane `18103`, a guest-JWT lane with the gateway
 name mapped in the browser. Driven that day: the V2 dialog (v2 20, legacy 0);
 an `AAPL` fill listing ONE stock row (`asset-row-AAPL|4-btn`, `AAPL Apple Inc.
@@ -157,6 +169,12 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   rows, last value equal to the frame's. `footer-undo-btn` back to the market
   and a second pick repainted all 1900 rows. A typed `claude` kept the block,
   `zzzq` hid it. Dialog rows are click-only.
+  The branch landed on `main` as `cadb450cdb` (source-checked on `dced88e06a`:
+  same testids, `YOUR SERIES` heading, and the `feeds` gate), so the two
+  hashes below name the branch commits. Not re-driven on `main`: a guest
+  lane has no om series to list, so the tab is absent until the store is
+  seeded as above (absent on 2026-11-07). While Yours is active, arrow keys do
+  not move through rows, and an om pick writes no recent venue (source).
   Since `37f68474f3` the dialog's strip ends with a `yours` view tab
   (`search-v2-category-yours-btn`) whenever the pane holds a series: on
   Crypto the block is gone and the tab stays; Yours hides the rail and the
@@ -586,6 +604,18 @@ Preconditions:
   in the DOM, and a later `find testid "toolbar-item-trendline:tool-icon-btn"
   click` failed with `covered by <div.scope-token-line.v2-tokens>`. Move the
   pointer onto the chart and press `Escape` before clicking a tool.
+- **A row on a gate-governed plane draws no figures (source, `63c1fa257a`).**
+  `rowFiguresAllowed(exchange)` (`option-venue-disclosure.util.ts` in
+  `packages/wrun-chart-host`) is false for any exchange with a gate provider,
+  so an `AssetRow` whose top venue is a CME future or a stock tape, and such
+  a `VenueRow`, show no price, change or sparkline, and no placeholder. A
+  guest's AAPL is not one of them: on 2026-11-07 `asset-row-AAPL|4-btn`
+  (top venue POLYGON) still read `342.96 ↓ 0.36%`. Do not read a price on a
+  stock row as this rule failing; read the row's exchange first.
+- **The bare `ETHUSDT` row still opens an option (driven 2026-11-07 on
+  `dced88e06a`).** This time it charted a call, `BINANCE_OPTIONS`
+  `ETH-261109-2275-C` (11 bars), so the side moves with the option volumes
+  too.
 - **The bare `ETHUSDT` row still opens an option put (driven 2026-11-03 on
   `215896e614`).** It listed with the `Ethereum` row 12 s after the fill and
   charted `BINANCE.O ETH/USDT 5 Nov 2026 2,275 Put` (13 bars, title

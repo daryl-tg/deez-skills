@@ -8,7 +8,13 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-Last re-driven 2026-11-06 against `8bcd72f8f5` (`origin/main`, lane `18103`, a
+Last re-driven 2026-11-07 against `dced88e06a` (`origin/main`, lane `18103`, a
+guest JWT) from `tb-watchlist-toggle-btn`: `guestLoginFeatureId` read
+`watchlist` with the sign-in card up. Behind the wall (source, `688e2ff054`,
+`4b746b40d9`): the list's notice keeps `watchlist-delay-notice` but now names
+every delayed governed venue it holds (OPRA, the stocks tape, CME), and a
+row's `cme-delay-badge` holds CME's short `10m` or the stocks and OPRA
+statement verbatim, clipped with a `title`. Before that, re-driven 2026-11-06 against `8bcd72f8f5` (`origin/main`, lane `18103`, a
 guest JWT) from `tb-panels-row-watchlist`: `guestLoginFeatureId` read
 `watchlist`, the card headed `Watchlist` over `Sign in or create an account`,
 and `Escape` set `isAuthenticationDialogOpen` back to `false`. Before that,

@@ -6,6 +6,15 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-07 against product tree `dced88e06a` (`origin/main`, 81 commits past
+`8bcd72f8f5`), lane `18103`, a guest-JWT lane. Driven that day: `ninjatrader`
+listing only `super-search-result-symbols:open-search-btn` (the new
+NinjaTrader row is absent for a guest, see Gotchas), `release notes` to the
+Release Notes page (82 versions, `4.53.0 Latest Spotlight The US tape.`
+first; nav `settings-pages-nav-{shortcuts,language,notes}-btn` only),
+`editor` to `super-search-result-panels:Editor-btn` and the drawer, and
+`dark mode` to `themes:mode:dark` (`Dark Mode OFF`, then `ON`) flipping
+`body--light` to `body--dark` and back. Before that, DRIVEN on
 2026-11-06 against product tree `8bcd72f8f5` (`origin/main`, 119 commits past
 `87a325f4ab`), lane `18103`, a guest-JWT lane. Driven that day: `anchored vwap`
 listing an indicator row with its cover and a tool row tagged `Drawing tool`
@@ -336,6 +345,21 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 
 ## Gotchas
 
+- **NinjaTrader has a Super Search row and Connections aliases a guest never
+  sees (`3dd3e5d0c3`; source, absence driven 2026-11-07).** The provider
+  `ninjatrader.ts` lists one command, `Link NinjaTrader`
+  (`tradingHub.unlinked.link`, subtitle `Trade ES, NQ and the other CME
+  contracts from their charts…`, aliases such as `connect ninjatrader`,
+  `tradovate`, `futures broker`), which opens the trading hub on its broker
+  page. It is listed only when `isTradingHubDesktop()`,
+  `isFuturesTradingFlagOn()` and `isNinjaTraderOn()` all hold
+  (`futures-ninjatrader`, web only). `settings.ts` sends a word of three or
+  more letters that starts `ninjatrader` or `tradovate` to the Connections
+  page at `data-setting="futures-ninjatrader"`, and `rithmic`, `futures` or
+  `broker` to `futures`, while those cards stand. A guest reads both flags
+  off: `ninjatrader` lists only the symbols fallback, and the guest settings
+  nav has no Connections page. The row's testid is presumably
+  `super-search-result-ninjatrader:link-btn` (not seen live).
 - **`guestLoginFeatureId` is not cleared when the wall closes.** It keeps the
   last id after `Escape`, so read `isAuthenticationDialogOpen` first. A stale id
   beside `auth:false` means nothing was walled.
