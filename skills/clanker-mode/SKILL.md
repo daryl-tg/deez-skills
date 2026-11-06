@@ -302,3 +302,9 @@ Every claim carries its evidence or its label in the same sentence. The label
 is measured, inferred, or guess. A prediction or a cause you have not observed is a guess.
 A check you could run yourself is not something to hand the operator, per
 **principle-never-block-on-reversible-work**.
+
+A command you do hand the operator gets a leading `!`, as in
+`!bun test test/foo.test.ts`, and a line telling them they can run it directly
+in the input. A `!` command has no terminal to type into, so one that stops for
+a prompt or a typed yes refuses there. Give that one bare, for a real terminal,
+and say why.
