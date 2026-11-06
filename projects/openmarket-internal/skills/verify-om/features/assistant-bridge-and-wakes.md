@@ -47,6 +47,20 @@ Ports from the agent range, all on 127.0.0.1: relay stand-in 18121, receiver 181
 - Seen: row to the Bot's deposit landing back in its inbox took about 14 s.
 - Drive the Bot app as the memory note on Grok Bot automation says, with a session name of your own.
 
+## Operator-added bearer wakes, the instant ask and the bare handshake (2026-11-06)
+
+*Driven on PR #2385 (branch `daryl/assistant-run-improvements`, `be779eb0c`) on the same loopback rig. Not merged.*
+
+- First call from a new or revoked assistant: `om assistants revoke <name>`, then one `tools/call`. Expect an answer in tens of milliseconds whose message carries `om approve appr_...`. Seen: 17 ms and 28 ms.
+- A bare handshake: POST `initialize` with no `clientInfo`, or with a name and no version. Expect `serverInfo` and no `-32603`.
+- Tool list size on the om surface at full scope: 195,000 bytes, 83 tools, `watch_history` 4,369 characters. `packages/cli/test/hosted-daemon-listing-size.test.ts` pins the daemon listings.
+- A bearer wake: start a receiver that checks `Authorization: Bearer <key>`, then `om assistants wake "<label>" --url <url> [--watch <ref>]` with the key piped on stdin (the prompt goes to stderr). Push one row with `om event push`. Expect one POST with the key, `webhook-id` and `webhook-timestamp`, and no `webhook-signature`.
+- `om assistants` shows `Wake: <watch> to <host>, added by you, sent just now`. `om assistants unwake "<label>"` answers `Removed 1 wake for <label>.` and the next row is not delivered.
+- Running `wake` again for the same address keeps one wake and replaces its key and watch.
+- The command refuses, before the key prompt and with no row written: plain http, `https://localhost`, a private address, a host that does not resolve.
+- On a rig the command itself needs `OM_ASSISTANT_WAKE_ALLOW_LOOPBACK=1` in its own environment to accept `http://127.0.0.1`, as well as the daemon. `control-om om --` passes the shell's environment through.
+- Pending proof: a table of the earlier shape being rebuilt on open is covered by a test, not by a live drive. Delivery to a real vendor routine URL with this sender was not driven.
+
 ## Gotchas
 
 - Two links can share one label (the key's label). `allow` and `revoke` then need the `asst_` id, which `om assistants --format json` prints.
