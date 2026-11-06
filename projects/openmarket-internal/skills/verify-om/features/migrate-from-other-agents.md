@@ -1,5 +1,7 @@
 # Import another agent's setup
 
+*Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0; #2377), guest lane on 18141. `migrate grok-bot --source <scratch>/grok-bot/grok-bot-export.json`: `--dry-run --format text` listed `skipped skills 2 built-in skills  bundled with Grok Bot` and ended `After import:` / `om setup, then om migrate grok-bot (2 routines wait for a channel)`; `--yes` ended `Next:` with the same line, then `Grok Bot: imported (7 items)`; a second `--yes` read `Grok Bot: already here; nothing new`; `memory list` held the `mig-grok-bot` memories. Not re-driven: Hermes, OpenClaw. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/41-44`).*
+
 *Verified: 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0; #2366), guest lane on 18163, booted at 19:18Z with no guest 429. Driven against copies of the repo's test fixtures in a scratch folder: `migrate hermes --source … --dry-run` (JSON and `--format text`), the same without `--yes` (exit 2, needs confirmation), with `--yes` (memories, a skill memory, the role in `instructions.md`, a notes file), a second dry run reading `exists`; `migrate openclaw` and `migrate grok-bot` dry runs. Not driven: routines landing as paused watches (they need a default channel), `--profile`, `--agent`, `--bot`, `om migrate export|import`. Bare `om migrate` blocked in this headless session (README, known product gaps). Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/migrate-*`).*
 
 `om migrate <platform>` reads a Hermes folder, an OpenClaw folder or a Grok Bot
@@ -17,10 +19,17 @@ for a yes. Running it again finds what already landed.
   Off a terminal the default output is JSON (`{home, platform, label, items,
   skipped, redactions}`); pass `--format text` for the rows.
 - `apply`: without `--yes` off a terminal it exits 2 with `Importing from
-  <Label> needs confirmation.`; with `--yes` it writes, then lists `Notes:` and
-  `Keys and tokens: not imported`.
+  <Label> needs confirmation.`; with `--yes` it writes, then lists `Notes:`,
+  `Next:` (when routines wait for a channel), a landed line such as
+  `Grok Bot: imported (7 items)` and `Keys and tokens: not imported`.
 - `idempotent`: a second plan reads `exists … memory already here` and `section
-  already here`.
+  already here`; a second applied run ends `<Label>: already here; nothing new`.
+- `channel step` (#2377): when a routine is skipped for `no default channel
+  yet`, the plan ends `After import:` and the applied run `Next:`, each with
+  `om setup, then om migrate <platform> (N routines wait for a channel)`.
+- `grok-bot built-ins` (#2377): the Bot's own skills are one `skipped skills
+  N built-in skills  bundled with Grok Bot` row; a routine that names one adds a
+  `skipped skill <bot>: <Skill>` row with the same reason.
 - `routines`: each routine is a paused watch, or `skipped … no default channel
   yet · om setup` when the home has no default channel; a schedule om has no
   timer for goes to `migrate/<platform>/event-routines.md`.
@@ -61,7 +70,12 @@ cp -R packages/cli/test/fixtures/migrate/{hermes,openclaw,grok-bot} <scratch>/
    Breakout watch` (`om has no condition script trigger`) and `conflict memory
    About the user` after the Hermes import. `migrate grok-bot --source
    <scratch>/grok-bot/grok-bot-export.json --dry-run --format text` shows two
-   `Scout:` notes and memories, with a token in one redacted.
+   `Scout:` notes and memories, with a token in one redacted, the row
+   `skipped skills 2 built-in skills  bundled with Grok Bot`, and an
+   `After import:` block ending `om setup, then om migrate grok-bot (2 routines
+   wait for a channel)`. With `--yes` the same line sits under `Next:`, then
+   `Grok Bot: imported (7 items)`; run it again for `Grok Bot: already here;
+   nothing new`.
 
 ## Gotchas
 

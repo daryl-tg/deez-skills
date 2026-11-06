@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `paper create verify-book --yes --format json` (`cash: 1000`, `desk: off`), `paper ls`, `paper show verify-book` (`rules.ticket 25`). Not re-driven: digest, trades. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/75-77`).*
+
 *Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted at 19:18Z with no guest 429, host load average 10 falling to about 3.3. `paper create verify-book --cash 1000` without `--yes` exit 2 `confirmation_required`; with it `cash 1000`, `desk off`; `paper ls`, `paper digest` (`Cash: $1,000.00`). Not re-driven: the Paper tab. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/paper-*`).*
 
 *Re-driven 2026-11-05 (nightly), tree `3a0ea623e` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted in 2 s at 19:19Z with no guest 429, host load average about 4.4. `paper create verify-book` without `--yes` exit 2 `confirmation_required`; with it `cash 1000`, `desk off`; `paper ls`, `paper show`, `paper digest` (`Cash: $1,000.00`). Not re-driven: the Paper tab. Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`cli/paper-*`).*

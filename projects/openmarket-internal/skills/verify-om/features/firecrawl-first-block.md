@@ -1,5 +1,7 @@
 # Firecrawl recovery before whitelist
 
+*Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429, setting only: `config get firecrawl.offers` `unset (default: on)`; `service status` reads `firecrawl-offers INACTIVE (no Firecrawl key)`. Not re-driven: the refusal and offer flow. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/12-svc`, `cli/135`).*
+
 *Re-driven 2026-11-05 (nightly), tree `3a0ea623e` (origin/main, v0.492.0), guest lane on 18163 inside the origin-challenge hold (stub on 18166), no key: `OM_FEED_ALLOW_LOOPBACK=1 … watch page-add http://127.0.0.1:18166/article/1` exit 2 `page_bot_wall_suspected` (`… 127.0.0.1 is challenging this machine; next try 2026-11-04T19:50:23.125Z (HTTP 403).`, hint `Run \`om setup firecrawl\``), one `challenge GET /article/1`; the feed's FAULT row ended `· Firecrawl can read it for you` with `FIX om setup firecrawl`; `config get firecrawl.offers` `unset (default: on)`. Not re-driven: the fixture-key lane (offer pause, `--deny`), the configured path. Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`cli/firecrawl-nokey.out`, `cli/origin-hold-show.txt`).*
 
 *Re-driven 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0). No key, on the guest lane 18163 inside the origin-challenge hold (stub on 18166): `OM_FEED_ALLOW_LOOPBACK=1 … watch page-add http://127.0.0.1:18166/article/1` exit 2 `page_bot_wall_suspected` (`… 127.0.0.1 is challenging this machine; next try 19:46:54Z (HTTP 403)`, hint `Run \`om setup firecrawl\``), one `challenge GET /article/1`, its own clock against the feed's 19:45:27Z; the feed's FAULT row ended `· Firecrawl can read it for you` with `FIX om setup firecrawl`. Pausing the offers, on main for the first time, on a second lane 18165 booted with `--env OM_FIRECRAWL_API_KEY=<fixture>` (never sent): the drain row `ok`; `config set firecrawl.offers off` → 70 s later `inactive`, `offers paused`; `on` → `ok`, with no `[firecrawl-offer]` line in the lane log; `setup firecrawl --deny 127.0.0.1 --format json` `declined:["127.0.0.1"]`; `firecrawl.offers maybe` exit 2. On 18163 (no key) the row read `no Firecrawl key` while off. Not driven: the configured read path, the seeded offer, the card, the exhausted-credits hold. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`cli/100-106`, `cli/232`, `cli/260-264`).*
@@ -73,7 +75,7 @@ neither.
 This guide has had no live pass from this maintenance loop. Its configured-path
 steps stay `live verification pending` on that pair.
 
-## Pausing the offers
+### Pausing the offers
 
 *On main since #2265 (v0.489.0). Driven on main 2026-11-04 (steps 1, 3's resume and 4); step 2's seeded host was not re-driven.*
 

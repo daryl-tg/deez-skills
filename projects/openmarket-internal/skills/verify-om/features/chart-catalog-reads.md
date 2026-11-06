@@ -1,5 +1,7 @@
 # Chart catalog reads
 
+*Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `chart indicator list --query rsi`, `chart indicator schema rsi` (`@om-core/rsi`, `period` 14), `chart drawing schema` (`anchorFormat`, `TrendLine`). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/72-74`).*
+
 *Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted at 19:18Z with no guest 429, host load average 10 falling to about 3.3. `chart drawing schema` (`anchorFormat role=<epochSeconds>:<price>`, TrendLine first), `chart indicator list --query rsi` (`scriptSubTypes ["RSI"]`, wrun packages), `chart indicator schema rsi` (`@om-core/rsi` 0.1.1, `spec: declared`). Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/chart-*`).*
 
 *Re-driven 2026-11-05 (nightly), tree `3a0ea623e` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted in 2 s at 19:19Z with no guest 429, host load average about 4.4. `chart drawing schema` (`anchorFormat role=<epochSeconds>:<price>`, TrendLine first), `chart indicator list --query rsi` (`scriptSubTypes ["RSI"]`, wrun packages), `chart indicator schema rsi` (`@om-core/rsi` 0.1.1, `spec: declared`). Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`cli/chart-*`).*

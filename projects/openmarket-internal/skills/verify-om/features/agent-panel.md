@@ -1,5 +1,7 @@
 # The dashboard agent panel
 
+*Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141 started with `--env OPENMARKET_LLM_PROVIDER=openai-compatible --env OPENMARKET_LLM_BASE_URL=http://127.0.0.1:18142/v1 --env OPENMARKET_LLM_MODEL=fake` and a scripted fake model on 18142. **First pass beyond the refusal:** the panel opened holding the three `POST /chat/turn` turns this run sent with curl (one global conversation), and a sent `hello from vomn-20261107 panel` came back as `article "Agent response"` reading `fake reply 5`. `POST /chat/turn` with the fake model calling `markets {pageSize:0, exchanges:["BINANCE_FUTURES"]}` streamed a `tool.result` whose `result` carried `modelViewChars: 23900`, `capped: false` and a `page` header (page 1 of 30, 806 rows, `next_cursor`); the same call with that `cursor` returned page 2; unfiltered `markets {pageSize:0}` returned `result_too_broad` (54.3M chars). Not re-driven: the no-LLM alert, `/connections`, `/agent`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`04-agent-panel.png`, `05-agent-panel-reply.png`, `cli/95-98`).*
+
 *Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted at 19:18Z with no guest 429, host load average 10 falling to about 3.3. **Ask your agent** on `/alerts` opened `Ask OpenMarket`; a sent `hello from vom-nightly-20261106` got the alert ``No LLM API key configured. Run `om init`, or export OPENMARKET_LLM_KEY for this shell.`` with `Reload conversation` and `Check connections`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`04-agent-panel.png`, `aria/agent-panel.txt`).*
 
 *Re-driven 2026-11-04 (nightly), tree `9acb5fb56` (origin/main, v0.491.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted in 2 s at 19:19Z with no guest 429, host load average about 3.5. **Ask your agent** on `/alerts` → `region "Ask your agent"`, `textbox "Message your agent"`, **Send message** disabled while empty → fill → send → the alert `No LLM API key configured. Run \`om init\`, or export OPENMARKET_LLM_KEY for this shell.` with `Reload conversation` and `Check connections`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261104/r1/` (`dash/dash-40-agent-panel.png`).*
@@ -27,7 +29,8 @@ Since v0.400.0 every dashboard page carries an `Ask your agent` button that
 opens a chat panel beside the page. The panel shares the page you are on as
 context, offers starter questions, and can hand off to a full conversation. On a
 home with no LLM credential it accepts the message and then refuses, pointing at
-the new Connections page.
+the new Connections page. With a model it answers, and a big market read comes
+back a page at a time.
 
 ## Sub-features
 
@@ -39,6 +42,17 @@ the new Connections page.
 - `full-conversation` hands off to the whole thread.
 - `connections` is where a missing credential is fixed.
 - `full-page` is the two-pane `/agent` workspace the panel hands off to.
+- `turn-stream` (#2389): the panel speaks `POST /chat/turn`, an SSE stream of
+  `tool.call`, `tool.result`, `assistant.text` and `turn.done` frames. Each
+  `tool.result` frame's `result` carries `modelViewChars` (the result's size
+  as the model reads it) and `capped` (past the tool's cap); the stored
+  transcript has neither.
+- `paged-reads` (#2330, #2389): on this lane a big `markets`, `points` or
+  `option_chain` answer comes back one page of up to about 24k chars: a `page`
+  header first (`page_number`, `pages`, `total_rows`, `shown`, `bounds`,
+  `narrow_by`, `next_cursor`), and the same arguments plus `cursor` read the
+  next page. A set too big to page is refused `result_too_broad`. The CLI and
+  MCP keep the whole answer ([market data](./market-data-reads.md)).
 
 ## How to get to it (user POV)
 
@@ -50,7 +64,16 @@ the new Connections page.
 Preconditions:
 
 - A lane the run started and a browser session of your own. Nothing else for the
-  refusal path; an LLM credential for anything beyond it.
+  refusal path; a model for anything beyond it. A scripted fake
+  OpenAI-compatible model on a second agent port is enough: start the lane
+  with `control-om up --port <p> --env OPENMARKET_LLM_PROVIDER=openai-compatible
+  --env OPENMARKET_LLM_BASE_URL=http://127.0.0.1:<fake-port>/v1 --env
+  OPENMARKET_LLM_MODEL=fake`. Its first round, when the newest user message
+  carries a cue and the last message is not a tool result, streams one
+  `tool_calls` delta (`markets` is a core tool, so it is in `body.tools` on
+  the first request; `points` and `option_chain` need a `tool_search` first);
+  every other round streams one line of text and a final chunk with
+  `choices: []` and `usage`.
 
 - **Open it.** `agent-browser find role button click --name "Ask your agent"`
   yields `region "Ask your agent"` holding `heading "Ask OpenMarket"`,
@@ -79,6 +102,21 @@ Preconditions:
   `/connections` snapshot. Together they are the evidence that the unmet
   prerequisite is a credential and not a broken surface.
 
+- **Send with a model.** On a fake-model lane the same send shows
+  `article "Your message"` then `article "Agent response"` with the model's
+  text; read it with `agent-browser eval
+  'Array.from(document.querySelectorAll("article")).slice(-2).map(a=>a.innerText).join(" || ")'`.
+  The panel opens on the global conversation, so turns sent to `/chat/turn`
+  from a shell show above it.
+- **Read the turn stream.** `curl -sN --max-time 150 -X POST
+  "$(control-om url /chat/turn)" -H 'Content-Type: application/json' -d
+  '{"message":"<cue>","turnId":"<id>"}'` needs no token on loopback. Parse the
+  `data:` lines; on the `tool.result` frame assert `result.modelViewChars`,
+  `result.capped` and, for a paged read, `JSON.parse(result.content).page`.
+  `markets` with `{"pageSize":0,"exchanges":["BINANCE_FUTURES"]}` gave 30 pages
+  of 806 rows on 2026-11-07; `{"pageSize":0}` alone is `result_too_broad`.
+  Send the next page with the same arguments plus `"cursor":"<next_cursor>"`;
+  by source, other arguments give `page_cursor_mismatch` (not driven).
 - **The panel is not the whole surface.** `/agent` is a real route holding a
   two-pane workspace (a conversation history list beside the chat), reached
   either by `Open full conversation` or by the sidebar brand link whose
