@@ -13,8 +13,9 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-06 on product tree
-`8bcd72f8f5` (`origin/main`, desktop 0.1.9) by the `crash` scenario: 34 of 34 checks in 46 s including the shell's
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-07 on product tree
+`dced88e06a` (`origin/main`, desktop 0.1.9, `desktop/` unchanged since `8bcd72f8f5`) by the `crash` scenario: 34 of 34
+checks in 46 s, the same as on 2026-11-06 (`8bcd72f8f5`), including the shell's
 `tsc` build, with the console session locked and a load average of 3 to 7 on 10 cores. The lane runs against a stub
 chart, not the real one, so the page's own beacon to PostHog and a real Sentry ingest are unproven; so is the page's
 keyboard focus after a recovery, and Windows.

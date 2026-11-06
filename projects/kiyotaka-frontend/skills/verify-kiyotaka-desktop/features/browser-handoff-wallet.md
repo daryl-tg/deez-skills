@@ -11,17 +11,17 @@ read exactly as the trading store writes it, at most six fraction digits), `evm-
 and `solana-connect`, and every request carries `issuedAt`, the app's clock when it opened the page; an old request
 reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent, approveBuilderFee, usdClassTransfer,
 personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no transaction
-signing). Last driven 2026-11-06 on tree `8bcd72f8f5` (`origin/main`; since `bf1c9bac3c` only
-`src/utility/hyperliquid/wallet/session-record.util.ts` changed on this path, the arm-standing record now naming
-`venue: 'hyperliquid'`, and `wallet-deep-links.util.ts` declares the `reports` bridge type), with the console session
-locked, on a testnet lane warmed in Chromium first (a `BTC - USD` title; the streaming host did not resolve). By hand in
-Chromium, a fresh `hl-approve-agent` request drew the title, summary, origin and no-wallet rows, a day-old one
-`desktop-sign-expired`, a truncated `r` `desktop-sign-invalid`, and the transfer kind "Transfer USDC" with "Spot to
-perps" and "25.5 USDC". `run sign` failed `desktop-sign-summary` after 60 s as before (71 s in all). The `hl` scenario
-ran once, 196 s: the connect and the first approveAgent round trip went through (two `desktop: external`, two
-`desktop: return`), then the crossed-chain request's page handed nothing back (`the sign page did not hand back a
-return`, `signInBrowser` at `handoff.mjs:317` from `hlScenario` at 619), the same stop as one 2026-11-04 run. The
-`solana` scenario was not run. On 2026-11-05, on `bf1c9bac3c`, the sign page was proved by hand in Chromium, one state
+signing). Last driven 2026-11-07 on tree `dced88e06a` (`origin/main`; nothing on this path changed since `8bcd72f8f5`), with the
+console session locked. By hand in Chromium on the dev lane, one state at a time through `about:blank`, a fresh
+`hl-approve-agent` request drew the title, summary, origin and no-wallet rows, a day-old one `desktop-sign-expired`, a
+truncated `r` `desktop-sign-invalid`, and the transfer kind "Transfer USDC" with "Spot to perps" or (`toPerp: false`)
+"Perps to spot" and "25.5 USDC", while `1.2345678` drew `desktop-sign-invalid` in the same session. On a testnet lane
+warmed in Chromium first (a `BTC - USD` title; the streaming host did not resolve), with the browser session closed
+before each pack, `run sign` onboarded MetaMask 13.50.0 and failed `desktop-sign-summary` after 60 s as before (77 s in
+all). The `hl` scenario ran once, 190 s: the connect and two approveAgent round trips went through (three `desktop:
+external`, three `desktop: return`), then it timed out at the `personal_sign` request (`handoff.mjs:226` from 238 from
+`hlScenario` at 645), `completed: false`. The `solana` scenario stopped at the Phantom pin in 19 s. On 2026-11-06, on
+`8bcd72f8f5`, the one `hl` run stopped at the crossed-chain request instead (`handoff.mjs:317` from 619, 196 s). On 2026-11-05, on `bf1c9bac3c`, the sign page was proved by hand in Chromium, one state
 at a time: a fresh `hl-approve-agent` request drew
 `desktop-sign-page-title` "Authorize a trading key", the summary (key name, agent address, Valid until, Hyperliquid
 Testnet, Account), `desktop-sign-origin` and `desktop-sign-no-wallet`; a day-old `issuedAt` drew `desktop-sign-expired`
@@ -113,8 +113,10 @@ Preconditions:
   `waitForChart` waits for a BTC title and a canvas, not for history: on 2026-11-03 a lane with 2 bars passed it once
   warm, and a cold lane failed it. Read a `waitForChart` stop as a page that never booted, warm the lane (see the
   [index](./README.md)) and run again before reading it as the scenario's.
-- **The lanes on 2026-11-06.** `run sign` failed `desktop-sign-summary` (no `issuedAt`, 71 s); `run handoff hl` stopped
-  once at the crossed-chain request (`handoff.mjs:317` from 619) after 196 s. `solana` was not run.
+- **The lanes on 2026-11-07.** `run sign` failed `desktop-sign-summary` (no `issuedAt`, 77 s); `run handoff hl` stopped
+  once at the `personal_sign` request (`handoff.mjs:645`) after 190 s; `run handoff solana` stopped at the Phantom pin in
+  19 s. On 2026-11-06 `run sign` failed the same way (71 s), `hl` stopped once at the crossed-chain request
+  (`handoff.mjs:317` from 619) after 196 s, and `solana` was not run.
 - **The three lanes on 2026-11-05.** `run sign` onboarded MetaMask 13.50.0 and failed `desktop-sign-summary` after
   60 s as before (no `issuedAt`, 79 s in all); `run handoff hl` stopped once on the connect request's wallet row
   (`handoff.mjs:307` from 495, a page that never booted after the pack's reload) and once at the `personal_sign` stop

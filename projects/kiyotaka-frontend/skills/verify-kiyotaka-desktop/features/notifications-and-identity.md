@@ -8,8 +8,8 @@ The shell also hands eight analytics events (`app-opened`, `update-installed`, `
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
 Since 0.1.8 the shell also reports its crashes and failed loads as three more `desktop:` events, which ride their own
 channel and the page's beacon instead (see [crash recovery and reports](./crash-recovery-and-reports.md)). Last driven
-2026-11-06 by the `notify` scenario on tree `8bcd72f8f5` (`origin/main`, desktop 0.1.9): 12 of 17 checks, run with
-`update` in 154 s for both, the same split as every run since 2026-10-29 (164 s on `bf1c9bac3c` on 2026-11-05). The bundle read `OpenMarket`,
+2026-11-07 by the `notify` scenario on tree `dced88e06a` (`origin/main`, desktop 0.1.9): 12 of 17 checks, run with
+`update` in 151 s for both, the same split as every run since 2026-10-29 (154 s on `8bcd72f8f5` on 2026-11-06). The bundle read `OpenMarket`,
 `xyz.openmarket.desktop`, `icon.icns` and `Signature=adhoc` (`unit-04-bundle-icon.png` is the mascot icon), and the OS
 answered `Added notification request: [ hasError: 0 hasCompletionHandler: 1 ]`. Four reds are the same as on every run
 since 2026-10-27. The fifth, `screenUnlocked`, is the lane reading a locked console session (`screenLocked: true` in the

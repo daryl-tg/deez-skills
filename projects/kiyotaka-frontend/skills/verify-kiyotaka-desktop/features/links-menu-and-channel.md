@@ -11,7 +11,7 @@ There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
-from 2026-10-27 to 2026-11-06, under high and low machine load; the last was 2026-11-06 on tree `8bcd72f8f5` (`origin/main`),
+from 2026-10-27 to 2026-11-07, under high and low machine load; the last was 2026-11-07 on tree `dced88e06a` (`origin/main`),
 in 63 s: `locator.click: Timeout 30000ms exceeded` at `launch.mjs:234` (`:230` before the crash lane's lines), after `desktop: loaded
 https://openmarket.xyz/chart/`, with the `dialog-style dialog-overlay backdrop-dim` element "intercepts pointer
 events" over `chart-watermark-link`. That overlay is the guest signup prompt ("See what moves price.", Join for free;
@@ -21,7 +21,8 @@ events" over `chart-watermark-link`. That overlay is the guest signup prompt ("S
 over the returns frame in the shell and in Chromium on the dev lane. It is a product-lane gap, not load: `launch.mjs`
 clicks "Got it" on the "Draw by holding" tip and waits up to 10 s for `.dialog-overlay` to detach (`launch.mjs:223`,
 `:228`), then clicks the watermark without closing this prompt. `launch.mjs` changed between `bf1c9bac3c` and `8bcd72f8f5` only to add the `crash` scenario, and
-`GuestSignupPromptDialog.vue` and `useGuestSignupPrompt.ts` did not change between `8436920004` and `8bcd72f8f5`.
+`GuestSignupPromptDialog.vue` and `src/composables/dialogs/useGuestSignupPrompt.ts` did not change between `8436920004`
+and `dced88e06a`.
 The context menu and the chart CSV download were last driven live by the gaps lane's guest rows (see
 [Electron gaps](./electron-gaps.md)); since `12906d4136` a field on the chart page gets the native edit menu too (only
 the plot, `#main-chart`, cancels the event).

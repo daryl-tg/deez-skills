@@ -7,19 +7,19 @@ The main process tries three parsers in order, sign-in (`openmarket://oauth/call
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
 window shows a chart page. The bridge's members are `version`, `onReturn`, `updates`, `analytics` and, from 0.1.9,
 `reports`, plus `browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last
-driven 2026-11-06 by the `returns` scenario on tree `8bcd72f8f5` (`origin/main`, desktop 0.1.9; `desktop/src/` last
+driven 2026-11-07 by the `returns` scenario on tree `dced88e06a` (`origin/main`, desktop 0.1.9; `desktop/src/` last
 changed in `236b4c3eca`, the crash reports) against the dev lane, warmed in Chromium first (a priced BTC title, but 1 bar
-in the engine: the streaming host did not resolve): 20 of 21 checks in 72 s including the `pnpm package:dev` pack, the
-same split as on every run from 2026-10-27 (73 s on `bf1c9bac3c` on 2026-11-05, with 0 bars). On 2026-11-03 the first
+in the engine: the streaming host did not resolve): 20 of 21 checks in 69 s including the `pnpm package:dev` pack, the
+same split as on every run from 2026-10-27 (72 s on `8bcd72f8f5` on 2026-11-06). On 2026-11-03 the first
 run straight after `lane up` threw in `waitForCandles` (then `launch.mjs:94`, now `:97`; no BTC title in 60 s) before
 any check, because the cold vite's first chart load failed its dynamic imports and the router never started (see the [index](./README.md)).
 The shell logged `desktop: dropped openmarket://elsewhere`, a `desktop: return <id>` line for `abc`, `second`, the
 handoff's uuid, `before-subscribe`, `held` and `cold`, and `desktop: external .../desktop/sign?r=...` (a
 `solana-connect` request) for the handoff step. The red one, `bridgeTwoMembers`, still expects `onReturn, version`
 while the bridge holds `analytics, browserSignIn, onReturn, reports, updates, version` (`launch.mjs:435`; `bridgeVersion`
-on the next line read 0.1.9 on 2026-11-06 and passes); that is a stale lane assertion, not a regression. On 2026-11-04
+on the next line read 0.1.9 on 2026-11-07 and passes); that is a stale lane assertion, not a regression. On 2026-11-04
 `unit-03-return.png` showed the `onReturn {"id":"abc",...}` banner over the 1h candles, with the guest signup prompt
-("See what moves price.") over the chart. On 2026-11-01, 2026-11-03, 2026-11-05 and 2026-11-06 the same frame had no history (two
+("See what moves price.") over the chart. On 2026-11-01, 2026-11-03 and from 2026-11-05 to 2026-11-07 the same frame had no history (two
 bars under "Reconnecting..." or, from 2026-11-05, "Your network is slow" and an empty plot under the "Draw by holding"
 tip) because the dev lane's
 streaming host was unreachable; the scenario's checks need a canvas, not a price, so a green `returns` says nothing about candles, and only
