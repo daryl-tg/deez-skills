@@ -276,6 +276,17 @@ def _require_pushed(repo, git):
         raise SuperError(f"{repo}: has commits on no remote; kept")
 
 
+def _require_within(repo, head, git):
+    beyond = git(
+        ["git", "-C", str(repo), "log", "--branches", "--not", "--remotes", head, "--oneline", "-1"],
+        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
+    )
+    if beyond.returncode != 0:
+        raise SuperError(f"{repo}: cannot compare with merged head {head}; kept")
+    if beyond.stdout.strip():
+        raise SuperError(f"{repo}: has commits past the merged head {head}; kept")
+
+
 def _remove_ended_scratch(store, root, git, sweeper, blocked, now, errors):
     removed = 0
     for path in sorted((Path(root) / "work").glob("k_*")):
@@ -288,9 +299,12 @@ def _remove_ended_scratch(store, root, git, sweeper, blocked, now, errors):
         if failed_at is not None and _seconds_since(failed_at, now) < REMOVAL_RETRY_SECONDS:
             continue
         try:
+            head = store.merged_head(path.name) if outcome == "merged" else None
             for repo in _scratch_repos(path):
                 _require_clean(repo, git)
-                if outcome != "merged":
+                if head:
+                    _require_within(repo, head, git)
+                else:
                     _require_pushed(repo, git)
             sweeper(path)
             shutil.rmtree(path)

@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     mandate_id TEXT NOT NULL, state TEXT NOT NULL, created_at TEXT NOT NULL,
     ended_at TEXT, ended_by TEXT, outcome TEXT);
 CREATE INDEX IF NOT EXISTS tickets_by_thread ON tickets (thread_id);
+CREATE TABLE IF NOT EXISTS merged_heads (ticket_id TEXT PRIMARY KEY, head TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS acceptances (
     trigger_id TEXT PRIMARY KEY, ticket_id TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS assignments (
@@ -446,8 +447,21 @@ class Store:
     def archive(self, ticket_id, by, reason):
         return self._close(ticket_id, by, f"archived: {reason}", TicketOutcome.archived)
 
-    def close_merged(self, ticket_id, url):
+    def close_merged(self, ticket_id, url, head=None):
+        if head:
+            with self._transaction():
+                self._db.execute(
+                    "INSERT OR REPLACE INTO merged_heads (ticket_id, head) VALUES (?, ?)", (ticket_id, head)
+                )
         return self._close(ticket_id, "merge", f"merged: {url}", TicketOutcome.merged)
+
+    def merged_head(self, ticket_id):
+        row = self._db.execute("SELECT head FROM merged_heads WHERE ticket_id = ?", (ticket_id,)).fetchone()
+        return row[0] if row else None
+
+    def worker_running(self, ticket_id):
+        latest = self._latest_assignment(ticket_id)
+        return latest is not None and latest.state is AssignmentState.running
 
     def _close(self, ticket_id, by, reason, outcome):
         with self._transaction():

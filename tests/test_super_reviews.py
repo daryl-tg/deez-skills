@@ -70,6 +70,30 @@ class ReviewsTest(unittest.TestCase):
         self.assertEqual(reply.thread_id, "terminal:default")
         self.assertIn(PR, reply.text)
 
+    def test_merged_review_waits_for_a_running_worker(self):
+        ticket = self.ticket(1, f"PR {PR}")
+        revived = self.store.retry(ticket.id)
+        self.store.start_assignment(revived.id, "sid", 2, "/w")
+        forge = Forge({PR: "MERGED"})
+
+        closed, _ = self.close(forge)
+
+        self.assertEqual(closed, [])
+        self.assertEqual(self.store.show(ticket.id)["state"], "open")
+
+        self.store.report(revived.id, "ready", "search button committed on the same branch")
+        closed, _ = self.close(forge, NOW + timedelta(seconds=reviews.CHECK_SECONDS + 1))
+
+        self.assertEqual(closed, [ticket.id])
+
+    def test_merged_pull_request_records_its_head(self):
+        ticket = self.ticket(1, f"PR {PR}")
+
+        self.close(Forge({PR: "MERGED 4e9d500e6"}))
+
+        self.assertEqual(self.store.merged_head(ticket.id), "4e9d500e6")
+        self.assertEqual(self.store.show(ticket.id)["state"], "ended")
+
     def test_merged_merge_request_is_read_with_glab(self):
         ticket = self.ticket(1, f"MR {MR}")
         forge = Forge({MR: "merged"})

@@ -19,6 +19,7 @@ ATTENTION_KINDS = ("waiting", "blocked", "failed")
 READY_STALE_AFTER = timedelta(hours=6)
 WAITING_STALE_AFTER = timedelta(days=3)
 IDLE_STALE_AFTER = timedelta(days=1)
+ENDED_SHOWN_FOR = timedelta(hours=12)
 KEPT_NAME = "center-kept.json"
 
 
@@ -381,6 +382,14 @@ def keep(root, dossier):
     with os.fdopen(handle, "w", encoding="utf-8") as stream:
         json.dump(kept, stream, indent=2, sort_keys=True)
     os.replace(temp, Path(root) / KEPT_NAME)
+
+
+def drop_long_ended(world, now):
+    world.dossiers = [
+        d for d in world.dossiers
+        if d.state == "open" or d.ended is None or now - d.ended < ENDED_SHOWN_FOR or stale_reason(d, now)
+    ]
+    return world
 
 
 def stale_tickets(world, root, now):

@@ -1344,7 +1344,7 @@ class CenterApp(App):
 
     def read_world(self):
         try:
-            world = self.load_world(self.root)
+            world = center_model.drop_long_ended(self.load_world(self.root), self.now())
         except Exception as exc:
             world = center_model.World(list(self.world.dossiers), dict(self.world.threads),
                                        self.world.spend_today, error=f"load failed: {exc}")

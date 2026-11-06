@@ -548,16 +548,43 @@ class DaemonTest(unittest.TestCase):
             (clone / "file.txt").write_text("changed\n", encoding="utf-8")
         return work
 
+    def head(self, work):
+        return git(work / "wt", "rev-parse", "HEAD").strip()
+
     def test_merged_ticket_scratch_clone_is_swept_and_removed(self):
         ticket, _assignment_id = self.ticket("merged work")
         work = self.scratch_clone(ticket)
-        self.store.close_merged(ticket.id, "https://github.com/o/r/pull/1")
+        self.store.close_merged(ticket.id, "https://github.com/o/r/pull/1", head=self.head(work))
 
         result = self.one_pass()
 
         self.assertFalse(work.exists())
         self.assertEqual((result.removed, result.errors), (1, ()))
         self.assertIn(work, self.sweeper.swept)
+
+    def test_merged_scratch_clone_holding_commits_past_the_merged_head_is_kept(self):
+        ticket, _ = self.ticket("follow-up after merge")
+        work = self.scratch_clone(ticket)
+        merged = self.head(work)
+        (work / "wt" / "file.txt").write_text("follow-up\n", encoding="utf-8")
+        git(work / "wt", "commit", "-q", "-am", "follow-up")
+        self.store.close_merged(ticket.id, "https://github.com/o/r/pull/3", head=merged)
+
+        result = self.one_pass()
+
+        self.assertTrue(work.exists())
+        self.assertEqual(result.removed, 0)
+        self.assertIn("past the merged head", result.errors[0])
+
+    def test_merged_scratch_clone_with_no_recorded_head_keeps_unpushed_commits(self):
+        ticket, _ = self.ticket("merged, head unknown")
+        work = self.scratch_clone(ticket)
+        self.store.close_merged(ticket.id, "https://github.com/o/r/pull/4")
+
+        result = self.one_pass()
+
+        self.assertTrue(work.exists())
+        self.assertIn("no remote", result.errors[0])
 
     def pushed_clone(self, ticket):
         remote = self.root.parent / f"remote-{ticket.id}.git"

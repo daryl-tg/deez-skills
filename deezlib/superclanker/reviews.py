@@ -27,10 +27,10 @@ def ticket_review_url(store, ticket_id):
 def _command(url):
     if "/merge_requests/" in url:
         return ["glab", "mr", "view", url, "-F", "json"]
-    return ["gh", "pr", "view", url, "--json", "state", "-q", ".state"]
+    return ["gh", "pr", "view", url, "--json", "state,headRefOid", "-q", '.state + " " + .headRefOid']
 
 
-def review_state(url, run=subprocess.run):
+def review_status(url, run=subprocess.run):
     argv = _command(url)
     try:
         done = run(argv, capture_output=True, text=True, timeout=FORGE_TIMEOUT_SECONDS)
@@ -41,10 +41,12 @@ def review_state(url, run=subprocess.run):
     raw = (done.stdout or "").strip()
     if argv[0] == "glab":
         try:
-            raw = json.loads(raw).get("state", "")
+            found = json.loads(raw)
+            return str(found.get("state", "")).lower(), found.get("sha") or None
         except (ValueError, AttributeError) as exc:
             raise ReviewError(f"{url}: glab gave no state") from exc
-    return str(raw).lower()
+    state, _, head = raw.partition(" ")
+    return state.lower(), head.strip() or None
 
 
 class ReviewError(Exception):
@@ -72,16 +74,16 @@ def close_merged(store, now=None, run=subprocess.run):
         if row["state"] != "open":
             continue
         url = ticket_review_url(store, row["ticket"])
-        if url is None:
+        if url is None or store.worker_running(row["ticket"]):
             continue
         try:
-            state = review_state(url, run)
+            state, head = review_status(url, run)
         except ReviewError as exc:
             errors.append(str(exc))
             continue
         if state != "merged":
             continue
-        ticket = store.close_merged(row["ticket"], url)
+        ticket = store.close_merged(row["ticket"], url, head)
         closed.append(ticket.id)
         if ticket.thread_id.startswith("terminal:"):
             store.reply(ticket.thread_id, f"{ticket.slug}: {url} merged. Closed the ticket; its workspace is removed next.")

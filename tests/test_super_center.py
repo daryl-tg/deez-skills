@@ -1,5 +1,5 @@
 import asyncio
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import importlib.util
 import json
 import sqlite3
@@ -635,6 +635,22 @@ class AppTest(Seeded):
         self.assertIn("rebase", call[4].lower())
         self.assertIn("https://github.com/o/r/pull/42", call[4])
         self.assertIn("rebase", logs[0].lower())
+
+    def test_tickets_ended_over_twelve_hours_ago_leave_the_blotter(self):
+        old, _, _ = self.ticket(1, report="ready", end="done")
+        recent, _, _ = self.ticket(2, report="ready", end="done")
+        live, _, _ = self.ticket(3, report="progress")
+        ended_at = datetime.now(timezone.utc) - timedelta(hours=13)
+        self.store._db.execute("UPDATE tickets SET ended_at = ? WHERE id = ?", (ended_at.isoformat(), old.id))
+        self.store._db.commit()
+        rows = []
+
+        async def script(app, pilot):
+            rows.extend(str(key.value) for key in app.query_one("#blotter").rows)
+
+        self.run_app(Verbs(), script)
+
+        self.assertEqual(sorted(rows), sorted([recent.id, live.id]))
 
     def tells(self, verbs):
         return [c for c in verbs.calls if c[2:3] == ["tell"]]
