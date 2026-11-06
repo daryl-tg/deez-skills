@@ -19,7 +19,7 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4608` always does, so the **running app shows twenty**;
+  `Shell.tsx:4617` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
   product. To count twenty without a daemon, open Settings through the shell:
@@ -47,7 +47,7 @@ interaction end to end.
 - The settings nav has no build or version footer since `55a41da9`.
 - High-contrast mode and its interaction with every palette. The system
   contrast preset follows `prefers-contrast: more` independently of the
-  explicit high-contrast switch (`packages/chat-ui/src/components/settings/appearance.ts`, `prefers-contrast: more` at `:311`).
+  explicit high-contrast switch (`packages/chat-ui/src/components/settings/appearance.ts`, `prefers-contrast: more` at `:312`).
 - Server settings: Overview, Roles, Members, Moderation, Invites, Integrations,
   Work Ledger, Library, Recovery, Import Vault, Danger. There is **no Access
   page on the server host** — Access is a channel page.
@@ -147,7 +147,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4515`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4533`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -157,7 +157,7 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2429-2434`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2442-2447`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -194,6 +194,21 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 | Recovery | **Library Recovery** |
 | Import Vault | **Import Vault** |
 | Danger | **Danger** — TRANSFER OWNERSHIP |
+
+In the role editor the colour row is a `role=group` named **Role Color**
+(`settings/ColorSwatches.tsx`, used at `settings/RolesEditor.tsx:713`): 21
+`.color-swatch` buttons, the first **Default (no color)**, the rest **Role
+color #xxxxxx**, each with `aria-pressed`. Driven 2026-11-07 on both hosts at
+`?host=server&page=roles&perms=owner`: **Role color #e67e22** starts pressed,
+and a click on **Role color #1abc9c** moves `aria-pressed="true"` to it. The
+class was `.role-swatch` at `ea399e62`.
+
+A **Projects** server page (keywords "labels tickets"; ticket labels) joins
+the server nav when the space runs to-dos in records mode and the viewer can
+manage the server or ticket labels (`settings/ServerSettings.tsx:195-197`,
+`:264-266`). Its gate is `session.todos?.recordsOn(spaceId) === true`, which
+`INERT` never satisfies, so neither settings fixture shows it: live
+verification pending.
 
 There is no server **Access** page. Access is a channel page
 (`ChannelSettings.tsx:791`), reached only through
@@ -280,7 +295,7 @@ feedback** card (`settings/UserSettings.tsx:2085-2110`) with four switches:
 **GOAT bleat**. On a fresh lane the three sound switches read
 `aria-checked="true"` and reduced motion reads `false`. `find role switch click
 --name "Resolve sound"` turns it off and writes `om.chat.resolveSound=false`
-to `localStorage` (`lib/prefs.ts:447`); assert the key, not only the switch.
+to `localStorage` (`lib/prefs.ts:548`); assert the key, not only the switch.
 The chime itself (`lib/resolve-chime.ts`) plays on a topic resolve and is not
 observable in a headless lane.
 
@@ -391,7 +406,7 @@ card on **Direct message**. It never reads "Jiin", "# design" or
 - **Notifications crashes the shell fixture's whole User settings surface.**
   `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:609`),
   and neither fixture's plain-object `alertsStub` has it
-  (`shell-fixture.tsx:1412`, `apps/cloud/tools/visual/shell-fixture.tsx:537`).
+  (`shell-fixture.tsx:1425`, `apps/cloud/tools/visual/shell-fixture.tsx:537`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
   settings could not load** / **Try again**. Any further page click finds no
   button, and **Try again** returns to My Account. Reload before driving the
@@ -440,7 +455,7 @@ card on **Direct message**. It never reads "Jiin", "# design" or
   only the account-wide radiogroups ("Which to-dos appear in chat or topics",
   "Whether to-do status updates appear in chat"). Proving that sub-feature
   needs a fixture change, not a different query.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4606` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4615` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -471,7 +486,9 @@ card on **Direct message**. It never reads "Jiin", "# design" or
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) shell fixture `view=settings&settingsPage=appearance`: **CHAT BACKGROUND** empty (**No picture yet**, Cover and Dim disabled, Dim 0–100 step 5); a seeded picture shows the position picker **Background position in the chat** and the **Zoom** group (**Fill** → 140 % after two **Zoom in**, ArrowUp ×2 + ArrowLeft → "40% from top, 45% from left", stored `zoom`, `aspect`, `position`); **Whole window** renames the slider and sets `data-chat-background-cover="window"`; **Reset** returns to **Fill**; Dim 30 % shows "Text may be hard to read."; **Remove** → **Chat background removed**; no build footer. `settings-fixture.html?host=user&page=profiles`: the new avatar hint and **Position your avatar** (**Avatar position**, **Cancel**, **Save**). `/chat/` (18181): the picker, **Zoom in** → 120 %, no footer, and the avatar dialog. **Limitations:** a successful upload, pinch and pointer drag of the picture, and the avatar **Save** upload were not proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `settings-fixture.html?page=appearance` mounts **Appearance** with the chat background and the Dim slider; `?host=server&page=roles&perms=owner`: the **Role Color** group (21 `.color-swatch` buttons, **Default (no color)** `aria-pressed="false"`), and a click moves `aria-pressed="true"` from **Role color #e67e22** to **Role color #1abc9c**. **Limitations:** the Projects settings page needs a records-mode server; `page=privacy` blank on both hosts and `host=server&page=moderation` blank on `/chat/` (route smoke). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) shell fixture `view=settings&settingsPage=appearance`: **CHAT BACKGROUND** empty (**No picture yet**, Cover and Dim disabled, Dim 0–100 step 5); a seeded picture shows the position picker **Background position in the chat** and the **Zoom** group (**Fill** → 140 % after two **Zoom in**, ArrowUp ×2 + ArrowLeft → "40% from top, 45% from left", stored `zoom`, `aspect`, `position`); **Whole window** renames the slider and sets `data-chat-background-cover="window"`; **Reset** returns to **Fill**; Dim 30 % shows "Text may be hard to read."; **Remove** → **Chat background removed**; no build footer. `settings-fixture.html?host=user&page=profiles`: the new avatar hint and **Position your avatar** (**Avatar position**, **Cancel**, **Save**). `/chat/` (18181): the picker, **Zoom in** → 120 %, no footer, and the avatar dialog. **Limitations:** a successful upload, pinch and pointer drag of the picture, and the avatar **Save** upload were not proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `settings-fixture.html?host=user&page=appearance`: **CHAT BACKGROUND** empty state, the GIF, unreadable-file and inert-upload toasts, a seeded picture (**Replace picture**, **Remove**, **Dim** 90 % → 80 %), **Whole window** ↔ **Chat only** with `data-chat-background-cover` and the stored `cover`, **Remove** → **Chat background removed**; the **LIVE PREVIEW** Server and Direct message tabs (Avery Lane, Helper Agent **AGENT**, no Jiin or openmarket.xyz). `/rooms/` and `/chat/` (18171) shell fixture `view=settings&settingsPage=appearance`: **Whole window** paints `.app-shell` with the picture and five translucent `[data-chat-backdrop-plane]` panels; **Chat only** paints the `role=log` `[data-chat-backdrop]` on `/chat/`. **Limitations:** a successful upload needs a live host; the other settings pages were covered only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`01`–`15`, `smoke/`).
 

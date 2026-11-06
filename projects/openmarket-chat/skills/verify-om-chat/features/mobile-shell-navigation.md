@@ -144,7 +144,9 @@ conversation** (not a takeover) still needs the same stub plus the rail.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) at 390×844 `view=room` mounts `[data-mobile-detail]`; the phone sheet is in [menu-select-and-phone-sheet.md](menu-select-and-phone-sheet.md). **Limitations:** tab-bar doors only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) at 390×844 `view=room` mounts `[data-mobile-detail]`. **Limitations:** tab-bar doors only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) at 390×844 `view=room` mounts `[data-mobile-detail]`; the phone sheet is in [menu-select-and-phone-sheet.md](menu-select-and-phone-sheet.md). **Limitations:** tab-bar doors only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) at 390×844, sized before the first navigation: `view=room` renders `[data-mobile-detail]`. **Limitations:** the tab bar, takeovers and touch paths were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`42`).
 

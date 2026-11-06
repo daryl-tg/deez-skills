@@ -65,7 +65,9 @@ Expect `pre-wrap`, `fits: true` and `copyInside: true` at 1440×900 and at
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=room`: one **Copy** control. **Limitations:** wrapping not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=room`: the code block's **Copy** control (its name is not in `aria-label` or `title`) and **Code block language**. **Limitations:** wrapping not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=room`: one **Copy** control. **Limitations:** wrapping not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room`: one `.code-copy` control named **Copy**. **Limitations:** wrapping was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
 

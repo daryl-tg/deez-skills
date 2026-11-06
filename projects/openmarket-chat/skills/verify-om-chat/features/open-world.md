@@ -33,7 +33,7 @@ fixture cannot reach.
   (measured at `f7d7c987`).
 - A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
   font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
-  home session (`Shell.tsx:4606`; lazy import at `:248`). Reach it through
+  home session (`Shell.tsx:4615`; lazy import at `:249`). Reach it through
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
@@ -271,7 +271,9 @@ template for its waits.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `mocks/world-solo/index.html?worldprobe=1`: two canvases, "world offline, retrying" and "No #world channel"; `tools/openscape-preview/` (18182): `__omWorld3D` present, the log and **Message #world**, and `activity.html` (**Agent activity**, Quick read / write / search). **Limitations:** no emote, camera or delivery drive this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `mocks/world-solo/index.html?worldprobe=1`: two canvases, "world offline, retrying" and "No #world channel"; `tools/openscape-preview/` (18182, under `/rooms/`): `__omWorld3D` with 32 characters and **Message #world**, and `activity.html` (**Agent activity**, the Scenario select with Quick read / write / search). **Limitations:** no emote, camera or delivery drive this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `mocks/world-solo/index.html?worldprobe=1`: two canvases, "world offline, retrying" and "No #world channel"; `tools/openscape-preview/` (18182): `__omWorld3D` present, the log and **Message #world**, and `activity.html` (**Agent activity**, Quick read / write / search). **Limitations:** no emote, camera or delivery drive this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `mocks/world-solo/index.html?worldprobe=1` in a fresh visible session: `data-world-ready`, two canvases. `tools/openscape-preview/` (18172) mounts one canvas with the Town_Visitor, Rowan, Mira and Ash nameplates. **Limitations:** HUD, emotes and camera not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`40`, `41`).
 

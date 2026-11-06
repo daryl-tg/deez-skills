@@ -83,7 +83,9 @@ The actual API rig must include a synthetic HOME mirror-health entry and directo
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `persona-panel-fixture.html`: **Edit**, **Try it**, **Profile to load**, **Learning details**, **Learn from my messages**, **Import**, **Create**, **More voice card actions**. **Limitations:** dialogs not reopened this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `persona-panel-fixture.html`: **Edit**, **Try it**, **Profile to load**, **Learning details**, **Learn from my messages**, **Import**, **Create**, **More voice card actions**. **Limitations:** dialogs not reopened this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `persona-panel-fixture.html`: **Edit**, **Try it**, **Profile to load**, **Learning details**, **Learn from my messages**, **Import**, **Create**, **More voice card actions**. **Limitations:** dialogs not reopened this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `persona-panel-fixture.html` reads **VOICE** with **Edit**, **Try it**, "Trading desk voice v7" and the Persona and Learning rows. **Limitations:** dialogs and the other states only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`36`).
 

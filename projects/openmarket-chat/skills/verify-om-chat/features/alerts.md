@@ -12,7 +12,7 @@ in [settings-and-appearance.md](settings-and-appearance.md).
 - **No channel-header beacon since `dc6a9a47`** (2026-10-01). `ChatPane.tsx`
   stopped mounting `AlertsBeacon`; the file survives only for the board's
   `BOARD_WIDTH`. A channel with a live alert feed gets an **Alerts** door on
-  the right-edge dock instead (`RightPanels.tsx:179-200`, gated by
+  the right-edge dock instead (`RightPanels.tsx:189-212`, gated by
   `rightSlotTabsFor`), and the sidebar carries the ringing count. The fixture's
   `#ops` has no live feed, so its dock shows Library, Bookmarks, Members and
   Pins only, and the door is live verification pending (re-measured
@@ -47,8 +47,8 @@ agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=ale
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=room` | Strip firing: `.alert-strip` text `store-5xx · check pods` |
-| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1417-1425`) |
-| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`:1429-1430`) |
+| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1430-1438`) |
+| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`:1442-1443`) |
 | `shell-fixture.html?view=room&alerts=quiet` | No strip: use this for every non-alert proof |
 | `fixture.html?surface=alert-card` | The alert card with its four actions |
 
@@ -78,9 +78,9 @@ plain `generic` there.
   true since at least `5820fbea`, so do not judge alert visuals from the shell;
   use `fixture.html?surface=alert-card` or the bundled app.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
-  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:388-398`
+  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:409-419`
   and opened in the product by `session.openAlertsTab`). The fixture's
-  plain-object `alertsStub` (`shell-fixture.tsx:1412`) lacks members the
+  plain-object `alertsStub` (`shell-fixture.tsx:1425`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,
   `setSelectedFeed`, `tapeFeedFilter` and `setTapeFeedFilter`. Which one throws
   first was not isolated. No error boundary wraps the panel, so `#root`
@@ -93,7 +93,9 @@ plain `generic` there.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `alerts=board`: the strip **store-5xx · check pods**. **Limitations:** `panel=alerts` still blank on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `alerts=board`: the strip **store-5xx · check pods**. **Limitations:** `panel=alerts` still blank on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `alerts=board`: the strip **store-5xx · check pods**. **Limitations:** `panel=alerts` still blank on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=room&alerts=board` shows `store-5xx`; the route smoke mounted every alerts route except the carried blank `?panel=alerts` (both hosts). **Limitations:** the tape card was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`smoke/`).
 

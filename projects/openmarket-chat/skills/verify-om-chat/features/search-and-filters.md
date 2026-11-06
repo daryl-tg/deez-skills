@@ -45,7 +45,7 @@ proof.
 - Result counts read `${count}${partial ? "+" : ""} results`, so a partial
   window shows `1+ results` (`SearchPanel.tsx:1287`, `:1295`). Empty states:
   "No results in #ops." (`:1777`) and "No results in your conversation with
-  @x." (`:2333`). Plus `Clear search`, `Clear search history` and the `Sort
+  @x." (`:2334`). Plus `Clear search`, `Clear search history` and the `Sort
   search results` menu.
 
 ## How to get to it (user POV)
@@ -174,7 +174,9 @@ Driven 2026-10-31 on `/rooms/` (18135); the scope picker also on `/chat/`
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `panel=search`: "1 results". **Limitations:** filters and sort not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `panel=search`: "1 results". **Limitations:** filters and sort not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `panel=search`: "1 results". **Limitations:** filters and sort not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `panel=search` reads **1 results**; `searchState=error` mounts on both hosts (route smoke). **Limitations:** the `from:@ana` grammar was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`37`, `smoke/`).
 

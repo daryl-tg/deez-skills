@@ -2,7 +2,7 @@
 
 The desktop app (Electron, `desktop/`) injects `window.omShell` before the
 bundle runs. The shared Shell reads it and shows up to three status strips at
-the top of the app (`packages/chat-ui/src/components/Shell.tsx:3393-3395`).
+the top of the app (`packages/chat-ui/src/components/Shell.tsx:3396-3398`).
 Neither browser host has the bridge, so a person sees these strips only in the
 desktop app.
 
@@ -76,7 +76,7 @@ phase after load.
   launchd registration need the shell itself (`cd desktop && bun run probe` /
   `smoke`; agents never launch a visible window).
 - Defining `window.omShell` also turns on the Shell's other desktop-only paths
-  (`Shell.tsx:1418`, `:2730`: desktop setup and daemon recovery). A minimal stub
+  (`Shell.tsx:1419`, `:2733`: desktop setup and daemon recovery). A minimal stub
   without `getAppSetupStatus` keeps them quiet. Add only the methods you mean to
   drive.
 - The background strip needs all three of `getBackgroundStatus`,
@@ -87,7 +87,9 @@ phase after load.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) with the `window.omShell` init-script stub: the three strips, and the buttons recorded `update:accept`, `daemon:{"action":"install"}`, `background:enable`. **Limitations:** unchanged; phase changes after load not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) with the `window.omShell` init-script stub: the three strips, and the buttons recorded `update:accept`, `daemon:{"action":"install"}`, `background:enable`. **Limitations:** `/chat/` not re-driven this pass; phase changes after load not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) with the `window.omShell` init-script stub: the three strips, and the buttons recorded `update:accept`, `daemon:{"action":"install"}`, `background:enable`. **Limitations:** unchanged; phase changes after load not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) through the `--init-script` `window.omShell` stub: **Install update** (OM Chat 9.9.9), **Update OpenMarket** (1.2.3) and **Enable background**; **Enable background** and **Update OpenMarket** recorded `background:enable` and `daemon:{"action":"install"}`. **Limitations:** unchanged; phase changes after load not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`strips-01`).
 

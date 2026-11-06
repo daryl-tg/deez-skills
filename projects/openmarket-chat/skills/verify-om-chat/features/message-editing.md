@@ -8,6 +8,7 @@
 - A previously edited message keeps its existing edit metadata on an unchanged save.
 - Escape cancels; Shift+Enter adds a newline. A completion menu consumes these keys first.
 - Topic labels return to canonical references on save. Empty poll captions stay empty; clearing a nonempty caption remains a real edit.
+- A role mention edits as a snug `@Name` chip (`f8baae2a`). The edit box binds the message's `om://role/<id>` references with the room, so the value reads `@Devops` rather than the URI, and the chip is as wide as its name. A colored role gets `composer-token-role-colored` and `--role-color` (`InlineMessageEditor.tsx:403-410`). Saving sends the `om://role/…` URI again, and a role picked from the edit box's `@` menu binds the same way.
 
 ## How to get to it (user POV)
 
@@ -54,6 +55,27 @@ Capture the open editor and the result, including accessibility snapshots. Obser
 
 The 2026-09-09 unchanged-edit run attached actual ChatSession edit methods to the fixture's loaded state with a recording transport. Its reproducible adapter and browser script live in `/Users/dboon/Documents/dev-notes/unchanged-message-edit/`. The channel and DM journeys proved unchanged Enter, reverted Save, and genuine edits. The channel journey also proved preservation of an existing edit timestamp. DM timestamp preservation was covered by the session regression.
 
+### A role mention in the edit box (added 2026-11-07)
+
+`?roleEdit=1` posts kyle's message "**Need from om://role/r-devops**" with a
+line of member mentions and opens it already in the edit box
+(`tools/visual/shell-fixture.tsx:1342-1353`, `:1653`). It exists on `/rooms/`
+only; the `/chat/` fixture has no such seed.
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&roleEdit=1')"
+agent-browser eval '(()=>{const t=document.querySelector("textarea[aria-label=\"Edit message\"]");return JSON.stringify({value:t.value,toks:[...document.querySelectorAll(".composer-token")].map(e=>e.textContent+"|"+e.className)})})()'
+#   value "**Need from @Devops**\n- @ana @dax: please review the retention plan"
+#   toks @Devops|composer-token composer-token-role, @ana and @dax as composer-token-mention
+```
+
+Driven 2026-11-07 on `/rooms/`: the `@Devops` chip measured 70 px for 66 px
+of text with 2 px side padding, and the value held no `om://role`. Do not
+test the `@` pick with another role here: the fixture's role-name stub
+(`bindComposerUrisFor`, `:3505-3513`) knows only `r-devops`, so picking
+**@traders** shows `@role:r-trader` and the raw URI. That is the stub, not the
+product.
+
 ## Gotchas
 
 The stock shell fixture substitutes commitEdit and commitDmEdit. Its timestamps are fixture behavior and cannot prove session logic. Use actual session methods for a session fix, and state when the transport is recorded rather than live.
@@ -91,7 +113,9 @@ Full server persistence and other clients receiving the edit require the local a
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180): toolbar **Edit** on `msg-ops-104` mounts `[aria-label="Edit message"]`; `/chat/` (18181): neither the editor nor the loading marker after 2.5 s (the carried no-op). **Limitations:** the DM path not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180): toolbar **Edit** on `msg-ops-104` mounts `[aria-label="Edit message"]`; `?roleEdit=1` opens kyle's role message in the edit box with `@Devops` as a `.composer-token-role` chip (70 px for 66 px of text, 2 px padding) and no `om://role` in the value. `/chat/` (18181): **Edit** mounts nothing (the carried no-op). **Limitations:** picking **@traders** in the edit box shows `@role:r-trader`, because the fixture's role-name stub knows only `r-devops`; the save was not sent. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180): toolbar **Edit** on `msg-ops-104` mounts `[aria-label="Edit message"]`; `/chat/` (18181): neither the editor nor the loading marker after 2.5 s (the carried no-op). **Limitations:** the DM path not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170): hover `msg-ops-104` → toolbar **Edit** mounts `[aria-label="Edit message"]`. `/chat/` (18171): the same click mounts neither the editor nor `[data-inline-edit-loading]` after 4 s (the carried `/chat/` Edit no-op). **Limitations:** the DM **Edit Message** path was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`32`, `44`).
 
@@ -111,6 +135,6 @@ Full server persistence and other clients receiving the edit require the local a
 
 **Previous record (channel path):** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-104` → **Edit** opened the **Edit message** textbox; a changed value plus **save** closed the editor, and the row read "edited by nightly 1028 (edited)". The first `hover` plus 0.6 s plus `find role button --name Edit --exact` reported no **Edit**, although `.msg-toolbar` held `button[title="Edit"]` and the row had grown to 81 px. A second hover succeeded. **Limitations:** The DM path and `/chat/` were not re-driven; this is local fixture edit state only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 32).
 
-**Previous record (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3526`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3159`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:11985`, `:12364`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
+**Previous record (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3544`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3215`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:12002`, `:12381`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
 
 **Previous record:** verified 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-108` **Edit** showed **Loading message editor**, then the **Edit message** textbox; `save` closed it, and the row read the new text plus `(edited)`. On `/chat/`, **Edit** was a no-op (fixture `beginEdit: noop`). **Limitations:** The DM **More** → **Edit Message** path was not re-driven. Local fixture edit state only; relay persistence and other viewers are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 18-19, 40). Previous record: 2026-10-26 at `5820fbea`.

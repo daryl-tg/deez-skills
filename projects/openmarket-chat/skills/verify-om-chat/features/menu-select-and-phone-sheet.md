@@ -22,6 +22,16 @@ pickers in Projects are built on the multi-pick modes.
   tap closes the sheet. A press that moves 8 px or more in any direction is a
   drag and does not close it (`SHEET_TAP_SLOP_PX`). A downward drag of 72 px
   dismisses it. Keyboard Enter always closes it.
+- A menu opened low opens above (`d1a25e38`): `MenuSelect` measures the full
+  height of its rows (`wantedHeight`, `MenuSelect.tsx:35`, re-measured at
+  `:377`) and flips above when they do not fit below and there is more room
+  above, keeping its bottom edge on the trigger. Rows grouped under a heading
+  in multi-pick are named "<row> <group>". Source only: not driven on the
+  gallery; the message **More** menu's flip is in
+  [message-actions.md](message-actions.md).
+- The message menu's phone sheet ignores the click a long-press lift lands on
+  its backdrop; only a press that began on the backdrop, or a click no pointer
+  made, closes it (`ContextMenu.tsx:363-376`). Source only: not driven.
 
 ## How to get to it (user POV)
 
@@ -79,4 +89,6 @@ closed it (2026-11-06, `/rooms/`).
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0). **Scope:** `/rooms/` (18180) `fixture.html`: **Labels** multi-pick (count 2 → 3, menu stays open, **Filter Labels**), the **Labels, up to two** cap, the **Labels with create** row; at 390×844 the full-width sheet with **Close Labels**, a 20 px drag kept and a 3 px tap closed. `/chat/` (18181): the gallery mounts the `multi` example. **Limitations:** the `/chat/` picks, the 72 px dismiss, Enter, auto-open and ranking were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/` (`14`–`16`).
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `fixture.html` at 390×844: **Labels** opens the full-width sheet (`[data-ui-sheet]`, 390 px, x 0, `aria-modal="true"`, **Close Labels**). `/rooms/` (18180) and `/chat/` (18181) message **More** menus: the 16-entry menu flips above at 1440×700 (`top 151`, `bottom 542`), and on `/rooms/` (18180) and `/chat/` (18181) Enter on **Agent** opens the 4-entry flyout with `aria-expanded="true"` while focus stays on the row. **Limitations:** the multi-pick, cap and create rows, the 72 px dismiss, a low `MenuSelect` flip and the long-press lift were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0). **Scope:** `/rooms/` (18180) `fixture.html`: **Labels** multi-pick (count 2 → 3, menu stays open, **Filter Labels**), the **Labels, up to two** cap, the **Labels with create** row; at 390×844 the full-width sheet with **Close Labels**, a 20 px drag kept and a 3 px tap closed. `/chat/` (18181): the gallery mounts the `multi` example. **Limitations:** the `/chat/` picks, the 72 px dismiss, Enter, auto-open and ranking were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/` (`14`–`16`).

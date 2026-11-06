@@ -62,7 +62,7 @@ with topic triage. Do not target the operator daemon.
 ## Gotchas
 
 - `quiet=on` seeds the quiet followed topics the sheet lists and the bottom-rail
-  button **Quiet topics 20** (`shell-fixture.tsx:2236-2250`; `showQuiet=1` also
+  button **Quiet topics 20** (`shell-fixture.tsx:2249-2263`; `showQuiet=1` also
   seeds the shown state). Pressing the button flips `aria-pressed` and shows the
   hidden rows (the sidebar's level-2 treeitems went 14 → 30 on 2026-10-31);
   read the attribute after the re-render, not in the click's own tick.
@@ -70,7 +70,7 @@ with topic triage. Do not target the operator daemon.
   writes the synced pref `om.chat.sidebarQuietTopics` (`"1"` while shown, key
   absent while hidden; `lib/prefs.ts`, `lib/quiet-topics.ts`). The shell
   fixture swaps `session.quietTopics` for a plain object that never reads or
-  writes the pref (`shell-fixture.tsx:2242-2249`), so a reload there cannot
+  writes the pref (`shell-fixture.tsx:2255-2262`), so a reload there cannot
   prove it. Use a real session: press **Quiet topics N**
   (`[data-quiet-topics-row]`, `aria-pressed`), read the key, reload. Source
   discovery 2026-10-30; live verification pending.
@@ -86,7 +86,9 @@ with topic triage. Do not target the operator daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `quiet=on`: server menu → **Clean up topics** opens the sheet with **Retry**, **Select all in Not sorted**, **Cancel** and **Resolve 0 topics**. `/chat/` has no item (daemon builds only). **Limitations:** the sweep not started this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `quiet=on`: the server menu (**Thanefield Capital**, 16 items) → **Clean up topics** opens the sheet with "Could not reach om to sort these topics…", **Retry**, **Not sorted** 30, **Cancel** and **Resolve 0 topics**. **Limitations:** the sweep not started this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `quiet=on`: server menu → **Clean up topics** opens the sheet with **Retry**, **Select all in Not sorted**, **Cancel** and **Resolve 0 topics**. `/chat/` has no item (daemon builds only). **Limitations:** the sweep not started this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `quiet=on`: server menu → **Clean up topics** opens the sheet with **Retry** and **Resolve 0 topics**; the `checkbox` **Select all in Not sorted** → **Resolve 30 topics**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`39`).
 

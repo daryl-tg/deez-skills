@@ -8,7 +8,13 @@ edited revision asks the agent to review it without sending the message.
 
 - A draft dock identifies the agent, target channel or topic, version and
   timestamp. History previews older versions; Load copies a selected version
-  into the composer, while Dismiss removes the offer.
+  into the composer. **Discard** (a labeled verb since `d8759d95`) resolves
+  every waiting draft from that agent here and reads the daemon's staged list
+  back; a History row's own **Discard** resolves only that version.
+- History groups versions under a lane head, "<agent> · N waiting", shows each
+  draft's id (`agdr_…`) in a `code` chip, and marks resolved rows "not
+  waiting". A discard the daemon does not confirm leaves an alert, "Couldn't
+  discard N draft(s)…", with **Retry**.
 - Editing a loaded draft marks the changes private. **Share with agent** exposes
   that exact revision for review; a receipt names the shared revision.
 - Share does not post to the room. The normal composer Send control remains the
@@ -50,8 +56,8 @@ session methods.
   you load and edit an agent draft, leave the topic, and the agent re-stages
   while you are away, coming back keeps your edit and the dock reads "v<N>
   waiting; your text is untouched." with **Load v<N>** and **Keep mine**
-  (`AgentDraftDock.tsx:311`), not "Edited privately from v<N>; the agent still
-  sees its original." (`:294`). The fixture mounts the dock over a bare
+  (`AgentDraftDock.tsx:345`), not "Edited privately from v<N>; the agent still
+  sees its original." (`:328`). The fixture mounts the dock over a bare
   `textarea` with no Composer, draft store or topic navigation, so it cannot
   reproduce the round trip. `packages/chat-ui/test/agent/draft-replace-loaded.test.tsx`
   is the only proof; live verification is pending a daemon-pair lane with a
@@ -64,17 +70,27 @@ session methods.
 - A shared revision is still an unsent composer draft. Verify the separate Send
   action before making a claim about room delivery.
 
-- Exact names: dismiss is **Dismiss agent draft** (**Dismiss all agent drafts**
-  with several lanes, `AgentDraftDock.tsx:254`), not `Dismiss`. Load is `Load
-  v<N>` for a waiting head (`:319`), `Load v<N> into the composer` per version in
-  History (`:420`, beside `Preview v<N>`), and `Load into composer` (`:344`).
-  **Keep mine** (`:327`) appears when a newer version arrives while the
+- Exact names: the head discard shows **Discard** and is named "Discard this
+  draft (nothing posts)" (`AgentDraftDock.tsx:162-173`, `:266-275`). With
+  several waiting drafts from one agent it shows **Discard all N** ("Discard all
+  N of <agent>'s waiting drafts in this room (nothing posts)"); with several
+  agents, **Discard all** ("Discard every agent's drafts here (nothing
+  posts)"). The old **Dismiss agent draft** name is gone. A History row's
+  button is **Discard v<N> (<draft id>)** (`:491`); with several lanes each
+  lane head adds **Discard all from <agent>** (`:423`). The fixture seeds one
+  lane with one version (`agdr_visual_1`) and a no-op discard, so only the
+  single-draft names and the row are reachable there. Load is `Load
+  v<N>` for a waiting head (`:353`), `Load v<N> into the composer` per version in
+  History (`:474`, beside `Preview v<N>`), and `Load into composer` (`:378`).
+  **Keep mine** (`:361`) appears when a newer version arrives while the
   composer holds your text, and several agents get a tablist **Agents with
-  drafts** (`:359`).
+  drafts** (`:393`).
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `agent-draft-share-fixture.html` mounts the unsent `#agents-lab` draft (**claude-code (repo:om)**, v1). **Limitations:** **Share with agent** not pressed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `agent-draft-share-fixture.html`: the head **Discard** ("Discard this draft (nothing posts)"); **History** shows the lane head "claude-code · 1 waiting", the row id `agdr_visual_1`, **Discard v1 (agdr_visual_1)** and the new footer; an edit offers **Share with agent**, which reads "Shared revision 1 with the agent.". **Limitations:** the multi-draft labels, the lane **Discard all from <name>** and the failed-discard alert need more than one waiting draft or a refused discard, which the fixture does not seed; nothing was discarded. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `agent-draft-share-fixture.html` mounts the unsent `#agents-lab` draft (**claude-code (repo:om)**, v1). **Limitations:** **Share with agent** not pressed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `agent-draft-share-fixture.html` mounts the loaded, unsent `#agents-lab` draft (**claude-code (repo:om)**, v1). **Limitations:** **Share with agent** was not pressed this pass; the 2026-11-03 record stands for it. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
 

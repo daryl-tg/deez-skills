@@ -14,7 +14,7 @@ Open Your om and choose a recent conversation. Type without sending, choose anot
 
 ## Driving it with control-om-chat
 
-Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2438-2456` and binds local session switching/creation at `:2737-2789`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:521` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
+Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2451-2469` and binds local session switching/creation at `:2750-2802`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:522` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
 
 ```bash
 agent-browser network route "**/healthz*" --body '{"uptime_seconds":120,"pid":1,"version":"fixture","started_at":"2026-10-27T00:00:00Z","booting":false,"stalls":[],"channels":[],"loops":[]}'
@@ -35,7 +35,7 @@ With the `**/healthz*` stub in place on `?view=agent&alerts=quiet&omSessions=dra
 ## Gotchas
 
 - This fixture seeds session selection and captures sends locally. It proves composer ownership and the real UI transitions; it does not prove daemon conversation persistence, model execution, or remote delivery.
-- The daemon origin supplies presence for Your om. On the bare vite lane the gate is a race: `running` starts `null`, so the rail renders until the first `/healthz` answer, and `poll()` returns early while `document.visibilityState === "hidden"` (`ChatPane.tsx:274`). A background tab therefore stays in the null state and shows the rail. That is why one nightly session passed the gate and replays did not. Use the `**/healthz*` route stub above instead of relying on it.
+- The daemon origin supplies presence for Your om. On the bare vite lane the gate is a race: `running` starts `null`, so the rail renders until the first `/healthz` answer, and `poll()` returns early while `document.visibilityState === "hidden"` (`ChatPane.tsx:275`). A background tab therefore stays in the null state and shows the rail. That is why one nightly session passed the gate and replays did not. Use the `**/healthz*` route stub above instead of relying on it.
 - The `/chat/` shell fixture seeds om presence as running (its `?view=agent` lands on "your om running" with no stub) but has no `omSessions` seed, so the A/B draft recipe is `/rooms/`-only.
 - Private `om:` drafts deliberately do not persist across reload. Test session switches within one app instance; public room/DM/topic draft persistence follows a separate contract.
 - New-session preparation changes the active session before sending. Its draft owner must remain stable through that async transition.
@@ -43,14 +43,16 @@ With the `**/healthz*` stub in place on `?view=agent&alerts=quiet&omSessions=dra
 - **The fixture's New session path is stale.** The landing's first send calls
   `session.startNewOmSession()` (`ChatPane.tsx`, `prepareSend`; since
   `758ba4dd`), but the `omSessions=drafts` seed binds only `createOmSession`
-  (`tools/visual/shell-fixture.tsx:2782`). The unstubbed method resolves to INERT,
+  (`tools/visual/shell-fixture.tsx:2795`). The unstubbed method resolves to INERT,
   the active session never changes, and the send lands in the session that was
   already open (Research A in the 2026-10-27 drive). That is a fixture gap, not
   proof of a product carry bug. Prove the new-session send on a daemon origin.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `?view=agent&omSessions=drafts` with the `/healthz*` stub: the composer and **Research A** / **Research B** sessions render. **Limitations:** the draft carry was not re-typed this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `?view=agent&omSessions=drafts` with the `/healthz*` stub: **Research A** and **Research B**. **Limitations:** the draft carry was not re-typed; `/chat/` has no `omSessions` seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `?view=agent&omSessions=drafts` with the `/healthz*` stub: the composer and **Research A** / **Research B** sessions render. **Limitations:** the draft carry was not re-typed this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=agent&alerts=quiet&omSessions=drafts` with the `**/healthz*` stub: "draft for A" in **Message ✦ om** survives **Research B** → **Research A** (B empty); **Add context** opens the **Add context** menu. **Limitations:** unchanged. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`om-02-drafts`).
 

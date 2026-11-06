@@ -16,7 +16,7 @@ says about them.
 - **Info** content: About, Mutual servers with a count and chips, Member since,
   Connections (follower count), and **Block user** / **Unblock user** (`:793`).
 - The DM header's identity button (`A Online ana`) opens the same drawer.
-- The floating identity card (`?card=1`, `shell-fixture.tsx:3031`): a `dialog`
+- The floating identity card (`?card=1`, `shell-fixture.tsx:3044`): a `dialog`
   named **Profile for ana** (`.profile-popover`) with the avatar, name, the
   about line, ROLES (traders), `2 mutual servers · 128 followers` and the
   buttons **View ana (ops)'s full profile**, **Message**, **Mention**,
@@ -63,8 +63,8 @@ agent-browser eval '(()=>JSON.stringify([...document.querySelectorAll("[aria-lab
 #   state dots img "working", "waiting", "blocked"; link "Open Backfilling CME options" (https)
 ```
 
-`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3038`, origin
-`dm:ana`) and sets `rightPanel` to `profile` (`:3096`). Use it on the DM view;
+`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3051`, origin
+`dm:ana`) and sets `rightPanel` to `profile` (`:3109`). Use it on the DM view;
 the room view has no matching origin. The user path is the header button:
 open `?view=dm&dm=ana&alerts=quiet` and click
 `find role button --name "A Online ana"`. `Close profile` appears.
@@ -91,7 +91,7 @@ relay.
 
 - The sections have no `role="tabpanel"`. A query for the panel finds nothing,
   so read the drawer's text instead.
-- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:2966`). It
+- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:2979`). It
   proves layout and the tab and close mechanics, not that a real profile fetch
   works. Media, Links and To-dos switched selection but were not asserted for
   content.
@@ -108,7 +108,9 @@ relay.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `?profile=1`: **Profile sections** Info, Media, Links, To-dos. `fixture.html` on both hosts: three **Working on** regions; on `/rooms/` the counts, the state dots and **Open Backfilling CME options**. **Limitations:** the live agent-status subscription is pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `?profile=1`: **Profile sections** Info, Media, Links, To-dos. **Limitations:** the `/chat/` fixture has no `profile` seed; the **Working on** gallery and the live agent-status subscription not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `?profile=1`: **Profile sections** Info, Media, Links, To-dos. `fixture.html` on both hosts: three **Working on** regions; on `/rooms/` the counts, the state dots and **Open Backfilling CME options**. **Limitations:** the live agent-status subscription is pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) `view=dm&dm=ana&profile=1`: tablist **Profile sections** reads Info, Media, Links, To-dos. **Limitations:** `/chat/` only by route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`33`).
 

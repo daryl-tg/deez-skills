@@ -48,17 +48,26 @@ Read the gotchas for where the line now falls.
 - Agents in the `@` menu (roster-gated, `01bf4481`): an agents group with
   `<owner> | <name>` rows, dimmed not-ready rows (`aria-disabled="true"`, the
   refusal reason in place of the detail) that cannot be committed, and an `om`
-  router row (`lib/composer-complete.ts:548-605`, `ComposerAutocomplete.tsx:186-223`).
+  router row (`lib/composer-complete.ts:559-621`, `ComposerAutocomplete.tsx:186-223`).
+  Since `6395fe4b` an agent refused only for `no_grant` is no longer dimmed:
+  its detail reads "<name> can't post here yet · Enter allows it"
+  (`lib/composer-complete.ts:599-601`), and Enter or a click grants the room,
+  rereads the roster and inserts `@name ` (`Composer.tsx:3460-3493`); a refused
+  grant puts the refusal text in the row's detail. The row needs the
+  `instances.grant` capability (`Composer.tsx:1749`).
   No fixture reports roster support, so none of it renders on the fixture lane.
 - A bare `@` lists the whole server (`5e38077c`): every member in roster order,
   then every role, in a scrolling `listbox` named **MEMBERS & ROLES** (or
   **MEMBERS** with no role rows). `mentionCandidates` now defaults to no limit
-  (`lib/composer-complete.ts:497`). Before, a 10-row budget kept half for roles
-  (`:465-472`). The composer and the inline editor pass no budget; only the
-  OpenScape chat still passes 20 (`world/WorldChatPane.tsx:183`). On the shell
-  fixture's `#ops`, the list has 13 options: 5 members (ana, dax, kyle, mira, rho)
-  and 8 roles (admin, everyone, Full Stack, here, member, mod, owner, traders).
-  The old budget would have shown 10: 5 members plus 5 roles.
+  (`lib/composer-complete.ts:507`). Before, a 10-row budget kept half for roles
+  (`:475-482`). The composer and the inline editor pass no budget; only the
+  OpenScape chat still passes 20 (`world/WorldChatPane.tsx:183`). On the
+  `/rooms/` shell fixture's `#ops`, the list has 14 options: 5 members (ana,
+  dax, kyle, mira, rho) and 9 roles (admin, Devops, everyone, Full Stack, here,
+  member, mod, owner, traders). **Devops** came with the `roleEdit` seed's role
+  list (`f8baae2a`, `tools/visual/shell-fixture.tsx:3247`) and is listed whether
+  or not `roleEdit=1` is set. The `/chat/` fixture has no Devops role and lists
+  13. The old budget would have shown 10: 5 members plus 5 roles.
 - A code-fence panel behind the text. `#799` paints a panel behind each fenced
   region of the draft, incomplete fences included. Since `496e9cf9` and
   `132c4256` the opening and closing fence lines are the panel's padding, and
@@ -86,9 +95,9 @@ Read the gotchas for where the line now falls.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
 - Send disabled while empty; Enter-to-send versus newline. The **Send message**
-  button renders when `isMobile || showSendButton` (`Composer.tsx:6692`). The
+  button renders when `isMobile || showSendButton` (`Composer.tsx:7154`). The
   ordinary room and DM composer is therefore phone-width only, and desktop
-  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:437`) and the
+  sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:438`) and the
   remote-control pane (`RemoteControlPane.tsx:345`) also show it on desktop,
   with an `sr-only` "Send" label.
 - Sent text must not come back as a draft after a reload or a revisit
@@ -106,7 +115,7 @@ Read the gotchas for where the line now falls.
   its unit tests; the recipe below drives a subset of them.
   The mode badge is
   `<span class="composer-vim-mode" data-vim-mode="normal|insert|visual|visual-line">`
-  (`Composer.tsx:6775-6785`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
+  (`Composer.tsx:7237-7247`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
   a pending operator in `.composer-vim-pending`. Enter sends only in insert
   mode. Escape belongs to Vim, so it no longer cancels a reply. Touch screens
   (coarse pointer) never get Vim. With the setting off none of this renders,
@@ -196,7 +205,7 @@ agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text
 
 Related handles that do resolve. In the composer row itself:
 `"Summon your om here"` (on a private om lane the same button is `"Back to the room"`,
-`Composer.tsx:5936-5937`), `"Add attachment or action"`,
+`Composer.tsx:6392-6393`), `"Add attachment or action"`,
 `"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
 On a message or the recovery banner: `"Add reaction"`,
 `"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
@@ -251,12 +260,12 @@ path-based: `/chat/room/ops`).
 
 ### GIF picker (added 2026-10-27)
 
-In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4485-4503`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
+In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4503-4521`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
 
 ### Chart card and cashtag pill (added 2026-10-28)
 
 - **Chart card:** send a message that is only a chart URI, such as `om://chart/BTC?i=15m`. The grammar is `CHART_URI_RE` (`lib/message-preview.ts:17`). The sent row renders a chart card reading **BTC · 15m · LIVE** with **Copy link**.
-- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2612-2616`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3059`), so the peek cannot be proved here.
+- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2663-2667`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3072`), so the peek cannot be proved here.
 - **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture parses `?draft=` (`apps/cloud/tools/visual/shell-fixture.tsx:1239-1242`), but its composer still loads empty on a room or a DM (re-measured 2026-10-30), so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
 - **Not seeded:** `UnfurlCard` (no fixture seeds `entry.unfurls`, and a send never adds one) and `WebhookEmbedBlock` (it needs `metadata.embeds` on a webhook sender; the gallery's webhook rows have none, `tools/visual/fixture.tsx:1430-1490`).
 
@@ -266,8 +275,8 @@ Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenan
 
 Since `389f414e` a role name typed as `@traders` is painted like its
 `om://role` pill (`Markdown.tsx:503`, `:2049`, `:2137`). Both shell fixtures
-name the role `traders` and colour it `#d19a3a` (`shell-fixture.tsx:3196-3197`;
-cloud `:1716`). Click the composer textbox (its name starts **Message #ops**;
+name the role `traders` and colour it `#d19a3a` (`shell-fixture.tsx:3209-3210`;
+cloud `:1739`). Click the composer textbox (its name starts **Message #ops**;
 the full name is **Message #ops · $ for markets · /chart to post one**), type
 `@traders hi` so the space closes the autocomplete, and press Enter. The new
 `[data-message-row]` holds a `.mention-pill.role-mention.role-colored` reading
@@ -308,15 +317,15 @@ Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
 `/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
 Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
 renders the guide page **Slash commands**. Running a command is pending: the
-real handler is `ChatSession.handleSlash` (`lib/session.ts:43316`, called at
-`:15238`, `:15463` and `:15795`), and the fixture's send only appends the text, so `/nick`,
+real handler is `ChatSession.handleSlash` (`lib/session.ts:43370`, called at
+`:15260`, `:15485` and `:15817`), and the fixture's send only appends the text, so `/nick`,
 `/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
 authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
 ### Paste: a link over a selection, an image into the composer (added 2026-11-01)
 
-Both paths are pure client code behind `Composer.tsx:6238-6323`, so a
+Both paths are pure client code behind `Composer.tsx:6700-6785`, so a
 synthetic `ClipboardEvent` drives them on either host (driven 2026-11-01 on
 `/rooms/` and `/chat/` at `936f5b64`):
 
@@ -343,7 +352,7 @@ agent-browser eval '(()=>{const t=document.querySelector("textarea[data-composer
 #   "probe.png", and the region named "Message attachments" reads "probe.png Ready · 1 KB"
 ```
 
-That staged card is the fixture's `acceptFile` stub (`shell-fixture.tsx:4110-4130`)
+That staged card is the fixture's `acceptFile` stub (`shell-fixture.tsx:4128-4148`)
 pushing a pending attachment and stamping `data-fixture-attachment`; no upload
 or scan runs. OS drops onto the tape, the topic list or the library
 (`useFileDropZone.tsx`) still need a real file through `setInputFiles` or a CDP
@@ -351,14 +360,14 @@ drop, and stay pending.
 
 ### The older-messages banner past 99 (added 2026-11-02)
 
-`ChatPane.tsx:3291` prints **You're viewing older messages · 99+ new below**
+`ChatPane.tsx:3317` prints **You're viewing older messages · 99+ new below**
 once the count behind the banner passes 99 (`formatUnreadCount`,
 `lib/animated-count-parts.ts:35-42`, since `4cd3434f`). No fixture seed raises
 a room's new-below count that high (`bulk=120` pads the tape but the reader
 sits at the bottom), so this is source-only. The banner itself mounts on
 `shell-fixture.html?view=room&history=detached&alerts=quiet` and reads **You're
 viewing older messages** with **Jump to present**, with no count, because the
-fixture room's `unread` is a constant 0 (`shell-fixture.tsx:1502-1507`; driven
+fixture room's `unread` is a constant 0 (`shell-fixture.tsx:1515-1520`; driven
 2026-11-03 on `/rooms/`). See
 [channel-and-topic-navigation.md](channel-and-topic-navigation.md) / Unread
 labels past 99.
@@ -366,7 +375,7 @@ labels past 99.
 ## Gotchas
 
 - **The connection strip waits out a grace delay.** `?connection=reconnecting`
-  (`shell-fixture.tsx:2705`) renders **Reconnecting...** in the
+  (`shell-fixture.tsx:2718`) renders **Reconnecting...** in the
   `.ui-connection-strip` (`role=status`, `shared/ui/ConnectionStrip.tsx:93`),
   but only after `CONNECTION_GRACE_MS`: a read 2 s after load finds an empty
   `.ui-connection-strip-slot`, a read at 8 s finds the text (2026-10-31,
@@ -381,7 +390,7 @@ labels past 99.
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:3615-3616`), with a comment naming the lock
+  (`tools/visual/shell-fixture.tsx:3633-3634`), with a comment naming the lock
   it was removing. Measured again on `9902d149`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
@@ -411,7 +420,7 @@ labels past 99.
   only by `session.acceptFile` behind the real file input. The maintained
   `tools/visual/mobile-conversation.visual.ts:667` path drives the hidden input
   with `setInputFiles`, and the shell fixture accepts the file at
-  `tools/visual/shell-fixture.tsx:4110`. Preview/lightbox behavior still needs
+  `tools/visual/shell-fixture.tsx:4128`. Preview/lightbox behavior still needs
   preview-ready attachment metadata and is not established by that fixture
   path.
 - **The seeded room video is a stub and only proves the fallback ladder.** The
@@ -477,7 +486,9 @@ labels past 99.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=room`: a typed message sends (16 → 17 rows). `/rooms/` shell `?draft=` fence: 1 panel, 4 regions, transparent fences, label `js`, no marker spans; `composer-code-panel-fixture.html`: panel left 4px, faint fences with the caret inside. **Limitations:** `!` ticket references need a Projects server and are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=room`: a typed message sends (16 → 17 rows); a bare `@` lists 14 options on `/rooms/` (5 members, 9 roles with **@Devops**) and 13 on `/chat/`. **Limitations:** the allow-from-picker agent row needs roster support with `instances.grant`, which no fixture reports; `!` ticket verbs need a Projects server. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=room`: a typed message sends (16 → 17 rows). `/rooms/` shell `?draft=` fence: 1 panel, 4 regions, transparent fences, label `js`, no marker spans; `composer-code-panel-fixture.html`: panel left 4px, faint fences with the caret inside. **Limitations:** `!` ticket references need a Projects server and are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) and `/chat/` (18171) `view=room`: typing in **Message #ops** and pressing Enter echoed the row locally (16 → 17 rows). **Limitations:** mentions, slash commands, attachments and the trailing-punctuation pill were not re-driven; their 2026-11-04 record stands. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`31`, `43`).
 

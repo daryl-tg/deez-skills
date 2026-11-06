@@ -119,7 +119,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   **"Agents, needs your om running"**. An armed count does not mask away: the
   desktop label states both, **"Agents, N armed, your om is not running"**,
   and only a connected, armed om reads the bare **"Agents, N armed"**
-  (`Shell.tsx:3125-3140`; mobile segments `Shell.tsx:3668-3713`). So an
+  (`Shell.tsx:3128-3143`; mobile segments `Shell.tsx:3671-3716`). So an
   `--exact` match on the bare name misses several different ways, and matching
   the mobile string on desktop misses too. Away is a whole-app state, a
   different thing from the daemon not running.
@@ -127,19 +127,19 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3845`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3848`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3131`, `:3136`). Two states is the old shape; matching on it
+  (`Shell.tsx:3134`, `:3139`). Two states is the old shape; matching on it
   during a flaky connect misses silently.
 
   **Away has a remote-control spelling too.** When the session is away and a
   remote device answers over the relay, the doors read
   **"Your om, connected remotely"** and **"Agents, connected remotely"**, or
   **"…, remote control off"** when a device is reachable but none is selected
-  (`Shell.tsx:1569`; accessible names at `:3138`, `:3680`, `:3705`,
-  `:3807`). The tooltips spell it with a colon instead, "Agents: connected
-  remotely" (`:3089`, `:3789`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4146`). The pane
+  (`Shell.tsx:1570`; accessible names at `:3141`, `:3683`, `:3708`,
+  `:3810`). The tooltips spell it with a colon instead, "Agents: connected
+  remotely" (`:3092`, `:3792`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4164`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -169,8 +169,8 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:4087-4140` for spaces; the zone-1 feature folders use the same
-  markers at `Shell.tsx:3907-3945`).
+  (`Shell.tsx:4090-4143` for spaces; the zone-1 feature folders use the same
+  markers at `Shell.tsx:3910-3948`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -202,7 +202,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:481`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:482`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -288,7 +288,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:277`), supplied by `Shell.tsx:4608`. That is
+  remains (`UserSettings.tsx:277`), supplied by `Shell.tsx:4617`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
@@ -303,7 +303,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:5739-5740`),
+  composer with no lane toggle and no target (`Composer.tsx:6172-6173`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -485,7 +485,7 @@ avatar), so it needs a fixture seed or a daemon-pair lane with a badge agent.
 - **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
   state — `h1` *"om isn't running"*, *"No recent daemon snapshot is available on
   this device"* on this lane. The gate is `presence.running === false`
-  (`ChatPane.tsx:521`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
+  (`ChatPane.tsx:522`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
   reads any 4xx except 429, or a non-JSON 200, as down. The fixture has two
   session modes: `omSessions=drafts` seeds Research A/B locally, and
   `omSessions=daemon` wires real session-list/history operations. Neither fakes
@@ -495,7 +495,7 @@ avatar), so it needs a fixture seed or a daemon-pair lane with a badge agent.
   `/healthz?lite=1` poll, which otherwise 404s and drops the gate about 30 s in.
   Proved on 2026-10-27 (maintenance re-drive). The single nightly session that
   passed without a stub was the `running === null` window, before the first
-  poll answer or while the tab is hidden (`ChatPane.tsx:274`). Do not plan a
+  poll answer or while the tab is hidden (`ChatPane.tsx:275`). Do not plan a
   proof on that window. The stub answers health only, so Watches still need
   daemon watch RPCs and QA watch data, and unread still needs daemon events.
 - **On `/rooms/`, persona is unreachable from a `view=agents` page load — by any control,
@@ -544,7 +544,9 @@ avatar), so it needs a fixture seed or a daemon-pair lane with a badge agent.
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `away-panel-fixture.html` reads **AWAY** **ON** with **Pause**, **I'm back**, **Replies as**; `agent-center-fixture.html` h1 **Agents** with Map, Grid, Needs you; `?view=agent&omSessions=drafts` with the `/healthz*` stub shows **Research A**, **Research B** and the **Watches** door; `/chat/` the same om rail. **Limitations:** daemon-backed sessions not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `away-panel-fixture.html` reads **AWAY** **ON** with **Pause**, **I'm back** and "Replies as Maya's voice"; `agent-center-fixture.html` h1 **Agents**; `?view=agent&omSessions=drafts` with the `/healthz*` stub shows **Research A**, **Research B** and the **Watches** door. `/chat/` (18181): the **Watches** door. **Limitations:** daemon-backed sessions not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `away-panel-fixture.html` reads **AWAY** **ON** with **Pause**, **I'm back**, **Replies as**; `agent-center-fixture.html` h1 **Agents** with Map, Grid, Needs you; `?view=agent&omSessions=drafts` with the `/healthz*` stub shows **Research A**, **Research B** and the **Watches** door; `/chat/` the same om rail. **Limitations:** daemon-backed sessions not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-05 (nightly maintenance). **Product commit:** `873a57ce` (GitLab origin/main; rooms-client 0.109.1; 17 commits past `ce14d4ba`). **Scope:** `/rooms/` (18170) and `/chat/` (18171) `view=topic&topic=cpi-print-aug`: the **om** post's chip reads **AGENT** / **OM Agent** with the mascot glyph, and its ink in dark and `theme=light`; with `message=cozy` the mono mascot tile has no headset; the Appearance preview's Helper Agent carries the same chip. `persona-panel-fixture.html` and `away-panel-fixture.html` mount (route smoke and a text probe). **Limitations:** the webhook APP chip has no fixture row; the owner-picture face is still pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261105/r1/` (`16`, `17`, `36`).
 

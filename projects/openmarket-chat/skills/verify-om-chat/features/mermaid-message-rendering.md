@@ -62,7 +62,9 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `view=room&mermaid=1`: one `.doc-mermaid svg`. **Limitations:** the DM PNG button and preview region not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `view=room&mermaid=1`: one `.doc-mermaid svg`. **Limitations:** the `/chat/` fixture has no `mermaid` seed; the DM PNG button not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `view=room&mermaid=1`: one `.doc-mermaid svg`. **Limitations:** the DM PNG button and preview region not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=dm&dm=ana&mermaid=1`: the **Open Mermaid diagram as PNG** button mounts after scrolling into view. **Limitations:** the preview region and the doc diagrams were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/`.
 

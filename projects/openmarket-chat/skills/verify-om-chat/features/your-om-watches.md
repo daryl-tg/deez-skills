@@ -36,7 +36,9 @@ Drive accessible names: `Watches` (a `div.om-session-nav-row[role="button"]` in 
 
 ### Verification record
 
-**Last verified:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `?view=agent&omSessions=drafts` with the `/healthz*` stub: the **Watches** door is present. **Limitations:** the surface was not opened this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
+**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `?view=agent&omSessions=drafts` with the `/healthz*` stub (`/rooms/`) or the cloud fixture's running om: the **Watches** door is present. **Limitations:** the surface was not opened this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+
+**Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `?view=agent&omSessions=drafts` with the `/healthz*` stub: the **Watches** door is present. **Limitations:** the surface was not opened this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
 **Previous record:** 2026-11-04 (nightly maintenance). **Product commit:** `ce14d4ba` (GitLab origin/main; rooms-client 0.109.1; 16 commits past `ba4389e7`). **Scope:** `/rooms/` (18160) `?view=agent&alerts=quiet&omSessions=drafts` with the `**/healthz*` stub: the **Watches** door → `.om-watches-surface`, `[data-testid="om-recent-fires"]`, zero `[data-om-watch-id]` rows and **Watches are out of reach**. **Limitations:** unchanged; watch rows need a daemon origin with QA watches. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261104/r1/` (`om-03-watches`).
 
