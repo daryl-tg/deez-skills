@@ -122,7 +122,7 @@ state, commands, and observable proof.
 - [Daemon lifecycle and health](./daemon-lifecycle-and-health.md)
 - [Watch lifecycle from the CLI](./watch-lifecycle-cli.md)
 - [Watch archive and the auto-archive sweep](./watch-archive.md) — #2357, on main since `9bbf2de24`; re-proved on main 2026-11-06
-- [Source resolution: one resolver for any source](./source-resolution.md) — PR #2383, branch only; proved on a lane 2026-11-06; PandaScore live pending a token
+- [Source resolution: one resolver for any source](./source-resolution.md) — PR #2383, branch only; proved on a lane 2026-11-06
 - [The approval ledger from the CLI](./approvals-ledger.md) — new 2026-11-06 (#2253 to #2344): `om approvals list`, `om approve`, `om deny` on ledger rows, the harness refusal and the stream frames; the money, chain and fan-out paths are pending
 - [Import another agent's setup](./migrate-from-other-agents.md) — new 2026-11-06 (#2366): `om migrate hermes|openclaw|grok-bot` with `--dry-run` and `--yes`
 - [Watches with blanks](./watches-with-blanks.md) — branch `daryl/generic-watches`, unmerged; stream follow, registry install, `om want` and search are pending proof

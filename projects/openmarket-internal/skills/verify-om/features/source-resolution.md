@@ -1,6 +1,6 @@
 # Source resolution: one resolver for any source
 
-*Verified 2026-11-06 on branch `daryl/watch-source-resolution` (PR #2383), tree `e12ec7b94` before its last rebase onto `d2ea2e246`; not on main yet. Lane on 18140 from a detached verify worktree, CLI and lane with `OPENMARKET_LLM_PROVIDER=openai-compatible OPENMARKET_LLM_BASE_URL=http://127.0.0.1:9/v1 OPENMARKET_LLM_MODEL=fake` (a page watch refuses with no model credential, even `--diff-only`) and `OM_FEED_ALLOW_LOOPBACK=1` for the stub. Evidence: `~/Documents/dev-notes/om-source-resolution/evidence/` (`final/`, `resolve-offer-final.txt`, `resolve-applied.txt`, `resolve-corpus-final.json`).*
+*Verified 2026-11-06 on branch (PandaScore since removed, head `1f3d044e1`) `daryl/watch-source-resolution` (PR #2383), tree `e12ec7b94` before its last rebase onto `d2ea2e246`; not on main yet. Lane on 18140 from a detached verify worktree, CLI and lane with `OPENMARKET_LLM_PROVIDER=openai-compatible OPENMARKET_LLM_BASE_URL=http://127.0.0.1:9/v1 OPENMARKET_LLM_MODEL=fake` (a page watch refuses with no model credential, even `--diff-only`) and `OM_FEED_ALLOW_LOOPBACK=1` for the stub. Evidence: `~/Documents/dev-notes/om-source-resolution/evidence/` (`final/`, `resolve-offer-final.txt`, `resolve-applied.txt`, `resolve-corpus-final.json`).*
 
 ## What a person sees
 
@@ -20,4 +20,4 @@
 - Reddit 429s this machine on and off (the operator's daemon polls several Reddit feeds from the same IP); a site-rule feed then lands with `now: not read yet: <host> is rate limiting this machine`.
 - The status row for a walled page shows the Firecrawl offer, not resolve, when Firecrawl can be set up (deliberate precedence).
 - `control-om down --port <p>` ignores `--port` without `OM_LANE_PORT` exported.
-- PandaScore (`om setup pandascore`, hltv match pages) is tested against a stub only; the live check needs a token. Pending.
+- No production connector ships (PandaScore was removed 2026-11-06 as too operator-specific); the `connector` rung is tested with a neutral fake only.
