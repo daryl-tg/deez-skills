@@ -1,6 +1,6 @@
 # Assistant bridge: daemon tools, deposit and wakes through the hosted MCP
 
-*Verified: 2026-11-05 on the unmerged stack #2350, #2352, #2365, #2367, #2378 (top `daryl/assistant-stack-review-fixes`, base main `c1464fcf0`). Not on main yet. Every step below was driven on real local processes with a relay stand-in. Pending: a real assistant on a public host, a real vendor webhook, and the production relay with a daemon from this stack.*
+*Verified: 2026-11-05 on the unmerged stack #2350, #2352, #2365, #2367, #2378 (top `daryl/assistant-stack-review-fixes`, base main `c1464fcf0`). Not on main yet. Every step below was driven on real local processes with a relay stand-in. A real assistant (Grok Bot) was driven on 2026-11-06 through a temporary tunnel, with a routine webhook as the wake. Pending: an OAuth sign-in from a real assistant, MCP Events from a real vendor, and the production relay with a daemon from this stack.*
 
 An AI assistant connected to the hosted MCP service calls 23 tools on the user's own daemon and a `deposit` tool, and can subscribe to `watch.update` so the daemon posts it a signed webhook. The hosted service forwards over the relay as the operations `mcp.call` and `mcp.events`. The daemon gates it with `om assistants on` and one approval per assistant.
 
@@ -33,6 +33,19 @@ Ports from the agent range, all on 127.0.0.1: relay stand-in 18121, receiver 181
 - A delivery arrives about 1 s after the row is accepted (the ingest pipeline is asynchronous).
 - 13 rows in under a minute give 10 deliveries and `3 skipped this hour`.
 - After `assistants revoke <asst_ id>` no further delivery arrives.
+
+## Driving it with a real assistant: Grok Bot (2026-11-06)
+
+*Driven on the top of the stack with a throwaway key, a stand-in gateway and a scratch lane daemon. No real credential was used.*
+
+- A stand-in gateway replaces the production key check, so a made-up key works: a small server that answers `GET /collab-v2/workspaces` with `[]` and the header `x-om-key-label` for one JWT-shaped key (`alg: none`, claims `jti`, `sub`, `scope`), and 401 otherwise. Point the hosted binary at it with `OM_COLLAB_REST_URL` and `OM_COLLAB_WS_URL`. Chart tools then do nothing useful; daemon tools, deposit and events work.
+- Serve the om surface on a plain local address with `OM_HOSTED_PUBLIC_URL=http://127.0.0.1:18119 OM_HOSTED_ROOT_SURFACE=om`. No charts or om host is needed.
+- Grok Bot's MCP connector dials from xAI's cloud and cannot reach loopback. Two ways to test: the Bot runs curl against `http://127.0.0.1:18119/mcp` through its local command tool, or a temporary public tunnel (`cloudflared tunnel --url http://127.0.0.1:18119`, which needs the operator's say-so) and the Bot adds the server by URL with the `Authorization: Bearer` header when asked in chat.
+- The connector reports its client as `Cursor/1.0.0`. The label the daemon shows comes from the key's label.
+- Wake for Grok Bot is not MCP Events. Ask the Bot for a routine with a webhook trigger, read the trigger URL and key from the routine panel, then on the daemon `om setup webhook --webhook-url <url> --bearer-token <key> --name <name>` and a watch whose `notify.channels` names that channel. The setup's own test message already runs the routine once.
+- A watch that fires without a model on a bare lane: import a spec with an `inbound` source and `classifier: { mode: "accept_all" }` through `om watch import <file>`, then `om event push <id> --text ...`. `om watch create --inbound` defaults to a model classifier, and an `--every 2m` timer watch never fired on the bare lane.
+- Seen: row to the Bot's deposit landing back in its inbox took about 14 s.
+- Drive the Bot app as the memory note on Grok Bot automation says, with a session name of your own.
 
 ## Gotchas
 
