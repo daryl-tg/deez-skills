@@ -193,6 +193,8 @@ On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header b
 
 Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-create-category-name-prompt.png`).
 
+The sidebar's own **Create channel** button (`Sidebar.tsx:4901`, shown because the fixture stubs `spaceActionVisible` true) opens the same dialog as the server menu's **Create Channel**: **Create channel**, with the textbox **Channel name**, a private-channel checkbox and a **Create channel** submit. Escape closes it. Driven 2026-11-08 on `/rooms/` and `/chat/`. The Library panel's **New doc** is not reachable: it calls `session.requestNewDoc` (`LibraryPanel.tsx:1437`), which neither shell fixture stubs (`newDocRequest: null`, `shell-fixture.tsx:3607`), so no dialog opens.
+
 ### DM row menu (added 2026-10-31)
 
 On `shell-fixture.html?view=dm&alerts=quiet`, dispatch a `contextmenu` event
@@ -312,7 +314,9 @@ formatter, only the pill and the headline do. No channel or topic seed exceeds
 
 ### Verification record
 
-**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181): `view=dm` mounts **ana** with 2 rows; `view=home` reads "2 unread across 1 conversation.". `/rooms/` (18180) `view=dm&dm=OM%20chatters&panel=members` opened at 1440 px keeps the group **Members** panel (**Add someone**, **Leave group**) open after `set viewport 700 900`, now full width. **Limitations:** the member menu, the profile return and the last-member **Leave this group?** confirm were not reached (a row click or right-click opens nothing, and the seeded group has other members); `/chat/` has no group DM seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): `view=dm&dm=ana` (`#/dm/ana`, `/chat/dm/ana`), `view=home` ("2 unread across 1 conversation."), and the sidebar **Create channel** dialog (new). **Limitations:** `view=friends&tab=blocked` still reads **could not load** (carried); **New doc** has no stub. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+
+**Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181): `view=dm` mounts **ana** with 2 rows; `view=home` reads "2 unread across 1 conversation.". `/rooms/` (18180) `view=dm&dm=OM%20chatters&panel=members` opened at 1440 px keeps the group **Members** panel (**Add someone**, **Leave group**) open after `set viewport 700 900`, now full width. **Limitations:** the member menu, the profile return and the last-member **Leave this group?** confirm were not reached (a row click or right-click opens nothing, and the seeded group has other members); `/chat/` has no group DM seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
 **Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181): `view=dm` mounts **ana** with 2 rows; `view=home` reads "2 unread across 1 conversation.". **Limitations:** group DM and **Edit group** only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 

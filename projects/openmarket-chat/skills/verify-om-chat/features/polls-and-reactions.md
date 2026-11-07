@@ -167,7 +167,9 @@ session.
 
 ### Verification record
 
-**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `fixture.html?surface=reaction-polish`: **See who reacted** opens **Reactions**. **Limitations:** polls and scenes only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `fixture.html?surface=reaction-polish`: **See who reacted** opens **Reactions**. **Limitations:** polls only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+
+**Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `fixture.html?surface=reaction-polish`: **See who reacted** opens **Reactions**. **Limitations:** polls and scenes only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
 **Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `fixture.html?surface=reaction-polish`: **See who reacted** opens **Reactions**. **Limitations:** polls and scenes only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 

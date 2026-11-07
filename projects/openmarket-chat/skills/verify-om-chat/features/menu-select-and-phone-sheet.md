@@ -26,12 +26,14 @@ pickers in Projects are built on the multi-pick modes.
   height of its rows (`wantedHeight`, `MenuSelect.tsx:35`, re-measured at
   `:377`) and flips above when they do not fit below and there is more room
   above, keeping its bottom edge on the trigger. Rows grouped under a heading
-  in multi-pick are named "<row> <group>". Source only: not driven on the
-  gallery; the message **More** menu's flip is in
+  in multi-pick are named "<row> <group>". Driven 2026-11-08 on both hosts:
+  the switch to above happens, but the menu is not seated above (see
+  [Gotchas](#gotchas)). The message **More** menu's flip is in
   [message-actions.md](message-actions.md).
 - The message menu's phone sheet ignores the click a long-press lift lands on
   its backdrop; only a press that began on the backdrop, or a click no pointer
-  made, closes it (`ContextMenu.tsx:363-376`). Source only: not driven.
+  made, closes it (`ContextMenu.tsx:363-376`). Driven 2026-11-08 on both
+  hosts.
 
 ## How to get to it (user POV)
 
@@ -73,7 +75,36 @@ agent-browser find role combobox click --name "Labels" --exact
 To tell a tap from a drag, dispatch `pointerdown`, `pointermove`, `pointerup`
 on the handle button (`pointerType:"touch"`) and end with a `click` whose
 `detail` is **1**. A 20 px sideways move left the sheet open. A 3 px move
-closed it (2026-11-06, `/rooms/`).
+closed it (2026-11-06, `/rooms/`). A downward drag in 20 px steps to 90 px
+dismissed the sheet on release; one to 50 px, followed by a `detail: 1` click,
+kept it open. Focusing **Close Labels** and pressing Enter closes it
+(2026-11-08, both hosts).
+
+For the low flip, scroll the multi-pick trigger to the bottom of a 1440×900
+viewport before opening it (`block:"center"` never flips):
+
+```bash
+agent-browser eval '(()=>{document.querySelector("[data-kitchen-example=multi] [role=combobox]").scrollIntoView({block:"end"});return 1})()'
+agent-browser find role combobox click --name "Labels" --exact
+agent-browser eval '(()=>{const s=document.querySelector(".menu-select-menu");const r=s.getBoundingClientRect();
+  return JSON.stringify({top:Math.round(r.top),bottom:Math.round(r.bottom),origin:s.style.getPropertyValue("--pop-origin")})})()'
+#   trigger 868-900; menu top 850, bottom 1151, origin "bottom left"
+agent-browser eval '(()=>{dispatchEvent(new Event("resize"));return 1})()'
+#   menu top 563, bottom 864: seated above
+```
+
+For the long-press backdrop, use a fresh session at 390×844 on
+`shell-fixture.html?view=room&alerts=quiet`. Long-press `msg-ops-104` with
+paced touch `PointerEvent`s (the recipe in
+[message-actions.md](message-actions.md) under Touch) to get
+`.msg-sheet[role=menu][data-mobile-sheet]` with 22 items. Then:
+
+```bash
+agent-browser eval '(()=>{document.querySelector(".msg-sheet-backdrop").dispatchEvent(new MouseEvent("click",{bubbles:true,detail:1}));return 1})()'
+#   the sheet stays open: a lift's click never began on the backdrop
+agent-browser mouse move 195 40; agent-browser mouse down; agent-browser mouse up
+#   the sheet and the backdrop unmount
+```
 
 ## Gotchas
 
@@ -85,10 +116,20 @@ closed it (2026-11-06, `/rooms/`).
 - The real Projects pickers (labels, **Assignee**, **Agent**) are not
   reachable in any fixture. The gallery's `people` example uses its own stub
   session.
-- The sheet's 72 px downward dismiss and the Enter path were not driven.
+- **A low multi-pick menu does not seat above (product gap, 2026-11-08, both
+  hosts).** With the gallery's **Labels** trigger at the viewport bottom,
+  `placeAboveIfNeeded` (`MenuSelect.tsx:655-672`) switches the menu to
+  `placement: "above"` (`--pop-origin: bottom left`), but the surface stays at
+  `top 850`, 18 px above the trigger's top and over it, and runs 251 px past
+  the bottom of the viewport. Waiting
+  2 s changes nothing; a window `resize` re-seats it at `563`–`864`, and
+  reopening repeats the fault. Read the surface's box, not its origin: the
+  origin alone reads like a correct flip.
 
 ### Verification record
 
-**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `fixture.html` at 390×844: **Labels** opens the full-width sheet (`[data-ui-sheet]`, 390 px, x 0, `aria-modal="true"`, **Close Labels**). `/rooms/` (18180) and `/chat/` (18181) message **More** menus: the 16-entry menu flips above at 1440×700 (`top 151`, `bottom 542`), and on `/rooms/` (18180) and `/chat/` (18181) Enter on **Agent** opens the 4-entry flyout with `aria-expanded="true"` while focus stays on the row. **Limitations:** the multi-pick, cap and create rows, the 72 px dismiss, a low `MenuSelect` flip and the long-press lift were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `fixture.html`: a low **Labels** multi-pick switches to above but stays seated at `top 850` until a resize (product gap); at 390×844 a 90 px handle drag dismisses the sheet, 50 px keeps it, and Enter on **Close Labels** closes it; on `shell-fixture.html` the long-press sheet ignores a lift-style backdrop click and closes on a real press. **Limitations:** auto-open, ranking and real touch hardware. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+
+**Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `fixture.html` at 390×844: **Labels** opens the full-width sheet (`[data-ui-sheet]`, 390 px, x 0, `aria-modal="true"`, **Close Labels**). `/rooms/` (18180) and `/chat/` (18181) message **More** menus: the 16-entry menu flips above at 1440×700 (`top 151`, `bottom 542`), and on `/rooms/` (18180) and `/chat/` (18181) Enter on **Agent** opens the 4-entry flyout with `aria-expanded="true"` while focus stays on the row. **Limitations:** the multi-pick, cap and create rows, the 72 px dismiss, a low `MenuSelect` flip and the long-press lift were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
 **Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0). **Scope:** `/rooms/` (18180) `fixture.html`: **Labels** multi-pick (count 2 → 3, menu stays open, **Filter Labels**), the **Labels, up to two** cap, the **Labels with create** row; at 390×844 the full-width sheet with **Close Labels**, a 20 px drag kept and a 3 px tap closed. `/chat/` (18181): the gallery mounts the `multi` example. **Limitations:** the `/chat/` picks, the 72 px dismiss, Enter, auto-open and ranking were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/` (`14`–`16`).

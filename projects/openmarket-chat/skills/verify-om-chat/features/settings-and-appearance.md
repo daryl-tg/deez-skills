@@ -296,7 +296,12 @@ feedback** card (`settings/UserSettings.tsx:2085-2110`) with four switches:
 `aria-checked="true"` and reduced motion reads `false`. `find role switch click
 --name "Resolve sound"` turns it off and writes `om.chat.resolveSound=false`
 to `localStorage` (`lib/prefs.ts:548`); assert the key, not only the switch.
-The chime itself (`lib/resolve-chime.ts`) plays on a topic resolve and is not
+**GOAT ceremony sound** and **GOAT bleat** write `om.chat.goatSoundEnabled`
+and `om.chat.goatBleatEnabled` the same way (`lib/goat-ceremony.ts:9-10`).
+Switching them shows the save receipt **Saved · just now**
+(`span.ui-save-receipt[role=status][data-save-flash]`, `shared/ui/SaveReceipt.tsx:16`),
+and all three stay off after a reload (2026-11-08, both hosts). The chime
+itself (`lib/resolve-chime.ts`) plays on a topic resolve and is not
 observable in a headless lane.
 
 ### Audio processing (added 2026-11-02)
@@ -311,11 +316,23 @@ device, so only the switch states are provable here.
 
 Type into **Search settings** (`input[aria-label="Search settings"]`) a string
 nothing matches, such as `zzqqx`: the nav empties and reads **No setting
-matches “zzqqx”.** with curly quotes (`settings/SettingsShell.tsx:283`). The
-**Discard unsaved changes?** alertdialog at `SettingsShell.tsx:435` is not
-reached on the lane: `page=profile` exposes no text input to dirty, so leaving
-the page raises nothing. Live verification is pending a page with an editable
-form seed.
+matches “zzqqx”.** with curly quotes (`settings/SettingsShell.tsx:283`).
+
+The **Discard unsaved changes?** alertdialog (`SettingsShell.tsx:435`) is
+reached on `page=profiles` (plural; `page=profile` has no editable input).
+Type into the textbox **Display name** (`#om-display-name`,
+`settings/UserSettings.tsx:1123`); a **Reset** button appears. Press Escape:
+the alertdialog reads "Your unsaved changes will be lost." with **Keep
+editing** and **Discard changes**. **Keep editing** closes it and keeps the
+typed value (2026-11-08, both hosts). **Discard changes** and leaving by a nav
+row were not driven.
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/settings-fixture.html?host=user&page=profiles')"
+agent-browser fill '#om-display-name' 'Nightly Probe'
+agent-browser press Escape
+agent-browser find role button click --name "Keep editing"
+```
 
 ### Chat background and the live preview (added 2026-11-05)
 
@@ -486,7 +503,9 @@ card on **Direct message**. It never reads "Jiin", "# design" or
 
 ### Verification record
 
-**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `settings-fixture.html?page=appearance` mounts **Appearance** with the chat background and the Dim slider; `?host=server&page=roles&perms=owner`: the **Role Color** group (21 `.color-swatch` buttons, **Default (no color)** `aria-pressed="false"`), and a click moves `aria-pressed="true"` from **Role color #e67e22** to **Role color #1abc9c**. **Limitations:** the Projects settings page needs a records-mode server; `page=privacy` blank on both hosts and `host=server&page=moderation` blank on `/chat/` (route smoke). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): `page=appearance` with the Dim slider; **Role Color** on `host=server&page=roles`; the three sound switches with their keys, **Saved · just now** and reload persistence; "No setting matches “zzzq”."; the **Discard unsaved changes?** guard via `page=profiles`. **Limitations:** `page=privacy` blank on both hosts and `host=server&page=moderation` blank on `/chat/` (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+
+**Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `settings-fixture.html?page=appearance` mounts **Appearance** with the chat background and the Dim slider; `?host=server&page=roles&perms=owner`: the **Role Color** group (21 `.color-swatch` buttons, **Default (no color)** `aria-pressed="false"`), and a click moves `aria-pressed="true"` from **Role color #e67e22** to **Role color #1abc9c**. **Limitations:** the Projects settings page needs a records-mode server; `page=privacy` blank on both hosts and `host=server&page=moderation` blank on `/chat/` (route smoke). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
 **Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) shell fixture `view=settings&settingsPage=appearance`: **CHAT BACKGROUND** empty (**No picture yet**, Cover and Dim disabled, Dim 0–100 step 5); a seeded picture shows the position picker **Background position in the chat** and the **Zoom** group (**Fill** → 140 % after two **Zoom in**, ArrowUp ×2 + ArrowLeft → "40% from top, 45% from left", stored `zoom`, `aspect`, `position`); **Whole window** renames the slider and sets `data-chat-background-cover="window"`; **Reset** returns to **Fill**; Dim 30 % shows "Text may be hard to read."; **Remove** → **Chat background removed**; no build footer. `settings-fixture.html?host=user&page=profiles`: the new avatar hint and **Position your avatar** (**Avatar position**, **Cancel**, **Save**). `/chat/` (18181): the picker, **Zoom in** → 120 %, no footer, and the avatar dialog. **Limitations:** a successful upload, pinch and pointer drag of the picture, and the avatar **Save** upload were not proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 

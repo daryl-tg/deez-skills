@@ -149,6 +149,22 @@ The **Set topic index...** picker (`DocIndexPicker.tsx`) has no fixture route
 
 Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, absence on `/chat/`). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`doc-menu-*`).
 
+### Spellcheck in the note menu (added 2026-11-08)
+
+The note menu gains a **Spellcheck** row only for the note open for editing
+(`DocContextMenu.tsx:134-141`). Open
+`shell-fixture.html?view=library&doc=journal&alerts=quiet` (`doc=journal`
+forces edit mode) and press the note head's **More note actions**. Choosing
+**Spellcheck** writes `localStorage` `om.chat.editor.spellcheck="off"`
+(`lib/editor-spellcheck.ts`), and the open editors drop to
+`spellcheck="false"` (turning it back on was not driven). Read the key and the
+editor attribute, not the row: the row is a plain `menuitem` with no
+`aria-checked`, because the action sets `checked` without `checkbox: true`
+(`shared/ui/Menu.tsx:102-103`). That missing state is a product gap for screen
+readers. On `/chat/` **More note actions** opens nothing (the no-op
+`openDocMenu` above). The desktop spelling suggestions need the Electron shell.
+Driven 2026-11-08: the row on `/rooms/`, its absence on `/chat/`.
+
 ### Today's note (added 2026-11-01)
 
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
@@ -299,7 +315,9 @@ that already dismissed it never shows it.
 
 ### Verification record
 
-**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=library&lens=agents` → `#/library/agents` (`/chat/library/agents`), h1 **Agents**; the route smoke re-confirmed `panel=todos` (**Todos could not load**) on both hosts. **Limitations:** other lenses only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `view=library&lens=agents` → `#/library/agents` (`/chat/library/agents`), h1 **Agents**; `/rooms/` (18183) the note menu's **Spellcheck** (new). **Limitations:** other lenses only by the route smoke; `panel=todos` still reads **Todos could not load** (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+
+**Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=library&lens=agents` → `#/library/agents` (`/chat/library/agents`), h1 **Agents**; the route smoke re-confirmed `panel=todos` (**Todos could not load**) on both hosts. **Limitations:** other lenses only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
 **Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=library&lens=agents` → `#/library/agents` (`/chat/library/agents`) with no error; the route smoke re-confirmed `panel=todos` (**Todos could not load**) on both hosts. **Limitations:** other lenses only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 

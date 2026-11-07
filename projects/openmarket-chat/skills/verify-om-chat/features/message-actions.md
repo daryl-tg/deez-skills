@@ -182,16 +182,26 @@ read every `[role=menu]`, not the first.
 
 ### The **Agent** flyout by keyboard (added 2026-11-07)
 
-Since `d1a25e38`, Enter, Space or ArrowRight on a submenu row is meant to open
+Since `30129c57`, Enter, Space or ArrowRight on a submenu row is meant to open
 its flyout with focus on the first enabled row, and ArrowLeft or Escape inside
-the flyout to close it back onto the row (`ContextMenu.tsx:258-280`,
-`:88-97`). Open **More** on `msg-ops-104`, press ArrowDown until
+the flyout to close it back onto the row (`ContextMenu.tsx:261-268`,
+`:92-97`). Open **More** on `msg-ops-104`, press ArrowDown until
 `document.activeElement` is **Agent** (`data-submenu-index="11"`), then press
 Enter. Driven 2026-11-07 on both hosts: the flyout mounts (`aria-expanded="true"`,
 4 entries) but focus stays on **Agent**, so a further ArrowDown moves within
 the root menu and the flyout's ArrowLeft/Escape path cannot be reached.
 ArrowRight behaves the same. That is recorded as a product gap, not a recipe
 fault; prove the flyout by focus position, not by its mount.
+
+Re-driven 2026-11-08 on both hosts with `HTMLElement.prototype.focus` wrapped
+by an `eval` before the key press. ArrowRight mounts the flyout about 18 ms
+later, and the flyout's effect does call `focus()` on **Copy for Agent**, but
+at that moment the flyout's computed `visibility` is still `hidden`. Chromium
+refuses to focus a hidden element, so no `focusin` fires. Which rule still
+hides it was not traced: `ContextMenu.tsx:118` hides the flyout until it is
+measured, and the effect waits on that same `pos.measured`. A manual `focus()` on the same
+row a moment later lands. `test/context-menu-submenu.test.ts:110-116` asserts
+the focus under happy-dom, which does not enforce `visibility`, so it passes.
 
 ## Gotchas
 
@@ -218,7 +228,9 @@ fault; prove the flyout by focus position, not by its mount.
 
 ## Verification record
 
-**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181): `msg-ops-104` **More** lists 19 entries; the hover toolbar's to-do button is titled **Add to Channel To-dos**; at 1440×700 `msg-ops-110` **More** (button top 546) opens the 16-entry menu at `top 151`, `bottom 542`, `--pop-origin: bottom right` on both hosts. Keyboard: Enter or ArrowRight on **Agent** opens the flyout (`aria-expanded="true"`, 4 entries) but focus stays on **Agent**, on both hosts. **Limitations:** **Make ticket** needs a records-mode server; the flyout's ArrowLeft/Escape close could not be reached by keyboard. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): the keyboard **Agent** flyout re-driven with `focus()` instrumented (the call lands while the flyout is `visibility: hidden`); at 390×844 the long-press sheet with 22 items. **Limitations:** every verb is a fixture no-op. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+
+**Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181): `msg-ops-104` **More** lists 19 entries; the hover toolbar's to-do button is titled **Add to Channel To-dos**; at 1440×700 `msg-ops-110` **More** (button top 546) opens the 16-entry menu at `top 151`, `bottom 542`, `--pop-origin: bottom right` on both hosts. Keyboard: Enter or ArrowRight on **Agent** opens the flyout (`aria-expanded="true"`, 4 entries) but focus stays on **Agent**, on both hosts. **Limitations:** **Make ticket** needs a records-mode server; the flyout's ArrowLeft/Escape close could not be reached by keyboard. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
 **Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `msg-ops-104` toolbar **More**: 19 entries on both (four quick tiles, React … Copy Message ID); no revisit or ticket item was added. **Limitations:** menu flips and the **Agent** flyout not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 

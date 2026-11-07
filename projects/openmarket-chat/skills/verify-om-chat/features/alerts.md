@@ -57,6 +57,20 @@ On the board, the feed buttons are named with their state, for example
 Read the strip through `.alert-strip-text`, not the snapshot tree: its row is a
 plain `generic` there.
 
+### The automatic Alerts group (added 2026-11-08)
+
+A channel with a live alert feed is gathered into a virtual **Alerts** group
+in the sidebar (`lib/alerts-group.ts:178-199`; the auto setting is
+`om.chat.alertsGroupAuto`, `Sidebar.tsx:715`). On `/rooms/`,
+`shell-fixture.html?view=room&alerts=board` renders
+`[data-alerts-group=""]` with a row named **category Alerts, 1 channel**,
+holding `#ops` and its **store-5xx, ringing** row. Under `alerts=quiet` the
+group is absent, because `feeds` is empty. On `/chat/` no group forms: the
+cloud `alertsStub` (`apps/cloud/tools/visual/shell-fixture.tsx:537`) has
+`feeds` but no `lastRefreshedAt` (the root has it at
+`tools/visual/shell-fixture.tsx:1437`), so the board never reads as ready.
+Adopting the group as a real category was not driven. Driven 2026-11-08.
+
 ## Gotchas
 
 - **`surface=alert-card` mounts late.** 1.8 s after `open` none of the four
@@ -93,7 +107,9 @@ plain `generic` there.
 
 ### Verification record
 
-**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `alerts=board`: the strip **store-5xx · check pods**. **Limitations:** `panel=alerts` still blank on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `view=room`: the strip (`store-5xx`); `alerts=board`: the automatic **Alerts** group (new). `/chat/` (18184): no group under `alerts=board`, because the cloud stub lacks `lastRefreshedAt`. **Limitations:** `panel=alerts` still renders blank on both hosts (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+
+**Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `alerts=board`: the strip **store-5xx · check pods**. **Limitations:** `panel=alerts` still blank on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
 **Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `alerts=board`: the strip **store-5xx · check pods**. **Limitations:** `panel=alerts` still blank on both hosts. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 

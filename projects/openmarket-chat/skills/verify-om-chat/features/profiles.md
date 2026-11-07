@@ -108,7 +108,9 @@ relay.
 
 ### Verification record
 
-**Last verified:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `?profile=1`: **Profile sections** Info, Media, Links, To-dos. **Limitations:** the `/chat/` fixture has no `profile` seed; the **Working on** gallery and the live agent-status subscription not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
+**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `view=dm&dm=ana&profile=1`: **Profile sections**. `/chat/` (18184): no drawer (carried cloud fixture limit). **Limitations:** the popover and user menu. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+
+**Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `?profile=1`: **Profile sections** Info, Media, Links, To-dos. **Limitations:** the `/chat/` fixture has no `profile` seed; the **Working on** gallery and the live agent-status subscription not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
 **Previous record:** 2026-11-06 (nightly maintenance). **Product commit:** `ea399e62` (GitLab origin/main; rooms-client 0.111.0; 74 commits past `873a57ce`). **Scope:** `/rooms/` (18180) `?profile=1`: **Profile sections** Info, Media, Links, To-dos. `fixture.html` on both hosts: three **Working on** regions; on `/rooms/` the counts, the state dots and **Open Backfilling CME options**. **Limitations:** the live agent-status subscription is pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261106/r1/`.
 
