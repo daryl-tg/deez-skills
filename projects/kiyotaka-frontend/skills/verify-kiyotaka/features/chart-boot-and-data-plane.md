@@ -3,7 +3,21 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-07 against product tree `dced88e06a`
+entry was last DRIVEN on 2026-11-08 against product tree `943281a2eb`
+(`origin/main`, 59 commits past `dced88e06a`), lane `18103`, a guest-JWT lane
+with the gateway name resolving through the system resolver again
+(`10.1.1.10`, no browser map; `doctor` green on both runs). Proven that day:
+boot to 250 candles on COINBASE BTC-USD 1h on the second poll after `open`,
+with VWAP, `Vol` and `Indicators 1/3`, `__BOOT_ERRORS__` `[]`, and live
+candles on DERIBIT.F ETH_USDC-PERPETUAL, AAPL and BINANCE.F BTCUSDT after
+switches. Source since `dced88e06a`, not driven: the worker now pings an idle
+crypto feed socket itself after 15 s (`feedIdlePing`), so a hidden tab whose
+price title holds still keeps its socket instead of losing it to the feed's
+60 s read deadline every few minutes, and a socket up 60 s that drops
+redials within 250 to 1,500 ms (`77b44cfcc1`); a close the page makes is
+echoed at once (`9ca7ecdd6c`); and a connection-stall episode reports who
+ended the socket, with no new text on the strip (`5fb893d920`). Before that,
+DRIVEN on 2026-11-07 against product tree `dced88e06a`
 (`origin/main`, 81 commits past `8bcd72f8f5`), lane `18103`, a guest-JWT lane
 with the gateway name mapped to `10.1.1.10` in the browser (both resolvers
 answered NXDOMAIN). Proven that day: boot to 250 candles on COINBASE BTC-USD
@@ -184,7 +198,7 @@ Preconditions:
   A partial notice (`parts:['cme']`) reaches the banner only while that part
   is in use; not driven.
 
-## Driving the wake heal
+### Driving the wake heal
 
 **Re-driven 2026-11-02 on `a4488341f6`, the visibility-override recipe.**
 Guest BINANCE.F SOLUSDT 1m (333 bars), lane `18103`, the gateway resolving

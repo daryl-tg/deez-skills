@@ -3,7 +3,12 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last re-driven 2026-11-07 on `dced88e06a`
+lock, settings and delete. Last re-driven 2026-11-08 on `943281a2eb`
+(`origin/main`, 59 commits past `dced88e06a`, lane `18103`, a guest JWT) on
+BINANCE.F BTCUSDT 1h: `toolbar-item-trendline:tool-icon-btn`, two clicks, 16
+`tqb-*` handles (the bar 612 px wide), `tqb-settings-btn` opening the inline
+`TREND LINE` card, and its `Style` ComboBox set to `Dashed` (see
+`dt-settings`). Before that, re-driven 2026-11-07 on `dced88e06a`
 (`origin/main`, 81 commits past `8bcd72f8f5`, engine `1268`, lane `18103`, a
 guest JWT) on COINBASE BTC-USD 1h: `toolbar-item-trendline:tool-icon-btn`,
 two clicks, 16 `tqb-*` handles (`tqb-remove-btn` last), and `Delete`
@@ -83,6 +88,8 @@ the cancelled creation, the right-click menu and the magnet.
 - `dt-templates` the floating toolbar's templates button lists the drawing's
   saved looks, saves one, makes the current look the default for new drawings
   or resets it; `Escape` closes one layer at a time.
+- `dt-settings` the floating toolbar's gear opens the drawing's settings card,
+  whose menus (line style, text position) are ComboBoxes.
 
 ## How to get to it (user POV)
 
@@ -235,6 +242,26 @@ the top overlay cleared.
   `find testid "toolbar-item-trendline:tool-icon-btn" click` failed with
   `covered by <div.scope-token-line.v2-tokens>`. Move the pointer onto the chart
   and press `Escape` before the tool click; the retry then placed the line.
+- **`dt-settings`: the card's menus are ComboBoxes (`18c8a69659`; driven
+  2026-11-08 on `943281a2eb`).** The trend line's card (`TREND LINE`,
+  `Templates`, `Reset`; sections `LINE`, `TEXT`, `STATS`, `POSITION`, `SHOW
+  ON`) held no native `select`. Its rows carry `tool-props-<key>` testids
+  (`tool-props-lineStyle-select`, `-textPosition-select`,
+  `-textVerticalPosition-select`, `-lineWidth-stepper`, `-color-color`,
+  `-extend-left`, `-priceLabels-toggle`, `-section-position` …), and each
+  `-select` row wraps a `combo-box-trigger-btn`. Click the trigger inside the
+  row (`[data-testid=tool-props-lineStyle-select]
+  [data-testid=combo-box-trigger-btn]`), then `combo-box-option-dashed`
+  (options `solid`, `dashed`, `dotted`): the trigger read `Dashed` and the
+  line drew dashed. Since `978f9741dd` the gear prefetches the card on
+  hover and opens it only once its code is in, showing `aria-busy` meanwhile
+  (it read no `aria-busy` on a warm lane); since `18c8a69659` the bar keeps
+  one width (`max-content`) wherever it is dragged (source).
+- **Bar pattern flipped and mirrored match TradingView (source,
+  `59f8cd229b`; not driven).** The settings card's Points rows and a paste
+  place a flipped or mirrored Bar Pattern where TradingView does, and typed
+  or shown times read the chosen zone's offset at that instant
+  (`2cad385819`).
 - **The settings card is not the colour popover.** `tqb-settings-btn` opens
   the floating card above; `tqb-swatch-color-custom-btn` opens `.cpk-popover`.
   Close the card with `Escape` before reading swatches, or the popover probe

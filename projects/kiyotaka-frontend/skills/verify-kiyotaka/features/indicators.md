@@ -4,7 +4,15 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-07 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-08 against
+product tree `943281a2eb` (`origin/main`, 59 commits past `dced88e06a`), lane
+`18103`, a guest-JWT lane on the remote dev backend: an `Open Interest` search
+(`Official 8`, `Community 2`) whose row Add raised the `indicators` wall, a
+programmatic `OPEN_INTEREST` on BINANCE.F BTCUSDT (357 rows, `Indicators
+2/3`), its settings card's `Plot type` switched from Candles to Line through
+the new ComboBox (see `ind-oi-plot`), and the system-origin remove back to
+`Indicators 1/3`. Not driven: the CVD flow dominance grey bar and the wrun
+`has nothing to draw` note (see Gotchas). Before that, DRIVEN on 2026-11-07 against
 product tree `dced88e06a` (`origin/main`, 81 commits past `8bcd72f8f5`), lane
 `18103`, a guest-JWT lane on the remote dev backend: an `rsi` search
 (`Official 4`, `Community 12`). Since `d02874f2a8` every wrun indicator runs
@@ -115,6 +123,9 @@ indicators were not driven.
 - `ind-share-link` a package link opens the Indicators dialog on that package:
   `?indicator=@scope/name`, and since `58903c3f75` also a chartless
   `?wrunRef=@scope/name[@x.y.z]`, which the route rewrites to the share link.
+- `ind-oi-plot` Open Interest and Agg. Open Interest draw as Candles (the
+  default) or as a Line of the closes, picked from the settings card's
+  `Plot type`.
 
 ## How to get to it (user POV)
 
@@ -331,6 +342,23 @@ Preconditions:
   `setting-term-card` was up left the panel open. Since
   `a3fde686d1` a frame shows on the click while the settings chunk loads, so
   poll for the card's own fields before you assert them.
+- **The card's menus are ComboBoxes, not native selects (`18c8a69659`;
+  driven 2026-11-08 on `943281a2eb`).** On a programmatic `OPEN_INTEREST` the
+  card held no `select` and three `combo-box-trigger-btn` buttons
+  (`role=combobox`, `aria-expanded`), reading `USD`, `Candles` and `Symbol`.
+  Several share the testid, so pick one by its text or by the row's own
+  testid. A click lists `combo-box-option-<value>` rows (`role=option`).
+- **`ind-oi-plot`: Open Interest as a line (`254c5ce876`; driven 2026-11-08
+  on `943281a2eb`).** Add `OPEN_INTEREST` on a derivative
+  (`chartStore.addIndicator('OPEN_INTEREST',{},0)` on BINANCE.F BTCUSDT), open
+  its card with `legends.settingsBtn.click()`, click the
+  `combo-box-trigger-btn` that reads `Candles` (the `Plot type` row under
+  `Display`), then `find testid combo-box-option-spline click` (`Line`; the
+  other option is `combo-box-option-candle`). Proof: the overlay's
+  `settings.meta.plotType` went from `candle` to `spline` with its 357 rows
+  kept, the trigger read `Line`, and the pane redrew as one line. Agg. Open
+  Interest carries the same row (source,
+  `src/indicators/controls/open-interest/plot-type.ts`).
 - **`ind-settings-search`: search a built-in's settings in place (driven
   2026-11-06 on `8bcd72f8f5`).** Since `1235632725` and `fb01153fbe` the
   docked card shows a magnifier (`settings-search-btn`, `Search settings`)
@@ -435,6 +463,17 @@ Preconditions:
 
 ## Gotchas
 
+- **New in `dced88e06a..943281a2eb`, source only, not driven:** CVD flow
+  dominance and CVD draw a bar grey (no side) where the spot or perps leg did
+  not trade or has no venue, and keep every leg
+  (`src/indicators/controls/cvd-flow-dominance/flow-side.ts`, `943281a2eb`). A
+  wrun indicator that draws nothing says so in its legend: `{name} has
+  nothing to draw on this chart.`, or that it reads a longer interval than
+  this chart's history holds (`wrun.refusal.sentence.nothingDrawn` and
+  `nothingDrawnReach`, `a169947dca`); a slow sandbox worker is now waited on
+  for up to 180 s instead of being quarantined. The Price only pause also
+  names the stock Tape's `Dark pool prints` layer (`b7ffd40d4b`). Each needs
+  a market or a signed-in wrun add this guest lane did not reach.
 - **New in `120d5d5d32..a4488341f6`, source only, not driven:**
   - A US stock's Live price feed lifts a row's wall through the Trades feed:
     the row shows `indicator-trades-feed-<slug>` (`Trades feed`), an Add on it

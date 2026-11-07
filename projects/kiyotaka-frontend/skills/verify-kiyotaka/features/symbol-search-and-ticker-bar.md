@@ -4,7 +4,18 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-07 against product tree `dced88e06a` (`origin/main`,
+was last DRIVEN on 2026-11-08 against product tree `943281a2eb` (`origin/main`,
+59 commits past `dced88e06a`), lane `18103`, a guest-JWT lane with the gateway
+name resolving through the system resolver again. Driven that day: the V2
+dialog (v2 20, legacy 0); an `ETHUSDT` fill that listed ten asset rows and NO
+bare `asset-row-ETHUSDT|1-btn`, whose `asset-row-Ethereum|1-btn` charted
+DERIBIT.F ETH_USDC-PERPETUAL (356 bars), not BINANCE.F ETHUSDT; a `BTCUSDT`
+fill whose bare `asset-row-BTCUSDT|1-btn` charted `BINANCE.O BTC/USDT 27 Nov
+2026 77,000 Put` (the product gap, now on this pair) and whose
+`venue-row-BINANCE_FUTURES|BTCUSDT-btn` charted BINANCE.F BTCUSDT (357 bars);
+AAPL from `asset-row-AAPL|4-btn` (252 bars) with the merged feed chip
+reading `Trades` and its menu (see `sym-stock`). Before that, DRIVEN on
+2026-11-07 against product tree `dced88e06a` (`origin/main`,
 81 commits past `8bcd72f8f5`), lane `18103`, a guest-JWT lane with the gateway
 name mapped in the browser. Driven that day: the V2 dialog (v2 20, legacy 0,
 no `search-v2-category-yours-btn` on a pane with no om series); an `ETHUSDT`
@@ -213,10 +224,24 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   then a tokenized `Apple Inc. · Crypto` row and the AAPL ETFs, and the click
   charted POLYGON `AAPL/USD`. **The display is the bare ticker** (`8bcf77ee46`):
   read the symbol button, the tab title or the legend, never
-  `window.tc[0].metadata[0].symbol`, which stays `AAPL/USD`. A delayed stock
-  chart's legend carries `stock-feed-chip` (`Trades · All US exchanges`) and
-  `stock-feed-add-realtime-btn`; the go-live card (`stock-go-live-card`) is
-  not driven. **A US stock offers no seconds intervals** (`8465b1e6fb`): on
+  `window.tc[0].metadata[0].symbol`, which stays `AAPL/USD`. **The feed
+  chip and the delay tag are one control (`f8eff0c288`, `688e9254cc`).**
+  `stock-feed-chip` reads the feed name alone (`Trades` or `Price only`),
+  then one timing span: `stock-feed-chip-delay` (`· Delayed 15 minutes`)
+  while the tape is delayed, or `stock-feed-chip-realtime` (`· Real-time`);
+  `cme-delay-badge` stays hidden while the chip carries the words. Go live is
+  `stock-feed-add-realtime-btn`, reading `Live ›`, which opens
+  `stock-go-live-card` (not driven). `All US exchanges` is now only the
+  menu's row (`stock-feed-row-trades-all`). Driven 2026-11-08 on
+  `943281a2eb`: on this lane, with no stocks gate routed, the chip read
+  `Trades` with NO timing span and no `Live ›`, because both wait on the gate
+  plane (`gateProviderForExchange` is `stocks`); a chip click opened the
+  menu: header `Trades · Delayed 15 min · every print + order flow`,
+  `stock-feed-row-trades-all` (`All US exchanges`, `★ home`, checked),
+  `stock-feed-addon-row` (`Trades in real-time`, `$19/mo`) and the Price only
+  group (`stock-feed-row-live-all`, `stock-feed-live-note`). Read the rows
+  by `[data-testid^=stock-feed-]` across the page: the menu is teleported,
+  so a `.sfc-menu` scoped read came back empty. **A US stock offers no seconds intervals** (`8465b1e6fb`): on
   AAPL `tb-interval-chevron-btn` opened only `tb-interval-section-minutes`,
   `-hours` and `-days` (12 options, `1m` to `1Y`), where BTC also shows
   `tb-interval-section-seconds` with `tape`, `1s`, `5s`, `15s` and `30s`; a
@@ -326,6 +351,14 @@ Preconditions:
   `16.4000 ▲ ETH - 261102 - 2250 - P`). `50d301f61f` guards the venue lists, but
   this bare-ticker asset id resolves through another path. Product gap, open;
   take the `Ethereum` row and assert the ticker text after every pick.
+  **Re-driven 2026-11-08 on `943281a2eb`:** an `ETHUSDT` query listed no bare
+  row at all, but `BTCUSDT` listed `asset-row-Bitcoin|1-btn` and a bare
+  `asset-row-BTCUSDT|1-btn` (`BTCUSDT BTCUSDT Crypto`, no price), and the bare
+  row charted `BINANCE.O BTC/USDT 27 Nov 2026 77,000 Put` (352 bars). The gap
+  is still open; which pairs show a bare row varies by day. The `Ethereum`
+  row itself charted DERIBIT.F ETH_USDC-PERPETUAL that day, so a recipe that
+  needs a given venue takes its `venue-row-<EXCHANGE>|<SYMBOL>-btn`
+  (`venue-row-BINANCE_FUTURES|BTCUSDT-btn` charted BINANCE.F BTCUSDT).
 - **The dialog opens through a loading frame (source, `4ee72fc314`,
   `dd3daa34c6`).** While the dialog's code loads, a `symbol-selection-frame`
   (`aria-busy="true"`) stands in and grows into the dialog, and presses made
@@ -685,7 +718,8 @@ Preconditions:
   ticker-bar `tb-layout-*` picker and is not driven. `global-nav-create-btn`
   (`NavCreateButton.vue`) renders only with the Board flag on; absent for a
   guest (driven). `stock-feed-chip` is no longer absent for a guest: it shows
-  in a US stock's legend (driven 2026-11-06).
+  in a US stock's legend (driven 2026-11-06; on 2026-11-08 it read `Trades`
+  alone, see `sym-stock`).
 
 - **`sym-ime`, driven 2026-10-29 on `78ec9625d9` with synthetic events.** The
   testid sits on the `INPUT` itself, so dispatch on

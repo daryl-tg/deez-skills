@@ -6,6 +6,12 @@ formulas and more, and a row runs its action. The Settings pages dialog holds
 keyboard shortcuts, language and release notes, and a guest can open all three.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-08 against product tree `943281a2eb` (`origin/main`, 59 commits past
+`dced88e06a`), lane `18103`, a guest-JWT lane. Driven that day: `dark`
+toggling `body--light` to `body--dark` and back with no wall, `heatmap`
+listing the heatmap indicator rows and the `heatmapMagnifier` and
+`openHeatmapPanel` commands, the footer's timezone menu (see `set-timezone`),
+and a heatmap kind pill raising `orderbook-heatmap`. Before that, DRIVEN on
 2026-11-07 against product tree `dced88e06a` (`origin/main`, 81 commits past
 `8bcd72f8f5`), lane `18103`, a guest-JWT lane. Driven that day: `ninjatrader`
 listing only `super-search-result-symbols:open-search-btn` (the new
@@ -129,6 +135,8 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
 - `ss-guides` a help question lists the best user-guide sections under `Guides`
   (live verification pending: it needs the backend's `/ask/config` to answer
   `surface:true`).
+- `set-timezone` the footer's timezone menu sets the zone every chart time
+  reads, each zone labelled with its UTC offset at the current instant.
 
 The editor row is covered in [script editor](./script-editor-and-kscript.md)
 `ks-open`.
@@ -303,6 +311,7 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   | `tb-editor-toggle-btn` | `script-editor` |
   | `tb-options-btn` | `terminal` |
   | `tb-heatmap-toggle-btn` (turning the heatmap on) | `orderbook-heatmap` |
+  | `tb-heatmap-kind-<kind>-btn` (2026-11-08) | `orderbook-heatmap` |
   | `alert-add-menu-price-btn` | `alert` |
   | `Alt+W` with the chart focused (2026-10-28) | `watchlist` |
   | `tb-panels-row-replay` (2026-10-28) | `chart-actions` |
@@ -340,6 +349,27 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `browser eval` with escaped quotes (`{\"open\":true}`), so a shell match
   on `"open":true` never fires; strip the backslashes or match `open\":true`.
   One pass lost its first seven wall drives to that.
+
+- **`set-timezone`: the footer's timezone menu (`2cad385819`; driven
+  2026-11-08 on `943281a2eb`).** `find testid footer-timezone-select click`
+  opens a list of `role=option` rows (`.timezone-region`, no per-row testid),
+  each a city under its offset for the current instant: after the US clocks
+  went back, `Los Angeles` read `UTC-8`. Click the row by its city text. The
+  pick wrote `user` store `settings.activeTimezone`
+  (`{label:'UTC-8', timezone:'America/Los_Angeles'}`), the footer read
+  `UTC-8` and its clock `12:06:18` against `20:06` UTC, and no wall rose for
+  the guest. To restore, pick the zone the run started on: the bare `UTC`
+  label's row stored `Atlantic/Reykjavik`, not the boot zone. Since `2cad385819` chart times read the
+  zone's offset at each instant, so a time on the far side of a clock change
+  shows its own offset (source, `src/utility/chart/display-timezone-offset.util.ts`).
+  The Settings pages' Timezone page is the phone's
+  (`platform: 'mobile'` in the settings provider); a desktop uses the footer.
+- **Trade settings' menus are ComboBoxes (`18c8a69659`; source).** The fill
+  sound and idle menus (`trade-settings-fill-sound-tone`,
+  `trade-settings-idle`) are ComboBoxes: the row testid wraps a
+  `combo-box-trigger-btn` with `combo-box-option-<value>` rows, not a native
+  select. The page needs a
+  signed-in trading context.
 
 - **Proof.** The store read, the overlay or page testid, and a screenshot.
 

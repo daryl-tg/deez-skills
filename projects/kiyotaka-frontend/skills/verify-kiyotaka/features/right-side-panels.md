@@ -5,7 +5,13 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-07 against product tree `dced88e06a` (`origin/main`, 81
+DRIVEN on 2026-11-08 against product tree `943281a2eb` (`origin/main`, 59
+commits past `dced88e06a`), lane `18103`, a guest-JWT lane. Driven that day
+on BINANCE.F BTCUSDT: the Panels menu's 17 rows plus `tb-panels-row-tape-on`,
+the heatmap popover's new kind pills and their `orderbook-heatmap` wall (see
+`rp-heatmap`), the `watchlist` and `script-editor` walls, the Orderbook
+(`orderbook-source-btn`, `orderbook-canvas`) and Market Stats with no wall.
+Before that, DRIVEN on 2026-11-07 against product tree `dced88e06a` (`origin/main`, 81
 commits past `8bcd72f8f5`), lane `18103`, a guest-JWT lane with the gateway
 name mapped in the browser. Driven that day on COINBASE BTC-USD: the Panels
 menu's 17 rows plus a `tb-panels-row-tape-on` node while the Tape was open
@@ -260,6 +266,13 @@ an open panel.
   Heatmap view, Dark pool off or a parked panel remove the layer. A capped
   day reads `stock-tape-dark-pool-cut` (`Not every print of this day is
   shown: …`). Needs a printing stocks gate, which this lane lacks.
+  **Since `183e61b6ee` the row also carries a settings gear (source, not
+  driven).** On hover it opens a settings box with two cutoffs, `Smallest
+  print` (default and floor $1M) and `Smallest flag` ($10M), kept in the
+  Tape's `darkPoolChartSettings`
+  (`src/utility/trades/dark-pool-chart-settings.util.ts`); still no close
+  and no more menu. Price only now names this layer among what it pauses
+  (`b7ffd40d4b`).
 - **`rp-objects`.** `tb-panels-row-objects` opened `Objects`
   (`Nothing on this chart yet`) with no wall.
 - **`rp-etf`.** `tb-panels-row-etfScreener` opened `etf-screener-panel` with
@@ -272,7 +285,25 @@ an open panel.
   `<button role="switch">` read by `aria-checked` (`false`, text `OFF`, driven
   2026-10-29), and a symbol with no heatmap marks it `aria-disabled="true"`
   rather than `disabled`. Turning it on as a guest raised the
-  `orderbook-heatmap` wall. A signed-in popover also carries explainer terms
+  `orderbook-heatmap` wall. **The heatmap is picked by kind (`50075ec0bd`;
+  driven 2026-11-08 on `943281a2eb`).** Under the switch sits
+  `tb-heatmap-kinds`, one pill per kind the market offers,
+  `tb-heatmap-kind-{book,hyperliquid,options}-btn` read by `aria-pressed`
+  (pressed only for the kind that is on). With the heatmap off, a pill turns
+  its kind on; with it on, a pill swaps to it. While a heatmap is on and its
+  kind has two types, `tb-heatmap-variant-row` shows `Exchanges` (Single |
+  Aggregate) or `Levels` (Liquidations | TP/SL) as
+  `tb-heatmap-variant-{single,aggregate,liquidations,tpsl}-btn`. The old
+  Source dropdown is gone (`TBSourceDropdown.vue` deleted); the aggregated
+  book is the Order Book kind's `Aggregate` variant. On BINANCE.F BTCUSDT, opened from
+  `tb-panels-row-heatmap`, the popover showed the switch `OFF` and two pills,
+  `Order Book` and `Options`, both `aria-pressed="false"`; a click on
+  `tb-heatmap-kind-options-btn` raised the `orderbook-heatmap` wall. The
+  pills render only when the market has two or more kinds. Turning the
+  switch on brings back the pane's last kind, kept in `localStorage`
+  `heatmap.lastTypes` (source, `heatmap-last-type.util.ts`; a guest cannot
+  turn it on, so not driven); a prediction market never offers or restores
+  the aggregated book. A signed-in popover also carries explainer terms
   and `tb-heatmap-options-settings-btn`, `-denomination-<d>-btn`,
   `-resolution-{hd,4k}-btn`, `-scheme-*`, `-display-*` and `-shape-*` (source,
   not driven).
@@ -391,7 +422,9 @@ an open panel.
   Same lane and backend, so the blank frame was not a headless limit. Wait a few
   seconds after the open and read the frame before claiming book data either way.
 - **`tb-heatmap-trigger-btn` needs a click.** On 2026-10-28 a `hover` did not
-  render `tb-heatmap-toggle-btn`; a click opened the popover.
+  render `tb-heatmap-toggle-btn`; a click opened the popover. On 2026-11-08,
+  with the Tape open at `1440`, the trigger was not in the bar at all (folded
+  into Panels); `tb-panels-row-heatmap` opened the same popover.
 - **A guest is offered 17 Panels rows** (driven 2026-11-02 on `a4488341f6`):
   `replay, heatmap, watchlist, scanner, etfScreener, news, chat, orderbook, tape,
   footprint, alerts, objects, journal, editor, marketStatsPanel, volumeStats,

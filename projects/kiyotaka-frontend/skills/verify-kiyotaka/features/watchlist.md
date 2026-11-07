@@ -8,7 +8,13 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-Last re-driven 2026-11-07 against `dced88e06a` (`origin/main`, lane `18103`, a
+Last re-driven 2026-11-08 against `943281a2eb` (`origin/main`, lane `18103`, a
+guest JWT) from `tb-panels-row-watchlist`: `guestLoginFeatureId` read
+`watchlist` with the sign-in card open, and `Escape` cleared it. Since
+`827ba9d2e8` the seeded Forex starter list is `USD/JPY`, `USD/CAD` and
+`USD/CHF` (CNH dropped) and the Overview list carries `USD/JPY` in place of
+`JPY/USD` (source, `src/utility/watchlist/starter-list.util.ts`); match
+those pairs in any signed-in check. Before that, re-driven 2026-11-07 against `dced88e06a` (`origin/main`, lane `18103`, a
 guest JWT) from `tb-watchlist-toggle-btn`: `guestLoginFeatureId` read
 `watchlist` with the sign-in card up. Behind the wall (source, `688e2ff054`,
 `4b746b40d9`): the list's notice keeps `watchlist-delay-notice` but now names

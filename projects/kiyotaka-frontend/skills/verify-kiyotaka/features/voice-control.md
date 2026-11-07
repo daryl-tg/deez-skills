@@ -12,6 +12,13 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-08 on tree `943281a2eb` (`origin/main`, lane `18103`, a
+guest JWT): still unreachable.** `typeof window.__voiceControl` read
+`undefined`, and no `voice` or `mic` testid existed. Source change since
+`dced88e06a` (not driven): a spoken command now claims the gate session as
+the person's own (`notePersonAct()` and `byPerson: true` in
+`src/agent-bridge/voice/voice-lifecycle.ts`, `6650bbcbe7`).
+
 **Re-driven 2026-11-07 on tree `dced88e06a` (`origin/main`, lane `18103`, a
 guest JWT): still unreachable.** `typeof window.__voiceControl` read
 `undefined` and no `[data-testid^=voice]` node existed; nothing under the
