@@ -9,11 +9,10 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-07, on tree `dced88e06a`
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-08, on tree `537639ebca`
 (`origin/main`; none of the four desktop pages changed since `bf1c9bac3c`), the return page (valid and invalid), the four
 checkout-return states, the signin redirect, the sign-in card and the super-search command read exactly as below in
-Chromium on the dev lane (a ticking BTC title over 1 bar: the streaming host did not resolve, which these pages do not
-need), each opened through `about:blank` (a hash-only change to the same route keeps the page already shown, so an
+Chromium on the dev lane (250 bars; on 2026-11-07 the same reads held over 1 bar, which these pages do not need), each opened through `about:blank` (a hash-only change to the same route keeps the page already shown, so an
 invalid `#to=` opened straight after a valid one still reads "Signed in"), one page at a time with the tab re-fronted
 before each read: the return page (valid: `desktop-return-title`
 "Signed in. Open OpenMarket to finish", `desktop-return-open`, href with no hash; invalid: `desktop-return-invalid`),
@@ -26,7 +25,7 @@ redirect to `/chart/auth?redirect=/desktop/signin` ("Sign in or create an accoun
 `-google-btn`, `-twitter-btn` "X" and `-tos-link`; `-forgot-password-btn` shows only in the password step. Since
 `37afa417b0` (2026-11-04, after `8436920004`) the Turnstile widget sits under the address it vouches for
 (`login-signup-turnstile`, between the email field and `login-signup-submit-btn`, read live in document order on
-2026-11-05 and 2026-11-07), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
+2026-11-05, 2026-11-07 and 2026-11-08), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
 (`humanCheckPending`), "Email me a code" stays disabled and `login-signup-field-message` reads "Complete the security
 check above to continue." Since `45a3754bef` (after `8bcd72f8f5`) the code step runs its own check,
 `login-signup-code-turnstile`, under the step whenever its send has no token in hand: on a resend, and on the first
@@ -34,20 +33,23 @@ send when the address's check failed or had not answered when the entry's wait r
 script again if it failed, and a checkbox Cloudflare asks for shows under the step and holds the send until ticked.
 The reason a send went without a token (`script`, `render`, `challenge:<code>`, `timeout`, `unrendered`) goes only to
 analytics (`signin:code-dialog`) and auth-service, never to the screen. The dev lane's test sitekey never asks: on
-2026-11-07 the button was disabled with an empty address and turned on once an address was typed (not submitted). The
+2026-11-07 and 2026-11-08 the button was disabled with an empty address and turned on once an address was typed (not
+submitted). The
 disabled state and the code step's own check are source-read only. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
 sit in one row of outlined pills under "Or continue with", a successful password, code, passkey or 2FA sign-in shows a
 welcome screen (`login-signup-welcome`) and then reloads once behind index.html's sign-in handoff card
 (`handOffSignIn`, `src/utility/auth/signin-handoff.util.ts`), and `ResendCountdown.vue` is new. The shell's browser
 sign-in does not take that path: its PKCE exchange is in the main process (`desktop/src/main/index.ts`,
 `browser-signin.ts`) and never calls `handOffSignIn`. The `DesktopBrowserSignIn` row (`login-signup-browser-btn`,
-gated on the bridge's `browserSignIn`) and the passkey gate (`PasskeyService.isSupported()` is false under
-`window.openmarketDesktop`) are unchanged. The four desktop pages, `featureCommands.ts`'s `desktop-app` command (id,
+gated on the bridge's `browserSignIn`) is unchanged in what it shows; since `978f9741dd` (2026-11-07, after
+`dced88e06a`) its code loads with the sign-in dialog's chunk in a shell that offers it, so the card's first paint holds
+the row instead of growing by it (source-read; `signin-button` has no live driver). The passkey gate (`PasskeyService.isSupported()` is false under
+`window.openmarketDesktop`) is unchanged. The four desktop pages, `featureCommands.ts`'s `desktop-app` command (id,
 aliases, gate) and `ProfilePanel.vue`'s `desktop-app` row did not change between `1af9ebbe07` and `bf1c9bac3c`.
 `2f56d17937` and `2ab15d9784` restyle the page's own sign-in leave (the welcome fade and the reload's handoff card),
 which the shell's browser sign-in never takes. The
 shell's production sign-in screen with no passkey row was last captured 2026-10-28 on `5365748ef3`, before the
-one-card rebuild; from 2026-10-29 to 2026-11-07 the console session was locked, so `capture` got no frame or was not
+one-card rebuild; from 2026-10-29 to 2026-11-08 the console session was locked, so `capture` got no frame or was not
 attempted (see [launch](./shell-launch-and-window.md)). The
 shell half of sign-in and checkout (the button, the waiting screen, the exchange, the `openmarket://oauth` and
 `openmarket://checkout` handling) has no live driver: it needs a packaged non-dev build or

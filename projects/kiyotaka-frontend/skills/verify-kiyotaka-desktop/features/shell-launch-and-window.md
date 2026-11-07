@@ -6,19 +6,23 @@ first window, and remembers the window's position, size and maximized state acro
 title bar: a 36 px bar view above the page carries Back, Forward, the page title and an update button, and draws its
 own tooltips; on Windows and Linux the menu bar stays hidden until Alt. A packaged release build shows a one-time
 "You're on the OpenMarket desktop beta 🎉" notice on first launch. When the page's process dies, the bar's view covers the window with a recovery screen and the
-page reloads; see [crash recovery and reports](./crash-recovery-and-reports.md). Last driven 2026-11-07 on product tree
-`dced88e06a` (`origin/main`, desktop 0.1.9, `desktop/` unchanged since `8bcd72f8f5`) with the console session locked
-and the machine at a load average of 3 to 7 on 10 cores. The `window` scenario on production passed 9 of 12 in 103 s,
-the same split as every run since 2026-10-29: the first launch logged `desktop: loaded https://openmarket.xyz/chart/`
-with the title `75,766.9 ▼ BTC - USD`, 15
-canvases and a candle frame (`unit-01-chart.png` shows the 1h BTC-USD candles with VWAP, not the splash), the second
-instance focused it (`desktop: second instance, focusing`, exit 0, one window), and the saved bounds (moved to 120,110
-at 1280 by 800, maximized) matched on relaunch (`relaunchBoundsEqualMoved` true). The three relaunch checks (`relaunchBtcTitle`,
-`relaunchCanvas`, `relaunchMaximized`) went red because the relaunch is a `capture.js` launch, which a locked screen
-leaves with no frame (`relaunchCapture: {}`). No `capture` was attempted from 2026-10-31 to 2026-11-07 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The
-last captures were on 2026-10-28 on `5365748ef3`: the dev-lane frame showed the boot splash, and the production frames
-showed candles and the sign-in screen. The `window` scenario was last 12 of 12 that day. The title bar, the Alt menu bar
-and the beta notice have no live driver (unit tests in `desktop/tests/main/` only; the beta notice never shows on a dev
+page reloads; see [crash recovery and reports](./crash-recovery-and-reports.md). Since 0.1.10 (`ade12fe660`) the two
+views fill what the screen shows of the window, never the raw content size: in full screen they fit the display,
+maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
+unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
+content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
+2026-11-08 on product tree `537639ebca` (`origin/main`, desktop 0.1.10 from `920afc7199`) with the console session
+locked and the machine at a load average of 4 to 6 on 10 cores. The `window` scenario on production passed 9 of 12 in
+102 s, the same split as every run since 2026-10-29: the first launch logged `desktop: loaded
+https://openmarket.xyz/chart/` with the title `75,670.9 ▼ BTC - USD` and a candle frame (`unit-01-chart.png` shows
+the 1h BTC-USD candles with VWAP, not the splash), the second instance focused it (`desktop: second instance,
+focusing`, exit 0, one window), and the saved bounds (moved to 120,110 at 1280 by 800, maximized) matched on relaunch.
+The three relaunch checks (`relaunchBtcTitle`, `relaunchCanvas`, `relaunchMaximized`) went red because the relaunch is
+a `capture.js` launch, which a locked screen leaves with no frame (`relaunchCapture: {}`). No `capture` was attempted
+from 2026-10-31 to 2026-11-08 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The last
+captures were on 2026-10-28 on `5365748ef3`: the dev-lane frame showed the boot splash, and the production frames
+showed candles and the sign-in screen. The `window` scenario was last 12 of 12 that day. The title bar, the Alt menu bar,
+the beta notice and the view sizing have no live driver (unit tests in `desktop/tests/main/` only; the beta notice never shows on a dev
 lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
 
 ## Sub-features
@@ -33,6 +37,9 @@ lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
   the Turnstile widget (`login-signup-turnstile`) sits between the address and "Email me a code", and an unticked
   Cloudflare checkbox keeps the button off with "Complete the security check above to continue." under the fields.
   The shell frame of the new card is not yet captured.
+- `launch-view-area` the bar and page views fill the visible window: the display in full screen, its work area when
+  maximized, re-laid on full screen, maximize and display changes. Live verification pending: the cut it fixes shows
+  only on some Linux desktops, and no lane reads the views' bounds; `desktop/tests/main/view-area.test.ts` covers it.
 - `launch-titlebar` the bar's Back, Forward, title and update button, disabled while a block or sign-in screen covers
   the window. Live verification pending: `capture` grabs the page view only, so the bar is never in a frame. The crash
   lane's frames are screenshots of the bar's own view, which grows to cover the window for a recovery screen: on
@@ -73,7 +80,7 @@ Preconditions:
   `maximizedBeforeQuit`, `relaunchLoadedLine`, `relaunchBtcTitle`, `relaunchCanvas`, `relaunchBoundsEqualMoved` and
   `relaunchMaximized`, and saves `unit-01-chart.png` and `unit-01-relaunch.png`.
 - **Unit level for the bar and the notice.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test`
-  (35 files, 422 tests on 2026-10-27) covers `titlebar`, `beta-notice`, `navigation` and `user-agent`. That is not a
+  (39 files, 469 tests on 2026-11-08) covers `titlebar`, `view-area`, `beta-notice`, `navigation` and `user-agent`. That is not a
   live proof.
 - **Proof.** The PNG, its JSON report, and the doctor output with its exit code.
 

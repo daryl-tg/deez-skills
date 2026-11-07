@@ -11,7 +11,11 @@ read exactly as the trading store writes it, at most six fraction digits), `evm-
 and `solana-connect`, and every request carries `issuedAt`, the app's clock when it opened the page; an old request
 reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent, approveBuilderFee, usdClassTransfer,
 personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no transaction
-signing). Last driven 2026-11-07 on tree `dced88e06a` (`origin/main`; nothing on this path changed since `8bcd72f8f5`), with the
+signing). Last driven 2026-11-08 on tree `537639ebca` (`origin/main`; nothing on this path changed since `8bcd72f8f5`), with
+the console session locked, with the same results as on 2026-11-07: the six sign-page states by hand, `run sign` failing
+`desktop-sign-summary` (77 s), `hl` once through the connect and two approveAgent round trips to the `personal_sign`
+stall at `handoff.mjs:645` (187 s; three `desktop: external`, three `desktop: return`), and `solana` at the Phantom pin
+(`handoff.mjs:95`, 19 s). The testnet lane was warmed in Chromium to a `BTC - USD` title first. On 2026-11-07, with the
 console session locked. By hand in Chromium on the dev lane, one state at a time through `about:blank`, a fresh
 `hl-approve-agent` request drew the title, summary, origin and no-wallet rows, a day-old one `desktop-sign-expired`, a
 truncated `r` `desktop-sign-invalid`, and the transfer kind "Transfer USDC" with "Spot to perps" or (`toPerp: false`)
@@ -113,6 +117,8 @@ Preconditions:
   `waitForChart` waits for a BTC title and a canvas, not for history: on 2026-11-03 a lane with 2 bars passed it once
   warm, and a cold lane failed it. Read a `waitForChart` stop as a page that never booted, warm the lane (see the
   [index](./README.md)) and run again before reading it as the scenario's.
+- **The lanes on 2026-11-08** read the same as on 2026-11-07: `run sign` 77 s, `hl` the `personal_sign` stop after
+  187 s, `solana` the Phantom pin in 19 s.
 - **The lanes on 2026-11-07.** `run sign` failed `desktop-sign-summary` (no `issuedAt`, 77 s); `run handoff hl` stopped
   once at the `personal_sign` request (`handoff.mjs:645`) after 190 s; `run handoff solana` stopped at the Phantom pin in
   19 s. On 2026-11-06 `run sign` failed the same way (71 s), `hl` stopped once at the crossed-chain request

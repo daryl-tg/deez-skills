@@ -13,10 +13,11 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-07 on product tree
-`dced88e06a` (`origin/main`, desktop 0.1.9, `desktop/` unchanged since `8bcd72f8f5`) by the `crash` scenario: 34 of 34
-checks in 46 s, the same as on 2026-11-06 (`8bcd72f8f5`), including the shell's
-`tsc` build, with the console session locked and a load average of 3 to 7 on 10 cores. The lane runs against a stub
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-08 on product tree
+`537639ebca` (`origin/main`, desktop 0.1.10; `desktop/src/` changed since `dced88e06a` only in `ade12fe660`'s view
+sizing) by the `crash` scenario: 34 of 34 checks in 43 s, the same as on 2026-11-06 and 2026-11-07, including the
+shell's `tsc` build, with the console session locked and a load average of 4 to 6 on 10 cores; `crash-held.png` shows
+"This page keeps stopping" with Reload under the bar's Back, Forward and "Stub chart". The lane runs against a stub
 chart, not the real one, so the page's own beacon to PostHog and a real Sentry ingest are unproven; so is the page's
 keyboard focus after a recovery, and Windows.
 

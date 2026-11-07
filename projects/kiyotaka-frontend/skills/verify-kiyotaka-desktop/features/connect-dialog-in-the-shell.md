@@ -10,12 +10,14 @@ opens a separate handoff screen (`hl-link-handoff`, "Finish in your browser, the
 WalletConnect opens the pairing screen (`hl-link-pairing`, `hl-connect-wc-qr`). A browser window is unchanged. The
 signed-out step ("Turn on trading" reaching `signedOutStep` with `signInOffered`) was last proved by the parity sweep's
 `hl-enable` on `1570b59d69` (2026-10-12). On every sweep with steps since (2026-10-27 on `7290d33d10`, 2026-10-28,
-2026-10-29, 2026-10-31, 2026-11-02, and 2026-11-04 on `8436920004` (`origin/main`), on a lane with candles and at loads
-from 3 to 7 on the last three), the step failed on a 15 s click timeout in both hosts, with a failed restore in both.
-That is the sweep's `sym-switch` cascade, not a shell difference (see [parity](./parity-sweep.md)), so those passes
+2026-10-29, 2026-10-31, 2026-11-02, 2026-11-04 on `8436920004`, and 2026-11-08 on `537639ebca` (`origin/main`), on a
+lane with candles and at loads from 3 to 7 on the last four), the step failed on a 15 s click timeout in both hosts,
+with a failed restore in both. That is the sweep's `sym-switch` cascade, the "Draw by holding" tip left open over the
+chart, not a shell difference (see [parity](./parity-sweep.md)), so those passes
 prove nothing about the dialog. On 2026-11-01 and 2026-11-03 the sweep threw before any step, because the dev lane had
-no candle history. The dialog's source (`HLConnectDialog.vue`, `HLLinkWalletStep.vue`, `useHLLinkSheet.ts`) did not
-change between `5475ab32d5` and `8436920004`. The signed-in rows, the handoff screen and the pairing screen have no live recipe through this
+no candle history. The dialog's source (`HLConnectDialog.vue`, `HLLinkWalletStep.vue`, `useHLLinkSheet.ts`) changed
+between `5475ab32d5` and `537639ebca` only in `96c64ceeb2` (2026-11-05), which points a paper Hyperliquid perp pane
+at the account a finished link just added; the signed-out step never reaches it. The signed-in rows, the handoff screen and the pairing screen have no live recipe through this
 wrapper; `tests/components/dialogs/HLConnectDialog.spec.ts` covers them.
 
 ## Sub-features

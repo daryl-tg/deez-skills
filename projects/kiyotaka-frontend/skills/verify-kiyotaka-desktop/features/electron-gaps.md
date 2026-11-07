@@ -10,9 +10,9 @@ registers, and the offline and online events fire. A download saves to Downloads
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-Last driven 2026-11-04, on tree `8436920004` (`origin/main`; `gaps.mjs` unchanged since `8ce333e5e9`'s comment edit),
+Last driven 2026-11-08, on tree `537639ebca` (`origin/main`; `gaps.mjs` unchanged since `8ce333e5e9`'s comment edit),
 straight after the parity sweep on the same dev lane (250 bars in the engine) with `GAPS_REUSE_PACKAGE=1`, in 105 s,
-with the console session locked:
+with the console session locked. The rows read exactly as on 2026-11-04 (`8436920004`), described below:
 
 - 16 rows passed in both hosts: the five `contextmenu-*` rows, `drop-chart`, `clipboard-text-read`, `navigator-share`,
   `online-offline`, `service-worker`, `device-pixel-ratio`, the two gesture rows, `upload-image-picker`,
@@ -33,8 +33,8 @@ On 2026-11-01 (`2646a76a83`) and 2026-11-03 (`1af9ebbe07`) the lane threw `page.
 exceeded` in `waitForCandles` (`gaps.mjs:505`) from `bootHosts` before any row, because the dev lane had no candle
 history (the v2 streaming host was unreachable or did not resolve; see the [index](./README.md)); that was an
 environment block, not a row result. On 2026-11-05 (`bf1c9bac3c`), 2026-11-06 (`8bcd72f8f5`) and 2026-11-07 (`dced88e06a`) the lane was not run
-for the same reason (0, 1 and 1 bars in the engine); `gaps.mjs` is unchanged and no testid it uses went dead since
-`8436920004`. The same 16 rows passed on 2026-10-31 (`5475ab32d5`) and 2026-11-02
+for the same reason (0, 1 and 1 bars in the engine); on 2026-11-08 the host answered again (`nc -z` before the first
+drive and after the last). `gaps.mjs` is unchanged and no testid it uses went dead since `8436920004`. The same 16 rows passed on 2026-10-31 (`5475ab32d5`) and 2026-11-02
 (`39b22dd2ec`) under the old document-wide cancel.
 On 2026-10-29, on `30481b57f8`, the same 15 non-key rows passed. On 2026-10-28, on `5365748ef3`, the lane threw twice
 before any row in `bootHosts` (`page.goto`), and on 2026-11-01 once, in `waitForCandles`. The signed-in rows have not

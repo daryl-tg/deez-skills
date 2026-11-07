@@ -7,8 +7,14 @@ plot region is blank in either capture; a step also fails when the hosts disagre
 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`; `ad67d47c62`,
 on 2026-11-02's tree, retired `si-panel-trades-liquidations` and renamed the `panel-tape` inventory row "Tape /
 Footprint panel", since one tape now serves every market, and left the guest steps alone) that signs in as the
-operator's real account on the deployed chart. Last driven 2026-11-04 on tree `8436920004` (`origin/main`, `parity.mjs`
-unchanged since `30481b57f8`), guest steps named, with the console session locked and the machine at a load average of
+operator's real account on the deployed chart. Last driven 2026-11-08 on tree `537639ebca` (`origin/main`, `parity.mjs`
+unchanged since `30481b57f8`), guest steps named, with the console session locked, at a load average of 4 to 6, on a
+lane with candles (250 bars) after three blocked nights, in 8 min 31 s with its pack: the same 10 green, 6 blocked and
+11 findings as on 2026-11-04, `ind-dialog` again just under the line (0.46 percent, 5,316 of 1,149,194), and
+`sym-switch` failing `closed` in both hosts on `DERIBIT.F ETH_USDC-PERPETUAL` (0.07 percent apart). Its pair shows the
+cause of the cascade in both hosts: the symbol dialog closed, and the "Draw by holding" tip (`InkTutorialDialog.vue`,
+`ink-tutorial-close`) stood open over the ETH chart, so every later click and hover timed out. Before that, on
+2026-11-04 on tree `8436920004`, guest steps named, with the console session locked and the machine at a load average of
 3 to 7, on a lane with candles (250 bars in Chromium's engine before the sweep), in 8 min 36 s with its pack (Electron
 44.9.3, Chromium 152 in the shell; the sweep dismissed `guest-signup-modal-close-btn` in both hosts). 10 green
 (`boot-candles`, `ind-dialog`, `ind-catalog`, `ind-search`, `ind-add`, `sym-dialog`, `sym-results`, `sym-scope`,
@@ -30,7 +36,7 @@ packed the app and threw in `waitForCandles` (`parity.mjs:457`, 180 s) before an
 (`bf1c9bac3c`), 2026-11-06 (`8bcd72f8f5`, 1 bar) and 2026-11-07 (`dced88e06a`, 1 bar) it was not run, because the dev lane's v2
 streaming host (`tsdb-gateway.int.ore.kiyotaka.ai`) was unreachable or did not resolve while the lane's REST health
 read `ok`; that was an environment block, not a sweep finding (see the [index](./README.md)). Source reads on
-2026-11-04 to 2026-11-07 found no testid the sweep uses that went dead between `1af9ebbe07` and `dced88e06a`.
+2026-11-04 to 2026-11-08 found no testid the sweep uses that went dead between `1af9ebbe07` and `537639ebca`.
 `cex-connect`'s `keyFieldAbsent` check (`parity.mjs:935`) reads `link-paste-key-input`, a testid no revision of `src/`
 has carried (`git log -S` finds none), so it is true in both hosts whatever the dialog shows and proves nothing.
 Since `bda0563ab1` (after `bf1c9bac3c`) a guest gets the US stocks tape (`UsEquitiesFull` on for guests,
@@ -84,10 +90,13 @@ Preconditions:
 
 - **A finding in both hosts is not a shell finding.** Read `hosts.shell.checks` against `hosts.browser.checks` in the
   summary. On 2026-10-27 every FINDING but `ind-dialog` failed the same way in both hosts; on 2026-10-28 every FINDING
-  but `ind-catalog` (Chromium alone) did. The likely chain is that
-  `sym-switch` left its dialog open (`closed: false`) and blocked every later click. That is unconfirmed, and it points
-  at drift between the sweep and the web tree, to be recorded in the `verify-kiyotaka` map. It does not point at the
-  shell.
+  but `ind-catalog` (Chromium alone) did. The chain starts at `sym-switch`: its `closed` check (`parity.mjs:720`,
+  nothing on top) fails because the "Draw by holding" tip is open over the new symbol's chart, which
+  `parity-mac-sym-switch-{shell,browser}.png` showed in both hosts on 2026-11-08. The sweep looks for that tip only in
+  `clearFirstLoadOverlays` at boot (`parity.mjs:468`), where on 2026-11-08 it had not shown yet (`meta.dismissed` lists
+  only `guest-signup-modal-close-btn` in both hosts), and `beforeCapture` closes only the guest signup prompt, so the
+  tip, once up, blocks every later click and hover. That is a lane gap in the product repo, to be fixed in `parity.mjs`. It
+  does not point at the shell.
 - The sweep closes the guest signup prompt itself (`meta.dismissed` lists `guest-signup-modal-close-btn` for
   both hosts); `launch.mjs`'s `links` scenario does not.
 - A re-run on a reused package can fail before any step: `waitForCandles` timed out at 180 s once and
