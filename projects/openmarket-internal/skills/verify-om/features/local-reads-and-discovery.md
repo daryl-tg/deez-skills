@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `config show` (masked), `enum --domain exchange_id` (38), `schema read condition_create`, `skill list`, `wrun templates` 93, `wrun create @vom/win117 <dir> --template sma-codefirst` at scaffold **117**, five `wrun build` variants for the new interval-window warning (#2405), the ticket link refusals after #2410 (`todo get om://todo/room/12/5`, `om://todo/lab/12abc`, `om://todo/lab/12`, `12`), `approvals list` `[]`, `calendar list`. Not re-driven: `notis`, `terms`, `series`, `persona show`, `follows`, `relay trace`, the secrets status. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/20-26`, `cli/30-34`, `cli/56-59`, `cli/64-65`, `cli/var{A,B,C}.ts`).*
+
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `config show` (masked), `config key-info` `om_guest`, `setup default`, `enum --list` (`exchange_id` 38), `schema read`, `skill list`, `wrun templates` 93, `notis --since 7d --json` (the run's fires), `terms` (`2026-09-10`), `GET /secrets/status` `unminted`, `vault status`, `follows`, `relay trace @nobody/nothing` `relay_ref_unknown`, `todo list --space openmarket --format json` `room_social_failed` 401, `series list` `[]`, `calendar list`, `persona show`. Not re-driven: `wrun create`/`build`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/55`, `cli/60-67`, `cli/80-84`, `cli/138`).*
 
 *Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted at 19:18Z with no guest 429, host load average 10 falling to about 3.3. `config show` (masked key), `setup default`, `enum --domain exchange_id` (38), `wrun templates` 93 (new: `dark-pool-prints`), `wrun create @vom/probe116 <dir> --template dark-pool-prints` (`.wrun-scaffold` `116`, `dark_pool` and `plot.flags` in the files), `schema read condition_create`, `skill list`, `notis` (the archive notice, `held`), `persona show`, `memory list` (the migrated memories), `approvals list` and `--kind bogus`, `approve nope`; `todo list|get|label list|similar --space openmarket` all `room_social_failed` 401; `agent status set|clear` exit 2 `Guests can view but not chat — sign up to participate`. Not re-driven: `wrun build`, the away reads. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/config-show.txt`, `cli/todo-*`, `cli/agent-status-*`, `cli/wrun-*`).*
@@ -61,6 +63,11 @@ bundled constants. None needs an account or a model.
 - `skill-list`: the bundled skill files.
 - `wrun-list` / `wrun-templates`: installed indicator packages and scaffold
   templates.
+- `wrun-build-window-warning` (added 2026-11-08, #2405, scaffold 117): `wrun
+  build` warns `WRUN_DECL_INTERVAL_WINDOW_SHORT` when a window fed by an input
+  pinned to a coarser interval cannot fill: a scalar pin updated once per pinned
+  candle, or a `candles.cells` stream with no `bars` or `bars` short of the
+  window. The warning names the input, the class and its window, and the repair.
 - Local series authoring (`om series create|list|show|delete`) and the marketplace listing refusals of `om series publish --price|--stop-sales|--resume-sales|--free` (#2240), the plan table (`om upgrade --show`, `om usage plans`) and the sealed-secrets status read (`GET /secrets/status`).
 
 ## How to get to it (user POV)
@@ -119,6 +126,42 @@ decode.
   - `subscriptions --format json` exits 1 with `account_required`.
 - **Secrets status:** `GET /secrets/status` returns 200 `{"ok":true,"data":{"userId":"guest_…","readiness":"unminted","hasRecoveryBlob":false,"recoveryUnavailable":true,"alarms":[]}}`. It is not a 401, because the lane mints its own guest key.
 
+### The interval-window warning (added 2026-11-08)
+
+Proves #2405 on a guest lane. No model and no account are needed; the build
+runs `bun install` in the workspace the first time, so it needs the network.
+
+- **Create a code-first workspace** outside the product tree:
+  `control-om om -- wrun create @vom/win117 <dir> --template sma-codefirst --format json`.
+  `<dir>/.wrun-scaffold` reads `{"scaffold_version": 117}`. Use
+  `sma-codefirst`, not `sma`: the declaration scan reads `input(...)` lines in
+  `src/indicator.ts`, which only the code-first template has.
+- **Warn on a scalar pin.** Replace `src/indicator.ts` with
+  `input("close", ohlcv.close);`, `input("w", ohlcv.close, { interval: "1w" });`,
+  `input("w_new", ohlcv.close, { interval: "1w", view: "is_new_period" });`,
+  `output("ma", line, overlay);`, `let ma = new Sma(50);`, a
+  `let value: f64 = NaN;`, and an `onBar` that runs
+  `if (in_w_new() == 1.0) value = ma.update(in_w());` then `out_ma(value);`.
+  `control-om om -- wrun build <dir> --format json` exits 0, and `warnings[0]`
+  reads `src/indicator.ts:2: input 'w' pins 1w and feeds Sma (a window of 50)
+  once per 1w candle, but the module reads only the 1w candles that close
+  inside the chart's loaded bars, … read the candles from a candles.cells input
+  with interval 1w and bars of at least 50, and update the window from its
+  blocks`. `--format text` prints the same line under `Warnings:`.
+- **Warn on a stream.** Make the `w` input `candles.cells` with
+  `{ interval: "1w" }` and update `ma` from the block's close
+  (`unchecked(block[i + 4])`, stride 6, over `in_w_view()` and `in_w_cells()`).
+  The warning reads `input 'w' hands Sma (a window of 50) its 1w candles with
+  no bars, …: declare bars of at least 50 …`. With `bars: 20` it reads `… with
+  bars 20, which reach only 20 of them back from now, …`.
+- **No warning.** The same stream with `bars: 50`, or the scalar pin updated on
+  every chart bar (`value = ma.update(in_w());` with no `is_new_period` gate),
+  builds with no `input 'w'` line in `warnings`.
+- **Proof.** Keep each module and its build JSON. The other `warnings` entries
+  (the download size, `Market check`, `Alerts`) follow the declaration warning
+  and vary by variant, so match the `input 'w'` line by substring, not by index
+  past the first.
+
 ### Guest-lane reads (added 2026-10-28)
 
 All were driven on a fresh guest lane at `a8fa10974`. Each answers or refuses
@@ -130,6 +173,7 @@ with no account:
 | `approvals list --kind draft` / `--kind bogus` (#2258: one inbox of five kinds, `chain`, `mcp`, `grant`, `draft`, `proposal`) | `No pending approvals.` / exit 2 `--kind must be one of: chain \| mcp \| grant \| draft \| proposal`; `GET /rpc/v1/approvals/inbox` returned `{"items":[],"counts":{"total":0,"byKind":{…all 0}}}` |
 | `approve nope` | exit 2 `nope is not an approval id` / ``Run `om approvals list` to see pending ids.`` |
 | `todo get 12` (#2291) | exit 1 `12 is a ticket number, which names a ticket only within its server` / `Pass spaceId and number.` |
+| `todo get om://todo/room/12/5`, `todo get om://todo/lab/12abc` (#2410; driven 2026-11-08, `5590b4d1c`) | each exit 1 `invalid_ref` `Not a server ticket link: <ref>` / `Projects lives in servers: pass the server's spaceId and the ticket number`. A ticket link has one form, `om://todo/<spaceId>/<number>`: the retired room form and a link the text runs on from are not links. `todo get om://todo/lab/12` parses and reaches the relay: `room_social_failed` 401 on a guest key. |
 | `todo list --space x --format json` | exit 1 `room_social_failed` `Unauthorized` (401): a guest key reaches the relay and is refused; a real ticket needs a rooms account. Over MCP stdio `todo_get` answers `not_badge_bound`. |
 | `todo label list`, `todo similar <words>`, `todo get <n>` with `--space openmarket --format json` (#2341, #2342; driven 2026-11-06, `50fcc594b`) | each exit 1 `room_social_failed` `Unauthorized` (401), like `todo list`. The write verbs (`create`, `update`, `comment`, `follow`, `delete`, `label create\|rename\|merge\|delete`) need a rooms account; over MCP stdio `todo_create` answers `not_badge_bound`. |
 | `agent status set --file <json>` / `agent status clear` (#2359; driven 2026-11-06) | exit 2 `Guests can view but not chat — sign up to participate`: the status rides the relay as the signed-in user. |
@@ -154,6 +198,10 @@ model.
 
 - `om usage plans` is not a Data API read. It reports MODEL provider plan holds.
   See [market data reads](./market-data-reads.md).
+- **`wrun build` with no `--format` prints JSON when stdout is not a terminal**
+  (the shared `--format` default follows the output: text for a person, JSON
+  for a pipe). A driver that captures output and wants the `Warnings:` block
+  passes `--format text`.
 - `wrun build` compiles and runs `bun install` by default, so it needs the package
   registry. Keep it out of a quick pass. Its JSON carries `historyIndependence`
   (`{"stamped":false,"reason":"classic"}` for the `sma` starter, driven
@@ -182,13 +230,14 @@ model.
   `flow-vwap` starter is the thirty-first. A JSON assertion that reads only
   `description` misses this field.
 - **`wrun templates` gained `flow-vwap` in #2235 (`942d0eb54`, v0.480.3), and
-  `WRUN_SCAFFOLD_VERSION` is 116 since #2379 (`da1531b1e`;
-  `packages/sdk/src/wrun-sdk-sources.ts:1266`; 108 at #2239, 109 at #2245, 110 at #2246, 111 at #2267, 112 at #2273, 113 at #2283, 114 at #2336, 115 at #2339). #2379 also added the `dark-pool-prints` template (93 in all), whose workspace carries the `dark_pool` input and `plot.flags`.** The template sits in group `Order flow`
+  `WRUN_SCAFFOLD_VERSION` is 117 since #2405 (`2a1e1389f`;
+  `packages/sdk/src/wrun-sdk-sources.ts:1285`; 116 at #2379, 108 at #2239, 109 at #2245, 110 at #2246, 111 at #2267, 112 at #2273, 113 at #2283, 114 at #2336, 115 at #2339). #2379 also added the `dark-pool-prints` template (93 in all), whose workspace carries the `dark_pool` input and `plot.flags`.** The template sits in group `Order flow`
   (the chart's price weighted by aggressive options premium, with sigma
   bands). **`wrun create` takes the package name first:** `wrun create
   @you/<name> --template flow-vwap <dir>`; a bare directory is refused
   "package name must look like @scope/short-name". A fresh create writes
-  `.wrun-scaffold` `{"scaffold_version": 108}`, an `indicator.ts` whose
+  `.wrun-scaffold` with the current scaffold (`{"scaffold_version": 117}` on
+  2026-11-08), an `indicator.ts` whose
   `options_flow` inputs carry the `underlying` knob (`"@chain"`, a select
   of `auto`, `derived`, `QQQ`, `NDX`, `SPY`, `SPX`), and a `src/sdk/declare.ts`
   and `scripts/wrun-prebuild.mjs` that carry the keyed-row words
@@ -197,7 +246,8 @@ model.
   directory outside the product tree, and assert membership, not the count
   (driven 2026-11-01 at 107, 2026-11-02 at 108 and 110, 2026-11-03 at 111 with
   `wrun create @lane/vom-ema --template sma <dir>`, 2026-11-04 at 113 with
-  `wrun create @vom/probe <dir> --template sma`; `--template rsi` is not a
+  `wrun create @vom/probe <dir> --template sma`, 2026-11-08 at 117 with
+  `wrun create @vom/win117 <dir> --template sma-codefirst`; `--template rsi` is not a
   template and exits 2 `request_failed` listing the names).
 - **`wrun templates` lost six option recipes in v0.466.0** (`5a03ffb43`):
   `dealer-nodes`, `gamma-map`, `zero-dte-levels`, `vol-term-structure`,

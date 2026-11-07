@@ -1,5 +1,7 @@
 # Retired kScript package kinds
 
+*Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `search rsi --kind kscript-indicator --format json` exit 2 `kind_retired`; `open @om-core/rsi --print --format json` `wrun-indicator` 0.3.4. Not re-driven: the `install`/`publish` refusals and the MCP tools. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/50-51`).*
+
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `search rsi --kind kscript-indicator --format json` exit 2 `kind_retired`; `open @om-core/rsi --print --format json` resolved the `wrun-indicator` 0.3.4. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/70-71`).*
 
 *Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted at 19:18Z with no guest 429, host load average 10 falling to about 3.3. `search rsi --kind kscript-indicator` exit 2 `kind_retired`; `open @om-core/rsi --print --format json` `kind: wrun-indicator`, 0.3.4, publisher text wrapped in `<untrusted-publisher-text>`. Not re-driven: the `install`/`publish <dir>` refusals. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/search-kscript.txt`, `cli/open-rsi.txt`).*
