@@ -3,7 +3,12 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-08 against product tree `943281a2eb`
+entry was last DRIVEN on 2026-11-09 against product tree `32dd0c6354`
+(`origin/main`, 60 commits past `943281a2eb`), lane `18103`, a guest-JWT lane
+(the gateway on the system resolver, `doctor` green three times): boot to 250
+bars on COINBASE BTC-USD 1h at 14 s cold (251 at 3.4 s on a warm reload),
+`Indicators 1/3`, `__BOOT_ERRORS__` `[]`, no strip or chip. Before that, last
+DRIVEN on 2026-11-08 against product tree `943281a2eb`
 (`origin/main`, 59 commits past `dced88e06a`), lane `18103`, a guest-JWT lane
 with the gateway name resolving through the system resolver again
 (`10.1.1.10`, no browser map; `doctor` green on both runs). Proven that day:
@@ -332,6 +337,16 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   `/chart/`: the title bar's `data:` view loads first).
 
 ## Gotchas
+
+- **Lite charts turns on by itself on this lane (driven 2026-11-09).** A fresh
+  device under software GL flips the preset about 12 s into the boot and leaves a
+  staying notice at the bottom of the frame. Read
+  `localStorage['kiyo:pref:light-charts']` and clear the notice before a capture;
+  see `set-lite` in the Super Search guide.
+- **A wake or tab return asks only what the saved copy cannot prove (source,
+  `d4113f01da`; not driven).** Do not assert a full refetch on a return. A pane is
+  no longer rebuilt under a live gesture, and is rebuilt for a new live alias only
+  where frames ride it (`058530d565`, `e57fcac9c4`, source).
 
 - **A stale cached frame paints dimmed until the fresh rows land (source,
   `e33ea4c250`, read on `849fb08e95`, never driven).** When the cached tail is

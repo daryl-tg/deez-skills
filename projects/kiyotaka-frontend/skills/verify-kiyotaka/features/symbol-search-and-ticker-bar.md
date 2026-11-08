@@ -4,7 +4,17 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-08 against product tree `943281a2eb` (`origin/main`,
+was last DRIVEN on 2026-11-09 against product tree `32dd0c6354` (`origin/main`,
+60 commits past `943281a2eb`), lane `18103`, a guest-JWT lane. Driven that day:
+the V2 dialog (v2 20, legacy 0, placeholder `Search markets, or type a ratio like
+SPY/GLD`); the renamed strip and rail with the new Exchanges section (see
+`sym-rail`); `venue-row-BINANCE_FUTURES|BTCUSDT-btn` to BINANCE.F BTCUSDT (381
+bars); `asset-row-AAPL|4-btn` to AAPL (252 bars, the head reading `EQUITIES ·
+TRADES · ALL US EXCHANGES` with no vendor code, `stock-feed-chip` `Trades`);
+`venue-row-BINANCE_FUTURES|ETHUSDT-btn` to BINANCE.F ETHUSDT (250 bars); the bare
+`asset-row-BTCUSDT|1-btn` STILL charting `BINANCE.O BTC/USDT 25 Dec 2026 80,000
+Put` (open product gap); and Full chart's exit (see `tb-full-chart`). Before
+that, DRIVEN on 2026-11-08 against product tree `943281a2eb` (`origin/main`,
 59 commits past `dced88e06a`), lane `18103`, a guest-JWT lane with the gateway
 name resolving through the system resolver again. Driven that day: the V2
 dialog (v2 20, legacy 0); an `ETHUSDT` fill that listed ten asset rows and NO
@@ -126,6 +136,11 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
 ## Sub-features
 
 - `sym-search` the symbol dialog opens, searches, and switches symbol.
+- `sym-rail` the left rail: the kinds All, Stocks, Futures, Options (signed-in
+  with OPRA only), Predictions, and an Exchanges section that narrows the
+  dialog to one exchange family.
+- `tb-full-chart` the pane's Full chart button hides the bars around the chart;
+  its Exit control sits below the hover toolbar and `Escape` also leaves.
 - `sym-scope` the scope chips filter results (`search-v2`).
 - `sym-memecoins` the gated memecoin lane, liquidity-floor refinement, and Pulse
   rows load or report their explicit warning/empty state.
@@ -281,16 +296,18 @@ Preconditions:
   `./control-kiyotaka browser find testid tb-symbol-info-btn click`; its
   accessible name is the current market, so a `--name` handle breaks on every
   switch. On the guest lane this is the V2 dialog (see Gotchas): a category tab
-  strip (`All`, `Crypto`, `Equities`, `Forex`, `Commodities`, `Indices`,
-  `Predict`, `CME`, `Economy`; the `HIP-4` tab is gone since `93b3a757c0` and
-  HIP-4 lives under `Predict`), a Browse rail (`All`, `Hyperliquid`,
-  `CME Group`, `Tokenized stocks`, `Predictions`), Refine (Exchange, Quote),
+  strip (`All`, `Equities`, `Futures`, `Crypto`, `Forex`, `Commodities`,
+  `Indices`, `Predict`, `Economy`, driven 2026-11-09 on `32dd0c6354`; the `HIP-4`
+  tab is gone since `93b3a757c0` and HIP-4 lives under `Predict`), a Browse
+  rail (`All`, `Stocks`, `Futures`, `Predictions`; see `sym-rail`), Refine
+  (Exchange, Quote),
   `Compare on chart`, and an Assets column with a Favorites tab
   (`search-v2-assets-tab-favorites-btn`).
 - **Drive the search field by its testid, `symbol-selection-search-input`.** The
   placeholder is not stable and is CONDITIONAL on context: the ratio hint
-  (`Search, or type a ratio like SPY/GLD`) renders only on the main-chart path with
-  formulas available, while other contexts read `Search by symbol or name`,
+  (`Search markets, or type a ratio like SPY/GLD`, driven 2026-11-09) renders only
+  on the main-chart path with formulas available, while other contexts read
+  `Search markets` (since `ee1fae1b4d`),
   `Search prediction markets`, or an options-parent string. Never match on it. The field also carries no `aria-label`, so its computed accessible
   name is the **current symbol** — it snapshots as `textbox "BTCUSDT"`, then `textbox "BTCUSDT Clear"`
   once it has content, and it changes every time the symbol does. Nothing about
@@ -300,13 +317,10 @@ Preconditions:
   ./control-kiyotaka browser find testid symbol-selection-search-input fill "ETHUSDT"
   ```
 
-  `Search symbols...` never appears on this dialog. Three different keys carry
-  that text, and the one a desktop driver is likeliest to trip over is
-  `navbar.quickSymbolSearch.searchPlaceholder`, which belongs to
-  `QuickSymbolSearchDropdown.vue` — a separate surface that opens when you HOVER
-  the symbol button rather than click it. The others are
-  `searchPlaceholderMobile` and a `searchSymbols` label. Matching any of them
-  against the clicked dialog finds nothing.
+  The hover quick search is a separate surface: `navbar.quickSymbolSearch.searchPlaceholder`
+  (now `Search markets`, source) belongs to `QuickSymbolSearchDropdown.vue`, which
+  opens when you HOVER the symbol button rather than click it. Do not match
+  placeholder text to tell them apart; read the testid.
 - **Read the result shape.** Results group by asset class, each group capped with a
   `See all <Class>` row; the right-hand rail previews the highlighted symbol and
   its venues. Picking a symbol takes two steps when the venue matters: the row,
@@ -586,6 +600,27 @@ Preconditions:
   dropdown node stays in the DOM after it closes, so assert the switch on the
   engine and the title, not on the node's absence.
 
+- **`sym-rail` (`2d6c7e7894`, `32dd0c6354`; driven 2026-11-09).** With the symbol
+  dialog open, a guest's rail lists `search-v2-view-all-btn` (`All`),
+  `search-v2-view-us-stocks-btn` (`Stocks`), `search-v2-view-cme-btn` (`Futures`)
+  and `search-v2-view-predictions-btn` (`Predictions`), then the Exchanges section
+  `search-v2-rail-exchanges`:
+  `search-v2-rail-exchange-{cme,nyse,nasdaq,binance,hyperliquid,coinbase,bybit}-btn`.
+  `find testid search-v2-rail-exchange-nyse-btn click` set its `aria-pressed` to
+  `true` and `search-v2-refine-exchange-btn` read `NYSE`; the `All` kind row lost
+  its active class while the exchange held. A second click on the same exchange
+  does NOT clear it (`aria-pressed` stayed `true`). A later kind pick does: after
+  `NASDAQ`, then `Stocks`, then `All`, a `BTCUSDT` fill listed its crypto rows
+  again, while with `Stocks` still held the same fill listed no asset rows at
+  all. Pick `search-v2-view-all-btn` before a typed search that must span venues.
+  The held exchange also shows as a pill with an `×` in the search field (frame
+  only; the `×` was not clicked).
+- **`tb-full-chart` (`cd1f34ff89`; driven 2026-11-09).** `find testid
+  chart-pane-expand-btn click` (name `Full chart`) enters the mode; the button's
+  name becomes `Exit full chart` and it sat at about `(1325, 52)` at 1440 x 900,
+  below the hover toolbar. `Escape` left the mode and the name returned to `Full
+  chart`.
+
 ## Gotchas
 
 - **Undo and redo live in the footer, not the ticker bar. Driven 2026-11-01 on
@@ -831,8 +866,10 @@ Preconditions:
   `forex`, `commodities`, `indices`, `predictions`, `cme`, `economics`,
   `options` (`CATEGORY_ORDER` in `src/constants/symbol-search-v2.constants.ts`
   plus `cme`, `economics` and `options` pushed in `CategoryStrip.vue`) — but a
-  guest sees NINE — driven 2026-10-29: `All, Crypto, Equities, Forex,
-  Commodities, Indices, Predict, CME, Economy`. `hip4` was removed by
+  guest sees NINE — driven 2026-11-09 on `32dd0c6354`, in this order: `All,
+  Equities, Futures, Crypto, Forex, Commodities, Indices, Predict, Economy`
+  (`search-v2-category-cme-btn` is the tab labelled `Futures`, and it follows
+  `stocks` since `2d6c7e7894`). `hip4` was removed by
   `93b3a757c0` and its typed prefix with it; `search-v2-category-hip4-btn` reads
   `0`. `memecoins` and `options` are no longer
   flag-gated: both now require a signed-in session, so their absence on a guest
@@ -849,8 +886,9 @@ Preconditions:
   `find role tab click --name "Equities" --exact`. A `--name` lookup with role
   `button` finds nothing. Proof: the visible `[role=tab][aria-selected=true]` and
   the rows (an `ETH` query narrowed to ETHA, ETHU, ETHE and the other ETH ETFs). V2 also carries a views
-  rail — `search-v2-view-{all,hyperliquid,cme,tokenized,predictions}-btn` — which
-  the map previously treated as internal-only and which a guest can drive.
+  rail, `search-v2-view-{all,us-stocks,cme,us-options,predictions}-btn`, which a
+  guest can drive (`us-options` is signed-in with OPRA only). The `Hyperliquid`
+  and `Tokenized stocks` rows are gone since `32dd0c6354`.
 
   If you do land on legacy, its ids are not its labels: the `Macro` pill is
   `intent-filter-class-economics-btn`, and `intent-filter-class-macro-btn` does

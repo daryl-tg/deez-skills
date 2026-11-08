@@ -5,7 +5,15 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-08 against product tree `943281a2eb` (`origin/main`, 59
+DRIVEN on 2026-11-09 against product tree `32dd0c6354` (`origin/main`, 60
+commits past `943281a2eb`), lane `18103`, a guest-JWT lane. Driven that day: the
+same seven walls (`chart-actions`, `watchlist`, `terminal`, `news`,
+`community-chat`, `volume-footprint`, `script-editor`) and `tb-options-btn`'s
+`terminal` wall; the Orderbook (`orderbook-canvas`, `orderbook-source-btn`),
+Alerts, the ETF screener, Market Stats, Journal and Objects with no wall; the
+Tape on COINBASE BTC-USD (`crypto-tape-last-price`, `tape-liquidations`, no
+`tape-delay-notice`); and the heatmap popover's pills (see `rp-heatmap`).
+Before that, DRIVEN on 2026-11-08 against product tree `943281a2eb` (`origin/main`, 59
 commits past `dced88e06a`), lane `18103`, a guest-JWT lane. Driven that day
 on BINANCE.F BTCUSDT: the Panels menu's 17 rows plus `tb-panels-row-tape-on`,
 the heatmap popover's new kind pills and their `orderbook-heatmap` wall (see
@@ -263,7 +271,9 @@ an open panel.
   Indicators list. Its legend row (`.is-wrun-app-layer`) carries only an eye,
   always shown; hiding it adds `.is-wrun-app-layer-hidden` and writes the
   panel setting `darkPoolOnChart` (default on). Collapsing the section, the
-  Heatmap view, Dark pool off or a parked panel remove the layer. A capped
+  Heatmap view or Dark pool off remove the layer; since `04f374a678` it stays
+  on the chart when the panel is out of sight (full chart, a collapsed dock,
+  another tab; source). A capped
   day reads `stock-tape-dark-pool-cut` (`Not every print of this day is
   shown: …`). Needs a printing stocks gate, which this lane lacks.
   **Since `183e61b6ee` the row also carries a settings gear (source, not
@@ -285,9 +295,13 @@ an open panel.
   `<button role="switch">` read by `aria-checked` (`false`, text `OFF`, driven
   2026-10-29), and a symbol with no heatmap marks it `aria-disabled="true"`
   rather than `disabled`. Turning it on as a guest raised the
-  `orderbook-heatmap` wall. **The heatmap is picked by kind (`50075ec0bd`;
-  driven 2026-11-08 on `943281a2eb`).** Under the switch sits
-  `tb-heatmap-kinds`, one pill per kind the market offers,
+  `orderbook-heatmap` wall. **The heatmap is picked by kind (`50075ec0bd`,
+  `72f6560bd3`; driven 2026-11-09 on `32dd0c6354`).** Under the switch sits
+  `tb-heatmap-kinds`, the kind pills, on any market whose popover opens:
+  Order Book and Options always, Hyperliquid where the market has it. A kind
+  this market lacks holds dimmed (`aria-disabled="true"`, `data-held`), a
+  click does nothing and its reason is an app Tooltip, not a `title` (source;
+  no held pill was seen on COINBASE BTC-USD or BINANCE.F BTCUSDT),
   `tb-heatmap-kind-{book,hyperliquid,options}-btn` read by `aria-pressed`
   (pressed only for the kind that is on). With the heatmap off, a pill turns
   its kind on; with it on, a pill swaps to it. While a heatmap is on and its
@@ -298,15 +312,21 @@ an open panel.
   book is the Order Book kind's `Aggregate` variant. On BINANCE.F BTCUSDT, opened from
   `tb-panels-row-heatmap`, the popover showed the switch `OFF` and two pills,
   `Order Book` and `Options`, both `aria-pressed="false"`; a click on
-  `tb-heatmap-kind-options-btn` raised the `orderbook-heatmap` wall. The
-  pills render only when the market has two or more kinds. Turning the
+  `tb-heatmap-kind-options-btn` raised the `orderbook-heatmap` wall. On a US
+  stock (AAPL) the `tb-panels-row-heatmap` row is listed but `aria-disabled="true"`
+  (`is-disabled`), and its click opens nothing (driven 2026-11-09). Turning the
   switch on brings back the pane's last kind, kept in `localStorage`
   `heatmap.lastTypes` (source, `heatmap-last-type.util.ts`; a guest cannot
   turn it on, so not driven); a prediction market never offers or restores
   the aggregated book. A signed-in popover also carries explainer terms
-  and `tb-heatmap-options-settings-btn`, `-denomination-<d>-btn`,
+  and `-denomination-<d>-btn`,
   `-resolution-{hd,4k}-btn`, `-scheme-*`, `-display-*` and `-shape-*` (source,
-  not driven).
+  not driven). Since `72f6560bd3` the Options kind's knobs live in the popover
+  (`tb-heatmap-options-{metric,expiry,basis,palette}-<v>-btn`, `-style-bead-btn`,
+  `-style-tile-btn`, `-magnifier-btn`, `-nodes-btn`, `-flip-contour-btn`,
+  `-opacity-preset-<v>-btn`, `-sensitivity-reset-btn`,
+  `-all-settings-btn`), replacing `tb-heatmap-options-settings-btn` (source,
+  signed-in with OPRA data).
 - **`rp-options`.** `tb-options-btn` (`Options`) was visible to the guest. A
   click raised the `terminal` wall.
 - **`rp-tape`, rebuilt as one tape (`ad67d47c62`, `4dae9e6136`,

@@ -3,7 +3,12 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last re-driven 2026-11-08 on `943281a2eb`
+lock, settings and delete. Last re-driven 2026-11-09 on `32dd0c6354`
+(`origin/main`, 60 commits past `943281a2eb`, lane `18103`, a guest JWT) on
+BINANCE.F BTCUSDT 1h: `toolbar-item-trendline:tool-icon-btn`, two clicks, 16
+`tqb-*` handles, and `tqb-settings-btn`'s `tool-props-lineStyle-select` still
+reading `Solid` after a `1m` switch, the card's value only (see Gotchas). Before that, re-driven
+2026-11-08 on `943281a2eb`
 (`origin/main`, 59 commits past `dced88e06a`, lane `18103`, a guest JWT) on
 BINANCE.F BTCUSDT 1h: `toolbar-item-trendline:tool-icon-btn`, two clicks, 16
 `tqb-*` handles (the bar 612 px wide), `tqb-settings-btn` opening the inline
@@ -191,6 +196,12 @@ the top overlay cleared.
   `./control-kiyotaka browser fill .cpk-hex "FF00AA"`; `find css` is not a
   locator (`role, text, label, placeholder, alt, title, testid, first, last,
   nth` are).
+- **A solid line stays solid across an interval switch (`68d133f076`, titan
+  `1286`; driven 2026-11-09).** A trend line's `tool-props-lineStyle-select` read
+  `Solid` before and after `tb-interval-pinned-1m-btn`. That is the card's value
+  only: the line's anchors were off-screen on `1m`, so its drawn pixels were not
+  compared. The docked card and `.tool-quick-bar` were gone a few seconds after
+  the switch, so read the card straight away.
 - **Shift squares and snaps (source, `87e6a66297`, titan alpha.1220 and
   later; not driven).** Holding Shift squares a rectangle, rounds an ellipse,
   snaps a line to 45° steps and straightens a drag, TradingView-style. It is

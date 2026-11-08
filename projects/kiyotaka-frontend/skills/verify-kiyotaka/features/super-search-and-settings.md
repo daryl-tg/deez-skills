@@ -3,10 +3,18 @@
 Super Search is the command palette a user opens from the `Ask anything ⌘K`
 capsule in the top navbar. One query searches panels, commands, themes,
 formulas and more, and a row runs its action. The Settings pages dialog holds
-keyboard shortcuts, language and release notes, and a guest can open all three.
+keyboard shortcuts, performance, language and release notes, and a guest can
+open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
-2026-11-08 against product tree `943281a2eb` (`origin/main`, 59 commits past
+2026-11-09 against product tree `32dd0c6354` (`origin/main`, 60 commits past
+`943281a2eb`), lane `18103`, a guest-JWT lane. Driven that day: `dark` flipping
+`body--light` to `body--dark` and back, `heatmap` listing the indicator rows and
+the two commands, `editor` to `panels:Editor`, the empty palette's
+`super-search-keycap` (`⌘ K`), the clear control's new name `Clear`, the
+Performance page and Lite charts (see `set-lite`), the `4.53.0` Release Notes
+row first, and the timezone list (`UTC-8 Los Angeles`). Before that, last
+DRIVEN on 2026-11-08 against product tree `943281a2eb` (`origin/main`, 59 commits past
 `dced88e06a`), lane `18103`, a guest-JWT lane. Driven that day: `dark`
 toggling `body--light` to `body--dark` and back with no wall, `heatmap`
 listing the heatmap indicator rows and the `heatmapMagnifier` and
@@ -124,6 +132,8 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
   (`volt`, `percept`, ...) applies that colour theme.
 - `ss-formula` a ratio query such as `SPY / GLD` plots a formula chart.
 - `set-shortcuts` `Meta+/` opens Settings on the Keyboard Shortcuts page.
+- `set-lite` the Performance page's Lite charts switch, its chip, and the
+  notice a slow device gets when the preset turns itself on.
 - `set-notes` the Release Notes page lists versions, and a release's
   Spotlight badge replays its spotlight.
 - `ss-ask-commands` a query lists app commands as palette rows (hide candles,
@@ -239,7 +249,8 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 - **`set-shortcuts`.** Blur any focused editor first
   (`eval "document.activeElement.blur()"`), then `press Meta+Slash`. Proof:
   `settings-pages-body` and `keyboard-shortcuts-search-input`. A guest's nav is
-  `settings-pages-nav-{shortcuts,language,notes}-btn`. Close with
+  `settings-pages-nav-{shortcuts,performance,language,notes}-btn` (driven
+  2026-11-09 on `32dd0c6354`). Close with
   `settings-pages-close-btn`.
 - **`ss-rows` (driven 2026-11-06 on `8bcd72f8f5`, `6c0164fd35`).** Typing
   `anchored vwap` listed `super-search-result-wrun-registry:wrun-registry:@om-core/anchored-vwap-btn`
@@ -272,8 +283,7 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   date (source).
   Poll for the rows: a nav click made straight after `Meta+/` once left the page
   on Keyboard Shortcuts, and a second open and click switched it within 2 s.
-  The nav ids are unchanged (`settings-pages-nav-{shortcuts,language,notes}-btn`)
-  but the `language` row now reads `Preferences`.
+  The `language` row reads `Preferences`.
   Re-driven 2026-10-29: 81 rows, `4.49.0` newest. The `4.0.0` row now reads
   `4.0.0 Spotlight OPENMARKET V4` (`dc9ed408ee`), and the page body carries no
   `Kiyotaka`. Source holds 88 entries on `215896e614`; `4.52.0` (`Trade
@@ -350,6 +360,18 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   on `"open":true` never fires; strip the backslashes or match `open\":true`.
   One pass lost its first seven wall drives to that.
 
+- **`set-lite`: Lite charts (`14e97da372`, `b62ef4c998`, `fe722ed806`; driven
+  2026-11-09 on `32dd0c6354`).** `find testid settings-pages-nav-performance-btn
+  click` opens `performance-settings-page`, whose `light-charts-setting-row` holds
+  one `on-off-toggle-btn` (`aria-checked`). The state is `localStorage`
+  `kiyo:pref:light-charts` (`1`, or absent when off); a click also writes
+  `kiyo:pref:light-charts:decided`. While on, the chart carries
+  `light-charts-chip` (name `Lite charts on`, no visible text); a click opens
+  `light-charts-card` with `light-charts-turn-off`, and turning it off raises a
+  `Lite charts off. Change it anytime in Settings. Undo` notice. Drive that
+  notice's `Undo` by its row, not `find role button --name "Undo"`, which picks
+  the footer's undo first. No gate: a guest reaches it. Not driven: the chart
+  settings Display page's copy of the row and the phone drawer's.
 - **`set-timezone`: the footer's timezone menu (`2cad385819`; driven
   2026-11-08 on `943281a2eb`).** `find testid footer-timezone-select click`
   opens a list of `role=option` rows (`.timezone-region`, no per-row testid),
@@ -373,7 +395,20 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 
 - **Proof.** The store read, the overlay or page testid, and a screenshot.
 
+
 ## Gotchas
+
+- **A fresh headless device gets Lite charts by itself, with a staying notice
+  (driven 2026-11-09 on `32dd0c6354`).** The software GL lane counts as a weak
+  class: about 12 s into a boot with no stored decision the preset turned on and a
+  `.q-notification` read `Lite charts is on. Smoother panning on this computer,
+  same charts. Keep Turn off` with no timeout. It stays over the bottom of the
+  frame until you act, so include it in the overlay check, and record the state
+  in any drag or performance read. **On a cold boot it can read raw keys**
+  (`perfHints.liteCharts.autoOnLine`, `autoOnSub`, `keep`): those strings are not
+  in the boot locale bundle, and the notice fires 5 s after mount whether or not
+  the first chart has painted. Seen on the pass's first boot (14 s to candles), not
+  on a warm reload. Product gap.
 
 - **NinjaTrader has a Super Search row and Connections aliases a guest never
   sees (`3dd3e5d0c3`; source, absence driven 2026-11-07).** The provider

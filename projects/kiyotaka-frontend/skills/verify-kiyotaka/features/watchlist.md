@@ -8,7 +8,12 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-Last re-driven 2026-11-08 against `943281a2eb` (`origin/main`, lane `18103`, a
+Last re-driven 2026-11-09 against `32dd0c6354` (`origin/main`, lane `18103`, a
+guest JWT) from `tb-panels-row-watchlist`: `guestLoginFeatureId` read
+`watchlist` with the sign-in card open. Since `ee1fae1b4d` the list's search
+field closes through the shared field's clear control and
+`watchlist-close-search-btn` is gone (source, behind the wall). Before that,
+re-driven 2026-11-08 against `943281a2eb` (`origin/main`, lane `18103`, a
 guest JWT) from `tb-panels-row-watchlist`: `guestLoginFeatureId` read
 `watchlist` with the sign-in card open, and `Escape` cleared it. Since
 `827ba9d2e8` the seeded Forex starter list is `USD/JPY`, `USD/CAD` and

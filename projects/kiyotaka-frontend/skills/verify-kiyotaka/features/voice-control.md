@@ -12,6 +12,11 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-09 on tree `32dd0c6354` (`origin/main`, lane `18103`, a
+guest JWT): still unreachable.** `typeof window.__voiceControl` read
+`undefined` and no `voice` or `-mic` testid existed; no voice source changed
+since `943281a2eb`.
+
 **Re-driven 2026-11-08 on tree `943281a2eb` (`origin/main`, lane `18103`, a
 guest JWT): still unreachable.** `typeof window.__voiceControl` read
 `undefined`, and no `voice` or `mic` testid existed. Source change since

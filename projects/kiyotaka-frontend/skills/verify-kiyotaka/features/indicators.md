@@ -4,7 +4,12 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-08 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-09 against
+product tree `32dd0c6354` (`origin/main`, 60 commits past `943281a2eb`), lane
+`18103`, a guest-JWT lane: a programmatic `ORDERBOOK_PROFILE` on BINANCE.F
+BTCUSDT and its new `Grouping mode` (see `ind-ob-grouping`), and the settings
+search's three `Escape` steps on a `SESSION_VOLUME_PROFILE`. Before that, last
+DRIVEN on 2026-11-08 against
 product tree `943281a2eb` (`origin/main`, 59 commits past `dced88e06a`), lane
 `18103`, a guest-JWT lane on the remote dev backend: an `Open Interest` search
 (`Official 8`, `Community 2`) whose row Add raised the `indicators` wall, a
@@ -123,6 +128,8 @@ indicators were not driven.
 - `ind-share-link` a package link opens the Indicators dialog on that package:
   `?indicator=@scope/name`, and since `58903c3f75` also a chartless
   `?wrunRef=@scope/name[@x.y.z]`, which the route rewrites to the share link.
+- `ind-ob-grouping` Order Book Profile's `Grouping mode` keeps its bands fixed
+  at every zoom, or joins them as you zoom out.
 - `ind-oi-plot` Open Interest and Agg. Open Interest draw as Candles (the
   default) or as a Line of the closes, picked from the settings card's
   `Plot type`.
@@ -359,6 +366,15 @@ Preconditions:
   kept, the trigger read `Line`, and the pane redrew as one line. Agg. Open
   Interest carries the same row (source,
   `src/indicators/controls/open-interest/plot-type.ts`).
+- **`ind-ob-grouping`: Order Book Profile grouping (`0f3c552e1f`; driven
+  2026-11-09 on `32dd0c6354`).** On a derivative, mount
+  `await chartStore.addIndicator('ORDERBOOK_PROFILE',{},0)`, open the card with
+  `legends.settingsBtn.click()`, and open the `Grouping mode` ComboBox (its
+  trigger reads `Dynamic`; pick it by its text, `combo-box-trigger-btn` is
+  shared). The menu lists `combo-box-option-dynamic` (`Bands join as you zoom
+  out, so values stay readable`) and `combo-box-option-fixed` (`Keeps your
+  grouping at every zoom`). `combo-box-option-fixed` wrote `settings.groupingMode`
+  `fixed` and the trigger read `Fixed`. Remove with `legends.closeBtn.click()`.
 - **`ind-settings-search`: search a built-in's settings in place (driven
   2026-11-06 on `8bcd72f8f5`).** Since `1235632725` and `fb01153fbe` the
   docked card shows a magnifier (`settings-search-btn`, `Search settings`)
@@ -366,8 +382,10 @@ Preconditions:
   a script row, and the form owns its own page rail (TPO, footprint) or has
   more than 12 rows. A card of 12 rows or fewer has no magnifier, so the
   10-row `BITCOIN_DOMINANCE` card is a negative. Wrun indicators keep their own
-  filter. `Cmd+F` opens the field while the card holds focus; `Escape` ends the
-  search first and closes the card on the next press. On a programmatic
+  filter. `Cmd+F` opens the field while the card holds focus. `Escape` takes three
+  presses since `ee1fae1b4d`: the first clears the words (the field keeps
+  focus and `settings-search-clear-btn` goes), the second leaves the search,
+  the third closes the card (driven 2026-11-09 on `32dd0c6354`). On a programmatic
   `SESSION_VOLUME_PROFILE` (62 `.i-overlay-settings-row`) the magnifier came
   about 5 s after the card (poll for it), and `find testid
   settings-search-input fill "wid"` left 6 rows visible (`Session`, `Display`,
