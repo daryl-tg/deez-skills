@@ -14,9 +14,9 @@ signed-out step ("Turn on trading" reaching `signedOutStep` with `signInOffered`
 lane with candles and at loads from 3 to 7 on the last four), the step failed on a 15 s click timeout in both hosts,
 with a failed restore in both. That is the sweep's `sym-switch` cascade, the "Draw by holding" tip left open over the
 chart, not a shell difference (see [parity](./parity-sweep.md)), so those passes
-prove nothing about the dialog. On 2026-11-01 and 2026-11-03 the sweep threw before any step, because the dev lane had
+prove nothing about the dialog. On 2026-11-09 on `27fb2d4621` `hl-enable` timed out the same way (15 s click, failed restore, both hosts), but the cascade now starts earlier: the sweep's single Escape no longer closes the Indicators dialog (see [parity](./parity-sweep.md)). On 2026-11-01 and 2026-11-03 the sweep threw before any step, because the dev lane had
 no candle history. The dialog's source (`HLConnectDialog.vue`, `HLLinkWalletStep.vue`, `useHLLinkSheet.ts`) changed
-between `5475ab32d5` and `537639ebca` only in `96c64ceeb2` (2026-11-05), which points a paper Hyperliquid perp pane
+between `5475ab32d5` and `27fb2d4621` only in `96c64ceeb2` (2026-11-05), which points a paper Hyperliquid perp pane
 at the account a finished link just added; the signed-out step never reaches it. The signed-in rows, the handoff screen and the pairing screen have no live recipe through this
 wrapper; `tests/components/dialogs/HLConnectDialog.spec.ts` covers them.
 
@@ -28,7 +28,9 @@ wrapper; `tests/components/dialogs/HLConnectDialog.spec.ts` covers them.
 - `connect-foot` `hl-connect-signs-in-browser` names the browser approval and the in-app trading key.
 - `connect-handoff-screen` after choosing Sign in your browser, the `hl-link-handoff` screen reads "Finish in your
   browser, then come back here".
-- `connect-pairing` the WalletConnect pairing screen with its QR, Copy, and refresh on expiry.
+- `connect-pairing` the WalletConnect pairing screen with its QR, Copy, and refresh on expiry. Its wallet list
+  (`HLWalletListPanel.vue`, lazy-loaded by `HLLinkPairing.vue`) was redone in `ee1fae1b4d`: a head with only `hl-wallet-list-back`, a search field on its own row
+  (`hl-wallet-list-search`, clear `hl-wallet-list-search-clear-btn`), and the first Escape clears the words, the next closes the list. Source-read 2026-11-09; live verification pending (needs a signed-in account).
 
 ## How to get to it (user POV)
 
@@ -59,7 +61,7 @@ Preconditions:
 
 - `isDesktopShell()` reads `window.openmarketDesktop`, never the user agent, so a browser tab cannot pass for the
   shell and an injected stub is not the bridge. Check `Object.keys(window.openmarketDesktop)` reads
-  `analytics, onReturn, updates, version` (plus `browserSignIn` on a packaged build) before trusting a capture.
+  `analytics, onReturn, reports, updates, version` (plus `browserSignIn` on a packaged build; read live 2026-11-09) before trusting a capture.
 - The button reads "Turn on trading" and the sheet's title "Link Hyperliquid"; "Enable trading" is gone.
 - The flow entry points render only behind the `hyperliquid-trading` and `pulse` flags; the parity sweep turns them on
   through the dev build's `kiyo.flag-overrides`, which changes no auth state.

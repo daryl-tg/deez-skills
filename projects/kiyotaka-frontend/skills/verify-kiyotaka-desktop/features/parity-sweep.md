@@ -7,8 +7,11 @@ plot region is blank in either capture; a step also fails when the hosts disagre
 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`; `ad67d47c62`,
 on 2026-11-02's tree, retired `si-panel-trades-liquidations` and renamed the `panel-tape` inventory row "Tape /
 Footprint panel", since one tape now serves every market, and left the guest steps alone) that signs in as the
-operator's real account on the deployed chart. Last driven 2026-11-08 on tree `537639ebca` (`origin/main`, `parity.mjs`
-unchanged since `30481b57f8`), guest steps named, with the console session locked, at a load average of 4 to 6, on a
+operator's real account on the deployed chart. Last driven 2026-11-09 on tree `27fb2d4621` (`origin/main`, `parity.mjs`
+unchanged since `30481b57f8`), guest steps named, with the console session locked, at a load average of 15 to 19, on a lane with candles (250 bars), in 10 min 21 s with its pack: 0 green, 6 blocked and 21
+findings, against 10, 6 and 11 on 2026-11-08, and it is the web tree, not the shell. Two causes are read from the run. First, `ee1fae1b4d` (one search field across the app, after `537639ebca`): the first Escape in the Indicators
+search box only clears its words (`src/components/common/SearchField.vue:183`), so `ind-search`'s one `pressEscape` (`parity.mjs:605`) leaves the dialog open in both hosts (restore failed, "timed out waiting for indicator-panel-v2 to close"), and every later
+chart step times out behind it, from `sym-dialog` on. Second, `b62ef4c998`'s Lite charts default: Playwright's headless Chromium took Lite charts on (its frames show it; the class was not read, and a software GPU fits `classReason`) and shows the staying toast "Lite charts is on." with Keep and Turn off (`src/utility/chart/lite/lite-hint.ts` `autoOnForWeakClass`, `timeout: 0`), plus a bolt in the legend, and the shell does neither on this machine, so every completed pair differs by about 2.4 to 2.9 percent (the toast's area), against 0.02 to 0.46 percent before. In `parity-mac-boot-candles-browser.png` the toast is visible and in the shell frame it is not. A scratch drive in the real shell the same night confirmed the Escape rule: after typing RSI, the first Escape left the dialog open with the words gone, and the second closed it. `sym-switch` timed out behind the open dialog, so the "Draw by holding" tip's own cascade could not show. `login-wall`'s shell half again wrote no capture (locked console). Before that, on 2026-11-08 on tree `537639ebca`, guest steps named, with the console session locked, at a load average of 4 to 6, on a
 lane with candles (250 bars) after three blocked nights, in 8 min 31 s with its pack: the same 10 green, 6 blocked and
 11 findings as on 2026-11-04, `ind-dialog` again just under the line (0.46 percent, 5,316 of 1,149,194), and
 `sym-switch` failing `closed` in both hosts on `DERIBIT.F ETH_USDC-PERPETUAL` (0.07 percent apart). Its pair shows the
@@ -32,11 +35,11 @@ false): its shell half is a `capture.js` launch, and a locked screen gives it no
 [launch](./shell-launch-and-window.md)). Chromium's half wrote its frame. The runs of 2026-10-27, 2026-10-28,
 2026-10-29, 2026-10-31, 2026-11-02 and 2026-11-04, at very different loads, give the same cascade, so it is drift
 between the sweep and the web tree, not load. On 2026-11-01 (`2646a76a83`) and 2026-11-03 (`1af9ebbe07`) the sweep
-packed the app and threw in `waitForCandles` (`parity.mjs:457`, 180 s) before any step, and on 2026-11-05
+packed the app and threw in `waitForCandles` (`parity.mjs:456`, 180 s) before any step, and on 2026-11-05
 (`bf1c9bac3c`), 2026-11-06 (`8bcd72f8f5`, 1 bar) and 2026-11-07 (`dced88e06a`, 1 bar) it was not run, because the dev lane's v2
 streaming host (`tsdb-gateway.int.ore.kiyotaka.ai`) was unreachable or did not resolve while the lane's REST health
 read `ok`; that was an environment block, not a sweep finding (see the [index](./README.md)). Source reads on
-2026-11-04 to 2026-11-08 found no testid the sweep uses that went dead between `1af9ebbe07` and `537639ebca`.
+2026-11-04 to 2026-11-09 found no testid the sweep uses that went dead between `1af9ebbe07` and `27fb2d4621`.
 `cex-connect`'s `keyFieldAbsent` check (`parity.mjs:935`) reads `link-paste-key-input`, a testid no revision of `src/`
 has carried (`git log -S` finds none), so it is true in both hosts whatever the dialog shows and proves nothing.
 Since `bda0563ab1` (after `bf1c9bac3c`) a guest gets the US stocks tape (`UsEquitiesFull` on for guests,
@@ -93,10 +96,11 @@ Preconditions:
   but `ind-catalog` (Chromium alone) did. The chain starts at `sym-switch`: its `closed` check (`parity.mjs:720`,
   nothing on top) fails because the "Draw by holding" tip is open over the new symbol's chart, which
   `parity-mac-sym-switch-{shell,browser}.png` showed in both hosts on 2026-11-08. The sweep looks for that tip only in
-  `clearFirstLoadOverlays` at boot (`parity.mjs:468`), where on 2026-11-08 it had not shown yet (`meta.dismissed` lists
+  `clearFirstLoadOverlays` (at boot, `parity.mjs:468`, and after the flow reload, `:3889`), where on 2026-11-08 it had not shown yet (`meta.dismissed` lists
   only `guest-signup-modal-close-btn` in both hosts), and `beforeCapture` closes only the guest signup prompt, so the
   tip, once up, blocks every later click and hover. That is a lane gap in the product repo, to be fixed in `parity.mjs`. It
   does not point at the shell.
+- **Two product-lane gaps as of 2026-11-09, both in `parity.mjs`.** `ind-search`'s `after` needs a second Escape, or a clear before it, and the same holds for any other step that types into a `SearchField` and closes with one Escape. The diff needs the Lite charts toast handled in both hosts. Seeding `kiyo:pref:light-charts:decided` before load is the source's route (`src/utility/chart/light-charts.util.ts:42`), untried here. Read a fraction near 2.5 percent as that toast before anything else. The signed-in `si-settings` step also went dead in `b62ef4c998`: `light-charts-setting-row` moved off the Source page to the Display page (`parity.mjs:2436` to `:2437`, `LiteChartsSettingRow.vue`), and the row label is now Lite charts; source-read, the signed-in phase was not run.
 - The sweep closes the guest signup prompt itself (`meta.dismissed` lists `guest-signup-modal-close-btn` for
   both hosts); `launch.mjs`'s `links` scenario does not.
 - A re-run on a reused package can fail before any step: `waitForCandles` timed out at 180 s once and

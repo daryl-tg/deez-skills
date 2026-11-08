@@ -9,10 +9,10 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-08, on tree `537639ebca`
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-09, on tree `27fb2d4621`
 (`origin/main`; none of the four desktop pages changed since `bf1c9bac3c`), the return page (valid and invalid), the four
 checkout-return states, the signin redirect, the sign-in card and the super-search command read exactly as below in
-Chromium on the dev lane (250 bars; on 2026-11-07 the same reads held over 1 bar, which these pages do not need), each opened through `about:blank` (a hash-only change to the same route keeps the page already shown, so an
+Chromium on the dev lane (250 bars; on 2026-11-07 the same reads held over 1 bar, which these pages do not need; `ee1fae1b4d`'s dialog restyle left every testid here in place), each opened through `about:blank` (a hash-only change to the same route keeps the page already shown, so an
 invalid `#to=` opened straight after a valid one still reads "Signed in"), one page at a time with the tab re-fronted
 before each read: the return page (valid: `desktop-return-title`
 "Signed in. Open OpenMarket to finish", `desktop-return-open`, href with no hash; invalid: `desktop-return-invalid`),
@@ -25,7 +25,7 @@ redirect to `/chart/auth?redirect=/desktop/signin` ("Sign in or create an accoun
 `-google-btn`, `-twitter-btn` "X" and `-tos-link`; `-forgot-password-btn` shows only in the password step. Since
 `37afa417b0` (2026-11-04, after `8436920004`) the Turnstile widget sits under the address it vouches for
 (`login-signup-turnstile`, between the email field and `login-signup-submit-btn`, read live in document order on
-2026-11-05, 2026-11-07 and 2026-11-08), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
+2026-11-05, 2026-11-07, 2026-11-08 and 2026-11-09), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
 (`humanCheckPending`), "Email me a code" stays disabled and `login-signup-field-message` reads "Complete the security
 check above to continue." Since `45a3754bef` (after `8bcd72f8f5`) the code step runs its own check,
 `login-signup-code-turnstile`, under the step whenever its send has no token in hand: on a resend, and on the first
@@ -33,7 +33,7 @@ send when the address's check failed or had not answered when the entry's wait r
 script again if it failed, and a checkbox Cloudflare asks for shows under the step and holds the send until ticked.
 The reason a send went without a token (`script`, `render`, `challenge:<code>`, `timeout`, `unrendered`) goes only to
 analytics (`signin:code-dialog`) and auth-service, never to the screen. The dev lane's test sitekey never asks: on
-2026-11-07 and 2026-11-08 the button was disabled with an empty address and turned on once an address was typed (not
+2026-11-07, 2026-11-08 and 2026-11-09 the button was disabled with an empty address and turned on once an address was typed (not
 submitted). The
 disabled state and the code step's own check are source-read only. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
 sit in one row of outlined pills under "Or continue with", a successful password, code, passkey or 2FA sign-in shows a
@@ -78,8 +78,9 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
 - `checkout-shell` the shell's `openmarket://checkout` handling, `desktop: checkout <kind>`, and a paid return landing on
   `payment-status`, cold start included. Live verification pending.
 - `download-door` super search's `super-search-result-featureCommands:desktop-app-btn` "Download the OpenMarket desktop
-  app" in a browser. The profile-menu row is signed-in only (a guest's profile button opens sign-in), and its absence in
-  the shell is not yet driven.
+  app" in a browser. The profile-menu row is signed-in only (a guest's profile button opens sign-in). Hidden in the shell, live on
+  2026-11-09 (`27fb2d4621`, scratch Playwright drive of the unpackaged shell on the dev lane): super search for "desktop app" read "No results found" with no `desktop-app` row, and the
+  control query "indicators" returned 72 rows in the same palette.
 
 ## How to get to it (user POV)
 

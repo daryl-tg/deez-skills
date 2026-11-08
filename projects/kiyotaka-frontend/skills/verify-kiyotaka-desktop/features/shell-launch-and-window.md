@@ -11,18 +11,18 @@ views fill what the screen shows of the window, never the raw content size: in f
 maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
 content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
-2026-11-08 on product tree `537639ebca` (`origin/main`, desktop 0.1.10 from `920afc7199`) with the console session
-locked and the machine at a load average of 4 to 6 on 10 cores. The `window` scenario on production passed 9 of 12 in
-102 s, the same split as every run since 2026-10-29: the first launch logged `desktop: loaded
-https://openmarket.xyz/chart/` with the title `75,670.9 ▼ BTC - USD` and a candle frame (`unit-01-chart.png` shows
+2026-11-09 on product tree `27fb2d4621` (`origin/main`, desktop 0.1.10 from `920afc7199`) with the console session
+locked and the machine at a load average of 5 to 19 on 10 cores. The `window` scenario on production passed 9 of 12 in
+107 s, the same split as every run since 2026-10-29: the first launch logged `desktop: loaded
+https://openmarket.xyz/chart/` with the title `75,782.7 ▼ BTC - USD` and a candle frame (`unit-01-chart.png` shows
 the 1h BTC-USD candles with VWAP, not the splash), the second instance focused it (`desktop: second instance,
 focusing`, exit 0, one window), and the saved bounds (moved to 120,110 at 1280 by 800, maximized) matched on relaunch.
 The three relaunch checks (`relaunchBtcTitle`, `relaunchCanvas`, `relaunchMaximized`) went red because the relaunch is
 a `capture.js` launch, which a locked screen leaves with no frame (`relaunchCapture: {}`). No `capture` was attempted
-from 2026-10-31 to 2026-11-08 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The last
+from 2026-10-31 to 2026-11-09 for that reason; on 2026-10-29 and 2026-10-30 every `capture` got no frame. The last
 captures were on 2026-10-28 on `5365748ef3`: the dev-lane frame showed the boot splash, and the production frames
-showed candles and the sign-in screen. The `window` scenario was last 12 of 12 that day. The title bar, the Alt menu bar,
-the beta notice and the view sizing have no live driver (unit tests in `desktop/tests/main/` only; the beta notice never shows on a dev
+showed candles and the sign-in screen. The `window` scenario was last 12 of 12 that day. No lane drives the title bar's buttons or the view sizing, but on 2026-11-09 a scratch Playwright drive of the unpackaged shell on the dev lane proved
+them (see `launch-titlebar` and `launch-view-area`). The Alt menu bar and the beta notice have no live driver (unit tests in `desktop/tests/main/` only; the beta notice never shows on a dev
 lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
 
 ## Sub-features
@@ -38,10 +38,17 @@ lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
   Cloudflare checkbox keeps the button off with "Complete the security check above to continue." under the fields.
   The shell frame of the new card is not yet captured.
 - `launch-view-area` the bar and page views fill the visible window: the display in full screen, its work area when
-  maximized, re-laid on full screen, maximize and display changes. Live verification pending: the cut it fixes shows
-  only on some Linux desktops, and no lane reads the views' bounds; `desktop/tests/main/view-area.test.ts` covers it.
+  maximized, re-laid on full screen, maximize and display changes. Windowed, resized and maximized live on macOS
+  2026-11-09 (`27fb2d4621`, scratch drive, no lane reads the bounds): the bar view was `{0,0,W,36}` and the page view
+  `{0,36,W,H-36}` at 1400 by 900, at 1280 by 800, and maximized on the 1920 by 1080 display (work area 1920 by 1050,
+  page 1920 by 1014), and again after unmaximize. Full screen is still pending: `setFullScreen(true)` left
+  `isFullScreen()` false for 12 s on the locked console. The Linux cut shows only on some Linux desktops;
+  `desktop/tests/main/view-area.test.ts` covers it.
 - `launch-titlebar` the bar's Back, Forward, title and update button, disabled while a block or sign-in screen covers
-  the window. Live verification pending: `capture` grabs the page view only, so the bar is never in a frame. The crash
+  the window. Live 2026-11-09 (`27fb2d4621`, scratch drive, no lane): Back and Forward start disabled, Back turns on after a page navigation; clicking Back returned to
+  `/chart/` and turned Forward on, clicking Forward returned to the page; hovering a button draws the bar's own `#tip` (Back, Forward, "Check for updates") and it
+  hides when the pointer leaves; `#title` carried the page's title (`75,768.3 ▼ BTC - USD`); clicking `#update` in an unpackaged launch logs `desktop: update check skipped,
+  unpackaged` and leaves the label unchanged. The disabled state under a block or sign-in screen is still undriven. `capture` grabs the page view only, so the bar is never in a frame. The crash
   lane's frames are screenshots of the bar's own view, which grows to cover the window for a recovery screen: on
   2026-11-06 they showed Back, Forward, the page title ("Stub chart", or the URL while the load failed) and a round
   arrow at the right above the screen. That proves the bar draws; its buttons and tooltips are still undriven.
@@ -79,6 +86,12 @@ Preconditions:
   `loadedLine`, `btcTitle`, `canvas`, `secondInstanceLine`, `secondInstanceExited`, `oneWindow`,
   `maximizedBeforeQuit`, `relaunchLoadedLine`, `relaunchBtcTitle`, `relaunchCanvas`, `relaunchBoundsEqualMoved` and
   `relaunchMaximized`, and saves `unit-01-chart.png` and `unit-01-relaunch.png`.
+- **Title bar and view bounds (no lane; a scratch script).** Launch through Playwright exactly as `launch.mjs` does:
+  `_electron.launch({ args: ['.', '--user-data-dir=<fresh dir under desktop/.verify-userdata/>'], cwd: 'desktop', env: { ...process.env, OPENMARKET_DESKTOP_URL: '<lane>' } })`,
+  on a built `desktop/dist` and a fresh profile only. The bar is the window whose URL starts `data:text/html`: read and click `#back`, `#forward`, `#update`, `#title`, hover then read
+  `#tip`. Bounds come from the main process: `app.evaluate(() => { const win = globalThis.openmarketShell.window(); return win.contentView.children.map((v) => v.getBounds()); })`,
+  beside `win.getContentSize()`, `win.isFullScreen()`, `win.isMaximized()` and `screen.getDisplayMatching(win.getBounds())`. The bar is the child 36 px tall; compare the page with `viewArea` in
+  `desktop/src/main/view-area.ts`. Stop on any Turnstile screen.
 - **Unit level for the bar and the notice.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test`
   (39 files, 469 tests on 2026-11-08) covers `titlebar`, `view-area`, `beta-notice`, `navigation` and `user-agent`. That is not a
   live proof.
