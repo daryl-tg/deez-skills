@@ -1,5 +1,7 @@
 # The capability layer over MCP (stdio)
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `initialize` (`openmarket` 0.492.0), `tools/list` **484**, `watch_list`, `order_place` `capital_yolo_harness` (the driver ran under an auto-approve harness), `todo_get`/`todo_list`/`todo_similar` `not_badge_bound`, zero stdout leaks; first live proof of a locally minted badge (#2411): 57 tools, `todo_list` and `todo_similar` `read_not_granted`. Not re-driven: `file_create`, `channel_default_set`, the HTTP transport. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/80`, `cli/81`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `initialize` (`openmarket` 0.492.0), `tools/list` **484** (with `watch_list`, `todo_get`, `watch_archive`), `watch_list`, `order_place` `capital_yolo_harness` (the driver ran under an auto-approve harness), `todo_get` `not_badge_bound`. Not re-driven: `file_create`, `channel_default_set`, the stale-version warning, HTTP. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/40-mcp-stdio.jsonl`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429; one Python driver over `control-om om -- mcp serve --stdio --no-fire-bridge`, no non-JSON line on stdout. `serverInfo` `openmarket` 0.492.0; `tools/list` **484** (unchanged), and the `markets` and `points` input schemas now carry `cursor` (#2330, #2389). Calls: `watch_list`, `markets {symbolFilter:"BTC", pageSize:3}` (whole answer, no `page`), `order_place {venue:"hyperliquid", asset:"BTC", side:"buy", size:{mode:"quote", value:11}}` `capital_yolo_harness`, `todo_list {spaceId:"openmarket"}` `not_badge_bound`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/90-91`).*
@@ -99,6 +101,23 @@ home rather than the operator's.
 - **`channel_default_set` over stdio (added 2026-10-31).** `{"name":"nope"}`
   on a home with no channels is `isError` with `error: channel_not_found`,
   `details.channels: []`; the happy path needs a paired channel.
+
+### Badge ticket reads over stdio (added 2026-11-09, #2411)
+
+A locally minted badge reaches the grant check with no rooms account, because the gate answers before any network call.
+
+```bash
+control-om om -- agent credentials create vom-badge --format json   # the result's `secret` is shown once
+OM_AGENT_SECRET=<secret> control-om om -- mcp serve --stdio --no-fire-bridge
+```
+
+Keep the secret in a shell variable and out of the artifact directory: the create result holds it in clear, and `evidence publish` copies the directory wholesale.
+
+- `initialize` carries the badge brief; its ticket line reads `Tickets (Projects): todo_get, todo_list and todo_similar ride READ on the ticket's SPACE`.
+- `tools/list` is the badge catalog: **57** tools, no `watch_list`.
+- `tools/call` `todo_list {"spaceId":"vom-space"}` and `todo_similar {"spaceId":"vom-space","title":"x"}` are each `isError` with `read_not_granted`, message `no active read grant for space "vom-space"`, hint `Request access with room_grant_request (resources: [{kind: "space", resource: "vom-space"}])`. Room grants alone no longer list a server's tickets.
+- Without a badge the same two calls answer `not_badge_bound`.
+- A granted space then reaches the relay, and needs a real account or a stub through `OM_ROOM_CHAT_API_URL`; a badge session rejects a `url`/`apiUrl` input (`badge_url_override_rejected`). `todo_get` on a ticket in a server the badge does not read answers `todo_not_found`. Neither branch is driven here.
 
 ### Hosted MCP over loopback HTTP (added 2026-10-27)
 

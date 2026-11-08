@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `watch create --inbound`, `edit --classifier-mode accept_all`, `show`, `pause`, `resume`, `history`, `remove` without `--yes` (exit 2 `confirmation_required`) and with it. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/10-11`, `cli/20-29`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `watch create`, `edit`, `show`, `pause` (`enabled:false`), `resume`, `history`, `list`; `watch remove lane-quiet` without `--yes` exit 2 `confirmation_required`, then with `--yes` `removed:true`. Not re-driven: `rename`, sources add/remove, the repair verbs. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/10-11`, `cli/17`, `cli/70-79`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `watch list`, `show`, `pause`, `resume`, `history` on `lane-probe`; `watch remove lane-quiet` without `--yes` exit 2 (`deletes history (0 rows) … It needs a yes.`), with `--yes --format json` `removed: true`, `journal_preserved: true` and no feed row (a guest key has no username, so #2397's `Feed:` row cannot show); `chapters`, `journal-stats`, `event-journal list`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/20-24`, `cli/120-124`).*

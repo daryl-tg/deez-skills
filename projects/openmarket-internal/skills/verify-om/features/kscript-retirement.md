@@ -1,5 +1,7 @@
 # Retired kScript package kinds
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `search rsi --kind kscript-indicator` exit 2 `kind_retired`, `open @om-core/rsi --print` 0.3.4. Citation `cmd/search.ts:130` corrected. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/48-49`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `search rsi --kind kscript-indicator --format json` exit 2 `kind_retired`; `open @om-core/rsi --print --format json` `wrun-indicator` 0.3.4. Not re-driven: the `install`/`publish` refusals and the MCP tools. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/50-51`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `search rsi --kind kscript-indicator --format json` exit 2 `kind_retired`; `open @om-core/rsi --print --format json` resolved the `wrun-indicator` 0.3.4. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/70-71`).*
@@ -61,7 +63,7 @@ needs the registry.
   Indicator instead: om search <words> --kind wrun-indicator.","details":{"kind":"kscript-indicator"}}`.
   `--kind kscript-library` reads the same with its own kind. A default
   `search rsi --format json` returns `{results, total}`; `hidden: N` appears
-  only when a retired row was dropped (`cmd/search.ts:129`), and the text form
+  only when a retired row was dropped (`cmd/search.ts:130`), and the text form
   then ends `N shown (K retired kScript package(s) left out)`. Production
   returned no retired row on 2026-11-01, so `hidden` is source-only.
 - **Publish.** Write a directory holding only `om-package.json` with

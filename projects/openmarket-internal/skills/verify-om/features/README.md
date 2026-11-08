@@ -154,7 +154,8 @@ state, commands, and observable proof.
   challenge holds every source on the host, provable with a loopback stub.
 - [Firecrawl recovery before whitelist](./firecrawl-first-block.md) — first refusal recovery, repeated-refusal whitelist guidance, and no-key setup.
 - [The capability layer over MCP (stdio)](./mcp-stdio.md) — new 2026-10-23:
-  handshake, catalog, a read, and the capital gate refusing without spending.
+  handshake, catalog, a read, and the capital gate refusing without spending;
+  2026-11-09 adds the badge's ticket reads on a server grant (#2411).
 - [Roster ACP host launch and teardown](./roster-acp-host-launch.md) — new
   2026-10-31 (PR #2231, on main since `3498391e7`): the host refuses an unguarded
   launch and tears down its own process group.
@@ -166,7 +167,9 @@ state, commands, and observable proof.
 - [Local reads and discovery](./local-reads-and-discovery.md) — new 2026-10-23:
   config and key claims, notification history, enums, schema intents, skills,
   indicator packages; 2026-11-08 adds the `wrun build` interval-window warning
-  (#2405, scaffold 117) and the server-only ticket links (#2410).
+  (#2405, scaffold 117) and the server-only ticket links (#2410); 2026-11-09 adds
+  `space_muted` against a loopback stub (#2417) and the `flat` output of
+  Positioning Regimes (#2414).
 - [om creates an agent](./agent-create.md) — `agent_create`, `agent_tools`, `agent_fit` and `om agent create`; on main since #2295 and #2303 (re-driven 2026-11-05 on a bare lane): anti-jobs, up to 8 named tools, the fit run, the TTY card and create with `--yes`; the card's Fit row did not see an MCP fit run on main (gap); om chat on a real model pending.
 - [A chat agent stops loudly at its budget](./agent-chat-budget.md) — on main since #2304 (re-driven 2026-11-05 on a bare lane): the per-run 40,000-token stop and the 51st run of the day refused 429 `budget_exhausted`, one inbox item each; the daily-token, hourly and @mention paths are not driven.
 - [Agent creator lifecycle](./agent-creator-lifecycle.md) — on main since #1948 (`b50ca927d`). Guest-lane CLI/RPC reads and refusals are driven. The eight `@om-core` defaults installed from production on 2026-10-29. Runs, the GUI and sharing are still the historical branch record.
@@ -195,6 +198,29 @@ the real publish and install paths of packages and the registry (the retired-kin
 
 
 ## Surface inventory
+
+Nightly maintenance, **2026-11-09**, against **origin/main `5bfa0ccf6` (v0.492.0, no cut since)**, 10 commits past the 2026-11-08 nightly's `5590b4d1c` (an ancestor). The census:
+
+- **Unchanged:** `main.ts`, `actions/index.ts`, `cmd/config-keys.ts`, `apps/dashboard/src`, `.env.sample`. No command, action or setting was added or removed; MCP stdio still lists **484** tools; `wrun templates` 93; `exchange_id` 38; `WRUN_SCAFFOLD_VERSION` still **117** (`packages/sdk/src/wrun-sdk-sources.ts:1285`), though #2414 edited the scaffold text under it.
+- **Changed:** `docs/TOOLS.md` only in the `todo_*` rows (ticket `people`, the badge wording); `runner/http/desktop-policy.ts` admits one more legacy route catalog.
+- **Not a product surface:** #2418, #2419 (the three-day npm hold). The two rooms-client releases (#2413, #2416) add server mutes and member search for the GUI; only `space_muted` reaches `om`.
+- **Citation audit:** `cmd/search.ts:130`, `status-sentence.ts:2560`, `runner/index.ts:2290`. Seven config keys had no row; one is added below.
+
+User-facing changes:
+
+- #2417: a server mute reads as `space_muted` with its end time. Live against a loopback stub in [local-reads-and-discovery.md](local-reads-and-discovery.md).
+- #2411: a badge's `todo_list` and `todo_similar` ride a read grant on the server. Live refusal in [mcp-stdio.md](mcp-stdio.md).
+- #2412: every ticket's task page is server-wide, and the private-topic refusals from #2403 are gone. Source only; the ticket row below is rewritten.
+- #2414: Positioning Regimes gains a muted `flat` output, and three other indicators name no side on a flat bar. The build is live; the values are unit-tested.
+- #2420: the Pine guide ports a previous day, week or month from that timeframe's own candles. Docs only; a pending row below.
+
+All 37 guides got a source read against this tree. Live this pass, one guest lane on 18143 with no guest 429, relaunched twice (a scripted fake model on 18146, then `OM_FEED_ALLOW_LOOPBACK=1` too):
+
+- **First live proofs:** `space_muted` (ticket create, another day's end, no end time, bulk, mixed batch, text form); a locally minted badge's 57 tools and `read_not_granted`; the `flat` output.
+- **Re-driven:** the fire chain, daemon health, watch lifecycle and archive, MCP stdio, the kScript refusal, market data, chart catalog, paper, calendar and approvals reads, local reads, `agent list`, `welcome`, the Overview, Watches, detail page and Create-watch dialog, the workspace TUI, transcript, shell mode, the icons switch, persona through `pasted`, the agent panel, one roster task, `agent init` and `try`, `agent_tools` and `agent_fit`, `migrate hermes --dry-run`, origin-challenge backoff (one request in three minutes).
+- **Not driven:** the budget stop, the agent creator lifecycle, the `ai` watch step, persona auto-learning, roster ACP launch, the Firecrawl refusal and offer, the hosted chart MCP, the registry fixture branches, and the branch-only source resolution, watches with blanks and assistant bridge.
+
+Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (five dashboard frames, `cli/` transcripts, `tui/` captures, `events.sse`, `origin/`).
 
 Nightly maintenance, **2026-11-08**, against **origin/main `5590b4d1c` (v0.492.0, no cut since)**, 5 commits past the 2026-11-07 nightly's `05f450fc5` (an ancestor). The census:
 
@@ -779,7 +805,7 @@ removed with source evidence.
 | Archive a watch, unarchive it, and let a daily sweep archive unused ones (`watch archive`, `unarchive`, `list --archived`, `watch.auto_archive`) (#2357) | `actions/watch/archive.ts`; `runner/watching/archive-sweep.ts:20-100`; `cmd/watch-verbs.ts` | [watch-archive.md](watch-archive.md) | 2026-11-06, main `50fcc594b` (sweep `archived 1, refused 1`, the verbs, MCP `watch_unarchive`) | the finished-7-days branch was not reproduced; no TUI or GUI archive view |
 | Write a server's tickets and labels (`om todo create\|update\|comment\|follow\|similar\|delete`, `om todo label …`; eleven `todo_*` tools) (#2341, #2342, #2355) | `actions/rooms/{todo-writes,todo-labels}.ts`; `cmd/todo.ts:539-640` | [local-reads-and-discovery.md](local-reads-and-discovery.md) (guest-lane reads) | refusals only, 2026-11-06, main `50fcc594b` (`todo label list`, `similar` `room_social_failed` 401; MCP `todo_create` `not_badge_bound`) | a rooms account with a Projects server |
 | Tell your profile card what an agent is working on (`om agent status set\|clear`, `agent_status_*`, automatic `Last active`) (#2359) | `cmd/agent-status.ts`; `actions/rooms/agent-status.ts:283,299`; `mcp/agent-status-baseline.ts:12` | [agents-cli-and-tui.md](agents-cli-and-tui.md) (2026-11-06 stamp) | refusal only, 2026-11-06, main `50fcc594b` (`Guests can view but not chat — sign up to participate`, exit 2) | a signed-in rooms account; `Last active` needs a badge session |
-| A ticket handed to an agent queues one run that reports on the ticket; assignments end on a switched server; the task page is filed when an agent is first put on (#2393); progress, the MR link, a local-commit or cancelled-after-push notice and the findings link are ticket comments (#2381); a private-topic ticket works through a topic-scoped task page, and the inbox says `Refused: …` when it cannot (#2403) (#2380, #2356, #2343) | `packages/roster/src/` (`todo-records.ts`, `vault/task-intake.ts`, `vault/task-page-scope.ts`, `adapters/delivery-terminal-todo.ts`) | unmapped | live verification pending (source discovery 2026-11-07, `05f450fc5`) | a relay with a switched Projects server, a signed-in account with Upload to Server Library, and a private topic |
+| A ticket handed to an agent queues one run that reports on the ticket; assignments end on a switched server; the task page is filed when an agent is first put on (#2393); progress, the MR link, a local-commit or cancelled-after-push notice and the findings link are ticket comments (#2381); since #2412 the task page is server-wide wherever the ticket sits, a private topic included, and the run no longer stops when the ticket moves; a plan stored topic-scoped before #2412 and never filed answers once `Refused: This ticket's task page was planned before task pages were server-wide. Take the agent off and put it on again.`, and a missing Upload to Server Library permission still answers `Refused: …` (#2403, #2412, #2380, #2356, #2343) | `packages/roster/src/` (`todo-records.ts`, `vault/task-intake.ts`, `vault/task-page-scope.ts`, `adapters/delivery-terminal-todo.ts`) | unmapped | live verification pending (source discovery 2026-11-09, `5bfa0ccf6`) | a relay with a switched Projects server and a signed-in account with Upload to Server Library |
 | A ticket's read names its source message's author and time (#2353, #2364) | `actions/rooms/todos.ts:109-121` | unmapped | live verification pending | a rooms account with a ticket made from a message |
 | `r` grows a sidebar or transcript card in place; Enter opens the card's page (`o` now types); `l` opens a fire's link (#2307, #2328, #2363) | `agent/channels/cli-tui-core.ts:30372-30388`; `agent/channels/sidebar/contract.ts:100-112` | [chat-workspace-tui.md](chat-workspace-tui.md) (`card-open-page`, `read-more`, `fire-link`) | 2026-11-06, main `50fcc594b` (bare lane, fake model, tmux 140x40) | the transcript-card `r` and the wheel inside a grown card were not driven |
 | Search a watch page's Latest with `/` (#2363) | `agent/channels/watch-page-latest.ts:347-353`; `agent/channels/watch-page-view.ts:875` | [chat-workspace-tui.md](chat-workspace-tui.md) (`latest-search`) | 2026-11-06, main `50fcc594b` | Enter reading older pages was not driven |
@@ -794,6 +820,11 @@ removed with source evidence.
 | om chat pages big `markets`, `points` and `option_chain` reads; `/chat/turn` reports each tool result's `modelViewChars` and `capped` (#2330, #2389) | `actions/_page.ts`; `actions/data/{markets,points,_points-page,option-chain}.ts`; `agent/channels/web.ts:301,913` | [agent-panel.md](agent-panel.md) (`turn-stream`, `paged-reads`) | live verified 2026-11-07, main `05f450fc5` (fake model: `markets` page 1 and 2 of 30, `modelViewChars` 23900 and 23927, `capped:false`; `result_too_broad` unfiltered; CLI 806 rows whole) | `points` and `option_chain` paging (need a `tool_search` round first), `page_cursor_expired` and the `flatten` refusal are undriven |
 | Search the `/watches` list with `/`, and open it from a watch page's `Search watches` (#2384) | `agent/channels/cli-tui-core.ts:1548,19111,27480`; `agent/channels/watch-page-settings.ts:507,526`; `agent/channels/watch-page-latest.ts:344-350` | [chat-workspace-tui.md](chat-workspace-tui.md) (`list-search`, `search-watches`) | live verified 2026-11-07, main `05f450fc5` (tmux 140x36, fake model) | the absent row (unreadable file, package gone) is unit-tested only |
 | `wrun build` warns when a window fed by an interval-pinned input cannot fill (`WRUN_DECL_INTERVAL_WINDOW_SHORT`) (#2405, scaffold 117) | `packages/sdk/src/wrun-slots.ts:9918`; `packages/sdk/src/wrun-sdk-sources.ts:1285`; `cmd/wrun.ts:646` (`Warnings:`) | [local-reads-and-discovery.md](local-reads-and-discovery.md) (`wrun-build-window-warning`) | live verified 2026-11-08, main `5590b4d1c` (scalar pin and `candles.cells` stream with no `bars` and with `bars: 20` warn, naming `Sma (a window of 50)`; `bars: 50` and an every-bar update do not; text `Warnings:` and JSON `warnings[]`) | the workspace prebuild's own print (`bun run build` in the workspace) and the other window classes (`Ema`, `Roc`, `PivotHigh`) are unit-tested only |
+| A server mute reads as `space_muted` with its end time on a change the store refuses (#2417) | `packages/cli/src/actions/rooms/{_social-shared,_shared,todo-writes}.ts`; `packages/cli/src/shared/action-error-kinds.ts` | [local-reads-and-discovery.md](local-reads-and-discovery.md) (`A server mute`) | live verified 2026-11-09, main `5bfa0ccf6`, against a loopback stub only (`todo create` today and another day, no end time stays `room_authority_required`, bulk at the latest end, a mixed batch, the text form) | A real mute from a relay; the post, reaction, edit, topic and upload paths |
+| A badge reads a server's tickets on its read grant for that server (#2411) | `packages/cli/src/mcp/{gate-policy,rooms-gate,rooms-gate-policy-data}.ts` | [mcp-stdio.md](mcp-stdio.md) (`Badge ticket reads`) | live verified 2026-11-09, main `5bfa0ccf6`, refusal branch only (a locally minted badge: 57 tools, `todo_list` and `todo_similar` `read_not_granted`; unbadged `not_badge_bound`) | A granted space, the one-read charge and `todo_get`'s `todo_not_found` need a real account |
+| Positioning Regimes, Who Is Trading, Estimated Dealer Positioning and the CVD Flow Dominance twin name no side on a flat bar (#2414) | `packages/sdk/src/wrun-sdk-sources.ts`; `packages/cli/test/fixtures/wrun-recipes/`; `packages/cli/test/fixtures/wrun-ports/cvd-flow-dominance/` | [local-reads-and-discovery.md](local-reads-and-discovery.md) (`wrun-regimes-flat`) | partly, 2026-11-09, main `5bfa0ccf6` (`wrun create … --template positioning-regimes` and `wrun build` list the `flat` output, `theme.muted`) | The values on a real flat bar and the other three indicators are live verification pending |
+| The Pine guide ports a previous day, week or month from that timeframe's own candles (#2420) | `docs/indicators-internal/pine-to-wrun.md`; `docs/indicators/functions/higher-timeframe-kit.md`; `skills/indicators.md` | unmapped | live verification pending (source discovery 2026-11-09, `5bfa0ccf6`) | A model converting a Pine script; docs and `packages/cli/test/pine-guide-htf-reads.test.ts` only |
+| Tune chat limits and consent floors through settings (`agent.context_window_override`, `agent.memory_budget_lines`, `agent.tool_result_cap_chars`, `agent.tool_result_max_chars`, `collab.presentation`, `mcp.chain_approvals`, `wallet.confirm_typed_above_usd`) | `packages/cli/src/cmd/config-keys.ts:195-407` | unmapped | `config get` defaults only, 2026-11-09, main `5bfa0ccf6` | The effect of each key is live verification pending |
 
 ### Known product gaps (reported, not map drift)
 
@@ -899,7 +930,7 @@ removed with source evidence.
   and then 1 s more (`runner/client.ts:87-91`); a slower answer counts as
   `busy`, which the code's own comment says "is not proof of a down
   daemon". The push then checks the daemon pidfile, but only daemon mode
-  writes it (`runner/index.ts:2285`), so a foreground `om run` is
+  writes it (`runner/index.ts:2290`), so a foreground `om run` is
   invisible. The push then writes the journal itself and reports
   `delivery:"direct"` with "The daemon is not running"
   (`actions/watch/push.ts:182-218`): a second writer beside the live

@@ -1,5 +1,7 @@
 # Market data reads
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `coins`, `exchanges`, `markets --exchange BINANCE`, `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE_FUTURES --raw-symbol BTCUSDT --interval HOUR --lookback 3h`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/30-33`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `coins`, `exchanges`, `markets`, `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h` (without `--lookback` it exits 1 `required option`), `enum --domain exchange_id` 38. Not re-driven: `tenors`, `symbols`, the Polymarket reads. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/52-56`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `coins`, `exchanges`, `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h`, `resolve BTC` (`HYPERLIQUID_FUTURES`), `markets --symbol-filter BTC --page-size 3`; `markets --exchange BINANCE_FUTURES --page-size 0` returned all 806 rows with no `page` key (the chat lane pages the same read since #2330 and #2389; see [the agent panel](./agent-panel.md)). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/50-55`, `cli/98`).*

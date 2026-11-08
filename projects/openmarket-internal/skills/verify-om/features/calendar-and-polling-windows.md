@@ -1,5 +1,7 @@
 # Calendar scheduling and polling windows
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `calendar list` empty only. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/44`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `calendar list --format json` `{occurrences:[], events:[], truncated:false}`. Not re-driven: `calendar links`, the windows. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/64`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429, reads only: `calendar list --format json` empty, `calendar links watch lane-probe --format json` `{"links":[]}`. Not re-driven: windows, polling. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/78`, `cli/136`).*

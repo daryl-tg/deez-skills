@@ -1,5 +1,7 @@
 # Your installed agents from the CLI and om chat
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `agent list` (six agents: `argue`, `debugger`, `explain`, `fact-check`, `feature`, `librarian`), `agent ps` after a run; the TUI overlay is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/46`, `cli/94`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `agent list --format json` (the installed defaults, `argue` first). Not re-driven: `show`, `configure`, `ps`, `cancel`, the overlay and `/agents`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/66`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `agent list --format json` (six registry agents), `agent show explain`, `agent show nosuch` exit 1, `agent configure explain --paused on|off --format json` (`applied:["paused"]`), `agent ps --format json` empty, then one completed `door: watch` run after the agent step fired. Not re-driven: the TUI overlay. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/79`, `cli/100-104`, `cli/117`).*

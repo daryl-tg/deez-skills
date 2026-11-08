@@ -1,5 +1,7 @@
 # The approval ledger from the CLI
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `approvals list` `[]` only. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/45`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `approvals list --format json` `[]` on a fresh lane. Not re-driven: the seeded rows, `approve`/`deny` and the stream frames. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/65`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429, refusals only: `approvals list --format json` `[]`, `--kind bogus` exit 2 naming the five kinds, `approve nope` and `deny nope` exit 2 `nope is not an approval id`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/30-33`).*

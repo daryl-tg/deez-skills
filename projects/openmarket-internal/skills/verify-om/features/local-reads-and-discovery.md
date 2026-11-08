@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `config show` (masked), `config key-info`, `enum --list` (`exchange_id` 38, `indicator_template` 93), `schema read condition_create`, `skill list`, `wrun templates` 93, `wrun create @vom/pos118 <dir> --template positioning-regimes`, `wrun build` (the `flat` output, #2414), `todo get` on a room-form and a server link, `todo update` and `todo list --space lab` against the real relay (401); first live proof of `space_muted` against a loopback stub (#2417). Not re-driven: `notis`, `terms`, `series`, `follows`, `relay trace`, the secrets status. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/30-39`, `cli/51-54`, `cli/60-62`, `cli/70-75`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `config show` (masked), `enum --domain exchange_id` (38), `schema read condition_create`, `skill list`, `wrun templates` 93, `wrun create @vom/win117 <dir> --template sma-codefirst` at scaffold **117**, five `wrun build` variants for the new interval-window warning (#2405), the ticket link refusals after #2410 (`todo get om://todo/room/12/5`, `om://todo/lab/12abc`, `om://todo/lab/12`, `12`), `approvals list` `[]`, `calendar list`. Not re-driven: `notis`, `terms`, `series`, `persona show`, `follows`, `relay trace`, the secrets status. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/20-26`, `cli/30-34`, `cli/56-59`, `cli/64-65`, `cli/var{A,B,C}.ts`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `config show` (masked), `config key-info` `om_guest`, `setup default`, `enum --list` (`exchange_id` 38), `schema read`, `skill list`, `wrun templates` 93, `notis --since 7d --json` (the run's fires), `terms` (`2026-09-10`), `GET /secrets/status` `unminted`, `vault status`, `follows`, `relay trace @nobody/nothing` `relay_ref_unknown`, `todo list --space openmarket --format json` `room_social_failed` 401, `series list` `[]`, `calendar list`, `persona show`. Not re-driven: `wrun create`/`build`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/55`, `cli/60-67`, `cli/80-84`, `cli/138`).*
@@ -63,6 +65,7 @@ bundled constants. None needs an account or a model.
 - `skill-list`: the bundled skill files.
 - `wrun-list` / `wrun-templates`: installed indicator packages and scaffold
   templates.
+- `wrun-regimes-flat` (added 2026-11-09, #2414): `wrun create <id> <dir> --template positioning-regimes` writes the `flat` histogram output (`theme.muted`), and `wrun build` lists `wrun/<id>/flat` beside `regime`. A flat bar's values are unit-tested; the build proves only the output exists.
 - `wrun-build-window-warning` (added 2026-11-08, #2405, scaffold 117): `wrun
   build` warns `WRUN_DECL_INTERVAL_WINDOW_SHORT` when a window fed by an input
   pinned to a coarser interval cannot fill: a scalar pin updated once per pinned
@@ -193,6 +196,19 @@ runner or desktop token, even on loopback. `/api/away/policy` is a `POST`. Do
 not drive `approvals approve|deny` on a real row (an unknown id is safe, above), `follow review`, `research search-files` or
 `research make-image` from a lane: they need a human terminal or spend on a
 model.
+
+### A server mute, against a loopback relay stub (added 2026-11-09, #2417)
+
+A guest key reaches any `--url`, so a loopback stub proves the refusal's wording with no account. Run a `Bun.serve` on an agent port that answers `POST /todos` with `403` and `{"tag":"SPACE_MUTED","code":"SPACE_MUTED","mutedUntil":"<ISO>","error":"muted"}`, then:
+
+```bash
+control-om om -- todo create "x" --room general --url http://127.0.0.1:<stub-port> --format json
+```
+
+- Exit 1 `space_muted`, message `You're muted in this server until 3:51 AM` in local time, hint `Reading still works. Changes wait until the mute ends.`, `details.mutedUntil` the ISO end. An end on another day reads `until Nov 10, 5:21 AM`. The text form prints the message and the hint.
+- `mutedUntil` absent: the refusal stays `room_authority_required`, as before #2417.
+- `todo update --ids a,b --status done` hits `POST /todos/bulk`, whose `200` body is `{"results":[{"todoId":"a","ok":false,"tag":"SPACE_MUTED","mutedUntil":"<ISO>"},…]}`. Nothing changed and every refusal is the mute: `space_muted` at the latest end. One row `ok:true`: exit 1 with the batch report, the muted id under `failed` as `space_muted`.
+- The reaction, edit, topic and upload paths share the mapping and are not driven here.
 
 ## Gotchas
 

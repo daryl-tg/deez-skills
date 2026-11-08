@@ -1,6 +1,6 @@
 # Assistant bridge: daemon tools, deposit and wakes through the hosted MCP
 
-*Verified: 2026-11-05 on the unmerged stack #2350, #2352, #2365, #2367, #2378 (top `daryl/assistant-stack-review-fixes`, base main `c1464fcf0`). Not on main yet. Every step below was driven on real local processes with a relay stand-in. A real assistant (Grok Bot) was driven on 2026-11-06 through a temporary tunnel, with a routine webhook as the wake. Pending: an OAuth sign-in from a real assistant, MCP Events from a real vendor, and the production relay with a daemon from this stack.*
+*Verified: 2026-11-05 on the unmerged stack #2350, #2352, #2365, #2367, #2378 (top `daryl/assistant-stack-review-fixes`, base main `c1464fcf0`). Status read 2026-11-09: still open, with #2385 (`daryl/assistant-run-improvements`) now stacked on #2378; #2385 is not driven here. Not on main yet. Every step below was driven on real local processes with a relay stand-in. A real assistant (Grok Bot) was driven on 2026-11-06 through a temporary tunnel, with a routine webhook as the wake. Pending: an OAuth sign-in from a real assistant, MCP Events from a real vendor, and the production relay with a daemon from this stack.*
 
 An AI assistant connected to the hosted MCP service calls 23 tools on the user's own daemon and a `deposit` tool, and can subscribe to `watch.update` so the daemon posts it a signed webhook. The hosted service forwards over the relay as the operations `mcp.call` and `mcp.events`. The daemon gates it with `om assistants on` and one approval per assistant.
 

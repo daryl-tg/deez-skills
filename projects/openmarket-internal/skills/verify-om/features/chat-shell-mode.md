@@ -1,5 +1,7 @@
 # Chat shell mode (`!` in `om chat`)
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `!echo VOM_BANG_ONE`: `exit 0 · 0.0s`, SGR `38;2;209;111;196` present, the marker reached the next message and not the one after. ↑ recall and esc are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`tui/06-07`).*
+
 *Re-driven 2026-11-06 (nightly) on main, tree `50fcc594b` (origin/main, v0.492.0; #2362 squashed as `a4e42d7bd`), bare lane 18165 (dummy `OM_API_KEY`, dead service URLs), scratch fake model 18164, tmux 140x40, default workspace. Driven: `enter` (the empty shell composer carries SGR `38;2;209;111;196`), `run` (`!echo vom1106-shell` printed the line, then `exit 0 · 0.0s`), and `agent-reads` (the fake model saw no request for the `!` line; the next message's request carried the command's output and `exit 0`, and the reply said so). Not re-driven on main: `consumed-once`, `recall`, `stop`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`tui/16-bang.txt`, `tui/17-bang-run.txt`, `tui/18-after-msg.txt`).*
 
 *Re-verified 2026-11-05 (r2) after the operator asked for magenta: the shell tone is the new `shell` token `#d16fc4` (SGR `38;2;209;111;196`), 2 sequences on the empty shell composer, 3 on a shell row's bar, 0 teal anywhere. Evidence: `http://127.0.0.1:8098/vom-bang-shell/r2/`.*

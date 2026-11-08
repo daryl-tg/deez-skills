@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `status`, `doctor`, `service status` (`mode: foreground`), `/healthz` (`rss_mb` 381, `slow_sql: []`). Not re-driven: `logs`, the footprint line, `om run` restart behaviour. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/01-04`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `status` running, `doctor` `ok:true` (binary and llm warns), `/healthz` 0.492.0 guest with `memory.rss_mb` 471 and `slow_sql: []`, the `[footprint] rss 459 MB … pressure normal` lane-log line, `control-om down`. Not re-driven: `service status`, `logs`, the profiler. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/01-02`, `cli/05`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `status --format json` running (foreground), `doctor --format json` `ok:true` (`binary` warn only), `service status` with every loop `INACTIVE (<reason>)`, the wrapper refusing `service install` (exit 1), `logs --limit 5`, `/healthz` 0.492.0 `auth guest`, `/openapi.json` 200 (1,070,401 bytes). Not re-driven: the profiler. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/10-14`, `cli/126-logs`).*

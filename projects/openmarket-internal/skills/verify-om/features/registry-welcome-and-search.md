@@ -1,5 +1,7 @@
 # Registry welcome page and personalised search
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. real registry only: `welcome` exit 1 `This registry does not offer the welcome page yet.` Citation `cmd/search.ts:130` corrected. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/47`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. Real registry only: `welcome` exit 1 `This registry does not offer the welcome page yet.`. The fixture branches were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/67`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429, real registry only: `welcome` exit 1 `This registry does not offer the welcome page yet.`, `terms` (`2026-09-10`). The fixture branches were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/67`, `cli/137`).*
@@ -117,7 +119,7 @@ so they are driven against a loopback fixture on an assigned agent port
 - **A default `search` drops retired kScript rows and counts them.** Since
   #2234 (`4f4903ab9`) a registry row whose `kind` is `kscript-indicator` or
   `kscript-library` is left out; `--format json` carries `hidden: N` only when
-  N is above 0 (`cmd/search.ts:129`), and the text form then ends `N shown (K
+  N is above 0 (`cmd/search.ts:130`), and the text form then ends `N shown (K
   retired kScript package(s) left out)`. `--kind kscript-indicator` is refused
   `kind_retired` before any request. `hidden > 0` is source-only: production
   returned no retired row for `rsi` on 2026-11-01. See

@@ -1,5 +1,7 @@
 # Chart catalog reads
 
+*Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `chart indicator schema rsi`, `chart drawing schema`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/40-41`).*
+
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `chart indicator schema rsi --format json` (`@om-core/rsi` 0.1.1, `spec: declared`), `chart drawing schema --format json` (`anchorFormat`, `TrendLine` first). Not re-driven: `chart indicator list` and the other drawing tools. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/60-61`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `chart indicator list --query rsi`, `chart indicator schema rsi` (`@om-core/rsi`, `period` 14), `chart drawing schema` (`anchorFormat`, `TrendLine`). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/72-74`).*
