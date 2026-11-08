@@ -46,7 +46,9 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `agent-usage-fixture.html`: **Expand tool activity** → **Collapse tool activity**. **Limitations:** daemon accounting is not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `agent-usage-fixture.html`: **Expand tool activity** → **Collapse tool activity**. **Limitations:** daemon accounting is not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `agent-usage-fixture.html`: **Expand tool activity** → **Collapse tool activity**. **Limitations:** daemon accounting is not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `agent-usage-fixture.html`: **Used 1 tool**, "2.0s · 12.3k tokens"; `agent-presentation-fixture.html?state=collapsed`: **Expand tool activity** → **Collapse tool activity**. **Limitations:** the live and failed states not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

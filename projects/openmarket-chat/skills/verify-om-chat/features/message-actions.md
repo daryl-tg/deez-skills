@@ -12,14 +12,14 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   🔥 / 😂, **Add reaction**, **Reply**, **Edit** (own message), **Turn into
   topic**, **Add to Channel To-dos** and **More**. Every button is named by
   `title` only.
-- **Message menu** (`MessageRow.tsx:3449-3630`). Opened by a right-click on
+- **Message menu** (`MessageRow.tsx:3457-3638`). Opened by a right-click on
   kyle's `#ops` row it lists 19 items: four quick reactions, **Add Reaction**,
   **Reply**, **Turn into topic...**, **Add to Channel To-dos**, **Forward**,
   **Edit Message**, **Copy Text**, **Copy Message Link**, **Bookmark
-  Message**, **Save to Your Library** (`:3538`), **Pin Message**, **Mark
-  Unread**, **Agent**, **Delete Message** and **Copy Message ID** (`:3620`). Opened from the hover
+  Message**, **Save to Your Library** (`:3546`), **Pin Message**, **Mark
+  Unread**, **Agent**, **Delete Message** and **Copy Message ID** (`:3628`). Opened from the hover
   toolbar's **More** it lists the same 19: the tile row (`MenuQuickBar`,
-  `:3454-3458`, with the four recent emoji above it) is unconditional, so the
+  `:3462-3466`, with the four recent emoji above it) is unconditional, so the
   quick tiles sit in the menu whether or not the toolbar is showing (measured
   2026-11-02 on both hosts, by a real click and by `eval`). The 11-entry
   reading recorded on 2026-10-31 and 2026-11-01 did not reproduce; read the
@@ -29,17 +29,17 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   keeps its side as lazy rows land (`shared/ui/Popover.tsx`,
   `useMenuPosition`). The same placement serves the sidebar, channel, topic,
   user and People-pane menus and the **Agent** flyout.
-- **Agent submenu** (`MessageRow.tsx:2282-2327`): **Copy for Agent**, **Mark
+- **Agent submenu** (`MessageRow.tsx:2290-2335`): **Copy for Agent**, **Mark
   for agent** (⌥M), **Ask about this...** and **Capture to doc from here**.
   **Copy for Agent (since here)** and **Summarize thread** appear only in
   their states (a later run of messages; a message with replies). **File as
-  source** (`:3550`) appears only when the roster's source-capture scope is
+  source** (`:3558`) appears only when the roster's source-capture scope is
   active.
 - **DM bubble menu**: the same verbs in a shorter list, 13 items on kyle's DM
   message: four quick reactions, **Add Reaction**, **Copy Text**, **Reply**,
   **Mark Unread**, **Forward**, **Pin Message**, **Edit Message**, **Delete
   Message** and **Copy Message ID**.
-- **Remove Link Previews** (`MessageRow.tsx:3597`) shows only on a message
+- **Remove Link Previews** (`MessageRow.tsx:3605`) shows only on a message
   with `unfurls`, which no fixture seeds.
 
 ## How to get to it (user POV)
@@ -86,14 +86,14 @@ The DM path is `?view=dm&dm=ana&alerts=quiet`: hover `#dm-msg-m2`, then click
 
 Open `shell-fixture.html?view=room&alerts=quiet&reply=1`. The composer shows
 the reply strip **Replying to dax** with a **Cancel reply** button
-(`Composer.tsx:6255`; the fixture seeds seq 103, `shell-fixture.tsx:2431`).
+(`Composer.tsx:6477`; the fixture seeds seq 103, `shell-fixture.tsx:2431`).
 Scroll `#msg-ops-104` into view, hover it, and click
 `#msg-ops-104 .msg-toolbar button[title="Reply"]`: the strip retargets to
 **Replying to kyle: @ana the alert fired twice last night …** and the composer
 textarea takes focus. Driven on `/rooms/` and `/chat/` at `936f5b64`.
 
-**Turn into topic** (`[data-turn-into-topic]`, `MessageRow.tsx:3312`) calls
-`session.openTopicDraft`, and **Add to Channel To-dos** (`:1823`, `:3326`) calls
+**Turn into topic** (`[data-turn-into-topic]`, `MessageRow.tsx:3320`) calls
+`session.openTopicDraft`, and **Add to Channel To-dos** (`:1832`, `:3334`) calls
 `openTodoPromote`. Neither is stubbed in the shell fixture, so both resolve to
 `INERT` and nothing opens: no aside, no dialog, no route change. Prove the
 offer (the buttons render by `title`) and leave the effect pending. The quick
@@ -101,7 +101,9 @@ reactions **React 👍 / 🔥 / 😂** were not pressed.
 
 On a server whose to-dos run in records mode (Projects), the same toolbar
 button and menu entry read **Make ticket**, titled "Make a ticket from this
-message" (`MessageRow.tsx:1815-1824`). Both fixtures leave `session.todos`
+message" (`MessageRow.tsx:1823-1832`), for any member of the server, a
+read-only channel included (`08dea2dd`); a visitor to a public channel sees
+neither. Both fixtures leave `session.todos`
 unstubbed, so `modeFor` answers `INERT`, which is neither `"off"` nor
 `"records"`, and the legacy **To-do** / **Add to Channel To-dos** shows
 (re-driven 2026-11-07 on both hosts).
@@ -110,7 +112,7 @@ unstubbed, so `modeFor` answers `INERT`, which is neither `"off"` nor
 
 `MessageTouchRow` (`MessageTouchRow.tsx:41-145`) spreads `useRowTouch`'s
 pointer handlers onto every `[data-message-row]` that is not pending
-(`MessageRow.tsx:2350`), and those handlers act only on `pointerType ===
+(`MessageRow.tsx:2358`), and those handlers act only on `pointerType ===
 "touch"` (`lib/touch.ts:108-200`). There is no coarse-pointer or
 `maxTouchPoints` gate, so a synthetic `PointerEvent` with `pointerType:
 "touch"` drives both gestures, **provided the dispatches are paced**: React
@@ -184,8 +186,8 @@ read every `[role=menu]`, not the first.
 
 Since `30129c57`, Enter, Space or ArrowRight on a submenu row is meant to open
 its flyout with focus on the first enabled row, and ArrowLeft or Escape inside
-the flyout to close it back onto the row (`ContextMenu.tsx:261-268`,
-`:92-97`). Open **More** on `msg-ops-104`, press ArrowDown until
+the flyout to close it back onto the row (`ContextMenu.tsx:262-269`,
+`:93-98`). Open **More** on `msg-ops-104`, press ArrowDown until
 `document.activeElement` is **Agent** (`data-submenu-index="11"`), then press
 Enter. Driven 2026-11-07 on both hosts: the flyout mounts (`aria-expanded="true"`,
 4 entries) but focus stays on **Agent**, so a further ArrowDown moves within
@@ -198,7 +200,7 @@ by an `eval` before the key press. ArrowRight mounts the flyout about 18 ms
 later, and the flyout's effect does call `focus()` on **Copy for Agent**, but
 at that moment the flyout's computed `visibility` is still `hidden`. Chromium
 refuses to focus a hidden element, so no `focusin` fires. Which rule still
-hides it was not traced: `ContextMenu.tsx:118` hides the flyout until it is
+hides it was not traced: `ContextMenu.tsx:119` hides the flyout until it is
 measured, and the effect waits on that same `pos.measured`. A manual `focus()` on the same
 row a moment later lands. `test/context-menu-submenu.test.ts:110-116` asserts
 the focus under happy-dom, which does not enforce `visibility`, so it passes.
@@ -228,7 +230,9 @@ the focus under happy-dom, which does not enforce `visibility`, so it passes.
 
 ## Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): the keyboard **Agent** flyout re-driven with `focus()` instrumented (the call lands while the flyout is `visibility: hidden`); at 390×844 the long-press sheet with 22 items. **Limitations:** every verb is a fixture no-op. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `#msg-ops-104` toolbar **More** lists 19 entries on both hosts (Forward, Edit Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library, Pin Message, Mark Unread, Agent, Delete Message, Copy Message ID, …). **Limitations:** keyboard flyout not re-driven tonight (unchanged since 2026-11-08). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): the keyboard **Agent** flyout re-driven with `focus()` instrumented (the call lands while the flyout is `visibility: hidden`); at 390×844 the long-press sheet with 22 items. **Limitations:** every verb is a fixture no-op. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181): `msg-ops-104` **More** lists 19 entries; the hover toolbar's to-do button is titled **Add to Channel To-dos**; at 1440×700 `msg-ops-110` **More** (button top 546) opens the 16-entry menu at `top 151`, `bottom 542`, `--pop-origin: bottom right` on both hosts. Keyboard: Enter or ArrowRight on **Agent** opens the flyout (`aria-expanded="true"`, 4 entries) but focus stays on **Agent**, on both hosts. **Limitations:** **Make ticket** needs a records-mode server; the flyout's ArrowLeft/Escape close could not be reached by keyboard. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

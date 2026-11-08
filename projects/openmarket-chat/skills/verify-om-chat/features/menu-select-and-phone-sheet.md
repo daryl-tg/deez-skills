@@ -24,7 +24,7 @@ pickers in Projects are built on the multi-pick modes.
   dismisses it. Keyboard Enter always closes it.
 - A menu opened low opens above (`d1a25e38`): `MenuSelect` measures the full
   height of its rows (`wantedHeight`, `MenuSelect.tsx:35`, re-measured at
-  `:377`) and flips above when they do not fit below and there is more room
+  `:395`) and flips above when they do not fit below and there is more room
   above, keeping its bottom edge on the trigger. Rows grouped under a heading
   in multi-pick are named "<row> <group>". Driven 2026-11-08 on both hosts:
   the switch to above happens, but the menu is not seated above (see
@@ -32,7 +32,7 @@ pickers in Projects are built on the multi-pick modes.
   [message-actions.md](message-actions.md).
 - The message menu's phone sheet ignores the click a long-press lift lands on
   its backdrop; only a press that began on the backdrop, or a click no pointer
-  made, closes it (`ContextMenu.tsx:363-376`). Driven 2026-11-08 on both
+  made, closes it (`ContextMenu.tsx:364-377`). Driven 2026-11-08 on both
   hosts.
 
 ## How to get to it (user POV)
@@ -118,7 +118,7 @@ agent-browser mouse move 195 40; agent-browser mouse down; agent-browser mouse u
   session.
 - **A low multi-pick menu does not seat above (product gap, 2026-11-08, both
   hosts).** With the gallery's **Labels** trigger at the viewport bottom,
-  `placeAboveIfNeeded` (`MenuSelect.tsx:655-672`) switches the menu to
+  `placeAboveIfNeeded` (`MenuSelect.tsx:689-706`) switches the menu to
   `placement: "above"` (`--pop-origin: bottom left`), but the surface stays at
   `top 850`, 18 px above the trigger's top and over it, and runs 251 px past
   the bottom of the viewport. Waiting
@@ -128,7 +128,9 @@ agent-browser mouse move 195 40; agent-browser mouse down; agent-browser mouse u
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `fixture.html`: a low **Labels** multi-pick switches to above but stays seated at `top 850` until a resize (product gap); at 390×844 a 90 px handle drag dismisses the sheet, 50 px keeps it, and Enter on **Close Labels** closes it; on `shell-fixture.html` the long-press sheet ignores a lift-style backdrop click and closes on a real press. **Limitations:** auto-open, ranking and real touch hardware. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` gallery `fixture.html`: **Assignee** lists Unassigned, mira, **Dana** and scout from a real `PeopleDirectory` (the picker example's seed since `KitchenSink.tsx:402-428`). **Limitations:** the low-flip recipe and phone sheet not re-driven tonight; `MenuSelect` server-search `status` is reachable only through Projects. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `fixture.html`: a low **Labels** multi-pick switches to above but stays seated at `top 850` until a resize (product gap); at 390×844 a 90 px handle drag dismisses the sheet, 50 px keeps it, and Enter on **Close Labels** closes it; on `shell-fixture.html` the long-press sheet ignores a lift-style backdrop click and closes on a real press. **Limitations:** auto-open, ranking and real touch hardware. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `fixture.html` at 390×844: **Labels** opens the full-width sheet (`[data-ui-sheet]`, 390 px, x 0, `aria-modal="true"`, **Close Labels**). `/rooms/` (18180) and `/chat/` (18181) message **More** menus: the 16-entry menu flips above at 1440×700 (`top 151`, `bottom 542`), and on `/rooms/` (18180) and `/chat/` (18181) Enter on **Agent** opens the 4-entry flyout with `aria-expanded="true"` while focus stays on the row. **Limitations:** the multi-pick, cap and create rows, the 72 px dismiss, a low `MenuSelect` flip and the long-press lift were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

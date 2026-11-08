@@ -111,7 +111,9 @@ Recorded native proofs (historical execution): Claude C6 source320/reply324, loc
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `agent-center-fixture.html`: **New agent** → **Work agent** → **Continue** reads "Brains service is unavailable."; with `?connections=none` it reads "Connect and sign in to Claude Code or Codex to enable work agents…". **Limitations:** the authenticated creation, import and run lanes were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `agent-center-fixture.html`: **New agent** → **Work agent** → **Continue** reads "Brains service is unavailable."; with `?connections=none` it reads "Connect and sign in to Claude Code or Codex…". **Limitations:** creation, import and publishing not submitted. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `agent-center-fixture.html`: **New agent** → **Work agent** → **Continue** reads "Brains service is unavailable."; with `?connections=none` it reads "Connect and sign in to Claude Code or Codex to enable work agents…". **Limitations:** the authenticated creation, import and run lanes were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `agent-center-fixture.html`: **New agent** → **Work agent** → **Continue** reads "Brains service is unavailable.". **Limitations:** creation, import and publishing not submitted. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

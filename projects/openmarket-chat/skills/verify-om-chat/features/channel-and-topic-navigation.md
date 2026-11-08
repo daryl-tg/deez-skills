@@ -165,7 +165,7 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
   no state change and no toast, and `roomAttentionFor` / `roomMuteUntilFor`
   answer `null`. Since `4ca34c9a`, muting a room this socket never joined (an
   alert channel never opened this session) retries over REST after the relay's
-  `NOT_IN_ROOM` refusal (`lib/session.ts:35848`, `:35943`). That path is
+  `NOT_IN_ROOM` refusal (`lib/session.ts:35924`, `:36019`). That path is
   covered only by `packages/chat-ui/test/ui/mute-durations.test.ts`. The topic
   pill's mute is stubbed (`tools/visual/shell-fixture.tsx:2952-2962`, writes
   `data-fixture-topic-attention`), but it is a different code path.
@@ -220,7 +220,7 @@ person off a **public** topic too; before, only private topics had removal.
 Who may remove, and the confirm's words, follow the topic kind
 (`lib/topic-member-remove.ts`). There are two doors: the roster row's hover
 button **Remove <handle> from this topic** (`RightPanels.tsx:1791-1815`) and
-the member menu item **Remove from Topic** (`UserContextMenu.tsx:650`). Since
+the member menu item **Remove from Topic** (`UserContextMenu.tsx:760`). Since
 `82badafc` the menu item draws the person-minus glyph, not trash.
 
 - **Private topic (driveable):** load
@@ -387,7 +387,7 @@ agent-browser eval '(()=>{document.querySelector("[data-revisit-toggle]").click(
   Prove the flag, the toggle, the count, the row name and the pref here, but
   not the list labels. Those need a daemon lane.
 - "flagged now ago" is product copy, not a fixture artefact. `relativeAge`
-  returns `now` under a minute (`lib/time.ts:62-70`), and the label appends
+  returns `now` under a minute (`lib/time.ts:73-81`), and the label appends
   " ago" (`SidebarRevisitList.tsx:95`). See the README's product gaps.
 - The 50-flag cap toast ("You can flag up to 50 channels and topics…",
   `revisit.ts:206-212`) and opening a flagged row from the list were not driven.
@@ -663,7 +663,9 @@ seed gives a non-zero badge count, so `rail=counts` (`/rooms/`) and `rail=many`
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`), composer **Message in CPI print — Aug**, **Back to #ops**; the route smoke on both hosts. **Limitations:** the topic `panel=members` still renders blank (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) and `/chat/` (18184), with the people stub: the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`), composer **Message in CPI print — Aug**, **Back to #ops**. **Limitations:** `panel=members` on a topic still renders blank (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`), composer **Message in CPI print — Aug**, **Back to #ops**; the route smoke on both hosts. **Limitations:** the topic `panel=members` still renders blank (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=room`: the **CPI print — Aug, 2 mentions, 3 unread** treeitem → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`) and the composer **Message in CPI print — Aug**; the sidebar **Projects** button (`aria-pressed="false"`, class `has-dot`) in place of the To-dos toggle, its click leaving the route unchanged; the route smoke (176 and 145 routes). **Limitations:** Mark to revisit, the lenses and the Projects page not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

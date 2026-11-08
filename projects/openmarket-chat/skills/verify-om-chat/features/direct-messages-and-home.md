@@ -214,7 +214,7 @@ unstubbed, so the offer is proved and every effect is pending. Driven on
 the pinned **Message requests** row above the DMs. On
 `shell-fixture.html?view=dm&requests=3&alerts=quiet` the sidebar shows a
 `treeitem` named **3 message requests** (`Sidebar.tsx:4644`); clicking it
-changes nothing (`openMessageRequests`, `lib/session.ts:38206`, is unstubbed,
+changes nothing (`openMessageRequests`, `lib/session.ts:38282`, is unstubbed,
 so the click resolves to `INERT`), and the hash stays `#/dm/ana`. The
 Connections **Requests** tab's **Messages 0** tab (`FriendsPane.tsx:1171`) is
 the other door and renders **No message requests waiting.** without the seed.
@@ -314,7 +314,9 @@ formatter, only the pill and the headline do. No channel or topic seed exceeds
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): `view=dm&dm=ana` (`#/dm/ana`, `/chat/dm/ana`), `view=home` ("2 unread across 1 conversation."), and the sidebar **Create channel** dialog (new). **Limitations:** `view=friends&tab=blocked` still reads **could not load** (carried); **New doc** has no stub. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `view=dm&dm=ana` (composer **Message ana…**, 2 rows) and the sidebar **Create channel** dialog on both hosts. **Limitations:** the group DM create flow not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): `view=dm&dm=ana` (`#/dm/ana`, `/chat/dm/ana`), `view=home` ("2 unread across 1 conversation."), and the sidebar **Create channel** dialog (new). **Limitations:** `view=friends&tab=blocked` still reads **could not load** (carried); **New doc** has no stub. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181): `view=dm` mounts **ana** with 2 rows; `view=home` reads "2 unread across 1 conversation.". `/rooms/` (18180) `view=dm&dm=OM%20chatters&panel=members` opened at 1440 px keeps the group **Members** panel (**Add someone**, **Leave group**) open after `set viewport 700 900`, now full width. **Limitations:** the member menu, the profile return and the last-member **Leave this group?** confirm were not reached (a row click or right-click opens nothing, and the seeded group has other members); `/chat/` has no group DM seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

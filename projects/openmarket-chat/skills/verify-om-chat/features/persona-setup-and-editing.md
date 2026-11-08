@@ -83,7 +83,9 @@ The actual API rig must include a synthetic HOME mirror-health entry and directo
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `persona-panel-fixture.html`: **Edit**, **Try it**, **Profile to load**, **Learning details**, **Learn from my messages**, **Import**, **Create** and **More voice card actions** present. **Limitations:** dialogs not reopened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `persona-panel-fixture.html`: **VOICE**, **Edit**, **Try it**, **Import** and **Create** present. **Limitations:** dialogs not reopened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `persona-panel-fixture.html`: **Edit**, **Try it**, **Profile to load**, **Learning details**, **Learn from my messages**, **Import**, **Create** and **More voice card actions** present. **Limitations:** dialogs not reopened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `persona-panel-fixture.html`: **Edit**, **Try it**, **Profile to load**, **Learning details**, **Learn from my messages**, **Import**, **Create**, **More voice card actions**. **Limitations:** dialogs not reopened this pass. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

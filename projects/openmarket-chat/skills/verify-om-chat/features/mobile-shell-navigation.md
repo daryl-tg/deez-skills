@@ -144,7 +144,9 @@ conversation** (not a takeover) still needs the same stub plus the rail.
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) at 390×844 `view=room`: `[data-mobile-detail]` mounted. **Limitations:** `/chat/` not re-driven at phone width. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` at 390×844, with the people stub: `[data-mobile-detail]` mounted with 16 rows. **Limitations:** gesture navigation not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) at 390×844 `view=room`: `[data-mobile-detail]` mounted. **Limitations:** `/chat/` not re-driven at phone width. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) at 390×844 `view=room` mounts `[data-mobile-detail]`. **Limitations:** tab-bar doors only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

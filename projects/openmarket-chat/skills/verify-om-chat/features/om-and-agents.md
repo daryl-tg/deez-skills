@@ -303,7 +303,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:6172-6173`),
+  composer with no lane toggle and no target (`Composer.tsx:6394-6395`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -544,7 +544,9 @@ avatar), so it needs a fixture seed or a daemon-pair lane with a badge agent.
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `away-panel-fixture.html` (**AWAY**, **Pause**, **I'm back**), `agent-center-fixture.html` (h1 **Agents**), and `?view=agent&omSessions=drafts` with the `/healthz*` stub (**Research A**, **Research B**, **Watches**). **Limitations:** daemon-backed agents. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `away-panel-fixture.html` (**AWAY**, **Pause**, **I'm back**), `agent-center-fixture.html`, and `?view=agent&omSessions=drafts` with the `/healthz*` and people stubs (**Research A**, **Research B**, **Watches**). **Limitations:** daemon-backed agents. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `away-panel-fixture.html` (**AWAY**, **Pause**, **I'm back**), `agent-center-fixture.html` (h1 **Agents**), and `?view=agent&omSessions=drafts` with the `/healthz*` stub (**Research A**, **Research B**, **Watches**). **Limitations:** daemon-backed agents. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `away-panel-fixture.html` reads **AWAY** **ON** with **Pause**, **I'm back** and "Replies as Maya's voice"; `agent-center-fixture.html` h1 **Agents**; `?view=agent&omSessions=drafts` with the `/healthz*` stub shows **Research A**, **Research B** and the **Watches** door. `/chat/` (18181): the **Watches** door. **Limitations:** daemon-backed sessions not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

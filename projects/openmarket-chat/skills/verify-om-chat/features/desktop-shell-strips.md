@@ -87,7 +87,9 @@ phase after load.
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) with the `window.omShell` init stub: **Install update**, **Update OpenMarket** and **Enable background** recorded `update:accept`, `daemon:{"action":"install"}` and `background:enable`. **Limitations:** Electron itself was not launched. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) with the `window.omShell` init stub and the people stub: **Install update**, **Update OpenMarket** and **Enable background** recorded `update:accept`, `daemon:{"action":"install"}` and `background:enable`. **Limitations:** Electron itself was not launched. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) with the `window.omShell` init stub: **Install update**, **Update OpenMarket** and **Enable background** recorded `update:accept`, `daemon:{"action":"install"}` and `background:enable`. **Limitations:** Electron itself was not launched. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) with the `window.omShell` init-script stub: the three strips, and the buttons recorded `update:accept`, `daemon:{"action":"install"}`, `background:enable`. **Limitations:** `/chat/` not re-driven this pass; phase changes after load not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

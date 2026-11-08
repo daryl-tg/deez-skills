@@ -58,7 +58,9 @@ agent-browser find role button click --name "Close preview"
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `html-attachment-fixture.html`: **Preview** → `iframe` **Preview of q3-desk-report.html** with `sandbox=""`, a `default-src 'none'` CSP and no `window.__pwned`. **Limitations:** the over-2 MB card was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `html-attachment-fixture.html`: **Preview** → `iframe` **Preview of q3-desk-report.html** with `sandbox=""` and no `window.__pwned`. **Limitations:** the over-2 MB card was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `html-attachment-fixture.html`: **Preview** → `iframe` **Preview of q3-desk-report.html** with `sandbox=""`, a `default-src 'none'` CSP and no `window.__pwned`. **Limitations:** the over-2 MB card was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `html-attachment-fixture.html?theme=light`: **Preview** on the malicious row opened **malicious-test.html** with a frame `sandbox=""`, a `default-src 'none'` CSP and no `window.__pwned`; **Close preview** closed it. **Limitations:** no probe listener; the benign preview and the failure copy not driven; `/chat/` has no harness. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

@@ -187,7 +187,7 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 | Server Overview | **Server Overview** — SERVER NAME, SERVER ICON |
 | Roles | **Roles** — traders, Full Stack, @everyone |
 | Members | **Members** — "5 members", kyle OWNER, ana ADMIN |
-| Moderation | crashes (see Gotchas) |
+| Moderation | crashes in the shell dialog (see Gotchas); on `settings-fixture.html?host=server&page=moderation&perms=owner` it renders with the people stub, carrying **Member actions**, **Active timed mutes** and **Channel bans** |
 | Invites | **Invites** — **Create invite link** |
 | Integrations | **Integrations** — APPS |
 | Library | **Library** — "This server's backend predates library governance…" |
@@ -196,7 +196,7 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 | Danger | **Danger** — TRANSFER OWNERSHIP |
 
 In the role editor the colour row is a `role=group` named **Role Color**
-(`settings/ColorSwatches.tsx`, used at `settings/RolesEditor.tsx:713`): 21
+(`settings/ColorSwatches.tsx`, used at `settings/RolesEditor.tsx:716`): 21
 `.color-swatch` buttons, the first **Default (no color)**, the rest **Role
 color #xxxxxx**, each with `aria-pressed`. Driven 2026-11-07 on both hosts at
 `?host=server&page=roles&perms=owner`: **Role color #e67e22** starts pressed,
@@ -205,8 +205,8 @@ class was `.role-swatch` at `ea399e62`.
 
 A **Projects** server page (keywords "labels tickets"; ticket labels) joins
 the server nav when the space runs to-dos in records mode and the viewer can
-manage the server or ticket labels (`settings/ServerSettings.tsx:195-197`,
-`:264-266`). Its gate is `session.todos?.recordsOn(spaceId) === true`, which
+manage the server or ticket labels (`settings/ServerSettings.tsx:196-198`,
+`:267-269`). Its gate is `session.todos?.recordsOn(spaceId) === true`, which
 `INERT` never satisfies, so neither settings fixture shows it: live
 verification pending.
 
@@ -410,6 +410,34 @@ Lane** with "The new layout is ready on example.com" and an **Example Domain**
 card on **Direct message**. It never reads "Jiin", "# design" or
 `openmarket.xyz` (`UserSettings.tsx:1642`).
 
+### Server mutes and the Mute Members grant (added 2026-11-09)
+
+`591b1e11` added a mute that holds a member in every channel and in Projects.
+Two surfaces come from it, and both are gated on the store's
+`permissionsVersion` being at least 7 (`lib/room-actions.ts:83-87`):
+
+- **Moderation** gains an `h2` **Server mutes** (`ModerationPage.tsx:395`) for
+  whoever holds `mute-members`. Empty, it reads "No one is muted across this
+  server." Each row carries `data-server-mute=<userId>` and "Whole server ·
+  {time} remaining", with a **Remove** button for whoever may unmute. A holder
+  of `mute-members` with no channel rights still gets the page, without
+  **Member actions**, **Active timed mutes** and **Channel bans**.
+- **Roles** gains a **Mute Members** row with the hint "Mute a member in every
+  channel and in Projects until a set time" (`lib/space-actions.ts:83`), hidden
+  below version 7 (`RolesEditor.tsx:450`).
+
+No fixture stubs the version or the grant, so add to the init script from
+[README.md](README.md) / Stub the people directory first:
+`spacePermissionsVersion: () => 7` and `spaceActionAllowed: () => true`. On
+`settings-fixture.html?host=server&page=moderation&perms=owner` the headings
+read **Moderation**, **Member actions**, **Server mutes**, **Active timed mutes**
+and **Channel bans**, with the empty line above (driven 2026-11-09 on `/rooms/`).
+On `settings-fixture.html?host=server&page=roles&perms=owner` open **Permissions**
+and find **Mute Members** with its hint (driven 2026-11-09 on both hosts). The
+member-row flyout is out of reach: `session.userMenu` is `null` and `openUserMenu`
+is unstubbed on both shell fixtures, so **Mute in server**, **Remove server mute**
+and the row **Remove** are still `live verification pending`.
+
 ## Gotchas
 
 - **The shell fixtures do not paint a seeded chat background at boot.** The
@@ -503,7 +531,9 @@ card on **Direct message**. It never reads "Jiin", "# design" or
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): `page=appearance` with the Dim slider; **Role Color** on `host=server&page=roles`; the three sound switches with their keys, **Saved · just now** and reload persistence; "No setting matches “zzzq”."; the **Discard unsaved changes?** guard via `page=profiles`. **Limitations:** `page=privacy` blank on both hosts and `host=server&page=moderation` blank on `/chat/` (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` with the people stub: `settings-fixture.html` Appearance, Server Overview and channel Overview headings; **Mute Members** in **Permissions** on both hosts; **Server mutes** with "No one is muted across this server." on `/rooms/`. **Limitations:** `page=privacy` is still blank on both hosts and `/chat/` `host=server&page=moderation` still crashes (`ModerationPage`); the Mute in server flyout and the row **Remove** are unreachable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): `page=appearance` with the Dim slider; **Role Color** on `host=server&page=roles`; the three sound switches with their keys, **Saved · just now** and reload persistence; "No setting matches “zzzq”."; the **Discard unsaved changes?** guard via `page=profiles`. **Limitations:** `page=privacy` blank on both hosts and `host=server&page=moderation` blank on `/chat/` (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `settings-fixture.html?page=appearance` mounts **Appearance** with the chat background and the Dim slider; `?host=server&page=roles&perms=owner`: the **Role Color** group (21 `.color-swatch` buttons, **Default (no color)** `aria-pressed="false"`), and a click moves `aria-pressed="true"` from **Role color #e67e22** to **Role color #1abc9c**. **Limitations:** the Projects settings page needs a records-mode server; `page=privacy` blank on both hosts and `host=server&page=moderation` blank on `/chat/` (route smoke). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

@@ -139,7 +139,7 @@ press the ContextMenu key (`LibraryPanel.tsx:696`, `:1194`). Either one opens
 Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
 rename, Make read-only, Archive and Delete. Escape closes it. The full page's
 **More note actions** button and doc links in messages open the same menu
-(`LibraryView.tsx:5523`, `MessageText.tsx:1845`).
+(`LibraryView.tsx:5523`, `MessageText.tsx:1836`).
 
 The verbs are not proved: `setDocReadOnly` and `setDocRestriction` are
 unstubbed. The `/chat/` fixture stubs `openDocMenu` as a no-op
@@ -160,7 +160,7 @@ forces edit mode) and press the note head's **More note actions**. Choosing
 `spellcheck="false"` (turning it back on was not driven). Read the key and the
 editor attribute, not the row: the row is a plain `menuitem` with no
 `aria-checked`, because the action sets `checked` without `checkbox: true`
-(`shared/ui/Menu.tsx:102-103`). That missing state is a product gap for screen
+(`shared/ui/Menu.tsx:117-118`). That missing state is a product gap for screen
 readers. On `/chat/` **More note actions** opens nothing (the no-op
 `openDocMenu` above). The desktop spelling suggestions need the Electron shell.
 Driven 2026-11-08: the row on `/rooms/`, its absence on `/chat/`.
@@ -170,10 +170,10 @@ Driven 2026-11-08: the row on `/rooms/`, its absence on `/chat/`.
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
 with `data-daily-note-day` set to the local day, `LibraryView.tsx:3233-3241`;
 the add menu lists it as **Daily note**, `:3771`, `:4138`; the `d` key at
-`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:39110`),
+`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:39186`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
-no doc pane, no `.library-daily-note` section (`:6582`), no toast, hash still
+no doc pane, no `.library-daily-note` section (`:6633`), no toast, hash still
 `#/library`. Driven 2026-11-01 on `/rooms/` at `936f5b64`. The daily note
 itself is live verification pending.
 
@@ -277,6 +277,16 @@ browser session. Dismissing writes
 `AGENT_BROWSER_SESSION`, or clear that key, before proving it again: a session
 that already dismissed it never shows it.
 
+### Note metadata (added 2026-11-09)
+
+`DocMetadataEditor.tsx:292-309`, mounted at `DocPane.tsx:2196` in edit mode when
+the viewer can write, renders a `section` named **Note metadata** with the title
+**Metadata**, "Optional fields for filtering and search.", **Remove metadata**
+(the YAML frontmatter block, `[data-remove-all-doc-metadata]`), **Add field** and
+one row per property. On `shell-fixture.html?view=room&doc=server&docMode=edit&alerts=quiet`,
+with the people stub from [README.md](README.md), it lists `owner` **Platform**
+with its **Edit** control. Driven 2026-11-09 on both hosts; no write was submitted.
+
 ## Gotchas
 
 - **The Archive lens renders its chrome and never fills — and it does not
@@ -315,7 +325,9 @@ that already dismissed it never shows it.
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `view=library&lens=agents` → `#/library/agents` (`/chat/library/agents`), h1 **Agents**; `/rooms/` (18183) the note menu's **Spellcheck** (new). **Limitations:** other lenses only by the route smoke; `panel=todos` still reads **Todos could not load** (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `view=library` (`#/library`), `lens=agents` (h1 **Agents**), and the **Note metadata** section on `view=room&doc=server&docMode=edit` on both hosts. **Limitations:** the frontmatter write path was not submitted. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `view=library&lens=agents` → `#/library/agents` (`/chat/library/agents`), h1 **Agents**; `/rooms/` (18183) the note menu's **Spellcheck** (new). **Limitations:** other lenses only by the route smoke; `panel=todos` still reads **Todos could not load** (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) and `/chat/` (18181) `view=library&lens=agents` → `#/library/agents` (`/chat/library/agents`), h1 **Agents**; the route smoke re-confirmed `panel=todos` (**Todos could not load**) on both hosts. **Limitations:** other lenses only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

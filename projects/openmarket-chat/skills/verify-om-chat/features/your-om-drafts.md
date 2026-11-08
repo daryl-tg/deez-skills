@@ -50,7 +50,9 @@ With the `**/healthz*` stub in place on `?view=agent&alerts=quiet&omSessions=dra
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `?view=agent&omSessions=drafts` with the `/healthz*` stub: **Research A** and **Research B**. **Limitations:** per-session draft switching was not re-typed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `?view=agent&omSessions=drafts` with the `/healthz*` and people stubs: **Research A** and **Research B**. **Limitations:** per-session draft switching was not re-typed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `?view=agent&omSessions=drafts` with the `/healthz*` stub: **Research A** and **Research B**. **Limitations:** per-session draft switching was not re-typed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `?view=agent&omSessions=drafts` with the `/healthz*` stub: **Research A** and **Research B**. **Limitations:** the draft carry was not re-typed; `/chat/` has no `omSessions` seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 

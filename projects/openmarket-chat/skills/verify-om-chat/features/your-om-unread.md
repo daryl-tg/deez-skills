@@ -32,7 +32,9 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last verified:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `?view=agent&omSessions=daemon` with the stub: "out of reach", zero unread rows. **Limitations:** unread rows need a daemon origin. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
+**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `?view=agent&omSessions=daemon` with the stubs: "out of reach". **Limitations:** unread rows need a daemon origin. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+
+**Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `?view=agent&omSessions=daemon` with the stub: "out of reach", zero unread rows. **Limitations:** unread rows need a daemon origin. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
 **Previous record:** 2026-11-07 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; 89 commits past `ea399e62`). **Scope:** `/rooms/` (18180) `?view=agent&alerts=quiet&omSessions=daemon` with the `**/healthz*` stub: **Conversations are out of reach** after 12 s and zero `[data-om-session-unread]` rows. **Limitations:** unchanged; unread rows need an isolated daemon origin. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261107/r1/`.
 
