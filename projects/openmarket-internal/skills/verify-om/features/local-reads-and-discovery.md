@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `config show` (masked), `enum --list` (`exchange_id` 38), `skill list`, `schema read condition_create`, `wrun templates` (93). First live proof of `wrun-size-unit-words` (#2430): the `cvd-divergence` scaffold builds four CVD outputs with no warning; ungated, build and validate warn; as `@om-core/cvd-probe`, validate exits 2 `wrun_size_unit_word`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/wrun-cvd-*.txt`).*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `config show` (masked `om_...roto`, `api_key_source env`), `config set agent.max_tool_calls 250` exit 2 `at most 249`, `enum --list`, `schema read condition_create`, `wrun templates` **93**, `wrun create @vom/sty118 <dir> --template positioning-regimes` writes `.wrun-scaffold` **118** (#2407), `wrun build` and `wrun validate` pass, and an `@om-core/sty118` copy also validates. Not re-driven: `notis`, `terms`, `todo` against a stub, `space_muted`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `config show` (masked), `config key-info`, `enum --list` (`exchange_id` 38, `indicator_template` 93), `schema read condition_create`, `skill list`, `wrun templates` 93, `wrun create @vom/pos118 <dir> --template positioning-regimes`, `wrun build` (the `flat` output, #2414), `todo get` on a room-form and a server link, `todo update` and `todo list --space lab` against the real relay (401); first live proof of `space_muted` against a loopback stub (#2417). Not re-driven: `notis`, `terms`, `series`, `follows`, `relay trace`, the secrets status. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/30-39`, `cli/51-54`, `cli/60-62`, `cli/70-75`).*
@@ -69,6 +71,7 @@ bundled constants. None needs an account or a model.
   templates.
 - `wrun-regimes-flat` (added 2026-11-09, #2414): `wrun create <id> <dir> --template positioning-regimes` writes the `flat` histogram output (`theme.muted`), and `wrun build` lists `wrun/<id>/flat` beside `regime`. A flat bar's values are unit-tested; the build proves only the output exists.
 - `wrun-style-names` (added 2026-11-09, #2407): scaffold **118**. The sheet gains a top-level `style_names` table, and `label` / `color_labels` on marks, spans, rays, flags, renderers and outputs. An `@om-core` package with an unnamed Style line, or an unnamed colour list of two or more, is refused `wrun_style_unnamed` at publish and by `om wrun validate` (`runner/wrun/authoring.ts:1359`); other scopes are not refused. The `positioning-regimes` template names every line, so `wrun validate` on an `@om-core` copy passes; the refusal itself is source only.
+- `wrun-size-unit-words` (added 2026-11-10, #2430): `wrun build` and `wrun validate` warn when an output's `unit` names a size word (`coins`, `shares`, `sh`, `contracts`) on every market: `output 'cvd' prints " coins" on every market, but only a size_unit 1 market counts in coins: gate it with visible_by: { size_unit: [1] } beside a twin without the word on [0, 2, 3]`. An `@om-core/` package is refused at `wrun validate` (and `om publish`) with `wrun_size_unit_word`, exit 2. The CVD Divergence template (0.3.0) builds `cvd` and `cvd_swing` gated to `size_unit [1]` and the unitless twins `cvd_units` and `cvd_swing_units`, with no warning.
 - `wrun-build-window-warning` (added 2026-11-08, #2405, scaffold 117): `wrun
   build` warns `WRUN_DECL_INTERVAL_WINDOW_SHORT` when a window fed by an input
   pinned to a coarser interval cannot fill: a scalar pin updated once per pinned
@@ -168,6 +171,27 @@ runs `bun install` in the workspace the first time, so it needs the network.
   and vary by variant, so match the `input 'w'` line by substring, not by index
   past the first.
 
+### The size-unit word guard (added 2026-11-10)
+
+Proves #2430 on a guest lane. No model and no account; the first build runs
+`bun install` in the workspace, so it needs the network.
+
+- **Scaffold.** `control-om om -- wrun create @vom/cvd-probe <dir> --template cvd-divergence`.
+  Its `metricIds` list `cvd`, `cvd_units`, `cvd_swing` and `cvd_swing_units`.
+  `control-om om -- wrun build <dir>` exits 0 with no `coins` line in
+  `warnings`.
+- **Warn.** In `<dir>/src/indicator.ts`, delete `, visible_by: { size_unit: [1] }`
+  from the `output("cvd", …)` line. `wrun build <dir>` and `wrun validate <dir>`
+  both exit 0, and `warnings` holds `output 'cvd' prints " coins" on every
+  market, but only a size_unit 1 market counts in coins: …`.
+- **Refuse.** Rename the package to `@om-core/cvd-probe` in `om-package.json`
+  and `package.json`. `wrun validate <dir>` exits 2 with
+  `{"error":"wrun_size_unit_word","message":"@om-core/cvd-probe: a unit prints a size word on markets that count in another unit: …"}`
+  and a hint naming `visible_by: { size_unit: [code] }` (1 coins, 2 shares,
+  3 contracts) and the `// om-allow size-unit: <reason>` opt-out.
+- **Proof.** Keep the three JSON results. The opt-out comment and `om publish`
+  are not driven.
+
 ### Guest-lane reads (added 2026-10-28)
 
 All were driven on a fresh guest lane at `a8fa10974`. Each answers or refuses
@@ -249,8 +273,8 @@ control-om om -- todo create "x" --room general --url http://127.0.0.1:<stub-por
   `flow-vwap` starter is the thirty-first. A JSON assertion that reads only
   `description` misses this field.
 - **`wrun templates` gained `flow-vwap` in #2235 (`942d0eb54`, v0.480.3), and
-  `WRUN_SCAFFOLD_VERSION` is 117 since #2405 (`2a1e1389f`;
-  `packages/sdk/src/wrun-sdk-sources.ts:1285`; 116 at #2379, 108 at #2239, 109 at #2245, 110 at #2246, 111 at #2267, 112 at #2273, 113 at #2283, 114 at #2336, 115 at #2339). #2379 also added the `dark-pool-prints` template (93 in all), whose workspace carries the `dark_pool` input and `plot.flags`.** The template sits in group `Order flow`
+  `WRUN_SCAFFOLD_VERSION` is 118 since #2407
+  (`packages/sdk/src/wrun-sdk-sources.ts:1301`; 117 at #2405, 116 at #2379, 108 at #2239, 109 at #2245, 110 at #2246, 111 at #2267, 112 at #2273, 113 at #2283, 114 at #2336, 115 at #2339). #2379 also added the `dark-pool-prints` template (93 in all), whose workspace carries the `dark_pool` input and `plot.flags`.** The template sits in group `Order flow`
   (the chart's price weighted by aggressive options premium, with sigma
   bands). **`wrun create` takes the package name first:** `wrun create
   @you/<name> --template flow-vwap <dir>`; a bare directory is refused

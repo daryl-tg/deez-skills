@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `status`, `doctor`, `service status`, `service restart` refused by the wrapper (exit 1), `/healthz` (`version 0.493.1`). First live proof of `version-slash` (#2428): `om chat --once /version` (`daemon  0.493.1, pid 5869`; `not running` with the lane down; `revision  nightly20261110` under `OM_CODE_REVISION`), the workspace's `/version` and `/help` rows. The mismatch row is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/version*.txt`, `tui/tui-03-version.txt`).*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `/healthz` (`version 0.493.0`, `auth device`, `last_error null`, `om_home` under `accounts/guest`), `service status`, the wrapper's `service install` refusal (exit 1), `logs --limit 5`. The guest lane on 18143 died at boot on a guest sign-in 429 (`Try again in 35 minute(s)`), the carried product gap. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `status`, `doctor`, `service status` (`mode: foreground`), `/healthz` (`rss_mb` 381, `slow_sql: []`). Not re-driven: `logs`, the footprint line, `om run` restart behaviour. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/01-04`).*
@@ -61,6 +63,13 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
 - `logs` tails `runner.log` from the home.
 - `service-guard` — the wrapper refuses lifecycle mutation on a lane, because
   the product no longer does.
+- `version-slash` (#2428): `/version` in `om chat` (and `/help` on every
+  surface) prints `om <version>`, then `revision`, `built`, `bun`, `platform`,
+  `binary` and `daemon`. A source run reads `not embedded in this build` for
+  `revision` and `built` unless `OM_CODE_REVISION` is set. `daemon` reads
+  `<version>, pid <n>`, `this process` inside the daemon, or `not running`; a
+  daemon on another build adds `not this om's <version>`, and a service daemon
+  adds `om service restart`. No model is needed.
 
 ## How to get to it (user POV)
 
@@ -68,6 +77,7 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
   `om service install`.
 - Check on it with `om status`, `om doctor`, `om logs`, or the dashboard's
   header pill.
+- In `om chat`, type `/version` to see which build you run and the daemon's.
 
 ## Driving it with control-om
 
@@ -177,6 +187,11 @@ Preconditions:
   `lsof -nP -iTCP:18101 -sTCP:LISTEN` must be empty.
 - **Proof.** Keep the `/healthz` body from before and after teardown, the
   `doctor` JSON, and the tail of the lane log.
+- **`/version`.** `control-om om -- chat --once /version` runs without a
+  model and prints the rows above; expect `daemon  <lane version>, pid <lane
+  pid>`. Prefix `OM_CODE_REVISION=<x>` to see `revision  <x>`. With the lane
+  down it reads `daemon    not running`. In the workspace, type `/version` in
+  the composer: the same rows land in the transcript.
 
 ## Gotchas
 

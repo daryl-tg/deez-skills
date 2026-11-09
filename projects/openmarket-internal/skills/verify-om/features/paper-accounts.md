@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `paper create verify-book --yes` (cash 1000, `desk: off`) and `paper show`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/paper-*.txt`).*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `paper create verify-book --yes` (`cash 1000`, `desk off`), `paper ls --format json`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `paper create lane-paper --yes` (`cash` 1000, `desk: off`), `paper show`; without `--yes` exit 2 `confirmation_required`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/42-43`).*

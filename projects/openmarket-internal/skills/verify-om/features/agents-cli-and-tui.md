@@ -1,5 +1,7 @@
 # Your installed agents from the CLI and om chat
 
+*Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `agent list` (the bundled agents, `idle`) and `agent ps` (`pool.limit 4`, no runs). The overlay and pages are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/agent-*.txt`).*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `agent list` (eight plugin rows), `agent ps --format json` `{runs:[], pool:{limit:4, running:0, queued:0}}`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `agent list` (six agents: `argue`, `debugger`, `explain`, `fact-check`, `feature`, `librarian`), `agent ps` after a run; the TUI overlay is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/46`, `cli/94`).*

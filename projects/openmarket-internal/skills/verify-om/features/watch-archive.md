@@ -1,5 +1,7 @@
 # Watch archive and the auto-archive sweep
 
+*Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143. `watch archive lane-quiet` (`Archived lane-quiet (lane-quiet)`, `Undo: om watch unarchive <id>`), `watch list --archived` (`lane-quiet  lane-quiet  inbound  archived 2026-11-09 · by you`), `watch remove` on it exits 2 `not removed: it is archived`, `watch unarchive` (`Unarchived lane-quiet: paused`, `Resume: om watch resume lane-quiet`), then remove. The list's reason word for a manual archive is `by you` (`ARCHIVE_REASON_WORDS`, `cmd/watch-verbs.ts:3552`; JSON keeps `reason: manual`); the map said `manual`. The sweep is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/wa-*.txt`).*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `watch archive lane-probe` (`Archived … Undo: om watch unarchive <id>`), `watch list --archived` (`archived 2026-11-09 · by you`), `watch unarchive lane-probe` (`Unarchived lane-probe: paused`). `watch archive` takes no `--yes` (`unknown option`). The reboot sweep was not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `watch archive`, `list --archived`, `unarchive` (lands `enabled: false`), then remove. The auto-archive sweep is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/24-29`).*
@@ -29,7 +31,7 @@ off.
 - `unarchive`: `watch unarchive <id>` answers `Unarchived <id>: paused` and
   `Resume: om watch resume <id>`.
 - `list`: `watch list --archived` prints `<id>  <label>  <kinds>  archived
-  <date> · <reason>` (`paused 30+ days`, `manual`), then `Unarchive: om watch
+  <date> · <reason>` (`by you`, `paused 30+ days`, `finished 7+ days`), then `Unarchive: om watch
   unarchive <id>`. JSON puts them under `archived[]` with `{at, by, reason}`.
 - `remove-guard`: `watch remove <archived id> --yes` exits 2 `not removed: it
   is archived` with `om watch unarchive <id>, then remove it`.
