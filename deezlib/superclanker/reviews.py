@@ -53,6 +53,20 @@ class ReviewError(Exception):
     pass
 
 
+def merge(url, auto=False, run=None):
+    run = run or subprocess.run
+    if "/merge_requests/" in url:
+        argv = ["glab", "mr", "merge", url, "--squash", "--yes", "--auto-merge" if auto else "--auto-merge=false"]
+    else:
+        argv = ["gh", "pr", "merge", url, "--squash", *(["--auto"] if auto else [])]
+    try:
+        done = run(argv, capture_output=True, text=True, timeout=FORGE_TIMEOUT_SECONDS)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ReviewError(f"{url}: {argv[0]} failed: {exc}") from exc
+    if done.returncode != 0:
+        raise ReviewError(f"{url}: {argv[0]} exit {done.returncode}: {(done.stderr or '').strip()[-300:]}")
+
+
 def _due(store, now):
     last = store.cursor(*CURSOR)
     if last:

@@ -652,6 +652,49 @@ class AppTest(Seeded):
 
         self.assertEqual(sorted(rows), sorted([recent.id, live.id]))
 
+    def merges(self, verbs):
+        return [c for c in verbs.calls if c[2:3] == ["merge"]]
+
+    def test_m_merges_and_shift_m_sets_auto_merge_after_confirming(self):
+        ticket, assignment, _ = self.ticket(1, report="progress")
+        self.store.report(assignment.id, "ready", "PR open: https://github.com/o/r/pull/42")
+        verbs = Verbs()
+
+        async def script(app, pilot):
+            await pilot.press("m")
+            await pilot.pause()
+            await pilot.press("n")
+            await pilot.pause()
+            await pilot.press("m")
+            await pilot.pause()
+            await pilot.press("y")
+            await pilot.pause()
+            await pilot.press("M")
+            await pilot.pause()
+            await pilot.press("y")
+            await pilot.pause()
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(self.merges(verbs), [
+            [str(DEEZ), "super-clanker", "merge", ticket.id],
+            [str(DEEZ), "super-clanker", "merge", ticket.id, "--auto"],
+        ])
+
+    def test_m_without_a_review_says_so(self):
+        self.ticket(1, report="progress")
+        verbs, logs = Verbs(), []
+
+        async def script(app, pilot):
+            await pilot.press("m")
+            await pilot.pause()
+            logs.append(app.log_text())
+
+        self.run_app(verbs, script)
+
+        self.assertEqual(self.merges(verbs), [])
+        self.assertIn("no review link", logs[0])
+
     def tells(self, verbs):
         return [c for c in verbs.calls if c[2:3] == ["tell"]]
 

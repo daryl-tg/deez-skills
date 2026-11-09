@@ -94,6 +94,27 @@ class ReviewsTest(unittest.TestCase):
         self.assertEqual(self.store.merged_head(ticket.id), "4e9d500e6")
         self.assertEqual(self.store.show(ticket.id)["state"], "ended")
 
+    def test_merge_squashes_now_or_sets_auto_merge(self):
+        forge = Forge()
+
+        reviews.merge(PR, run=forge)
+        reviews.merge(PR, auto=True, run=forge)
+        reviews.merge(MR, run=forge)
+        reviews.merge(MR, auto=True, run=forge)
+
+        self.assertEqual(forge.calls, [
+            ["gh", "pr", "merge", PR, "--squash"],
+            ["gh", "pr", "merge", PR, "--squash", "--auto"],
+            ["glab", "mr", "merge", MR, "--squash", "--yes", "--auto-merge=false"],
+            ["glab", "mr", "merge", MR, "--squash", "--yes", "--auto-merge"],
+        ])
+
+    def test_merge_refused_by_the_forge_says_why(self):
+        with self.assertRaises(reviews.ReviewError) as caught:
+            reviews.merge(PR, run=Forge(fail=True))
+
+        self.assertIn("HTTP 502", str(caught.exception))
+
     def test_merged_merge_request_is_read_with_glab(self):
         ticket = self.ticket(1, f"MR {MR}")
         forge = Forge({MR: "merged"})

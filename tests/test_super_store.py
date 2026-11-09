@@ -270,6 +270,43 @@ class SuperCliTest(unittest.TestCase):
             code = cli.main(["super-clanker", *argv])
         return code, out.getvalue(), err.getvalue()
 
+    def ticket_with_review(self, text="PR open: https://github.com/o/r/pull/7"):
+        _code, asked, _ = self.deez_super("ask", "tidy")
+        trigger = re.search(r"trigger (t_[0-9a-f]{10})", asked).group(1)
+        _code, dispatched, _ = self.deez_super("dispatch", trigger, "--slug", "tidy")
+        ticket = re.search(r"ticket (k_[0-9a-f]{10})", dispatched).group(1)
+        store = Store.open(Path(self.tmp.name))
+        self.addCleanup(store.close)
+        assignment = store.assignment_for(ticket)
+        store.start_assignment(assignment.id, "sid", 1, "/w")
+        store.report(assignment.id, "ready", text)
+        return ticket
+
+    def test_merge_verb_squash_merges_or_sets_auto_merge_on_the_ticket_review(self):
+        ticket = self.ticket_with_review()
+        calls = []
+
+        def forge(argv, **_kwargs):
+            calls.append(argv)
+            return mock.Mock(returncode=0, stdout="", stderr="")
+
+        with mock.patch("deezlib.superclanker.reviews.subprocess.run", forge):
+            merged = self.deez_super("merge", ticket)
+            auto = self.deez_super("merge", ticket, "--auto")
+
+        self.assertEqual(merged[:2], (0, "merged https://github.com/o/r/pull/7\n"))
+        self.assertEqual(auto[:2], (0, "auto-merge set on https://github.com/o/r/pull/7\n"))
+        self.assertEqual([c[:4] for c in calls], [["gh", "pr", "merge", "https://github.com/o/r/pull/7"]] * 2)
+        self.assertIn("--auto", calls[1])
+
+    def test_merge_verb_without_a_review_fails(self):
+        ticket = self.ticket_with_review(text="fixed locally")
+
+        code, _out, err = self.deez_super("merge", ticket)
+
+        self.assertNotEqual(code, 0)
+        self.assertIn("no review", err)
+
     def test_archive_verb_archives_a_dispatched_ticket(self):
         _code, asked, _ = self.deez_super("ask", "tidy", "the", "tape")
         trigger = re.search(r"trigger (t_[0-9a-f]{10})", asked).group(1)

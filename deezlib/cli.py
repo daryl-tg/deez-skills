@@ -89,6 +89,10 @@ def build_parser():
     tell_parser = super_verbs.add_parser("tell", help="Send a person's message to a ticket's worker, reviving it if idle.")
     tell_parser.add_argument("ticket")
     tell_parser.add_argument("--text", required=True)
+    merge_parser = super_verbs.add_parser("merge", help="Squash-merge a ticket's review now, or set it to auto-merge.")
+    merge_parser.add_argument("ticket")
+    merge_parser.add_argument("--auto", action="store_true")
+    merge_parser.add_argument("--trigger", help="The terminal request that asked for it; required of the Router.")
     note_parser = super_verbs.add_parser("note", help="Queue a fact for a ticket's worker.")
     note_parser.add_argument("ticket")
     note_parser.add_argument("--text", required=True)
@@ -511,6 +515,26 @@ def _super_tell(store, args):
     print(f"told {args.ticket}")
 
 
+def _super_merge(store, args):
+    from deezlib.superclanker import reviews
+    from deezlib.superclanker.store import SuperError
+
+    _super_record(store, "ticket", "k_", args.ticket)
+    if os.environ.get("DEEZ_SUPER_ROUTER"):
+        if not args.trigger:
+            raise SuperError("the Router merges only with --trigger naming the operator's terminal request")
+        if _super_record(store, "trigger", "t_", args.trigger)["source"] != "terminal":
+            raise SuperError(f"{args.trigger} is not from the operator's terminal; only the operator can ask to merge")
+    url = reviews.ticket_review_url(store, args.ticket)
+    if url is None:
+        raise SuperError(f"{args.ticket} has no review to merge")
+    try:
+        reviews.merge(url, auto=args.auto)
+    except reviews.ReviewError as exc:
+        raise SuperError(str(exc)) from exc
+    print(f"auto-merge set on {url}" if args.auto else f"merged {url}")
+
+
 def _super_note(store, args):
     _super_record(store, "ticket", "k_", args.ticket)
     store.add_input(args.ticket, "note", args.text)
@@ -847,6 +871,7 @@ SUPER_VERBS = {
     "ignore": _super_ignore,
     "stop": _super_stop,
     "tell": _super_tell,
+    "merge": _super_merge,
     "archive": _super_archive,
     "reply": _super_reply,
     "note": _super_note,
@@ -876,7 +901,7 @@ STORELESS_SUPER_VERBS = {
 }
 
 
-NUDGING_SUPER_VERBS = {"ask", "tell", "note", "reply", "dispatch", "attach", "route", "stop", "archive", "retry", "requeue"}
+NUDGING_SUPER_VERBS = {"ask", "tell", "merge", "note", "reply", "dispatch", "attach", "route", "stop", "archive", "retry", "requeue"}
 
 
 def _nudges_the_daemon(args):

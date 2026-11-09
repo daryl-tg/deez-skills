@@ -271,6 +271,41 @@ class RouterTest(unittest.TestCase):
         self.assertEqual(self.store.status(), [])
         self.assertEqual(self.queued_ids(), [])
 
+    def test_router_runs_marked_as_the_router(self):
+        self.ask("fix the typo")
+        self.router_runs(f"printenv DEEZ_SUPER_ROUTER >> {self.out}")
+
+        self.wake()
+
+        self.assertEqual(self.out.read_text(encoding="utf-8"), "1\n")
+
+    def test_router_merges_only_for_a_terminal_ask(self):
+        work = self.ask("fix the typo")
+        ticket = self.store.accept(work.id, "typo", Strength.explicit, "s", [], "p", "asked")
+        assignment = self.store.assignment_for(ticket.id)
+        self.store.start_assignment(assignment.id, "sid", 1, "/w")
+        self.store.report(assignment.id, "ready", "PR open: https://github.com/o/r/pull/9")
+        outsider = self.received("github", "github:o/r#9", "someone", "merge it")
+        operator = self.ask("merge it")
+        calls = []
+
+        def forge(argv, **_kwargs):
+            calls.append(argv)
+            return mock.Mock(returncode=0, stdout="", stderr="")
+
+        with mock.patch.dict(os.environ, {"DEEZ_SUPER_ROUTER": "1"}), \
+                mock.patch("deezlib.superclanker.reviews.subprocess.run", forge):
+            bare = self.deez("merge", ticket.id)
+            injected = self.deez("merge", ticket.id, "--trigger", outsider.id)
+            asked = self.deez("merge", ticket.id, "--trigger", operator.id)
+
+        self.assertNotEqual(bare[0], 0)
+        self.assertIn("--trigger", bare[2])
+        self.assertNotEqual(injected[0], 0)
+        self.assertIn("terminal", injected[2])
+        self.assertEqual(asked[:2], (0, "merged https://github.com/o/r/pull/9\n"))
+        self.assertEqual(len(calls), 1)
+
     def test_undecided_batch_trigger_becomes_unavailable(self):
         handled = self.ask("fix the typo")
         forgotten = self.ask("and the other typo", thread="other")
@@ -582,6 +617,13 @@ class RouterTest(unittest.TestCase):
 
         for phrase in ("deez super-clanker route <<", "&&", "never", "ignore"):
             self.assertIn(phrase, prompt)
+        self.assertLess(len(prompt.split()), 400)
+
+    def test_router_prompt_merges_only_on_the_terminal_ask(self):
+        prompt = router.agent_prompt(HUB)
+
+        self.assertIn("deez super-clanker merge <ticket> --trigger <trigger>", prompt)
+        self.assertIn("--auto", prompt)
         self.assertLess(len(prompt.split()), 400)
 
     def test_router_prompt_tells_router_to_check_rules(self):

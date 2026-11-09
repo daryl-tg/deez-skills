@@ -23,6 +23,8 @@ path out; the daemon already does so for the Router and the Workers.
   that Ticket's Worker and revives it if it is idle. The Router's `note` only
   queues a fact for the Worker's next run.
 - `deez super-clanker show <id>` prints one object and the ids of its neighbours.
+- `deez super-clanker merge <ticket> [--auto]` squash-merges the Ticket's review
+  now, or sets it to merge itself once its checks pass.
 
 ## Operate it
 
@@ -114,6 +116,8 @@ reading the `would accept` decisions it recorded.
 - A Worker proceeds on reversible work without asking and reports `waiting`
   before anything outward-facing, per **principle-never-block-on-reversible-work**.
 - The Router never edits code. It decides and dispatches.
+- Only the operator merges: with `merge`, or by asking on the terminal. The
+  Router's `merge` must cite that terminal request, and the CLI refuses any other.
 - Inferred work starts in observe mode.
 - A branch is never deleted. Removing an ended ticket's worktree leaves its branch.
 

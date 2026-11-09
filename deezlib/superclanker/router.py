@@ -68,6 +68,7 @@ def _command(config, hub_root, sid, prompt):
 def _environment(root, hub_root):
     env = {key: value for key, value in os.environ.items() if key != "CLAUDECODE"}
     env["DEEZ_SUPER_STATE"] = str(root)
+    env["DEEZ_SUPER_ROUTER"] = "1"
     env["PATH"] = os.pathsep.join([str(Path(hub_root) / "bin"), env.get("PATH", "")])
     return env
 

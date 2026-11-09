@@ -176,8 +176,9 @@ def stale_list_text(stale):
     return t
 
 
-MAIN_KEYS = [("TAB", "PANEL"), ("↑↓←→", "MOVE"), ("V", "VIEW"), ("Z", "ZOOM"), ("N", "NEW TASK"),
-             ("^T", "ASK/NOTE"), ("I", "ASK ABOUT TASK"), ("O", "OPEN PR"), ("B", "REBASE PR"), ("Y", "APPROVE"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
+MAIN_KEYS = [("TAB", "PANEL"), ("V", "VIEW"), ("Z", "ZOOM"), ("N", "NEW"), ("^T", "ASK/NOTE"),
+             ("I", "ASK"), ("O", "OPEN PR"), ("B", "REBASE"), ("M", "MERGE"), ("⇧M", "AUTO-MERGE"),
+             ("Y", "APPROVE"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
 def rebase_request(url):
     return (f"Rebase {url} onto the latest default branch so the operator can merge it. "
             "Fetch, rebase, resolve any conflicts, rerun the tests that cover the change, "
@@ -1076,6 +1077,31 @@ class ConfirmArchive(ModalScreen):
         self.dismiss(yes)
 
 
+class ConfirmMerge(ModalScreen):
+    BINDINGS = [("y", "answer(True)", "merge"), ("n", "answer(False)", "cancel"),
+                ("escape", "answer(False)", "cancel")]
+    CSS = f"""
+    ConfirmMerge {{ align: center middle; background: #000000 70%; }}
+    #confirm-merge {{ width: 80; height: auto; border: solid {AMBER}; background: #000000; padding: 1 2; }}
+    """
+
+    def __init__(self, dossier, auto):
+        super().__init__()
+        self.dossier = dossier
+        self.auto = auto
+
+    def compose(self):
+        label = center_model.review_label(self.dossier.review_url)
+        title = f"SET AUTO-MERGE ON {label}?" if self.auto else f"SQUASH-MERGE {label} NOW?"
+        with Vertical(id="confirm-merge"):
+            yield Static(Text(title, style=f"bold {AMBER}"))
+            yield Static(Text(f"{self.dossier.id}  {self.dossier.slug}\n{self.dossier.review_url}"), markup=False)
+            yield Static(legend_text([("Y", "AUTO-MERGE" if self.auto else "MERGE"), ("N", "CANCEL")]))
+
+    def action_answer(self, yes):
+        self.dismiss(yes)
+
+
 class ReviewStale(Screen):
     BINDINGS = [("a", "archive", "archive"), ("k", "keep", "keep"), ("s", "skip", "skip"),
                 ("escape", "done", "done")]
@@ -1245,6 +1271,8 @@ class CenterApp(App):
         ("o", "open_review", "open review"),
         ("b", "rebase_review", "rebase review"),
         ("y", "approve", "approve"),
+        ("m", "merge(False)", "merge"),
+        ("M", "merge(True)", "auto-merge"),
         ("a", "archive_all", "archive stale"),
         ("r", "review", "review stale"),
     ]
@@ -1312,7 +1340,7 @@ class CenterApp(App):
                         yield Static(system_compact(w), id="sysinfo", markup=False)
             with Vertical(id="right"):
                 with Panel(id="p-dossier"):
-                    yield Band("DOSSIER", "o open PR · b rebase PR · i ask about it · z full report", name_id="dossier-name")
+                    yield Band("DOSSIER", "o open · b rebase · m merge · M auto-merge · i ask · z full", name_id="dossier-name")
                     yield ApproveBar(APPROVE_LABEL, id="approve", markup=False)
                     with VerticalScroll(id="dossier-scroll"):
                         yield Static(id="dossier-text", markup=False)
@@ -1574,6 +1602,22 @@ class CenterApp(App):
             return
         self.opener(d.review_url)
         self.say(f"opened {d.review_url}")
+
+    def action_merge(self, auto):
+        d = self.selected()
+        if self.in_zoom() or d is None:
+            return
+        if not d.review_url:
+            self.say(f"no review link on {d.id} to merge")
+            return
+
+        def answered(yes):
+            if not yes:
+                return
+            self.say(f"{'auto-merge on' if auto else 'merging'} {d.review_url}")
+            self.submit([str(self.deez), "super-clanker", "merge", d.id, *(["--auto"] if auto else [])])
+
+        self.push_screen(ConfirmMerge(d, auto), answered)
 
     def action_rebase_review(self):
         d = self.selected()
