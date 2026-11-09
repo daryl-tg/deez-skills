@@ -9,10 +9,10 @@ shows its own "A new version of the OpenMarket app is ready." toast through `ope
 policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice in the title bar or block the site below a
 `minVersion`; both channel policies are `off`. A merge to `main` that changes `desktop/package.json`, or a hand-pushed
 `desktop-v*` tag, runs `desktop release` (macOS, with Windows unless `DESKTOP_SKIP_WINDOWS=1`), `desktop release
-linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `27fb2d4621`
-(`origin/main`, 2026-11-09) is 0.1.10 (`bbeb2ee20e` took it to 0.1.8 and `354da31277` to 0.1.9, both for the crash
+linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `c2c02b7b42`
+(`origin/main`, 2026-11-10) is 0.1.10 (`bbeb2ee20e` took it to 0.1.8 and `354da31277` to 0.1.9, both for the crash
 recovery; `920afc7199` to 0.1.10, for the Linux full-screen view sizing). The update round trip was last driven
-2026-11-09 by the `update` scenario on that tree, after `notify` in one `run launch ... notify update` (327 s for both at a load average of 15 to 19,
+2026-11-10 by the `update` scenario on that tree, after `notify` in one `run launch ... notify update` (158 s for both at a load average of 4 to 6,
 with three packs, feed on `18150`): 14 of 15 checks, up to the boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature: `desktop: update check
 http://127.0.0.1:<feed port>/ beta`, `desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`, `Code
 signature at URL file://.../ShipIt/update.../OpenMarket.app/ did not pass validation: code failed to satisfy specified
@@ -23,7 +23,7 @@ code requirement(s)`, `desktop: update error ...`, `desktop: update not staged 0
 `GET /beta-mac.yml` (`desktop/tools/verify/launch.mjs:915`), but the launch check and the policy watcher both ask the
 same feed at launch and race. The policy request came first on every run from 2026-10-27 to 2026-11-06 (14 of 15 on
 2026-11-06, `8bcd72f8f5`, feed on `18151`), the beta feed came first on 2026-11-07 with `desktop/` unchanged, and the policy request came first again on
-2026-11-08 and 2026-11-09.
+2026-11-08, 2026-11-09 and 2026-11-10 (`launchRequests` `GET /policy.json`, `GET /beta-mac.yml`).
 The title-bar button, the restart dialog, the page toast, the policy notice and block, and the internal build have no
 live driver; the release jobs need `mac-runner` (the office Mac mini, runner tag `macos`), the certificate, the notary
 key and the bucket.

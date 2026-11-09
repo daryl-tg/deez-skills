@@ -10,9 +10,9 @@ registers, and the offline and online events fire. A download saves to Downloads
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-Last driven 2026-11-09, on tree `27fb2d4621` (`origin/main`; `gaps.mjs` unchanged since `8ce333e5e9`'s comment edit),
-straight after the parity sweep on the same dev lane (250 bars in the engine) with `GAPS_REUSE_PACKAGE=1`, in 105 s,
-with the console session locked. The rows read exactly as on 2026-11-04 (`8436920004`) and 2026-11-08 (`537639ebca`), described below; the sweep's new Escape and Lite charts findings did not touch them:
+Last driven 2026-11-10, on tree `c2c02b7b42` (`origin/main`; `gaps.mjs` unchanged since `8ce333e5e9`'s comment edit),
+straight after the parity sweep on the same dev lane (250 bars in the engine) with `GAPS_REUSE_PACKAGE=1`, in 107 s,
+with the console session locked: 16 pass and the eight `keys-*` rows not-run on the lock. The rows read exactly as on 2026-11-04 (`8436920004`), 2026-11-08 (`537639ebca`) and 2026-11-09 (`27fb2d4621`), described below; the sweep's new Escape and Lite charts findings did not touch them:
 
 - 16 rows passed in both hosts: the five `contextmenu-*` rows, `drop-chart`, `clipboard-text-read`, `navigator-share`,
   `online-offline`, `service-worker`, `device-pixel-ratio`, the two gesture rows, `upload-image-picker`,

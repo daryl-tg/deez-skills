@@ -9,8 +9,9 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-09, on tree `27fb2d4621`
-(`origin/main`; none of the four desktop pages changed since `bf1c9bac3c`), the return page (valid and invalid), the four
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-10, on tree `c2c02b7b42`
+(`origin/main`; none of the four desktop pages changed since `bf1c9bac3c`; the super-search one-row-per-action fold
+only merges rows that set `collapsesInto`, which the `desktop-app` command does not), the return page (valid and invalid), the four
 checkout-return states, the signin redirect, the sign-in card and the super-search command read exactly as below in
 Chromium on the dev lane (250 bars; on 2026-11-07 the same reads held over 1 bar, which these pages do not need; `ee1fae1b4d`'s dialog restyle left every testid here in place), each opened through `about:blank` (a hash-only change to the same route keeps the page already shown, so an
 invalid `#to=` opened straight after a valid one still reads "Signed in"), one page at a time with the tab re-fronted
@@ -25,15 +26,15 @@ redirect to `/chart/auth?redirect=/desktop/signin` ("Sign in or create an accoun
 `-google-btn`, `-twitter-btn` "X" and `-tos-link`; `-forgot-password-btn` shows only in the password step. Since
 `37afa417b0` (2026-11-04, after `8436920004`) the Turnstile widget sits under the address it vouches for
 (`login-signup-turnstile`, between the email field and `login-signup-submit-btn`, read live in document order on
-2026-11-05, 2026-11-07, 2026-11-08 and 2026-11-09), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
+2026-11-05 and 2026-11-07 to 2026-11-10), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
 (`humanCheckPending`), "Email me a code" stays disabled and `login-signup-field-message` reads "Complete the security
 check above to continue." Since `45a3754bef` (after `8bcd72f8f5`) the code step runs its own check,
 `login-signup-code-turnstile`, under the step whenever its send has no token in hand: on a resend, and on the first
 send when the address's check failed or had not answered when the entry's wait ran out. That check loads Cloudflare's
 script again if it failed, and a checkbox Cloudflare asks for shows under the step and holds the send until ticked.
 The reason a send went without a token (`script`, `render`, `challenge:<code>`, `timeout`, `unrendered`) goes only to
-analytics (`signin:code-dialog`) and auth-service, never to the screen. The dev lane's test sitekey never asks: on
-2026-11-07, 2026-11-08 and 2026-11-09 the button was disabled with an empty address and turned on once an address was typed (not
+analytics (`signin:code-dialog`) and auth-service, never to the screen; only auth-service refusing the code for its bot check shows a toast (see `signin-human-check`). The dev lane's test sitekey never asks: on
+2026-11-07 to 2026-11-10 the button was disabled with an empty address and turned on once an address was typed (not
 submitted). The
 disabled state and the code step's own check are source-read only. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
 sit in one row of outlined pills under "Or continue with", a successful password, code, passkey or 2FA sign-in shows a
@@ -70,8 +71,15 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
 - `signin-human-check` the Turnstile widget (`login-signup-turnstile`) sits between the address and "Email me a code";
   an unticked Cloudflare checkbox keeps the button off with "Complete the security check above to continue." A code
   step whose send has no token (a resend, or an address check that failed or ran out of time) runs its own check,
-  `login-signup-code-turnstile`, and holds the send while Cloudflare's checkbox shows. Placement live in Chromium on the
-  dev lane; the disabled state and the code step's check need a sitekey that asks, so they are source-read only.
+  `login-signup-code-turnstile`, and holds the send while Cloudflare's checkbox shows. "Email me a code" waits at most
+  5 s for a token (`TURNSTILE_WAIT_MS`, `src/composables/useTurnstile.ts:113`; `abcb149af8` made it 10 s and
+  `1b5ad78f88` put it back), showing only the button's loading state, while Cloudflare retries an error every 2 s
+  (`retry: 'auto'`). Since `4fe6fb323e` (after `27fb2d4621`) a code auth-service refuses for its bot check
+  (`LOGIN_CODE_HUMAN_CHECK_REQUIRED`, `src/components/dialogs/LoginCodePanel.vue:487`) shows the error toast "We
+  couldn't confirm you're human. Complete the check on the sign-in screen and request a new code." and returns to the
+  address step, instead of "invalid code". Placement live in Chromium on the dev lane; the disabled state, the wait,
+  the code step's check and the bot-check refusal need a sitekey that asks or a refusing auth-service, so they are
+  source-read only (2026-11-10, `c2c02b7b42`).
 - `checkout-return-page` `/desktop/checkout-return` reads "Payment received" (`?product=<p>&session_id=cs_...`),
   "Checkout cancelled" (`?product=<p>`) or "Billing updated" (`?flow=portal`) with `desktop-checkout-return-open`, wipes
   the query, and shows `desktop-checkout-return-invalid` with `desktop-checkout-return-chart` for anything else.

@@ -11,10 +11,10 @@ views fill what the screen shows of the window, never the raw content size: in f
 maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
 content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
-2026-11-09 on product tree `27fb2d4621` (`origin/main`, desktop 0.1.10 from `920afc7199`) with the console session
-locked and the machine at a load average of 5 to 19 on 10 cores. The `window` scenario on production passed 9 of 12 in
-107 s, the same split as every run since 2026-10-29: the first launch logged `desktop: loaded
-https://openmarket.xyz/chart/` with the title `75,782.7 ▼ BTC - USD` and a candle frame (`unit-01-chart.png` shows
+2026-11-10 on product tree `c2c02b7b42` (`origin/main`, desktop 0.1.10 from `920afc7199`) with the console session
+locked and the machine at a load average of 4 to 6 on 10 cores. The `window` scenario on production, run on its own, passed 9 of 12 in
+102 s, the same split as every run since 2026-10-29: the first launch logged `desktop: loaded
+https://openmarket.xyz/chart/` with the title `74,699.1 ▲ BTC - USD` and a candle frame (`unit-01-chart.png` shows
 the 1h BTC-USD candles with VWAP, not the splash), the second instance focused it (`desktop: second instance,
 focusing`, exit 0, one window), and the saved bounds (moved to 120,110 at 1280 by 800, maximized) matched on relaunch.
 The three relaunch checks (`relaunchBtcTitle`, `relaunchCanvas`, `relaunchMaximized`) went red because the relaunch is

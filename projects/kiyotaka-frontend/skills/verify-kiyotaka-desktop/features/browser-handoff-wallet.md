@@ -11,11 +11,11 @@ read exactly as the trading store writes it, at most six fraction digits), `evm-
 and `solana-connect`, and every request carries `issuedAt`, the app's clock when it opened the page; an old request
 reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent, approveBuilderFee, usdClassTransfer,
 personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no transaction
-signing). Last driven 2026-11-09 on tree `27fb2d4621` (`origin/main`; nothing on this path changed since `8bcd72f8f5`), with
-the console session locked, with the same results as on 2026-11-07 and 2026-11-08: the six sign-page states by hand, `run sign` failing
-`desktop-sign-summary` (76 s), `hl` once through the connect and two approveAgent round trips to the `personal_sign`
-stall at `handoff.mjs:645` (186 s; three `desktop: external`, three `desktop: return`), and `solana` at the Phantom pin
-(`handoff.mjs:95`, 19 s). The testnet lane was warmed in Chromium to a `BTC - USD` title first. On 2026-11-07, with the
+signing). Last driven 2026-11-10 on tree `c2c02b7b42` (`origin/main`; nothing on this path changed since `8bcd72f8f5`), with
+the console session locked, with the same results as on 2026-11-07 to 2026-11-09: the six sign-page states by hand, `run sign` failing
+`desktop-sign-summary` (72 s, MetaMask 13.50.0), `hl` once through the connect and two approveAgent round trips to the `personal_sign`
+stall at `handoff.mjs:645` (204 s; three `desktop: external`, three `desktop: return`), and `solana` at the Phantom pin
+(`handoff.mjs:95`, "Phantom CRX is not the pinned 26.32.0 build"). The testnet lane was warmed in Chromium to a `BTC - USD` title first. On 2026-11-07, with the
 console session locked. By hand in Chromium on the dev lane, one state at a time through `about:blank`, a fresh
 `hl-approve-agent` request drew the title, summary, origin and no-wallet rows, a day-old one `desktop-sign-expired`, a
 truncated `r` `desktop-sign-invalid`, and the transfer kind "Transfer USDC" with "Spot to perps" or (`toPerp: false`)

@@ -7,9 +7,9 @@ The main process tries three parsers in order, sign-in (`openmarket://oauth/call
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
 window shows a chart page. The bridge's members are `version`, `onReturn`, `updates`, `analytics` and, from 0.1.9,
 `reports`, plus `browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last
-driven 2026-11-09 by the `returns` scenario on tree `27fb2d4621` (`origin/main`, desktop 0.1.10; `desktop/src/` last
-changed in `ade12fe660`, the view sizing) against the dev lane, warmed in Chromium first (`75,782.7 ▼ BTC - USD` with
-250 bars in the engine): 20 of 21 checks in 106 s including the `pnpm package:dev` pack (load average 15 to 19 on 10 cores; 71 s at 4 to 6 on 2026-11-08), the same split as on every run
+driven 2026-11-10 by the `returns` scenario on tree `c2c02b7b42` (`origin/main`, desktop 0.1.10; `desktop/src/` last
+changed in `ade12fe660`, the view sizing) against the dev lane, warmed in Chromium first (`74,737.0 ▲ BTC - USD` with
+250 bars in the engine): 20 of 21 checks in 75 s including the `pnpm package:dev` pack (load average 4 to 5 on 10 cores; 106 s at 15 to 19 on 2026-11-09), the same split as on every run
 from 2026-10-27 (69 s on `dced88e06a` on 2026-11-07, with 1 bar). On 2026-11-03 the first
 run straight after `lane up` threw in `waitForCandles` (then `launch.mjs:94`, now `:97`; no BTC title in 60 s) before
 any check, because the cold vite's first chart load failed its dynamic imports and the router never started (see the [index](./README.md)).

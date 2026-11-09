@@ -11,9 +11,9 @@ There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
-from 2026-10-27 to 2026-11-09, under high and low machine load; the last was 2026-11-09 on tree `27fb2d4621`
-(`origin/main`), 66 s, run on its own (on 2026-11-08 a combined `run launch ... window links crash` lost the `window` summary to this throw
-and never reached `crash`, so run each scenario on its own): `locator.click: Timeout 30000ms exceeded` at `launch.mjs:234` (`:230` before the crash lane's lines), after `desktop: loaded
+from 2026-10-27 to 2026-11-10, under high and low machine load; the last was 2026-11-10 on tree `c2c02b7b42`
+(`origin/main`), 63 s, run on its own (on 2026-11-08 a combined `run launch ... window links crash`, and on 2026-11-10 the SKILL.md's own `run launch ... window links`, lost the `window` summary to this throw
+and the 2026-11-08 one never reached `crash`, so run each scenario on its own): `locator.click: Timeout 30000ms exceeded` at `launch.mjs:234` (`:230` before the crash lane's lines), after `desktop: loaded
 https://openmarket.xyz/chart/`, with the `dialog-style dialog-overlay backdrop-dim` element "intercepts pointer
 events" over `chart-watermark-link`. That overlay is the guest signup prompt ("See what moves price.", Join for free;
 `src/components/dialogs/guest-prompt/GuestSignupPromptDialog.vue`, `guestPrompt.*`, closed by
