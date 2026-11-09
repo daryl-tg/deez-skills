@@ -49,7 +49,7 @@ Ports from the agent range, all on 127.0.0.1: relay stand-in 18121, receiver 181
 
 ## Operator-added bearer wakes, the instant ask and the bare handshake (2026-11-06)
 
-*Driven on PR #2385 (branch `daryl/assistant-run-improvements`, `be779eb0c`) on the same loopback rig. Not merged.*
+*Driven on PR #2385 (branch `daryl/assistant-run-improvements`, `be779eb0c`) on the same loopback rig, and again on 2026-11-09 after the stack was rebased onto main as two PRs, #2350 and #2352 (branch `daryl/assistant-daemon-bridge`, `b41a2afc2`). Not merged.*
 
 - First call from a new or revoked assistant: `om assistants revoke <name>`, then one `tools/call`. Expect an answer in tens of milliseconds whose message carries `om approve appr_...`. Seen: 17 ms and 28 ms.
 - A bare handshake: POST `initialize` with no `clientInfo`, or with a name and no version. Expect `serverInfo` and no `-32603`.
@@ -60,6 +60,8 @@ Ports from the agent range, all on 127.0.0.1: relay stand-in 18121, receiver 181
 - The command refuses, before the key prompt and with no row written: plain http, `https://localhost`, a private address, a host that does not resolve.
 - On a rig the command itself needs `OM_ASSISTANT_WAKE_ALLOW_LOOPBACK=1` in its own environment to accept `http://127.0.0.1`, as well as the daemon. `control-om om --` passes the shell's environment through.
 - Pending proof: a table of the earlier shape being rebuilt on open is covered by a test, not by a live drive. Delivery to a real vendor routine URL with this sender was not driven.
+
+- Since the 2026-11-09 rebase the ask is an approval ledger row: ids are `apr_`, `om approvals list` shows it as `mcp assistant_allow`, and `om approve <id>` admits the next call. The row also fans out as a card to paired messenger DMs and the GUI.
 
 ## Gotchas
 
