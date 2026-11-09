@@ -41,6 +41,7 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   Message** and **Copy Message ID**.
 - **Remove Link Previews** (`MessageRow.tsx:3605`) shows only on a message
   with `unfurls`, which no fixture seeds.
+- **Forward** from the message menu opens **Forward message** with a **Comment** box (needs the session-capture shim; see the Forward section).
 
 ## How to get to it (user POV)
 
@@ -205,6 +206,44 @@ measured, and the effect waits on that same `pos.measured`. A manual `focus()` o
 row a moment later lands. `test/context-menu-submenu.test.ts:110-116` asserts
 the focus under happy-dom, which does not enforce `visibility`, so it passes.
 
+### Forward, through the session-capture shim (added 2026-11-09)
+
+Both fixtures spell out `openForward: noop` and `forwardSource: null`, so no
+click opens the modal and an `Object.prototype` stub cannot reach a spelled-out
+key. The session-capture shim can: it wraps `window.Proxy`, keeps the
+`autofill` target as `window.__om`, and lets you assign over spelled-out keys.
+Any `__om` mutation repaints only after `__om.closeConfirm()`, which sets
+`confirmDialog = null` and calls the fixture's `emit()`.
+
+```bash
+cat > "$SCRATCH/session-capture-shim.js" <<'JS'
+(() => {
+  const P = Proxy;
+  window.Proxy = new P(P, { construct(t, a) {
+    const r = Reflect.construct(t, a);
+    const [g, h] = a;
+    if (g && typeof g === "object" && h && typeof h.has === "function" && "getVersion" in g) window.__om = g;
+    return r;
+  } });
+})();
+JS
+agent-browser --init-script "$SCRATCH/fixture-people-stub.js" \
+  --init-script "$SCRATCH/session-capture-shim.js" open about:blank
+```
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
+agent-browser eval '(()=>{const o=window.__om;o.openForward=(s)=>{o.forwardSource=s;o.closeConfirm()};o.closeForward=()=>{o.forwardSource=null;o.closeConfirm()};return 1})()'
+agent-browser hover '#msg-ops-104'
+agent-browser click '#msg-ops-104 .msg-toolbar button[title="More"]'
+agent-browser find role menuitem click --name "Forward"
+# -> heading "Forward message", textbox "Comment", button "Forward" (disabled until a destination is picked)
+```
+
+The source handed to `openForward` carries `kind`, `room`, `seq`, `handle`,
+`preview`, `text`, `ts`, `attachments`, `authorUserId`, `authorDisplayName` and
+`authorHandle`. Picking a destination and sending were not driven.
+
 ## Gotchas
 
 - **A mid-session `set viewport` can leave the hover toolbar dead.** A scripted
@@ -230,7 +269,9 @@ the focus under happy-dom, which does not enforce `visibility`, so it passes.
 
 ## Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `#msg-ops-104` toolbar **More** lists 19 entries on both hosts (Forward, Edit Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library, Pin Message, Mark Unread, Agent, Delete Message, Copy Message ID, …). **Limitations:** keyboard flyout not re-driven tonight (unchanged since 2026-11-08). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) and `/chat/` (18142), with the people stub and the session-capture shim: `#msg-ops-104` **More** → **Forward** opens **Forward message** with **Comment** and a disabled **Forward**, on both hosts; on `/rooms/`, 19 menu entries on the same row. **Limitations:** no destination was picked and nothing was forwarded. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `#msg-ops-104` toolbar **More** lists 19 entries on both hosts (Forward, Edit Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library, Pin Message, Mark Unread, Agent, Delete Message, Copy Message ID, …). **Limitations:** keyboard flyout not re-driven tonight (unchanged since 2026-11-08). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): the keyboard **Agent** flyout re-driven with `focus()` instrumented (the call lands while the flyout is `visibility: hidden`); at 390×844 the long-press sheet with 22 items. **Limitations:** every verb is a fixture no-op. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

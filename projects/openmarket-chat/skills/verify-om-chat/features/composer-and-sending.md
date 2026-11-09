@@ -137,6 +137,7 @@ Read the gotchas for where the line now falls.
   (coarse pointer) never get Vim. With the setting off none of this renders,
   and Enter and Escape behave as before.
 - The GIF picker: **Choose emoji or GIF** → **GIFs** opens dialog **Choose a GIF** with **Search KLIPY**; `?view=gif` is a standalone sizing harness (`/rooms/` only; the `/chat/` fixture has no GIF view).
+- **Invite card**, **opening-room queue**, **recovery nudge**, the printable-key focus handoff and the 29-entry slash list (each in its own section below, each with the stub it needs).
 
 ## How to get to it (user POV)
 
@@ -408,6 +409,64 @@ For the notice, return an ISO time from `spaceMutes.until`. On the same route
 with no `textarea.composer-field` and all 16 rows still on the tape. Driven
 2026-11-09 on both hosts.
 
+### Invite card from a sent invite code (added 2026-11-09)
+
+A message that is only an invite code renders as an invite card. `previewInvite`
+is unstubbed in both fixtures, so without a stub the card's `.then` lands on
+`INERT`. Seed it, then send the code from the composer:
+
+```bash
+cat > "$SCRATCH/fixture-invite-stub.js" <<'JS'
+Object.defineProperty(Object.prototype, "previewInvite", { configurable: true, writable: true, enumerable: false,
+  value: async () => ({ kind: "ready", name: "Acme Desk", memberCount: 42 }) });
+JS
+agent-browser type 'textarea' 'acme:0123456789ABCDEF0123456789ABCDEF'
+agent-browser press Enter
+# -> the new kyle row reads "YOU'VE BEEN INVITED TO JOIN | AD | Acme Desk | 42 members | Join"
+```
+
+**Join** was not pressed. The hosted app's open-in-app handoff (`AppHandoff.tsx`)
+is a separate, still-pending row.
+
+### Sends queued into a room still opening (added 2026-11-09)
+
+`?fixtureState=loading` empties the rooms and renders the opening shell
+(`.conversation-loading`). `queuedSendsFor` is unstubbed, so seed it:
+
+```bash
+cat > "$SCRATCH/fixture-queue-stub.js" <<'JS'
+Object.defineProperty(Object.prototype, "queuedSendsFor", { configurable: true, writable: true, enumerable: false,
+  value: (r) => [{ seq: -1, clientMsgId: "q1", ts: Date.now(), room: r, handle: "kyle", userId: "u1",
+                   isAgent: false, type: "post", text: "queued while opening" }] });
+JS
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&fixtureState=loading')"
+# -> [data-opening-room-queue] inside .conversation-loading: "kyle | queued while opening"
+```
+
+### Recovery nudge (added 2026-11-09)
+
+`recoveryNudge: null` is spelled out in both fixtures, so it needs the
+session-capture shim from [message-actions.md](message-actions.md):
+
+```bash
+agent-browser eval '(()=>{const o=window.__om;o.recoveryNudge=true;o.hideRecoveryNudge=()=>{o.recoveryNudge=null;o.closeConfirm()};o.closeConfirm();return 1})()'
+# -> "Save your recovery code. It's the only way back into your sealed messages if this device is lost."
+#    with buttons "Save it now" and "Dismiss recovery reminder"
+agent-browser find role button click --name "Dismiss recovery reminder"   # -> the toast is gone
+```
+
+**Save it now** was not pressed; the recovery ceremony stays pending.
+
+### Keyboard: a printable key and the slash list (added 2026-11-09)
+
+With nothing focused, a printable key moves focus to the composer and types
+there (`Shell.tsx:1142-1185`): from `BODY`, `press a` left the textarea focused
+with the value `a`. Typing `/` lists 29 commands: /dm, /help, /topic,
+/channel-invite, /invite, /join, /leave, /follow, /mute, /nick, /nudge, /poll,
+/status, /chart, /me, /shrug, /spoiler, /tableflip, /unflip, /note, /template,
+/todo, /agent, /arm, /brief, /capture, /disarm, /reset and /summarize. No entry
+was run; `/draw` (`lib/slash-commands.ts:205`) was not listed in the fixture.
+
 ## Gotchas
 
 - **The connection strip waits out a grace delay.** `?connection=reconnecting`
@@ -522,7 +581,9 @@ with no `textarea.composer-field` and all 16 rows still on the tape. Driven
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` with the people stub: a local send in `#ops` (16 → 17 rows); the bare `@` lists 14 on `/rooms/` and 13 on `/chat/`; server-wide `@fa` hits (**MEMBERS**: faq-bot, Farah N, Farouk Aziz; Enter inserts `@faq-bot `) and `[data-testid=space-muted-notice]` on both hosts with the injected seams. **Limitations:** the daemon-pair lane was down (4001, 3002), so a real store search and a real mute frame were not driven; walls removing a hit stay unit-level. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141): a local send in `#ops` (16 → 17 rows); a printable key from `BODY` focuses the composer; `/` lists 29 commands; the invite card (**Acme Desk**, 42 members, **Join**) after sending an invite code; the opening-room queue ("queued while opening" under `fixtureState=loading`); the recovery nudge shown and dismissed. `/chat/` (18142): the invite card and the recovery nudge. **Limitations:** **Join**, **Save it now** and every slash command were not run; the queue was driven on `/rooms/` only. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` with the people stub: a local send in `#ops` (16 → 17 rows); the bare `@` lists 14 on `/rooms/` and 13 on `/chat/`; server-wide `@fa` hits (**MEMBERS**: faq-bot, Farah N, Farouk Aziz; Enter inserts `@faq-bot `) and `[data-testid=space-muted-notice]` on both hosts with the injected seams. **Limitations:** the daemon-pair lane was down (4001, 3002), so a real store search and a real mute frame were not driven; walls removing a hit stay unit-level. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): a local send in `#ops` (16 → 17 rows); the bare `@` lists 14 on `/rooms/` and 13 on `/chat/`. **Limitations:** the daemon-pair lane was down (4001, 3002); a send typed in the topic view did not echo a row in the fixture. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

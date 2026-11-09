@@ -16,6 +16,7 @@ conversation, and the friends surfaces that feed it.
 - The public-channel browse board.
 - Inbox and message search openers — **mobile only**, see Gotchas.
 - Edit a group DM's name and picture, and add a mutual connection to it (`RenameGroupDmModal.tsx`, `AddGroupMemberModal.tsx`). Since `5607d23e` any member who may rename can also set or remove a group picture, which `GroupFaces` draws on the DM list row, the conversation header and the rail tile instead of the stacked member faces; with no picture, or a picture that fails to load, the stacked faces stay.
+- **Typing indicator**: "ana is typing" above a DM composer (needs an `ephemeral` stub; `dmTyping=peer` is stale).
 
 ## How to get to it (user POV)
 
@@ -236,6 +237,25 @@ formatter, only the pill and the headline do. No channel or topic seed exceeds
 99 (`channels=many` tops out at 20), so the sidebar channel label's
 **, 99+ unread** form (`Sidebar.tsx:3398`) is source-only here.
 
+### Typing indicator in a DM (added 2026-11-09)
+
+`?view=dm&dmTyping=peer` no longer shows anything: the fixture writes `typing`
+onto `DmState`, but the strip reads `session.ephemeral.typistsFor(...)`
+(`Composer.tsx:1611`), which neither fixture stubs. Driven without a stub, the
+DM shows no typing line. Seed `ephemeral` instead:
+
+```bash
+cat > "$SCRATCH/fixture-ephemeral-stub.js" <<'JS'
+Object.defineProperty(Object.prototype, "ephemeral", { configurable: true, writable: true, enumerable: false,
+  value: { typistsFor: (t) => (t && t.kind === "dm" ? { names: ["ana"], count: 1 } : { names: [], count: 0 }),
+           noteTyping() {}, clear() {}, applyPresenceDelta() {} } });
+JS
+agent-browser --init-script "$SCRATCH/fixture-people-stub.js" \
+  --init-script "$SCRATCH/fixture-ephemeral-stub.js" open about:blank
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=dm&alerts=quiet')"
+# -> "ana is typing" above the composer (TypingIndicator.tsx)
+```
+
 ## Gotchas
 
 - **`rail=counts` is a `/rooms/` seed only.** The `/chat/` fixture has no
@@ -314,7 +334,9 @@ formatter, only the pill and the headline do. No channel or topic seed exceeds
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `view=dm&dm=ana` (composer **Message ana…**, 2 rows) and the sidebar **Create channel** dialog on both hosts. **Limitations:** the group DM create flow not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) and `/chat/` (18142): with the `ephemeral` stub, `view=dm` shows "ana is typing" on both hosts; without it, `view=dm&dmTyping=peer` shows no typing line (`/rooms/`). **Limitations:** a real typing frame and the group-DM roster were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `view=dm&dm=ana` (composer **Message ana…**, 2 rows) and the sidebar **Create channel** dialog on both hosts. **Limitations:** the group DM create flow not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): `view=dm&dm=ana` (`#/dm/ana`, `/chat/dm/ana`), `view=home` ("2 unread across 1 conversation."), and the sidebar **Create channel** dialog (new). **Limitations:** `view=friends&tab=blocked` still reads **could not load** (carried); **New doc** has no stub. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

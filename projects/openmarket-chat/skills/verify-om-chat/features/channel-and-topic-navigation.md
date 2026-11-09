@@ -77,6 +77,7 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   longer carries `role="toolbar"` (`Shell.tsx:3784`, `:3794`; `01bf4481`). Locate the rail
   by those names, not by a toolbar role.
 - Message deep links (`#/room/<name>/msg/<seq>`) jump to and flash the message; the **New topic** draft pane (`TopicDraftPane.tsx`, `panel=topic-draft`).
+- **Topic handoff banner** ("This conversation continues in …", **Dismiss** persisted) and the **Alt+Up / Alt+Down** channel chords.
 
 ## How to get to it (user POV)
 
@@ -496,6 +497,29 @@ seed gives a non-zero badge count, so `rail=counts` (`/rooms/`) and `rail=many`
 (`/chat/`) both read **OM Chat | Home**. The dot grade (alert or unread) and
 `navigator.setAppBadge` cannot be read on the lane.
 
+### Topic handoff banner (added 2026-11-09)
+
+No fixture seeds a handoff candidate, and the `cpi-print-aug` birth entry lacks
+`metadata.topicCreated.branched`. Seed both through the session-capture shim
+(see [message-actions.md](message-actions.md)) on `?view=room&alerts=quiet`:
+
+```bash
+agent-browser eval '(()=>{const o=window.__om;o.topicHandoffs=new Map([["ops",{topicId:"cpi-print-aug",at:Date.now()}]]);const s=o.rooms.get("ops");const e=s.entries.find(x=>x.metadata?.topicCreated?.topicId==="cpi-print-aug");e.metadata.topicCreated.branched={count:2};s.entries=[...s.entries];o.closeConfirm();return 1})()'
+# -> [data-topic-handoff]: "This conversation continues in CPI print — Aug", buttons "Continue there" and "Dismiss"
+agent-browser find role button click --name "Dismiss" --exact
+# -> the banner is gone and localStorage om.chat.handoffDismissed = ["cpi-print-aug"]
+```
+
+**Continue there** calls `session.continueInTopic`, which is unstubbed, so in the
+fixture it does nothing: the route stays `#/room/ops`.
+
+### Alt+Up and Alt+Down between channels (added 2026-11-09)
+
+From the page body on `#ops`, `press Alt+ArrowDown` moved to `#/room/signals`
+and `press Alt+ArrowUp` moved back to `#/room/ops` (`Shell.tsx:1118-1140`).
+After the first chord the focus sat in the composer, and a second chord did
+nothing until the textarea was blurred. Blur first (`document.activeElement.blur()`).
+
 ## Gotchas
 
 - **"Hide this channel's topics" is a `title`, not an `aria-label`.**
@@ -663,7 +687,9 @@ seed gives a non-zero badge count, so `rail=counts` (`/rooms/`) and `rail=many`
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) and `/chat/` (18184), with the people stub: the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`), composer **Message in CPI print — Aug**, **Back to #ops**. **Limitations:** `panel=members` on a topic still renders blank (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141), with the people stub: the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug`, **Back to #ops**; Alt+ArrowDown → `#/room/signals` and Alt+ArrowUp → `#/room/ops` from the body; the topic handoff banner and its **Dismiss** (persisted). `/chat/` (18142): the handoff banner. **Limitations:** **Continue there** is inert in the fixture; topic `panel=members` is still blank on both hosts (route smoke). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) and `/chat/` (18184), with the people stub: the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`), composer **Message in CPI print — Aug**, **Back to #ops**. **Limitations:** `panel=members` on a topic still renders blank (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`), composer **Message in CPI print — Aug**, **Back to #ops**; the route smoke on both hosts. **Limitations:** the topic `panel=members` still renders blank (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

@@ -37,6 +37,7 @@ fixture cannot reach.
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
+- **Sidebar occupancy**: the Open World row's **N walking** count (`/rooms/` only; needs a `worldPresenceFor` stub).
 
 ## How to get to it (user POV)
 
@@ -231,6 +232,24 @@ stay with the solo harness or the authenticated rig. `tools/openscape-preview/
 check.ts` is the repo's own agent-browser driver for this harness and a good
 template for its waits.
 
+### Occupancy on the sidebar row (added 2026-11-09)
+
+The Open World sidebar row shows a walker count from `session.worldPresenceFor`
+(`Sidebar.tsx:4584-4615`). Neither shell fixture stubs it, and only `/rooms/`
+mounts the row (`daemonFeatures` is false on `/chat/`). Seed it with an
+`Object.prototype` stub beside the people stub:
+
+```bash
+cat > "$SCRATCH/fixture-world-stub.js" <<'JS'
+Object.defineProperty(Object.prototype, "worldPresenceFor", { configurable: true, writable: true, enumerable: false,
+  value: () => ({ count: 3, sample: [] }) });
+JS
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
+# -> [data-testid=world-presence-count] with aria-label "3 walking" and text "3"
+```
+
+The rail tooltip (`Shell.tsx:3277`) was not hovered.
+
 ## Gotchas
 
 - **The solo harness has no transport.** It comes up reading *"world offline,
@@ -271,7 +290,9 @@ template for its waits.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `mocks/world-solo/index.html?worldprobe=1`: two canvases, "world offline, retrying" and "No #world channel"; `tools/openscape-preview/` (18185, under `/rooms/`): `__omWorld3D.characters()` 32 and **Message #world**; `activity.html` (**Agent activity**, the **Scenario** and **Camera** selects). **Limitations:** the authenticated world not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) `mocks/world-solo/index.html?worldprobe=1`: two canvases, `__omWorld3D` present, "world offline, retrying" and "No #world channel"; the shell sidebar's **3 walking** count with the `worldPresenceFor` stub. **Limitations:** the openscape preview and the rail tooltip were not re-driven; the authenticated world not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `mocks/world-solo/index.html?worldprobe=1`: two canvases, "world offline, retrying" and "No #world channel"; `tools/openscape-preview/` (18185, under `/rooms/`): `__omWorld3D.characters()` 32 and **Message #world**; `activity.html` (**Agent activity**, the **Scenario** and **Camera** selects). **Limitations:** the authenticated world not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `mocks/world-solo/index.html?worldprobe=1`: two canvases, "world offline, retrying" and "No #world channel"; `tools/openscape-preview/` (18185, under `/rooms/`): `__omWorld3D.characters()` 32 and **Message #world**, and `activity.html` (**Agent activity**, the **Scenario** and **Camera** selects). **Limitations:** the authenticated world. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
