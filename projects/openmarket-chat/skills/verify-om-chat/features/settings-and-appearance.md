@@ -390,7 +390,7 @@ chat background. Pick a PNG, JPEG or WebP picture."; a non-image renamed
 `.png` toasts "That file couldn't be read as a picture. Pick a PNG, JPEG or
 WebP image."; a real PNG reaches the upload and toasts "The picture could not
 be uploaded." because the fixtures' session has no `chatBackgroundHost`. A
-successful upload (`POST /users/chat-background`, `attachments-seam.ts:830`)
+successful upload (`POST /users/chat-background`, `attachments-seam.ts:934`)
 needs a live host and is **live verification pending**.
 
 To drive the set states with no upload, seed the pref with a loopback URL
@@ -438,6 +438,25 @@ member-row flyout is out of reach: `session.userMenu` is `null` and `openUserMen
 is unstubbed on both shell fixtures, so **Mute in server**, **Remove server mute**
 and the row **Remove** are still `live verification pending`.
 
+On `/chat/`, `settings-fixture.html?host=server&page=moderation` renders blank
+because the cloud settings fixture has no `spaceModerationState`. The root
+fixture spells it out (`tools/visual/settings-fixture.tsx:626`); on `/chat/` it
+answers `INERT`, and the page throws "session.spaceModerationState(...).then is
+not a function". Add one more init script after the people stub:
+
+```bash
+cat > "$SCRATCH/chat-moderation-stub.js" <<'JS'
+(() => {
+  Object.defineProperty(Object.prototype, "spaceModerationState", {
+    value: async () => ({ rooms: [], moreChannels: false }),
+    configurable: true, writable: true, enumerable: false });
+})();
+JS
+```
+
+With it, the `/chat/` page shows **Moderation**, **Member actions**, **Active
+timed mutes** and **Channel bans** with no console error (driven 2026-11-10).
+
 ## Gotchas
 
 - **The shell fixtures do not paint a seeded chat background at boot.** The
@@ -457,7 +476,9 @@ and the row **Remove** are still `live verification pending`.
   button, and **Try again** returns to My Account. Reload before driving the
   next page. Server **Moderation** fails the same way, as **Server settings
   could not load**, because `session.spaceModerationState(...).then` hits
-  `INERT`. Both crash on both hosts.
+  `INERT`. Both crash on both hosts. The standalone `/chat/` settings fixture
+  has the same `spaceModerationState` gap; see Server mute above for its init
+  stub.
 - **`settings-fixture.html` talks to production for some pages.** Its
   `socialConfig` points at `https://api.openmarket.xyz` with key `k-fixture`
   (`settings-fixture.tsx:562`). Notifications and Integrations there can send
@@ -531,7 +552,9 @@ and the row **Remove** are still `live verification pending`.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` with the people stub: `settings-fixture.html` Appearance, Server Overview and channel Overview headings; **Mute Members** in **Permissions** on both hosts; **Server mutes** with "No one is muted across this server." on `/rooms/`. **Limitations:** `page=privacy` is still blank on both hosts and `/chat/` `host=server&page=moderation` still crashes (`ModerationPage`); the Mute in server flyout and the row **Remove** are unreachable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-10 (nightly). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** `host=server&page=moderation` on `/rooms/` (18186: **Moderation**, **Member actions**, **Active timed mutes**, with the people stub) and on `/chat/` (18187: blank with "session.spaceModerationState(...).then is not a function", then the four headings with the moderation init stub); every `settings-fixture.html?page=` route in the guides mounted on both hosts except `page=privacy`. **Limitations:** `page=privacy` is still blank on both hosts; the `/chat/` stub seeds no channel rows; the Mute in server flyout and the row **Remove** are unreachable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261110/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` with the people stub: `settings-fixture.html` Appearance, Server Overview and channel Overview headings; **Mute Members** in **Permissions** on both hosts; **Server mutes** with "No one is muted across this server." on `/rooms/`. **Limitations:** `page=privacy` is still blank on both hosts and `/chat/` `host=server&page=moderation` still crashes (`ModerationPage`); the Mute in server flyout and the row **Remove** are unreachable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184): `page=appearance` with the Dim slider; **Role Color** on `host=server&page=roles`; the three sound switches with their keys, **Saved · just now** and reload persistence; "No setting matches “zzzq”."; the **Discard unsaved changes?** guard via `page=profiles`. **Limitations:** `page=privacy` blank on both hosts and `host=server&page=moderation` blank on `/chat/` (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

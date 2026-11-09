@@ -96,13 +96,19 @@ Read the gotchas for where the line now falls.
   only `src/editor/live-preview.ts`, so the cursor-based *hiding* of fence
   markers is a doc-editor behaviour, not a composer one.
 - Ticket references (`2a683fce`, `96164fbc`). On a Projects server, typing `!`
-  lists tickets (`Composer.tsx` `composeTicketTrigger`, `session.todos.lookup`),
-  and a picked ticket sends itself. In the tape, a ticket link inside a
-  sentence renders as a `TodoRefTag` with its number and status chip. A link
-  alone on its line renders the card `section[aria-label="Ticket !<n>"]`
-  (`components/projects/TodoRefCard.tsx`). An unreadable ticket shows
-  `[data-ticket-hidden]`. **Live verification pending**: neither fixture stubs
-  `session.todos`, so the list and the refs cannot resolve there.
+  and a query lists tickets (`Composer.tsx` `composeTicketTrigger`,
+  `session.todos.lookup`) under **TICKETS**, one option per ticket ("!1 Fix
+  alert dedupe #ops Open"). A bare `!` stays the command list. Nothing is
+  highlighted at first, and the popover says so: "Enter sends the text as typed.
+  Arrow keys, then Enter or Tab, insert the link." Arrowing to a row and
+  pressing Enter inserts `!1 Fix alert dedupe `. In the tape, a ticket link
+  inside a sentence renders as the button `button.ticket-ref` titled **Ticket
+  !1, Open**, and pressing it opens the ticket. A link alone on its line renders
+  the card **Ticket !<n>** (`components/projects/TodoRefCard.tsx`) with its
+  status, home channel, priority, assignee, **Open** and **Follow**. An
+  unreadable ticket shows `[data-ticket-hidden]` (not driven). Since
+  `2db71f67`, losing a channel no longer hides its tickets from the lookup, tags
+  or cards (source only).
 - Replies, mentions (`@user`, role tags), slash commands, `$` market refs, and
   library-reference pills. `ac43c466` extended the bound-name trick already used
   for topics and multiword roles to `om://doc`, `om://folder` and `om://tag`
@@ -334,8 +340,8 @@ Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
 `/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
 Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
 renders the guide page **Slash commands**. Running a command is pending: the
-real handler is `ChatSession.handleSlash` (`lib/session.ts:43446`, called at
-`:15359`, `:15584`, `:15916` and `:15992`), and the fixture's send only appends the text, so `/nick`,
+real handler is `ChatSession.handleSlash` (`lib/session.ts:43447`, called at
+`:15360`, `:15585`, `:15917` and `:15993`), and the fixture's send only appends the text, so `/nick`,
 `/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
 authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
@@ -467,6 +473,33 @@ with the value `a`. Typing `/` lists 29 commands: /dm, /help, /topic,
 /todo, /agent, /arm, /brief, /capture, /disarm, /reset and /summarize. No entry
 was run; `/draw` (`lib/slash-commands.ts:205`) was not listed in the fixture.
 
+### Ticket references (added 2026-11-10)
+
+Start the session with the people stub and the Projects stub from
+[projects.md](projects.md), which answers `todos.lookup` and `todos.refs`:
+
+```bash
+agent-browser --init-script "$SCRATCH/fixture-people-stub.js" \
+  --init-script "$SCRATCH/fixture-projects-stub.js" open about:blank
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
+agent-browser click 'textarea.composer-field'
+agent-browser keyboard type '!fix'        # TICKETS: "!1 Fix alert dedupe #ops Open"
+agent-browser press ArrowDown             # Enter alone would send "!fix" as typed
+agent-browser press Enter                 # value: "!1 Fix alert dedupe "
+agent-browser keyboard type 'needs a look'
+agent-browser press Enter                 # row: tag "Ticket !1, Open"
+agent-browser click 'textarea.composer-field'
+agent-browser keyboard type 'om://todo/s1/2'
+agent-browser press Escape
+agent-browser press Enter                 # row: card "Ticket !2" (In progress, Ship digest)
+```
+
+Pressing the tag routes to `#/todo/s1/1` on `/rooms/` and `/chat/todo/s1/1` on
+`/chat/`. Both hosts passed step for step (2026-11-10). The fixture's tape does
+not stay pinned to the bottom after these sends, so scroll the card into view
+before a screenshot. A typed `!todo <title>` is held in the composer as a ticket
+verb rather than sent.
+
 ## Gotchas
 
 - **The connection strip waits out a grace delay.** `?connection=reconnecting`
@@ -581,7 +614,9 @@ was run; `/draw` (`lib/slash-commands.ts:205`) was not listed in the fixture.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141): a local send in `#ops` (16 → 17 rows); a printable key from `BODY` focuses the composer; `/` lists 29 commands; the invite card (**Acme Desk**, 42 members, **Join**) after sending an invite code; the opening-room queue ("queued while opening" under `fixtureState=loading`); the recovery nudge shown and dismissed. `/chat/` (18142): the invite card and the recovery nudge. **Limitations:** **Join**, **Save it now** and every slash command were not run; the queue was driven on `/rooms/` only. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+**Last verified:** 2026-11-10 (nightly). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** with the people and Projects stubs, on `/rooms/` (18186) and `/chat/` (18187): `!fix` lists **TICKETS** with "!1 Fix alert dedupe #ops Open"; Enter with nothing highlighted sends `!fix` as typed (`/rooms/`); ArrowDown + Enter inserts `!1 Fix alert dedupe `; the sent row carries **Ticket !1, Open**; a standalone `om://todo/s1/2` renders the card **Ticket !2**; the tag opens ticket 1. Local sends 16 → 18 rows. **Limitations:** the stubbed lookup and refs stand in for the store; the hidden-ticket state, the card's **Follow** and live updates were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261110/r1/`.
+
+**Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141): a local send in `#ops` (16 → 17 rows); a printable key from `BODY` focuses the composer; `/` lists 29 commands; the invite card (**Acme Desk**, 42 members, **Join**) after sending an invite code; the opening-room queue ("queued while opening" under `fixtureState=loading`); the recovery nudge shown and dismissed. `/chat/` (18142): the invite card and the recovery nudge. **Limitations:** **Join**, **Save it now** and every slash command were not run; the queue was driven on `/rooms/` only. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` with the people stub: a local send in `#ops` (16 → 17 rows); the bare `@` lists 14 on `/rooms/` and 13 on `/chat/`; server-wide `@fa` hits (**MEMBERS**: faq-bot, Farah N, Farouk Aziz; Enter inserts `@faq-bot `) and `[data-testid=space-muted-notice]` on both hosts with the injected seams. **Limitations:** the daemon-pair lane was down (4001, 3002), so a real store search and a real mute frame were not driven; walls removing a hit stay unit-level. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

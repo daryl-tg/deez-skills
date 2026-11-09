@@ -215,7 +215,7 @@ unstubbed, so the offer is proved and every effect is pending. Driven on
 the pinned **Message requests** row above the DMs. On
 `shell-fixture.html?view=dm&requests=3&alerts=quiet` the sidebar shows a
 `treeitem` named **3 message requests** (`Sidebar.tsx:4644`); clicking it
-changes nothing (`openMessageRequests`, `lib/session.ts:38282`, is unstubbed,
+changes nothing (`openMessageRequests`, `lib/session.ts:38283`, is unstubbed,
 so the click resolves to `INERT`), and the hash stays `#/dm/ana`. The
 Connections **Requests** tab's **Messages 0** tab (`FriendsPane.tsx:1171`) is
 the other door and renders **No message requests waiting.** without the seed.
