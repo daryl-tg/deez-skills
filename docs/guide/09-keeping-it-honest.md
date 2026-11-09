@@ -150,6 +150,37 @@ skill's edit scope is narrow by contract — its own directory, never product
 code — but a scheduling flag does not enforce that contract; the skill does.
 Read the first few `changed` diffs before trusting the arrangement.
 
+### The operator's nightly
+
+The operator runs all four project skills nightly from one launchd agent, not
+one agent per repository. `scripts/nightly.zsh` runs verify-om, verify-om-chat,
+verify-kiyotaka and verify-kiyotaka-desktop in that order. A pass ends at a
+4 h cap, or after 30 min with no log output. It writes
+`~/Documents/dev-notes/maintain-verification-skill/nightly/<date>-<skill>.md`
+and logs to `~/Library/Logs/verify-maintenance/launchd.log`, ending with
+`nightly done <date>`. The product repositories it runs in are mapped at the
+top of the script.
+
+To install it on a new machine, clone the hub to `~/github/deez-skills` and the
+product repositories to their mapped paths, then:
+
+```bash
+T=~/github/deez-skills/skills/maintain-verification-skill/scripts
+mkdir -p ~/Library/Logs/verify-maintenance
+sed "s#HOME_DIR#$HOME#g" $T/com.dboon.verify-maintenance.plist.template \
+  > ~/Library/LaunchAgents/com.dboon.verify-maintenance.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dboon.verify-maintenance.plist
+$T/nightly.zsh verify-om   # one pass by hand to prove claude, PATH and the lane
+```
+
+To read the results in a Claude session, schedule this prompt to run daily
+(with `/loop` or a cron job) shortly after midnight. A session job expires
+after 7 days, so schedule it again each week:
+
+```text
+Nightly verification-maintenance watch. Start a Bash command with run_in_background that waits for tonight's run: d=$(date +%F); n=0; until grep -q "nightly done $d" ~/Library/Logs/verify-maintenance/launchd.log 2>/dev/null; do sleep 120; n=$((n+1)); [ $n -ge 540 ] && { echo "TIMEOUT: no 'nightly done $d' after 18h"; exit 1; }; done; echo done. Say nothing else now. When it completes, read ~/Library/Logs/verify-maintenance/launchd.log (today's lines) and each ~/Documents/dev-notes/maintain-verification-skill/nightly/<today>-<skill>.md for verify-om, verify-om-chat, verify-kiyotaka, verify-kiyotaka-desktop. Flag a missing report, a non-zero exit, or a missing map commit first. Post: (1) a compact summary table, one row per skill: outcome (clean/changed/blocked), exit code, the deez-skills map commit and push result, new product gaps. (2) A tabulated changelog per skill, headed with the skill and its map commit: columns File | Change | Proof | Lines. Take File/Change/Proof from the report's '## Changelog' table; take Lines (+added -removed) from `git -C ~/github/deez-skills fetch -q` then `git -C ~/github/deez-skills show --numstat --format= <commit>`. Every file in the commit gets a row; files whose only change is the re-drive stamp may share one row ('re-stamped: a.md, b.md, ...'). If a report has no Changelog section, build the rows from the commit diff and the report prose and say so. (3) Anything waiting on review or blocked, one line each. The operator only needs the maps recorded; keep cleanup/housekeeping notes out. On TIMEOUT, report that the nightly did not finish and show the last lines of launchd.log. Then send a PushNotification with a one-line outcome.
+```
+
 ### The recommendation stands
 
 Run it on the four signals, keep a fortnightly backstop in your tracker, and
