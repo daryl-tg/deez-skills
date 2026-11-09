@@ -2,10 +2,12 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 import importlib.util
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from deezlib.superclanker import center_model
 from deezlib.superclanker.domain import Strength, Trigger, trigger_id
@@ -712,6 +714,76 @@ class AppTest(Seeded):
 
         self.assertEqual(self.merges(verbs), [])
         self.assertIn("no review link", logs[0])
+
+    def run_artifacts(self, ticket, files):
+        notes = self.root.parent / "notes"
+        folder = notes / ticket.slug
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / ".ticket").write_text(ticket.id, encoding="utf-8")
+        for age, name in enumerate(files):
+            path = folder / "run-artifacts" / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"x")
+            os.utime(path, (1_800_000_000 - age * 60, 1_800_000_000 - age * 60))
+        patcher = mock.patch.dict(os.environ, {"DEEZ_SUPER_DEVNOTES": str(notes)})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        return folder / "run-artifacts"
+
+    def run_with_files(self, script):
+        shown = []
+
+        async def go():
+            app = CenterApp(self.root, verb=Verbs(), deez=DEEZ, refresh_s=3600, show_files=shown.append)
+            async with app.run_test(size=(160, 48)) as pilot:
+                await pilot.pause()
+                await script(app, pilot)
+                await pilot.pause()
+        asyncio.run(go())
+        return shown
+
+    def test_dossier_lists_run_artifacts_newest_first(self):
+        ticket, _, _ = self.ticket(1, report="waiting",
+                                   question="Do the frames in run-artifacts/evidence-1 look right?")
+        self.run_artifacts(ticket, ["evidence-1/02-after.png", "evidence-1/01-before.png", "red-test.txt"])
+        dossiers = []
+
+        async def script(app, pilot):
+            dossiers.append(app.query_one("#dossier-text").render().plain)
+
+        self.run_with_files(script)
+
+        shown = dossiers[0][dossiers[0].index("EVIDENCE"):]
+        self.assertIn("evidence-1", shown.splitlines()[0])
+        self.assertLess(shown.index("evidence-1/02-after.png"), shown.index("evidence-1/01-before.png"))
+        self.assertLess(shown.index("evidence-1/01-before.png"), shown.index("red-test.txt"))
+
+    def test_e_opens_the_images_of_the_folder_the_worker_names(self):
+        ticket, _, _ = self.ticket(1, report="waiting",
+                                   question="Do the frames in run-artifacts/evidence-1 look right?")
+        artifacts = self.run_artifacts(ticket, ["other/new.png", "evidence-1/02-after.png",
+                                                "evidence-1/01-before.png", "evidence-1/probe.json"])
+
+        async def script(app, pilot):
+            await pilot.press("e")
+
+        shown = self.run_with_files(script)
+
+        self.assertEqual(shown, [[artifacts / "evidence-1" / "01-before.png", artifacts / "evidence-1" / "02-after.png"]])
+
+    def test_e_without_run_artifacts_says_so(self):
+        self.ticket(1, report="progress")
+        logs = []
+
+        async def script(app, pilot):
+            await pilot.press("e")
+            await pilot.pause()
+            logs.append(app.log_text())
+
+        shown = self.run_with_files(script)
+
+        self.assertEqual(shown, [])
+        self.assertIn("no run artifacts", logs[0])
 
     def tells(self, verbs):
         return [c for c in verbs.calls if c[2:3] == ["tell"]]

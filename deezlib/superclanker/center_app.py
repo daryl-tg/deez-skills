@@ -18,7 +18,7 @@ from textual.message import Message as TextualMessage
 from textual.widgets import DataTable, Label, RichLog, Static, TextArea
 
 from deezlib import memguard
-from deezlib.superclanker import center_model, clipboard
+from deezlib.superclanker import center_model, clipboard, workers
 from deezlib.superclanker.center_model import STAGES, Message
 from deezlib.superclanker.store import state_root
 from deezlib.superclanker.ui_app import run_verb
@@ -52,6 +52,10 @@ PEERS_DIR = Path.home() / ".claude" / "sessions"
 
 def open_in_browser(url):
     subprocess.Popen(["open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def open_files(paths):
+    subprocess.Popen(["open", *map(str, paths)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def utcnow():
@@ -176,8 +180,8 @@ def stale_list_text(stale):
     return t
 
 
-MAIN_KEYS = [("TAB", "PANEL"), ("V", "VIEW"), ("Z", "ZOOM"), ("N", "NEW"), ("^T", "ASK/NOTE"),
-             ("I", "ASK"), ("O", "OPEN PR"), ("B", "REBASE"), ("M", "MERGE"), ("⇧M", "AUTO-MERGE"),
+MAIN_KEYS = [("TAB", "PANEL"), ("V", "VIEW"), ("Z", "ZOOM"), ("N", "NEW"), ("^T", "NOTE"), ("I", "ASK"),
+             ("O", "OPEN PR"), ("E", "EVIDENCE"), ("B", "REBASE"), ("M", "MERGE"), ("⇧M", "AUTO"),
              ("Y", "APPROVE"), ("ESC", "BLOTTER"), ("Q", "QUIT")]
 def rebase_request(url):
     return (f"Rebase {url} onto the latest default branch so the operator can merge it. "
@@ -271,7 +275,21 @@ def kv(t, label, value, style=WHITE):
     t.append(f"{value}\n", style=style)
 
 
-def dossier_text(d, full, activity=()):
+EVIDENCE_LINES = 8
+
+
+def evidence_text(t, found, full):
+    if found is None or not found.files:
+        return
+    target = found.named or found.files[0].parent
+    rule(t, f"EVIDENCE ({len(found.files)}) · e opens {target.relative_to(found.root.parent)}")
+    for path in found.files if full else found.files[:EVIDENCE_LINES]:
+        image = path.suffix.lower() in center_model.IMAGE_SUFFIXES
+        t.append(f"{clock(datetime.fromtimestamp(path.stat().st_mtime, timezone.utc))} ", style=DIM)
+        t.append(f"{path.relative_to(found.root)}\n", style=CYAN if image else "#BBBBBB")
+
+
+def dossier_text(d, full, activity=(), found=None):
     t = Text()
     if d is None:
         t.append("no ticket selected", style=DIM)
@@ -296,6 +314,7 @@ def dossier_text(d, full, activity=()):
         t.append(f" {d.last_text}\n", style=RED)
     t.append("\n")
     kv(t, "REVIEW", d.review_url or "none yet", f"bold {CYAN}" if d.review_url else DIM)
+    evidence_text(t, found, full)
     rule(t, "LATEST REPORT")
     t.append(f"{kind:<9}", style=f"bold {KIND_COLOR.get(kind, DIM)}")
     t.append(f"{d.last_text or '-'}\n", style=WHITE)
@@ -1132,7 +1151,7 @@ class ReviewStale(Screen):
         body = Text()
         body.append(" STALE ", style=f"bold #000000 on {RED}")
         body.append(f" {reason}\n\n", style=f"bold {RED}")
-        body.append_text(dossier_text(d, False, self.app.activity_of(d)))
+        body.append_text(dossier_text(d, False, self.app.activity_of(d), self.app.evidence_of(d)))
         self.query_one("#review-text", Static).update(body)
 
     def action_archive(self):
@@ -1180,7 +1199,7 @@ class Zoom(Screen):
             elif self.panel == "DOSSIER":
                 with VerticalScroll():
                     chosen = self.app.selected()
-                    yield Static(dossier_text(chosen, True, self.app.activity_of(chosen)), markup=False)
+                    yield Static(dossier_text(chosen, True, self.app.activity_of(chosen), self.app.evidence_of(chosen)), markup=False)
             elif self.panel == "SYSTEM":
                 with VerticalScroll():
                     yield Static(system_text(w), markup=False)
@@ -1270,6 +1289,7 @@ class CenterApp(App):
         ("i", "inquire", "ask about task"),
         ("o", "open_review", "open review"),
         ("b", "rebase_review", "rebase review"),
+        ("e", "open_evidence", "open evidence"),
         ("y", "approve", "approve"),
         ("m", "merge(False)", "merge"),
         ("M", "merge(True)", "auto-merge"),
@@ -1279,7 +1299,7 @@ class CenterApp(App):
 
     def __init__(self, root, *, verb=run_verb, deez=REPO_ROOT / "bin/deez", refresh_s=REFRESH_S,
                  load=center_model.load, probe=None, now=None, grab_image=clipboard.grab_image,
-                 projects=Path.home() / ".claude" / "projects", opener=None):
+                 projects=Path.home() / ".claude" / "projects", opener=None, show_files=open_files):
         super().__init__()
         self.root = Path(root)
         self.approved = {}
@@ -1292,6 +1312,7 @@ class CenterApp(App):
         self.grab_image = grab_image
         self.projects = Path(projects)
         self.opener = opener or open_in_browser
+        self.show_files = show_files
         self.activity_cache = {}
         self.attachments = []
         self.stale = []
@@ -1340,7 +1361,7 @@ class CenterApp(App):
                         yield Static(system_compact(w), id="sysinfo", markup=False)
             with Vertical(id="right"):
                 with Panel(id="p-dossier"):
-                    yield Band("DOSSIER", "o open · b rebase · m merge · M auto-merge · i ask · z full", name_id="dossier-name")
+                    yield Band("DOSSIER", "o open · e evidence · b rebase · m merge · M auto · i ask · z full", name_id="dossier-name")
                     yield ApproveBar(APPROVE_LABEL, id="approve", markup=False)
                     with VerticalScroll(id="dossier-scroll"):
                         yield Static(id="dossier-text", markup=False)
@@ -1496,7 +1517,7 @@ class CenterApp(App):
     def refresh_panels(self, reset_scroll):
         main = self.screen_stack[0]
         d = self.selected()
-        main.query_one("#dossier-text", Static).update(dossier_text(d, False, self.activity_of(d)))
+        main.query_one("#dossier-text", Static).update(dossier_text(d, False, self.activity_of(d), self.evidence_of(d)))
         main.query_one("#dossier-name", Static).update(Text(f"DOSSIER  {d.id}" if d else "DOSSIER"))
         self.show_approve_bar(d)
         main.query_one("#sysinfo", Static).update(system_compact(self.world))
@@ -1618,6 +1639,26 @@ class CenterApp(App):
             self.submit([str(self.deez), "super-clanker", "merge", d.id, *(["--auto"] if auto else [])])
 
         self.push_screen(ConfirmMerge(d, auto), answered)
+
+    def evidence_of(self, d):
+        if d is None:
+            return None
+        try:
+            return center_model.evidence(d, workers.paths(self.root, None, d).notes)
+        except OSError:
+            return None
+
+    def action_open_evidence(self):
+        d = self.selected()
+        if self.in_zoom() or d is None:
+            return
+        found = self.evidence_of(d)
+        if found is None or not found.files:
+            self.say(f"no run artifacts for {d.id}")
+            return
+        paths = center_model.evidence_to_open(found)
+        self.show_files(paths)
+        self.say(f"opened {len(paths)} from {paths[0].parent.relative_to(found.root.parent)}")
 
     def action_rebase_review(self):
         d = self.selected()

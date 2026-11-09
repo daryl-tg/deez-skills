@@ -384,6 +384,48 @@ def keep(root, dossier):
     os.replace(temp, Path(root) / KEPT_NAME)
 
 
+IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
+NAMED_ARTIFACTS = re.compile(r"run-artifacts/([^\s/)`'\"]+)")
+EVIDENCE_FILE_CAP = 500
+
+
+@dataclass(frozen=True)
+class Evidence:
+    root: Path
+    files: list
+    named: Path | None
+
+
+def evidence(dossier, notes_folder):
+    root = Path(notes_folder) / "run-artifacts"
+    if not root.is_dir():
+        return None
+    files = []
+    for path in root.rglob("*"):
+        if path.is_file() and not path.name.startswith("."):
+            files.append(path)
+            if len(files) >= EVIDENCE_FILE_CAP:
+                break
+    files.sort(key=lambda path: path.stat().st_mtime, reverse=True)
+    return Evidence(root, files, _named_folder(dossier, root))
+
+
+def _named_folder(dossier, root):
+    for text in (dossier.question, dossier.last_text, dossier.answer):
+        for match in NAMED_ARTIFACTS.finditer(text or ""):
+            if (root / match.group(1)).is_dir():
+                return root / match.group(1)
+    return None
+
+
+def evidence_to_open(found):
+    folder = found.named or next((path.parent for path in found.files if path.suffix.lower() in IMAGE_SUFFIXES), None)
+    if folder is None:
+        return [found.root]
+    images = sorted(path for path in folder.iterdir() if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES)
+    return images or [folder]
+
+
 def drop_long_ended(world, now):
     world.dossiers = [
         d for d in world.dossiers
