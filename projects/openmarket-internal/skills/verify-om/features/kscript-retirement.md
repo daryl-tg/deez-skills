@@ -1,5 +1,7 @@
 # Retired kScript package kinds
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `search rsi --kind kscript-indicator` exit 2 `kind_retired`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `search rsi --kind kscript-indicator` exit 2 `kind_retired`, `open @om-core/rsi --print` 0.3.4. Citation `cmd/search.ts:130` corrected. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/48-49`).*
 
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `search rsi --kind kscript-indicator --format json` exit 2 `kind_retired`; `open @om-core/rsi --print --format json` `wrun-indicator` 0.3.4. Not re-driven: the `install`/`publish` refusals and the MCP tools. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/50-51`).*

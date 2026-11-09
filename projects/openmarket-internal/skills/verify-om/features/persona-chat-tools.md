@@ -1,5 +1,7 @@
 # Persona setup from om chat
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `persona show` (the voice lines, `MCP clients: off`, `Learning: on`) only. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. guest lane plus a scripted fake: `tool_search`, then `persona_infer` with `pasted`, the approval card (VOICE, REPLACES, USED BY, LEARNING), yes, `persona_set` as a background job, `persona show`. Room sampling is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`tui/08-11`, `cli/90`).*
 
 *Re-read 2026-11-05 (nightly), CLI only, tree `3a0ea623e` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted in 2 s at 19:19Z with no guest 429, host load average about 4.4: `om persona show` printed the default persona and its `MCP clients:` row. The chat flow (`persona_infer`, the card) was not re-driven. Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`cli/persona-show.out`).*

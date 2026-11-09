@@ -1,5 +1,7 @@
 # Import another agent's setup
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `migrate hermes --source <scratch copy of the fixture> --dry-run --format text` (the plan, `Keys and tokens: not imported`). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `migrate hermes --source <fixture copy> --dry-run --format text`: the plan's create and skipped rows. `--yes`, `openclaw` and `grok-bot` are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/99`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0; #2377), guest lane on 18141. `migrate grok-bot --source <scratch>/grok-bot/grok-bot-export.json`: `--dry-run --format text` listed `skipped skills 2 built-in skills  bundled with Grok Bot` and ended `After import:` / `om setup, then om migrate grok-bot (2 routines wait for a channel)`; `--yes` ended `Next:` with the same line, then `Grok Bot: imported (7 items)`; a second `--yes` read `Grok Bot: already here; nothing new`; `memory list` held the `mig-grok-bot` memories. Not re-driven: Hermes, OpenClaw. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/41-44`).*

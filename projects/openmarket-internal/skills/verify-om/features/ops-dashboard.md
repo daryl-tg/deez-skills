@@ -1,5 +1,7 @@
 # The ops dashboard
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. Overview H1 `Your market, in view.` and the nav (Overview, Watches, News, Strategies, Channels, Connections, Venues, Receipts, OM Chat); **Watches** → `/alerts` listing all four lane watches (`2 Enabled`, `2 Paused`). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. Overview, Watches (`/alerts` row for `lane-probe`), the detail page at `/alerts/lane-probe`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`overview.*`, `watches.*`, `detail.*`).*
 
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. 1440x900: Overview (`Your market, in view.`, `Watch activity`, `Workspace`), Watches at `/alerts` (`region "Watches"`, `1 watch`, `lane-probe` with `Pause`), and `/alerts/lane-probe` (`Sources and schedules`, `Connected steps`). Not re-driven: News, Strategies, Channels, Connections, Venues, Receipts. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`overview.png`, `alerts.png`, `detail.png`, `*.aria.txt`).*

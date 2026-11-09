@@ -1,5 +1,7 @@
 # Chat TUI icon modes (`chat.icons`)
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `config get chat.icons` (default `emoji`, `stored as tui.icons`, rule `emoji or nerd or ascii`) only. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. the `Nerd Font icons` card at `15 of 15`, ctrl+x `w`, `config get chat.icons` `nerd`; the card then leaves `14 of 14`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`tui/03-04`).*
 
 *Re-driven 2026-11-06 (nightly), count only, tree `50fcc594b` (origin/main, v0.492.0), bare lane on 18165 with a scripted fake model on 18164: the card read `What's new · 1 of 14` and `2 of 14` on a fresh home, so `Nerd Font icons` sits at `14 of 14` by the source's order (not paged to tonight). The switch was not pressed. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`tui/01-open.txt`, `tui/02-whatsnew-2.txt`).*

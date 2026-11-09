@@ -1,5 +1,7 @@
 # Agent files, scopes and trust
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `agent list --lock --format json` (plugin rows with digests). `init`, `try` and `install` were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. on a guest lane plus a scripted fake model: `agent init vomuser`, `agent list --lock`, `agent try` (`no-bare-ack` pass). Not re-driven: tamper restore, scopes, trust, install. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/95-97`).*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429. `agent init vomuser --dir <scratch>/vomuser --format json` wrote `plugin.json` and `agents/vomuser/AGENT.md`; `agent list --lock --format json` read the lane's `library/agents.lock.json`. Not re-driven: trust, scopes, `--preflight`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/133-134`).*

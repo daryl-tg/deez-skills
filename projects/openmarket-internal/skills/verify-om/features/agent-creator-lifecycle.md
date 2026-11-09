@@ -1,5 +1,7 @@
 # Agent creator lifecycle and private-state isolation
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `OM_DEV=1 agent runs` `{ok:true, result:{items:[], next:null}}`; `agent runs run_x --proof` exit 1 `not_found` `Work proof was not found.` Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429, CLI reads only. With `OM_DEV=1`: `agent runs` `{"ok":true,"result":{"items":[],"next":null}}`, `agent pause nope` exit 1 `Work run was not found.`, `roster list` six `registry` rows; without it all three are `unknown command`. `GET /rpc/v1/roster/brains` lists `om` `signed_in`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/130-132`).*
 
 *Re-driven 2026-11-06 (nightly), CLI reads only, tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), booted at 19:18Z with no guest 429, host load average 10 falling to about 3.3. With `OM_DEV=1`: `roster list` (tab-separated `NAME ORIGIN VERSION BRAIN`); `agent runs` takes no `--format` (exit 1 `unknown option`). `agent show argue` printed its About block. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`cli/roster-list.txt`, `cli/agent-runs.txt`).*

@@ -1,5 +1,7 @@
 # Calendar scheduling and polling windows
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `calendar list` `no occurrences` only; the push, select and revise were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `calendar list` empty only. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/44`).*
 
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. `calendar list --format json` `{occurrences:[], events:[], truncated:false}`. Not re-driven: `calendar links`, the windows. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/64`).*

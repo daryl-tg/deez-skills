@@ -18,7 +18,7 @@ The hosted chart MCP (`packages/cli/src/hosted/`, built by `bun run build:chart-
 ## Sub-features
 
 - `boot` connects to Mongo, creates or rebuilds its three indexes, and logs `tenant store: mongo <db>, indexes ready`. It then prints `om-chart-mcp listening on http://<bind>:<port>/api/mcp (gateway https://collab.openmarket.xyz)`. A fresh `OM_HOME` first logs `symbol directory: no saved snapshot at <OM_HOME>/.hosted-symbol-directory.json; the first lookup loads it`. It refuses to start (exit 2, `om-chart-mcp: <message>`) without `OM_HOSTED_MONGO_URI`, with a URI that names no database, with a relative `OM_HOME`, or with any of `OM_API_KEY`, `OM_DATA_API_KEY`, `OM_COLLAB_AUTH_TOKEN`, `OM_COLLAB_WORKSPACE_ID` or `OM_ACCOUNT` set.
-- `help`: `--help`/`-h` prints the routes (`POST /`, `/mcp`, `/api/mcp`, `/chatgpt`), the public GET routes and the env list, then exits 0.
+- `help`: `--help`/`-h` prints the routes (`POST /`, `/mcp`, `/api/mcp`, `/chatgpt`, and since #2350 `/directory`, the profile without trade tools; source only, not driven), the public GET routes and the env list, then exits 0.
 - `healthz` is liveness: always 200 while the process serves; its body names the store or says `unreachable` from a background ping every 10 s. It never waits on Mongo.
 - `readyz` is readiness: races a ping against 2 s and answers 503 `{ok:false, tenant_store:"unreachable"}` while the store is down.
 - `index-rebuild` (store) drops and recreates an owned index whose keys changed (Mongo code 86) and logs `tenant store: rebuilt index <name>`; a TTL option change (85) goes through `collMod`, then drop-and-rebuild where the role lacks `collMod`.

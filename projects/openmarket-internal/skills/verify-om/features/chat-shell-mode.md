@@ -1,5 +1,7 @@
 # Chat shell mode (`!` in `om chat`)
 
+*Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `run`: `!echo VOM_BANG_1109` printed the line and `exit 0 · 0.0s`; `agent-reads`: the next message's request carried the output and `exit 0`; `prompt-rule` (#2401) present in the system prompt. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `!echo VOM_BANG_ONE`: `exit 0 · 0.0s`, SGR `38;2;209;111;196` present, the marker reached the next message and not the one after. ↑ recall and esc are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`tui/06-07`).*
 
 *Re-driven 2026-11-06 (nightly) on main, tree `50fcc594b` (origin/main, v0.492.0; #2362 squashed as `a4e42d7bd`), bare lane 18165 (dummy `OM_API_KEY`, dead service URLs), scratch fake model 18164, tmux 140x40, default workspace. Driven: `enter` (the empty shell composer carries SGR `38;2;209;111;196`), `run` (`!echo vom1106-shell` printed the line, then `exit 0 · 0.0s`), and `agent-reads` (the fake model saw no request for the `!` line; the next message's request carried the command's output and `exit 0`, and the reply said so). Not re-driven on main: `consumed-once`, `recall`, `stop`. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`tui/16-bang.txt`, `tui/17-bang-run.txt`, `tui/18-after-msg.txt`).*
@@ -18,6 +20,8 @@ A line starting with `!` in the agent composer runs in the user's shell, prints 
 - `consumed-once` — the message after that carries none.
 - `recall` — ↑ brings `!` entries back in shell mode, chat entries back under `❯`.
 - `stop` — status row `Running <cmd> · Ns · esc to stop`; esc kills the process group and prints `stopped after Ns`.
+
+- `prompt-rule` (#2401): in `om chat` (surface `cli` only) the agent's system prompt says `Commands for the user: write each as \`!<command>\` and tell them they can run it directly in the input. One that waits for a prompt or a typed yes refuses there: give it bare, for their own terminal, and say why.` Live 2026-11-09: the fake model's request carried it. Whether a real model follows it is not proved.
 
 ## How to get to it (user POV)
 

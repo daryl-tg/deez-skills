@@ -21,7 +21,7 @@ Use an agent heavily. When it hits a cap, the run is refused with the cap and th
 
 ## Driving it with control-om
 
-Bare-lane recipe as in [agent-create.md](agent-create.md). The door merges identical asks into one run, so give every submission a distinct ask. It also queues at most 16 runs per agent and answers 429 `agent_busy` beyond that, so wait for each run (`GET /rpc/v1/roster/tasks/<id>?wait=30000`) before the next. For the per-run stop, have the fake model's final SSE chunk carry `usage` of more than 40,000 tokens for one ask.
+Bare-lane recipe as in [agent-create.md](agent-create.md). The door merges identical asks into one run, so give every submission a distinct ask. It also queues at most 16 runs per agent and answers 429 `agent_busy` beyond that, so wait for each run (`GET /rpc/v1/roster/tasks/<id>?wait=25000`; the door refuses more with `malformed_body` `wait must be 0 to 25000 ms.`, proved 2026-11-09) before the next. For the per-run stop, have the fake model's final SSE chunk carry `usage` of more than 40,000 tokens for one ask.
 
 ```sh
 for i in $(seq 1 51); do
