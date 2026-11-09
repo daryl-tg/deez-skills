@@ -225,6 +225,24 @@ class ActivityTest(Seeded):
             ("Agent", "map the relay"),
         ])
 
+    @unittest.skipUnless(TEXTUAL, "textual not installed")
+    def test_dossier_activity_lists_the_newest_first(self):
+        from deezlib.superclanker.center_app import dossier_text
+        self.ticket(1)
+        projects = self.root.parent / "projects"
+        write_transcript(projects / "-w-1" / "sid-1.jsonl", [
+            (f"2026-11-04T06:{minute:02d}:00Z", [{"type": "text", "text": f"step {minute}"}])
+            for minute in range(40)
+        ])
+        dossier = center_model.load(self.root).dossiers[0]
+        lines = center_model.activity(dossier, projects)
+
+        for full in (False, True):
+            shown = dossier_text(dossier, full, lines).plain
+            activity = shown[shown.index("ACTIVITY"):]
+            self.assertLess(activity.index("step 39"), activity.index("step 38"), full)
+        self.assertNotIn("step 9\n", dossier_text(dossier, False, lines).plain)
+
     def test_running_turn_tokens_come_from_the_transcript(self):
         self.ticket(1, report="progress")
         projects = self.root.parent / "projects"

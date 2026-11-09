@@ -372,11 +372,11 @@ def answer_text(t, answer, full):
 
 def activity_text(t, lines, full):
     lines = list(lines)
-    rule(t, f"ACTIVITY ({len(lines)})")
+    rule(t, f"ACTIVITY ({len(lines)}, newest first)")
     if not lines:
         t.append("no transcript yet\n", style=DIM)
         return
-    for line in lines if full else lines[-ACTIVITY_LINES:]:
+    for line in reversed(lines if full else lines[-ACTIVITY_LINES:]):
         t.append(f"{clock(line.at)} ", style=DIM)
         t.append(f"{fit(line.kind, 6)} ", style=f"bold {ACTIVITY_COLOR.get(line.kind, DIM)}")
         t.append((line.text if full else fit(line.text, 200).rstrip()) + "\n",
