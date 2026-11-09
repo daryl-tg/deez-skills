@@ -5,6 +5,14 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-10 against product tree `c2c02b7b42` (`origin/main`, 60
+commits past `32dd0c6354`), lane `18103`, a guest-JWT lane. Driven that day:
+the Panels menu's 17 rows plus `tb-panels-row-orderbook-on`; Tape, Alerts,
+Objects, Journal, ETF screener and Market Stats open with no wall; the walls
+`watchlist`, `terminal` (Scanner), `chart-actions` (Replay), `news`,
+`community-chat` and `script-editor` (Editor); the Orderbook's new Spread rule
+on BINANCE.F BTCUSDT, ETHUSDT and SOLUSDT (see `rp-orderbook`); the Tape with
+its docked Liquidations printing on SOLUSDT. Before that, last
 DRIVEN on 2026-11-09 against product tree `32dd0c6354` (`origin/main`, 60
 commits past `943281a2eb`), lane `18103`, a guest-JWT lane. Driven that day: the
 same seven walls (`chart-actions`, `watchlist`, `terminal`, `news`,
@@ -198,8 +206,18 @@ an open panel.
   and read the price with `Imbalance 44.7% bid · 55.3% ask` on 2026-11-02 (a
   `/Spread/` match on `innerText` finds nothing). On 2026-11-03 the frame of
   the same ETHUSDT ladder showed `2251.09 ▲` over `Spread 0.20 · 0.009%`
-  instead, with no imbalance line, so read the mid row off the frame rather
-  than asserting either text. **The ladder does not mount
+  instead, with no imbalance line. **That `Spread 0.20` was the grouping
+  step, not the market's spread, and since `e1ce349c4a` it is gone
+  (driven 2026-11-10 on `c2c02b7b42`).** The Spread line prints only when the
+  served book is no coarser than the instrument's tick (with no tick known,
+  the ticker's printed decimals); otherwise the mid row shows the price over
+  the Imbalance line alone and does not cycle. Driven: BINANCE.F BTCUSDT
+  (5-dollar levels) and ETHUSDT (0.2 levels) read `Imbalance 51.4% bid ·
+  48.6% ask` and `50.4% bid · 49.6% ask` with no Spread in frames 4 s apart;
+  SOLUSDT (0.01 levels, the tick) read `86.62 ▲` over `Spread 0.01 · 0.012%`.
+  On Polymarket and HIP-4 books the spread is never shown and LAST leads the
+  second row (source). So assert Spread only on a book served at its tick,
+  and read the mid row off the frame. **The ladder does not mount
   while the tab is hidden**: the same open with `document.visibilityState`
   `hidden` showed the header and the tabs but no `orderbook-canvas` for 40 s on
   ETHUSDT and 24 s on SOLUSDT, and `tab t1` plus a reopen drew it in 5 s both
@@ -329,6 +347,19 @@ an open panel.
   signed-in with OPRA data).
 - **`rp-options`.** `tb-options-btn` (`Options`) was visible to the guest. A
   click raised the `terminal` wall.
+  **The head reads every futures month on a continuous CME chart
+  (`685c96d6ba`, source; signed-in with CME data).** On `ES1!` the head's
+  all-expiry figures (P/C, GEX, RR, expected move) come from the fold across
+  every futures month, the Dashboard's own number, not the lead month (the
+  commit cites `ES1!` P/C `2.17` against the Dashboard's `1.79` before). A
+  refused fold shows no figures; a passing failure keeps the last ones. Check:
+  the head's P/C equals the Dashboard tab's.
+  **A broker session's heatmap is live from its own book (`c2c02b7b42`,
+  source; needs a connected Rithmic lane).** When an order-flow session owns
+  the chart's heatmap, its newest columns come live from that session's book
+  and the CME delay notice gives way to `Live · {source}` in the legend; the
+  session chip's hint says the columns between fill in within the delay.
+  Not reachable from an agent lane.
 - **`rp-tape`, rebuilt as one tape (`ad67d47c62`, `4dae9e6136`,
   `ba8e2cc280`; driven 2026-11-02 on `a4488341f6`).** `tb-panels-row-tape`
   opens `Tape` (`src/components/trades/Trades.vue` mounts

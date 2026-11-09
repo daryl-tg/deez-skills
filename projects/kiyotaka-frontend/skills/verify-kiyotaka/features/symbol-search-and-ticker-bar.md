@@ -4,7 +4,16 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-09 against product tree `32dd0c6354` (`origin/main`,
+was last DRIVEN on 2026-11-10 against product tree `c2c02b7b42` (`origin/main`,
+60 commits past `32dd0c6354`), lane `18103`, a guest-JWT lane. Driven that day:
+the V2 dialog (v2 20, legacy 0, the same placeholder, no
+`search-v2-category-yours-btn`); a `BTCUSDT` fill whose bare
+`asset-row-BTCUSDT|1-btn` STILL charted a Binance option, now `BINANCE.O
+BTC/USDT 25 Dec 2026 74,000 Call` (345 bars; open product gap); then
+`venue-row-BINANCE_FUTURES|BTCUSDT-btn` (405 bars), `-ETHUSDT-btn` and
+`-SOLUSDT-btn`; `tb-interval-pinned-1m-btn` to `1m` (499 bars) and `1h` back;
+and Full chart from the palette with no pointer (see `tb-full-chart`). Before
+that, last DRIVEN on 2026-11-09 against product tree `32dd0c6354` (`origin/main`,
 60 commits past `943281a2eb`), lane `18103`, a guest-JWT lane. Driven that day:
 the V2 dialog (v2 20, legacy 0, placeholder `Search markets, or type a ratio like
 SPY/GLD`); the renamed strip and rail with the new Exchanges section (see
@@ -201,6 +210,14 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   lane has no om series to list, so the tab is absent until the store is
   seeded as above (absent on 2026-11-07). While Yours is active, arrow keys do
   not move through rows, and an om pick writes no recent venue (source).
+  Since `fcf9538dda` and `103270ee3c` Yours also lists every registry feed the
+  viewer owns, on any symbol: the tab shows when the pane holds a pushed series
+  OR the viewer owns a feed (the owned list loads on every dialog open), a
+  multi-column feed gives one row per column titled `Title: column`, and a
+  feed row's pick writes the target `feed:<scope>/<name>:<column>` (source).
+  The plain All view still lists only pushed series. A guest owns no feed
+  (`viewerFeedScope` is empty for a guest), so the guest lane still shows no
+  tab (driven 2026-11-10); proving an owned feed row needs a signed-in owner.
   Since `37f68474f3` the dialog's strip ends with a `yours` view tab
   (`search-v2-category-yours-btn`) whenever the pane holds a series: on
   Crypto the block is gone and the tab stays; Yours hides the rail and the
@@ -619,7 +636,15 @@ Preconditions:
   chart-pane-expand-btn click` (name `Full chart`) enters the mode; the button's
   name becomes `Exit full chart` and it sat at about `(1325, 52)` at 1440 x 900,
   below the hover toolbar. `Escape` left the mode and the name returned to `Full
-  chart`.
+  chart`. **The palette runs it with no pointer (`e1ce349c4a`; driven
+  2026-11-10 on `c2c02b7b42`).** The command now targets the expanded chart,
+  then the hovered one (only from a key press), then the active chart, so the
+  Super Search row `super-search-result-commands:expandChart-btn` (query
+  `expand`, caps `⌥ Enter`) set the chart store's `activeExpandChartIndex` from
+  `null` to `0` and drew the pane full frame; `chart-pane-expand-btn` brought
+  it back to `null`. While the mode is on, a left-edge hot zone
+  (`.full-chart-hotzone--left`) covers `global-nav-search-btn`, so exit first
+  before opening the palette again.
 
 ## Gotchas
 

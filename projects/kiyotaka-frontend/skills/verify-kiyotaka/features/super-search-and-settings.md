@@ -7,6 +7,14 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-10 against product tree `c2c02b7b42` (`origin/main`, 60 commits past
+`32dd0c6354`), lane `18103`, a guest-JWT lane. Driven that day: the palette's
+one row per action (`chat`, `hide all drawings`, `magnet`, `keyboard
+shortcuts`, `candle`, `spline`, see `ss-one-row`), `dark` flipping
+`body--light` to `body--dark` and back, `expand` running full chart with no
+pointer, `editor` to `panels:Editor`, `Meta+/` to the four-page nav, and the
+Lite charts notice on a cold boot reading its words (the raw-key gap is
+closed, see Gotchas). Before that, last DRIVEN on
 2026-11-09 against product tree `32dd0c6354` (`origin/main`, 60 commits past
 `943281a2eb`), lane `18103`, a guest-JWT lane. Driven that day: `dark` flipping
 `body--light` to `body--dark` and back, `heatmap` listing the indicator rows and
@@ -229,7 +237,34 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   guest, a phone, one chart) is left out per build. `alert lines` listed nothing
   for a guest. `zoom` listed only the older `commands:zoomIn` / `zoomOut` and
   hover-lens rows: zoom-reset and go-to-date are Ask-only verbs, not palette
-  rows. The Ask plan cards (`super-search-ask-plan-card`) are absent for a guest.
+  rows (still so on 2026-11-10: `zoomIn` and `zoomOut` have no second door).
+  The Ask plan cards (`super-search-ask-plan-card`) are absent for a guest.
+- **`ss-one-row`: one row per action (`e1ce349c4a`; driven 2026-11-10 on
+  `c2c02b7b42`).** A keyboard command that has a palette row of its own
+  (`src/constants/keymapSecondDoors.constants.ts`) folds into that row, which
+  keeps the key caps; the `commands:` row is dropped when both would list.
+  The pairs: `showKS` into `settings:tab:shortcuts`, `advancedSettings` into
+  `settings:chart-settings`, `hideToolSidebar` into
+  `settings:global:tool-sidebar`, `toggleMagnetMode` into `tools:magnet`,
+  `toggleChat` into `panels:Chat`, `toggleWatchlistPanel` into
+  `panels:WatchlistPane`, `toggleObjectsPanel` into `panels:Objects`,
+  `toggleJournalPanel` into `panels:Journal`, `openHyperliquidView` and
+  `openCallsPanel` into their `featureCommands:` rows, `hideAllDrawings` into
+  `objects:objects-hide-all-drawings`, `spline` and `candle` into
+  `chartStyle:`, and every tool key into its `tools:<tool>` row. Driven:
+  `hide all drawings` listed one row, under `SHORTCUTS`, with `⌘ ⌥ H` caps;
+  `chat` listed only `panels:Chat`; `magnet` listed `tools:magnet` and no
+  `commands:toggleMagnetMode`; `keyboard shortcuts` listed
+  `settings:tab:shortcuts` with `⌘ /`; `candle` and `spline` listed their
+  `chartStyle:` rows (`spline` is titled `Chart Style: Line`). The Top band
+  repeats rows that also list in their section, so count unique testids. A
+  Top band row can carry a `.ss-row-badge` naming its section (`TOOLS`,
+  `SETTINGS`, `CHART STYLE`, `SYMBOLS` were read). `Chat` and `Hide all
+  drawings` now toggle from the palette (source); `market events` listed
+  nothing for a guest. `expand` lists `commands:expandChart` (`⌥ Enter`),
+  which since the same commit runs with no pointer on the chart: its click
+  set the chart store's `activeExpandChartIndex` from `null` to `0` (driven;
+  see the ticker bar guide's `tb-full-chart`).
 - **Options-panel words find nothing for a guest — driven 2026-10-28.** Since
   `29c9cda0a2` the Options panel row carries extra names (`options chain`,
   `0dte`, `options profile`, `options panel`, `the options` and variants). For a
@@ -372,6 +407,17 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   notice's `Undo` by its row, not `find role button --name "Undo"`, which picks
   the footer's undo first. No gate: a guest reaches it. Not driven: the chart
   settings Display page's copy of the row and the phone drawer's.
+  **Only the hardware class offers it now (`21126deb8b`, source).** The
+  `Panning choppy?` ask after choppy drags is gone: measured stutter is
+  telemetry only. A device the older boot-time probe alone had switched on,
+  with no decision stored and no hardware group, is switched off once and
+  silently when its settled probe reads a fast display (source,
+  `src/utility/chart/lite/lite-hint.ts`), so a reused profile can lose
+  `kiyo:pref:light-charts` with no notice. A fresh profile is unaffected.
+  **`Keep` stores the decision (driven 2026-11-10 on `c2c02b7b42`).** The
+  auto-on writes `kiyo:pref:light-charts` `1` but no `:decided` key; `Keep`
+  wrote `kiyo:pref:light-charts:decided` `on`, the chip stayed, and a later
+  navigation back to `/chart/` raised no notice.
 - **`set-timezone`: the footer's timezone menu (`2cad385819`; driven
   2026-11-08 on `943281a2eb`).** `find testid footer-timezone-select click`
   opens a list of `role=option` rows (`.timezone-region`, no per-row testid),
@@ -404,11 +450,14 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `.q-notification` read `Lite charts is on. Smoother panning on this computer,
   same charts. Keep Turn off` with no timeout. It stays over the bottom of the
   frame until you act, so include it in the overlay check, and record the state
-  in any drag or performance read. **On a cold boot it can read raw keys**
-  (`perfHints.liteCharts.autoOnLine`, `autoOnSub`, `keep`): those strings are not
-  in the boot locale bundle, and the notice fires 5 s after mount whether or not
-  the first chart has painted. Seen on the pass's first boot (14 s to candles), not
-  on a warm reload. Product gap.
+  in any drag or performance read. **It waits for its words (`bf17ae49cd`;
+  driven 2026-11-10 on `c2c02b7b42`).** The 2026-11-09 cold boot read raw keys
+  (`perfHints.liteCharts.autoOnLine`, `autoOnSub`, `keep`); boot toasts now
+  wait, capped, for their locale bundle. The 2026-11-10 cold boot read the
+  words, and a page-text match on `perfHints.` found nothing. A raw key there
+  is now a regression. When the notice fires: at mount for a 2-core or a
+  4-core 8 GB device, otherwise after the probe settles (5 s plus an idle
+  slot) once the GPU reads as software (source, `lite-hint.ts`).
 
 - **NinjaTrader has a Super Search row and Connections aliases a guest never
   sees (`3dd3e5d0c3`; source, absence driven 2026-11-07).** The provider
@@ -509,7 +558,14 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   check above to continue.` until it is ticked (source; the code panel's
   `login-signup-code-turnstile` says `Complete the check above to continue.`),
   and a submit waits up to 5 s for the token. Never submit: that sends a real
-  code. The sign-in form also fades out before the card shrinks to the welcome
+  code. **A failed check retries, and a refused code goes back to the address
+  (`abcb149af8`, `1b5ad78f88`, `4fe6fb323e`; source).** Cloudflare retries a
+  failed challenge itself (every 2 s), the 5 s wait is unchanged (it went to
+  10 s and back), and a first send with no token still goes out. When the
+  server refuses a code for its bot check, the code panel toasts `We couldn't
+  confirm you're human. Complete the check on the sign-in screen and request a
+  new code.` and returns to the address step, not to `invalid code`. Not
+  driven: it needs a real code. The sign-in form also fades out before the card shrinks to the welcome
   (`2ab15d9784`, source).
 - **A gateway outage reads as `Reconnecting…` in `connection-status-chip`
   (seen 2026-11-01; on desktop since `b2623958e8` the yellow

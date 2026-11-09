@@ -4,7 +4,12 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-09 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-10 against
+product tree `c2c02b7b42` (`origin/main`, 60 commits past `32dd0c6354`), lane
+`18103`, a guest-JWT lane: the dialog's guest strip (still `popular, trending,
+new, paid`, no Favorites tab), an `rsi` search (`Community 13`), and the
+community package `RSI + Divergence [SolAtlas]`'s pane star raising the
+`indicators` wall (see `ind-favorites`). Before that, last DRIVEN on 2026-11-09 against
 product tree `32dd0c6354` (`origin/main`, 60 commits past `943281a2eb`), lane
 `18103`, a guest-JWT lane: a programmatic `ORDERBOOK_PROFILE` on BINANCE.F
 BTCUSDT and its new `Grouping mode` (see `ind-ob-grouping`), and the settings
@@ -166,14 +171,17 @@ Preconditions:
   (`official`, `community`), inside `indicator-results-list` /
   `indicator-list-scroll`. `indicator-list-group-count` and
   `indicator-category-chip-technical` are GONE (zero matches live and in source).
-  The guest strip showed `popular, trending, new, paid`.
+  The guest strip showed `popular, trending, new, paid` (again on 2026-11-10).
+  A signed-in viewer also gets `indicator-store-tab-favorites`, last in the
+  strip and shown even with nothing starred (`46208d6a31`, source); the strip's
+  divider sits before Mine, or before Favorites when there is no Mine.
 - **The dialog was rebuilt as a "store", and every tab handle this entry used is
   gone.** `indicator-control-bar-tab-indicators-btn`, `-tab-kscript-btn`,
   `-favorites-btn`, `-sort-btn`, `indicator-source-tab-official`/`-community`,
   `indicator-registry-tab-*`, `indicator-tab-discover-btn`/`-all-btn` and
   `indicator-browse-all-btn` have ZERO matches in source. The strip is now
   `indicator-store-tabs` with
-  `indicator-store-tab-{popular,trending,new,following,paid,mine}`, and it hides
+  `indicator-store-tab-{popular,trending,new,following,paid,mine,favorites}`, and it hides
   itself when a viewer qualifies for fewer than two tabs. The empty state is
   `indicator-empty-state` / `-action-btn`.
 
@@ -442,6 +450,24 @@ Preconditions:
   `indicator-slots-<slug>` (`1 slot`; `0 slots` when it costs none; read
   2026-11-03), and a row's favourite star carries no testid (match it by
   accessible name); the pane's star is `indicator-detail-favorite-btn`.
+- **`ind-favorites`: the Favorites tab and stars on community packages
+  (`46208d6a31`; the wall driven 2026-11-10 on `c2c02b7b42`).** A community
+  (registry) package can now be starred: the pane star is enabled on it, titled
+  `Add to favorites` or `Remove from favorites`, and it is disabled (titled
+  `Favorites are not available for this indicator yet`) only on a row with no
+  favourite key, such as a converted script. A signed-in star flips at once,
+  writes `PATCH` or `DELETE /users/favoritePackages`, reverts with a toast if
+  refused, and stops at 300. The Favorites tab lists starred rows from both
+  the Official and Community sides (Official only on a governed CME chart);
+  empty, it reads `Star an indicator to keep it here.` Unstarring the
+  highlighted row on Favorites keeps it in the pane until the highlight moves
+  (source). **For a guest:** fill `rsi`, click
+  `indicator-name-rsi-divergence-solatlas-solatlas` (the community group head
+  read `Community 13`); the pane star read enabled, `Add to favorites`. Its
+  click raised the sign-in card headed `Technical Indicators`
+  (`guestLoginFeatureId` `indicators`), sent no `favoritePackages` request (a
+  wrapped `fetch` saw none) and left the star unchanged. Not driven: the tab
+  and a real star (signed-in only).
 - **Shorthand and sentence search (driven 2026-11-03).** Trader shorthand finds
   indicators (`e93440ac46`, `src/constants/indicator-names.ts`): `poc` listed
   `Sliding Volume Profile`, `Session Volume Profile`, `VRVP`, `Value Area
@@ -515,9 +541,13 @@ Preconditions:
     (`8a69220785`); Cumulative Returns by Session draws only inside its session,
     closed hours faint, as unbroken steady lines (`c963ab53df`, `38bc469231`,
     `440d23be2d`, `f67ff294ef`); Big Trades 0.10.0 sets its minimum in coins
-    on crypto charts (`c45a9f4e80`); a wrun banded order-book input with a
-    `when` gate (`47fff639e5`); the kit was `0.109.0` on `a4488341f6` and is
-    `0.110.0` since `987eb6e7ac` (the Liquidation Map look).
+    on crypto charts (`c45a9f4e80`), and since `83d1683b82` Big Trades
+    0.11.0 draws one bubble per aggressor order (fills that share a
+    sub-millisecond stamp and side join) and Min size filters bubbles but
+    never resizes one; a wrun banded order-book input with a
+    `when` gate (`47fff639e5`); the kit was `0.109.0` on `a4488341f6`,
+    `0.110.0` from `987eb6e7ac` (the Liquidation Map look) and is `0.118.0`
+    since `49653af1f6` (source).
 - **New on `849fb08e95`, source only, never driven:**
   - The moving average ribbon is a built-in, `MA_RIBBON` (`dedda2c7bf`,
     `src/indicators/controls/ma-ribbon/`, chart-schema `0.8.1`). It needs no
@@ -536,7 +566,12 @@ Preconditions:
     `0c0f2ec4e5`, `587939bdaa`); toggle the controlling switch and assert the
     `-<fieldKey>-row` testid comes and goes.
   - The regular TPO marks each profile's open and close block (`cb070d70a5`),
-    with Color-tab switches `highlightOpen` and `highlightClose`.
+    with Color-tab switches `highlightOpen` and `highlightClose`. Since
+    `b477d40c8b` (titan `0.0.4-alpha.1292`) a closed session's block fills its
+    whole span with no gap at its edges (source, engine-side).
+  - A footprint whose rows set its geometry waits for the main candles and
+    asks once, so a market switch no longer shows an aborted first ask and a
+    re-ask (`64c9c0b522`, `9ed29c0009`; source).
   - **TPO follows the chart's session by default (driven 2026-11-05;
     `b9cc632661`, `4d858bf835`, `af3004b625`).** A new TPO stores
     `tradingHour: null` with `tradingHourVersion: 2`, which the settings card

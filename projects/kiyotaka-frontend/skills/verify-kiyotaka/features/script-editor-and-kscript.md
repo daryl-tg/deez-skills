@@ -8,7 +8,12 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-09 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-10 against
+`c2c02b7b42` (`origin/main`, lane `18103`, a guest JWT): `editor` in Super
+Search listed one row, `super-search-result-panels:Editor-btn` (`Script
+Editor`), whose click opened the drawer with no wall (`kscript-run-btn`, no
+`kscript-save-btn`); `kscript-close-editor-btn` closed it and the Panels
+`editor` row raised `script-editor`. Before that, re-driven 2026-11-09 against
 `32dd0c6354` (`origin/main`, lane `18103`, a guest JWT): `editor` in Super
 Search, row `super-search-result-panels:Editor-btn`, opened the drawer with no
 wall (`kscript-run-btn`, no `kscript-save-btn`), `kscript-close-editor-btn`
@@ -326,6 +331,13 @@ Preconditions:
 
 ## Gotchas
 
+- **A long Style group name wraps (`3286d2cd79`, source; authed lane).** In a
+  wrun Indicator's settings a Style group head wraps between words onto a
+  second line, ellipsizes only one over-wide word, and keeps the full name in
+  its `title`; room stays for the apply mark and the reset, so rows do not
+  jump. The partial-bar shading row reads `Bars with missing prints`
+  (`98af74515b`). Twins moved: Big Trades `@om-core/big-trades` `0.11.0`,
+  Pivot Points standard `0.1.4` (`src/constants/wrun-twins.json`).
 - **A browser-run Indicator fails in the browser; a cloud-run one fails on the
   server.** A client-side error is in `./control-kiyotaka browser console`; a
   cloud run that "loads forever" needs its `clientRequestId` from the in-app

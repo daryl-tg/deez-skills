@@ -3,7 +3,14 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-09 against product tree `32dd0c6354`
+entry was last DRIVEN on 2026-11-10 against product tree `c2c02b7b42`
+(`origin/main`, 60 commits past `32dd0c6354`), lane `18103`, a guest-JWT lane
+(the gateway on the system resolver, `doctor` green twice, load 8 to 12 on 10
+cores): boot to 250 bars on COINBASE BTC-USD 1h within 10 s of `open`,
+`Indicators 1/3`, the signup modal on top, and the Lite charts notice reading
+its words; then BINANCE.F BTCUSDT, ETHUSDT and SOLUSDT at 1m (405 to 500
+bars) and a navigation back from the clip page to 250 bars. Before that, last
+DRIVEN on 2026-11-09 against product tree `32dd0c6354`
 (`origin/main`, 60 commits past `943281a2eb`), lane `18103`, a guest-JWT lane
 (the gateway on the system resolver, `doctor` green three times): boot to 250
 bars on COINBASE BTC-USD 1h at 14 s cold (251 at 3.4 s on a warm reload),
@@ -338,9 +345,11 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
 
 ## Gotchas
 
-- **Lite charts turns on by itself on this lane (driven 2026-11-09).** A fresh
-  device under software GL flips the preset about 12 s into the boot and leaves a
-  staying notice at the bottom of the frame. Read
+- **Lite charts turns on by itself on this lane (driven 2026-11-09 and
+  2026-11-10).** A fresh device under software GL flips the preset about 12 s
+  into the boot and leaves a staying notice at the bottom of the frame. Since
+  `bf17ae49cd` the notice waits for its words, so a raw `perfHints.` key on it
+  is a regression; `Keep` stores the decision and the notice does not return. Read
   `localStorage['kiyo:pref:light-charts']` and clear the notice before a capture;
   see `set-lite` in the Super Search guide.
 - **A wake or tab return asks only what the saved copy cannot prove (source,

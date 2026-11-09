@@ -3,7 +3,12 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last re-driven 2026-11-09 on `32dd0c6354`
+lock, settings and delete. Last re-driven 2026-11-10 on `c2c02b7b42`
+(`origin/main`, 60 commits past `32dd0c6354`, lane `18103`, a guest JWT) on
+BINANCE.F SOLUSDT: `toolbar-item-trendline:tool-icon-btn`, two clicks, 16
+`tqb-*` handles, `tqb-settings-btn`'s Points rows (`Start`, `End`, unclipped),
+`Enter` on an unchanged time writing nothing and a typed time stored exactly
+on 1m and on 1h (see `dt-points`). Before that, re-driven 2026-11-09 on `32dd0c6354`
 (`origin/main`, 60 commits past `943281a2eb`, lane `18103`, a guest JWT) on
 BINANCE.F BTCUSDT 1h: `toolbar-item-trendline:tool-icon-btn`, two clicks, 16
 `tqb-*` handles, and `tqb-settings-btn`'s `tool-props-lineStyle-select` still
@@ -268,6 +273,31 @@ the top overlay cleared.
   hover and opens it only once its code is in, showing `aria-busy` meanwhile
   (it read no `aria-busy` on a warm lane); since `18c8a69659` the bar keeps
   one width (`max-content`) wherever it is dragged (source).
+- **`dt-points`: a point's time is exact (`e1ce349c4a`; driven 2026-11-10 on
+  `c2c02b7b42`).** The settings card's Points section is
+  `tool-position-section`: one grid of `.coord-row`s whose `.coord-label`
+  (`Start`, `End`, or `Anchor n`) is no longer cut off, with
+  `tool-position-price-<i>`, `tool-position-time-<i>`, and for a trend line a
+  last row `tool-position-width` / `-height`. Read the stored points with
+  `window.tc[0].getSelectedTools()[0].points` while the drawing is selected.
+  Driven on BINANCE.F SOLUSDT 1m: a placed Start stored
+  `1794243191752.104` (a time between bars) under the field `9 Nov 16:53`;
+  clicking the field and pressing `Enter` left it unchanged; filling `9 Nov
+  17:20` and `Enter` stored `1794244800000`. After `tb-interval-pinned-1h-btn`
+  (the card stayed open) filling `9 Nov 17:40` stored `1794246000000`, 17:40,
+  not the 17:00 bar open. Arrows step one bar from the stored time (source).
+  The field shows the footer's zone (UTC on the lane).
+  **Paste lands where the pointer is (source).** A paste goes to the chart a
+  menu names, else the chart under the pointer, else the active chart; with no
+  pointer (Super Search, Ask) the drawing lands in the middle of the visible
+  frame. Copy takes the active chart's selection first. **Undo returns a
+  deleted drawing to its own Indicator pane**, and removing an Indicator takes
+  its pane's drawings in one undo step without one step per drawing
+  (source, `src/store/undo-step-hold.ts`).
+  On 2026-11-10, after an `Escape` had deselected the line, a
+  `tqb-remove-btn` click reported `Done` and the line stayed drawn; reselect
+  before removing, or clear a guest's drawings with
+  `window.tc[0].removeAllTools()`.
 - **Bar pattern flipped and mirrored match TradingView (source,
   `59f8cd229b`; not driven).** The settings card's Points rows and a paste
   place a flipped or mirrored Bar Pattern where TradingView does, and typed
