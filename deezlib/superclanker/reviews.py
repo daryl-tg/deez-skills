@@ -24,9 +24,14 @@ def ticket_review_url(store, ticket_id):
     return find_review_url(texts)
 
 
+def _gitlab(url):
+    project, _, iid = url.rstrip("/").partition("/-/merge_requests/")
+    return [iid.split("/")[0], "-R", project]
+
+
 def _command(url):
     if "/merge_requests/" in url:
-        return ["glab", "mr", "view", url, "-F", "json"]
+        return ["glab", "mr", "view", *_gitlab(url), "-F", "json"]
     return ["gh", "pr", "view", url, "--json", "state,headRefOid", "-q", '.state + " " + .headRefOid']
 
 
@@ -56,7 +61,7 @@ class ReviewError(Exception):
 def merge(url, auto=False, run=None):
     run = run or subprocess.run
     if "/merge_requests/" in url:
-        argv = ["glab", "mr", "merge", url, "--squash", "--yes", "--auto-merge" if auto else "--auto-merge=false"]
+        argv = ["glab", "mr", "merge", *_gitlab(url), "--squash", "--yes", "--auto-merge" if auto else "--auto-merge=false"]
     else:
         argv = ["gh", "pr", "merge", url, "--squash", *(["--auto"] if auto else [])]
     try:

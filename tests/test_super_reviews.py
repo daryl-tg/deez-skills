@@ -25,6 +25,8 @@ class Forge:
         if self.fail:
             return SimpleNamespace(returncode=1, stdout="", stderr="HTTP 502")
         url = argv[3]
+        if argv[0] == "glab":
+            url = f"{argv[argv.index('-R') + 1]}/-/merge_requests/{argv[3]}"
         state = self.states.get(url, "OPEN")
         if argv[0] == "gh":
             return SimpleNamespace(returncode=0, stdout=state + "\n", stderr="")
@@ -105,8 +107,8 @@ class ReviewsTest(unittest.TestCase):
         self.assertEqual(forge.calls, [
             ["gh", "pr", "merge", PR, "--squash"],
             ["gh", "pr", "merge", PR, "--squash", "--auto"],
-            ["glab", "mr", "merge", MR, "--squash", "--yes", "--auto-merge=false"],
-            ["glab", "mr", "merge", MR, "--squash", "--yes", "--auto-merge"],
+            ["glab", "mr", "merge", "812", "-R", "https://gitlab.com/om/rooms-client", "--squash", "--yes", "--auto-merge=false"],
+            ["glab", "mr", "merge", "812", "-R", "https://gitlab.com/om/rooms-client", "--squash", "--yes", "--auto-merge"],
         ])
 
     def test_merge_refused_by_the_forge_says_why(self):
@@ -122,7 +124,7 @@ class ReviewsTest(unittest.TestCase):
         closed, _ = self.close(forge)
 
         self.assertEqual(closed, [ticket.id])
-        self.assertEqual(forge.calls[0][:3], ["glab", "mr", "view"])
+        self.assertEqual(forge.calls[0], ["glab", "mr", "view", "812", "-R", "https://gitlab.com/om/rooms-client", "-F", "json"])
 
     def test_open_review_and_ticket_without_one_stay_open(self):
         waiting = self.ticket(1, f"PR {PR}")

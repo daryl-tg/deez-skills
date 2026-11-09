@@ -22,6 +22,7 @@ BACKOFF = "backoff"
 BACKOFF_FIRST_SECONDS = 30
 BACKOFF_CEILING_SECONDS = 600
 LOG_LIMIT_BYTES = 5 * 1024 * 1024
+FETCH_TIMEOUT_SECONDS = 180
 GIT_TIMEOUT_SECONDS = 10
 REMOVAL_RETRY_SECONDS = 600
 MAX_REMOVALS_PER_PASS = 2
@@ -265,26 +266,53 @@ def _scratch_repos(path):
             if candidate.is_dir() and (candidate / ".git").exists()]
 
 
-def _require_pushed(repo, git):
-    local = git(
-        ["git", "-C", str(repo), "log", "--branches", "--not", "--remotes", "--oneline", "-1"],
-        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
-    )
-    if local.returncode != 0:
-        raise SuperError(f"{repo}: git log failed: {local.stderr.strip()}")
-    if local.stdout.strip():
-        raise SuperError(f"{repo}: has commits on no remote; kept")
+def _require_shipped(repo, head, git):
+    def run(*argv, timeout=GIT_TIMEOUT_SECONDS):
+        return git(["git", "-C", str(repo), *argv], capture_output=True, text=True, timeout=timeout)
+
+    unpushed = run("log", "--branches", "--not", "--remotes", "--format=%H")
+    if unpushed.returncode != 0:
+        raise SuperError(f"{repo}: git log failed: {unpushed.stderr.strip()}")
+    pending = set(unpushed.stdout.split())
+    if not pending:
+        return
+    origin = run("remote", "get-url", "origin")
+    targets = []
+    if head and (_has_commit(run, head) or _fetched(run, origin, head) and _has_commit(run, head)):
+        targets.append(head)
+    if origin.returncode == 0 and _fetched(run, origin, "HEAD"):
+        targets.append(run("rev-parse", "FETCH_HEAD").stdout.strip())
+    branches = run("for-each-ref", "--format=%(refname:short)", "refs/heads").stdout.split()
+    for target in targets:
+        pending -= {commit for branch in branches for commit in _equivalent(run, target, branch)}
+    if pending:
+        past = f"past the merged head {head}" if head in targets else "on no remote"
+        raise SuperError(f"{repo}: has commits {past}; kept")
 
 
-def _require_within(repo, head, git):
-    beyond = git(
-        ["git", "-C", str(repo), "log", "--branches", "--not", "--remotes", head, "--oneline", "-1"],
-        capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
-    )
-    if beyond.returncode != 0:
-        raise SuperError(f"{repo}: cannot compare with merged head {head}; kept")
-    if beyond.stdout.strip():
-        raise SuperError(f"{repo}: has commits past the merged head {head}; kept")
+def _has_commit(run, commit):
+    return run("cat-file", "-e", f"{commit}^{{commit}}").returncode == 0
+
+
+def _fetched(run, origin, ref):
+    if origin.returncode != 0:
+        return False
+    return run(*_fetch_from(origin.stdout.strip()), ref, timeout=FETCH_TIMEOUT_SECONDS).returncode == 0
+
+
+def _equivalent(run, target, branch):
+    cherry = run("cherry", target, branch)
+    patched = {line[2:].strip() for line in cherry.stdout.splitlines() if line.startswith("- ")} if cherry.returncode == 0 else set()
+    return patched | set(run("rev-list", target, "--not", "--remotes").stdout.split())
+
+
+def _fetch_from(url):
+    for host, helper in (("github.com", "!gh auth git-credential"), ("gitlab.com", "!glab auth git-credential")):
+        if url.startswith(f"git@{host}:"):
+            url = f"https://{host}/{url.split(':', 1)[1]}"
+        if url.startswith(f"https://{host}/"):
+            return ["-c", "credential.helper=", "-c", f"credential.helper={helper}", "fetch", "--quiet", "--no-tags", url]
+    return ["fetch", "--quiet", "--no-tags", url]
 
 
 def _remove_ended_scratch(store, root, git, sweeper, blocked, now, errors):
@@ -302,10 +330,7 @@ def _remove_ended_scratch(store, root, git, sweeper, blocked, now, errors):
             head = store.merged_head(path.name) if outcome == "merged" else None
             for repo in _scratch_repos(path):
                 _require_clean(repo, git)
-                if head:
-                    _require_within(repo, head, git)
-                else:
-                    _require_pushed(repo, git)
+                _require_shipped(repo, head, git)
             sweeper(path)
             shutil.rmtree(path)
         except (SuperError, OSError, subprocess.SubprocessError) as exc:

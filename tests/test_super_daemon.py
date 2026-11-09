@@ -576,6 +576,80 @@ class DaemonTest(unittest.TestCase):
         self.assertEqual(result.removed, 0)
         self.assertIn("past the merged head", result.errors[0])
 
+    def test_merged_scratch_clone_whose_commit_was_rebased_before_merging_is_removed(self):
+        ticket, _ = self.ticket("rebased elsewhere then merged")
+        work = self.scratch_clone(ticket)
+        clone = work / "wt"
+        git(clone, "checkout", "-q", "-b", "feature")
+        (clone / "feature.txt").write_text("feature\n", encoding="utf-8")
+        git(clone, "add", "feature.txt")
+        git(clone, "commit", "-q", "-m", "feature")
+        git(clone, "checkout", "-q", "-b", "rebased", "HEAD~1")
+        (clone / "other.txt").write_text("upstream moved\n", encoding="utf-8")
+        git(clone, "add", "other.txt")
+        git(clone, "commit", "-q", "-m", "upstream")
+        git(clone, "cherry-pick", "feature")
+        merged = self.head(work)
+        git(clone, "checkout", "-q", "feature")
+        git(clone, "branch", "-q", "-D", "rebased")
+        git(clone, "reflog", "expire", "--expire=now", "--all")
+        self.store.close_merged(ticket.id, "https://github.com/o/r/pull/5", head=merged)
+
+        result = self.one_pass()
+
+        self.assertEqual(result.errors, ())
+        self.assertFalse(work.exists())
+
+    def test_merged_head_missing_locally_is_fetched_from_the_remote(self):
+        ticket, _ = self.ticket("merged head only on the remote")
+        work = self.pushed_clone(ticket)
+        clone = work / "wt"
+        remote = self.root.parent / f"remote-{ticket.id}.git"
+        git(remote, "config", "uploadpack.allowAnySHA1InWant", "true")
+        elsewhere = self.root.parent / f"elsewhere-{ticket.id}"
+        subprocess.run(["git", "clone", "-q", str(remote), str(elsewhere)], check=True, capture_output=True)
+        git(elsewhere, "config", "user.email", "tester@example.com")
+        git(elsewhere, "config", "user.name", "tester")
+        (elsewhere / "feature.txt").write_text("feature\n", encoding="utf-8")
+        git(elsewhere, "add", "feature.txt")
+        git(elsewhere, "commit", "-q", "-m", "feature, as reviewed")
+        merged = git(elsewhere, "rev-parse", "HEAD")
+        git(elsewhere, "push", "-q", "origin", "HEAD:refs/pull/6/head")
+        git(clone, "checkout", "-q", "-b", "feature")
+        (clone / "feature.txt").write_text("feature\n", encoding="utf-8")
+        git(clone, "add", "feature.txt")
+        git(clone, "commit", "-q", "-m", "feature")
+        self.store.close_merged(ticket.id, "https://github.com/o/r/pull/6", head=merged)
+
+        result = self.one_pass()
+
+        self.assertEqual(result.errors, ())
+        self.assertFalse(work.exists())
+
+    def test_commit_rebased_onto_the_remote_default_branch_counts_as_shipped(self):
+        ticket, _ = self.ticket("pushed straight to main after a rebase")
+        work = self.pushed_clone(ticket)
+        clone = work / "wt"
+        remote = self.root.parent / f"remote-{ticket.id}.git"
+        elsewhere = self.root.parent / f"elsewhere-{ticket.id}"
+        subprocess.run(["git", "clone", "-q", str(remote), str(elsewhere)], check=True, capture_output=True)
+        git(elsewhere, "config", "user.email", "tester@example.com")
+        git(elsewhere, "config", "user.name", "tester")
+        (elsewhere / "feature.txt").write_text("feature\n", encoding="utf-8")
+        git(elsewhere, "add", "feature.txt")
+        git(elsewhere, "commit", "-q", "-m", "feature, rebased onto main")
+        git(elsewhere, "push", "-q", "origin", "HEAD")
+        git(clone, "checkout", "-q", "-b", "feature")
+        (clone / "feature.txt").write_text("feature\n", encoding="utf-8")
+        git(clone, "add", "feature.txt")
+        git(clone, "commit", "-q", "-m", "feature")
+        self.store.close_merged(ticket.id, "https://github.com/other/repo/pull/8", head="c36af4bac7435bc3cbc1057949b2af51b3d2e783")
+
+        result = self.one_pass()
+
+        self.assertEqual(result.errors, ())
+        self.assertFalse(work.exists())
+
     def test_merged_scratch_clone_with_no_recorded_head_keeps_unpushed_commits(self):
         ticket, _ = self.ticket("merged, head unknown")
         work = self.scratch_clone(ticket)
