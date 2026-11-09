@@ -1,6 +1,6 @@
 # Watches with blanks (install a copy, change it, open blanks, repair)
 
-*Verified 2026-11-06 on branch `daryl/generic-watches` (unmerged, tip `245c91cfa`, on top of `daryl/watch-source-resolution` `ee1eb9a16`), bare lane on 18131, source build. Evidence: `http://127.0.0.1:8098/generic-watches-20261105/r2/` (r1 holds the first round: two copies, activation, change an answer, repair, the registry page). Driven in r2: an answer typed as a label or without accents, the `Skipped:` row, answers per watch of a pack, the install receipt for kept, running and updated copies, `om watch blank --expect`, the stream share preview, a version that drops the source blank, and a version with no blanks. Pending proof, source-supported only: the share's yes for a stream (family watch sealed and posting), a follow of one answer on a second machine, `om install @scope/name` from a registry, `om want`, the composer's offer on chat, and the by-search way. 151 sources on one watch was measured on a loopback stand-in, not a real publisher.*
+*Verified 2026-11-09 on branch `daryl/generic-watches` (unmerged, tip `378151ff2`, on top of `daryl/watch-source-resolution` `ee1eb9a16`), bare lane on 18131, source build. Evidence: `http://127.0.0.1:8098/generic-watches-20261105/r3/` (r1 and r2 hold the earlier rounds). r3 drove the fixes from a statechart audit: an edit then a reinstall of the old answers makes a second copy; look-alike rows refuse naming both; a blank set twice refuses in one line; a hex number refuses; a pack whose answer pattern opens a group refuses at publish; a copy with no answers file is held and its edit restores it; a blank named `summary`, a second blank at one spot, and a blank on an address each refuse. Pending proof, source-supported only: the share's yes for a stream, a follow on a second machine, a registry install, `om want`, the composer's offer on chat, the by-search way, a cancel mid-fill.*
 
 ## What it is
 
@@ -31,6 +31,8 @@
 14. A version that drops the source blank: the card and the receipt read `Not updated: this version no longer has <label>, so your copy stays as it is`, and `om watch show` still reads the old version with its answers. A version with no blanks on a value-only copy: `Dropped: <label>` on both, and `show` prints no answer row.
 15. Creator side: `om watch blank <id> <blank> --source <name> --list <csv> --expect pm25=0..1000` leaves out a row that reads outside the range and says why.
 
+16. Audit round recipes. Edit a copy's answer then install its old answers again: two watches (`haze-jakarta`, `haze-jakarta-2`). A pack with two rows whose labels fold the same (`Sao Paulo`, `São Paulo`, distinct keys): `--set "place=sao paulo"` refuses `Place: sao paulo could be … ; type the key`, and the key installs. `--set place=a --set place=b` refuses `place is set twice`. `--set level=0x1F4` refuses `is not a number`. A pack whose text blank carries `"pattern": "(\\w|\\d)*"` refuses at `om publish --dry-run` with `blank_pattern_unsafe: ( at character 1 opens a group`. Delete `watch-overlay/<copy>.json`, then a newer version's preflight reads `Not updated: the answers of <copy> are missing; om watch edit <copy> --set level=... restores them`; after that edit the version lands with `Dropped:`. `om watch blank <w> summary …` refuses as a fire field; a second blank at a filled pointer refuses `already filled by`; a blank at `/sources/0/stream_ref/extra/url` refuses as an address.
+
 ## Gotchas
 
 - `om watch import` takes a WatchSpec-shaped file and lands a page source with no sealed terms. Only `page-add --activate` seals it. `om watch resume` refuses.
@@ -42,3 +44,5 @@
 - A watch imported with a page source and activated a moment later reads `unreachable … page-fetch is not answering` until its next check. The daemon polled it once before the seal. It clears on the next cadence.
 - `om watch share --dry-run` prints its posts block twice. That is on main too.
 - Do not drive the lane against a publisher while a live benchmark reads the same publisher. Both share its rate limit and the benchmark's tail times carry the load.
+- A text blank's pattern key in a pack file is `pattern` (with `pattern_hint`), not `answer_pattern`; the latter is the summary's field in `om-package.json`.
+- A folded KEY match wins before labels are tried, so two rows are only ambiguous when their labels fold the same and neither key does.
