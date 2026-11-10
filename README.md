@@ -28,7 +28,7 @@ flowchart TB
     pb["1 of 26 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
     prin["38 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
     role["5 roles<br/>explore, executor, test-engineer,<br/>code-reviewer, verifier"]
-    craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, show-me"]
+    craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, tutor, show-me"]
     ship["opening-a-review, then landing<br/>evidence approved before anything ships"]
     router --> pb
     pb --> prin
@@ -179,6 +179,7 @@ when you want one directly.
 | [`review`](./skills/review/SKILL.md) | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a bra… |
 | [`show-me-your-work`](./skills/show-me-your-work/SKILL.md) | Keep an auditable decision trail as a committed TSV during long or unattended runs. Use when the operator will review … |
 | [`teach`](./skills/teach/SKILL.md) | Explain a change or subsystem plainly so a person actually understands it. Runs explore and why, weaves one account, b… |
+| [`tutor`](./skills/tutor/SKILL.md) | Socratic tutoring to mastery when asked to be quizzed or drilled: a diagnostic, a skill map from 0 to 5, spaced review,… |
 | [`test-first`](./skills/test-first/SKILL.md) | Write the failing check before production code, at the fastest level that expresses the behavior, and report the faili… |
 | [`unslop`](./skills/unslop/SKILL.md) | Cut AI tells from any writing. Applies to every prose surface, including your own replies. |
 | [`why`](./skills/why/SKILL.md) | Recover why something was built the way it is, from git history, review threads, tickets, chat, and incident records. … |
@@ -502,6 +503,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `taskfile` |  | claude, codex | Task runner automation: create, revise, or troubleshoot task definitions and syntax. |
 | `teach` |  | claude, codex | Explain a change or subsystem plainly so a person actually understands it. Runs explore and why, weaves one account, builds diagrams up one part at a time. Use… |
 | `testing-harness` |  | claude | Use when a change has to be proven in the real running product rather than in tests — visually diffing the cloud deployment against the local daemon, sweeping … |
+| `tutor` |  | claude, codex | Socratic tutoring when the person explicitly asks to be taught to mastery, quizzed, or drilled on a topic or a codebase subsystem. A diagnostic places them, a … |
 | `war-diary` |  | claude | Use when updating the Frontend War Diaries from a GitLab activity .atom export and the day's Claude Code sessions — turning a day's GitLab work (pushes, MRs, a… |
 | `why` |  | claude, codex | Recover why something was built the way it is, from git history, review threads, tickets, chat, and incident records. Use for 'why is this like this', 'why was… |
 | `worktree-cleanup` |  | claude | After a feature branch has been merged, delete the local feature branch from the main worktree — gated on explicit user approval. Local only; never touches the… |

@@ -330,6 +330,11 @@ layer    = "workflow"
 category = "workflow"
 runtimes = ["claude", "codex"]
 
+[skills.tutor]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
 [skills.why]
 layer    = "workflow"
 category = "workflow"

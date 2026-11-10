@@ -59,13 +59,15 @@ for setup, scope and recovery limits.
 
 ## When not to use it
 
-Three skills fire on their own, because forcing ceremony onto a read-only <!-- deez:counts-ok -->
+Four skills fire on their own, because forcing ceremony onto a read-only <!-- deez:counts-ok -->
 question is how a system becomes annoying enough to abandon:
 
 - **`why`** — why is this built this way. Git history, review threads, tickets,
   chat, incidents.
 - **`teach`** — explain it properly, at your pace, building diagrams up one part
   at a time.
+- **`tutor`** — quiz and drill you to mastery, with a skill map, spaced review,
+  and a final assessment.
 - **`unslop`** — cut AI tells from any prose, including the agent's own replies.
 
 Everything else waits to be routed to.

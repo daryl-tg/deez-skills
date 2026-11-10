@@ -15,12 +15,14 @@ unslop bro                        restate it in plain language
 ```
 why <question>                    git, review threads, tickets, chat, incidents
 teach me <subsystem>              built up one diagram at a time
+tutor me on <topic>               diagnostic, skill map, drilled to mastery
 recall <topic>                    rebuild context after a gap
 blast-radius                      what else this change could break
 ```
 
 `why` answers motivation; the explore role answers mechanism; `teach` weaves
-both into one account at your pace.
+both into one account at your pace. `tutor` turns the same material into
+questions and tracks what you can actually do without help.
 
 ## Wording the prompt
 

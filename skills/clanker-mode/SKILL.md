@@ -93,6 +93,10 @@ unread.
 - **review-animations** is the one you cannot load. It is operator-invoked, so
   ask for `/review-animations` on the diff. Never claim a motion review you did
   not run.
+- The operator wants to understand something → **teach** for one plain account
+  at their pace, and **show-me** for the picture. When they ask to be quizzed,
+  drilled, or taken to mastery → **tutor**. A one-off question just gets
+  answered.
 - Any prose surface, including your own reply → the **unslop** skill. For text
   going out in the operator's name, **humanize** after it.
 - About to ask the operator → classify the fork first, per

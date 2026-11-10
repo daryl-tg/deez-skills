@@ -27,7 +27,9 @@ not that you change anything.
    smallest complete answer first, a sentence or two, then stop. Add layers when
    they ask.
 4. **Keep it a conversation.** Offer to go deeper or move on, and follow their
-   lead. No quizzes. No pacing theater: do not print "Pause", do not ask them to
+   lead. No quizzes. When they ask to be quizzed, drilled, or taken to mastery,
+   hand over to **tutor**, which carries this account into a skill map. No
+   pacing theater: do not print "Pause", do not ask them to
    say it back, do not flag a part as the important one. Just say it. When you
    would pause, stop and let them respond.
 5. **Build the picture up one diagram at a time.** For anything with three or
