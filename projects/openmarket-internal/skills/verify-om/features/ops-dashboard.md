@@ -1,5 +1,7 @@
 # The ops dashboard
 
+*Re-driven 2026-11-10 (scheduled maintenance), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18161 (`OM_FEED_ALLOW_LOOPBACK=1`) with a loopback hook listener on 18162: `dash-channels` end to end. **Connect webhook** with a loopback URL was refused by the network guard; a channel seeded with `om setup webhook … --allow-private-network` showed its card; **send test** reached the listener and the card read `sent` / `delivering`; **Edit webhook** added a bearer token (the next test carried `Authorization`); **Remove vom-hook?** removed it; with a watch routed to it, removal listed the watch and **Remove and disconnect watches** removed it. Also the Watches table and a timer's detail page (labels, no rhythm words). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261110/r1/` (`01`-`10`).*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. Overview, Watches (`/alerts`: `nightly-probe` with `Pause`, `All watches 1`) and `/alerts/nightly-probe` (H1, `Sources and schedules`), at 1440x900. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`01-overview.png`, `02-watches.png`, `03-watch-detail.png`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. Overview H1 `Your market, in view.` and the nav (Overview, Watches, News, Strategies, Channels, Connections, Venues, Receipts, OM Chat); **Watches** → `/alerts` listing all four lane watches (`2 Enabled`, `2 Paused`). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
@@ -61,6 +63,12 @@ fresh install also sees an onboarding checklist.
 - `dash-header` reports daemon/check status and when it was last checked. The
   Overview's `Watch fires` metric shows fires since the daemon started.
 - `dash-restart` restarts the daemon it is pointed at.
+- `dash-channels` (`apps/dashboard/src/pages/channels.tsx`,
+  `components/channel-editor.tsx`, `runner/http/rpc/channel.ts`): connect a
+  webhook channel, send a test from its card, edit its URL, token and default
+  flag, and remove it. Telegram, Discord and Slack are paired by `om setup`;
+  their cards can be tested and removed here, but only webhook cards can be
+  edited.
 
 ## How to get to it (user POV)
 
@@ -173,6 +181,51 @@ Preconditions:
   `agent-browser snapshot -c` into `<page>.aria.txt` and
   `agent-browser screenshot <page>.png`. Both must show the nav and the page
   heading so the frame identifies itself.
+
+### Channels: connect, test, edit and remove a webhook (added 2026-11-10)
+
+The dialog cannot save a loopback or LAN URL: it never sends
+`allowPrivateNetwork`, and the network guard refuses the target. Prove that
+refusal, then seed a loopback channel from the CLI so the rest stays local.
+Run a listener on a second assigned port that logs each POST's path, whether
+an `Authorization` header came, and the body.
+
+```bash
+agent-browser open "$(control-om url /channels)"        # heading "Channels", button "Connect webhook"
+agent-browser find role button click --name "Connect webhook"   # dialog "Connect a webhook"
+agent-browser find role textbox fill 'vom-hook' --name "Channel name"
+agent-browser find role textbox fill 'http://127.0.0.1:<hook-port>/hook' --name "Webhook URL"
+agent-browser find role button click --name "Connect channel"
+#   alert: "Webhook URL target is blocked by OpenMarket's network guard. Use a public http(s)
+#   endpoint, or re-run setup with --allow-private-network …"
+control-om om -- setup webhook --name vom-hook \
+  --webhook-url http://127.0.0.1:<hook-port>/hook --allow-private-network --format json
+#   {"ok":true,"channel":{"name":"vom-hook","adapter_id":"webhook"},…}; setup itself POSTs one test
+```
+
+Reload `/channels`. The card reads `vom-hook`, `webhook`, `default` and `no
+deliveries yet`, with **send test**, **Edit channel** and **Remove channel**.
+
+- **send test** POSTs `{"event":"test","title":"OpenMarket test",…}` to the
+  listener, and the card reads `sent` / `delivering`.
+- **Edit channel** opens **Edit webhook**. The name is disabled, **Replace
+  webhook URL** is blank ("Leave blank to keep the saved URL"), and **Bearer
+  token** sits under the **Authentication (optional)** disclosure. Fill the token
+  and press **Save changes**. `control-om om -- setup list --format json` then
+  shows `bearer_token` beside the kept `allow_private_network`, and the next test
+  carries `Authorization`. The URL is masked (`***hook`).
+- **Remove channel** opens **Remove vom-hook?** (**Cancel**, **Remove
+  channel**). With no watch routed to it, one press removes it and the page
+  reads "No channels yet."; `setup list` is `[]`.
+- With a watch routed (`watch create vom-routed --inbound --notify-channel
+  vom-hook`), the first press keeps the dialog open: "These watches currently
+  use this channel: vom-routed", and the button becomes **Remove and
+  disconnect watches**. Pressing it removes the channel. `watch show
+  vom-routed` then reads `the channel 1 is not set up → om setup` and
+  `Notify: … → 1 (missing)`. It names the channel's store id, not `vom-hook`.
+
+The dialog's **Connect channel** path with a public URL, and a real watch
+delivery to the channel, were not driven.
 
 ## Gotchas
 

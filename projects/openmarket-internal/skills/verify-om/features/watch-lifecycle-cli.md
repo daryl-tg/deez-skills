@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Re-driven 2026-11-10 (scheduled maintenance), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18161. First drives: `watch amend`'s refusals (`watch_amend_empty`, `watch_no_lane`, and raw `ZodError`s for an empty id and a bad `--weight`) on an `accept_all` row; every-other-week and three-week timers created over MCP `watch_create` (`every other Monday at 09:00 UTC`, `every 3 weeks on Mon and Thu at 09:00 UTC`), read back by `watch show` (`every 2 weeks from 2026-11-16`), `watch list` and the dashboard (no words). The amend success path needs a topic share (relay). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261110/r1/` (`cli/17`-`24`, `09`-`10`).*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `watch create lane-lifecycle --inbound`, `pause`, `show` (`enabled:false`), `resume`, `history` (`No event-watch events`), `remove --yes` (`history deleted (0 rows); journal files kept`), `watch list`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/wl-*.txt`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `watch list` `No watches found.`, `watch create lane-lifecycle --inbound`, `pause`, `resume`, `history` (`No event-watch events`), `watch remove lane-lifecycle --yes` (`history deleted (0 rows); journal files kept`). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
@@ -56,7 +58,7 @@ whole lifecycle is provable on a guest lane.
 - `event-tools` include `history`, `export`, `backfill`, `reclassify`,
   `rotate-token` and `amend` for stored inbound-watch events. This pass drove
   history and token rotation; the other forms remain unverified.
-- `timer-days` (#2284): `watch create <label> --every '<5-field cron>' --tz <zone>` makes a timer on chosen days (`'0 7 * * 5'`, `'0 7 * * 1,4,6,0'`; `--every weekdays|daily|weekly` are words for `0 0 * * 1-5|*|1`). The create, arm and source-add cards (the chat lane) and the sidebar cadence say it in words (`timer, Fridays at 07:00 UTC`, `Mon, Thu, Sat and Sun at 07:00 UTC`, `weekdays at 00:00 UTC`); a cron no rhythm describes stays `timer (cron 0 0 */2 * * UTC)`. The CLI's `watch show` still prints the raw cron: `Reads: clock fires (0 7 * * 5 UTC)`. Asking om chat for "every Friday at 7" composes the same cron (needs a model). Monthly crons (#2300) pass through `--every` too: `'0 9 1,15 * *' --tz Asia/Kuala_Lumpur` and `'0 18 L * *' --tz UTC` are accepted, and the create JSON's `card` reads `timer · monthly on the 1st and 15th at 09:00 Asia/Kuala_Lumpur` and `timer · monthly on the last day at 18:00 UTC`, while `watch show` prints `Reads: clock fires (0 9 1,15 * * Asia/Kuala_Lumpur)`. Every-other-week timers (`every_weeks` 2 to 4 plus an `anchor` date) and a summary on chosen days (`notify.cadence` `{kind:"days"}`) have no CLI flag; they are authored in om chat or as source JSON (source only).
+- `timer-days` (#2284): `watch create <label> --every '<5-field cron>' --tz <zone>` makes a timer on chosen days (`'0 7 * * 5'`, `'0 7 * * 1,4,6,0'`; `--every weekdays|daily|weekly` are words for `0 0 * * 1-5|*|1`). The create, arm and source-add cards (the chat lane) and the sidebar cadence say it in words (`timer, Fridays at 07:00 UTC`, `Mon, Thu, Sat and Sun at 07:00 UTC`, `weekdays at 00:00 UTC`); a cron no rhythm describes stays `timer (cron 0 0 */2 * * UTC)`. The CLI's `watch show` still prints the raw cron: `Reads: clock fires (0 7 * * 5 UTC)`. Asking om chat for "every Friday at 7" composes the same cron (needs a model). Monthly crons (#2300) pass through `--every` too: `'0 9 1,15 * *' --tz Asia/Kuala_Lumpur` and `'0 18 L * *' --tz UTC` are accepted, and the create JSON's `card` reads `timer · monthly on the 1st and 15th at 09:00 Asia/Kuala_Lumpur` and `timer · monthly on the last day at 18:00 UTC`, while `watch show` prints `Reads: clock fires (0 9 1,15 * * Asia/Kuala_Lumpur)`. Every-other-week timers (`every_weeks` 2 to 4 plus an `anchor` date on one of the chosen days) have no CLI flag; author them in om chat or as a timer `source` on MCP `watch_create` (driven 2026-11-10, see Driving). The create card says them in words (`every other Monday at 09:00 UTC`, `every 3 weeks on Mon and Thu at 09:00 UTC`), `watch show` reads `Reads: clock fires (0 9 * * 1 UTC, every 2 weeks from 2026-11-16)`, and neither `watch list` nor the dashboard (`timer 0 9 * * 1` label, `Schedule`) says the rhythm. A summary on chosen days (`notify.cadence` `{kind:"days"}`) has no CLI flag either (source only).
 - `upstream-stand-down` (#2310): a chain that reads another watch stands down when that watch is paused or removed. `watch pause <upstream> --format json` carries `readers_stood_down[]` (`{chain_id, watch, has_money, paused, declined, arm_command}`) and `cascade_note` `1 chain reading this watch's rows stood down (<reader>): each waits for its own arm; a resume re-arms nothing.`; the reader's `watch show` heads `<reader> · 2 things need you · source waiting · <upstream> is paused · … · <upstream> is gone · om watch arm <reader>` (the steps row says `is gone` for a pause too). `watch resume <upstream>` returns the same list with `cascade_note` `… is still down from its pause (<reader>): each waits for its own arm.`; `watch arm <reader> <step> --yes` brings it back. On `watch remove <upstream> --yes` a reader whose ONLY source was the upstream is removed with it (`cascade.removed[]` row `via: cascade`, `lost: [<upstream>]`); a reader with another source is repaired (`cascade.repaired[]` with `dropped`, `chains_to_arm`) and listed in `cascade.rearm`, and its `watch show` reads `<upstream> is gone … → om watch arm <reader>`. The non-terminal `remove` refusal (`confirmation_required`) names neither consequence (README gaps).
 - `watch-edit` changes goal, group, filters, classifier mode and caps.
 - `watch-pause` / `watch-resume` stop and restart a watch and its sources.
@@ -216,6 +218,40 @@ Seed one timer watch with `control-om om -- watch create demo --every 1h --forma
 | `watch state clear nope` | exit 2 `watch_not_found` |
 
 These prove the verbs answer and refuse correctly on a healthy watch. They do not prove repairing a broken watch, a real backtest, or an approval.
+
+### Amend a fired row (added 2026-11-10)
+
+`om watch amend <watch> <event-id> [--title T] [--body B] [--weight major|notable|minor] [--values '<json>']`
+(`actions/watch/amend.ts`, `cmd/watch-engine-verbs.ts:1825`) edits a stored
+row's title, summary or values and queues a signed correction for the watch's
+live topic stream. It needs no model. The id is the `event_id` from the push.
+On a lane without a share stream only the refusals are reachable:
+
+| Call | Result |
+|---|---|
+| `watch amend vom-amend <event_id> --format json` (no field) | `watch_amend_empty`: "nothing to amend: pass at least one of title, body, weight, values or fields" |
+| `watch amend vom-amend <event_id> --title "amended by vom"` | `watch_no_lane`: "Event watch 'vom-amend' has no live stream lane, so there is nothing to correct on." with the hint to `om share --live --carrier topic` first |
+| `watch amend vom-amend "" --title x` | a raw `ZodError` (`event_id` too small) and the Bun version banner, not a typed error (README known gaps) |
+| `watch amend vom-amend <event_id> --title x --weight huge` | a raw `ZodError` (`weight` not one of major, notable, minor), same shape |
+
+The success result (`correction_event_id`, `rev`, `leader_seq`) needs a topic
+share, which needs the relay: live verification pending. Driven 2026-11-10 on
+guest lane 18161 after an `accept_all` push.
+
+### Every-other-week timers over MCP (added 2026-11-10)
+
+`watch_create` takes `slug` and one `source` (not `name` or `sources`, which
+are refused `Unrecognized key`). Send it over `mcp serve --stdio
+--no-fire-bridge` ([mcp-stdio.md](mcp-stdio.md)):
+
+```json
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"watch_create","arguments":
+  {"slug":"vom-fortnight","source":{"kind":"timer","cron":"0 9 * * 1","tz":"UTC","every_weeks":2,"anchor":"2026-11-16"}}}}
+```
+
+The result's card reads `every other Monday at 09:00 UTC`; with
+`"cron":"0 9 * * 1,4","every_weeks":3` it reads `every 3 weeks on Mon and Thu
+at 09:00 UTC`. Pick an anchor that falls on one of the cron's days.
 
 ## Gotchas
 

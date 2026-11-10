@@ -1,5 +1,7 @@
 # Chat workspace TUI (`om chat`)
 
+*Re-driven 2026-11-10 (scheduled maintenance), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18161 with a fake model on 18163, private tmux at 140x40, plain chat (`--no-workspace`, `What's new · 1 of 15` on `Agents show what they work on`). First drives of `local-slash` and `history-search`: `/hints` (four forms), `/jobs`, `/jobs cancel`, `/effort` and `/effort bogus`, `/mute` and `/unmute` twice each on `vom-amend`, `/rename` before and after a turn, `/catchup`, and ctrl+r (filter, `no matches`, Enter picks). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261110/r1/` (`tui/01`-`20`).*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143 with a fake model on 18144, tmux 140x40. The workspace opened on `What's new · 1 of 16`; ctrl+x `.` twice reached `See which om build you are on` (`3 of 16`), and the last page is `Nerd Font icons` (`16 of 16`); `/version` in the composer printed its rows in the transcript. Sidebar cards, `/watches` and fire cards were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`tui/`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. Workspace opens with `What's new · 1 of 15`, `▾ WATCHES 1 fired · 2 paused` and `▾ FIRES 2 today`, and `While you were away` lists both pushed stories. `/watches`: `[/] search` in the footer of all four views (#2423), and a no-match search on NEEDS YOU. `/setup` (#2400): the window's top row held through 15 Down presses, scrolled only as the cursor neared the bottom (`↑ 1 more ↓ 2 more`, then `↑ 4 more ↓ 1 more`), and wrapped to the top after the last row. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
@@ -99,6 +101,8 @@ announces the change on a **What's new** card that turns it off in one press.
 - `sidebar-toggle` — `b` in the ctrl+x menu hides or shows the sidebar for the session. The muted `ctrl+x for commands` hint sits on the sidebar's bottom row, or on the composer's top rule while it is hidden.
 
 - `scroll-window` (#2400): list rows hold still while the cursor moves down a page; the window scrolls only when the cursor reaches the third-last shown row (`scroll-window.ts`, `SCROLL_MARGIN_ROWS = 2`). `/setup` used to pin the cursor to the top edge. Live on `/setup` 2026-11-09; the news home and other list pages share the helper and were not driven.
+- `local-slash` (`agent/slash.ts`, `agent/channels/mute-route.ts:195-253`, `cli-tui-core.ts`): `/hints [simple|verbose|off|help]`, `/jobs [show|cancel <id>]`, `/effort [<level>]`, `/mute <watch> [for <time>]`, `/unmute <watch>`, `/rename <name>`, `/catchup` and `/brief` answer in the transcript without a model call, except `/catchup`'s narration turn and `/brief`'s background write.
+- `history-search` (`agent/channels/tui-history-search.ts:115-166`): ctrl+r opens a panel over the composer, `history · type to filter · ↑/↓ move · enter picks · esc back`, with the query row `/ <query>`, matching prompts newest first and `no matches` when none; Enter puts the pick in the composer.
 
 ## How to get to it (user POV)
 
@@ -334,6 +338,37 @@ nothing, and it streams long replies, which the scroll checks need.
   of the divider, and its bottom border lands ON the clicked row when the card
   would otherwise run past the pane's bottom.
 
+### Local slash commands and ctrl+r (added 2026-11-10)
+
+Use the fake-model rig above in plain chat (`./launch.sh --no-workspace`,
+`FAKE_LINES=3 FAKE_DELAY_MS=50`). The What's new card sits at the foot, so
+close it (ctrl+x then `x`) or read the replies with `capture-pane -p -S -80`.
+Send each line with `send-keys -l "<text>"` then `Enter`. With a seeded watch
+`vom-amend`, driven 2026-11-10 on guest lane 18161:
+
+| Typed | Reply |
+|---|---|
+| `/hints` | `hints: simple — /hints help for usage` |
+| `/hints verbose` | `hints: verbose` |
+| `/hints bogus` | `Unknown option "bogus" — /hints help for usage` |
+| `/jobs` | `No background jobs yet. A tool call that runs past the yield window becomes one.` |
+| `/jobs cancel` | `Usage: /jobs cancel <id>` |
+| `/effort bogus` | `bogus is not an effort level. Use one of low, medium, high, xhigh, max, or auto.` |
+| `/effort` | `fake has no effort setting.` (the fake model has no reasoning levels) |
+| `/mute vom-amend` | `muted vom-amend · no pings, no card in chat; fires keep landing in /news · unmute vom-amend turns it back on` |
+| `/mute vom-amend` again | `vom-amend was already muted` |
+| `/unmute vom-amend` | `unmuted vom-amend · pings and the chat card resume` |
+| `/unmute vom-amend` again | `vom-amend was not muted` |
+| `/rename Maint probe` | `Renamed this conversation to "Maint probe".` (also before the first turn) |
+| `/catchup` | `Catch-up · 1 event, 1 story · since you left`, then a fake-model turn |
+
+ctrl+r opens `history · type to filter · ↑/↓ move · enter picks · esc back`
+with `/ type to search`, listing the session's prompts newest first. Typing
+`mute` left `/unmute vom-amend` and `/mute vom-amend`; `zzzq` more read `no
+matches`. After Esc, ctrl+r, `rename` and Enter, the composer read `❯ /rename
+Maint probe`. Not driven: `/hints help`, `/jobs show`, `/effort <level>` on a
+reasoning model, `/mute … for 8h`, `/brief`, and ↑/↓ or a second ctrl+r in the
+panel.
 
 ## Gotchas
 

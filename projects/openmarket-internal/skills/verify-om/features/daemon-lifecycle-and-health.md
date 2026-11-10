@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-11-10 (scheduled maintenance), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18161: `env-opt-outs` first driven. `OM_TELEMETRY=off`, and `DO_NOT_TRACK=1` over `OM_TELEMETRY=on`, turned `config show`'s `telemetry.product` to `off (OM_TELEMETRY / DO_NOT_TRACK env)`; `OM_NO_UPDATE_CHECK=1` turned MCP `system_status`'s `version.update_check` from `unknown` to `opted_out`; `OM_NO_AGENT_WIRING=1` turned `doctor`'s `agent_wiring` to `opted out (OM_NO_AGENT_WIRING)`. `OM_PLAIN_CHAT` and `OM_MCP_LAZY` were not driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261110/r1/` (`cli/01`-`07`).*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `status`, `doctor`, `service status`, `service restart` refused by the wrapper (exit 1), `/healthz` (`version 0.493.1`). First live proof of `version-slash` (#2428): `om chat --once /version` (`daemon  0.493.1, pid 5869`; `not running` with the lane down; `revision  nightly20261110` under `OM_CODE_REVISION`), the workspace's `/version` and `/help` rows. The mismatch row is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/version*.txt`, `tui/tui-03-version.txt`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `/healthz` (`version 0.493.0`, `auth device`, `last_error null`, `om_home` under `accounts/guest`), `service status`, the wrapper's `service install` refusal (exit 1), `logs --limit 5`. The guest lane on 18143 died at boot on a guest sign-in 429 (`Try again in 35 minute(s)`), the carried product gap. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
@@ -70,6 +72,12 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
   `<version>, pid <n>`, `this process` inside the daemon, or `not running`; a
   daemon on another build adds `not this om's <version>`, and a service daemon
   adds `om service restart`. No model is needed.
+- `env-opt-outs` (`shared/env-vars.ts`, `shared/product-telemetry.ts:189-205`,
+  `runner/update-check.ts:220`): `OM_TELEMETRY=off` or `DO_NOT_TRACK` turns
+  product telemetry off (`DO_NOT_TRACK` wins over `OM_TELEMETRY=on`);
+  `OM_NO_UPDATE_CHECK=1` stops update checks; `OM_NO_AGENT_WIRING` skips agent
+  wiring at init and daemon start; `OM_PLAIN_CHAT=1` keeps `om chat` out of the
+  TUI; `OM_MCP_LAZY` picks lazy or eager tool loading for `om mcp serve`.
 
 ## How to get to it (user POV)
 
@@ -192,6 +200,28 @@ Preconditions:
   pid>`. Prefix `OM_CODE_REVISION=<x>` to see `revision  <x>`. With the lane
   down it reads `daemon    not running`. In the workspace, type `/version` in
   the composer: the same rows land in the transcript.
+- **Opt-out switches.** `control-om om` inherits the caller's environment, so
+  prefix the variable on the CLI call; `control-om up --env K=V` is only for
+  the daemon's own behaviour. Run each check once without the variable as the
+  control:
+
+  ```bash
+  OM_TELEMETRY=off control-om om -- config show | grep telemetry.product
+  #   telemetry.product: off (OM_TELEMETRY / DO_NOT_TRACK env): …   (unset: on (default))
+  DO_NOT_TRACK=1 OM_TELEMETRY=on control-om om -- config show | grep telemetry.product
+  #   off (OM_TELEMETRY / DO_NOT_TRACK env)
+  OM_NO_AGENT_WIRING=1 control-om om -- doctor
+  #   {"name":"agent_wiring","status":"ok","detail":"opted out (OM_NO_AGENT_WIRING)"}
+  #   (unset: warn, "✗ claude-code · ✗ codex · ✗ claude-desktop — no chat badge")
+  ```
+
+  `OM_NO_UPDATE_CHECK` shows only in the `system_status` action's
+  `version.update_check`. `om status` (text or `--format json`) has no version
+  block, and `/healthz` reads `update_available: false` either way. Call it over
+  MCP stdio (see [mcp-stdio.md](mcp-stdio.md)) with and without the variable:
+  `tools/call {"name":"system_status","arguments":{}}` gives `unknown` unset and
+  `opted_out` with `OM_NO_UPDATE_CHECK=1`. `om status --json` printed nothing
+  parseable on stdout; the verb takes `--format json`.
 
 ## Gotchas
 
