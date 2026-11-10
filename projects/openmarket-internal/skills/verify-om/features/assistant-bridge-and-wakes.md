@@ -65,6 +65,17 @@ Ports from the agent range, all on 127.0.0.1: relay stand-in 18121, receiver 181
 
 - Since the 2026-11-09 rebase the ask is an approval ledger row: ids are `apr_`, `om approvals list` shows it as `mcp assistant_allow`, and `om approve <id>` admits the next call. The row also fans out as a card to paired messenger DMs and the GUI.
 
+## Live host, driven with Grok Bot as the user (2026-11-10)
+
+*Driven on the deployed internal host `https://om.mcp.openmarket.xyz` (WARP only), production gateway and relay, the operator's live daemon on om 0.493.0.*
+
+- The host is reachable only over WARP. A vendor's cloud connector cannot dial it; a Bot on this Mac reaches it with curl through its local command tool.
+- To keep the key out of the Bot: a loopback forwarder (`run-artifacts/live-grok/forwarder.ts`) resolves the stored key through `resolveApiKeyWithSource` and adds the header. The Bot posts plain JSON-RPC to `http://127.0.0.1:18119/mcp`. Stop it when done; it is an unauthenticated door while up.
+- Journey that passed: `initialize`, `tools/list` (61 tools on a legacy-scope key), `watch_list` answers `daemon_assistants_off`; `om assistants on`; `watch_list` answers `daemon_asks_you` with `om approve apr_...`; approve; `watch_list` returns the real watches; `watch_history`; `deposit` lands in `assistant-inbox-<hash>`; `watch_mute` and `watch_unmute` on that inbox; asks for a new watch and an order are declined by the model because no such tool is listed.
+- Sign-in discovery on the live host: the 401 names `/.well-known/oauth-protected-resource/mcp`; the resource is `https://om.mcp.openmarket.xyz/`; the authorization server document is served by the om host with endpoints at `openmarket.xyz/api/v1/oauth`; dynamic registration of a public client answers 201.
+- Seen: `watch_list` on a home with 94 watches answered 1.43 MB in about 5 s. The ask shows the key's label, and a CLI key reads `om <device>`. `om keys create` refuses when the stored key was itself minted.
+- Pending proof: an OAuth-minted token through the relay to the daemon, and identity across a token refresh. Both need the operator's browser consent.
+
 ## Gotchas
 
 - Two links can share one label (the key's label). `allow` and `revoke` then need the `asst_` id, which `om assistants --format json` prints.
