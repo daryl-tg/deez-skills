@@ -42,6 +42,21 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
 - **Remove Link Previews** (`MessageRow.tsx:3605`) shows only on a message
   with `unfurls`, which no fixture seeds.
 - **Forward** from the message menu opens **Forward message** with a **Comment** box (needs the session-capture shim; see the Forward section).
+- **Keys on a focused row** (`lib/message-keyboard.ts:12-30`, `MessageRow.tsx:2163-2205`):
+  ArrowUp/ArrowDown walk the rows, **R** replies, **E** edits your own
+  message, **Delete** asks to delete it (Shift+Delete skips the confirm),
+  **+** or **=** opens the emoji picker, **M** opens the message menu, **P**
+  opens the author's profile card and **Enter** opens the row's first link or
+  image. Alt, Ctrl or Meta held turns them off.
+- **Image right-click menu** (`lib/image-menu.ts`, `MediaGallery.tsx:1290`):
+  **Copy Image**, **Save Image** and **Open in Browser**. Copy stays greyed
+  ("Available after security scan") while the scan is pending.
+- **Nothing renders for an attachment still being scanned**
+  (`ScanState.tsx:31`, `MediaGallery.tsx:1202`): `ScanPendingCard` returns
+  `null`, so the row keeps its text and shows no placeholder and no Retry.
+- **@role pill → role popover** (`MessageRow.tsx:2681-2695`, `RolePopover.tsx`,
+  `Shell.tsx:4727`): clicking a role mention opens **<Role> role members**
+  with "<Role> — <n>" and one row per known holder.
 
 ## How to get to it (user POV)
 
@@ -49,6 +64,10 @@ Hover a message and use the small toolbar, or press **More** for the full
 menu. In a DM, hover the bubble and press **More**. Point at **Agent** to hand
 the message to an agent: copy it in an agent-ready form, mark it for the next
 agent run, ask about it, or capture the conversation from here into a doc.
+
+From the keyboard, focus a message and press **R**, **E**, **Delete**, **+**,
+**M**, **P** or **Enter**. Right-click an image to copy, save or open it.
+Click an **@role** mention to see who holds the role.
 
 ## Driving it with control-om-chat
 
@@ -244,6 +263,112 @@ The source handed to `openForward` carries `kind`, `room`, `seq`, `handle`,
 `preview`, `text`, `ts`, `attachments`, `authorUserId`, `authorDisplayName` and
 `authorHandle`. Picking a destination and sending were not driven.
 
+### Keys on a focused row (added 2026-11-10)
+
+Each row is `[data-message-row]` with `tabIndex=-1` and the name "Message
+from <author>". The handler ignores any key whose target is not the row
+itself, so focus the row, not a button inside it. kyle is the viewer: his
+rows in `#ops` are `#msg-ops-104` and `#msg-ops-108`.
+
+```bash
+# people stub + session-capture shim (README), ?view=room&alerts=quiet
+agent-browser eval 'document.getElementById("msg-ops-104").focus()'
+agent-browser press ArrowDown          # activeElement -> msg-ops-105
+agent-browser press r                  # "Replying to kyle: …" with Cancel reply
+agent-browser eval 'document.getElementById("msg-ops-108").focus()'
+agent-browser press e                  # textarea "Edit message" in msg-ops-108 (mounts ~1 s later)
+agent-browser press Delete             # alertdialog "Delete Message"
+agent-browser press +                  # dialog "Choose an emoji", "Search emoji" focused
+#   pick the button titled ":100:" -> html[data-fixture-reaction="ops:108:💯"]
+agent-browser press m                  # message menu (Forward, Edit Message, Copy Text, …)
+```
+
+**P** calls `session.openProfileCard`, which neither fixture defines; the key
+is consumed (`defaultPrevented`) and nothing opens. Stub it through the shim
+(`profileCard` is a spelled-out field, so redefine it with a getter):
+
+```bash
+agent-browser eval '(()=>{const o=window.__om;let c=null;
+  Object.defineProperty(o,"profileCard",{get:()=>c,configurable:true});
+  o.openProfileCard=(t)=>{c=t;o.closeConfirm()};o.closeProfileCard=()=>{c=null;o.closeConfirm()};return 1})()'
+agent-browser eval 'document.getElementById("msg-ops-105").focus()'
+agent-browser press p                  # dialog "Profile for ana"
+```
+
+On `/chat/` the cloud fixture spells `beginEdit: noop` and `editingSeq: null`,
+so **E** opens nothing until you stub both:
+`o.beginEdit=(s)=>{o.editingSeq=s;o.closeConfirm()}` (and `cancelEdit` the
+same way). The editor then mounts in the row, empty. **Enter** needs a row
+with a link or image: with `&tape=mosaic5`, focusing `#msg-ops-116` and
+pressing Enter opens the image viewer "mosaic-1.svg · 1/5".
+
+**E** on someone else's row is not consumed: the shell's printable-key branch
+moves it into the composer (`data-fixture-draft="e"`).
+
+### Image right-click menu (added 2026-11-10)
+
+Only the root fixture seeds images. `&tape=mosaic5` adds dax's five-image post
+(`#msg-ops-116`, `mosaic-1.svg`…, `scanStatus: "clean"`, data-URL
+`signedUrlFor`). Dispatch `contextmenu` on the tile and spy the effects:
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&tape=mosaic5')"
+agent-browser eval '(()=>{window.__opened=[];window.open=(...a)=>{window.__opened.push(a);return null};
+  window.__dl=[];HTMLAnchorElement.prototype.click=function(){window.__dl.push(this.download)};
+  window.__om.attachmentBlob=async()=>new Blob(["<svg/>"],{type:"image/svg+xml"});
+  const img=document.querySelector("#msg-ops-116 img.cursor-pointer"),r=img.getBoundingClientRect();
+  img.dispatchEvent(new MouseEvent("contextmenu",{bubbles:true,cancelable:true,clientX:r.x+20,clientY:r.y+20}));return 1})()'
+# menu: Copy Image, Save Image, Open in Browser (all enabled for a clean image)
+agent-browser find role menuitem click --name "Open in Browser"   # __opened: [data:image/svg+xml…, "_blank", "noopener,noreferrer"]
+# reopen, then Save Image -> __dl ["mosaic-1.svg"]
+# reopen, then Copy Image -> navigator.clipboard.write gets one ClipboardItem of image/svg+xml
+```
+
+`attachmentBlob` is unstubbed in both fixtures. Without the stub above, Save
+throws on `URL.createObjectURL`, and Copy showed no toast on the lane.
+
+### An attachment still being scanned (added 2026-11-10)
+
+`ScanPendingCard` renders `null` by design. To see the difference, keep the
+late image's URL from ever arriving and flip its scan status through the shim:
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&lateImage=1&lateImageDelay=99999999')"
+#   msg-ops-101: "Image unavailable" with Retry (clean, no URL)
+agent-browser eval '(()=>{const o=window.__om,rs=o.rooms.get("ops");
+  rs.entries=rs.entries.map(e=>e.seq===101?{...e,attachments:e.attachments.map(a=>({...a,scanStatus:"pending"}))}:e);
+  o.closeConfirm();return 1})()'
+#   msg-ops-101: text only, no media node, no Retry
+```
+
+Replace the arrays rather than mutating them, or memoised rows keep the old
+attachment. The cloud fixture has no `lateImage` seed, and an attachment
+injected there stays on "Loading <name>" in both states, so this is `/rooms/`
+only.
+
+### @role popover (added 2026-11-10)
+
+`&roleEdit=1` seeds kyle's post with `om://role/r-devops`, but opens it in the
+editor; cancel the edit first. Neither fixture defines `openRoleCard`, and both
+spell `roleCard: null`, so stub through the shim:
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&roleEdit=1')"
+agent-browser eval '(()=>{const o=window.__om;o.cancelEdit();
+  o.openRoleCard=(a)=>{o.roleCard={role:{roleId:a.roleId,name:"Devops",color:"#d19a3a"},
+    holders:[{userId:"u-ana",username:"ana"},{userId:"u-dax",username:"dax"}],knownHolders:2,
+    directoryTruncated:false,spaceId:a.spaceId,room:a.room,x:a.x,y:a.y};o.closeConfirm()};
+  o.closeRoleCard=()=>{o.roleCard=null;o.closeConfirm()};o.closeConfirm();return 1})()'
+agent-browser click '.mention-pill.role-mention'   # "@Devops" -> dialog "Devops role members", "Devops — 2", ana, dax
+agent-browser press Escape                         # closes; roleCard back to null
+```
+
+The cloud fixture has no `roleEdit` seed and resolves only
+`01j8x4kq7m2v9p3r6t0w5y8z1a` (Full Stack); `r-devops` there reads "@unknown
+role". Set an entry's `text` to `ping om://role/01j8x4kq7m2v9p3r6t0w5y8z1a`
+through `__om.rooms.get("ops")`, add the same stubs, and the pill opens **Full
+Stack role members**.
+
 ## Gotchas
 
 - **A mid-session `set viewport` can leave the hover toolbar dead.** A scripted
@@ -269,7 +394,9 @@ The source handed to `openForward` carries `kind`, `room`, `seq`, `handle`,
 
 ## Verification record
 
-**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) and `/chat/` (18142), with the people stub and the session-capture shim: `#msg-ops-104` **More** → **Forward** opens **Forward message** with **Comment** and a disabled **Forward**, on both hosts; on `/rooms/`, 19 menu entries on the same row. **Limitations:** no destination was picked and nothing was forwarded. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+**Last verified:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142) with the people stub and the session-capture shim. Focused-row keys on both hosts: ArrowDown, **R** (reply strip), **Delete** (**Delete Message**), **+** (**Choose an emoji**, then `:100:` stamped `ops:108:💯`), **M** (the menu: 11 items read 0.8 s after the key on `/rooms/`, 19 on `/chat/`; see the settling note under Sub-features), **P** (**Profile for ana**, with the `openProfileCard` stub), **E** (**Edit message**; on `/chat/` only with the `beginEdit` stub, and empty). On `/rooms/` only: **Enter** on the mosaic row opens the viewer; the image menu's three items with their window.open, download and clipboard effects; the pending-scan branch rendering nothing where a clean URL-less image shows "Image unavailable" and Retry. The @role popover on both hosts (`r-devops` on `/rooms/`, Full Stack injected on `/chat/`). **Limitations:** no real clipboard read-back; the disabled **Copy Image** state is not reachable (a pending attachment has no URL); Shift+Delete, and the menu verbs' effects, not driven; `/chat/` lacks the image, late-image and role seeds. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/`.
+
+**Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) and `/chat/` (18142), with the people stub and the session-capture shim: `#msg-ops-104` **More** → **Forward** opens **Forward message** with **Comment** and a disabled **Forward**, on both hosts; on `/rooms/`, 19 menu entries on the same row. **Limitations:** no destination was picked and nothing was forwarded. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `#msg-ops-104` toolbar **More** lists 19 entries on both hosts (Forward, Edit Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library, Pin Message, Mark Unread, Agent, Delete Message, Copy Message ID, …). **Limitations:** keyboard flyout not re-driven tonight (unchanged since 2026-11-08). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

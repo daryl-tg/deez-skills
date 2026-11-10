@@ -520,6 +520,30 @@ and `press Alt+ArrowUp` moved back to `#/room/ops` (`Shell.tsx:1118-1140`).
 After the first chord the focus sat in the composer, and a second chord did
 nothing until the textarea was blurred. Blur first (`document.activeElement.blur()`).
 
+### Other shell chords (added 2026-11-10)
+
+`handleShellKeydown` (`Shell.tsx:733-1220`) listens on `window` and matches
+`event.key` with exact modifiers (`lib/keymap.ts`, `matchesCombo`); mod is
+Meta when `navigator.platform` is Mac, which it is in the agent-browser
+Chromium. An open `[aria-modal="true"]` blocks every chord but Cmd+K.
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&inbox=1')"
+agent-browser press Alt+p           # #/connections/online, data-fixture-active-view="friends"
+agent-browser press Alt+a           # #/agents, heading "Agents"
+agent-browser press Meta+.          # html[data-fixture-lane="on"]
+agent-browser press Meta+Shift+u    # html[data-fixture-inbox="open"] (TopicCatchUp mounts only with inbox=)
+agent-browser eval '(()=>{window.__om.navigateBack=()=>history.back();return 1})()'
+agent-browser press Meta+[          # back to #/connections/online (without the stub: nothing)
+```
+
+Driven on `/rooms/` at `eae9681d` (2026-11-10). Cmd+Alt+Down did nothing,
+because the fixture's sidebar has one server. From source, the rest stay
+pending on this lane: Alt+N needs `news.supported`; Cmd+Shift+A calls a no-op
+`toggleBoard` (use `?alerts=board`); Alt+O needs a firing feed; Cmd+E,
+Cmd+Shift+O and Alt+C call unstubbed openers; Cmd+Shift+M and Cmd+Shift+D need
+`voice`; Shift+Esc, Alt+M and Alt+S call no-op stubs with nothing to see.
+
 ## Gotchas
 
 - **"Hide this channel's topics" is a `title`, not an `aria-label`.**
@@ -687,7 +711,9 @@ nothing until the textarea was blurred. Blur first (`document.activeElement.blur
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141), with the people stub: the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug`, **Back to #ops**; Alt+ArrowDown → `#/room/signals` and Alt+ArrowUp → `#/room/ops` from the body; the topic handoff banner and its **Dismiss** (persisted). `/chat/` (18142): the handoff banner. **Limitations:** **Continue there** is inert in the fixture; topic `panel=members` is still blank on both hosts (route smoke). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+**Last verified:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** `/rooms/` (18141) with the people stub and the session-capture shim, `?view=room&alerts=quiet&inbox=1`: Alt+P → `#/connections/online`, Alt+A → `#/agents`, Cmd+. → lane on, Cmd+Shift+U → inbox open, Cmd+[ (with a `navigateBack` stub) → back to `#/connections/online`; Cmd+Alt+Down a no-op with one server. **Limitations:** `/chat/` not driven for these chords; the chords listed as pending in the section stay pending. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/` (frames 26-27).
+
+**Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141), with the people stub: the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug`, **Back to #ops**; Alt+ArrowDown → `#/room/signals` and Alt+ArrowUp → `#/room/ops` from the body; the topic handoff banner and its **Dismiss** (persisted). `/chat/` (18142): the handoff banner. **Limitations:** **Continue there** is inert in the fixture; topic `panel=members` is still blank on both hosts (route smoke). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) and `/chat/` (18184), with the people stub: the **CPI print — Aug** treeitem → `#/room/ops/topic/cpi-print-aug` (`/chat/room/ops/topic/cpi-print-aug`), composer **Message in CPI print — Aug**, **Back to #ops**. **Limitations:** `panel=members` on a topic still renders blank (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

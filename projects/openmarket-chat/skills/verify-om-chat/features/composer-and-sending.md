@@ -381,6 +381,24 @@ or scan runs. OS drops onto the tape, the topic list or the library
 (`useFileDropZone.tsx`) still need a real file through `setInputFiles` or a CDP
 drop, and stay pending.
 
+**A pasted share link binds to a pill** (driven 2026-11-10 at `eae9681d`).
+`hasRecognizedShareLink` (`lib/composer-pills.ts:178`, `lib/share-links.ts:111`)
+accepts only `https://openmarket.xyz/chat/…` and `https://chat.openmarket.sh/…`
+links to a doc, topic, message or room, with no query or hash. An `om://` text
+paste is not this branch. With no selection:
+
+```bash
+agent-browser eval '(()=>{const t=document.querySelector("#root textarea");t.focus();
+  const dt=new DataTransfer();dt.setData("text/plain","https://openmarket.xyz/chat/room/ops/msg/104");
+  const ev=new ClipboardEvent("paste",{clipboardData:dt,bubbles:true,cancelable:true});t.dispatchEvent(ev);
+  return JSON.stringify({prevented:ev.defaultPrevented,value:t.value,draft:document.documentElement.dataset.fixtureDraft})})()'
+#   /rooms/: {"prevented":true,"value":"↩ #ops·104","draft":"https://openmarket.xyz/chat/room/ops/msg/104"}
+```
+
+On `/chat/` the paste is also prevented but the composer comes back empty: the
+cloud fixture does not define `bindComposerUrisFor`, so the bound text is the
+`INERT` proxy. That is a fixture gap, not product behavior.
+
 ### The older-messages banner past 99 (added 2026-11-02)
 
 `ChatPane.tsx:3317` prints **You're viewing older messages · 99+ new below**
@@ -614,7 +632,9 @@ verb rather than sent.
 
 ### Verification record
 
-**Last verified:** 2026-11-10 (nightly). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** with the people and Projects stubs, on `/rooms/` (18186) and `/chat/` (18187): `!fix` lists **TICKETS** with "!1 Fix alert dedupe #ops Open"; Enter with nothing highlighted sends `!fix` as typed (`/rooms/`); ArrowDown + Enter inserts `!1 Fix alert dedupe `; the sent row carries **Ticket !1, Open**; a standalone `om://todo/s1/2` renders the card **Ticket !2**; the tag opens ticket 1. Local sends 16 → 18 rows. **Limitations:** the stubbed lookup and refs stand in for the store; the hidden-ticket state, the card's **Follow** and live updates were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261110/r1/`.
+**Last verified:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** with the people stub, a share-link paste into the `#ops` composer: on `/rooms/` (18141) it is prevented and binds to `↩ #ops·104`; on `/chat/` (18142) it is prevented and empties the composer (fixture gap: no `bindComposerUrisFor`). **Limitations:** doc and topic links were not pasted; no send after the paste. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/` (frames 10, 18).
+
+**Previous record:** 2026-11-10 (nightly). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** with the people and Projects stubs, on `/rooms/` (18186) and `/chat/` (18187): `!fix` lists **TICKETS** with "!1 Fix alert dedupe #ops Open"; Enter with nothing highlighted sends `!fix` as typed (`/rooms/`); ArrowDown + Enter inserts `!1 Fix alert dedupe `; the sent row carries **Ticket !1, Open**; a standalone `om://todo/s1/2` renders the card **Ticket !2**; the tag opens ticket 1. Local sends 16 → 18 rows. **Limitations:** the stubbed lookup and refs stand in for the store; the hidden-ticket state, the card's **Follow** and live updates were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261110/r1/`.
 
 **Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141): a local send in `#ops` (16 → 17 rows); a printable key from `BODY` focuses the composer; `/` lists 29 commands; the invite card (**Acme Desk**, 42 members, **Join**) after sending an invite code; the opening-room queue ("queued while opening" under `fixtureState=loading`); the recovery nudge shown and dismissed. `/chat/` (18142): the invite card and the recovery nudge. **Limitations:** **Join**, **Save it now** and every slash command were not run; the queue was driven on `/rooms/` only. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 

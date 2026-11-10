@@ -152,6 +152,51 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
 
+### The rail account panel (added 2026-11-10)
+
+`UserPill.tsx` is the rail tile at the bottom left, named **Account: <name>,
+<status>** (`aria-haspopup="dialog"`). On a shell route with the people stub,
+click it; the panel is portaled to `body` and its rows are `.account-row`
+buttons with no `aria-label`:
+
+```bash
+agent-browser click 'button[aria-label^="Account:"]'   # "Account: kyle, Unknown"
+#   panel: K / kyle / Unknown, rows Edit Profile, Online, Copy Username, Settings, Log Out
+agent-browser eval '(()=>{[...document.querySelectorAll(".account-row")].find(r=>r.innerText.trim()==="Online").click()})()'
+#   presence choices Online, Idle, Do Not Disturb
+agent-browser eval '(()=>{[...document.querySelectorAll(".account-row")].find(r=>r.innerText.trim()==="Settings").click()})()'
+#   dialog "Settings"
+```
+
+Driven on `/rooms/` and `/chat/` at `eae9681d` (2026-11-10); **Settings** was
+pressed on `/rooms/` only. The status reads "Unknown" because the fixtures do
+not seed presence. Picking a presence, **Edit Profile** and **Copy Username**
+were not driven. Mousedown outside, Escape and a window resize close it.
+
+### Why a control is off (added 2026-11-10)
+
+`Button`, `Menu` rows and `MenuSelect` take a `disabledReason`
+(`shared/ui/Button.tsx:14-19`, `shared/ui/Menu.tsx:22-25`,
+`MenuSelect.tsx:82-86`). With a reason the control stays focusable, is not
+`disabled`, carries `aria-disabled="true"` and is described by the reason.
+The Projects ticket in mute is the dense case; see
+[projects.md](projects.md) (`ticketMuted=1`): twelve controls, all described
+by "You're muted in this server until Jan 1, 8:00 AM.", on both hosts.
+
+The notification settings show the other shape. `UnsavedBar` keeps **Save**
+truly `disabled` and points `aria-describedby` at the reason:
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/settings-fixture.html?host=user&page=notifications')"
+agent-browser click '[aria-label="Enable quiet hours"]'
+agent-browser fill  '[aria-label="Quiet hours time zone"]' 'Mars/Olympus'
+#   "Unknown time zone; keeping Asia/Kuala_Lumpur"; Save disabled,
+#   described by "Enter a valid IANA time zone before saving"
+```
+
+Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
+`http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/` (frames 14-15, 19-22).
+
 ### Settings page bodies (added 2026-10-29)
 
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
@@ -552,7 +597,9 @@ timed mutes** and **Channel bans** with no console error (driven 2026-11-10).
 
 ### Verification record
 
-**Last verified:** 2026-11-10 (nightly). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** `host=server&page=moderation` on `/rooms/` (18186: **Moderation**, **Member actions**, **Active timed mutes**, with the people stub) and on `/chat/` (18187: blank with "session.spaceModerationState(...).then is not a function", then the four headings with the moderation init stub); every `settings-fixture.html?page=` route in the guides mounted on both hosts except `page=privacy`. **Limitations:** `page=privacy` is still blank on both hosts; the `/chat/` stub seeds no channel rows; the Mute in server flyout and the row **Remove** are unreachable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261110/r1/`.
+**Last verified:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** the rail account panel on `/rooms/` (18141) and `/chat/` (18142) with the people stub (five rows; on `/rooms/` also the presence choices and **Settings** opening the Settings dialog); on `/rooms/`, the notification settings' invalid time zone disabling **Save** with its described reason. **Limitations:** no presence change, profile edit or username copy; the time-zone reason was not driven on `/chat/`. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/`.
+
+**Previous record:** 2026-11-10 (nightly). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** `host=server&page=moderation` on `/rooms/` (18186: **Moderation**, **Member actions**, **Active timed mutes**, with the people stub) and on `/chat/` (18187: blank with "session.spaceModerationState(...).then is not a function", then the four headings with the moderation init stub); every `settings-fixture.html?page=` route in the guides mounted on both hosts except `page=privacy`. **Limitations:** `page=privacy` is still blank on both hosts; the `/chat/` stub seeds no channel rows; the Mute in server flyout and the row **Remove** are unreachable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261110/r1/`.
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` with the people stub: `settings-fixture.html` Appearance, Server Overview and channel Overview headings; **Mute Members** in **Permissions** on both hosts; **Server mutes** with "No one is muted across this server." on `/rooms/`. **Limitations:** `page=privacy` is still blank on both hosts and `/chat/` `host=server&page=moderation` still crashes (`ModerationPage`); the Mute in server flyout and the row **Remove** are unreachable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
