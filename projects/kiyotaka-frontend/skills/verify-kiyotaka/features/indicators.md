@@ -749,3 +749,16 @@ Preconditions:
   assertion on an options indicator.
 - Some indicators are interval-sensitive: TPO sessions are daily, so at `1m` the
   profile is off-screen and the frame looks blank. Pin a sane interval first.
+- **A relay feed pane (`FEED`) drives on the guest lane (live, production tree
+  `aa214b9c43`, 2026-11-10).** Add it through the store, the call the feed
+  picker makes:
+  `$pinia._s.get('chart').addIndicator('FEED', {address:'@scope/name', scope, name, title, cadence_s, units:'', version:1, plot:'line', color:'#8b5cf6', pane:'lower', column:''}, 0, undefined, undefined, undefined, {recordUndo:false, enforceIndicatorLimit:false})`.
+  A guest lane sends `chart=guest-workspace` as the grant, so a private feed
+  answers `403`; wrap `window.fetch` to rewrite `chart=` on
+  `relay.openmarket.xyz/api/v2/feeds` URLs to a chart that references the feed.
+  The stream door answers `404` there and the session polls `head` every 10 s.
+  Read the pane with
+  `tc.metadata.find(m=>/FEED/.test(m.id))`: `rawData.length` is the rows
+  mounted, `subsetRange` the draw window. Seen on this tree: rows mounted with
+  `subsetRange` `[0,0]` and a blank pane until `tc.processData()` ran, so a
+  legend value is not proof of a drawn line. Open the PNG.
