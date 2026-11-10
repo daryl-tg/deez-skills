@@ -585,3 +585,19 @@ Recipe, needs a daemon-backed lane (the fixture lane has no roster): the agents 
 - `fill "textarea" "@explain what is a funding rate"`, `press Escape`, `press Enter`: explain's fake reply lands threaded under the mention within 25 s. argue and fact-check launch a run too, but their own `cites-source` reply check holds the fake model's reply (`GET /rpc/v1/roster/inbox` lists `verify_failed`), so use explain for a visible reply.
 
 Proven on both hosts at chat `14509e60` with lane daemon `4f4db0510`. Rig owner handle is empty, so rows read `| argue` there; a real daemon sends the owner's handle.
+
+## Agents in rooms and on the Agents page (chat !231 !232, internal #2432–#2434, relay !255 !256)
+
+*Live-driven 2026-11-09/10 on a local rig, both hosts. Rig: `~/Documents/dev-notes/om-agent-thinking-indicator/rig` (Mongo 18122, store 18121 from a tharamine worktree detached at `13445d10`, relay 18120 from `RELAY_TREE`, fake model 18124 started with `FAKE_HOLD_MS=6000 FAKE_HOLD_WHEN=post_reply` so a mention run shows "thinking" for a few seconds, lane 18123 via `lane-start.sh` with `ACP_ROOMS_GUI_DEV_URL=http://127.0.0.1:18126`, rooms vite 18126 and cloud vite 4178 from the GUI tree).*
+
+- **Thinking row.** Grant an agent the room (`POST /rpc/v1/roster/instances/<id>/grant` with the lane's runner token), send "@argue ..." in the composer; `.composer-thinking` reads "⚖️ <owner> · argue is thinking..." and its label carries `.text-shimmer`.
+- **Agent tags.** `.agent-mention` spans (teal text, transparent background); they gain `.text-shimmer` while that agent thinks. Channels with topics on render through TopicListView, so check there too.
+- **Reply to an agent.** Post with `inReplyTo` = the agent's message seq (rig/reply-probe.ts); expect exactly one new `reply_tag` row in `roster_invocations` and no further rows from the agent's own answers.
+- **Agent chat.** `#/agents` → open the agent → send in "Message <agent>": bubbles on lane `agent-chat:<instance>:<thread>`; on cloud the same thread continues over Remote Control (`agent-chat.v1`).
+- **Needs you.** Grant a coding agent (feature) a room with no linked project: its Overview lists the missing brain and "no project for this server" with a Link a project button.
+
+### Gotchas
+- Vite pre-bundles the linked `@openmarket/chat-ui`; after merging new GUI commits restart both vites with `--force`, and open a fresh agent-browser session (an old session keeps stale modules).
+- In this rig the daemon's owner handle is empty, so agents assert "| <name>" and agent posts arrive `isAgent=false` under the owner; the GUI's `agentOwnName` and the daemon's own-post guard cover both.
+- A fake model that holds every call long makes the run fail as a provider hiccup; hold only `post_reply` turns, for a few seconds.
+- The room post budget throttles an agent for the hour after a burst; switch agents for fresh captures.
