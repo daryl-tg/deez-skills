@@ -762,3 +762,20 @@ Preconditions:
   mounted, `subsetRange` the draw window. Seen on this tree: rows mounted with
   `subsetRange` `[0,0]` and a blank pane until `tc.processData()` ran, so a
   legend value is not proof of a drawn line. Open the PNG.
+- **A feed pane draws bars and offers a Plot type row (live, MR !12791's branch
+  `1aeb937233`, 2026-11-10, not on main yet).** Add with the FEED recipe above
+  and `plot:'bars'`. Proof on the overlay: `plot === 'bar'`,
+  `settings.plot === 'bars'`, `settings.meta.plotType === 'bar'`,
+  `settings.width === 1`, two equal `settings.colors`, rows mounted and a
+  non-empty `subsetRange`. A cold lane took about 5 s to mount the rows, so poll
+  `rawData.length` before the frame. To choose it by hand:
+  `metadata.find(m=>m.settings?.column==='<col>').legends.settingsBtn.click()`,
+  then the `combo-box-trigger-btn` inside the row holding
+  `indicator-feed-plot-term` (reads `Line`), then `combo-box-option-bars`
+  (reads `Bar`). An agent-style update is
+  `chartStore.saveIndicatorSettings(id, {...saved, plot:'bars'}, saved, 0, undefined, {origin:'remote-apply'})`;
+  it switched the renderer both ways with a stale `meta.plotType`.
+- **`browser press Escape` left the tab `hidden` twice (2026-11-10).** Every
+  later screenshot was the last painted frame or a loading splash while `eval`
+  kept answering. Read `document.visibilityState` before a frame. Recover by
+  closing the browser session and reopening; guest state is lost.
