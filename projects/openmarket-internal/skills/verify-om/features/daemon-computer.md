@@ -1,55 +1,60 @@
 # The daemon's own browser
 
-*Re-checked 2026-11-11 (nightly, source only) against origin/main `0ad4768f66` (v0.494.0): PR #2442 is still open and nothing of it is on main. Headings renamed to the map's four-H2 contract; no recipe changed.*
+*Verified: 2026-11-11, branch `daryl/daemon-computer` tree `3e2ae2b37a` (PR #2442, on origin/main `0ad4768f66`), bare lane on 18141 with a scripted fake model on 18142, `agent-browser` 0.33.2 and Google Chrome 157. Gallery `http://127.0.0.1:8098/daemon-computer/r4/` (36 screenshots). Not on main until the PR merges.*
 
-*Verified: 2026-11-10, branch `daryl/daemon-computer` tree `b9e34f8d2e` (PR #2442, on origin/main `c0901d5bf6`), bare lane on 18141 with a scripted fake model on 18142, `agent-browser` 0.33.2 and Google Chrome 157. Gallery `http://127.0.0.1:8098/daemon-computer/r2/` (19 screenshots). Not on main until the PR merges.*
+*First verified 2026-11-10 at tree `b9e34f8d2e`, gallery `daemon-computer/r2`, when the feature had one browser and per-site cards by default.*
 
-`om computer on` gives the daemon a Chrome profile under `OM_HOME`. The owner logs in by hand in a visible window. The agent reads and acts through `computer_open`, `computer_read`, `computer_act`, `computer_screenshot` and `computer_status`, under site grants the daemon keeps. The dashboard's Computer page shows the live page with Take over and Hand back.
+`om computer on` gives the daemon a browser. The chat agent, watch steps and roster agents read and act through `computer_open`, `computer_read`, `computer_act`, `computer_screenshot` and `computer_status`. By default nothing asks. Each task leases its own window, tasks queue when every window is taken, and the dashboard's Computer page shows who is driving.
 
 ## Sub-features
 
-- The switch: `om computer on`, `off`, `status`. Off by default. `on` refuses with no driver installed (exit 2) and under an auto-approve harness.
-- Site grants: `om computer sites`, `allow <site> [--act] [--always]`, `revoke`, `readonly`. A venue site takes `read` only.
-- The read card: a new site asks once (`SITE`, `OPENS`, `READS`, `REMEMBERED`). A second read on that site shows no card.
-- The act card: clicks and typing ask once per site per 24 hours (`SITE`, `DOES`, `ALLOWS`, `NEVER`).
-- Refusals with no card: `computer_venue_read_only` on a site om trades on, `computer_password_field`, `computer_key_not_allowed` for a printable key, `computer_page_moved`, `computer_human_in_control`, `computer_off`.
-- Unattended: a watch `ai` step reads a granted site and gets `computer_site_not_granted` on any other. It never clicks and mints no grant.
-- Status for the agent shows only the site for a page with no read grant. `om computer status` shows the full address.
-- The owner's window: `om computer open [address]` makes it visible and holds the computer. `om computer release` hands it back. `om computer hide`, `om computer close`.
-- The dashboard's Computer page: status rows, the live frame, Take over and Hand back. Typed input reaches the page only while held.
-- The driver's stream is off unless a dashboard viewer is connected.
-- The hold survives a daemon restart.
+- The switch: `om computer on`, `off`, `status`. `on` refuses when the driver or Chrome is missing and names `om computer setup`.
+- Setup: `om computer setup` downloads the pinned driver after a yes, checks its SHA-256, then offers Chrome. A stale `computer.driver_path` refuses up front.
+- Free use: under `computer.asks never` (the default) open, read, every act step and screenshot run with no card, attended and unattended.
+- Strict mode: `om config set computer.asks sites` brings back the read card per new site and the act card per site per 24 hours.
+- Floors in both modes: `computer_venue_read_only`, `computer_site_read_only`, `computer_password_field`, `computer_key_not_allowed`, `computer_private_address`.
+- Windows: a signed-in site (`om computer open <address>`, then `release`) uses the `owned` window. Every other site uses `clean-<n>`, emptied per task. `computer.windows` sets the count.
+- Leases: 90 seconds idle, 15 minutes at most. `computer_act` step `done` gives the window back. A reaped window reads `closing` until its browser is gone.
+- Queue: at most 16 wait. `computer_busy` names the place in line and the holders.
+- Reporting: `om computer status` lists windows, holders, sites, steps and waiters. `om computer history` lists ended runs. `ask_owner` shows as `needs you`.
+- The owner's hold: `om computer open` takes the owned window only. Agent steps on it get `computer_human_in_control`. Clean windows keep working.
+- Roster agents: an agent created with computer tool names gets them, in a run its owner started. Over MCP, `agent_fit`, `agent_create`, `agent_configure` and `agent_run` with a computer tool return `computer_needs_owner_surface`.
+- The dashboard's Computer page: the board, a live view per window, Take over and Hand back.
 
 ## How to get to it (user POV)
 
-1. Install the driver: `npm install -g agent-browser` (or Homebrew).
-2. `om computer on`, from a real terminal.
-3. `om computer open https://example.com`, log in by hand, `om computer release`.
-4. In `om chat`, ask for a page on that site. Answer the card.
-5. Open the dashboard and pick Computer in the sidebar.
+1. `om computer setup`, answering yes, from a real terminal.
+2. `om computer on`.
+3. In `om chat`, ask for a page. For a site that needs a login: `om computer open <address>`, log in by hand, `om computer release`.
+4. Open the dashboard and pick Computer in the sidebar.
 
 ## Driving it with control-om
 
-- Bare lane, no account: a dummy `OM_API_KEY`, every service URL at `http://127.0.0.1:9`, `OPENMARKET_LLM_PROVIDER=openai-compatible` pointed at a scripted fake model, as in [persona-chat-tools.md](persona-chat-tools.md). Export `OM_LANE_PORT` on every `control-om om --` call.
-- `om computer on` must run inside tmux or another real terminal. A harness parent is refused by design.
-- The lane's browser lives in a driver namespace derived from the lane's `OM_HOME` (`om-<16 hex>`). Never drive, list or close a session outside it, and never run `agent-browser close --all`. Other sessions on the machine share the default namespace.
-- Real sites used: `https://example.com` (read), `https://httpbin.org/forms/post` (fill and submit), one read of `https://polymarket.com` (venue refusal).
-- The scripted model calls `computer_open`, then `computer_act` with the `site` the result returned. `computer_read` needs `site` too.
-- The unattended case is a prompt `ai` step with `tools: [computer_open]`, as in [watch-agent-step.md](watch-agent-step.md). A roster-agent step brings its own tools.
-- The dashboard page is captured headless as in [ops-dashboard.md](ops-dashboard.md). Start a viewer before expecting `stream status` to read enabled.
-- `skill_read` of `computer` is driven from a chat turn. There is no `om skill read` verb.
+- Bare lane as in [persona-chat-tools.md](persona-chat-tools.md). Export `OM_LANE_PORT` on every `control-om om --` call.
+- `om computer on`, `setup`, `open` and `allow` need a real terminal. Run them in tmux on your own named socket.
+- The lane's browsers live in a driver namespace derived from the lane's `OM_HOME` (`om-<16 hex>`), one session per window. Never drive, list or close a session outside it, and never run `agent-browser close --all`.
+- A direct driver call with different environment variables restarts that session's browser. Go through `om computer` verbs, or match om's settings.
+- Real sites used: `https://example.com`, `https://httpbin.org/forms/post`, one read and one refused click on `https://polymarket.com`.
+- Two windows at once: a scripted chat turn on one site and a watch `ai` step on another. Capture `om computer status` mid-run.
+- The queue: set `computer.windows` to 1, hold the window from a watch step, open a page from chat.
+- A watch `tool` step behind a busy window ends at its own time budget (about 100 s) before the queue's bound, so it reports cut short, not `computer_busy`.
+- The MCP refusals: `control-om om -- mcp serve --stdio --no-fire-bridge` and one `tools/call` each for `agent_fit` and `agent_run`.
+- Setup with nothing installed: an empty `HOME`, a bare `PATH`, `OM_BRAIN_SYSTEM_DIRS` pointing nowhere and a scratch `OM_HOME`. It makes one real download from GitHub.
+- The dashboard page is captured headless as in [ops-dashboard.md](ops-dashboard.md).
+- The machine's DNS goes through Tailscale. `ERR_NETWORK_CHANGED` on a page open is the network, so rerun once.
 
 ### What to check
 
-- Filling a field with the text `--headed` leaves the same Chrome process running, still headless, and the page echoes the text. The driver parses a bare `--` argument as its own option, so this is the regression that matters most.
-- A second `computer_open` on a granted site paints no card.
-- After Take over, an agent call returns `computer_human_in_control`. After Hand back it works.
-- `om computer sites` is unchanged after an unattended run.
+- Filling a field with the text `--headed` leaves the same Chrome process running, still headless, and the page echoes the text.
+- A second task that claims while an expired lease is closing gets the window only after the first browser's process is gone.
+- The owner taking the window mid-step gives the agent `computer_human_in_control` and no page text.
+- Two firings of one watch show as two runs in history.
+- A form on a public page that posts to a loopback listener sends nothing.
 
 ## Gotchas
 
-- A real login with a second factor has not been driven.
-- A visible window from a launchd-started daemon has not been driven.
-- The stream on a bind that enforces auth has not been driven.
-- Linux, Windows, and driver versions above 0.33.2 have not been driven.
+- Typing through the dashboard's live view reaches the owned window and not a clean one. Clicks reach both.
+- A run started by a second room member cannot be staged on a bare lane. The refusal is unit-tested.
+- A real login with a second factor, a visible window from a launchd-started daemon, and the live view on an auth-enforcing bind have not been driven.
+- Linux, Windows, a machine with no Chrome, and driver versions above 0.33.2 have not been driven.
 - No live eval area covers how a real model chooses these tools.
