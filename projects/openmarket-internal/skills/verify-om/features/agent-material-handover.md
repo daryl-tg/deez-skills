@@ -1,6 +1,6 @@
 # om hands an agent material, and an agent asks om for more
 
-*Verified: 2026-11-10 and 2026-11-11, branch `daryl/agents-get-material` (PR #2452, not on main), trees `4fc869d1c5`, `3947cb6da2` and `d539d7e38e`, lanes on 18172 and 18173 from a copy of the signed-in test home (`dboon_ref`, `anthropic/claude-opus-5-5`), source daemon. Driven: `om chat` in tmux and the task door over HTTP. Evidence: `http://127.0.0.1:8098/agents-material-20261111/r1/` and `~/Documents/dev-notes/om-agent-build-socratic-tutor/run-artifacts/material/`. Not proven on a real model: a task ending `failed` with `verify_failed` (both real retries passed), and om fulfilling an `om_request` in the same turn.*
+*Verified: 2026-11-10 and 2026-11-11, branch `daryl/agents-get-material` (PR #2452, merged to main 2026-11-11 as `73259f26a3`; the merged tree was not re-driven on a lane), trees `4fc869d1c5`, `3947cb6da2` and `d539d7e38e`, lanes on 18172 and 18173 from a copy of the signed-in test home (`dboon_ref`, `anthropic/claude-opus-5-5`), source daemon. Driven: `om chat` in tmux and the task door over HTTP. Evidence: `http://127.0.0.1:8098/agents-material-20261111/r1/` and `~/Documents/dev-notes/om-agent-build-socratic-tutor/run-artifacts/material/`. Not proven on a real model: a task ending `failed` with `verify_failed` (both real retries passed), and om fulfilling an `om_request` in the same turn.*
 
 om attaches what it has read when it hands an ask to a chat agent, the agent is told where it is and what it holds, and it can ask om for something it cannot read.
 
