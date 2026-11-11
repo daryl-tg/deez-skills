@@ -76,17 +76,19 @@ Ports from the agent range, all on 127.0.0.1: relay stand-in 18121, receiver 181
 - Seen: `watch_list` on a home with 94 watches answered 1.43 MB in about 5 s. The ask shows the key's label, and a CLI key reads `om <device>`. `om keys create` refuses when the stored key was itself minted.
 - Pending proof: an OAuth-minted token through the relay to the daemon, and identity across a token refresh. Both need the operator's browser consent.
 
-## Carded writes: plot, watch create, edit and start (branch `daryl/assistant-loops`, 2026-11-10)
+## Carded writes through `request_change` (on main since #2449, `92873997bb`, 2026-11-11)
 
-*Driven on the branch at `f1b536f127`, not on main: a rig of the hosted binary, the stand-in gateway and relay, and a lane daemon on 18150 with a fake model and a webhook channel. Pending the PR's merge.*
+*Driven on a rig of the hosted binary, the stand-in gateway and relay, and a lane daemon on 18150 with a fake model and a webhook channel: the four separate tools on 2026-11-10, the folded tool on 2026-11-11 at `baf9897c05`.*
 
-- `carded call`: `watch_create`, `watch_edit`, `watch_arm` and `plot_inbox` answer `daemon_asks_you` with an `apr_` id and both commands; the same call before the yes names the same card; after `om approve` the same call returns the result once, then asks afresh.
+- `one tool`: the four writes are one hosted tool, `request_change`, with `action` `create_watch`, `edit_watch`, `start_watch` or `plot_inbox`. The old names `watch_create`, `watch_edit`, `watch_arm` and `plot_inbox` answer tool not found. A missing, unknown or wrong-typed `action` answers `invalid_input` with no card; a field of another action answers as an unknown key.
+
+- `carded call`: each action answers `daemon_asks_you` with an `apr_` id and both commands; the same call before the yes names the same card; after `om approve` the same call returns the result once, then asks afresh.
 - `read the card`: `om approvals show <id>` prints the headline, `ASSISTANT`, the facts (`NAME`, `SOURCE`, `AI STEP`, `NOTIFIES`), the question and the expiry. `om approvals` alone prints usage; the list is `om approvals list`.
 - `refused before any card`: a script condition as an object, a JSON string or nested; a money or tool step; a consent field (`yes`, `authorization`, `chart`, `effects_approved`); a feed that is not https; a `not` rule; an unknown key; a filter on a watch that keeps every row. Each leaves `om approvals list` empty and stores nothing.
 - `edit and start guards`: a paused watch is refused on start, and a watch paused between the card and the yes stays paused (the approved row fails with the same sentence). Money and script watches, tooled, owner-off, repair-marked and package-owned steps are unit-test proof only.
 - `cap and decline`: a fourth open card answers `daemon_busy`; `om deny` answers `daemon_declined` on the next call.
 - `the loop`: create over `inbox: true` with an `ai` step, yes, start, yes, then a `deposit` runs the step on the fake model and posts to the channel receiver.
-- `compact listing`: `watching_overview` rows carry `next_fire_at`; forty watches stay under 30,000 bytes (unit test), 87 tools and a 199,722 byte `tools/list` on the full face.
+- `compact listing`: `watching_overview` rows carry `next_fire_at`; forty watches stay under 30,000 bytes (unit test), 84 tools and a 198,469 byte `tools/list` on the full face.
 - `deposit then plot`: a plot asked right after a deposit waits about one second for the row; a number never deposited is refused after three.
 
 Recipe, from the worktree with `OM_LANE_PORT=18150` exported and the rig Bun first on PATH (scripts under `run-artifacts/assistant-loops/` of the `om-assistant-broker` task):
@@ -111,3 +113,4 @@ Pending proof:
 - A deposit is stored about a second after it answers `accepted`; a read of the stored row right after can miss it.
 - A lane daemon runs from source without watch mode, but every `control-om om --` call runs the current source, so do not drive the lane while files are mid-edit.
 - An AI step's answer reaches the channel but not `watch_history` or `om watch history --format json`; only the chat TUI shows it.
+- A client that picks tools by name can miss the plot behind `request_change`; the `deposit` listing names it. Seen once each way on 2026-11-11.
