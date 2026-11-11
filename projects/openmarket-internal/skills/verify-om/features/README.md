@@ -173,6 +173,7 @@ state, commands, and observable proof.
   (#2405, scaffold 117) and the server-only ticket links (#2410); 2026-11-09 adds
   `space_muted` against a loopback stub (#2417) and the `flat` output of
   Positioning Regimes (#2414).
+- [om hands an agent material](./agent-material-handover.md) — branch `daryl/agents-get-material` (PR #2452, not on main; driven 2026-11-11 on a signed-in lane): `agent_run` `context`, run orientation, `om_request`, the 12-call allowance, task reply checks and `grounded-links`.
 - [om creates an agent](./agent-create.md) — `agent_create`, `agent_tools`, `agent_fit` and `om agent create`; on main since #2295 and #2303 (re-driven 2026-11-05 on a bare lane): anti-jobs, up to 8 named tools, the fit run, the TTY card and create with `--yes`; the card's Fit row did not see an MCP fit run on main (gap); om chat on a real model pending.
 - [A chat agent stops loudly at its budget](./agent-chat-budget.md) — on main since #2304 (re-driven 2026-11-05 on a bare lane): the per-run 40,000-token stop and the 51st run of the day refused 429 `budget_exhausted`, one inbox item each; the daily-token, hourly and @mention paths are not driven.
 - [Agent creator lifecycle](./agent-creator-lifecycle.md) — on main since #1948 (`b50ca927d`). Guest-lane CLI/RPC reads and refusals are driven. The eight `@om-core` defaults installed from production on 2026-10-29. Runs, the GUI and sharing are still the historical branch record.
