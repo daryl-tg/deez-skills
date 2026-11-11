@@ -11,6 +11,7 @@ The hosted `/chat/` page finds the owner's desk through the relay. The browser s
 - `hello-ack`: a signed-in daemon declares `STATUS {platform:"daemon"}` at link-up and on reconnect, and answers each hello with `hello_ack`.
 - `capability-refusal`: the relay checks `hello_ack.capabilities` against its own list and refuses an unknown name with `BAD_FRAME` ("Invalid rooms frame").
 - `refusal-log` (#2425): the first refusal of each code and message writes `channel_error {"surface":"remote","message":"the relay refused this desk's reply (BAD_FRAME: Invalid rooms frame); the cloud page cannot reach this desk until om or the relay is updated"}`. The same refusal again logs nothing until the link reconnects. A refusal for a request this desk never answered is ignored.
+- `turn-toolset` (#2455, source 2026-11-12, not driven): a Remote Control turn gets the desk catalogue and `tool_search`, and carded calls show their card on the cloud page. Tools that need this machine (`executor_run`, `file_create`, `chat_gui_open`, `chart_open`, `chart_screenshot`, `wrun_create`, `wrun_build`, `wrun_source_set`, `agent_init`, `project_link`, `system_upgrade`) answer `Tool "<name>" is not available on remote turns.` (`agent/channels/remote-control.ts`, `agent/surfaces.ts`). Driving it needs a relay stand-in that delivers a chat turn; pending.
 - `guest-dark`: a guest home or a home with no key holds no relay socket (`remote control dark: guest session`); an environment `OM_API_KEY` counts as signed in.
 
 ## How to get to it (user POV)

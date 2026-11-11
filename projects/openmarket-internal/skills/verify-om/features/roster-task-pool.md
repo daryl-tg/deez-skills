@@ -26,7 +26,7 @@ An agent task goes in through `POST /rpc/v1/roster/tasks` (what `agent_run` and 
 - `budget` (#2304): a chat agent's runs stop at 40,000 tokens a run, 50 runs a day and 400,000 tokens a day; the door refuses the 51st run 429 `budget_exhausted` and a run that crosses the per-run cap fails `budget_exhausted`. Recipe and strings: [agent-chat-budget.md](agent-chat-budget.md). The per-agent `--model` dial (`om agent configure <name> --model`) applies to the next task run.
 - `dedup` and `coalesce`: ten identical asks make one run; five watch-door asks with distinct `inputs` join one run.
 - `ps` and `cancel`: `om agent ps --format json` shows `pool {limit, running, queued}`, `queuePosition` and `stalled`; `om agent cancel <run>` reaches `cancelled` in about half a second.
-- `work-mention`: a work agent with a Claude brain takes a room mention through preparing, running, verifying and publishing to a local commit and a threaded reply naming it (309 s for a one-line fix).
+- `work-mention`: a work agent with a Claude brain takes a room mention through preparing, running, verifying and publishing to a local commit and a threaded reply naming it (309 s for a one-line fix). Since #2450 (source, 2026-11-12, not driven) the chosen coding agent does the work itself: by default it makes its own worktree, commits, pushes `om/<doc>` and opens a PR, and the thread shows one status row edited as it works plus one result (`Done`, `Branch`, `PR`). Settings and coding agents: [coding-work-settings.md](coding-work-settings.md).
 
 ## How to get to it (user POV)
 
@@ -57,6 +57,6 @@ Steps:
 - Task runs skip the agent's own `verify` rules; an empty reply reads `completed`. Task replies are not posted to the room.
 - Since #2435 and #2444 (v0.494.0) the shipped `debugger` and `feature` agents bind an installed Claude Code or Codex: `om agent show feature` reads `Brain  claude` on a machine that has `claude` (live 2026-11-11), and `none, wants claude` on one that has neither. Before that they installed with no brain on every machine and a mention only investigated. A work run still needs a linked project ([coding-project-link.md](coding-project-link.md)); a work mention that edits code is not driven.
 - The feature template pauses for plan approval when the project has `planFirst`; the plan appears under Agent Center, not in the room. A plan plus work can exceed the project's default token budget and end `cancelled` after the commit.
-- Relinking a project mints a new project id. The old worktree root's owner marker then refuses every run as "A required setup step failed" until that root is moved aside.
+- Relinking a project minted a new project id before #2450. Since #2450 a repeat link of a linked checkout returns the stored row with the same id (live 2026-11-12); a relink after an unlink was not driven. The old worktree root's owner marker then refuses every run as "A required setup step failed" until that root is moved aside.
 - On a cold lane the 429's `resumeAt` is the 60 s floor, whatever the queue holds.
 - The daemon's LLM health probe sends one tools-free "ping" round at boot; it is not part of any run.

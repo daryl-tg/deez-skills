@@ -1,6 +1,8 @@
 # A timer checks your own numbers
 
-*Verified: 2026-11-11 on branch `daryl/timer-data-check` (one commit `b1cb7b34ee` over main `f98a580314`, v0.495.0), not on main yet. Bare source lane on 18171 (dummy `OM_API_KEY`, dead service URLs) with a loopback webhook listener on 18172. Driven: create with `--check`, a holding slot delivered, three quiet slots, list, show, preview, pause and resume, one missing-data notice across four silent slots, three refusals, remove then import, `--clear-check`. Not driven: the chat composer (needs a model), the What's new card (TUI only), a check beside an armed step, the money-rule refusals, `watch source copy`, restore, packs. Evidence: `http://127.0.0.1:8098/om-scheduled-data-check/r1/`.*
+*Re-driven 2026-11-12 (nightly) on main, tree `82094c3a83` (origin/main, v0.495.0+11; merged as `74ca42aeed`, #2463). Bare lane on 18193 (dummy `OM_API_KEY`, dead service URLs) with a loopback webhook listener on 18194. Driven: `setup webhook`, the data watch and a push of 8,412, create with `--check` (`Check: steps below 10,000 (last over 1d, from steps)`), the new unknown-upstream refusal, `preview` (`Would send: steps 8,412, below 10,000`), two holding slots each delivered as `🔔 Steps check` with `steps 8,412, below 10,000`, a push of 12,034, `preview` (`Would stay quiet: steps 12,034, not below 10,000`), one quiet `irrelevant` slot and no POST for it, `watch list` (`2 sources · every minute, if steps below 10,000`) and `watch show`. Not re-driven on main: pause and resume, the missing-data notice, remove then import, `--clear-check`. The host deep-idled between dark wakes for the first 17 minutes, so slots 21:01 to 21:16 UTC did not run; see Gotchas. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261112/r1/` (`cli/timer-*.txt`).*
+
+*First verified: 2026-11-11 on branch `daryl/timer-data-check` (`b1cb7b34ee` over `f98a580314`), on a bare lane with a webhook listener: the full recipe below. Evidence: `http://127.0.0.1:8098/om-scheduled-data-check/r1/`.*
 
 A timer source can carry a `check`: a rule over numbers another source of the
 same watch holds. At each slot om reads the numbers as of the slot and runs the
@@ -31,6 +33,10 @@ arriving, one notice goes out per episode.
 - `edit`: `watch edit <watch> --check '<json>'` and `--clear-check`.
 - `refusals`: `--check` on a source that is not a timer, `watch source remove`
   of a source a check reads, and an edge operator in a check each exit 2.
+  Since the merge, a check that reads a watch this home does not hold exits 2
+  too: `The check reads steps from "nosuch", a watch this home does not hold.`
+  / `Push the number into a watch first: om watch create "nosuch" --inbound,
+  then om event push.` (live 2026-11-12).
 - `import`: remove then `watch import <spec file>` re-points the check's read
   to the newly minted source id.
 
@@ -85,3 +91,4 @@ start a loopback HTTP listener on a second agent port and add it as a channel.
 - The dashboard on a source lane is the stub page, so it is no evidence here.
   Render the CLI transcripts to frames for the gallery.
 - The listener's first POST is the channel's own setup test.
+- A per-minute timer runs only while the host is awake. On 2026-11-12 the mini deep-idled between dark wakes about 17 minutes apart; the timer ran the 21:00 slot and then the 21:17 slot, with nothing between. Hold `caffeinate -i -s -t <seconds>` for the drive (and stop it after) before counting slots.

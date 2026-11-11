@@ -29,8 +29,8 @@
 > **On main since `b50ca927d` (#1948), v0.465.0.** The daemon mechanisms now
 > live in `packages/roster/` (moved from `packages/cli/src/runner/roster`).
 > The roster boots in every daemon unless the setting `roster.enabled` is `0`
-> or `false`. Only the CLI verbs are dev-gated: `om roster`, `om project token|delivery|unlink`
-> (`om project link` and `om project list` are always on since #2438, see
+> or `false`. Only the CLI verbs are dev-gated: `om roster`, `om project token|delivery`
+> (`om project link` and `om project list` are always on since #2438, and `om project unlink` since #2450, see
 > [coding-project-link.md](coding-project-link.md)), and
 > the `runs`/`pause`/`eval` subcommands of `om agent` register
 > only when the CLI process itself has `OM_DEV=1`. Since #2282 `om agent cancel`
@@ -91,7 +91,7 @@ OM_DEV=1 control-om om -- agent runs --proof         # malformed_body "Run read 
 OM_DEV=1 control-om om -- agent pause nope           # not_found "Work run was not found.", exit 1 (cancel likewise)
 OM_DEV=1 control-om om -- roster list                # header NAME ORIGIN VERSION BRAIN; one row per installed default agent (six on 2026-10-29: argue, debugger, explain, fact-check, feature, librarian)
 OM_DEV=1 control-om om -- roster measures            # zeroed queueLatencyMs, orphanRate, spendUsd, ...
-OM_DEV=1 control-om om -- project unlink nope        # not_found "Project was not found.", exit 1
+OM_DEV=1 control-om om -- project unlink nope        # not_found "Project was not found.", exit 1 (before #2450; now always on, takes --space and looks the server up first)
 curl -fsS "$(control-om url /rpc/v1/roster/projects)" # {"ok":true,"result":{"items":[]}}
 ```
 
