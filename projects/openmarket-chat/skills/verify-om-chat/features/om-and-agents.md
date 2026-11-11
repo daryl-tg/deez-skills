@@ -93,9 +93,11 @@ main. Driven on main at `47cb13bf` (2026-10-30).
 `tools/visual/agent-center-fixture.tsx:803`), use `?theme=light` for light.
 Media emulation alone does not switch the theme. The cloud host is
 `/chat/tools/visual/shell-fixture.html?view=agents&alerts=quiet`. It routes to
-`/chat/agents` and shows the Map with om only, the Brains nodes reading
-"can't tell", and "Create and manage your agents in the local app. Agents
-connected to this server appear here."
+`/chat/agents`. Since MR !244 the cloud fixture seeds a remote roster on the
+agents view only (`apps/cloud/tools/visual/agents-desk.ts` over the shared
+`@openmarket/chat-ui/test-support/coding-work-desk`), so Grid shows the Coding
+work panel instead of the old "Create and manage your agents in the local app"
+notice. Other views of that fixture are unchanged.
 
 **Recipe (agent page and its chat).** Since `149ea33c` the
 `agent-center-fixture` opens agent pages: it spreads `composerSessionFields()`
@@ -652,3 +654,22 @@ Proven on both hosts at chat `14509e60` with lane daemon `4f4db0510`. Rig owner 
 - In this rig the daemon's owner handle is empty, so agents assert "| <name>" and agent posts arrive `isAgent=false` under the owner; the GUI's `agentOwnName` and the daemon's own-post guard cover both.
 - A fake model that holds every call long makes the run fail as a provider hiccup; hold only `post_reply` turns, for a few seconds.
 - The room post budget throttles an agent for the hour after a burst; switch agents for fresh captures.
+
+## Coding work panel (MR !244, driven 2026-11-11)
+
+*Driven 2026-11-11 on branch `daryl/agent-center-work-repos` (`c3782c78`, rebased to `4b9a7513` on `9ef780c2`), rooms-client 0.117.0, run-owned vite lanes on 18110 (`/rooms`) and 18111 (`/chat/`), a fresh agent-browser session per host. Evidence: `http://127.0.0.1:8098/agent-center-coding-work/r3/`. Not driven: the daemon-pair lane, so nothing here proves the wire beyond the fixture's seeded routes.*
+
+**Sub-features.** A collapsed **Coding work** panel (a `details` whose summary reads "Coding work") at the foot of the Agents grid, beside Server vault. It opens onto:
+- **Projects.** Every repo a server holds (name, path, server, branch, note). **Link project** takes server, **Checkout path** and an optional note. Each row has **Edit project <path>** and **Unlink project <path>**; unlink asks **Confirm unlink** or **Cancel**.
+- **Repo requests.** Inside Projects, one row per pending agent request with **Approve <path>** and **Deny <path>**. Hidden when nothing waits. On `/chat/` it is one row, "Repo requests: answer them in the desktop app.", with no controls.
+- **Work settings.** Seven rows: **Repo grants**, **Repo roots**, **Workspace**, **Delivery**, **Setup**, **Coding agent**, **Repo choice confidence**, each with a source chip (`default`, `you`, `server`, `repo`). **Applies to** picks you, a server or a repo. Selects save on change; text and number fields have **Save** and a **Default** that clears the level.
+- **Brains.** The OM daemon row, then one **Coding agents** list (state, version, Official or Added by you, setup instructions when not ready) and an "Auto order" line.
+
+**Recipe.** `/rooms/tools/visual/agent-center-fixture.html` (or the `/chat/` URL above) → **Grid** → click the text "Coding work" (open it by text; it is a `summary`, not a button) → mark it for element screenshots with `agent-browser eval` setting `data-verify` on the `details`, then `agent-browser screenshot '[data-verify="coding-work"]' <abs path>`. Drive: **Approve /Users/owner/code/openmarket-chat-app** (the repo joins the list), `agent-browser select` on the **Delivery** select (re-reads with chip `you`), **Link project** → fill **Checkout path** and the note → **Save project** (status "Project linked"), **Unlink project <path>** → **Confirm unlink** (status "Project unlinked").
+
+**Gotchas.**
+- The repo request's Approve and Deny share the page with the Needs-you strip's own **Approve**/**Deny**; match the full accessible name with the path.
+- The confidence spinbutton's accessible value reads `0.8500000238418579`; the input's `value` and the screen read `0.85`. Assert on `input.value`.
+- After adding an export to `@openmarket/chat-ui` mid-session, vite re-optimised and the page died with React's "invalid hook call / more than one copy of React". `control-om-chat down` then `up` on the same port fixed it with no code change.
+- The `/chat/` frames carry an unrelated "Couldn't load the last 24 hours. Retry" alert from another shell surface the fixture leaves unseeded.
+- A failed project mutation ("The project request could not be confirmed.") deliberately locks every Edit and Unlink until it is retried; the fixture's link/unlink routes must answer the 0.117.0 shapes or that lock fires.
