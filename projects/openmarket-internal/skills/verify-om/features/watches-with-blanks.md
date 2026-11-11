@@ -1,6 +1,6 @@
 # Watches with blanks (install a copy, change it, open blanks, repair)
 
-*Re-checked 2026-11-10 (nightly, source only) against origin/main `c9bc93a355`: still unmerged; no `om want`, no `--set` or `--refill-source`, and its base, source resolution, is unmerged too.*
+*Re-checked 2026-11-11 (nightly, source only) against origin/main `0ad4768f66` (v0.494.0): still unmerged; no `om want`, no `--set` or `--refill-source`, and its base, source resolution, is unmerged too.*
 
 *Verified 2026-11-09 on branch `daryl/generic-watches` (unmerged, tip `2f52879940`, on top of `daryl/watch-source-resolution` `ee1eb9a16`), bare lane on 18131, source build. Evidence: `http://127.0.0.1:8098/generic-watches-20261105/r4/` (r1 to r3 hold the earlier rounds; all four approved by the operator). r4 drove the ask door against a registry stand-in: `om want --set place=東京` and `Đà Nẵng` are taken and listed by label; a covered answer, an emoji-only answer, a value blank and a doubled `--set` each refuse in one line. Pending proof, source-supported only: the share's yes for a stream, a follow on a second machine, a registry install, the composer's offer on chat, the by-search way, a cancel mid-fill, the failed-seed status row and its repair (pinned in `watch-follow-answers.test.ts` and `page-activate-reading.test.ts`).*
 

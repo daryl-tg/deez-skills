@@ -1,5 +1,7 @@
 # The roster task door and run pool
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), bare lane on 18183 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18182. `POST /rpc/v1/roster/tasks` for an agent om created (`pricer-nightly`) answered `{taskId, runId}`; `GET …/tasks/<id>?wait=25000` read `state: completed` with the fake's text and `usage.tokens: 224`; `agent ps --format json` listed the run `completed` with `door: om`. Not re-driven: the pool cap, dedup, cancel, work mentions. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `POST /rpc/v1/roster/tasks {id:"vom-maint-1109-t2", agent:"explain", …, requestedBy:{surface:"om",userId:"me"}}` → `{taskId, runId}`; `?wait=25000` read `completed`, the fake reply as `summary`, `usage {tokens:112, costUsd:0}`. A body without `requestedBy` is `malformed_body` `Invalid field: requestedBy`, and `?wait=30000` is `wait must be 0 to 25000 ms.`. Not re-driven: the cap, dedup, cancel. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. on a guest lane plus a fake model: one `POST /rpc/v1/roster/tasks` to `explain` reached `completed` (`agent ps` shows it). Burst, cap and dedup are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/92-94`).*
@@ -53,7 +55,7 @@ Steps:
 - A run starts and ends on a driver tick. About 1.8 s before start and 1 s before completion are waiting, plus about 0.8 s on the 1 s outbox poll. `OM_ROSTER_DRIVER_MS=500` shows it.
 - A task with `place` set to a room does not tell the agent which room it is in unless the room has a place doc, so agents search `#general` and often miss the thread.
 - Task runs skip the agent's own `verify` rules; an empty reply reads `completed`. Task replies are not posted to the room.
-- The shipped `debugger` and `feature` agents install with no brain on every machine (the roster's brain probe reports Claude Code signed out), so a mention only investigates. Build work agents from the templates with brain `claude` to get commits.
+- Since #2435 and #2444 (v0.494.0) the shipped `debugger` and `feature` agents bind an installed Claude Code or Codex: `om agent show feature` reads `Brain  claude` on a machine that has `claude` (live 2026-11-11), and `none, wants claude` on one that has neither. Before that they installed with no brain on every machine and a mention only investigated. A work run still needs a linked project ([coding-project-link.md](coding-project-link.md)); a work mention that edits code is not driven.
 - The feature template pauses for plan approval when the project has `planFirst`; the plan appears under Agent Center, not in the room. A plan plus work can exceed the project's default token budget and end `cancelled` after the commit.
 - Relinking a project mints a new project id. The old worktree root's owner marker then refuses every run as "A required setup step failed" until that root is moved aside.
 - On a cold lane the 429's `resumeAt` is the 60 s floor, whatever the queue holds.

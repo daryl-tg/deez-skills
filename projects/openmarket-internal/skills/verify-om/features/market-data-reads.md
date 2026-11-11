@@ -1,5 +1,7 @@
 # Market data reads
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `coins`, `exchanges`, `enum`, `markets --exchange BINANCE_FUTURES`, and `points --exchange BINANCE_FUTURES --raw-symbol BTCUSDT --type TRADE_SIDE_AGNOSTIC_AGG --interval HOUR --lookback 3h` all returned live data; `points` without `--lookback` exits 1 `required option '--lookback <duration>' not specified`. Not re-driven: `instruments`, `option-chain`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `coins`, `exchanges`, `enum`, `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h`, `resolve BTC` (bound `HYPERLIQUID_FUTURES`), all exit 0 with live data. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/`).*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `coins`, `exchanges`, `markets --exchange BINANCE`, `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE_FUTURES --raw-symbol BTCUSDT --interval HOUR --lookback 3h`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/30-33`).*

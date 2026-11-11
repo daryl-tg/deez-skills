@@ -1,5 +1,7 @@
 # Chart catalog reads
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `chart indicator schema rsi` (`@om-core/rsi`) and `chart drawing schema` (`anchorFormat`, `TrendLine` first); `chart status --format json` reads `workspaces: []` on a lane with no chart. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `chart indicator schema rsi` (`@om-core/rsi` 0.1.1) and `chart drawing schema` (`TrendLine` first). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/ind-schema.txt`, `cli/draw-schema.txt`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `chart indicator schema rsi` (the `period` field, the `TECHNICAL_SCRIPT` note), `nonsense` exit 2, `chart drawing schema`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*

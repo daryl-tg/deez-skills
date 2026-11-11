@@ -1,6 +1,6 @@
 # Source resolution: one resolver for any source
 
-*Re-checked 2026-11-10 (nightly, source only) against origin/main `c9bc93a355`: still not on main; there is no `resolveSource` ladder and no `om watch resolve`.*
+*Re-checked 2026-11-11 (nightly) against origin/main `0ad4768f66` (v0.494.0): still not on main (PR #2383 open); there is no `resolveSource` ladder, and `om watch resolve <url>` on a guest lane is read as compose text and refused `No LLM credential is configured.` (exit 2).*
 
 *Verified 2026-11-06 on branch (PandaScore since removed, head `1f3d044e1`) `daryl/watch-source-resolution` (PR #2383), tree `e12ec7b94` before its last rebase onto `d2ea2e246`; not on main yet. Lane on 18140 from a detached verify worktree, CLI and lane with `OPENMARKET_LLM_PROVIDER=openai-compatible OPENMARKET_LLM_BASE_URL=http://127.0.0.1:9/v1 OPENMARKET_LLM_MODEL=fake` (a page watch refuses with no model credential, even `--diff-only`) and `OM_FEED_ALLOW_LOOPBACK=1` for the stub. Evidence: `~/Documents/dev-notes/om-source-resolution/evidence/` (`final/`, `resolve-offer-final.txt`, `resolve-applied.txt`, `resolve-corpus-final.json`).*
 

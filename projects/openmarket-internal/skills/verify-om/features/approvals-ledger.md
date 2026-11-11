@@ -1,5 +1,7 @@
 # The approval ledger from the CLI
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `approvals list --format json` on an empty home is `[]`; a badge's room knock over MCP listed as `apr_…  grant  <expiry>  <badge> asks: read #vom-room` under `1 pending: 1 grant`; `om agent grants deny <id>` resolved it (`resolvedBy: cli`) and the list read `No pending approvals.` Not re-driven: `om approve` and `om deny`, the stream frames, tool and order cards. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `approvals list` on a fresh home (`No pending approvals.`). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/approvals.txt`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `approvals list` `No pending approvals.`, `--kind bogus` exit 2, `approve nope` exit 2. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*

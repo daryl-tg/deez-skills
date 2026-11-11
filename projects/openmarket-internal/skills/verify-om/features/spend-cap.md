@@ -1,5 +1,7 @@
 # The monthly model spend limit
 
+*Re-checked 2026-11-11 (nightly, source only) against origin/main `0ad4768f66` (v0.494.0): PR #2448 is still open and nothing of it is on main. Headings renamed to the map's four-H2 contract; no recipe changed.*
+
 *Verified: 2026-11-10, branch `daryl/spend-cap` tree `e9762387e1` (PR #2448, on origin/main `0ad4768f66`), bare lane on 18166 with a scripted fake model on 18162 that reports usage under a priced model id. Gallery `http://127.0.0.1:8098/spend-cap/r2/` (6 screenshots). Not on main until the PR merges.*
 
 `spend.monthly_usd` is one dollar limit per UTC month for every model round that passes the round door. An agent credential's `maxSpendUsd` is that agent's own limit per month. A round past either limit is refused before any provider is dialed.
@@ -21,7 +23,7 @@
 2. Use chat or let watches run.
 3. `om usage llm` to see the limit row.
 
-## Driving it on a lane
+## Driving it with control-om
 
 - Bare lane as in [persona-chat-tools.md](persona-chat-tools.md). The fake model must report `usage` and use a model id the price catalog knows, or every round is unpriced and counts as zero.
 - Chat makes two start-up probe rounds that cost money on a priced fake. Make the fake bill only requests that carry tools, or set the limit above the probes' cost.
@@ -31,13 +33,13 @@
 - The harness refusal: run the raise from a parent process that carries an auto-approve flag.
 - Plain `om usage` cannot run on a bare lane, because its gateway address is dead by design. Use `om usage llm`.
 
-## What to check
+### What to check
 
 - The refused turn's two lines, and the unchanged request count.
 - The held reason says this month, not today.
 - `credential_id` is set on a round the house agent ran.
 
-## Gaps
+## Gotchas
 
 - The `Model limit` row in plain `om usage` and the `Unpriced` row are unit-tested only.
 - A subscription sign-in's figure is what an API key would have paid, so the limit is notional there.

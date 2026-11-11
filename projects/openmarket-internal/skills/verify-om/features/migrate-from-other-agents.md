@@ -1,5 +1,7 @@
 # Import another agent's setup
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. Refusal only: `migrate hermes --dry-run` with no `~/.hermes` exits 2 `migrate_source_missing` and names `--source <path>`. Not re-driven: the three fixtures and `--yes`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `migrate hermes --source <scratch>/hermes --dry-run` on a one-line `memories/MEMORY.md`, exit 0. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/migrate-hermes.txt`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `migrate hermes --source <scratch copy of the fixture> --dry-run --format text` (the plan, `Keys and tokens: not imported`). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*

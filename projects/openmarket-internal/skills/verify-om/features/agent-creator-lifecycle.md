@@ -29,7 +29,9 @@
 > **On main since `b50ca927d` (#1948), v0.465.0.** The daemon mechanisms now
 > live in `packages/roster/` (moved from `packages/cli/src/runner/roster`).
 > The roster boots in every daemon unless the setting `roster.enabled` is `0`
-> or `false`. Only the CLI verbs are dev-gated: `om roster`, `om project`, and
+> or `false`. Only the CLI verbs are dev-gated: `om roster`, `om project token|delivery|unlink`
+> (`om project link` and `om project list` are always on since #2438, see
+> [coding-project-link.md](coding-project-link.md)), and
 > the `runs`/`pause`/`eval` subcommands of `om agent` register
 > only when the CLI process itself has `OM_DEV=1`. Since #2282 `om agent cancel`
 > is the always-on run cancel ([agents-cli-and-tui.md](agents-cli-and-tui.md)),
@@ -162,7 +164,7 @@ Earlier source-specific proofs remain historical: Codex261/Claude263 on d24bded8
 Verified live on lane 18124 with launchd's PATH, Claude Code 2.1.312 and Bun 1.4.3, signed in as a test account. A debugger agent fixed a one-line bug, committed only that file, passed the work proof and replied in its run topic. Each step below was a separate silent failure before #2199:
 
 - **Brains.** Detection searches PATH, then `~/.local/bin`, `~/.claude/local`, `~/.bun/bin`, `~/.npm-global/bin`, `/opt/homebrew/bin` and `/usr/local/bin` (`OM_BRAIN_SYSTEM_DIRS` replaces the last two; tests set it to ""). Rows are built from the detected CLI, not pinned versions. Executables up to 1 GiB are hashed.
-- **"Signed in"** means OM's own model credential resolves for the brain (`om llm status`, profile `anthropic:claude-cli` for "Use Claude Code login" from `om init`). Claude Code's own login alone shows "Signed out", and the Brains hint pointing at `claude` does not fix it.
+- **"Signed in"** means OM's own model credential resolves for the brain (`om llm status`, profile `anthropic:claude-cli` for "Use Claude Code login" from `om init`). Claude Code's own login alone showed "Signed out", and the Brains hint pointing at `claude` did not fix it. Since #2444 (v0.494.0) the roster's brain check asks the same sign-in check `/brains` shows, bounded at 5 s, and #2435 binds an installed brain whether or not it is signed in (source read 2026-11-11; the sign-in row itself is not re-driven).
 - **Sandbox.** The agent sandbox must allow reading `/private/var/db/timezone`. Without it, Claude Code 2.1.312 hangs at `sdk-initialize` and the run fails with `ACP session/new timed out after 30000ms`.
 - **Broker betas.** The Claude broker forwards every `anthropic-beta` the client sends (OAuth added once). A dropped beta whose body field remains gives a 400 on that field, and the owner sees "couldn't verify the model provider's usage report".
 - **Clean commits.** The ACP file helper runs with `BUN_RUNTIME_TRANSPILER_CACHE_PATH=0`; otherwise a `Library/Caches/bun/@t@/*.pile` lands in the worktree, and the proof refuses with "binary committed changes are unsupported".

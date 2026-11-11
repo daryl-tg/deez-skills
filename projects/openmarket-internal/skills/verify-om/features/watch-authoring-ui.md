@@ -1,5 +1,7 @@
 # Watch authoring and management in the dashboard
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429, 1440x900. **Create watch** opened `Create a watch` with its eight kinds (Website, RSS or Atom feed, X account, Search, AI research, Market data, Another watch, Schedule only). Not re-driven: any kind past the first step. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `Create watch` opens `Create a watch` with its eight kinds (Website, RSS or Atom feed, X account, Search, AI research, Market data, Another watch, Schedule only). No watch was created from the dialog. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`04-create-watch.png`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `/alerts?create=1` opens the dialog `Create a watch` with **Close dialog**. The kind picker and a create were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*

@@ -1,5 +1,7 @@
 # Registry welcome page and personalised search
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429, real registry. `om welcome` printed `This registry does not offer the welcome page yet.` (exit 0) and `om search rsi --format json` returned Indicator packages (`@om-core/autocorrelation` first). Not re-driven: the fixture registry branches. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. real registry only: `welcome` exit 1 `This registry does not offer the welcome page yet.` Citation `cmd/search.ts:130` corrected. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/47`).*
 
 *Re-driven 2026-11-08 (nightly), tree `5590b4d1c` (origin/main, v0.492.0), guest lane on 18141, booted in 2 s with no guest 429. Real registry only: `welcome` exit 1 `This registry does not offer the welcome page yet.`. The fixture branches were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261108/r1/` (`cli/67`).*

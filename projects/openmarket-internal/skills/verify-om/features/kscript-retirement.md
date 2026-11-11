@@ -1,5 +1,7 @@
 # Retired kScript package kinds
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `search rsi --kind kscript-indicator --format json` exits 2 `kind_retired` with the `--kind wrun-indicator` hint; `open @om-core/rsi --format json` resolves `wrun-indicator` 0.3.4. `search --kind kscript` (not a kind name) answers an empty result, exit 0. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `search rsi --kind kscript-indicator` exits 2 `kind_retired`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/ks-search.txt`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `search rsi --kind kscript-indicator` exit 2 `kind_retired`. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*

@@ -1,5 +1,7 @@
 # Chat shell mode (`!` in `om chat`)
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), bare lane on 18183 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18182, tmux 140x40. `!` then `echo NIGHTLY-SHELL-20261111` ran inline (`exit 0 · 0.1s`), and the next message's reply named the marker, so the output rode that message. Not re-driven: the one-time rule (a second message), a failing command. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `run`: `!echo VOM_BANG_1109` printed the line and `exit 0 · 0.0s`; `agent-reads`: the next message's request carried the output and `exit 0`; `prompt-rule` (#2401) present in the system prompt. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. `!echo VOM_BANG_ONE`: `exit 0 · 0.0s`, SGR `38;2;209;111;196` present, the marker reached the next message and not the one after. ↑ recall and esc are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`tui/06-07`).*

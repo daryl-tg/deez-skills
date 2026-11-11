@@ -1,5 +1,7 @@
 # The daemon's own browser
 
+*Re-checked 2026-11-11 (nightly, source only) against origin/main `0ad4768f66` (v0.494.0): PR #2442 is still open and nothing of it is on main. Headings renamed to the map's four-H2 contract; no recipe changed.*
+
 *Verified: 2026-11-10, branch `daryl/daemon-computer` tree `b9e34f8d2e` (PR #2442, on origin/main `c0901d5bf6`), bare lane on 18141 with a scripted fake model on 18142, `agent-browser` 0.33.2 and Google Chrome 157. Gallery `http://127.0.0.1:8098/daemon-computer/r2/` (19 screenshots). Not on main until the PR merges.*
 
 `om computer on` gives the daemon a Chrome profile under `OM_HOME`. The owner logs in by hand in a visible window. The agent reads and acts through `computer_open`, `computer_read`, `computer_act`, `computer_screenshot` and `computer_status`, under site grants the daemon keeps. The dashboard's Computer page shows the live page with Take over and Hand back.
@@ -26,7 +28,7 @@
 4. In `om chat`, ask for a page on that site. Answer the card.
 5. Open the dashboard and pick Computer in the sidebar.
 
-## Driving it on a lane
+## Driving it with control-om
 
 - Bare lane, no account: a dummy `OM_API_KEY`, every service URL at `http://127.0.0.1:9`, `OPENMARKET_LLM_PROVIDER=openai-compatible` pointed at a scripted fake model, as in [persona-chat-tools.md](persona-chat-tools.md). Export `OM_LANE_PORT` on every `control-om om --` call.
 - `om computer on` must run inside tmux or another real terminal. A harness parent is refused by design.
@@ -37,14 +39,14 @@
 - The dashboard page is captured headless as in [ops-dashboard.md](ops-dashboard.md). Start a viewer before expecting `stream status` to read enabled.
 - `skill_read` of `computer` is driven from a chat turn. There is no `om skill read` verb.
 
-## What to check
+### What to check
 
 - Filling a field with the text `--headed` leaves the same Chrome process running, still headless, and the page echoes the text. The driver parses a bare `--` argument as its own option, so this is the regression that matters most.
 - A second `computer_open` on a granted site paints no card.
 - After Take over, an agent call returns `computer_human_in_control`. After Hand back it works.
 - `om computer sites` is unchanged after an unattended run.
 
-## Gaps
+## Gotchas
 
 - A real login with a second factor has not been driven.
 - A visible window from a launchd-started daemon has not been driven.

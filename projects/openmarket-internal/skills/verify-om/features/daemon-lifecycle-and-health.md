@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `status`, `doctor` (the guest-lane warnings; after two badges were minted for the MCP drive it read `ok:false` on the `account` check, see the README gaps list), `service status`, `service install` refused by the wrapper, `/healthz` (`version 0.494.0`, `auth guest`, 24 lanes with `feed-heartbeat` new), `chat --once /version` (`revision` from `OM_CODE_REVISION`, `daemon 0.494.0, pid <lane>`). First live proof of `proxy-decoded-body` (#2445) on a bare lane on 18183 against a gzip upstream on 18184. Not re-driven: the env opt-out switches, the `/version` mismatch row. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
+
 *Re-driven 2026-11-10 (scheduled maintenance), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18161: `env-opt-outs` first driven. `OM_TELEMETRY=off`, and `DO_NOT_TRACK=1` over `OM_TELEMETRY=on`, turned `config show`'s `telemetry.product` to `off (OM_TELEMETRY / DO_NOT_TRACK env)`; `OM_NO_UPDATE_CHECK=1` turned MCP `system_status`'s `version.update_check` from `unknown` to `opted_out`; `OM_NO_AGENT_WIRING=1` turned `doctor`'s `agent_wiring` to `opted out (OM_NO_AGENT_WIRING)`. `OM_PLAIN_CHAT` and `OM_MCP_LAZY` were not driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261110/r1/` (`cli/01`-`07`).*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `status`, `doctor`, `service status`, `service restart` refused by the wrapper (exit 1), `/healthz` (`version 0.493.1`). First live proof of `version-slash` (#2428): `om chat --once /version` (`daemon  0.493.1, pid 5869`; `not running` with the lane down; `revision  nightly20261110` under `OM_CODE_REVISION`), the workspace's `/version` and `/help` rows. The mismatch row is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/version*.txt`, `tui/tui-03-version.txt`).*
@@ -78,6 +80,12 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
   `OM_NO_UPDATE_CHECK=1` stops update checks; `OM_NO_AGENT_WIRING` skips agent
   wiring at init and daemon start; `OM_PLAIN_CHAT=1` keeps `om chat` out of the
   TUI; `OM_MCP_LAZY` picks lazy or eager tool loading for `om mcp serve`.
+- `proxy-decoded-body` (#2445, v0.494.0): a body the daemon proxies from an
+  upstream that compressed it (`/api/v1/*` to the Data API, `/api/rooms/*` to
+  the chat service) arrives readable, with no `Content-Encoding` and a
+  `Content-Length` that matches the unpacked bytes. Before the fix the stale
+  header made a browser refuse every `/api/rooms/*` read
+  (`ERR_CONTENT_DECODING_FAILED`).
 
 ## How to get to it (user POV)
 
@@ -222,6 +230,17 @@ Preconditions:
   `tools/call {"name":"system_status","arguments":{}}` gives `unknown` unset and
   `opted_out` with `OM_NO_UPDATE_CHECK=1`. `om status --json` printed nothing
   parseable on stdout; the verb takes `--format json`.
+- **Proxied bodies (`proxy-decoded-body`).** Start a loopback upstream that
+  answers one path with a gzipped JSON body plus `Content-Encoding: gzip` and
+  its compressed `Content-Length`, a second path with plain JSON, and 502 for
+  everything else. Boot a bare lane with `--env OM_API_KEY=om_dummy_proto --env
+  OM_BASE_URL=http://127.0.0.1:<upstream>` and the other service URLs dead.
+  `/api/v1/<path>` maps to `<upstream>/v1/<path>`.
+  `curl -si http://127.0.0.1:<lane>/api/v1/nightly-gzip` answered 200 with no
+  `Content-Encoding`, `Content-Length: 45` and the JSON in clear, while the
+  upstream's own answer carried `Content-Encoding: gzip` and
+  `Content-Length: 65`. The plain path kept its `Content-Length: 21`. Not
+  driven: `/api/rooms/*` and attachment or Range reads.
 
 ## Gotchas
 
