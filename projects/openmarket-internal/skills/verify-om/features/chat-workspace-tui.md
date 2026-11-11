@@ -207,7 +207,7 @@ nothing, and it streams long replies, which the scroll checks need.
   (add `--workspace` once the setting is `off`),
   wait about 15 s. Capture with `tmux -L ws -f /dev/null capture-pane -t ws -p`
   (add `-e` for colour, `-S -` for history).
-  - Frame: there is no top bar. Row 1 is transcript text with `│` at column
+  - Frame (before #2457; since it, rows 1 to 3 are the page tab bar and the rows below shift by 3, see **Page tabs**): there was no top bar. Row 1 is transcript text with `│` at column
     104. The sidebar's row 1 is a dotted `┄┄┄` rule, row 2 reads `▾ WATCHES`
     with `1 fired · 1 paused` on the right, and row 3 is another rule. Under
     the watch rows, a rule, `▾ FIRES` and a rule, then the seeded fire.
@@ -372,9 +372,9 @@ Maint probe`. Not driven: `/hints help`, `/jobs show`, `/effort <level>` on a
 reasoning model, `/mute … for 8h`, `/brief`, and ↑/↓ or a second ctrl+r in the
 panel.
 
-### Page tabs (pending merge: branch `daryl/tui-topbar-tabs`, driven 2026-11-11)
+### Page tabs (#2457, merged 2026-11-11 as `4d3ab10d93`)
 
-*Not on `origin/main` yet. Driven on the branch's working tree over `21c4c32b3d`, bare lane on 18183 with a fake model on 18184, workspace at 170x45 and plain chat at 100x40. Evidence: `http://127.0.0.1:8098/om-tui-topbar-tabs/r1/`. Once it merges, the "there is no top bar" line under **Start** above is wrong for the workspace: rows 1 to 3 are the bar and every row number in this file below it moves down by 3.*
+*Driven 2026-11-11 on the branch before its rebase and merge, over `21c4c32b3d`: bare lane on 18183 with a fake model on 18184, workspace at 170x45 and plain chat at 100x40. Evidence: `http://127.0.0.1:8098/om-tui-topbar-tabs/r1/`. Not re-driven on the merge commit. The workspace's rows 1 to 3 are now the bar, so every workspace row number recorded elsewhere in this file before this date is 3 too small until its section is re-driven.*
 
 - **The bar.** Workspace rows 1 to 3 are a raised band; row 2 reads `chat agents watches news follows packages wallet notis usage`. The lit tab carries background `48;2;227;233;239` in a `capture-pane -e` read of row 2; grep that to name the active tab. Plain chat has no bar on the chat or over `/agents`; every frame page shows it.
 - **Hop keys.** Inside a page, `]` and `[` walk the ring and wrap: `/watches` then `]` seven times lights news, follows, packages, wallet, notis, usage, then lands on the chat. A page's facts sit at the right of row 2 (row 3 at 100 columns) and the page name is not repeated.
