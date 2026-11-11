@@ -2,6 +2,8 @@
 
 *Verified: 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0; #2434), bare lane on 18183 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18182. Driven: `/chat/turn` with `context.kind: "roster"`: a completed turn as an agent om created, `credential_missing` for a bundled agent, `not_found`, the paused refusal and the 400 on a malformed id; the thread list, create, rename, switch, delete and history. Not driven: the agent page in the GUI (verify-om-chat owns it), the cloud path over Remote Control, a tool card answered as the agent, the hourly budget refusal, a revoked credential. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/` (`cli/agent-chat.txt`).*
 
+*Pending merge, branch `daryl/agent-direct-chat-delivery` (2026-11-11, `a14ad17143`), driven on source lanes 18141 (fix) and 18143 (base) seeded only with the operator's LLM login rows, model claude-opus-5. An agent with no credential gets one on its first chat and answers, so `credential_missing` no longer exists; `credential_revoked` still refuses. The agent is told its reply text goes straight to the person, so `hi` gets a real answer. On base, argue answered `hi` with a parenthesised silence note on every try. Once merged, the `credential_missing` lines and the bundled-agent gotcha below are stale. Evidence: `http://127.0.0.1:8098/agent-direct-chat-20261111/r1/`.*
+
 From an agent's page in OM Chat you chat with that agent the way you chat with om. A turn runs as the agent, with its instructions, tools, model and hourly turn budget, and each agent keeps its own threads across restarts. On the daemon this is the same `/chat/*` doors the dashboard agent panel uses ([agent-panel.md](agent-panel.md)), given a roster context.
 
 ## Sub-features
