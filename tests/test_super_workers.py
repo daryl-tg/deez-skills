@@ -305,7 +305,7 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual(argv[argv.index("--session-id") + 1], started.session_id)
         self.assertEqual(argv[argv.index("--permission-mode") + 1], "bypassPermissions")
         self.assertEqual(argv[argv.index("--output-format") + 1], "json")
-        self.assertIn("--strict-mcp-config", argv)
+        self.assertNotIn("--strict-mcp-config", argv)
         self.assertNotIn("--setting-sources", argv)
         self.assertNotIn("--model", argv)
         self.assertEqual(
@@ -430,6 +430,7 @@ class WorkersTest(unittest.TestCase):
         self.assertEqual(
             resume_argv[resume_argv.index("--permission-mode") + 1], "bypassPermissions"
         )
+        self.assertNotIn("--strict-mcp-config", resume_argv)
         message = resume_argv[-1]
         self.assertTrue(message.startswith(f"# inputs for {ticket_id}\n"))
         self.assertIn(f"## {followup.id} terminal terminal:default daryl\nthe one in docs/", message)
