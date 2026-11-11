@@ -298,6 +298,10 @@ runtimes = ["claude"]
 category = "workflow"
 runtimes = ["claude"]
 
+[commands.om-build-latest]
+category = "om-chat"
+runtimes = ["claude"]
+
 # --- Router -----------------------------------------------------------------
 # One router, on both runtimes. Codex ignores disable-model-invocation, so a
 # mode skill there would fire on description matches; agents/openai.yaml carries
