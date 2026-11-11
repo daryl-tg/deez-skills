@@ -1,6 +1,8 @@
 # Morning desk: a default-on brief of what mattered overnight
 
-*Verified 2026-11-11 on branch `daryl/morning-desk` (unmerged), four lane runs on bare lanes (dummy `OM_API_KEY`, dead service URLs, scripted fake model through `OPENMARKET_LLM_*`, a stub Telegram server through `OM_TELEGRAM_BASE_URL`). The last two runs drove the build before its rebase onto `origin/main` `74ca42aeed`; nothing has been re-driven after the rebase. Evidence: `http://127.0.0.1:8098/om-morning-desk-20261111/r4/` (21 frames; r1 to r3 hold the earlier rounds). Rig and captures: `~/dev-notes-artifacts/om-morning-desk-ritual/run-artifacts/verify-r4/` (`rig/`, `cli/`, `tui/`), with the fuller rig in `verify-r3/rig/`.*
+*On main since 2026-11-11: PR #2467, squash-merged as `cdfcf43d5e`. Re-driven 2026-11-11 at the merged change's own head `6eb18a1396` on one bare lane (lane 18173, scripted fake model, stub Telegram server): the desk seeds with no install command; a home seeded after 08:00 sends nothing for 3 min 10 s; exactly one brief arrives at the next slot in the layout below; `/desk off` in plain `om chat` silences a slot and `/desk on` brings the next one back; a timer check from #2463 that held leads `om watch brief` while a plain tick stays out. Captures: `~/dev-notes-artifacts/om-morning-desk-ritual/run-artifacts/verify-r5/`. Nothing was published for that run.*
+
+*Verified 2026-11-11 on branch `daryl/morning-desk` before the merge, four lane runs on bare lanes (dummy `OM_API_KEY`, dead service URLs, scripted fake model through `OPENMARKET_LLM_*`, a stub Telegram server through `OM_TELEGRAM_BASE_URL`). Evidence: `http://127.0.0.1:8098/om-morning-desk-20261111/r4/` (21 frames, approved by the operator; r1 to r3 hold the earlier rounds). Rig and captures: `~/dev-notes-artifacts/om-morning-desk-ritual/run-artifacts/verify-r4/` (`rig/`, `cli/`, `tui/`), with the fuller rig in `verify-r3/rig/`. The lane homes were deleted after the merge.*
 
 *Driven and passing: default-on seeding; no brief at seed time and exactly one at the next slot; the whole brief in the home chat with the turn-off row; day 31 without it; the layout in Telegram and in plain `om chat`; `om notis` text and JSON; `/desk`, `/desk off`, `/desk on` in the TUI; an off that sticks before and after a desk exists; a refused `/desk on`; removal and return under a new id; a person's own `morning-desk` watch left byte-identical; the read-exactly-once window; the owner's voice in the user row; `watch brief`; the quiet night; the hand install with the network dead; the "Full" expansion through the web chat door; the What's new card.*
 
@@ -19,6 +21,7 @@ Once a home channel (Telegram, Discord or Slack) and a model exist, the daemon i
 - `refused-on`: a desk whose definition nobody consented to answers `Morning desk not started: it changed since its last OK.` and `Start: om watch arm <slug>`.
 - `waiting`: a watch that is on with its step not running reads `Morning desk: waiting`.
 - `removal`: a removed desk is not recreated. `/desk on` brings back a running desk under a new id (`morning-desk-2`).
+- `timer-check`: a timer check that held (#2463) ranks as a fire, titled by its sentence, for example `steps 8,412, below 10,000`. A plain tick never does.
 - `read`: `om watch brief [--since] [--until] [--format json]` prints at most 3 lead and 5 more items, `Unlisted`, `Quiet`, today's calendar and next steps. JSON adds `zone`, `truncated`, `in_watches`, `sources`.
 - `window`: on a clock-fired step the daemon binds the read to the rows committed since the step's previous run. A row committed after one run's read lands in the next run and in no other.
 - `voice`: `voice: "owner"` on a text ai step puts the stored persona in the opening user row under an `owner_voice` fence. The system text is unchanged. The arm card prints `Voice: yours`.
@@ -68,3 +71,5 @@ Recipe (scripts in `verify-r3/rig/` and `verify-r4/rig/`):
 - `om setup webhook` refuses a receiver that answers 404 on its test POST.
 - `om install` without a TTY exits `confirmation_required` and leaves its package lock for five minutes. Not caused by this feature.
 - An existing Slack install needs its manifest re-applied before `/om-desk` reaches the handler.
+- `watch import` wants the stored-spec shape (`instruction: { user_goal }`); a create-shaped spec is refused `invalid_spec`.
+- A timer check with `on_missing: "tell"` sends its `check has no reading` warning to the channel even on a watch imported with `notify.enabled` false. Seen 2026-11-11; it belongs to #2463, not the desk.
