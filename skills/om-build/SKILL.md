@@ -116,6 +116,28 @@ one you need and follow it.
 | `--hosted` (default), the daemon `/rooms` GUI at `127.0.0.1:31337` | [`references/hosted.md`](references/hosted.md) |
 | `--cloud`, the `/chat/` host served locally | [`references/cloud.md`](references/cloud.md) |
 
+### The newest main: `scripts/latest.sh`
+
+When the operator asks to "build" or "rebuild om" with no branch named, they
+want the newest `origin/main` of both repos installed. Run one command and
+relay its summary; do not walk the steps by hand.
+
+```bash
+~/.claude/skills/om-build/scripts/latest.sh          # skips when nothing moved
+~/.claude/skills/om-build/scripts/latest.sh --force  # rebuild anyway
+```
+
+It never changes a checkout the operator works in. openmarket-internal always
+builds from a temporary worktree at `origin/main`. openmarket-chat is
+fast-forwarded only when it is a clean `main`; on a branch or with local edits,
+`origin/main` builds from a temporary worktree. It picks the repo's pinned Bun,
+passes `--force` to `hosted.sh` (whose gate skips CLI-only changes at an
+unchanged version), and prints about ten `label value` rows: version and pid,
+both commits with the count since the last build, GUI stamp, sign-in, listener,
+MCP singleton, rollback, last error, pending consents, and the log path. The
+full `hosted.sh` output stays in `~/.local/state/om-build/logs/`; read it only
+when the summary says `FAIL:`.
+
 ### Running `scripts/hosted.sh`
 
 The script takes its paths from the environment and does not care where it is
