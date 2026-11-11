@@ -372,6 +372,20 @@ Maint probe`. Not driven: `/hints help`, `/jobs show`, `/effort <level>` on a
 reasoning model, `/mute … for 8h`, `/brief`, and ↑/↓ or a second ctrl+r in the
 panel.
 
+### Page tabs (pending merge: branch `daryl/tui-topbar-tabs`, driven 2026-11-11)
+
+*Not on `origin/main` yet. Driven on the branch's working tree over `21c4c32b3d`, bare lane on 18183 with a fake model on 18184, workspace at 170x45 and plain chat at 100x40. Evidence: `http://127.0.0.1:8098/om-tui-topbar-tabs/r1/`. Once it merges, the "there is no top bar" line under **Start** above is wrong for the workspace: rows 1 to 3 are the bar and every row number in this file below it moves down by 3.*
+
+- **The bar.** Workspace rows 1 to 3 are a raised band; row 2 reads `chat agents watches news follows packages wallet notis usage`. The lit tab carries background `48;2;227;233;239` in a `capture-pane -e` read of row 2; grep that to name the active tab. Plain chat has no bar on the chat or over `/agents`; every frame page shows it.
+- **Hop keys.** Inside a page, `]` and `[` walk the ring and wrap: `/watches` then `]` seven times lights news, follows, packages, wallet, notis, usage, then lands on the chat. A page's facts sit at the right of row 2 (row 3 at 100 columns) and the page name is not repeated.
+- **Click.** Click a label on row 2 (`click <col> 2`). Find the column from the text capture of row 2; the last label has no trailing space once tmux trims the row, so search for ` usage`, not ` usage `.
+- **ctrl+x.** The menu lists `1 agents` to `8 usage` after the sidebar and What's new rows, in plain chat too. There is no `a agents` row.
+- **Plain hop stays on the alternate screen.** Sample `display -p '#{alternate_on}'` every 50 ms across a `]`: every sample reads `1`. After Esc it reads `0` with one `❯` prompt in `capture-pane -p -S -`.
+- **Agents.** `ctrl+x` `1` opens today's bottom-anchored panel with `agents` lit; its hint row ends `[ ] page  esc`. `]` opens watches, a click on another tab closes the panel and opens that page, and `[` from an agent's own page lands on the chat.
+- **Text fields keep the brackets.** `/watches`, `/`, `]`: the footer reads `search: ]` and `watches` stays lit.
+- **Watch form.** `/watches` then `n` in the workspace draws the form under the bar; the bar there takes no click.
+- **Capture.** Use `capture-pane -p -e -N` for a PNG render. Without `-N` tmux trims trailing cells and the band's filler rows lose their tint.
+
 ## Gotchas
 
 - Evidence JSON left under the worktree's `artifacts/` fails `bun run lint` (biome reads the tree and ignores
