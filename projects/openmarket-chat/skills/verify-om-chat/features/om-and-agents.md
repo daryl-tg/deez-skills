@@ -58,8 +58,29 @@ main. Driven on main at `47cb13bf` (2026-10-30).
   **More actions for <name>** menu (**Review replies first**, **Check
   routing**, **Review what it learned**). Its `tablist` holds **Overview,
   Activity, Access, Settings**; every panel is in the DOM and the unselected
-  ones are `hidden`, so read the visible `tabpanel`. A region **Talk to <name>**
-  holds the textbox **Ask <name> something** and a disabled **Try it**.
+  ones are `hidden`, so read the visible `tabpanel`. Since `8c4c54d3` (!232) the
+  centre is the your-om chat on that agent's lane: a thread rail (**New
+  session**, **Search chats**), a header with the agent's face and a state chip
+  (**running** / **thinking**), and the shared composer `textarea.composer-input`
+  with placeholder **Message <name>**. A send shows your bubble at once, the
+  your-om thinking row while it waits, then the reply with the agent's face,
+  rendered markdown and **Thought for Ns**. The old **Talk to <name>** /
+  **Ask <name> something** / **Try it** preview and its "Trying..." line are gone.
+  Since `5c8a20a4` (!237) the right sidebar (`aside.agent-side`) is a property
+  panel: no card per section (only the Needs you callout and the Settings
+  **Danger zone** are boxed), one 12px muted section header, two-column label /
+  value rows, ghost selects. Overview: stat strip (turns today, routed right,
+  rooms; a badge shows rooms and sessions) then State / Type / Source / Runs on.
+  Activity: **Work** rows with a refresh icon and relative times, or
+  **Sessions** for a badge. Access (roster): **Rooms** with a **+** named **Add a
+  channel for <name>** that opens the **Channel for <name>** select and **Allow
+  <name> in selected channel** inline, **Can do**, **Limits** (Turns an hour,
+  Model, **Reply checks** that expand per check). Access (badge): one **Rooms**
+  list with each room's modes, then **Reads / Speaks / Posting / Never** as
+  labelled rows (the old Places chips and per-band room rows are merged; the
+  expiry clock, copy-id and stop-one-mode menu live only on the settings Agent
+  access page). Settings: Memory meter and rows; a badge's **Disconnect** sits
+  in the Danger zone.
 - **New agent.** A dialog named **New agent** on desktop and a bottom sheet on
   phone. Groups **Agent type** (**Chat agent**, **Work agent**) and **Agent
   templates** (explain, fact-check, argue, debugger, feature), **Start blank**
@@ -75,6 +96,36 @@ Media emulation alone does not switch the theme. The cloud host is
 `/chat/agents` and shows the Map with om only, the Brains nodes reading
 "can't tell", and "Create and manage your agents in the local app. Agents
 connected to this server appear here."
+
+**Recipe (agent page and its chat).** Since `149ea33c` the
+`agent-center-fixture` opens agent pages: it spreads `composerSessionFields()`
+into its session and scripts `/chat/conversations`, `/chat/history` and
+`/chat/turn`. Open an agent by clicking its rail row (the text starts with the
+agent's emoji, so match with `includes`, not `startsWith`); the
+`#/agents/a/<id>` hash on first load did not open it. `?hold=<ms>` holds the
+turn's stream so the thinking state can be captured:
+`agent-browser fill "textarea.composer-input" "hi"; agent-browser press Enter`,
+screenshot after ~1.5 s, then again after the hold. Live verified 2026-11-10
+(dark and light, argue / debugger / claude code; gallery
+`http://127.0.0.1:8098/agent-sidebar/r2/`).
+
+**Trap.** Viewport screenshots of the fixture came back solid black while the
+DOM was full (the app stylesheet stops the page scrolling). Screenshot an
+element instead: `agent-browser screenshot "main#root" out.png` for the pane,
+`"aside.agent-side"` for the sidebar, with a tall viewport
+(`set viewport 1280 1800`) so nothing sits below the fold.
+
+**Trap.** A worktree whose `node_modules` is a symlink to another worktree
+serves that other worktree's `@openmarket/chat-ui` through vite (tests still
+pass, because they resolve through tsconfig paths). Give a capture worktree its
+own `bun install --frozen-lockfile`; the bunfig reads `NPM_READ_TOKEN` and
+`ORANGECHARTS_NPM_READ_TOKEN`, and the `.env` copies 404 (seen 2026-11-10).
+
+**Trap.** `agent-center-remote.test.tsx` runs under the cloud config in CI
+(`verify:shared` and `verify:cloud`), where `rosterReach` is `remote`; a run
+with the root tsconfig takes the desk path and misses its failures. Run CI's
+lanes with `bun --tsconfig-override ./tsconfig.json tools/test-fast.ts --lane
+shared|cloud --no-gates <path filters>`.
 
 **Trap.** The phone sheet (New agent, an agent's details) drags only from
 `[data-sheet-grip]` or the dialog header (`lib/agents/sheet-drag.ts`).
