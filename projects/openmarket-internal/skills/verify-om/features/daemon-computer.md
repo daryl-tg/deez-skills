@@ -1,5 +1,7 @@
 # The daemon's own browser
 
+*Re-driven on main 2026-11-13 (nightly), tree `298c469dd7` (v0.495.0+internal), guest lane on 18185. `om computer status` (`Computer: off`, the driver and Chrome rows, `Windows: 0 of 4 in use`); `om computer on` from the run's own shell is refused exit 2 (`refusing to approve from an auto-approve harness`), and from a tmux terminal answers `Computer: on` with the `om computer open <address>` next step; `off`; `history`, `stats` and `sites` on an unused computer; `config set computer.asks bogus` exit 2. The dashboard's Computer page. MCP stdio lists no `computer_*` tool. Not re-driven: a task using the browser, the queue, the owner taking over, the MCP `computer_needs_owner_surface` refusals. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/`.*
+
 *On main since 2026-11-12: PR #2442 merged as `9a9fa313d1`, ported onto the public cut (the browser is core; its agent rules live in `packages/cli/src/private/agents/actions/_computer-surface.ts`; `computer-roster.test.ts` moved to `test/private/agents/`). Not yet re-driven on main or on the live daemon. The live build of 2026-11-12 answers `om computer status` with `Computer: off`.*
 
 *Verified: 2026-11-11, branch `daryl/daemon-computer` tree `3e2ae2b37a` (PR #2442, on origin/main `0ad4768f66`), bare lane on 18141 with a scripted fake model on 18142, `agent-browser` 0.33.2 and Google Chrome 157. Gallery `http://127.0.0.1:8098/daemon-computer/r4/` (36 screenshots). Not on main until the PR merges.*
@@ -11,6 +13,7 @@
 ## Sub-features
 
 - The switch: `om computer on`, `off`, `status`. `on` refuses when the driver or Chrome is missing and names `om computer setup`.
+- Sites and windows: `om computer sites`, `allow`, `revoke`, `readonly`, `hide` and `close`; the `computer.window` setting is `hidden` or `visible` (source only).
 - Setup: `om computer setup` downloads the pinned driver after a yes, checks its SHA-256, then offers Chrome. A stale `computer.driver_path` refuses up front.
 - Free use: under `computer.asks never` (the default) open, read, every act step and screenshot run with no card, attended and unattended.
 - Strict mode: `om config set computer.asks sites` brings back the read card per new site and the act card per site per 24 hours.
@@ -34,7 +37,8 @@
 ## Driving it with control-om
 
 - Bare lane as in [persona-chat-tools.md](persona-chat-tools.md). Export `OM_LANE_PORT` on every `control-om om --` call.
-- `om computer on`, `setup`, `open` and `allow` need a real terminal. Run them in tmux on your own named socket.
+- `om computer on`, `setup`, `open` and `allow` need a real terminal. Run them in tmux on your own named socket. From an auto-approve harness `on` exits 2.
+- The `computer_*` tools are not on MCP stdio; the agent reaches them in om chat, watch steps and roster runs.
 - The lane's browsers live in a driver namespace derived from the lane's `OM_HOME` (`om-<16 hex>`), one session per window. Never drive, list or close a session outside it, and never run `agent-browser close --all`.
 - A direct driver call with different environment variables restarts that session's browser. Go through `om computer` verbs, or match om's settings.
 - Real sites used: `https://example.com`, `https://httpbin.org/forms/post`, one read and one refused click on `https://polymarket.com`.

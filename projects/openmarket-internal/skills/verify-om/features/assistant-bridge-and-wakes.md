@@ -1,10 +1,12 @@
 # Assistant bridge: daemon tools, deposit and wakes through the hosted MCP
 
+*Re-checked 2026-11-13 (nightly, source only) against origin/main `298c469dd7`: since #2470 (`1107bf7c86`) the hosted om face lists ten tools (`find`, `describe`, `read`, `change`, `deposit` and five reads), and every other daemon action is a catalog entry reached through `find`, `describe`, `read` and `change`. The tool counts in the older records below (23, 61, 83, 84) describe the face before #2470. Not re-driven: the rig needs the hosted binary, Mongo and a relay stand-in.*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. On main for the first time: `om assistants` prints `Assistants are off on this daemon. Turn them on with \`om assistants on\`.` and `No assistant has asked yet. Connect one to OpenMarket's MCP server and its first call asks here.`; `--format json` `{"assistants":[]}`; `--help` lists `list`, `on`, `off`, `allow`, `wake` (and the rest); MCP stdio lists `assistant_list` (485 tools) and answers `{assistants:[]}`. Not re-driven on main: the hosted forward, `deposit`, subscribe and signed wakes, which need the hosted binary, Mongo and a relay stand-in. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Verified: 2026-11-05 on the unmerged stack #2350, #2352, #2365, #2367, #2378 (top `daryl/assistant-stack-review-fixes`, base main `c1464fcf0`). Status read 2026-11-09: still open, with #2385 (`daryl/assistant-run-improvements`) now stacked on #2378; #2385 is not driven here. Merged since: #2350 as `5dfe76ff38` and #2352 as `bfad02ca24`, released in v0.493.0 (see the record above). Every step below was driven on real local processes with a relay stand-in. A real assistant (Grok Bot) was driven on 2026-11-06 through a temporary tunnel, with a routine webhook as the wake. Pending: an OAuth sign-in from a real assistant, MCP Events from a real vendor, and the production relay with a daemon from this stack.*
 
-An AI assistant connected to the hosted MCP service calls 23 tools on the user's own daemon and a `deposit` tool, and can subscribe to `watch.update` so the daemon posts it a signed webhook. The hosted service forwards over the relay as the operations `mcp.call` and `mcp.events`. The daemon gates it with `om assistants on` and one approval per assistant.
+An AI assistant connected to the hosted MCP service reaches the user's own daemon through `find`, `describe`, `read` and `change`, plus a `deposit` tool, and can subscribe to `watch.update` so the daemon posts it a signed webhook. The hosted service forwards over the relay as the operations `mcp.call` and `mcp.events`. The daemon gates it with `om assistants on` and one approval per assistant.
 
 ## Sub-features
 
@@ -80,7 +82,7 @@ Ports from the agent range, all on 127.0.0.1: relay stand-in 18121, receiver 181
 
 *Driven on a rig of the hosted binary, the stand-in gateway and relay, and a lane daemon on 18150 with a fake model and a webhook channel: the four separate tools on 2026-11-10, the folded tool on 2026-11-11 at `baf9897c05`.*
 
-- `one tool`: the four writes are one hosted tool, `request_change`, with `action` `create_watch`, `edit_watch`, `start_watch` or `plot_inbox`. The old names `watch_create`, `watch_edit`, `watch_arm` and `plot_inbox` answer tool not found. A missing, unknown or wrong-typed `action` answers `invalid_input` with no card; a field of another action answers as an unknown key.
+- `one tool`: since #2470 the four writes are `change` names (`create_watch`, `edit_watch`, `start_watch`, `plot_inbox`). The daemon still serves `request_change` with an `action` field, unlisted, for older hosted builds; that path is what the rig drove on 2026-11-11. The old names `watch_create`, `watch_edit`, `watch_arm` and `plot_inbox` answer tool not found. A missing, unknown or wrong-typed `action` answers `invalid_input` with no card; a field of another action answers as an unknown key.
 
 - `carded call`: each action answers `daemon_asks_you` with an `apr_` id and both commands; the same call before the yes names the same card; after `om approve` the same call returns the result once, then asks afresh.
 - `read the card`: `om approvals show <id>` prints the headline, `ASSISTANT`, the facts (`NAME`, `SOURCE`, `AI STEP`, `NOTIFIES`), the question and the expiry. `om approvals` alone prints usage; the list is `om approvals list`.

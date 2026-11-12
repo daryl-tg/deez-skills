@@ -1,5 +1,7 @@
 # Measuring the daemon's browser
 
+*Re-driven on main 2026-11-13 (nightly), tree `298c469dd7`: `computer-stress.ts --tasks 12 --windows 3 --workers 3 --port 18188` passed all seven rules with exit 0 (12 tasks done, 9 waited, waits p50 7061 ms, max 11099 ms, `Errors: none`), and `check` on the saved records gave the same seven passes. `om computer stats` on an unused lane reads `No browser step in the last 24h.` Not re-driven: the benchmark, `compare`, the eval area. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/` (`cli/12-computer-stress.txt`).*
+
 *On main since 2026-11-12: PR #2466 merged as `e93fe5abac`. The loopback helper is now `packages/cli/src/shared/computer-loopback.ts`. Not yet re-driven on main. Tier 3 has real-model numbers only from before the asks named the browser.*
 
 *Verified: 2026-11-11, branch `daryl/computer-evals` commit `e2ca911426` (stacked on PR #2442 `3e2ae2b37a`, not on main), real `agent-browser` 0.33.2 and Chrome 157 on scratch homes, no lane daemon, no model key. Evidence `computer-evals/r1`. Tier 3 of the eval area has never run against a real model.*

@@ -1,5 +1,7 @@
 # The ops dashboard
 
+*Re-driven 2026-11-13 (nightly), tree `298c469dd7` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, 1440x900. The nav now has **Computer** between Strategies and Channels (#2442): `/computer` shows heading `Computer`, `The browser om owns: who drives each window.`, a disabled `Take over` and a `Windows` region. Overview and Watches (`/alerts`, the probe under `Paused 1`) re-driven. Not re-driven: News, Strategies, Channels, Connections, Venues, Receipts. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/` (`dash/`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429, 1440x900. Overview (`Watch activity` lists the fired probe), Watches (`1 watch`, the row `working`, `Last update 5 min ago`), the watch's detail page, and Channels (`Connect webhook`). Not re-driven: News, Strategies, Connections, Venues, Receipts, the webhook channel flow. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (scheduled maintenance), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18161 (`OM_FEED_ALLOW_LOOPBACK=1`) with a loopback hook listener on 18162: `dash-channels` end to end. **Connect webhook** with a loopback URL was refused by the network guard; a channel seeded with `om setup webhook … --allow-private-network` showed its card; **send test** reached the listener and the card read `sent` / `delivering`; **Edit webhook** added a bearer token (the next test carried `Authorization`); **Remove vom-hook?** removed it; with a watch routed to it, removal listed the watch and **Remove and disconnect watches** removed it. Also the Watches table and a timer's detail page (labels, no rhythm words). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261110/r1/` (`01`-`10`).*
@@ -46,7 +48,7 @@ onto daemon state; since v0.400.0 it also authors watches and embeds an agent
 chat, each documented in its own entry ([watch authoring](./watch-authoring-ui.md),
 [the agent panel](./agent-panel.md)). What remains here is the shell and the
 observation surfaces: a daemon status pill, a left nav, and one page per concern
-— Overview, Watches, News, Strategies, Channels, Connections, Venues and
+— Overview, Watches, News, Strategies, Computer, Channels, Connections, Venues and
 Receipts, plus a link out to OM Chat. Overview shows watch counts and fires; a
 fresh install also sees an onboarding checklist.
 
@@ -89,7 +91,7 @@ Preconditions:
 - **Open the root.** Run `agent-browser open "$(control-om url /)"` then
   `agent-browser snapshot -i -c`. A fresh lane shows heading `Your market, in
   view.` and the nav links `Overview`, `Watches`, `News`,
-  `Strategies`, `Channels`, `Connections`, `Venues`, `Receipts`,
+  `Strategies`, `Computer`, `Channels`, `Connections`, `Venues`, `Receipts`,
   `OM Chat (opens in a new tab)` — note `Watches`, renamed from `Alerts`, and
   `Connections`, added in v0.400.0 — inside a `navigation "Main navigation"`
   landmark. Beside them a `Switch to light mode` theme toggle and an

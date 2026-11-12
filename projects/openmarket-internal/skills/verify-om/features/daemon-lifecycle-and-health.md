@@ -1,5 +1,7 @@
 # Daemon lifecycle and health
 
+*Re-driven 2026-11-13 (nightly), tree `298c469dd7` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `status --format json` (running, `relay.daemon: reachable`), `service status`, the wrapper's `service install` refusal, `--version` `0.495.0+internal`, and first live proof of `db-open-wait` (#2465). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/` (`cli/02`, `cli/08`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `status`, `doctor` (the guest-lane warnings; after two badges were minted for the MCP drive it read `ok:false` on the `account` check, see the README gaps list), `service status`, `service install` refused by the wrapper, `/healthz` (`version 0.494.0`, `auth guest`, 24 lanes with `feed-heartbeat` new), `chat --once /version` (`revision` from `OM_CODE_REVISION`, `daemon 0.494.0, pid <lane>`). First live proof of `proxy-decoded-body` (#2445) on a bare lane on 18183 against a gzip upstream on 18184. Not re-driven: the env opt-out switches, the `/version` mismatch row. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (scheduled maintenance), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18161: `env-opt-outs` first driven. `OM_TELEMETRY=off`, and `DO_NOT_TRACK=1` over `OM_TELEMETRY=on`, turned `config show`'s `telemetry.product` to `off (OM_TELEMETRY / DO_NOT_TRACK env)`; `OM_NO_UPDATE_CHECK=1` turned MCP `system_status`'s `version.update_check` from `unknown` to `opted_out`; `OM_NO_AGENT_WIRING=1` turned `doctor`'s `agent_wiring` to `opted out (OM_NO_AGENT_WIRING)`. `OM_PLAIN_CHAT` and `OM_MCP_LAZY` were not driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261110/r1/` (`cli/01`-`07`).*
@@ -65,6 +67,8 @@ reports what it is doing. A user starts it (`om run` in the foreground, or
 - `doctor` self-diagnoses the install: binary, version, home, network, key,
   schema, daemon.
 - `logs` tails `runner.log` from the home.
+- `db-open-wait` (#2465): an `om` process that opens the home's database while another process holds a brief lock waits for it, then succeeds, instead of failing with `database is locked`.
+- `edition`: `om --version` prints `<version>+internal` from the internal entry and the bare version from a public build; the help header prints `om v<version>` either way.
 - `service-guard` — the wrapper refuses lifecycle mutation on a lane, because
   the product no longer does.
 - `version-slash` (#2428): `/version` in `om chat` (and `/help` on every
@@ -176,6 +180,7 @@ Preconditions:
   not a verdict on the machinery, and a CLI mint that succeeds alongside it
   shows up on the daemon's NEXT read rather than fixing the one you already
   saw.
+- **The lock wait.** Hold a write lock on the lane's `om.sqlite` from `sqlite3` (`BEGIN EXCLUSIVE;`, a `CREATE TABLE IF NOT EXISTS` probe, `.system sleep 4`, `ROLLBACK;`) and run `control-om om -- config set computer.asks never` 0.2 s in. Driven 2026-11-13 on `298c469dd7`: unlocked the call took 0.93 s; locked it finished at +4.18 s, after the release, with exit 0.
 - **Logs.** Run `control-om om -- logs --limit 40`. It reads `runner.log` from
   `<lane root>/accounts/guest/`. **On a `control-om` lane the daemon never
   writes that file**: the lane runs `om run` in the foreground, so its own

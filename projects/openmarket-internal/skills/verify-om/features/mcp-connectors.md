@@ -1,5 +1,7 @@
 # MCP servers the owner connects
 
+*Re-driven on main 2026-11-13 (nightly), tree `298c469dd7`, bare lane on 18187 with the HTTP fixture (`bun packages/cli/test/_connector-fixture-server.ts --http 18189 --call-log <file>`). In tmux, `om connect add fx --url http://127.0.0.1:18189/mcp` listed the seven fixture tools, asked `Ask before the agent calls a tool?` (default `changes`) and saved `fx, 7 tools, asks changes`; `om connect list` read `fx  http  changes  7 tools  ready`; `om connect set fx --asks never` from the run's own shell exited 2 (`refusing to approve from an auto-approve harness`). MCP stdio lists no `connector_*` tool. Not re-driven: a chat call, the card, the pin, sign-in, stdio servers. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/`.*
+
 *On main since 2026-11-12: PR #2453 merged as `3fa98507ce`. The connector actions load their daemon modules lazily, and both connector tools are `never` in `packages/cli/src/mcp/assistant-reach.ts`. Not yet re-driven on main.*
 
 *Verified: 2026-11-11, branch `daryl/mcp-client` tree `3e78ff2ffe` (PR #2453, on origin/main `0ad4768f66`), bare lane on 18171 with a scripted fake model on 18172 and fixture MCP servers on 18173 to 18175. Gallery `http://127.0.0.1:8098/mcp-client/r2/` (17 screenshots). Not on main until the PR merges.*
