@@ -12,7 +12,8 @@
 - Setup: `om computer setup` downloads the pinned driver after a yes, checks its SHA-256, then offers Chrome. A stale `computer.driver_path` refuses up front.
 - Free use: under `computer.asks never` (the default) open, read, every act step and screenshot run with no card, attended and unattended.
 - Strict mode: `om config set computer.asks sites` brings back the read card per new site and the act card per site per 24 hours.
-- Floors in both modes: `computer_venue_read_only`, `computer_site_read_only`, `computer_password_field`, `computer_key_not_allowed`, `computer_private_address`.
+- Floors in both modes: `computer_venue_read_only`, `computer_site_read_only`, `computer_password_field`, `computer_payment_field` (any `autocomplete` token starting `cc-`), `computer_key_not_allowed`, `computer_private_address`.
+- Source-supported on 2026-11-12 at `3854e41ace`, unit-tested only (`computer-act.test.ts`, `computer-capital.test.ts`), live proof pending: the payment-field refusal, and that `computer.asks` never changes the approval of `order_place`, `wallet_send` or `hyperliquid_transfer`.
 - Windows: a signed-in site (`om computer open <address>`, then `release`) uses the `owned` window. Every other site uses `clean-<n>`, emptied per task. `computer.windows` sets the count.
 - Leases: 90 seconds idle, 15 minutes at most. `computer_act` step `done` gives the window back. A reaped window reads `closing` until its browser is gone.
 - Queue: at most 16 wait. `computer_busy` names the place in line and the holders.
@@ -58,3 +59,5 @@
 - A real login with a second factor, a visible window from a launchd-started daemon, and the live view on an auth-enforcing bind have not been driven.
 - Linux, Windows, a machine with no Chrome, and driver versions above 0.33.2 have not been driven.
 - No live eval area covers how a real model chooses these tools.
+- A click is not floored: on a signed-in site with a saved card, `Buy` rides only the skill's rule. The payment-field floor stops typing, not `select` or the browser's autofill.
+- Since 2026-11-12 the PR is one level of a stack: main, #2465 database fix, #2442, #2466, #2448, #2451, #2453. Rebasing any level can merge its changelog entry into a released section; check it sits under `[Unreleased]`.

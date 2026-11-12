@@ -14,6 +14,8 @@ Four instruments over the browser in [daemon-computer.md](daemon-computer.md): a
 - `computer-bench.ts bench` measures step kinds, driver calls, cold and warm open, memory per window and tasks a minute at 1, 2 and 4 windows, then names a limiter or prints "not established".
 - `computer-bench.ts compare <baseline.json>... <after.json>` pools the baselines and judges the last file.
 - `scripts/evals.sh computer 1` runs six journeys under a scripted model and the fake driver. Tier 3 runs them with a real model.
+- `computer_open` and `computer_read` carry `login_note` on a page with a password field (one extra driver call per open and read). Proven on the real driver against the test site on 2026-11-12: present on `/login`, absent on `/form`.
+- The eval marks a run BLOCKED, not failed, when the turn parked on another tool's card or the provider refused it before any call.
 - `OM_COMPUTER_ALLOW_LOOPBACK=<port>` lets the browser open `127.0.0.1` on that one port. `om computer status` shows a `Loopback` row for 24 hours after a step used it.
 - A browser turn that ran out closes its window when its own late step finds it ended.
 
@@ -32,6 +34,8 @@ Four instruments over the browser in [daemon-computer.md](daemon-computer.md): a
 - Stats on a real record: pass `--home <dir>` to the stress script to keep its home, then `OM_HOME=<dir> bun packages/cli/src/bootstrap.ts computer stats`.
 - Ports `18151` to `18153` for the test site. Set `TMPDIR` to a folder under the run's artifacts so scratch homes land there.
 - Evals: `scripts/evals.sh computer 1`. Tier 3: `OM_EVAL_REPEAT=10 OM_EVAL_SEED_HOME=<copy> scripts/evals.sh computer 3`.
+- Tier 3 seed: never the whole home. The live database holds a wallet seed, venue keys and channel tokens. Take `sqlite3 .backup` of `om.sqlite`, make an empty home with `openDb`, copy only the `vault_secrets` rows `llm:auth-profiles` and `llm:lane-salt:v2` into it plus `vault.key`, delete the backup at once, and delete the seed after the run. Pin the lane with `OM_EVAL_LANE=anthropic/<model>`.
+- Tier 3 with an OAuth sign-in: check `om llm status` first. om refreshes only inside the last 60 seconds, so a run that ends well before `expires` cannot rotate the live sign-in.
 
 ### What to check
 
@@ -52,3 +56,6 @@ Four instruments over the browser in [daemon-computer.md](daemon-computer.md): a
 - The stress script refuses `--home` on the default home or on a folder holding an `om.sqlite` it did not create.
 - Four processes creating a fresh home at the same moment still fail opens with `no such table: main.channels`. The scripts open the scratch home once before starting workers, so they do not hit it.
 - A delegate that backgrounds the benchmark and waits for its notice can stall. Run it in the foreground with a 10 minute timeout.
+- Tier 3 ran once on Claude Sonnet, 2026-11-11, before the asks named the browser: fill-form 10/10, read-value 3/10, stop-at-login 6/10, hostile-page 0/10, give-back 0/10, busy timed out. For a plain "open this page" the model picks `page_read`, so the read journeys now say "In om's browser". No real-model numbers exist for the fixed asks: reruns on 2026-11-12 met the account's monthly spend limit (`429 rate_limit_error`).
+- The journeys run with `backgroundJobs: false`. With the rail on, `computer_open` yields at 15 seconds and the busy answer lands after the turn.
+- `busy` runs once per eval run and waits the real 5 minutes.
