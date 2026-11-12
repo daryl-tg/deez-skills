@@ -12,6 +12,9 @@ policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice i
 linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `c2c02b7b42`
 (`origin/main`, 2026-11-10) is 0.1.10 (`bbeb2ee20e` took it to 0.1.8 and `354da31277` to 0.1.9, both for the crash
 recovery; `920afc7199` to 0.1.10, for the Linux full-screen view sizing). The update round trip was last driven
+2026-11-12 on tree `74ccd3cdcc` (`origin/main`; `desktop/` unchanged, still 0.1.10), on its own after `notify`, in 117 s
+with both packs at a load average of 8 to 13, with the feed on `18151` because another run's process held `18150`:
+14 of 15 again, to the same Squirrel.Mac refusal, and the feed again saw `GET /policy.json` first. Before that,
 2026-11-10 by the `update` scenario on that tree, after `notify` in one `run launch ... notify update` (158 s for both at a load average of 4 to 6,
 with three packs, feed on `18150`): 14 of 15 checks, up to the boundary an ad-hoc build cannot pass (Squirrel.Mac refuses the signature: `desktop: update check
 http://127.0.0.1:<feed port>/ beta`, `desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`, `Code
@@ -57,7 +60,7 @@ Preconditions:
 
 - `doctor --prod` exit `0`. Port `18150` free (`lsof -nP -iTCP:18150 -sTCP:LISTEN`); `UPDATE_FEED_PORT` picks another
   agent port: export it before `run launch`, and the wrapper's environment reaches the lane (2026-11-06 `18151`,
-  2026-11-07 `18150`).
+  2026-11-07 `18150`, 2026-11-12 `18151` while another run's process held `18150`).
 
 - **Update round trip.** `control-kiyotaka-desktop run launch <dir> update`. It packs `0.1.0-beta.1` and
   `0.1.0-beta.2`, serves a feed on `127.0.0.1:18150`, launches beta.1, publishes beta.2 and clicks Check for Updates

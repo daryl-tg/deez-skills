@@ -11,7 +11,12 @@ read exactly as the trading store writes it, at most six fraction digits), `evm-
 and `solana-connect`, and every request carries `issuedAt`, the app's clock when it opened the page; an old request
 reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent, approveBuilderFee, usdClassTransfer,
 personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no transaction
-signing). Last driven 2026-11-10 on tree `c2c02b7b42` (`origin/main`; nothing on this path changed since `8bcd72f8f5`), with
+signing). Last driven 2026-11-12 on tree `74ccd3cdcc` (`origin/main`; the sign page, `sign-request.util.ts`, the
+handoff and wallet utilities, `handoff.mjs` and `desktop-sign.mjs` unchanged since `c2c02b7b42`), on a testnet lane
+warmed to `73,659.9 ▲ BTC-USD` with 250 bars and the console session unlocked, with the same results: the six sign-page
+states in one Playwright pass of fresh Chromium pages (`chromium-pages/page-sign-*.png`), `run sign` failing
+`desktop-sign-summary` (139 s, MetaMask 13.50.0), `hl` once to the `personal_sign` stall at `handoff.mjs:645` (205 s;
+three `desktop: return`), and `solana` at the Phantom pin (42 s). Before that, driven 2026-11-10 on tree `c2c02b7b42` (`origin/main`; nothing on this path changed since `8bcd72f8f5`), with
 the console session locked, with the same results as on 2026-11-07 to 2026-11-09: the six sign-page states by hand, `run sign` failing
 `desktop-sign-summary` (72 s, MetaMask 13.50.0), `hl` once through the connect and two approveAgent round trips to the `personal_sign`
 stall at `handoff.mjs:645` (204 s; three `desktop: external`, three `desktop: return`), and `solana` at the Phantom pin
@@ -81,12 +86,16 @@ Preconditions:
 - The pinned MetaMask zip and Phantom CRX download once into `node_modules/.cache/desktop-sign/` and
   `node_modules/.cache/desktop-handoff/`, checked by sha256.
 
-- **Sign page by hand.** Build `hl-approve-agent` requests with `issuedAt: Date.now()`, an `agentName` of
+- **Sign page by hand.** Build `hl-approve-agent` requests with `kind`, `id`, `issuedAt: Date.now()`, the signing
+  account's `address`, an `agentAddress`, a `nonce` (the `issuedAt` works), an `agentName` of
   `openmarket valid_until <ms>`, `hyperliquidChain: 'Testnet'` and `signatureChainId: '0x1'`, base64url the JSON, and
   open `http://127.0.0.1:<port>/chart/desktop/sign?r=<b64>` with `control-kiyotaka-desktop browser`. A fresh request shows
   `desktop-sign-page-title` "Authorize a trading key", `desktop-sign-summary` (key name, agent address, Valid until,
   network), `desktop-sign-origin`, and with no extension `desktop-sign-no-wallet`. `issuedAt` a day old shows
-  `desktop-sign-expired`; a truncated `r` shows `desktop-sign-invalid`. No wallet is asked in any of these.
+  `desktop-sign-expired`; a truncated `r` shows `desktop-sign-invalid`. No wallet is asked in any of these. A request
+  missing any declared field reads `desktop-sign-invalid`, the expired one included (2026-11-12: built without
+  `address`, the fresh and the day-old request both read invalid), and the `valid_until` ms may sit at most 180 days
+  past `issuedAt` (`HL_AGENT_VALIDITY_MS`, `sign-request.util.ts` `agentName`).
 - **The transfer kind by hand.** Build `{ kind: 'hl-usd-class-transfer', id, issuedAt: Date.now(), address, amount:
   '25.5', toPerp: true, nonce: issuedAt, hyperliquidChain: 'Testnet', signatureChainId: '0x1' }` the same way. It
   shows `desktop-sign-page-title` "Transfer USDC" and `desktop-sign-summary` with Transfer "Spot to perps", Amount

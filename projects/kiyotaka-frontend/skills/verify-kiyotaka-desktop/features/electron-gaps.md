@@ -10,7 +10,18 @@ registers, and the offline and online events fire. A download saves to Downloads
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-Last driven 2026-11-10, on tree `c2c02b7b42` (`origin/main`; `gaps.mjs` unchanged since `8ce333e5e9`'s comment edit),
+Last driven 2026-11-12, on tree `74ccd3cdcc` (`origin/main`; `gaps.mjs` unchanged; `dd45cde8b5`'s Ctrl + wheel zoom and
+`3a64fcc3af`'s typed interval entry touch no row: the lane has no wheel row, and only a comma or a NumLock Numpad digit
+opens the interval entry), straight after the parity sweep with `GAPS_REUSE_PACKAGE=1`, in 168 s, with the console
+session unlocked: the eight `keys-*` rows ran live for the first time through this map. 23 of 24 rows passed: the 16
+guest rows as before, and seven key rows (`keys-calibration`, `keys-edit`, `keys-dialogs`, `keys-view`,
+`keys-watchlist-replay`, `keys-panels`, `keys-misc`). `keys-tools` read `web`: 14 of its 15 combos matched, and the
+browser ran 13 of 15 because Backspace and Delete (`deleteSelectedTool`) run no command in either host with nothing
+selected; the one difference is Alt+Shift+R, which ran `rectangle` in both hosts but left `selectedTool` null in the
+shell and `Rectangle` in Chromium. A second run of `keys-tools` alone straight after reached no key into the shell at
+all (every row `gap` or `web`, "0/15 combos as the browser"), with `doctor` green and the console still unlocked, so the
+shell window was not key; the cause is not isolated, and that run proves nothing about the bindings. Before that,
+driven 2026-11-10, on tree `c2c02b7b42` (`origin/main`; `gaps.mjs` unchanged since `8ce333e5e9`'s comment edit),
 straight after the parity sweep on the same dev lane (250 bars in the engine) with `GAPS_REUSE_PACKAGE=1`, in 107 s,
 with the console session locked: 16 pass and the eight `keys-*` rows not-run on the lock. The rows read exactly as on 2026-11-04 (`8436920004`), 2026-11-08 (`537639ebca`) and 2026-11-09 (`27fb2d4621`), described below; the sweep's new Escape and Lite charts findings did not touch them:
 
@@ -87,6 +98,9 @@ to the operator's real account. Windows and Linux are unprobed.
 Preconditions:
 
 - Baseline from the [index](./README.md): `lane up`, `doctor` exit `0`. No other OpenMarket bundle on disk.
+- Naming any one `keys-*` row runs all eight: `guestRows` filters the row list, but `keyboardRows` runs every key
+  group (`gaps.mjs`). The rows also need the shell window to stay key for the whole run; another session taking the
+  console's focus makes every combo miss the shell, which reads as `gap` with "0/N combos as the browser".
 - The `keys-*` rows need an unlocked console session. On a locked screen they read not-run with "the macOS console is
   locked". To check, run `ioreg -n Root -d1 -a | grep -A1 CGSSessionScreenIsLocked`.
 - The signed-in rows also need `~/.config/kiyotaka-qa/account.env` and the operator's say-so. An unattended run names

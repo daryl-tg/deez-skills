@@ -8,6 +8,12 @@ The shell also hands eight analytics events (`app-opened`, `update-installed`, `
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
 Since 0.1.8 the shell also reports its crashes and failed loads as three more `desktop:` events, which ride their own
 channel and the page's beacon instead (see [crash recovery and reports](./crash-recovery-and-reports.md)). Last driven
+2026-11-12 by the `notify` scenario on tree `74ccd3cdcc` (`origin/main`; `desktop/` unchanged, 0.1.10), run on its own
+in 66 s at a load average of 12 to 15, with the console session unlocked for the first time since 2026-10-28: 13 of 17.
+`screenUnlocked` passed (`screenLocked: false`), the bundle, profiles, names and bridge read as below, and the OS again
+answered `Added notification request: [ hasError: 0 hasCompletionHandler: 1 ]`. `notificationCaptured` and
+`dockCaptured` failed with "could not create image from display" on the unlocked console, which is the missing Screen
+Recording grant, and `osAuthorized` and `bridgeUnchanged` failed as before. Before that, driven
 2026-11-10 by the `notify` scenario on tree `c2c02b7b42` (`origin/main`, desktop 0.1.10): 12 of 17 checks, run with
 `update` in 158 s for both at a load average of 4 to 6 on 10 cores, the same split as every run since 2026-10-29 (327 s on 2026-11-09 at 15 to 19). The bundle read `OpenMarket`,
 `xyz.openmarket.desktop`, `icon.icns` and `Signature=adhoc` (`unit-04-bundle-icon.png` is the mascot icon), and the OS

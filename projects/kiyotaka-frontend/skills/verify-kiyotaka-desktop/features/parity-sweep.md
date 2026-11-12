@@ -7,7 +7,20 @@ plot region is blank in either capture; a step also fails when the hosts disagre
 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`; `ad67d47c62`,
 on 2026-11-02's tree, retired `si-panel-trades-liquidations` and renamed the `panel-tape` inventory row "Tape /
 Footprint panel", since one tape now serves every market, and left the guest steps alone) that signs in as the
-operator's real account on the deployed chart. Last driven 2026-11-10 on tree `c2c02b7b42` (`origin/main`, `parity.mjs`
+operator's real account on the deployed chart. Last driven 2026-11-12 on tree `74ccd3cdcc` (`origin/main`;
+`parity.mjs` unchanged, and no testid it reads went dead since `c2c02b7b42`), guest steps named, with the console session
+unlocked, at a load average of 4 to 15, on a lane with candles (250 bars, `nc -z` to the v2 host before and after), in
+8 min 33 s with its pack: the same 0 green, 6 blocked and 21 findings, from the same Escape cascade from `ind-search` on
+and the Lite charts toast (completed pairs 1.75 to 2.71 percent apart; `boot-candles` 2.45). Two things changed.
+`ind-catalog` now fails `officialListed` and `kindNarrows` in both hosts: `all` read 0 where it read 181 on 2026-11-10,
+while the narrowed Official list still counted 26 oscillators; `parity-mac-ind-dialog-*.png` shows the Official shelf
+still drawing its skeleton cards, so the step read `indicator-store-see-all-official-btn` before the shelf's count
+arrived. That is both hosts, so it is the web tree or the step's timing, not the shell; the cause is not isolated
+(`49d3816c92`, which cuts repeat registry and panel requests, is the candidate in the range). And `login-wall` wrote its
+shell capture on the unlocked console (`captured` and `loadedLane` true, `73,635.4 ▲ BTC-USD`), so its pair ran
+(2.71 percent, the toast again). The browser host was Playwright's `chromium_headless_shell-1234`, which a
+`playwright install` from `desktop/` (Playwright 1.64) had removed from the shared cache as unregistered; a sweep needs
+that build present. Before that, driven 2026-11-10 on tree `c2c02b7b42` (`origin/main`, `parity.mjs`
 unchanged since `30481b57f8`), guest steps named, with the console session locked, at a load average of 4 to 7, on a lane with
 candles (250 bars, `nc -z` to the v2 host before), in 9 min 48 s with its pack: the same 0 green, 6 blocked and 21 findings as on
 2026-11-09, from the same two causes below. `ind-search` again failed its restore ("timed out waiting for indicator-panel-v2

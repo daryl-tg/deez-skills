@@ -11,6 +11,16 @@ views fill what the screen shows of the window, never the raw content size: in f
 maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
 content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
+2026-11-12 on product tree `74ccd3cdcc` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`) with the console session
+unlocked for the first time since 2026-10-28, at a load average of 5 to 20 on 10 cores. The `window` scenario on
+production, run on its own, passed 12 of 12 in 36 s: first launch `73,736.4 ▲ BTC-USD`, the second instance focused it,
+and the relaunch captured a maximized candle frame at the saved 120,110 bounds (`unit-01-relaunch.png`). `capture` on
+the warmed dev lane passed every check (`73,770.5 ▼ BTC-USD`, 18 canvases) and its PNG shows candles under the guest
+signup prompt; `capture --prod` passed every check on a priced title, yet its PNG shows the boot splash at 0 percent (see
+Gotchas); `capture --prod --path '?login=1'` drew the one-card sign-in dialog with Google and X and no Passkey pill. A
+scratch drive proved full screen (`launch-view-area`). Since `f4e57b0390` (after `c2c02b7b42`) the window and tab title
+read one display name, `BTC-USD` with no spaces, where earlier runs read `BTC - USD`; no lane matches the separator.
+Before that, driven
 2026-11-10 on product tree `c2c02b7b42` (`origin/main`, desktop 0.1.10 from `920afc7199`) with the console session
 locked and the machine at a load average of 4 to 6 on 10 cores. The `window` scenario on production, run on its own, passed 9 of 12 in
 102 s, the same split as every run since 2026-10-29: the first launch logged `desktop: loaded
@@ -36,13 +46,15 @@ lane or an unpackaged launch). Windows and Linux are unproven on a real machine.
   where `PasskeyService.isSupported()` is false under the bridge). Since `37afa417b0` (2026-11-04, after `8436920004`)
   the Turnstile widget (`login-signup-turnstile`) sits between the address and "Email me a code", and an unticked
   Cloudflare checkbox keeps the button off with "Complete the security check above to continue." under the fields.
-  The shell frame of the new card is not yet captured.
+  The shell frame of the new card was first captured 2026-11-12 on `74ccd3cdcc` (`shell-login-prod.png`).
 - `launch-view-area` the bar and page views fill the visible window: the display in full screen, its work area when
   maximized, re-laid on full screen, maximize and display changes. Windowed, resized and maximized live on macOS
   2026-11-09 (`27fb2d4621`, scratch drive, no lane reads the bounds): the bar view was `{0,0,W,36}` and the page view
   `{0,36,W,H-36}` at 1400 by 900, at 1280 by 800, and maximized on the 1920 by 1080 display (work area 1920 by 1050,
-  page 1920 by 1014), and again after unmaximize. Full screen is still pending: `setFullScreen(true)` left
-  `isFullScreen()` false for 12 s on the locked console. The Linux cut shows only on some Linux desktops;
+  page 1920 by 1014), and again after unmaximize. Full screen live 2026-11-12 (`74ccd3cdcc`, scratch drive, unlocked
+  console): `setFullScreen(true)` took, the content read 1920 by 1080 on the 1920 by 1080 display, the bar view
+  `{0,0,1920,36}` and the page `{0,36,1920,1044}`, and after `setFullScreen(false)` both came back to 1400 wide (page
+  `{0,36,1400,864}`). On 2026-11-09 `setFullScreen(true)` left `isFullScreen()` false for 12 s on the locked console. The Linux cut shows only on some Linux desktops;
   `desktop/tests/main/view-area.test.ts` covers it.
 - `launch-titlebar` the bar's Back, Forward, title and update button, disabled while a block or sign-in screen covers
   the window. Live 2026-11-09 (`27fb2d4621`, scratch drive, no lane): Back and Forward start disabled, Back turns on after a page navigation; clicking Back returned to
@@ -70,7 +82,7 @@ Preconditions:
 
 - **Capture the chart.** Run `control-kiyotaka-desktop capture <dir>/shell-chart.png`. It prints the shell's
   `desktop: window bounds` and `desktop: loaded http://127.0.0.1:<port>/chart/` lines, the `capture:` JSON, then a
-  checks line that must read every check `true`, with a title such as `79,786.9 ▼ BTC - USD`. Open the PNG: it must
+  checks line that must read every check `true`, with a title such as `73,770.5 ▼ BTC-USD`. Open the PNG: it must
   show candles, not the boot splash (see Gotchas). The PNG and `<dir>/shell-chart.json` survive.
 - **Against the deployed chart.** `control-kiyotaka-desktop doctor --prod`, then
   `control-kiyotaka-desktop capture <dir>/shell-chart-prod.png --prod`. The loaded line names
@@ -91,7 +103,8 @@ Preconditions:
   on a built `desktop/dist` and a fresh profile only. The bar is the window whose URL starts `data:text/html`: read and click `#back`, `#forward`, `#update`, `#title`, hover then read
   `#tip`. Bounds come from the main process: `app.evaluate(() => { const win = globalThis.openmarketShell.window(); return win.contentView.children.map((v) => v.getBounds()); })`,
   beside `win.getContentSize()`, `win.isFullScreen()`, `win.isMaximized()` and `screen.getDisplayMatching(win.getBounds())`. The bar is the child 36 px tall; compare the page with `viewArea` in
-  `desktop/src/main/view-area.ts`. Stop on any Turnstile screen.
+  `desktop/src/main/view-area.ts`. For full screen, call `win.setFullScreen(true)` from `app.evaluate`, poll
+  `isFullScreen()` for up to 20 s, then read the bounds; it needs an unlocked console. Stop on any Turnstile screen.
 - **Unit level for the bar and the notice.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test`
   (39 files, 469 tests on 2026-11-08) covers `titlebar`, `view-area`, `beta-notice`, `navigation` and `user-agent`. That is not a
   live proof.
@@ -101,8 +114,9 @@ Preconditions:
 
 - **A priced title does not prove the frame.** The route drops the boot splash after a double
   `requestAnimationFrame` (`src/main.ts`), and rAF stops while the window is hidden. On the unattended mini the shell
-  window goes `document.visibilityState === 'hidden'` 30 to 40 s after launch. A production boot finishes before that;
-  a dev-lane boot often does not, so on 2026-10-27 both dev-lane captures passed every check, with a priced title and
+  window goes `document.visibilityState === 'hidden'` 30 to 40 s after launch. A production boot usually finishes before
+  that, but not always: on 2026-11-12 `capture --prod` passed on `73,731.9 ▲ BTC-USD` with 15 canvases and its PNG showed
+  the splash at 0 percent, while the warmed dev lane's frame showed candles. A dev-lane boot often does not, so on 2026-10-27 both dev-lane captures passed every check, with a priced title and
   15 canvases, while their PNGs showed the splash at 54 and 82 percent. Open the PNG. For a dev-lane frame, run with
   the console session awake and the window unobscured, or take the frame from `--prod`.
 - **A locked screen gives no frame at all.** With the console session locked (`ioreg -n Root -d1 -a | grep -A1

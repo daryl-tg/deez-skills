@@ -13,7 +13,11 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-10 on product tree
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-12 on product tree `74ccd3cdcc`
+(`origin/main`; `desktop/` unchanged since `c2c02b7b42`) by the `crash` scenario, run on its own: 34 of 34 checks in 61 s,
+with the console session unlocked and a load average of 12 to 15 on 10 cores; the analytics events read three `app-opened`, ten
+`page-crashed`, two `page-load-failed` and one `process-crashed`, and the offline screen read "This page didn't load"
+with Reload. Before that, driven 2026-11-10 on product tree
 `c2c02b7b42` (`origin/main`, desktop 0.1.10; `desktop/` unchanged since `537639ebca`, whose `desktop/src/` changed since `dced88e06a` only in `ade12fe660`'s view
 sizing) by the `crash` scenario: 34 of 34 checks in 44 s, the same as on 2026-11-06 to 2026-11-09, including the
 shell's `tsc` build, with the console session locked and a load average of 4 to 5 on 10 cores; `crash-held.png` shows

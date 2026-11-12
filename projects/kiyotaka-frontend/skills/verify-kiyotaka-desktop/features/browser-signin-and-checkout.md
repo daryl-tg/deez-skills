@@ -9,7 +9,13 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-10, on tree `c2c02b7b42`
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-12, on tree `74ccd3cdcc` (`origin/main`; the desktop pages, the sign-in
+card's files, `useTurnstile.ts`, `passkey.service.ts`, the download gate and `stripe-handoff.util.ts` unchanged since
+`c2c02b7b42`), every read below held again in Chromium on the dev lane (250 bars), through one Playwright pass of
+fresh pages rather than agent-browser, and `capture --prod --path '?login=1'` drew the shell's one-card dialog for the
+first time: Email me a code, Sign in with a password instead, "Or continue with", then Google and X, with no Passkey
+pill and no Turnstile widget (clean traffic), while Chromium's card listed `login-signup-passkey-btn` "Passkey". Before
+that, on 2026-11-10, on tree `c2c02b7b42`
 (`origin/main`; none of the four desktop pages changed since `bf1c9bac3c`; the super-search one-row-per-action fold
 only merges rows that set `collapsesInto`, which the `desktop-app` command does not), the return page (valid and invalid), the four
 checkout-return states, the signin redirect, the sign-in card and the super-search command read exactly as below in
@@ -26,7 +32,7 @@ redirect to `/chart/auth?redirect=/desktop/signin` ("Sign in or create an accoun
 `-google-btn`, `-twitter-btn` "X" and `-tos-link`; `-forgot-password-btn` shows only in the password step. Since
 `37afa417b0` (2026-11-04, after `8436920004`) the Turnstile widget sits under the address it vouches for
 (`login-signup-turnstile`, between the email field and `login-signup-submit-btn`, read live in document order on
-2026-11-05 and 2026-11-07 to 2026-11-10), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
+2026-11-05 and 2026-11-07 to 2026-11-12), no longer at the foot of the card. While Cloudflare shows its checkbox and it is unticked
 (`humanCheckPending`), "Email me a code" stays disabled and `login-signup-field-message` reads "Complete the security
 check above to continue." Since `45a3754bef` (after `8bcd72f8f5`) the code step runs its own check,
 `login-signup-code-turnstile`, under the step whenever its send has no token in hand: on a resend, and on the first
@@ -34,7 +40,7 @@ send when the address's check failed or had not answered when the entry's wait r
 script again if it failed, and a checkbox Cloudflare asks for shows under the step and holds the send until ticked.
 The reason a send went without a token (`script`, `render`, `challenge:<code>`, `timeout`, `unrendered`) goes only to
 analytics (`signin:code-dialog`) and auth-service, never to the screen; only auth-service refusing the code for its bot check shows a toast (see `signin-human-check`). The dev lane's test sitekey never asks: on
-2026-11-07 to 2026-11-10 the button was disabled with an empty address and turned on once an address was typed (not
+2026-11-07 to 2026-11-12 the button was disabled with an empty address and turned on once an address was typed (not
 submitted). The
 disabled state and the code step's own check are source-read only. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
 sit in one row of outlined pills under "Or continue with", a successful password, code, passkey or 2FA sign-in shows a
@@ -68,6 +74,8 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
 - `signin-start-page` `/desktop/signin` reads "Sign in to the OpenMarket app" and "Checking your sign-in…" while it
   checks the account, then sends a signed-out visitor to `/auth?redirect=/desktop/signin`.
 - `signin-no-passkey` the shell's sign-in screen has no Passkey pill; Chromium's does (`login-signup-passkey-btn`).
+  Both halves live 2026-11-12 on `74ccd3cdcc`: the shell frame `shell-login-prod.png` (one card, Google and X only) and
+  Chromium's card on the dev lane.
 - `signin-human-check` the Turnstile widget (`login-signup-turnstile`) sits between the address and "Email me a code";
   an unticked Cloudflare checkbox keeps the button off with "Complete the security check above to continue." A code
   step whose send has no token (a resend, or an address check that failed or ran out of time) runs its own check,
