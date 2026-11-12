@@ -1,5 +1,7 @@
 # Morning desk: a default-on brief of what mattered overnight
 
+*Coverage levels verified 2026-11-12 on branch `daryl/desk-brief-coverage` (PR #2468, unmerged, head `398c3ca7eb`), two bare-lane runs with a stub Telegram server and a fake model that writes the brief from the `desk_brief` result. With 48 seeded watches, 12 pairs of them sharing a link: the model was handed 3, 5 and 8 items at normal (nothing stored), 5, 10 and 15 at high, 3, 0 and 5 at low; each shared story appeared once with `in_watches` 2; named plus unlisted came to 48 at every level; the three Telegram bodies held the layout; plain `om chat` showed the normal and high briefs whole while an ordinary watch's 1,013-character answer was still cut at 600; `om watch brief` printed `Lead:` and `Notable:` label rows; `/desk coverage` changed the level with no model request. Evidence: `http://127.0.0.1:8098/om-desk-coverage-20261112/r2/` (20 frames, approved by the operator). Rig and captures: `~/dev-notes-artifacts/om-desk-brief-coverage/run-artifacts/verify-r2/`. Pending proof: the 120, 220 and 380 word budgets (the lane's model is scripted), the Slack plain message `desk coverage <level>`, a brief longer than 2,048 characters in `om chat`.*
+
 *On main since 2026-11-11: PR #2467, squash-merged as `cdfcf43d5e`. Re-driven 2026-11-11 at the merged change's own head `6eb18a1396` on one bare lane (lane 18173, scripted fake model, stub Telegram server): the desk seeds with no install command; a home seeded after 08:00 sends nothing for 3 min 10 s; exactly one brief arrives at the next slot in the layout below; `/desk off` in plain `om chat` silences a slot and `/desk on` brings the next one back; a timer check from #2463 that held leads `om watch brief` while a plain tick stays out. Captures: `~/dev-notes-artifacts/om-morning-desk-ritual/run-artifacts/verify-r5/`. Nothing was published for that run.*
 
 *Verified 2026-11-11 on branch `daryl/morning-desk` before the merge, four lane runs on bare lanes (dummy `OM_API_KEY`, dead service URLs, scripted fake model through `OPENMARKET_LLM_*`, a stub Telegram server through `OM_TELEGRAM_BASE_URL`). Evidence: `http://127.0.0.1:8098/om-morning-desk-20261111/r4/` (21 frames, approved by the operator; r1 to r3 hold the earlier rounds). Rig and captures: `~/dev-notes-artifacts/om-morning-desk-ritual/run-artifacts/verify-r4/` (`rig/`, `cli/`, `tui/`), with the fuller rig in `verify-r3/rig/`. The lane homes were deleted after the merge.*
@@ -21,6 +23,9 @@ Once a home channel (Telegram, Discord or Slack) and a model exist, the daemon i
 - `refused-on`: a desk whose definition nobody consented to answers `Morning desk not started: it changed since its last OK.` and `Start: om watch arm <slug>`.
 - `waiting`: a watch that is on with its step not running reads `Morning desk: waiting`.
 - `removal`: a removed desk is not recreated. `/desk on` brings back a running desk under a new id (`morning-desk-2`).
+- `coverage` (PR #2468): `/desk coverage low|normal|high` writes `desk.brief.coverage` and answers `Morning desk coverage: <level>.` with no model turn; `/desk coverage` alone names the level and the choices; `/desk` shows a `Coverage:` row; nothing stored reads as `normal`. Slack takes the plain message.
+- `tiers` (PR #2468): the read returns `lead`, `notable` and `also` by level (low 3/0/5, normal 3/5/8, high 5/10/15) with `coverage: { level, words }`; `om watch brief --coverage <level>` previews one. The brief tells leads in blocks, notable items in consecutive one-line rows, and names the rest.
+- `feed-whole` (PR #2468): a step answer from a watch whose `notify.style` is `full` shows whole in plain `om chat`; any other watch's answer is cut at 600 characters with `(cut)`.
 - `timer-check`: a timer check that held (#2463) ranks as a fire, titled by its sentence, for example `steps 8,412, below 10,000`. A plain tick never does.
 - `read`: `om watch brief [--since] [--until] [--format json]` prints at most 3 lead and 5 more items, `Unlisted`, `Quiet`, today's calendar and next steps. JSON adds `zone`, `truncated`, `in_watches`, `sources`.
 - `window`: on a clock-fired step the daemon binds the read to the rows committed since the step's previous run. A row committed after one run's read lands in the next run and in no other.
@@ -54,7 +59,8 @@ Recipe (scripts in `verify-r3/rig/` and `verify-r4/rig/`):
 6. Late commit: `late-commit.py insert`, let a slot pass, `late-commit.py commit`, and check which run's `desk_brief` result holds the row.
 7. TUI: `tui.sh` inside tmux for `/desk`, `/desk off`, `/desk on`, the feed row and the What's new card.
 8. Quiet night: an empty window with nothing on the calendar, and a fake model that answers `NO_REPLY`. Expect no send.
-9. `render-all.sh`, then `ARTIFACTS=<publish dir> control-om evidence publish <run-id> <revision>`.
+9. Coverage: seed at least 32 nameable watches (48 with 12 link-sharing pairs exercises the fold; `om event push --url <same link>` on two watches makes a pair). `/desk coverage high` in the TUI, then read the tier counts in the `desk_brief` result the fake model logged. The fake model must build its reply from that result, or the message will not reflect the level.
+10. `render-all.sh`, then `ARTIFACTS=<publish dir> control-om evidence publish <run-id> <revision>`.
 
 ## What to expect
 
@@ -70,6 +76,9 @@ Recipe (scripts in `verify-r3/rig/` and `verify-r4/rig/`):
 - The 200-character notice summary can cut a link off.
 - `om setup webhook` refuses a receiver that answers 404 on its test POST.
 - `om install` without a TTY exits `confirmation_required` and leaves its package lock for five minutes. Not caused by this feature.
+- A step answer is stored cut at 2,048 characters, so `om chat` shows a full-style brief whole only up to that.
+- An ordinary ai step with the default tools is offered `desk_brief` too. A fake model that answers every step with a brief will answer that one with a brief.
+- Under load an inbound push can answer 500 with `SQLITE_BUSY` (2 of 175, then 1 of 147). Re-push it.
 - An existing Slack install needs its manifest re-applied before `/om-desk` reaches the handler.
 - `watch import` wants the stored-spec shape (`instruction: { user_goal }`); a create-shaped spec is refused `invalid_spec`.
 - A timer check with `on_missing: "tell"` sends its `check has no reading` warning to the channel even on a watch imported with `notify.enabled` false. Seen 2026-11-11; it belongs to #2463, not the desk.
