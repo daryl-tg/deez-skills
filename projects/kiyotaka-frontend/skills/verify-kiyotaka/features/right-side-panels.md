@@ -5,7 +5,13 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-10 against product tree `c2c02b7b42` (`origin/main`, 60
+DRIVEN on 2026-11-12 against product tree `74ccd3cdcc` (`origin/main`, 113
+commits past `c2c02b7b42`), lane `18103`, a guest-JWT lane: the Orderbook on
+COINBASE BTC-USD (`Imbalance 50.1% bid · 49.9% ask`, grouped at 5, no
+Spread), the Tape opened on BINANCE.F ETHUSDT from Super Search's
+`Liquidations` section row with its Liquidations dock shown (see `rp-tape`),
+and the Alerts, Journal and Objects panels from the Panels menu with no wall.
+Before that, last DRIVEN on 2026-11-10 against product tree `c2c02b7b42` (`origin/main`, 60
 commits past `32dd0c6354`), lane `18103`, a guest-JWT lane. Driven that day:
 the Panels menu's 17 rows plus `tb-panels-row-orderbook-on`; Tape, Alerts,
 Objects, Journal, ETF screener and Market Stats open with no wall; the walls
@@ -360,6 +366,19 @@ an open panel.
   and the CME delay notice gives way to `Live · {source}` in the legend; the
   session chip's hint says the columns between fill in within the delay.
   Not reachable from an agent lane.
+- **A Tape section from Super Search (driven 2026-11-12, `ef5ee8b229`).** On a
+  crypto chart a `liquidations` query lists
+  `super-search-result-tape:tape-section:liquidations-btn` (`Liquidations`,
+  `Tape: open the Tape with this section shown`) beside `panels:Tape`. Its
+  click opened the Tape with `tape-liquidations` docked
+  (`crypto-tape-liquidations-host`). `Dark pool` and `Option flow` are listed
+  only where a stock Tape docks them; `dark pool` on a crypto chart listed
+  nothing.
+- **The CME depth cap line (source, `ada90837d8`).** A CME chart on a plan
+  without full depth shows `cme-book-depth-line` under the Orderbook, DOM and
+  Delta headers: `Your CME plan shows the top of the book. Full depth is in
+  the depth plan.` with `cme-book-depth-line-door` (`See depth plan`). Not
+  guest-reachable.
 - **`rp-tape`, rebuilt as one tape (`ad67d47c62`, `4dae9e6136`,
   `ba8e2cc280`; driven 2026-11-02 on `a4488341f6`).** `tb-panels-row-tape`
   opens `Tape` (`src/components/trades/Trades.vue` mounts
@@ -492,7 +511,8 @@ an open panel.
 - **The US options alert lane is retired (source, `b059e70852`).** An alert on
   a US option or a US stocks tape is refused with one flat sentence
   (`dialogs.alertCreate.blocked.opra`) and no way out; `opraAlertDoorVerdict`
-  answers `opra-closed` for every tier and flag, and the `opra-alerts` flag and
+  answers `opra-closed` for every tier while the `opra-lanes` flag is dark
+  (`a6b1b28fe1` opens the door when it is lit, source), and the `opra-alerts` flag and
   the `alert-create-opra-way-out` / `alert-dialog-opra-way-out` handles are
   gone. A guest meets the `alert` wall first, so it is not guest-driven.
 - **The `Panels` row list is the full catalog.** It lists pinned panels too, so a

@@ -4,7 +4,14 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-10 against product tree `c2c02b7b42` (`origin/main`,
+was last DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
+(`origin/main`, 113 commits past `c2c02b7b42`), lane `18103`, a guest-JWT lane.
+Driven that day: a `BTCUSDT` fill that listed NO bare
+`asset-row-BTCUSDT|1-btn` (the option-row gap is closed by `7d837c752a`),
+whose `asset-row-Bitcoin|1-btn` charted BINANCE.F BTCUSDT; Line kept from
+BTCUSDT to BINANCE.F ETHUSDT (see `tb-plot-kept`); the Predict tab's
+Polymarket event reading a chance in percent (see `sym-predict`); and
+`tb-layout-entry-2H-btn` raising the multi-chart wall. Before that, last DRIVEN on 2026-11-10 against product tree `c2c02b7b42` (`origin/main`,
 60 commits past `32dd0c6354`), lane `18103`, a guest-JWT lane. Driven that day:
 the V2 dialog (v2 20, legacy 0, the same placeholder, no
 `search-v2-category-yours-btn`); a `BTCUSDT` fill whose bare
@@ -157,6 +164,7 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   menu beside the legend change interval. Since `0011621cef` the three interval
   menus share one look.
 - `tb-plot` the chart-type picker changes plot type.
+- `tb-plot-kept` a picked chart type survives a symbol switch.
 - `tb-layout` the layout picker changes the grid.
 - `tb-hover` the pickers peek on hover and pin on click.
 - `tb-more` the `Panels` menu (`tb-panels-trigger-btn`) is the bar's only
@@ -390,6 +398,16 @@ Preconditions:
   row itself charted DERIBIT.F ETH_USDC-PERPETUAL that day, so a recipe that
   needs a given venue takes its `venue-row-<EXCHANGE>|<SYMBOL>-btn`
   (`venue-row-BINANCE_FUTURES|BTCUSDT-btn` charted BINANCE.F BTCUSDT).
+  **Re-driven 2026-11-12 on `74ccd3cdcc`: fixed.** The `BTCUSDT` fill listed
+  `asset-row-Bitcoin|1-btn`, `-Tether|1-btn`, `-Wrapped Bitcoin|1-btn`,
+  `-ETHBTC|1-btn`, `-GTBTC|1-btn` and `-pumpBTC|1-btn` and no bare
+  `asset-row-BTCUSDT|1-btn`, and the `Bitcoin` row charted BINANCE.F BTCUSDT
+  (title `73,792.8 ▲ BTCUSDT`). `7d837c752a` drops every contract whose
+  category is not a venue category from the directory, so a group made only
+  of options is gone; the directory cache moved to v11, so the first open
+  after the upgrade re-reads it cold. The directory also draws a group's
+  logo and finds it by an alias typed whole (`google` for GOOGL,
+  `7054f0b502`, source).
 - **The dialog opens through a loading frame (source, `4ee72fc314`,
   `dd3daa34c6`).** While the dialog's code loads, a `symbol-selection-frame`
   (`aria-busy="true"`) stands in and grows into the dialog, and presses made
@@ -719,7 +737,8 @@ Preconditions:
   `a4488341f6..215896e614` or `215896e614..8436920004`. Product gap, not doc
   drift. Re-confirmed 2026-11-04 on `8436920004`: the row charted `BINANCE.O
   ETH/USDT 29 Jan 2027 3,200 Put` (127 bars), so which contract it lands on
-  moves with the option volumes.
+  moves with the option volumes. Closed by `7d837c752a` (driven 2026-11-12, see the bare-row note under
+  `sym-search`): the directory no longer lists option contracts as venues.
 - **The `CME` tab can fail for a guest (driven 2026-11-04 on `8436920004`).**
   The tab (`search-v2-category-cme-btn`; a hidden zero-size twin of the strip
   shares the testid, so click it with `find role tab click --name "CME"`)
@@ -749,6 +768,29 @@ Preconditions:
   with `all` pressed, 22 `prediction-row-pred:*-btn` rows, and a JS `.click()`
   on a Polymarket row charted the event (`POLYMARKET Which Senate Swing
   States will Republicans win?`, 143 bars, `25.5¢`).
+- **Prediction prices read as a chance (driven 2026-11-12, `282e26fcb5`).**
+  The `¢` readings above predate it. Rows, the top bar, the tab title, the
+  outcome chips and the axis now print a percent and a move carries no unit:
+  the Polymarket row `Jensen Huang announced resignation or removal by...?`
+  charted 78 bars with the top bar `90.0%` and `+73.0`, the title `90.0%
+  Jensen Huang announced resignation or removal b...`, chips such as
+  `December 31, 2026 90.0%`, and the axis in percent. The trade tape, order
+  book and ticket keep cents (source). The VWAP axis pill printed `0.875`
+  beside its `87.5%` legend, a product gap.
+- **`tb-plot-kept` (driven 2026-11-12, `1f90d20d03`).** Pick `Line` from the
+  `Candle` picker (`find text "Line" click --exact`), then switch symbol:
+  `metadata[0].plot` read `spline` on BTCUSDT and again on BINANCE.F ETHUSDT.
+  Only an economic series or a legacy commodity venue lands on Area, and only
+  leaving one restores candles (source). Put Candle back with `find text
+  "Candle" click --exact`.
+- **Typed intervals are in Super Search.** The comma key opens the palette to
+  type one; see [Super Search](./super-search-and-settings.md)
+  `ss-typed-interval`.
+- **Move chart needs a layout a guest cannot open.** A right-click
+  `chart-ctx-move-chart` with `-left`, `-right`, `-up` and `-down` swaps two
+  charts in a layout and keeps the undo history (`6d36f36a68`, `6522ff8396`,
+  source); `tb-layout-entry-2H-btn` raised the `Up to 16 charts, free`
+  sign-in card for a guest on 2026-11-12, so it is not guest-driven.
 - **Memecoins left the `All` tab and the quick search (source, `9ffb5345bf`,
   `eb1f3b83be`, `89adcfc7d5`; read on `a4488341f6`).** The lane answers only
   to the Memecoins tab (signed-in) or a pasted Solana mint

@@ -7,6 +7,11 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-12 against product tree `74ccd3cdcc` (`origin/main`, 113 commits past
+`c2c02b7b42`), lane `18103`, a guest-JWT lane: the first-row cursor, joined
+words, the Tape section row, `Go to date` and the typed interval (see
+`ss-cursor` and `ss-typed-interval`), plus the `watchlist`, `script-editor`,
+`indicators` and multi-chart walls. Before that, last DRIVEN on
 2026-11-10 against product tree `c2c02b7b42` (`origin/main`, 60 commits past
 `32dd0c6354`), lane `18103`, a guest-JWT lane. Driven that day: the palette's
 one row per action (`chat`, `hide all drawings`, `magnet`, `keyboard
@@ -155,6 +160,9 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
   `surface:true`).
 - `set-timezone` the footer's timezone menu sets the zone every chart time
   reads, each zone labelled with its UTC offset at the current instant.
+- `ss-cursor` until the pointer or an arrow moves, the highlighted row is the
+  first row after every keystroke, and words typed apart find one name.
+- `ss-typed-interval` the comma key opens the palette to type an interval.
 
 The editor row is covered in [script editor](./script-editor-and-kscript.md)
 `ks-open`.
@@ -579,6 +587,25 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   flipped to `UNREACHABLE`. A reload still drew 440 candles from the OHLCV
   cache (`main-cache-painted-marked` in the ring). Read `doctor` and the chip
   before calling an empty live panel a regression.
+- **`ss-cursor` (driven 2026-11-12, `a44bdd903d`).** The active row carries
+  `.ss-row--active`; read it with
+  `document.querySelector('.ss-row--active').closest('[data-testid]')`. With
+  no pointer move, `are` and then `area` each left the first row active
+  (`area` led with `chartStyle:area`), so Enter runs what is shown first. The
+  Ask card's Edit selects all the words (source). Words typed apart read as
+  one name (`compounds.ts`): `heat map` listed the Order Book and Options
+  heatmaps, and `full screen` and `fullscreen` both listed only
+  `commands:toggleExpandChart` (`Toggle chart fullscreen`). `go to date`
+  lists `commands:history-btn` (`Go to date ⌥ G`). `move chart` lists nothing
+  on one chart; the four `Move chart left/right/up/down` rows need a layout
+  of two or more, which a guest cannot open (source, `6d36f36a68`).
+- **`ss-typed-interval` (driven 2026-11-12, `3a64fcc3af`).** Click the chart,
+  `press Comma`, then `keyboard type "15"`: the palette opened with `Select
+  15m interval` first and active, and Enter set `activeInterval` to `15m`.
+  `7` listed `customIntervals:typed-interval-unavailable-btn` (`Not available
+  on this chart`) first; `7q` is not read as an interval and listed only
+  `Open symbol search for "7q"`. The `typeInterval` command has no palette
+  row of its own.
 - **Super Search mounts lazily.** `isSuperSearchOpen` goes true before the
   overlay is in the DOM, so poll for `super-search-overlay`.
 - **Provider changes in `120d5d5d32..a4488341f6` (source, read on

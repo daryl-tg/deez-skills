@@ -3,7 +3,14 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-10 against product tree `c2c02b7b42`
+entry was last DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
+(`origin/main`, 113 commits past `c2c02b7b42`), lane `18103`, a guest-JWT lane
+(`doctor` green twice, load 15 on 10 cores): boot to 250 bars on COINBASE
+BTC-USD 1h with `__BOOT_ERRORS__` `[]` on a warm reopen (the cold open, while
+vite was still optimizing, held one `Failed to fetch dynamically imported
+module` entry), the perp live edge on BINANCE.F ETHUSDT (`24H VOLUME $6.21B`,
+`OPEN INTEREST $4.74B`, `FUNDING / COUNTDOWN +0.0072% · 05:44:31`), and Go to
+date with its history window (see `boot-go-to-date`). Before that, last DRIVEN on 2026-11-10 against product tree `c2c02b7b42`
 (`origin/main`, 60 commits past `32dd0c6354`), lane `18103`, a guest-JWT lane
 (the gateway on the system resolver, `doctor` green twice, load 8 to 12 on 10
 cores): boot to 250 bars on COINBASE BTC-USD 1h within 10 s of `open`,
@@ -124,6 +131,8 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
 - `boot-notices` an admin's service notice shows as a banner over the chart,
   closes into a top-bar pill that opens the status list, and says when it is
   back to normal.
+- `boot-go-to-date` the footer's Go to date moves the chart to a past window,
+  and that window keeps the live price off the tab title and the price axis.
 - `wake-heal` after a hidden or sleeping stretch, the wake backfills every blank
   slot the outage left, including slots before lone bars a trickling feed drew.
 
@@ -209,6 +218,24 @@ Preconditions:
   `dismissedNoticeKeys` and `shownBannerIds`, which persist per device.
   A partial notice (`parts:['cme']`) reaches the banner only while that part
   is in use; not driven.
+- **`boot-go-to-date`: Go to date and the history window (driven 2026-11-12
+  on `74ccd3cdcc`; `3a64fcc3af`, `19d6420302`, `232072c6ab`, `f76258572d`).**
+  The footer's calendar button `footer-go-to-date-btn` (`Go to date`) opens a
+  `Go to date` dialog: a `YYYY/MM/DD` textbox holding today, hour and minute
+  boxes, a month calendar, and `Reset`, `Cancel` and `Apply`. The palette's
+  `commands:history-btn` row (`Go to date ⌥ G`, driven) and the time axis's
+  right-click `time-axis-ctx-go-to-date` (source) open the same dialog; the
+  shortcut list now names it `Go to date`, not `History`. `find role textbox
+  fill "2026/11/05" --name "YYYY/MM/DD"` then `find role button click --name
+  "Apply" --exact` moved the view to 4-6 Nov and the tab title dropped its
+  price to the bare `BTC-USD`: a window of the past keeps the live price off
+  the title and the axis, while the top bar keeps the market's price, polled
+  every 15 s (source). The dialog's `Reset` only puts today back in the field.
+  The way back to live is `Reset chart`, a hover control the canvas covers, so
+  click it in `eval`:
+  `document.querySelector('[aria-label="Reset chart"]').click()`; the title
+  read `73,777.4 ▲ BTC-USD` again. A first `Apply` was followed by the `Draw by
+  holding` tip (close it with `Got it`).
 
 ### Driving the wake heal
 

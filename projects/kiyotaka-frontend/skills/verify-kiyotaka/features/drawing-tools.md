@@ -3,7 +3,11 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last re-driven 2026-11-10 on `c2c02b7b42`
+lock, settings and delete. Last re-driven 2026-11-12 on `74ccd3cdcc` (`origin/main`, 113 commits past
+`c2c02b7b42`, lane `18103`, a guest JWT): a Horizontal Line's flag-off bell
+and its guest alert dialog (see `dt-alert`), a Parallel Line's Levels (see
+`dt-parallel-levels`) and a tool group button's tooltip naming its tool.
+Before that, last re-driven 2026-11-10 on `c2c02b7b42`
 (`origin/main`, 60 commits past `32dd0c6354`, lane `18103`, a guest JWT) on
 BINANCE.F SOLUSDT: `toolbar-item-trendline:tool-icon-btn`, two clicks, 16
 `tqb-*` handles, `tqb-settings-btn`'s Points rows (`Start`, `End`, unclipped),
@@ -100,6 +104,11 @@ the cancelled creation, the right-click menu and the magnet.
   or resets it; `Escape` closes one layer at a time.
 - `dt-settings` the floating toolbar's gear opens the drawing's settings card,
   whose menus (line style, text position) are ComboBoxes.
+- `dt-alert` a flat drawing offers an alert from its bell and its right-click
+  menu; a sloped one does not while the one-click flag is dark.
+- `dt-parallel-levels` a Parallel Line's settings card lists its levels.
+- `dt-multi` with several drawings selected, the right-click menu, the
+  floating toolbar and the gear act on all of them (source only).
 
 ## How to get to it (user POV)
 
@@ -177,10 +186,49 @@ the top overlay cleared.
   and a `CHART` section (`chart-ctx-paste`, `-copy-price`,
   `-add-to-watchlist`, `-reset-view`, `-add-alert`, `-grid`, `-settings`,
   `-report-problem`, `-remove-indicators`). Every row leads with an icon
-  (`5c2d8603a6`). A guest got no `chart-ctx-drawing-alert` or `-sync` row.
+  (`5c2d8603a6`). On a Trend Line a guest got no `chart-ctx-drawing-alert`
+  or `-sync` row. A flat drawing differs: a guest's Horizontal Line listed
+  `chart-ctx-drawing-alert` (driven 2026-11-12, see `dt-alert`).
   `chart-ctx-drawing-remove` deletes the line. Since `12906d4136` the chart
   cancels the browser menu only on `#main-chart`, and text fields keep the
   native menu (source).
+- **`dt-alert`: the alert on a drawing (driven 2026-11-12 on `74ccd3cdcc`).**
+  Open the lines group with `find testid "toolbar-item-trendline:tool"
+  hover` and then `find testid "toolbar-item-trendline:tool-submenu-arrow"
+  click` (a click with no hover first did not open it), pick
+  `dropdown-item-horizontalline:tool` and click the chart once. The floating
+  bar's `tqb-alert-btn` was the flag-off bell: `title` `Add alert on
+  Horizontal Line`, no `data-state`, no text. The right-click menu on the line
+  (`HORIZONTAL LINE`) listed `chart-ctx-drawing-alert` between `-show-on`
+  and `-remove`. Both doors opened the alert dialog for a guest with no wall
+  (`alert-dialog-drawing`, `Alert on Horizontal Line`, `Coinbase · BTC-USD ·
+  1h`, `The alert moves with the drawing.`, `alert-dialog-set-btn`), and
+  `Set Alert` closed it with the toast `Couldn't set the alert:
+  Unauthenticated`: a product gap, since every other guest alert door meets
+  the `alert` wall. One-click alerts (`9860308996`: the armed pill
+  `tqb-alert-btn` with `data-state`, `tqb-alert-menu-{once,every,off,more}`,
+  sloped lines, snap back) sit behind the dark flag `drawing-alert-one-click`,
+  which a guest cannot turn on (source).
+- **`dt-parallel-levels`: a Parallel Line's levels (driven 2026-11-12;
+  `c5d9998560`, `71f733bd54`).** Pick `dropdown-item-parallelline:tool` from
+  the lines group and click three points (`400 450`, `800 350`, `800 550`),
+  then `tqb-settings-btn`. The card's `LEVELS` section held seven rows
+  `levels-row-0` to `levels-row-6` (`-0.25`, `0`, `0.25`, `0.5` ...), each
+  with `levels-width`, and the two edges showed `levels-fixed-value`. The
+  Text section's Position reads `Center` and `Inside` (vertical choices Top,
+  Inside, Bottom, source).
+- **Group buttons name their tool (driven 2026-11-12, `7282daf11c`).** A
+  hover on `toolbar-item-rectangle:tool-icon-btn` showed the tooltip
+  `Rectangle ⌥ ⇧ R Double-click to keep active`. The buttons carry no
+  `aria-label` or `title`, so read the tooltip text, not the attribute.
+- **`dt-multi` (source, `c3395cb9e8`, `443e995b45`, `732cb5c3e3`,
+  `203e8aa0c6`, `4187613adb`, `616fd44539`).** With several drawings selected
+  the right-click heading reads `{count} drawings` and drops
+  `chart-ctx-drawing-alert`, `-author`, Settings and Add tag; lock, clone,
+  order and remove act on all of them, a gear edit, Reset or template reaches
+  every one, and a multi-drawing clone is one undo step. A drawing removed
+  right behind its creation stays removed, a new drawing lands on top after a
+  reorder, and finishing the ruler disarms every chart. Not driven.
 - **`dt-delete`.** `press Delete` removed the selected line. To reselect a line
   after an outside click, click on the line itself; `.tool-quick-bar` returns.
 - **Proof.** A screenshot with the line and its floating toolbar, then one

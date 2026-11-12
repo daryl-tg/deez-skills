@@ -4,7 +4,12 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-10 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
+(`origin/main`, 113 commits past `c2c02b7b42`), lane `18103`, a guest-JWT
+lane: a `TPO` search (`Official 2`, TPO and Agg. TPO) whose `Add to chart`
+raised the `indicators` wall (`Technical Indicators`), and a programmatic
+`TIME_PRICE_OPPORTUNITY` (21 rows, `Indicators 2/3`) removed through
+`legends.closeBtn` back to `Indicators 1/3`. Before that, last DRIVEN on 2026-11-10 against
 product tree `c2c02b7b42` (`origin/main`, 60 commits past `32dd0c6354`), lane
 `18103`, a guest-JWT lane: the dialog's guest strip (still `popular, trending,
 new, paid`, no Favorites tab), an `rsi` search (`Community 13`), and the
@@ -458,7 +463,8 @@ Preconditions:
   favourite key, such as a converted script. A signed-in star flips at once,
   writes `PATCH` or `DELETE /users/favoritePackages`, reverts with a toast if
   refused, and stops at 300. The Favorites tab lists starred rows from both
-  the Official and Community sides (Official only on a governed CME chart);
+  the Official and Community sides (Official only on a governed CME chart
+  while the `cme-lanes` flag is dark, `a6b1b28fe1`);
   empty, it reads `Star an indicator to keep it here.` Unstarring the
   highlighted row on Favorites keeps it in the pane until the highlight moves
   (source). **For a guest:** fill `rsi`, click
@@ -762,8 +768,12 @@ Preconditions:
   mounted, `subsetRange` the draw window. Seen on this tree: rows mounted with
   `subsetRange` `[0,0]` and a blank pane until `tc.processData()` ran, so a
   legend value is not proof of a drawn line. Open the PNG.
-- **A feed pane draws bars and offers a Plot type row (live, MR !12791's branch
-  `1aeb937233`, 2026-11-10, not on main yet).** Add with the FEED recipe above
+- **A feed pane draws bars and offers a Plot type row (live on MR !12791's
+  branch `1aeb937233`, 2026-11-10; on `main` since `6dd881288a`, not re-driven
+  there).** The plot type's tooltip reads `Draw this feed as a line or as
+  bars.`; a feed main plot is named by its feed and shows no market rows
+  (`a8b8b6febd`), and a pane draws as soon as its first rows land
+  (`ac292b5170`, source). Add with the FEED recipe above
   and `plot:'bars'`. Proof on the overlay: `plot === 'bar'`,
   `settings.plot === 'bars'`, `settings.meta.plotType === 'bar'`,
   `settings.width === 1`, two equal `settings.colors`, rows mounted and a
@@ -775,6 +785,24 @@ Preconditions:
   (reads `Bar`). An agent-style update is
   `chartStore.saveIndicatorSettings(id, {...saved, plot:'bars'}, saved, 0, undefined, {origin:'remote-apply'})`;
   it switched the renderer both ways with a stale `meta.plotType`.
+- **Template picks and suggested names (source, `85527bc4fc`,
+  `ada90837d8`).** The last template pick is kept per instance, so two copies
+  of one indicator keep their own `settings-templates-value` and `edited`
+  mark across a reopen. Saving a new template lists existing names under the
+  field (`settings-template-name-suggestions`, header `Your templates`,
+  `settings-template-suggestion-<id>`). A colour the user picked by hand is
+  never rewritten by the contrast guard, and a reset reaches the overlay
+  (`a6878c6984`). Not driven: saving needs sign-in.
+- **TPO prior-session toggles lost the word `label` (source, `268266a4ee`).**
+  The badges on the Profile page's `Prior-session levels` row read `Show
+  pPOC`, `Show pVAH`, `Show pVAL`, `Show pHi` and `Show pLo`, and switching
+  one off hides its line and its label. They show only with that row on; the
+  2026-11-12 drive found the row `OFF` and did not switch it.
+- **The registry blocked hint (source, `7ad2f0f893`).** When the registry
+  host is unreachable from the browser and a trace read shows it blocked, a
+  `role=note` line `indicator-registry-blocked-hint` sits under the `Couldn't
+  load` row of the list, the landing, the official shelf and an author's list.
+  Not driven: it needs a blocked network.
 - **`browser press Escape` left the tab `hidden` twice (2026-11-10).** Every
   later screenshot was the last painted frame or a loading splash while `eval`
   kept answering. Read `document.visibilityState` before a frame. Recover by

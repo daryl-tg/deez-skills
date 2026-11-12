@@ -8,7 +8,9 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-Last re-driven 2026-11-10 against `c2c02b7b42` (`origin/main`, lane `18103`, a
+Last re-driven 2026-11-12 against `74ccd3cdcc` (`origin/main`, lane `18103`,
+a guest JWT): `tb-watchlist-toggle-btn` raised the `watchlist` wall. Before
+that, last re-driven 2026-11-10 against `c2c02b7b42` (`origin/main`, lane `18103`, a
 guest JWT) from `tb-panels-row-watchlist`: `guestLoginFeatureId` read
 `watchlist` with the sign-in card open. Since `e14bc4d904` a star writes one
 add or remove for that item, so a star made on another device is no longer
@@ -201,7 +203,8 @@ load; with the gateway down the rows render but every cell stays a dash.
 - **Desktop only.** The panel is not offered on mobile; phones get a separate
   overlay with `mobile-watchlist-*` testids and no importer. Its price pill
   prints the plain number with no `$` (USD/JPY `158.04`); crypto indices
-  (`$1.08T`, `60.51%`) and outcome cents keep their forms (source,
+  (`$1.08T`, `60.51%`) keep their forms, and since `282e26fcb5` an outcome
+  reads as a chance (`62.0%`), not cents (source,
   `src/utility/mobile/mobile-watchlist-display.util.ts`).
 - **The in-repo doc is stale on reorder.** `docs/features/workspace/watchlist.md`
   says Manual sort must be chosen first; the code lets any sort reorder and flips
