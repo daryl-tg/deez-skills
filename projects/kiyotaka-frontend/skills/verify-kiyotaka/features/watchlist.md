@@ -8,7 +8,11 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-Last re-driven 2026-11-12 against `74ccd3cdcc` (`origin/main`, lane `18103`,
+Last re-driven 2026-11-13 against `963af59de1` (`origin/main`, lane `18103`,
+a guest JWT): `tb-watchlist-toggle-btn` raised the `watchlist` wall
+(`Watchlist / Sign in or create an account`); the button is in the bar only
+while no right-side panel is open. Nothing under `src/components/watchlist`
+changed since `74ccd3cdcc`. Before that, last re-driven 2026-11-12 against `74ccd3cdcc` (`origin/main`, lane `18103`,
 a guest JWT): `tb-watchlist-toggle-btn` raised the `watchlist` wall. Before
 that, last re-driven 2026-11-10 against `c2c02b7b42` (`origin/main`, lane `18103`, a
 guest JWT) from `tb-panels-row-watchlist`: `guestLoginFeatureId` read

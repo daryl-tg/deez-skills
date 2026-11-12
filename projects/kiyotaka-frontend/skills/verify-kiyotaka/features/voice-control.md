@@ -12,6 +12,14 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-13 on tree `963af59de1` (`origin/main`, lane `18103`, a
+guest JWT): still unreachable.** `window.__voiceControl` was absent and no
+voice or mic control rendered (the only `*mic*` testids were the search's
+`economics` ones). In range, an alert level reads back at the market's price
+step with no trailing zeros, and a market is named by its display name (a
+Hyperliquid spot id reads as its pair; `voice-lifecycle.ts`,
+`voice-catalogs.ts`, source).
+
 **Re-driven 2026-11-12 on tree `74ccd3cdcc` (`origin/main`, lane `18103`, a
 guest JWT): still unreachable.** No testid held `voice` or `mic`; in range,
 the voice context stops sending a last close from a CME, OPRA, broker or

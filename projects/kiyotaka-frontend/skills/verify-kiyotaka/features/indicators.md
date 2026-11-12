@@ -4,7 +4,15 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
+leave the chart at restore). This entry was last DRIVEN on 2026-11-13 against
+product tree `963af59de1` (`origin/main`, 87 commits past `74ccd3cdcc`), lane
+`18103`, a guest-JWT lane: `tb-indicators-btn` opened `indicator-panel-v2`,
+an `RSI` fill listed
+`official-indicator-add-official-indicator-relative-strength-index-rsi-official-rsi-btn`
+first, and its click raised `indicators` (`Technical Indicators`) with the
+overlay count unchanged. The FRVP's new Dynamic Profile settings are mapped
+in the drawing tools guide (`dt-frvp`), since the FRVP is drawn as a box. Before
+that, last DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
 (`origin/main`, 113 commits past `c2c02b7b42`), lane `18103`, a guest-JWT
 lane: a `TPO` search (`Official 2`, TPO and Agg. TPO) whose `Add to chart`
 raised the `indicators` wall (`Technical Indicators`), and a programmatic

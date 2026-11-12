@@ -5,6 +5,13 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-13 against product tree `963af59de1` (`origin/main`, 87
+commits past `74ccd3cdcc`), lane `18103`, a guest-JWT lane: the Tape on
+COINBASE BTC-USD printing with its Liquidations dock reading `No liquidation
+feed for these markets`, on BINANCE.F SOLUSDT printing liquidation rows, and on
+CRYPTOCAP TOTAL showing `No trades for this market` (see `rp-tape`); a Tape
+closed by its `×` that a Trades pick of AAPL left closed, and the Panels row
+that opened it again (see `rp-tape-closed`). Before that, last
 DRIVEN on 2026-11-12 against product tree `74ccd3cdcc` (`origin/main`, 113
 commits past `c2c02b7b42`), lane `18103`, a guest-JWT lane: the Orderbook on
 COINBASE BTC-USD (`Imbalance 50.1% bid · 49.9% ask`, grouped at 5, no
@@ -139,6 +146,8 @@ panels, which a guest is not offered.
   glyph and a tag icon, a Heatmap view, a markets menu, and a docked
   Liquidations section with Prints and Levels views. It is the one tape for
   every market; the Trades and Liquidations panel is retired (`ad67d47c62`).
+- `rp-tape-closed` a Tape the person closed stays closed when they pick a
+  market that would open it; their own open clears that.
 - `rp-stock-tape` on a US stock the Tape is the stock Tape, open to guests
   since `bda0563ab1` on the 15-minute delayed lane: Time and sales with an
   exchange pick, docked Dark pool and Option flow sections that resize, and a
@@ -263,7 +272,9 @@ an open panel.
   `VITE_STOCKS_V2_WEB_SOCKET_DOMAIN` the Tape's market lookup fails at once
   (the dump's `stock-tape-lookup` line: `outcome failed`, `v2 streaming
   websocket connection failed`) and the panel falls back to the old trades
-  stream: an `AAPL/USD` head over `No trades match filters`, with no
+  stream: an `AAPL/USD` head over `No trades match filters` (since
+  `754f3871c0`, `tape-no-trade-feed` `No trades for this market`, driven
+  2026-11-13), with no
   `stock-tape-*` handle. To see the stock Tape, export the two stocks lines
   from the product's `.env.sample`
   (`VITE_STOCKS_V2_WEB_SOCKET_DOMAIN=wss://stream.stocks.openmarket.xyz/v2/`,
@@ -411,7 +422,16 @@ an open panel.
   sounds`, see [Super Search](./super-search-and-settings.md)). The old
   `CEXTradesStream.vue` (with `tape-pace-rate`) is now only the fallback for
   markets the new Tape cannot read: CME, OPRA, formulas and on-chain pools
-  (source). `src/components/tradeAndLiquidations/` is deleted; a stored
+  (source). **Since `754f3871c0` (driven 2026-11-13 on `963af59de1`) a
+  market that publishes no trades shows `tape-no-trade-feed`, `No trades for
+  this market`, never `Waiting for trades...`**: CRYPTOCAP TOTAL did, and so
+  did AAPL with the stocks gate unrouted (the fallback that read `No trades
+  match filters` before). **A spot venue carries no liquidation feed**: on
+  COINBASE BTC-USD the dock reads `tape-liquidations-unavailable`, `No
+  liquidation feed for these markets` (it read `No liquidations today` on
+  2026-11-06), while on BINANCE.F SOLUSDT it printed rows. The Tape also
+  matches trades under either market name, so Hyperliquid spot (`@107`, HYPE)
+  should print (source). `src/components/tradeAndLiquidations/` is deleted; a stored
   `tradeAndLiquidations` pin seats the Tape (`TOOLBAR_RETIRED_PIN_SUCCESSORS`
   in `src/constants/toolbar-panels.constants.ts`) and a saved row converts
   through `src/utility/panels/trade-liquidations-to-tape.util.ts`. The earlier
@@ -465,6 +485,18 @@ an open panel.
   heatmap popover (`tb-heatmap-toggle-btn`, `role=switch`,
   `aria-checked="false"`) and the switch's click raised `orderbook-heatmap`,
   the same as `tb-heatmap-trigger-btn`.
+- **`rp-tape-closed`: a closed Tape stays closed on a pick (driven 2026-11-13
+  on `963af59de1`; `0823ecf9b5`).** Open the Tape (`Panels` →
+  `tb-panels-row-tape`), close it with `panel-header-close-btn`, and read
+  `localStorage['panels.closedByUser']`: `["Tape"]`. Then make a pick that
+  opens the Tape (a US stock on Trades: the AAPL `Equities` row with Enter,
+  or the `&feed=trades` link): the chart moved to AAPL on `Trades` and no
+  Tape opened. `tb-panels-row-tape` opened it again and wrote `[]`. The key
+  is per browser and never rides the layout. The rule covers a pick's open
+  only (`open('Tape', { as: 'pick' })` in `src/store/stock-tape-venue.ts`);
+  the person's own Panels row and Super Search rows always open. A pick
+  with the key empty opening the stock Tape is not driven (the stocks gate is
+  unrouted on this seat).
 - **Proof.** The panel header, the store read showing no wall (or the walled
   id), and a screenshot. Close each panel before opening the next.
 

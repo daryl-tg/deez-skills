@@ -3,7 +3,13 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last re-driven 2026-11-12 on `74ccd3cdcc` (`origin/main`, 113 commits past
+lock, settings and delete. Last re-driven 2026-11-13 on `963af59de1`
+(`origin/main`, 87 commits past `74ccd3cdcc`, lane `18103`, a guest JWT) on
+BINANCE.F SOLUSDT: an FRVP drawn from Super Search's tool row with its new
+settings (see `dt-frvp`), the Order submenu's two rows and its hint (see
+`dt-context`), and a Horizontal Line's guest alert, whose `Set Alert` now
+shows `Unauthenticated` inside the dialog (see `dt-alert`). Before that, last
+re-driven 2026-11-12 on `74ccd3cdcc` (`origin/main`, 113 commits past
 `c2c02b7b42`, lane `18103`, a guest JWT): a Horizontal Line's flag-off bell
 and its guest alert dialog (see `dt-alert`), a Parallel Line's Levels (see
 `dt-parallel-levels`) and a tool group button's tooltip naming its tool.
@@ -107,6 +113,9 @@ the cancelled creation, the right-click menu and the magnet.
 - `dt-alert` a flat drawing offers an alert from its bell and its right-click
   menu; a sloped one does not while the one-click flag is dark.
 - `dt-parallel-levels` a Parallel Line's settings card lists its levels.
+- `dt-frvp` a Fixed Range Volume Profile's settings offer cluster, ladder and
+  no-row display modes, Imbalance, Value Text, a range candle, a box border and
+  background, and range stats.
 - `dt-multi` with several drawings selected, the right-click menu, the
   floating toolbar and the gear act on all of them (source only).
 
@@ -189,7 +198,15 @@ the top overlay cleared.
   (`5c2d8603a6`). On a Trend Line a guest got no `chart-ctx-drawing-alert`
   or `-sync` row. A flat drawing differs: a guest's Horizontal Line listed
   `chart-ctx-drawing-alert` (driven 2026-11-12, see `dt-alert`).
-  `chart-ctx-drawing-remove` deletes the line. Since `12906d4136` the chart
+  `chart-ctx-drawing-remove` deletes the line. **The Order submenu (driven
+  2026-11-13 on `963af59de1`):** `find testid chart-ctx-drawing-order hover`
+  showed `chart-ctx-drawing-bring-front` (`Bring to front`) and
+  `chart-ctx-drawing-send-back` (`Send to back`), whose `title` reads
+  `Orders drawings against each other. Drawings stay above the candles.`
+  (`ff6911af3d`). `Send behind candles` and `Bring in front of candles`
+  (`chart-ctx-drawing-under-candles`, `tqb-menu-under-candles`, and the
+  Objects row's `data-action="under-candles"`, `9fa71e44a1`) sit behind the
+  dark flag `drawings-under-candles`; a guest saw none. Since `12906d4136` the chart
   cancels the browser menu only on `#main-chart`, and text fields keep the
   native menu (source).
 - **`dt-alert`: the alert on a drawing (driven 2026-11-12 on `74ccd3cdcc`).**
@@ -205,7 +222,17 @@ the top overlay cleared.
   1h`, `The alert moves with the drawing.`, `alert-dialog-set-btn`), and
   `Set Alert` closed it with the toast `Couldn't set the alert:
   Unauthenticated`: a product gap, since every other guest alert door meets
-  the `alert` wall. One-click alerts (`9860308996`: the armed pill
+  the `alert` wall. **Re-driven 2026-11-13 on `963af59de1`, BINANCE.F
+  SOLUSDT:** the same doors, the dialog headed `Alert on Horizontal Line`,
+  `Binance Futures · SOLUSDT · 1h`, `Drawing · 92.49`. Since `51738ed440`
+  `Set Alert` keeps the dialog open and says the failure above its button:
+  `alert-dialog-status-error` reading `Unauthenticated`, with
+  `alert-dialog-copy-error-btn`; no toast and still no `alert` wall (the
+  product gap stands). Close with `alert-dialog-close-btn`. With
+  `drawing-alert-one-click` on, the bell also greys with a reason
+  (`data-alert-state` `blocked`, `data-alert-blocked-reason` such as `feed`,
+  `interval` or `limit`) and a plan caps alerts on drawings (free 5, Plus
+  50; `59bbc4c5a2`, `a7c862553a`, source). One-click alerts (`9860308996`: the armed pill
   `tqb-alert-btn` with `data-state`, `tqb-alert-menu-{once,every,off,more}`,
   sloped lines, snap back) sit behind the dark flag `drawing-alert-one-click`,
   which a guest cannot turn on (source).
@@ -221,6 +248,29 @@ the top overlay cleared.
   hover on `toolbar-item-rectangle:tool-icon-btn` showed the tooltip
   `Rectangle ⌥ ⇧ R Double-click to keep active`. The buttons carry no
   `aria-label` or `title`, so read the tooltip text, not the attribute.
+- **`dt-frvp`: the FRVP's Dynamic Profile settings (driven 2026-11-13 on
+  `963af59de1`, the commit that added them).** The tool has no toolbar icon of its own:
+  fill `fixed range volume profile` in Super Search and click
+  `super-search-result-tools:FixedRangeVolumeProfile:Tool-btn`, then click
+  the chart twice (`450 400`, `750 500`). The overlay
+  `FIXED_RANGE_VOLUME_PROFILE_<id>` mounts and the tool is selected. Open
+  `tqb-settings-btn`: tabs `tool-settings-frvp-tab-{source,style,show-on}-btn`.
+  The Source tab's menus are `combo-box-trigger-btn` ComboBoxes, told apart
+  by their text: `Display mode` (`Total`) lists `Total`, `Delta`,
+  `Combined`, `Outline`, `Volume Cluster`, `Delta Cluster`, `Delta Ladder`
+  and `None`; `Range Candle` (`None`) lists `None`, `Candle`, `Hollow` and
+  `Open-Close`; `Value Text` (`Default`) lists `Default`, `Volume`, `Bid x
+  Ask`, `Delta`, `% of Total` and `% of POC`; `Imbalance` is a switch (OFF).
+  Pick an option with `eval` on `[role=option]` by its text. The Style tab
+  carries `tool-settings-frvp-border-toggle`,
+  `tool-settings-frvp-background-toggle` and 16 `style-profile-stat-<kind>`
+  chips; the new ones are `change`, `high`, `low`, `oiChange`, `longLiq`,
+  `shortLiq`, `from` and `to` (`OI Change` and the liquidation chips only on
+  a venue that carries them; SOLUSDT does). Proof: after `Volume Cluster`
+  and `Candle`, `window.tc[0].getSelectedTools()[0].settings` and the
+  overlay's `settings` read `displayMode` `cluster` and `rangeCandle`
+  `body`, and the box drew cells with a range candle at its left. Remove it
+  with right-click → `chart-ctx-drawing-remove`.
 - **`dt-multi` (source, `c3395cb9e8`, `443e995b45`, `732cb5c3e3`,
   `203e8aa0c6`, `4187613adb`, `616fd44539`).** With several drawings selected
   the right-click heading reads `{count} drawings` and drops

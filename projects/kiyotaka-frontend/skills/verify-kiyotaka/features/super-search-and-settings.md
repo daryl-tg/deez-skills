@@ -7,6 +7,12 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-13 against product tree `963af59de1` (`origin/main`, 87 commits past
+`74ccd3cdcc`), lane `18103`, a guest-JWT lane: the `Settings` row and its
+dialog (see `ss-settings`), `performance`, the formula gate (see
+`ss-formula`), Release Notes still leading with `4.53.0` for a guest (see
+`set-notes`), `editor`, a `Fixed Range Volume Profile` tool row, and the
+`watchlist`, `script-editor` and `indicators` walls. Before that, last DRIVEN on
 2026-11-12 against product tree `74ccd3cdcc` (`origin/main`, 113 commits past
 `c2c02b7b42`), lane `18103`, a guest-JWT lane: the first-row cursor, joined
 words, the Tape section row, `Go to date` and the typed interval (see
@@ -144,6 +150,9 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
 - `ss-theme` a `dark` or `light` query toggles the theme, and a theme name
   (`volt`, `percept`, ...) applies that colour theme.
 - `ss-formula` a ratio query such as `SPY / GLD` plots a formula chart.
+- `ss-settings` a `settings` query lists one `Settings` row that opens the
+  Settings dialog, and a launch word (`open`, `go to`, `show`) before a name
+  finds the same rows.
 - `set-shortcuts` `Meta+/` opens Settings on the Keyboard Shortcuts page.
 - `set-lite` the Performance page's Lite charts switch, its chip, and the
   notice a slow device gets when the preset turns itself on.
@@ -288,7 +297,25 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 - **`ss-formula`.** Fill `SPY / GLD`. The `FORMULA` section offers
   `super-search-result-formula:SPY/GLD-btn` (`Plot SPY ÷ GLD`). Driven, a click
   switched the chart to `NYSE SPY / GLD` with title `SPY / USD / GLD / USD` and
-  252 bars, with no wall. Restore the symbol afterwards.
+  252 bars, with no wall. Restore the symbol afterwards. **Since `e023fe8c84`
+  and `f3f2993a12` (driven 2026-11-13 on `963af59de1`) a hyphen with no
+  spaces is a formula only between two known tickers**: `BTC-ETH` listed
+  `super-search-result-formula:BTC-ETH-btn` (`Plot BTC − ETH`, `Formula ·
+  Spread`), while `bid-ask` and `order-book` listed no formula row (`bid-ask`
+  led with `axis:bid-ask-line` and `axis:bid-ask-label`). `SPY / GLD` still
+  lists `Plot SPY ÷ GLD` (`Formula · Ratio`). The terms are checked against
+  the local market list, so on a fresh device with no list loaded yet the
+  syntax alone decides (source).
+- **`ss-settings` (driven 2026-11-13 on `963af59de1`; `f3f2993a12`).** Fill
+  `settings`: `super-search-result-settings:dialog-btn` (`Settings`) led,
+  then `settings:tab:my-info`, `settings:chart-settings:display` and the
+  other tabs. Its click opened `settings-pages-body` with a guest's nav
+  `shortcuts`, `performance`, `language` and `notes`, and no wall. `open
+  settings` listed it second (behind `Toolbar after drawing`): the launch
+  word is stripped and ranks no higher than a synonym. `performance` listed
+  `super-search-result-settings:tab:performance-btn` first, then
+  `settings:global:high-performance` (`Performance Mode`). Close with
+  `settings-pages-close-btn`.
 - **`set-shortcuts`.** Blur any focused editor first
   (`eval "document.activeElement.blur()"`), then `press Meta+Slash`. Proof:
   `settings-pages-body` and `keyboard-shortcuts-search-input`. A guest's nav is
@@ -309,6 +336,13 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   switch and Remove rows do not.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
   `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  **Driven 2026-11-13 on `963af59de1`:** a guest's page still led with
+  `4.53.0 Latest Spotlight The US tape.` and listed no `4.54.0`. `4.54.0`
+  (`Alerts on drawings.`, `3b007b5f4f`) has the audience `drawing-alerts`,
+  which lists it only while `drawing-alert-one-click` reads on; a guest reads
+  it off. With the flag on, its spotlight carries
+  `release-spotlight-drawing-alerts-draw-btn` (`Draw a line`, which arms the
+  trend line tool) and `release-spotlight-drawing-alerts-got-it-btn` (source).
   **Driven 2026-11-06 on `8bcd72f8f5`:** the Super Search row
   `super-search-result-settings:tab:notes-btn` (query `release notes`) opened
   the page with 82 rows, `4.53.0 Latest Spotlight The US tape. November 5,

@@ -8,7 +8,14 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-12 against `74ccd3cdcc` (`origin/main`, 113 commits past
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-13 against
+`963af59de1` (`origin/main`, 87 commits past `74ccd3cdcc`, lane `18103`, a
+guest JWT): `editor` in Super Search listed `super-search-result-panels:Editor-btn`
+(`Script Editor`), whose click opened the drawer with no wall
+(`kscript-run-btn`, no `kscript-save-btn`), and `tb-editor-toggle-btn` raised
+`script-editor` (`Indicator Editor / Sign in or create an account`). In
+range, a restored built-in row that was converted to its twin is no longer
+wiped after the add (`0b1d34073c`, source). Before that, re-driven 2026-11-12 against `74ccd3cdcc` (`origin/main`, 113 commits past
 `c2c02b7b42`, lane `18103`, a guest JWT): `tb-editor-toggle-btn` raised the
 `script-editor` wall. Before that, re-driven 2026-11-10 against
 `c2c02b7b42` (`origin/main`, lane `18103`, a guest JWT): `editor` in Super

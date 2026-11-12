@@ -4,7 +4,15 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
+was last DRIVEN on 2026-11-13 against product tree `963af59de1`
+(`origin/main`, 87 commits past `74ccd3cdcc`), lane `18103`, a guest-JWT lane.
+Driven that day: `venue-row-BINANCE_FUTURES|BTCUSDT-btn`, `-ETHUSDT-btn` and
+`-SOLUSDT-btn`; `tb-interval-pinned-1m-btn` to `1m` (586 bars on SOLUSDT);
+`asset-row-CRYPTOCAP|TOTAL-btn` to CRYPTOCAP TOTAL; the AAPL `Equities` row,
+whose Enter charted AAPL on Trades while a click before the row's figures
+loaded charted BINANCE.F AAPLUSDT (open product gap, see `sym-stock`); and the
+`&feed=trades` link to NVDA on Trades (see `sym-stock-link`). Before that, last
+DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
 (`origin/main`, 113 commits past `c2c02b7b42`), lane `18103`, a guest-JWT lane.
 Driven that day: a `BTCUSDT` fill that listed NO bare
 `asset-row-BTCUSDT|1-btn` (the option-row gap is closed by `7d837c752a`),
@@ -190,6 +198,8 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   a typed metal or forex pair is listed at once.
 - `sym-stock` a typed US stock lists one row, opens on its Trades feed across
   all US exchanges, reads as the bare ticker, and offers no seconds intervals.
+- `sym-stock-link` a link with `?symbol=<a US stock>&feed=trades` opens that
+  stock on its Trades feed.
 - `sym-om-series` a pane holding the operator's own om series (`OM`
   `series:<id>`, pushed by the om daemon) lists it under `YOUR SERIES` in both
   pickers, and a pick switches back and repaints it with no daemon push.
@@ -257,7 +267,16 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   block and no exchange cell; the old `stock-feed-group-trades` and
   `asset-list-stock-feed-<feedId>-btn` rows are gone and feed words such as
   `aapl iex` are ignored. Enter or a click opens the listing on `All US
-  exchanges`, the Trades feed. The exchange pick moved into the Tape's Time
+  exchanges`, the Trades feed. **Open product gap (driven 2026-11-13 on
+  `963af59de1`): a click on `asset-row-AAPL|4-btn` while the row's price and
+  change are still grey placeholders charted BINANCE.F AAPLUSDT, three times
+  in three (from COINBASE BTC-USD, BINANCE.F AAPLUSDT and CRYPTOFACILITIES.F
+  PF_AAPLXUSD).** The row's venue panel led with `AAPL All US exchanges`, no
+  venue was remembered (`symbolSearchLastVenueByAsset` `{}`), and Enter on
+  the same highlighted row charted AAPL on Trades. A click after the figures
+  loaded (`AAPL Apple Inc. Equities 355.60`) charted AAPL. So wait for the
+  row's price before a click, or use Enter, and read the symbol button
+  (`EQUITIES · TRADES · ALL US EXCHANGES AAPL`) after every stock pick. The exchange pick moved into the Tape's Time
   and sales (see the right-side panels guide, `rp-stock-tape`). Since
   `bda0563ab1` a guest reads `us-equities-full` ON (`GUEST_DEFAULT_FLAGS`), so
   this is guest-reachable: `fill "AAPL"` listed `asset-row-AAPL|4-btn` first,
@@ -663,6 +682,17 @@ Preconditions:
   it back to `null`. While the mode is on, a left-edge hot zone
   (`.full-chart-hotzone--left`) covers `global-nav-search-btn`, so exit first
   before opening the palette again.
+
+- **`sym-stock-link`: a stock on Trades from a link (driven 2026-11-13 on
+  `963af59de1`; `2c67c451ee`).** `browser open
+  "<lane>/chart/?symbol=POLYGON:NVDA/USD&feed=trades"`, then wait for
+  candles. Proof: the symbol button read `EQUITIES · TRADES · ALL US
+  EXCHANGES NVDA`, `stock-feed-chip` `Trades`, the chart store's
+  `mergedAllCharts[0].metadata.stockFeed` `trades`, and `location.search`
+  was empty (the launch strips `symbol` and `feed`). Only `trades` is read;
+  another value or a non-stock symbol changes no feed (source). A Tape the
+  person closed stays closed (see the panels guide, `rp-tape-closed`). The
+  `stock-tape:opened` event (`via: 'link'`) goes to analytics only.
 
 ## Gotchas
 

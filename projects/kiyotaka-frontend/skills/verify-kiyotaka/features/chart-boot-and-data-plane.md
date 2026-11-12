@@ -3,7 +3,13 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
+entry was last DRIVEN on 2026-11-13 against product tree `963af59de1`
+(`origin/main`, 87 commits past `74ccd3cdcc`), lane `18103`, a guest-JWT lane
+with the gateway name mapped to `10.1.1.10` (`doctor` green with the map):
+boot to 250 bars on COINBASE BTC-USD 1h with VWAP 12 s after `open`, the
+settle dim on a BINANCE.F SOLUSDT pick (see `boot-settle-dim`), and the price
+scale's `held` state after a right-button drag zoom (see `boot-scale-held`).
+Before that, last DRIVEN on 2026-11-12 against product tree `74ccd3cdcc`
 (`origin/main`, 113 commits past `c2c02b7b42`), lane `18103`, a guest-JWT lane
 (`doctor` green twice, load 15 on 10 cores): boot to 250 bars on COINBASE
 BTC-USD 1h with `__BOOT_ERRORS__` `[]` on a warm reopen (the cold open, while
@@ -133,6 +139,10 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   back to normal.
 - `boot-go-to-date` the footer's Go to date moves the chart to a past window,
   and that window keeps the live price off the tab title and the price axis.
+- `boot-settle-dim` after a pick, the chart dims with `Loading indicators...`
+  until its indicators have drawn.
+- `boot-scale-held` a zoom gesture pauses the price scale's auto fit, the `A`
+  says so, and one click fits the axis again.
 - `wake-heal` after a hidden or sleeping stretch, the wake backfills every blank
   slot the outage left, including slots before lone bars a trickling feed drew.
 
@@ -229,13 +239,38 @@ Preconditions:
   fill "2026/11/05" --name "YYYY/MM/DD"` then `find role button click --name
   "Apply" --exact` moved the view to 4-6 Nov and the tab title dropped its
   price to the bare `BTC-USD`: a window of the past keeps the live price off
-  the title and the axis, while the top bar keeps the market's price, polled
-  every 15 s (source). The dialog's `Reset` only puts today back in the field.
+  the title and the axis, while the top bar keeps the market's price on the
+  live price feed (`7ecde328a9`; the 15 s poll is now only the fallback for a
+  venue the feed has no frames for, source). The dialog's `Reset` only puts today back in the field.
   The way back to live is `Reset chart`, a hover control the canvas covers, so
   click it in `eval`:
   `document.querySelector('[aria-label="Reset chart"]').click()`; the title
   read `73,777.4 ▲ BTC-USD` again. A first `Apply` was followed by the `Draw by
   holding` tip (close it with `Got it`).
+- **`boot-settle-dim`: the dim while indicators load (driven 2026-11-13 on
+  `963af59de1`; `3a9d439865`).** The dim shows only after 400 ms, so a fast
+  pick can finish under it; read it with a `MutationObserver` or the ring
+  rather than a screenshot. Run
+  `eval "window.__enableKiyoLazyLoadDebug()"`, then pick a market (driven:
+  `venue-row-BINANCE_FUTURES|SOLUSDT-btn`, VWAP on the chart). Proof: the
+  observer saw `[data-testid=cached-paint-veil][data-settle-dim]` with
+  `cached-paint-updating-chip` reading `Loading indicators...` for about
+  280 ms, and `__dumpKiyoLazyLoadDebug()` held `settle-dim-raised`,
+  `settle-dim-paint`, `settle-dim-lowered` (`reason` `settled`, `heldMs`
+  243) and `settle-hold-refused` (`reason` `audience`). The last one is the
+  guest's proof that the pan and zoom hold (`79148c48b8`) is for internal
+  viewers only. The veil and chip are the stale-frame dim's own handles; a
+  stale frame shows `Updating` in the same chip.
+- **`boot-scale-held`: the price scale's paused auto fit (driven 2026-11-13 on
+  `963af59de1`; `58ea64190f`).** Read
+  `[data-testid=price-scale-corner-auto]`: `data-scale-state` is `auto`,
+  `held` or `manual`. A right-button drag zoom on the body (`mouse move 600
+  450`, `mouse down right`, four moves up and right, `mouse up right`) set
+  it to `held`, `aria-pressed` `false`, class
+  `price-scale-corner__toggle--held`; a plain left drag up the body left it
+  `auto`. One click on the `A` returned `auto` and `aria-pressed` `true`; it
+  never pins `manual`. Press `Escape` after the right-button drag in case a
+  context menu opened.
 
 ### Driving the wake heal
 
