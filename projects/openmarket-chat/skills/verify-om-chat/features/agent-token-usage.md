@@ -18,7 +18,7 @@ calls.
 
 ## Driving it with control-om-chat
 
-The standalone fixture mounts the real AgentPane with a completed turn. The markup lives in `AgentPresentation.tsx`, not `AgentPane.tsx`: `formatTokenUsage` (`:241-269`), `.agent-answer-meta` (`:392`) and `.agent-activity-summary-detail` (`:654`). The away remote-control pane renders the same presentation (`packages/chat-ui/test/ui/remote-agent-presentation-parity.test.tsx`), so `remote-home-fixture.html?state=live` is the second place to look. At `f8b68bf7` the default fixture's `.agent-answer-meta` reads `12:00 PM · 1 tool · 2.0s · 12.3k tokens`.
+The standalone fixture mounts the real AgentPane with a completed turn. The markup lives in `AgentPresentation.tsx`, not `AgentPane.tsx`: `formatTokenUsage` (`:251-279`), `.agent-answer-meta` (`:405`) and `.agent-activity-summary-detail` (`:669`). The away remote-control pane renders the same presentation (`packages/chat-ui/test/ui/remote-agent-presentation-parity.test.tsx`), so `remote-home-fixture.html?state=live` is the second place to look. At `f8b68bf7` the default fixture's `.agent-answer-meta` reads `12:00 PM · 1 tool · 2.0s · 12.3k tokens`.
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/agent-usage-fixture.html')"

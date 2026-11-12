@@ -235,7 +235,7 @@ template for its waits.
 ### Occupancy on the sidebar row (added 2026-11-09)
 
 The Open World sidebar row shows a walker count from `session.worldPresenceFor`
-(`Sidebar.tsx:4584-4615`). Neither shell fixture stubs it, and only `/rooms/`
+(`Sidebar.tsx:4682-4713`). Neither shell fixture stubs it, and only `/rooms/`
 mounts the row (`daemonFeatures` is false on `/chat/`). Seed it with an
 `Object.prototype` stub beside the people stub:
 
@@ -290,7 +290,9 @@ The rail tooltip (`Shell.tsx:3277`) was not hovered.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) `mocks/world-solo/index.html?worldprobe=1`: two canvases, `__omWorld3D` present, "world offline, retrying" and "No #world channel"; the shell sidebar's **3 walking** count with the `worldPresenceFor` stub. **Limitations:** the openscape preview and the rail tooltip were not re-driven; the authenticated world not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+**Last verified:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `tools/openscape-preview/index.html?worldprobe=1` on 18172 (`__omWorld3D.characters()` 32, **Agent activity**) and `mocks/world-solo/index.html?worldprobe=1` on `/rooms/` 18170 (`data-world-ready` true, two canvases), each in a fresh session. **Limitations:** no multiplayer or transport. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 41-42).
+
+**Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) `mocks/world-solo/index.html?worldprobe=1`: two canvases, `__omWorld3D` present, "world offline, retrying" and "No #world channel"; the shell sidebar's **3 walking** count with the `worldPresenceFor` stub. **Limitations:** the openscape preview and the rail tooltip were not re-driven; the authenticated world not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `mocks/world-solo/index.html?worldprobe=1`: two canvases, "world offline, retrying" and "No #world channel"; `tools/openscape-preview/` (18185, under `/rooms/`): `__omWorld3D.characters()` 32 and **Message #world**; `activity.html` (**Agent activity**, the **Scenario** and **Camera** selects). **Limitations:** the authenticated world not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

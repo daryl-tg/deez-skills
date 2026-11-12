@@ -12,14 +12,14 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   🔥 / 😂, **Add reaction**, **Reply**, **Edit** (own message), **Turn into
   topic**, **Add to Channel To-dos** and **More**. Every button is named by
   `title` only.
-- **Message menu** (`MessageRow.tsx:3457-3638`). Opened by a right-click on
+- **Message menu** (`MessageRow.tsx:3486-3667`). Opened by a right-click on
   kyle's `#ops` row it lists 19 items: four quick reactions, **Add Reaction**,
   **Reply**, **Turn into topic...**, **Add to Channel To-dos**, **Forward**,
   **Edit Message**, **Copy Text**, **Copy Message Link**, **Bookmark
-  Message**, **Save to Your Library** (`:3546`), **Pin Message**, **Mark
-  Unread**, **Agent**, **Delete Message** and **Copy Message ID** (`:3628`). Opened from the hover
+  Message**, **Save to Your Library** (`:3575`), **Pin Message**, **Mark
+  Unread**, **Agent**, **Delete Message** and **Copy Message ID** (`:3657`). Opened from the hover
   toolbar's **More** it lists the same 19: the tile row (`MenuQuickBar`,
-  `:3462-3466`, with the four recent emoji above it) is unconditional, so the
+  `:3491-3495`, with the four recent emoji above it) is unconditional, so the
   quick tiles sit in the menu whether or not the toolbar is showing (measured
   2026-11-02 on both hosts, by a real click and by `eval`). The 11-entry
   reading recorded on 2026-10-31 and 2026-11-01 did not reproduce; read the
@@ -29,32 +29,39 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   keeps its side as lazy rows land (`shared/ui/Popover.tsx`,
   `useMenuPosition`). The same placement serves the sidebar, channel, topic,
   user and People-pane menus and the **Agent** flyout.
-- **Agent submenu** (`MessageRow.tsx:2290-2335`): **Copy for Agent**, **Mark
+- **Agent submenu** (`MessageRow.tsx:2304-2355`): **Copy for Agent**, **Mark
   for agent** (⌥M), **Ask about this...** and **Capture to doc from here**.
+  **Copy for Agent** and **Copy for Agent (since here)** need the host's
+  `daemonFeatures` (`MessageRow.tsx:2309`, `:2317`; `d3aebbb5`): true on
+  `/rooms/` (`src/lib/session-host.ts:2`), false on `/chat/`
+  (`apps/cloud/src/lib/session-host.ts:3`). So on `/chat/` the flyout reads
+  **Mark for agent**, **Ask about this...** and **Capture to doc from here**
+  only (both hosts driven 2026-11-13: open **More**, then `find role menuitem
+  hover --name "Agent"`).
   **Copy for Agent (since here)** and **Summarize thread** appear only in
   their states (a later run of messages; a message with replies). **File as
-  source** (`:3558`) appears only when the roster's source-capture scope is
+  source** (`:3587`) appears only when the roster's source-capture scope is
   active.
 - **DM bubble menu**: the same verbs in a shorter list, 13 items on kyle's DM
   message: four quick reactions, **Add Reaction**, **Copy Text**, **Reply**,
   **Mark Unread**, **Forward**, **Pin Message**, **Edit Message**, **Delete
   Message** and **Copy Message ID**.
-- **Remove Link Previews** (`MessageRow.tsx:3605`) shows only on a message
+- **Remove Link Previews** (`MessageRow.tsx:3634`) shows only on a message
   with `unfurls`, which no fixture seeds.
 - **Forward** from the message menu opens **Forward message** with a **Comment** box (needs the session-capture shim; see the Forward section).
-- **Keys on a focused row** (`lib/message-keyboard.ts:12-30`, `MessageRow.tsx:2163-2205`):
+- **Keys on a focused row** (`lib/message-keyboard.ts:12-30`, `MessageRow.tsx:2177-2219`):
   ArrowUp/ArrowDown walk the rows, **R** replies, **E** edits your own
   message, **Delete** asks to delete it (Shift+Delete skips the confirm),
   **+** or **=** opens the emoji picker, **M** opens the message menu, **P**
   opens the author's profile card and **Enter** opens the row's first link or
   image. Alt, Ctrl or Meta held turns them off.
-- **Image right-click menu** (`lib/image-menu.ts`, `MediaGallery.tsx:1290`):
+- **Image right-click menu** (`lib/image-menu.ts`, `MediaGallery.tsx:1276`):
   **Copy Image**, **Save Image** and **Open in Browser**. Copy stays greyed
   ("Available after security scan") while the scan is pending.
 - **Nothing renders for an attachment still being scanned**
-  (`ScanState.tsx:31`, `MediaGallery.tsx:1202`): `ScanPendingCard` returns
+  (`ScanState.tsx:31`, `MediaGallery.tsx:1217`): `ScanPendingCard` returns
   `null`, so the row keeps its text and shows no placeholder and no Retry.
-- **@role pill → role popover** (`MessageRow.tsx:2681-2695`, `RolePopover.tsx`,
+- **@role pill → role popover** (`MessageRow.tsx:2710-2724`, `RolePopover.tsx`,
   `Shell.tsx:4727`): clicking a role mention opens **<Role> role members**
   with "<Role> — <n>" and one row per known holder.
 
@@ -106,33 +113,36 @@ The DM path is `?view=dm&dm=ana&alerts=quiet`: hover `#dm-msg-m2`, then click
 
 Open `shell-fixture.html?view=room&alerts=quiet&reply=1`. The composer shows
 the reply strip **Replying to dax** with a **Cancel reply** button
-(`Composer.tsx:6477`; the fixture seeds seq 103, `shell-fixture.tsx:2431`).
+(`Composer.tsx:6295`; the fixture seeds seq 103, `shell-fixture.tsx:2440`).
 Scroll `#msg-ops-104` into view, hover it, and click
 `#msg-ops-104 .msg-toolbar button[title="Reply"]`: the strip retargets to
 **Replying to kyle: @ana the alert fired twice last night …** and the composer
 textarea takes focus. Driven on `/rooms/` and `/chat/` at `936f5b64`.
 
-**Turn into topic** (`[data-turn-into-topic]`, `MessageRow.tsx:3320`) calls
-`session.openTopicDraft`, and **Add to Channel To-dos** (`:1832`, `:3334`) calls
+**Turn into topic** (`[data-turn-into-topic]`, `MessageRow.tsx:3349`) calls
+`session.openTopicDraft`, and **Add to Channel To-dos** (`:1846`, `:3363`) calls
 `openTodoPromote`. Neither is stubbed in the shell fixture, so both resolve to
 `INERT` and nothing opens: no aside, no dialog, no route change. Prove the
 offer (the buttons render by `title`) and leave the effect pending. The quick
 reactions **React 👍 / 🔥 / 😂** were not pressed.
 
 On a server whose to-dos run in records mode (Projects), the same toolbar
-button and menu entry read **Make ticket**, titled "Make a ticket from this
-message" (`MessageRow.tsx:1823-1832`), for any member of the server, a
+button and menu entry read **Ticket** (since `c99f628c`; **Make ticket**
+before), with aria "Make a ticket from this message" (`MessageRow.tsx:1836-1846`),
+for any member of the server, a
 read-only channel included (`08dea2dd`); a visitor to a public channel sees
 neither. Both fixtures leave `session.todos`
 unstubbed, so `modeFor` answers `INERT`, which is neither `"off"` nor
 `"records"`, and the legacy **To-do** / **Add to Channel To-dos** shows
-(re-driven 2026-11-07 on both hosts).
+(re-driven 2026-11-07 on both hosts). With the Projects stub from [projects.md](projects.md)
+(`modeFor` "records", `memberOf` true) the **More** menu lists **Ticket** in
+place of **To-do**, 19 entries on both hosts (driven 2026-11-13).
 
 ### Touch: long-press sheet and swipe to reply (added 2026-11-01)
 
 `MessageTouchRow` (`MessageTouchRow.tsx:41-145`) spreads `useRowTouch`'s
 pointer handlers onto every `[data-message-row]` that is not pending
-(`MessageRow.tsx:2358`), and those handlers act only on `pointerType ===
+(`MessageRow.tsx:2378`), and those handlers act only on `pointerType ===
 "touch"` (`lib/touch.ts:108-200`). There is no coarse-pointer or
 `maxTouchPoints` gate, so a synthetic `PointerEvent` with `pointerType:
 "touch"` drives both gestures, **provided the dispatches are paced**: React
@@ -154,7 +164,7 @@ agent-browser eval '(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));cons
 
 Past `SWIPE_COMMIT_PX` (56) the pull gains resistance (70 → 60.9), and the
 release past the commit calls `session.setReplyTarget`, which the fixture
-implements (`shell-fixture.tsx:3461`). A long press is `pointerdown`, a 700 ms
+implements (`shell-fixture.tsx:3470`). A long press is `pointerdown`, a 700 ms
 wait, `pointerup` on the same row: it opens the row menu as a sheet,
 `div.msg-sheet[role=menu][data-mobile-sheet]` behind `.msg-sheet-backdrop`,
 22 menu items for `msg-ops-104`; Escape closes it.
@@ -386,7 +396,7 @@ Stack role members**.
 - **Every verb is a fixture no-op except the clipboard.** The shell fixture
   stubs `toggleBookmark`, `togglePin`, `markUnreadFrom`, `removeUnfurls`,
   `askAgentAboutMessage`, `summarizeThreadWithAgent` and `captureFromSeq`
-  as `noop` or `asyncNoop` (`shell-fixture.tsx:3502-3586`), and `openForward` never sets
+  as `noop` or `asyncNoop` (`shell-fixture.tsx:3511-3595`), and `openForward` never sets
   `forwardSource`. Prove the offer here; the effects need the daemon-pair lane.
   The copy verbs write to the clipboard, which this lane did not read back.
 - A data attribute set by `eval` can vanish when React re-renders the row.
@@ -394,7 +404,9 @@ Stack role members**.
 
 ## Verification record
 
-**Last verified:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142) with the people stub and the session-capture shim. Focused-row keys on both hosts: ArrowDown, **R** (reply strip), **Delete** (**Delete Message**), **+** (**Choose an emoji**, then `:100:` stamped `ops:108:💯`), **M** (the menu: 11 items read 0.8 s after the key on `/rooms/`, 19 on `/chat/`; see the settling note under Sub-features), **P** (**Profile for ana**, with the `openProfileCard` stub), **E** (**Edit message**; on `/chat/` only with the `beginEdit` stub, and empty). On `/rooms/` only: **Enter** on the mosaic row opens the viewer; the image menu's three items with their window.open, download and clipboard effects; the pending-scan branch rendering nothing where a clean URL-less image shows "Image unavailable" and Retry. The @role popover on both hosts (`r-devops` on `/rooms/`, Full Stack injected on `/chat/`). **Limitations:** no real clipboard read-back; the disabled **Copy Image** state is not reachable (a pending attachment has no URL); Shift+Delete, and the menu verbs' effects, not driven; `/chat/` lacks the image, late-image and role seeds. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/`.
+**Last verified:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `/rooms/` (18170) and `/chat/` (18171), people and Projects stubs: the **More** menu (19 entries, **Ticket** in place of **To-do**); the **Agent** flyout with **Copy for Agent** on `/rooms/` and without it on `/chat/`; `tape=lists` task markers as `role=img`. **Limitations:** no menu verb's effect was driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 21-23).
+
+**Previous record:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** `/rooms/` (18141) and `/chat/` (18142) with the people stub and the session-capture shim. Focused-row keys on both hosts: ArrowDown, **R** (reply strip), **Delete** (**Delete Message**), **+** (**Choose an emoji**, then `:100:` stamped `ops:108:💯`), **M** (the menu: 11 items read 0.8 s after the key on `/rooms/`, 19 on `/chat/`; see the settling note under Sub-features), **P** (**Profile for ana**, with the `openProfileCard` stub), **E** (**Edit message**; on `/chat/` only with the `beginEdit` stub, and empty). On `/rooms/` only: **Enter** on the mosaic row opens the viewer; the image menu's three items with their window.open, download and clipboard effects; the pending-scan branch rendering nothing where a clean URL-less image shows "Image unavailable" and Retry. The @role popover on both hosts (`r-devops` on `/rooms/`, Full Stack injected on `/chat/`). **Limitations:** no real clipboard read-back; the disabled **Copy Image** state is not reachable (a pending attachment has no URL); Shift+Delete, and the menu verbs' effects, not driven; `/chat/` lacks the image, late-image and role seeds. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/`.
 
 **Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) and `/chat/` (18142), with the people stub and the session-capture shim: `#msg-ops-104` **More** → **Forward** opens **Forward message** with **Comment** and a disabled **Forward**, on both hosts; on `/rooms/`, 19 menu entries on the same row. **Limitations:** no destination was picked and nothing was forwarded. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 

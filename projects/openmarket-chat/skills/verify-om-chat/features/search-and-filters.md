@@ -33,8 +33,8 @@ proof.
 - The results-scope picker. On room searches it offers **This thread** when
   inside a topic, **This channel**, **This server**, **Library**, and
   **Everywhere**; on a DM it offers **This DM**, **All DMs**, and
-  **Everywhere** (options `SearchPanel.tsx:74-101`, the picker with trigger
-  `Search in: <label>` and menu `Search in` at `:458-500`).
+  **Everywhere** (options `SearchPanel.tsx:75-102`, the picker with trigger
+  `Search in: <label>` and menu `Search in` at `:459-501`).
 - Date filters from **More filters**: `before:`, `after:`, and `during:`
   (`search-query.ts:3-38`).
 - The search-unavailable error state.
@@ -43,9 +43,9 @@ proof.
   name follows the scope: `Open search in topic <name>` in a topic, and
   `Open search with @ana` (not "in") in a DM.
 - Result counts read `${count}${partial ? "+" : ""} results`, so a partial
-  window shows `1+ results` (`SearchPanel.tsx:1287`, `:1295`). Empty states:
-  "No results in #ops." (`:1777`) and "No results in your conversation with
-  @x." (`:2335`). Plus `Clear search`, `Clear search history` and the `Sort
+  window shows `1+ results` (`SearchPanel.tsx:1288`, `:1296`). Empty states:
+  "No results in #ops." (`:1778`) and "No results in your conversation with
+  @x." (`:2353`). Plus `Clear search`, `Clear search history` and the `Sort
   search results` menu.
 - **Cmd+F** focuses **Search #<channel>**.
 
@@ -135,8 +135,8 @@ partial-window warning remains visible.
 
 On `shell-fixture.html?view=room&alerts=quiet&panel=search`, the results header
 carries a **Sort** button. Clicking it opens a `menu` named **Sort search
-results** (`SearchPanel.tsx:556`) with **Newest**, **Oldest** and, because the
-seeded run has query text, **Most relevant** (`SearchPanel.tsx:520-556`, the
+results** (`SearchPanel.tsx:557`) with **Newest**, **Oldest** and, because the
+seeded run has query text, **Most relevant** (`SearchPanel.tsx:521-557`, the
 third option is gated on `ranked`). The scope picker (**Search in: This
 channel**) listed **This channel**, **This server**, **Library** and
 **Everywhere** on both hosts; **This thread** appears only inside a topic.
@@ -169,7 +169,7 @@ From the page body, `press Meta+f` focuses the combobox **Search #<channel>**
   together (`From a specific user from: user`). An `--exact` match on either
   half alone finds nothing.
 - The result count is not pluralised — a single hit reads **`1 results`**
-  (`SearchPanel.tsx:1287`, `:1295`). That is the product string, not a fixture
+  (`SearchPanel.tsx:1288`, `:1296`). That is the product string, not a fixture
   artefact; caption a screenshot around it rather than quietly "fixing" it in
   the caption.
 - **The query survives navigation, and a filled combobox shows no filter

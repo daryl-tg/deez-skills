@@ -80,7 +80,7 @@ Each was driven at 390×844 on `/rooms/` at `936f5b64`:
 |---|---|---|
 | `shell-fixture.html?view=room&doc=journal&alerts=quiet` | The doc pane (`DocPane.tsx:1029-1045`) | `[role=dialog][aria-modal=true][data-mobile-takeover][data-mobile-presentation="takeover"]` named after the note (**2026-08-07**), a `[data-doc-pane-header]` with **Close document**, the tab bar gone. **Close document** removes the dialog and the room stays the `[data-mobile-detail]`. |
 | `shell-fixture.html?view=settings&settingsPage=account&alerts=quiet` | The settings shell (`settings/SettingsShell.tsx:212-252`) | `[data-settings-presentation="takeover"][data-mobile-takeover]`, role `dialog` **Settings**, class `is-page` with heading **My Account** and a **Back to settings** button. **Back to settings** flips the class to `is-index`, shows the 20-item nav and the `.settings-mobile-header` with **Close settings**, which closes the dialog back to `#/room/ops`. The room's own **Back to Spaces** is also on screen, so match **Back to settings** exactly. |
-| `shell-fixture.html?view=agent&omSessions=drafts&alerts=quiet` with the `**/healthz*` route stub installed first | The om session rail (`AgentSessionRail.tsx:1143-1152`) | The header button **Open om conversations** (`title` **Chats**) appears only on the `om` root with the rail closed. It opens a dialog whose header reads **Chat** / **Shared with your om TUI**, class `ui-mobile-surface om-session-mobile`, leading control `[data-mobile-surface-leading="close"]` named **Back to conversation**, listing the seeded sessions. **Back to conversation** removes it. |
+| `shell-fixture.html?view=agent&omSessions=drafts&alerts=quiet` with the `**/healthz*` route stub installed first | The om session rail (`AgentSessionRail.tsx:1150-1159`) | The header button **Open om conversations** (`title` **Chats**) appears only on the `om` root with the rail closed. It opens a dialog whose header reads **Chat** / **Shared with your om TUI**, class `ui-mobile-surface om-session-mobile`, leading control `[data-mobile-surface-leading="close"]` named **Back to conversation**, listing the seeded sessions. **Back to conversation** removes it. |
 
 Without the health stub the om root renders its not-running state and the
 opener never mounts; with it, the session list is the one Your om takeover the
@@ -123,7 +123,7 @@ conversation** (not a takeover) still needs the same stub plus the rail.
     appears at phone width too — no takeover, no detail marker, still inside the
     om root card with the tab bar mounted.
   - Opening the session list (the button named **"Open om conversations"**,
-    title "Chats", `AgentPane.tsx:314`) renders a control with the same
+    title "Chats", `AgentPane.tsx:327`) renders a control with the same
     accessible name that
     behaves the opposite way: it **is** gated on `useIsMobile()` and **does**
     render as a `[data-mobile-takeover]` dialog, the name belonging to a close

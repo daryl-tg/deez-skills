@@ -16,7 +16,7 @@ says about them.
 - **Info** content: About, Mutual servers with a count and chips, Member since,
   Connections (follower count), and **Block user** / **Unblock user** (`:793`).
 - The DM header's identity button (`A Online ana`) opens the same drawer.
-- The floating identity card (`?card=1`, `shell-fixture.tsx:3044`): a `dialog`
+- The floating identity card (`?card=1`, `shell-fixture.tsx:3053`): a `dialog`
   named **Profile for ana** (`.profile-popover`) with the avatar, name, the
   about line, ROLES (traders), `2 mutual servers · 128 followers` and the
   buttons **View ana (ops)'s full profile**, **Message**, **Mention**,
@@ -63,8 +63,8 @@ agent-browser eval '(()=>JSON.stringify([...document.querySelectorAll("[aria-lab
 #   state dots img "working", "waiting", "blocked"; link "Open Backfilling CME options" (https)
 ```
 
-`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3051`, origin
-`dm:ana`) and sets `rightPanel` to `profile` (`:3109`). Use it on the DM view;
+`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3060`, origin
+`dm:ana`) and sets `rightPanel` to `profile` (`:3118`). Use it on the DM view;
 the room view has no matching origin. The user path is the header button:
 open `?view=dm&dm=ana&alerts=quiet` and click
 `find role button --name "A Online ana"`. `Close profile` appears.
@@ -91,7 +91,7 @@ relay.
 
 - The sections have no `role="tabpanel"`. A query for the panel finds nothing,
   so read the drawer's text instead.
-- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:2979`). It
+- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:2988`). It
   proves layout and the tab and close mechanics, not that a real profile fetch
   works. Media, Links and To-dos switched selection but were not asserted for
   content.
@@ -103,7 +103,7 @@ relay.
   reads `profile`, so `?view=dm&dm=ana&profile=1` there opens the DM with no
   drawer (measured 2026-10-29). The DM header button **ana Online ana** does not open it there either
   (2026-10-31): the cloud fixture sets `profilePanel: null` and stubs no
-  `openProfilePanel` (`apps/cloud/tools/visual/shell-fixture.tsx:1627`). Prove
+  `openProfilePanel` (`apps/cloud/tools/visual/shell-fixture.tsx:1630`). Prove
   the drawer on `/rooms/`.
 
 ### Verification record

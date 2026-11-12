@@ -147,7 +147,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4533`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4562`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -202,7 +202,7 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2442-2447`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2451-2456`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -236,12 +236,12 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 | Invites | **Invites** — **Create invite link** |
 | Integrations | **Integrations** — APPS |
 | Library | **Library** — "This server's backend predates library governance…" |
-| Recovery | **Library Recovery** |
+| Recovery | **Library Recovery** — since `d3aebbb5` a `status` callout reads "Recovery isn't available yet: servers can't build recovery previews. Nothing here can run until they can." and **Preview recovery** is disabled (`LibraryRecoverySettings.tsx`, `RECOVERY_SERVICE_READY = false`; driven 2026-11-13 on both hosts with `page=recovery&perms=owner`) |
 | Import Vault | **Import Vault** |
 | Danger | **Danger** — TRANSFER OWNERSHIP |
 
 In the role editor the colour row is a `role=group` named **Role Color**
-(`settings/ColorSwatches.tsx`, used at `settings/RolesEditor.tsx:716`): 21
+(`settings/ColorSwatches.tsx`, used at `settings/RolesEditor.tsx:741`): 21
 `.color-swatch` buttons, the first **Default (no color)**, the rest **Role
 color #xxxxxx**, each with `aria-pressed`. Driven 2026-11-07 on both hosts at
 `?host=server&page=roles&perms=owner`: **Role color #e67e22** starts pressed,
@@ -250,13 +250,13 @@ class was `.role-swatch` at `ea399e62`.
 
 A **Projects** server page (keywords "labels tickets"; ticket labels) joins
 the server nav when the space runs to-dos in records mode and the viewer can
-manage the server or ticket labels (`settings/ServerSettings.tsx:196-198`,
-`:267-269`). Its gate is `session.todos?.recordsOn(spaceId) === true`, which
+manage the server or ticket labels (`settings/ServerSettings.tsx:207-210`,
+`:274-276`). Its gate is `session.todos?.recordsOn(spaceId) === true`, which
 `INERT` never satisfies, so neither settings fixture shows it: live
 verification pending.
 
 There is no server **Access** page. Access is a channel page
-(`ChannelSettings.tsx:791`), reached only through
+(`ChannelSettings.tsx:799`), reached only through
 `settings-fixture.html?host=channel&perms=owner`. Toggles and saves on these
 pages call unstubbed session methods, so only the bodies are proved, not their
 effects.
@@ -303,7 +303,7 @@ Driven 2026-10-31 on `/rooms/` (18135) at `936f5b64`.
 
 `3306463a` adds a per-device **Notification volume** to Settings →
 Notifications, in a **Sound** group between push enrollment and the tones
-(`NotificationSettings.tsx:191`, `NotificationVolume.tsx`). It is a range
+(`NotificationSettings.tsx:193`, `NotificationVolume.tsx`). It is a range
 `#om-notification-volume`, 0-100 in steps of 1, default 100, with a `NN%`
 readout. It is stored on this device only under
 `om.chat.notificationVolume` (`lib/notification-volume.ts:22`). `7a1b8a10`
@@ -352,10 +352,20 @@ observable in a headless lane.
 ### Audio processing (added 2026-11-02)
 
 `settings-fixture.html?host=user&page=audio` renders three processing switches
-(`settings/AudioSettings.tsx:258-272`): **Noise suppression**, **Echo
+(`settings/AudioSettings.tsx:333-347`): **Noise suppression**, **Echo
 cancellation** and **Automatic input gain**, all `aria-checked="true"` on the
 lane. The microphone and device pickers on the same page need a real input
 device, so only the switch states are provable here.
+
+Since `0423aaa8` the page no longer asks for the microphone when it opens: it
+lists what the browser shows unasked (`AudioSettings.tsx:112-137`), under the
+headings **Devices**, **Output** and **Microphone processing**. A **Test
+microphone** button (`:264`) starts the only prompt; while a test runs it reads
+**Stop test** and a `role="meter"` named **Microphone level** (`:271`) appears,
+and a refused prompt reads "Microphone access wasn't granted. Allow it in your
+browser, then test again." Driven 2026-11-13 on both hosts: **Test
+microphone** present and no meter on open. Pressing it calls `getUserMedia`,
+which a headless lane cannot answer, so the test itself stays source only.
 
 ### Settings search with no match (added 2026-11-02)
 
@@ -425,8 +435,11 @@ picker and **Zoom in** were also driven on `/chat/`:
   receipt **Chat background removed** and returns to **No picture yet**.
 - Painting is CSS on `<html>`: `data-chat-background=""`, `--chat-bg-image`,
   `--chat-bg-dim`, and `data-chat-background-cover="window"` in window mode
-  (`lib/chat-background.ts:350`). **Chat only** paints the message scroller
-  (`[data-chat-backdrop]`, the `role=log` tape). **Whole window** paints
+  (`lib/chat-background.ts:350`). **Chat only** paints the conversation
+  column: since `f8a1e04b`, `[data-chat-backdrop]` sits on
+  `ChatBackdropColumn.tsx`, which holds both the `role=log` tape and the
+  composer, so the picture runs behind the composer too (one wrapper on room,
+  DM and topic, driven 2026-11-13). **Whole window** paints
   `.app-shell` once and turns the five `[data-chat-backdrop-plane]` panels
   translucent.
 
@@ -461,7 +474,7 @@ card on **Direct message**. It never reads "Jiin", "# design" or
 Two surfaces come from it, and both are gated on the store's
 `permissionsVersion` being at least 7 (`lib/room-actions.ts:83-87`):
 
-- **Moderation** gains an `h2` **Server mutes** (`ModerationPage.tsx:395`) for
+- **Moderation** gains an `h2` **Server mutes** (`ModerationPage.tsx:399`) for
   whoever holds `mute-members`. Empty, it reads "No one is muted across this
   server." Each row carries `data-server-mute=<userId>` and "Whole server ·
   {time} remaining", with a **Remove** button for whoever may unmute. A holder
@@ -469,7 +482,7 @@ Two surfaces come from it, and both are gated on the store's
   **Member actions**, **Active timed mutes** and **Channel bans**.
 - **Roles** gains a **Mute Members** row with the hint "Mute a member in every
   channel and in Projects until a set time" (`lib/space-actions.ts:83`), hidden
-  below version 7 (`RolesEditor.tsx:450`).
+  below version 7 (`RolesEditor.tsx:475`).
 
 No fixture stubs the version or the grant, so add to the init script from
 [README.md](README.md) / Stub the people directory first:
@@ -513,9 +526,9 @@ timed mutes** and **Channel bans** with no console error (driven 2026-11-10).
   likewise paints only after a change.
 
 - **Notifications crashes the shell fixture's whole User settings surface.**
-  `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:609`),
+  `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:607`),
   and neither fixture's plain-object `alertsStub` has it
-  (`shell-fixture.tsx:1425`, `apps/cloud/tools/visual/shell-fixture.tsx:537`).
+  (`shell-fixture.tsx:1425`, `apps/cloud/tools/visual/shell-fixture.tsx:539`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
   settings could not load** / **Try again**. Any further page click finds no
   button, and **Try again** returns to My Account. Reload before driving the
@@ -597,7 +610,9 @@ timed mutes** and **Channel bans** with no console error (driven 2026-11-10).
 
 ### Verification record
 
-**Last verified:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** the rail account panel on `/rooms/` (18141) and `/chat/` (18142) with the people stub (five rows; on `/rooms/` also the presence choices and **Settings** opening the Settings dialog); on `/rooms/`, the notification settings' invalid time zone disabling **Save** with its described reason. **Limitations:** no presence change, profile edit or username copy; the time-zone reason was not driven on `/chat/`. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/`.
+**Last verified:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `settings-fixture.html` on `/rooms/` (18170) and `/chat/` (18171): Audio (**Devices**, **Output**, **Microphone processing**, **Test microphone**, no meter), Server **Recovery** (status callout, **Preview recovery** disabled), Server **Projects** (with the Projects stub; see [projects.md](projects.md)); `/rooms/`: one `[data-chat-backdrop]` holding tape and composer on room, DM and topic. **Limitations:** the microphone test, the Projects confirmations and a painted background. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 32-33, 39, 43).
+
+**Previous record:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** the rail account panel on `/rooms/` (18141) and `/chat/` (18142) with the people stub (five rows; on `/rooms/` also the presence choices and **Settings** opening the Settings dialog); on `/rooms/`, the notification settings' invalid time zone disabling **Save** with its described reason. **Limitations:** no presence change, profile edit or username copy; the time-zone reason was not driven on `/chat/`. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/`.
 
 **Previous record:** 2026-11-10 (nightly). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** `host=server&page=moderation` on `/rooms/` (18186: **Moderation**, **Member actions**, **Active timed mutes**, with the people stub) and on `/chat/` (18187: blank with "session.spaceModerationState(...).then is not a function", then the four headings with the moderation init stub); every `settings-fixture.html?page=` route in the guides mounted on both hosts except `page=privacy`. **Limitations:** `page=privacy` is still blank on both hosts; the `/chat/` stub seeds no channel rows; the Mute in server flyout and the row **Remove** are unreachable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261110/r1/`.
 
