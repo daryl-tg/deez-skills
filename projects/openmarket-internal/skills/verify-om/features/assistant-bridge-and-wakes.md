@@ -104,6 +104,37 @@ Pending proof:
 - A money chain refused on start: no venue on the rig.
 - The hosted chart, alert and watchlist tools answer `not_found` on this rig (the stand-in gateway returns 404), so a scenario that needs them says nothing about the product.
 
+## Search, then call: ten listed tools and a catalog (PR #2470, branch `daryl/assistant-catalog`, not on main yet)
+
+*Driven on the same rig on 2026-11-12 across the branch's builds `a9478edd5`, `75692ba64` and `aa47768b05` (the PR commit `a47cd995ea` is those rebased onto main): the listings, `find`, `describe`, `read`, `change`, the money-reach refusals, the checks at the yes and the name check on create. Sixty real-client runs (Claude Code headless, Sonnet and Haiku) on the build before the review fixes, sixty on `75692ba64`.*
+
+- `the list`: the om face (root and `/directory`) lists ten tools: `find`, `describe`, `read`, `change`, `deposit`, `watching_overview`, `watch_history`, `watch_show`, `memory_search`, `news_brief`. 12,827 bytes. `/chatgpt` and every charts host list what they listed (51 tools, 156,612 bytes on the rig key). A direct call to any other name answers tool not found.
+- `find`: `query` words return eight matches from the daemon and the hosted side merged; no arguments list the categories; `category` lists one. Each match has a `kind`: `read`, `change` or `terminal`.
+- `describe`: answers `summary`, `args` (the schema) and, for a `terminal` action, `command` and `flags` (`<command> --help`). The six listed tools and the four catalog tools themselves are described with a `call` field saying to call them by their own name.
+- `read`: runs a `free` read. A change, a `terminal` or a listed tool named to it is refused with the call to make.
+- `change`: a free change (`watch_pause`, `watch_mute`, `watch_unmute`) runs at once; a `card` action answers `daemon_asks_you`; the four narrow names `create_watch`, `edit_watch`, `start_watch`, `plot_inbox` are their #2449 doors. A hosted chart, alert or watchlist change runs at once under its scope.
+- `the generic card`: `om approvals show` prints `ASSISTANT`, `DOES` (the action's summary), one row per argument, a watch named with its label (`IDS: plain-two (Plain two)`), `POLLS` with paid kinds marked on `watch_run_now`.
+- `reaches money`: a watch a money watch reads through any number of other watches is refused before any card on pause (by id, by slug, and by slug inside `ids`), a generic card, `edit_watch`, `start_watch`, and `deposit` into an inbox in that chain. An unreadable watch file, or a record under `<home>/series/` that cannot be parsed, refuses the same calls for every watch and is named in the refusal.
+- `a new watch's name`: `create_watch` under a name a money watch already reads (a dangling upstream id, a series ref such as `watch/signal/...`) is refused before any card and nothing is stored, not even the assistant's inbox. A free name opens its card.
+- `the yes checks again`: a card approved after its watch gained a money reader, or after its rows changed (a rename, a new paid source), fails with one sentence and no handler runs; the assistant's next identical call reads the sentence once.
+- `one card per assistant`: the asker is in the card's key. Unit-test proof only; the rig has one credential.
+- `wrong keys`: `arguments` in place of `args`, `watch`, `slug` or `id` in place of `id_or_slug`, `q` or `action` on the catalog tools, or a missing `name`, is refused with the keys the tool takes.
+- `reach table`: `packages/cli/src/mcp/assistant-reach.ts`, one decision per action; `bun packages/cli/scripts/report-assistant-reach.ts` prints the counts and fails on an undecided action. A new action on main needs its row before the branch's gate passes (seen with `desk_brief` at the rebase).
+
+Recipe additions (same scripts):
+
+- Seed a money chain by writing watch files into the lane home, `<worktree>/.control-om/home-18150/accounts/guest/watches/<id>.json`: copy a stored watch, give it an `upstream` source (`source_id` is `src_` plus 12 hex) naming the watch to read, and one `money` step. `om watch list` shows a file it cannot read as broken, which itself trips the fail-closed guard.
+- A money watch with an `upstream` source naming a watch id that does not exist is a valid file (`om watch list` reads `the watch it reads from is gone`) and is the quickest state for the name check: `create_watch {label: "old feed"}` against a dangling `old-feed`.
+- A watch whose id differs from its slug has to be written as a file; `om watch create` gives both the same value. The slug-inside-`ids` case needs one.
+- `eval/run-scenarios.ts A B C E F G H K L M` with `SCENARIO_FILE=scenarios-all.json`; `python3 eval/tabulate.py <set>` prints medians and each run's call sequence.
+- The list's inline token cost: one trivial headless prompt with `ENABLE_TOOL_SEARCH=false`, with and without the server, same sitting (the baseline moves with the client).
+
+Pending proof:
+
+- Two assistants on one daemon (needs a second credential on the rig's gateway).
+- The daemon's unlisted `request_change` against a hosted build from main (unit-test proof only).
+- A signed-in live session on `om.mcp.openmarket.xyz`; that host still serves main's 84-tool list until this branch is merged and deployed.
+
 ## Gotchas
 
 - Two links can share one label (the key's label). `allow` and `revoke` then need the `asst_` id, which `om assistants --format json` prints.
@@ -114,3 +145,5 @@ Pending proof:
 - A lane daemon runs from source without watch mode, but every `control-om om --` call runs the current source, so do not drive the lane while files are mid-edit.
 - An AI step's answer reaches the channel but not `watch_history` or `om watch history --format json`; only the chat TUI shows it.
 - A client that picks tools by name can miss the plot behind `request_change`; the `deposit` listing names it. Seen once each way on 2026-11-11.
+- Claude Code calls an MCP tool before loading its schema when its own tool search is on, so a model guesses argument names; a wrong key costs one round trip. It cost 22 refused calls across 60 runs on 2026-11-12.
+- The dashboard's `/dashboard/watches` address renders an empty page when opened directly; reach Watches through the sidebar link (it lands on `/alerts`).
