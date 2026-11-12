@@ -161,12 +161,21 @@ too**: `om` subcommands run in their own process and inherit nothing from the
 lane, which is how the origin-challenge recipe fails at its first step if you
 set the switch only on `up`.
 
+The lane and the `om` door both start the CLI through
+`packages/cli/src/bootstrap.internal.ts` when the checkout has one, and through
+`bootstrap.ts` only in a public checkout. Since #2422 the private families
+(`om agent`, `om project`, `om room`, `om secrets`, the roster, rooms and
+strategy routes) are plug-ins that only the internal entry installs. A lane
+started through `bootstrap.ts` boots and answers `/healthz`, but `om agent
+--help` prints the root help. `doctor`'s `lane launch` line names the entry, and
+`control-om om -- --version` prints `<version>+internal` on the internal one.
+
 Ready when it prints the origin. If it prints a boot failure instead, read
 `.control-om/lane-<port>.log` — the daemon's own stdout goes there and nothing
 else carries it.
 
 By default the lane runs **from source**
-(`bun packages/cli/src/bootstrap.ts run`), so the process *is* the working tree:
+(`bun packages/cli/src/bootstrap.internal.ts run`), so the process *is* the working tree:
 no build step, and no stale-binary trap for the daemon or the CLI. A compiled
 lane changes only the daemon launch; `control-om om -- ...` deliberately stays
 on the source CLI, bound to the same isolated home and port.
@@ -361,7 +370,7 @@ before you walk away:
 lsof -nP -iTCP:18101 -sTCP:LISTEN
 ```
 
-A `bun packages/cli/src/bootstrap.ts run` in the `18097`–`18197` range with
+A `bun packages/cli/src/bootstrap.internal.ts run` (or `bootstrap.ts run`) in the `18097`–`18197` range with
 `PPID 1` is your own residue — kill that pid and delete the stale
 `.control-om/lane-<port>.pid`. Anything else, leave it alone and take another
 slot.
