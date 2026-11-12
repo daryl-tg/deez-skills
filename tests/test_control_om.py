@@ -187,6 +187,53 @@ esac""",
         finally:
             self.run_control("down")
 
+    def test_up_starts_the_internal_entry_when_the_checkout_has_one(self):
+        (self.product / "packages/cli/src/bootstrap.internal.ts").write_text("// fixture\n")
+        self.configure_lane_tools()
+        self.write_fake_command(
+            "bun",
+            'printf "%s\\n" "$@" > "$OM_HOME/source-argv"\n'
+            "while :; do sleep 1; done",
+        )
+
+        try:
+            up = self.run_control("up")
+            self.assertEqual(up.returncode, 0, up.stderr)
+
+            home = self.root / "state/home-18191"
+            self.assertEqual(
+                (home / "source-argv").read_text(),
+                "packages/cli/src/bootstrap.internal.ts\nrun\n",
+            )
+            launch = (self.root / "state/lane-18191.launch").read_text()
+            self.assertIn("bootstrap.internal.ts", launch)
+        finally:
+            self.run_control("down")
+
+    def test_om_door_runs_the_internal_entry_when_the_checkout_has_one(self):
+        (self.product / "packages/cli/src/bootstrap.internal.ts").write_text("// fixture\n")
+        argv_file = self.root / "om-argv"
+        self.write_fake_command("bun", f'printf "%s\\n" "$@" > "{argv_file}"')
+
+        result = self.run_control("om", "--", "agent", "--help")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            argv_file.read_text(),
+            "packages/cli/src/bootstrap.internal.ts\nagent\n--help\n",
+        )
+
+    def test_om_door_runs_the_public_entry_in_a_public_checkout(self):
+        argv_file = self.root / "om-argv"
+        self.write_fake_command("bun", f'printf "%s\\n" "$@" > "{argv_file}"')
+
+        result = self.run_control("om", "--", "--version")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            argv_file.read_text(), "packages/cli/src/bootstrap.ts\n--version\n"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
