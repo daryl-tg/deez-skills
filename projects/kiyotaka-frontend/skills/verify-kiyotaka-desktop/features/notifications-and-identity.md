@@ -8,6 +8,10 @@ The shell also hands eight analytics events (`app-opened`, `update-installed`, `
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
 Since 0.1.8 the shell also reports its crashes and failed loads as three more `desktop:` events, which ride their own
 channel and the page's beacon instead (see [crash recovery and reports](./crash-recovery-and-reports.md)). Last driven
+2026-11-13 by the `notify` scenario on tree `963af59de1` (`origin/main`; `desktop/` unchanged, 0.1.10), run on its own in
+53 s at a load average of 4 to 7 with the console session locked: 12 of 17, the five reds being `screenUnlocked` (the
+lock), `osAuthorized`, `notificationCaptured`, `dockCaptured` and `bridgeUnchanged`; the OS answered `Added notification
+request: [ hasError: 0 hasCompletionHandler: 1 ]`. Before that, driven
 2026-11-12 by the `notify` scenario on tree `74ccd3cdcc` (`origin/main`; `desktop/` unchanged, 0.1.10), run on its own
 in 66 s at a load average of 12 to 15, with the console session unlocked for the first time since 2026-10-28: 13 of 17.
 `screenUnlocked` passed (`screenLocked: false`), the bundle, profiles, names and bridge read as below, and the OS again

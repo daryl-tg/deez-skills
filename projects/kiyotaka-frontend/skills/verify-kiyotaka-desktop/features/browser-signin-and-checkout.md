@@ -9,7 +9,19 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-12, on tree `74ccd3cdcc` (`origin/main`; the desktop pages, the sign-in
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-13, on tree
+`963af59de1` (`origin/main`; the four desktop pages, `useTurnstile.ts`, `passkey.service.ts`, the download gate and
+`stripe-handoff.util.ts` unchanged; `featureCommands.ts` only gained an order-preview toggle), every read below held
+again in Chromium on the dev lane through agent-browser, one page at a time through `about:blank`, on a lane with 0
+bars (none of these pages needs candles): the return page valid and invalid, the four checkout-return states, the signin
+redirect, the card's placement (address, then `login-signup-turnstile`, then `login-signup-submit-btn`, off while empty
+and on once an address was typed) and the super-search command as the only result. Since `51738ed440` (after
+`74ccd3cdcc`) the card also carries `login-signup-failure` and `login-signup-failure-line`, read present and empty on a
+fresh card: a password or passkey sign-in that fails says why over the button it was pressed on, in the server's words
+or "Could not sign in with that email and password. Try again." (`auth.errors.failedPasswordLogin`), where it used to
+raise a toast, and an edit, the next press or a reset of the card clears it (`AuthFormView.vue` `signInFailure`,
+`src/components/common/FailureLines.vue`; the failing state is source-read). The shell's sign-in capture was not
+attempted on the locked console. On 2026-11-12, on tree `74ccd3cdcc` (`origin/main`; the desktop pages, the sign-in
 card's files, `useTurnstile.ts`, `passkey.service.ts`, the download gate and `stripe-handoff.util.ts` unchanged since
 `c2c02b7b42`), every read below held again in Chromium on the dev lane (250 bars), through one Playwright pass of
 fresh pages rather than agent-browser, and `capture --prod --path '?login=1'` drew the shell's one-card dialog for the

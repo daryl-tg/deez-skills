@@ -13,7 +13,11 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-12 on product tree `74ccd3cdcc`
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-13 on product tree `963af59de1`
+(`origin/main`; `desktop/` unchanged since `c2c02b7b42`) by the `crash` scenario, run on its own: 34 of 34 checks in 45 s
+with the console session locked, at a load average of 4 to 7 on 10 cores; the first report arrived after 1435 ms, the
+dump carried `sentry[release]` `openmarket-desktop@0.1.10`, and `crash-held.png` shows "This page keeps stopping" with
+Reload. Before that, driven 2026-11-12 on product tree `74ccd3cdcc`
 (`origin/main`; `desktop/` unchanged since `c2c02b7b42`) by the `crash` scenario, run on its own: 34 of 34 checks in 61 s,
 with the console session unlocked and a load average of 12 to 15 on 10 cores; the analytics events read three `app-opened`, ten
 `page-crashed`, two `page-load-failed` and one `process-crashed`, and the offline screen read "This page didn't load"
@@ -76,7 +80,8 @@ Preconditions:
   `titlebarBack`, `gpuReported`, `offlineLaunchScreenShown`, `reloadAfterOfflineLaunch`,
   `screenGoneAfterOfflineReload`, `firstResponseHeld`, `earlyDeathComesBack` and `screenGoneAfterEarlyDeath`, and
   `pass: true`. If `reloadedAfterKill` fails the lane returns after the first stage with only its checks.
-- **Read.** `firstReportAfterMs` (1315 ms on 2026-11-06), `dump` (`sentry[release]` `openmarket-desktop@0.1.9`,
+- **Read.** `firstReportAfterMs` (1315 ms on 2026-11-06, 1435 ms on 2026-11-13), `dump` (`sentry[release]`
+  `openmarket-desktop@<desktop/package.json version>`: 0.1.10 since `920afc7199`, 0.1.9 on 2026-11-06,
   `sentry[environment]` `desktop-dev`, a minidump of about 770 KB), `crashLoop` (one `reportId` per round, each with
   `handOvers` 1), `heldReport` (`action: hold`, `recentCrashes` 7, the memory fields) and `events`.
 - **Proof.** The JSON summary and three frames: `crash-reloading.png` ("This page stopped working"), `crash-held.png`

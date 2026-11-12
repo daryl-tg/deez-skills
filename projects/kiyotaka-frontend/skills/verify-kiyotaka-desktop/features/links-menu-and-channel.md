@@ -11,8 +11,10 @@ There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
-from 2026-10-27 to 2026-11-12, under high and low machine load and on a locked and an unlocked console; the last was
-2026-11-12 on tree `74ccd3cdcc` (`origin/main`), 104 s at a load average of 14 to 16, run on its own, with the same
+from 2026-10-27 to 2026-11-13, under high and low machine load and on a locked and an unlocked console; the last was
+2026-11-13 on tree `963af59de1` (`origin/main`), in the SKILL.md's combined `run launch ... window links` (166 s on the
+locked console at a load average of 4 to 7), which again lost the `window` summary to the throw at `launch.mjs:234`; on
+2026-11-12 on tree `74ccd3cdcc`, 104 s at a load average of 14 to 16, run on its own, with the same
 `dialog-style dialog-overlay backdrop-dim` interception at `launch.mjs:234`; on 2026-11-10 on `c2c02b7b42`, 63 s, run on its own (on 2026-11-08 a combined `run launch ... window links crash`, and on 2026-11-10 the SKILL.md's own `run launch ... window links`, lost the `window` summary to this throw
 and the 2026-11-08 one never reached `crash`, so run each scenario on its own): `locator.click: Timeout 30000ms exceeded` at `launch.mjs:234` (`:230` before the crash lane's lines), after `desktop: loaded
 https://openmarket.xyz/chart/`, with the `dialog-style dialog-overlay backdrop-dim` element "intercepts pointer

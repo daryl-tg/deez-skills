@@ -12,6 +12,9 @@ policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice i
 linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `c2c02b7b42`
 (`origin/main`, 2026-11-10) is 0.1.10 (`bbeb2ee20e` took it to 0.1.8 and `354da31277` to 0.1.9, both for the crash
 recovery; `920afc7199` to 0.1.10, for the Linux full-screen view sizing). The update round trip was last driven
+2026-11-13 on tree `963af59de1` (`origin/main`; `desktop/` unchanged, still 0.1.10), on its own after `notify`, in 114 s
+with both packs at a load average of 4 to 7 on the locked console, feed on `18150`: 14 of 15, to the same Squirrel.Mac
+refusal (`desktop: update not staged 0.1.0-beta.2`), with `launchRequests` `GET /policy.json` first. Before that,
 2026-11-12 on tree `74ccd3cdcc` (`origin/main`; `desktop/` unchanged, still 0.1.10), on its own after `notify`, in 117 s
 with both packs at a load average of 8 to 13, with the feed on `18151` because another run's process held `18150`:
 14 of 15 again, to the same Squirrel.Mac refusal, and the feed again saw `GET /policy.json` first. Before that,
@@ -26,7 +29,7 @@ code requirement(s)`, `desktop: update error ...`, `desktop: update not staged 0
 `GET /beta-mac.yml` (`desktop/tools/verify/launch.mjs:915`), but the launch check and the policy watcher both ask the
 same feed at launch and race. The policy request came first on every run from 2026-10-27 to 2026-11-06 (14 of 15 on
 2026-11-06, `8bcd72f8f5`, feed on `18151`), the beta feed came first on 2026-11-07 with `desktop/` unchanged, and the policy request came first again on
-2026-11-08, 2026-11-09 and 2026-11-10 (`launchRequests` `GET /policy.json`, `GET /beta-mac.yml`).
+2026-11-08, 2026-11-09, 2026-11-10, 2026-11-12 and 2026-11-13 (`launchRequests` `GET /policy.json`, `GET /beta-mac.yml`).
 The title-bar button, the restart dialog, the page toast, the policy notice and block, and the internal build have no
 live driver; the release jobs need `mac-runner` (the office Mac mini, runner tag `macos`), the certificate, the notary
 key and the bucket.
@@ -77,7 +80,7 @@ Preconditions:
   `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27, 2026-10-29 (`30481b57f8`),
   2026-10-31 (`5475ab32d5`, in 2.2 s), 2026-11-01 (`2646a76a83`, in 2.2 s), 2026-11-02 (`39b22dd2ec`, in 2.3 s), 2026-11-03 (`1af9ebbe07`, in 2.3 s), 2026-11-04 (`8436920004`, in 2.5 s) and 2026-11-05 (`bf1c9bac3c`, in 2.4 s). On 2026-11-06 (`8bcd72f8f5`) the suite
   had 38 files and 463 tests, all passed in 2.4 s, the three new files being `crash-reporter`, `process-gone` and
-  `report-hand-over`; the same 38 files and 463 tests passed on 2026-11-07 (`dced88e06a`, in 2.4 s);
+  `report-hand-over`; the same 38 files and 463 tests passed on 2026-11-07 (`dced88e06a`, in 2.4 s); on 2026-11-13 (`963af59de1`) 39 files and 469 tests passed in 2.7 s;
   on 2026-10-30 the subprocess tests timed out under machine load. Not a live proof.
 - **Upload set.** The publish script refuses unless every file it uploads exists and each feed file names the
   version, so a dry run needs a release build in `DIST_DIR` or placeholders. With placeholders, run:
@@ -87,7 +90,7 @@ Preconditions:
   ```
 
   It printed 13 `dry-run: upload` lines on 2026-10-12 (`d554bfb38c`, unit 12) and again on 2026-11-02 on `39b22dd2ec`,
-  2026-11-03 on `1af9ebbe07`, 2026-11-04 on `8436920004` and 2026-11-05 on `bf1c9bac3c` under macOS `/bin/bash` 3.2.57: the eight installers, `latest-mac.yml`, `latest.yml` and the three `latest/`
+  2026-11-03 on `1af9ebbe07`, 2026-11-04 on `8436920004`, 2026-11-05 on `bf1c9bac3c` and 2026-11-13 on `963af59de1` under macOS `/bin/bash` 3.2.57: the eight installers, `latest-mac.yml`, `latest.yml` and the three `latest/`
   aliases, then `Published OpenMarket 0.1.0 to s3://dry/desktop/stable`, exit 0. `DESKTOP_TARGETS` defaults to
   `mac win`, so the Linux target adds lines only when named. `c57cc3af80` (on 2026-11-02's tree) rewrote the script's
   five array loops as `${ARR[@]+"${ARR[@]}"}` so an empty array passes under bash 3.2's `set -u`; that dry run under
