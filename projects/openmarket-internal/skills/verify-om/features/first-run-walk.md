@@ -1,5 +1,7 @@
 # The first run: `om init`, the model step and chat with no AI
 
+*On main since 2026-11-12: PR #2451 merged as `780b76f482`. Not yet re-driven on main.*
+
 *Verified: 2026-11-11, branch `daryl/first-run-fixes` tree `8d3d0a84f2` (PR #2451, on origin/main `0ad4768f66`), from source in tmux with a scratch `OM_HOME`, a fake `HOME` and a stub `security` command, lane on 18181 and a stub model endpoint on 18182. Gallery `http://127.0.0.1:8098/first-run-fixes/r2/` (9 screenshots). Not on main until the PR merges.*
 
 The model step of `om init` asks how the assistant will reach an AI before it lists providers, a pasted key is checked on the spot, and `om chat` opens signed out when no AI is set up.

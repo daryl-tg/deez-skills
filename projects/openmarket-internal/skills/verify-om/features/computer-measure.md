@@ -1,5 +1,7 @@
 # Measuring the daemon's browser
 
+*On main since 2026-11-12: PR #2466 merged as `e93fe5abac`. The loopback helper is now `packages/cli/src/shared/computer-loopback.ts`. Not yet re-driven on main. Tier 3 has real-model numbers only from before the asks named the browser.*
+
 *Verified: 2026-11-11, branch `daryl/computer-evals` commit `e2ca911426` (stacked on PR #2442 `3e2ae2b37a`, not on main), real `agent-browser` 0.33.2 and Chrome 157 on scratch homes, no lane daemon, no model key. Evidence `computer-evals/r1`. Tier 3 of the eval area has never run against a real model.*
 
 Four instruments over the browser in [daemon-computer.md](daemon-computer.md): a row per browser step read by `om computer stats`, a queue stress harness, a benchmark with a compare mode, and the `computer` eval area. All of them drive a local test site on `127.0.0.1` that the scripts start themselves.

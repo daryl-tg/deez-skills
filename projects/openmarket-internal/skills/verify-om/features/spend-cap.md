@@ -1,5 +1,7 @@
 # The monthly model spend limit
 
+*On main since 2026-11-12: PR #2448 merged as `1d586e05b6`. Its roster test is now `packages/cli/test/private/roster/agent-spend-cap.test.ts`. Not yet re-driven on main.*
+
 *Re-checked 2026-11-11 (nightly, source only) against origin/main `0ad4768f66` (v0.494.0): PR #2448 is still open and nothing of it is on main. Headings renamed to the map's four-H2 contract; no recipe changed.*
 
 *Verified: 2026-11-10, branch `daryl/spend-cap` tree `e9762387e1` (PR #2448, on origin/main `0ad4768f66`), bare lane on 18166 with a scripted fake model on 18162 that reports usage under a priced model id. Gallery `http://127.0.0.1:8098/spend-cap/r2/` (6 screenshots). Not on main until the PR merges.*

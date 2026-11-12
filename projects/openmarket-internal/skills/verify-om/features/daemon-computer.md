@@ -1,5 +1,7 @@
 # The daemon's own browser
 
+*On main since 2026-11-12: PR #2442 merged as `9a9fa313d1`, ported onto the public cut (the browser is core; its agent rules live in `packages/cli/src/private/agents/actions/_computer-surface.ts`; `computer-roster.test.ts` moved to `test/private/agents/`). Not yet re-driven on main or on the live daemon. The live build of 2026-11-12 answers `om computer status` with `Computer: off`.*
+
 *Verified: 2026-11-11, branch `daryl/daemon-computer` tree `3e2ae2b37a` (PR #2442, on origin/main `0ad4768f66`), bare lane on 18141 with a scripted fake model on 18142, `agent-browser` 0.33.2 and Google Chrome 157. Gallery `http://127.0.0.1:8098/daemon-computer/r4/` (36 screenshots). Not on main until the PR merges.*
 
 *First verified 2026-11-10 at tree `b9e34f8d2e`, gallery `daemon-computer/r2`, when the feature had one browser and per-site cards by default.*

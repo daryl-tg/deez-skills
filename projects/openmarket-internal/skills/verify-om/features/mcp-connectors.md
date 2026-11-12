@@ -1,5 +1,7 @@
 # MCP servers the owner connects
 
+*On main since 2026-11-12: PR #2453 merged as `3fa98507ce`. The connector actions load their daemon modules lazily, and both connector tools are `never` in `packages/cli/src/mcp/assistant-reach.ts`. Not yet re-driven on main.*
+
 *Verified: 2026-11-11, branch `daryl/mcp-client` tree `3e78ff2ffe` (PR #2453, on origin/main `0ad4768f66`), bare lane on 18171 with a scripted fake model on 18172 and fixture MCP servers on 18173 to 18175. Gallery `http://127.0.0.1:8098/mcp-client/r2/` (17 screenshots). Not on main until the PR merges.*
 
 The owner connects an MCP server at the terminal with `om connect add`. The agent lists its tools with `connector_tools` and calls one with `connector_call`. Tool definitions are pinned when the server is added, and a per-connection mode decides when a call asks.

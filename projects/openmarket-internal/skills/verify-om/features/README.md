@@ -146,11 +146,11 @@ state, commands, and observable proof.
 - [Chat with one of your agents](./agent-chat-threads.md) — new 2026-11-11 (#2434, v0.494.0): the roster context on `/chat/turn`, `/chat/history` and `/chat/conversations`; a created agent answers on a bare lane; since #2464 (re-proved on main 2026-11-12) a bundled one answers on its first chat and gets a credential
 - [The roster task door and run pool](./roster-task-pool.md) — submit, pool, cap,
   dedup, cancel and work mentions; a bare lane with a fake model needs no account
-- [MCP servers the owner connects](./mcp-connectors.md) — `om connect add`, modes and pins, browser sign-in, `connector_tools` and `connector_call`; PR #2453, not on main yet
-- [The first run](./first-run-walk.md) — the model step's two screens, the pasted-key check, chat with no AI, the guest-key watch fault; PR #2451, not on main yet
-- [The monthly model spend limit](./spend-cap.md) — `spend.monthly_usd`, an agent's `maxSpendUsd`, refusals that dial nothing, the limit row and notices; PR #2448, not on main yet
-- [The daemon's own browser](./daemon-computer.md) — `om computer` verbs and setup, the five `computer_*` tools used freely, a window per task, the queue, status and history, roster access, the dashboard board; PR #2442, not on main yet
-- [Measuring the daemon's browser](./computer-measure.md) — `om computer stats`, the queue stress harness and its seven rules, the benchmark and `compare`, the `computer` eval area, the one-port loopback switch; branch `daryl/computer-evals` on PR #2442, not on main yet
+- [MCP servers the owner connects](./mcp-connectors.md) — `om connect add`, modes and pins, browser sign-in, `connector_tools` and `connector_call`; on main since 2026-11-12
+- [The first run](./first-run-walk.md) — the model step's two screens, the pasted-key check, chat with no AI, the guest-key watch fault; on main since 2026-11-12
+- [The monthly model spend limit](./spend-cap.md) — `spend.monthly_usd`, an agent's `maxSpendUsd`, refusals that dial nothing, the limit row and notices; on main since 2026-11-12
+- [The daemon's own browser](./daemon-computer.md) — `om computer` verbs and setup, the five `computer_*` tools used freely, a window per task, the queue, status and history, roster access, the dashboard board; on main since 2026-11-12
+- [Measuring the daemon's browser](./computer-measure.md) — `om computer stats`, the queue stress harness and its seven rules, the benchmark and `compare`, the `computer` eval area, the one-port loopback switch; on main since 2026-11-12
 - [The ops dashboard](./ops-dashboard.md) — 2026-11-10 adds the Channels page (webhook connect, test, edit, remove); the shell and the observation
   surfaces, redesigned in v0.400.0
 - [Watch authoring in the dashboard](./watch-authoring-ui.md) — new in v0.400.0:
