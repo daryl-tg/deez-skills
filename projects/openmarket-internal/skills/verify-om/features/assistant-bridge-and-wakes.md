@@ -104,7 +104,7 @@ Pending proof:
 - A money chain refused on start: no venue on the rig.
 - The hosted chart, alert and watchlist tools answer `not_found` on this rig (the stand-in gateway returns 404), so a scenario that needs them says nothing about the product.
 
-## Search, then call: ten listed tools and a catalog (PR #2470, branch `daryl/assistant-catalog`, not on main yet)
+## Search, then call: ten listed tools and a catalog (on main since #2470, `1107bf7c86`, 2026-11-12)
 
 *Driven on the same rig on 2026-11-12 across the branch's builds `a9478edd5`, `75692ba64` and `aa47768b05` (the PR commit `a47cd995ea` is those rebased onto main): the listings, `find`, `describe`, `read`, `change`, the money-reach refusals, the checks at the yes and the name check on create. Sixty real-client runs (Claude Code headless, Sonnet and Haiku) on the build before the review fixes, sixty on `75692ba64`.*
 
@@ -129,11 +129,30 @@ Recipe additions (same scripts):
 - `eval/run-scenarios.ts A B C E F G H K L M` with `SCENARIO_FILE=scenarios-all.json`; `python3 eval/tabulate.py <set>` prints medians and each run's call sequence.
 - The list's inline token cost: one trivial headless prompt with `ENABLE_TOOL_SEARCH=false`, with and without the server, same sitting (the baseline moves with the client).
 
+Live, 2026-11-12 (hosted `om.mcp.openmarket.xyz` at 0.495.0, image `91-9945cdce`, against the owner's upgraded daemon; the stored key through the product resolver, which is test scaffolding and proves no sign-in):
+
+- `the list`, `find`, `describe`, `read` and the refusals answered as on the rig. Chart-side actions ran through `read` for the first time on real services (`chart_list`, `skill_read`).
+- `reaches money`: `watch_archive`, `watch_run_now` and `edit_watch` on two real money watches were refused with no card.
+- `change`: `create_watch` raised its card, the owner approved, the handler ran and its failure (`watch_feed_url_gone`) was handed back once.
+- `skew`: the hosted build from before #2470 reached the upgraded daemon by `request_change`.
+- `chart MCP unchanged`: `/chatgpt` on the old image and on the new image gave the same instructions and tool list, hash for hash, with the same key.
+- A real client (Claude Code headless, read-only) answered the agents and cost asks through `find`, `describe` and `read`.
+
+Seen live, not on the rig:
+
+- `watching_overview` on a home with 105 watches answers 105,857 characters and Claude Code refuses it ("exceeds maximum allowed tokens"). The rig's overview is 2 KB, so the rig cannot show this.
+- A key without the alerts access finds no alert or watchlist action, though the instructions name them.
+- A daemon whose main thread stalls past 2.5 seconds reads as `daemon_offline`.
+- The owner's consent to a new assistant lapses after 15 minutes; `om assistants allow <label>` works without an id.
+
+Recipe for a live pass: `live-call.ts init | list | call <tool> '<json>'` and `live-compare.ts` under `run-artifacts/catalog-face/live-deploy/` of the `om-assistant-broker` task read the key through `resolveApiKeyWithSource` and never print it; `forwarder.ts` there is a loopback door on 18160 that adds the key and refuses `change` and `deposit`, for a headless client. Stop it when the run ends. Never approve a card or run a free change on a real watch as the tester.
+
 Pending proof:
 
+- A browser sign-in (OAuth) from a real assistant, and a link surviving a token refresh.
+- `deposit` and `plot_inbox` on the new host against a live daemon.
 - Two assistants on one daemon (needs a second credential on the rig's gateway).
 - The daemon's unlisted `request_change` against a hosted build from main (unit-test proof only).
-- A signed-in live session on `om.mcp.openmarket.xyz`; that host still serves main's 84-tool list until this branch is merged and deployed.
 
 ## Gotchas
 
@@ -147,3 +166,5 @@ Pending proof:
 - A client that picks tools by name can miss the plot behind `request_change`; the `deposit` listing names it. Seen once each way on 2026-11-11.
 - Claude Code calls an MCP tool before loading its schema when its own tool search is on, so a model guesses argument names; a wrong key costs one round trip. It cost 22 refused calls across 60 runs on 2026-11-12.
 - The dashboard's `/dashboard/watches` address renders an empty page when opened directly; reach Watches through the sidebar link (it lands on `/alerts`).
+- `control-om up` boots `packages/cli/src/bootstrap.ts`, the public entry. Since #2422 the private families load only through `bootstrap.internal.ts`, so a lane has no relay link and an assistant call reads `daemon_offline`. Until the wrapper picks the internal entry, restart the lane daemon by hand with the same env through `bootstrap.internal.ts` and write its pid to the lane's pid file.
+- The image tag for the hosted service is set by the platform controller after the pipeline pushes it. A sync made before the pipeline is green applies the old tag; sync again and check the tag. The server version in `initialize` tells which image a host runs.
