@@ -1,5 +1,7 @@
 # The daemon's own browser
 
+*Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185: the `computer.sources` setting read, set `off`, set `on`; the dashboard Computer page rendered. The browser read itself was not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/computer-sources.txt`, `dash/02-computer.png`).*
+
 *Re-driven on main 2026-11-13 (nightly), tree `298c469dd7` (v0.495.0+internal), guest lane on 18185. `om computer status` (`Computer: off`, the driver and Chrome rows, `Windows: 0 of 4 in use`); `om computer on` from the run's own shell is refused exit 2 (`refusing to approve from an auto-approve harness`), and from a tmux terminal answers `Computer: on` with the `om computer open <address>` next step; `off`; `history`, `stats` and `sites` on an unused computer; `config set computer.asks bogus` exit 2. The dashboard's Computer page. MCP stdio lists no `computer_*` tool. Not re-driven: a task using the browser, the queue, the owner taking over, the MCP `computer_needs_owner_surface` refusals. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/`.*
 
 *On main since 2026-11-12: PR #2442 merged as `9a9fa313d1`, ported onto the public cut (the browser is core; its agent rules live in `packages/cli/src/private/agents/actions/_computer-surface.ts`; `computer-roster.test.ts` moved to `test/private/agents/`). Not yet re-driven on main or on the live daemon. The live build of 2026-11-12 answers `om computer status` with `Computer: off`.*
@@ -91,7 +93,10 @@ Pending proof: the card-field floor on a public checkout page, `om computer off`
 
 ## Blocked sources read through the browser (#2481, on main since 2026-11-13)
 
-What it is: a feed or page source whose host challenges or refuses the plain fetch reads its own address through om's browser, before Firecrawl, with no model call. Setting `computer.sources`.
+What it is: a feed or page source whose host challenges or refuses the plain fetch reads its own address through om's browser, before Firecrawl, with no model call. Setting `computer.sources`, on by default, and it matters only while the computer is on.
+
+- `om config get computer.sources` reads `computer.sources = unset (default: on)`, `rule: on or off`, and the description `Whether a feed or page source a site blocks reads the same address through om's computer; …`.
+- `om config set computer.sources off` answers `om: set computer.sources=off`, and the get then reads `source: config`. `on` turns it back on (driven 2026-11-14).
 
 Recipe, on a daemon whose cooldowns stand (the live one; a fresh lane often reads the same hosts by plain fetch):
 

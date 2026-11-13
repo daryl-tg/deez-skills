@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `paper create verify-book --yes` (`cash: 1000`, `desk: off`), `paper ls` (`starting_cash 1000`, `open_lots 0`), `paper show verify-book` (rules `ticket 25`, `ticket_cap 50`, `entries_per_day 4`, `open_stakes 250`), and `paper digest --format text` (`Paper verify-book`, `Cash: $1,000.00`, `Fills: none`). Not re-driven: the Paper tab, reset. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/paper-kscript.txt`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. Refusals only: `paper create` without `--yes` exits 2 `confirmation_required`, and `paper show` on a name that does not exist exits 2 `paper_book_unknown` with the `om paper ls` hint. Not re-driven: create with `--yes`, `ls`, `digest`, the Paper tab. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `paper create verify-book --yes` (cash 1000, `desk: off`) and `paper show`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/paper-*.txt`).*

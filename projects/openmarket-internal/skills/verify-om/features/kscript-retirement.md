@@ -1,5 +1,7 @@
 # Retired kScript package kinds
 
+*Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `search rsi --kind kscript-indicator --format json` exits 2 `kind_retired` with the `--kind wrun-indicator` hint. `open @om-core/rsi --print --format json` failed `request_failed` (`deadline exceeded after 30000ms`): the lane's default registry, `registry-staging.openmarket.xyz`, did not answer at all, and production answered 200. That is an outage outside om, so `open` stays as last proved on 2026-11-11. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/paper-kscript.txt`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `search rsi --kind kscript-indicator --format json` exits 2 `kind_retired` with the `--kind wrun-indicator` hint; `open @om-core/rsi --format json` resolves `wrun-indicator` 0.3.4. `search --kind kscript` (not a kind name) answers an empty result, exit 0. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `search rsi --kind kscript-indicator` exits 2 `kind_retired`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/ks-search.txt`).*

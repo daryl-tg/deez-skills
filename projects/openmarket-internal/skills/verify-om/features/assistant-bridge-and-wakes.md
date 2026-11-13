@@ -1,5 +1,7 @@
 # Assistant bridge: daemon tools, deposit and wakes through the hosted MCP
 
+*Re-checked 2026-11-14 (nightly, source only) against origin/main `05300a3142`: #2482 is on main as `172a688d37`, and the 12,000-character budget is `SCHEMA_ANSWER_MAX_CHARS` (`runner/http/assistant-catalog-call.ts:55`). Nothing here was driven this pass.*
+
 *Re-checked 2026-11-13 (nightly, source only) against origin/main `298c469dd7`: since #2470 (`1107bf7c86`) the hosted om face lists ten tools (`find`, `describe`, `read`, `change`, `deposit` and five reads), and every other daemon action is a catalog entry reached through `find`, `describe`, `read` and `change`. The tool counts in the older records below (23, 61, 83, 84) describe the face before #2470. Not re-driven: the rig needs the hosted binary, Mongo and a relay stand-in.*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. On main for the first time: `om assistants` prints `Assistants are off on this daemon. Turn them on with \`om assistants on\`.` and `No assistant has asked yet. Connect one to OpenMarket's MCP server and its first call asks here.`; `--format json` `{"assistants":[]}`; `--help` lists `list`, `on`, `off`, `allow`, `wake` (and the rest); MCP stdio lists `assistant_list` (485 tools) and answers `{assistants:[]}`. Not re-driven on main: the hosted forward, `deposit`, subscribe and signed wakes, which need the hosted binary, Mongo and a relay stand-in. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
@@ -156,7 +158,7 @@ Pending proof:
 - Two assistants on one daemon (needs a second credential on the rig's gateway).
 - The daemon's unlisted `request_change` against a hosted build from main (unit-test proof only).
 
-## Answer budget, pages and agent runs (PR #2482, open on 2026-11-13, not on main yet)
+## Answer budget, pages and agent runs (#2482, on main as `172a688d37` since 2026-11-13)
 
 *Driven on the rig on 2026-11-13 on build `01982b88d3` (the PR commit `983e706dc8` is that tree squashed and rebased): 120 watches written as files, one paper account, 200 journal events, the hosted binary on 18119, the lane on 18150. Evidence: `http://127.0.0.1:8098/assistant-answers/r1/`. Not driven live: the live daemon and the live hosted host do not carry it yet.*
 

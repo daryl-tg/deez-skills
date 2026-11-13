@@ -1,5 +1,7 @@
 # Chat workspace TUI (`om chat`)
 
+*Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), bare lane on 18187 with a fake model on 18186, private tmux at 170x45. The workspace opened on `What's new · 1 of 22` (`Workspace is now the default`); ctrl+x `.` showed `2 of 22` `Blocked sources read in om's browser` (`A source a site blocks reads in om's browser.`, `No model call, and no human check is passed.`), then `3 of 22` `Cap your monthly model spend`. `/version` read `revision  not embedded in this build` and `daemon  0.495.0, pid <lane pid>`. Not re-driven: page tabs, sidebar cards, `/watches`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/tui-0*.txt`).*
+
 *Re-driven 2026-11-13 (nightly), tree `298c469dd7` (origin/main, v0.495.0+internal), bare lane on 18187 with a fake model on 18186, private tmux at 170x45. The workspace opened on `What's new · 1 of 21`; ctrl+x `.` showed `2 of 21` `Cap your monthly model spend` (`One dollar limit for chat, watches, agents.`, `[ Show me ]  set spend.monthly_usd`), then `3 of 21`. `/version` read `om 0.495.0`, `revision  not embedded in this build`, `daemon  0.495.0, pid <lane pid>`. Not re-driven: page tabs, sidebar cards, `/watches`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/` (`tui/`).*
 
 *Re-driven 2026-11-12 (nightly), tree `82094c3a83` (origin/main, v0.495.0+11), bare lane on 18193 (dummy `OM_API_KEY`, dead service URLs) with a fake model on 18192, private tmux at 170x45. The workspace opened with the page tab bar on rows 1 to 3 and `What's new · 1 of 20` (`Workspace is now the default`); ctrl+x `.` paged all twenty: `Publish an agent you made` (2), `A morning brief, on by default` (3), `Tabs across the top of every page` (4), `Check your numbers on a schedule` (5), `See which om build you are on` (6), last `Nerd Font icons` (20). **Page tabs re-driven on the merged tree:** `/watches` lit `watches` (row 2, background 227,233,239) with `4 watches · as of 05:20` at the right; `]` seven times lit news, follows, packages, wallet, notis, usage, then chat; ctrl+x `1` lit `agents`. `/version` read `om 0.495.0`, `revision  not embedded in this build`, `daemon  0.495.0, pid <lane pid>`; a turn answered with the fake's text. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261112/r1/` (`tui/`).*
@@ -196,7 +198,7 @@ nothing, and it streams long replies, which the scroll checks need.
 - **What's new card (fresh lane).** It needs a home with `chat.workspace` unset
   and no dismissals. Run `./launch.sh` with no flag and wait about 15 s. The
   workspace opens (`display -p '#{mouse_any_flag} #{alternate_on}'` reads `1 1`)
-  with a `╭─ What's new · 1 of N ── ‹ › ✕ ╮` box (N was 20 on 2026-11-12) at the foot of the transcript pane:
+  with a `╭─ What's new · 1 of N ── ‹ › ✕ ╮` box (N was 22 on 2026-11-14) at the foot of the transcript pane:
   `Workspace is now the default` and `[ Turn it off ]   ctrl+x for commands`.
   `C-x` opens a menu with `b hide sidebar`, `p panels`, `a agents`
   (see [agents-cli-and-tui.md](agents-cli-and-tui.md)),

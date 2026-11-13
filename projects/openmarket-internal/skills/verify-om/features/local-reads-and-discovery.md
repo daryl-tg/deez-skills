@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, no guest 429. First live proofs: the sealed-secrets doors and verbs added by the secrets series (`7e5a380b20` to `9d7308e143`), and the weekly-candles refusal (#2503). Not re-driven: the series, plans, `enum` and `schema` reads. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/secrets-*`, `cli/wrun-weekly-*`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `config show` (masked key), `config key-info`, `enum`, `wrun templates`, `notis --format json` (the fire row), `wrun create @nightly/sizeprobe --template sma` (`.wrun-scaffold` `scaffold_version: 118`) and `wrun build` on it; `schema read watch_create` is `unknown_intent` with the intent list; `todo list --space x` is `room_social_failed` `Unauthorized`; `skill list` takes no `--format`. Not re-driven: the size-unit warning, `space_muted`, the interval-window warning. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `config show` (masked), `enum --list` (`exchange_id` 38), `skill list`, `schema read condition_create`, `wrun templates` (93). First live proof of `wrun-size-unit-words` (#2430): the `cvd-divergence` scaffold builds four CVD outputs with no warning; ungated, build and validate warn; as `@om-core/cvd-probe`, validate exits 2 `wrun_size_unit_word`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/wrun-cvd-*.txt`).*
@@ -74,12 +76,13 @@ bundled constants. None needs an account or a model.
 - `wrun-regimes-flat` (added 2026-11-09, #2414): `wrun create <id> <dir> --template positioning-regimes` writes the `flat` histogram output (`theme.muted`), and `wrun build` lists `wrun/<id>/flat` beside `regime`. A flat bar's values are unit-tested; the build proves only the output exists.
 - `wrun-style-names` (added 2026-11-09, #2407): scaffold **118**. The sheet gains a top-level `style_names` table, and `label` / `color_labels` on marks, spans, rays, flags, renderers and outputs. An `@om-core` package with an unnamed Style line, or an unnamed colour list of two or more, is refused `wrun_style_unnamed` at publish and by `om wrun validate` (`runner/wrun/authoring.ts:1359`); other scopes are not refused. The `positioning-regimes` template names every line, so `wrun validate` on an `@om-core` copy passes; the refusal itself is source only.
 - `wrun-size-unit-words` (added 2026-11-10, #2430): `wrun build` and `wrun validate` warn when an output's `unit` names a size word (`coins`, `shares`, `sh`, `contracts`) on every market: `output 'cvd' prints " coins" on every market, but only a size_unit 1 market counts in coins: gate it with visible_by: { size_unit: [1] } beside a twin without the word on [0, 2, 3]`. An `@om-core/` package is refused at `wrun validate` (and `om publish`) with `wrun_size_unit_word`, exit 2. The CVD Divergence template (0.3.0) builds `cvd` and `cvd_swing` gated to `size_unit [1]` and the unitless twins `cvd_units` and `cvd_swing_units`, with no warning.
+- `wrun-weekly-calendar-backing` (added 2026-11-14, #2503): an input that reads weekly candles (`candles.cells` with `interval: "1w"`) is refused for an `@om-core/` package by `wrun validate` (and `om publish`) with `wrun_weekly_calendar_backing`, exit 2, naming the line and the daily-candles repair. A line ending `// om-allow weekly-candles: <reason>` passes. Any other scope passes with a `warnings[]` entry in `validate`'s JSON and a row under `Warnings:` in `wrun build`.
 - `wrun-build-window-warning` (added 2026-11-08, #2405, scaffold 117): `wrun
   build` warns `WRUN_DECL_INTERVAL_WINDOW_SHORT` when a window fed by an input
   pinned to a coarser interval cannot fill: a scalar pin updated once per pinned
   candle, or a `candles.cells` stream with no `bars` or `bars` short of the
   window. The warning names the input, the class and its window, and the repair.
-- Local series authoring (`om series create|list|show|delete`) and the marketplace listing refusals of `om series publish --price|--stop-sales|--resume-sales|--free` (#2240), the plan table (`om upgrade --show`, `om usage plans`) and the sealed-secrets status read (`GET /secrets/status`).
+- Local series authoring (`om series create|list|show|delete`) and the marketplace listing refusals of `om series publish --price|--stop-sales|--resume-sales|--free` (#2240), the plan table (`om upgrade --show`, `om usage plans`) and the sealed-secrets reads and doors (`GET /secrets/status`, `/secrets/devices`, `/secrets/link/pending`; `om secrets status|devices`), with the refusals of the link and reset doors.
 
 ## How to get to it (user POV)
 
@@ -135,7 +138,13 @@ decode.
   - `upgrade --show --format json` is static: the guest note is "Guest keys (no sign-in) get 600 weight per 60s window and 7 days of history…", followed by the plan list.
   - `usage plans --format json` returns `{"providers":[]}`.
   - `subscriptions --format json` exits 1 with `account_required`.
-- **Secrets status:** `GET /secrets/status` returns 200 `{"ok":true,"data":{"userId":"guest_…","readiness":"unminted","hasRecoveryBlob":false,"recoveryUnavailable":true,"alarms":[]}}`. It is not a 401, because the lane mints its own guest key.
+- **Secrets status:** `GET /secrets/status` returns 200 `{"ok":true,"data":{"userId":"guest_…","readiness":"unminted","hasRecoveryBlob":false,"recoveryUnavailable":true,"recoveryVerified":false,"alarms":[],"presence":{"platform":"darwin","enforced":true}}}`. It is not a 401, because the lane mints its own guest key. `om secrets status --format text` prints `no identity minted yet`, `recovery: unknown (relay unreachable …)`, `check:    device owner asked before sealed actions` and `alarms:   none`.
+- **Secrets devices and link (added 2026-11-14):** `GET /secrets/devices` reads `{"devices":[]}` and `om secrets devices` prints `Devices:  none listed`. `GET /secrets/link/pending` reads `{"state":"none"}`.
+- **Secrets door refusals (added 2026-11-14):** these answer before any relay call or Touch ID prompt.
+  - `GET /secrets/reset` is 405 `method_not_allowed`, and `POST /secrets/link/pending` is 405.
+  - `GET /secrets/nope` is 404 `unknown secrets verb: nope`.
+  - `POST {}` to `/secrets/link/approve` is 400 `pairingId is required`; to `/secrets/link/join` and `/secrets/reset` it is 400 `code is required`. A non-JSON body is 400 `expected JSON body`.
+  - A non-loopback `Host` header is 403 `host_not_allowed` from the daemon's own guard, so the secrets-only `secrets_local_only` 403 cannot be reached this way on a loopback lane.
 
 ### The interval-window warning (added 2026-11-08)
 
