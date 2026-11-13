@@ -145,6 +145,12 @@ and prints the exact fix: export
 `KIYO_BROWSER_ARGS='--host-resolver-rules=MAP <gateway> <address>'`, close the
 browser session, and reopen it so Chromium starts with the map. With the map
 set, the line reads `reachable at <address>` and the lane is drivable.
+When neither resolver knows the name and the last known address does not
+answer, the line prints the other fix: export
+`VITE_V2_WEB_SOCKET_DOMAIN=wss://api.chart.ore.openmarket.xyz/v2/`, the public
+gateway the live site uses, then `down`, `up` and reopen the browser session.
+Keep it exported for every later `doctor`: the wrapper reads a `VITE_*` value
+from the process env before `.env.local`, as vite does.
 
 **The `chart-schema` line is the one that silently burns a run.** `vite.config.ts`
 aliases `@orangecharts/chart-schema` to the *sibling* `orange-shared` checkout's

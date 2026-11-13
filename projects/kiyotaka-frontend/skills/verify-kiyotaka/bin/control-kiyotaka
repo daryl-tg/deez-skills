@@ -4,6 +4,7 @@ set -euo pipefail
 PORT="${KIYO_LANE_PORT:-18097}"
 SESSION="${KIYO_SESSION:-verify-kiyotaka}"
 TAILNET_DNS=100.100.100.100
+PUBLIC_V2_GATEWAY=wss://api.chart.ore.openmarket.xyz/v2/
 GL_ARGS="--use-angle=swiftshader,--enable-unsafe-swiftshader${KIYO_BROWSER_ARGS:+,$KIYO_BROWSER_ARGS}"
 USAGE='usage: control-kiyotaka {up|down|url|doctor|browser <verb> [args...]|cli -- <command...>|evidence check <run-id> <revision>}
   env: KIYO_LANE_PORT (default 18097, agent range 18097-18197), KIYO_SESSION (default verify-kiyotaka),
@@ -35,7 +36,11 @@ in_agent_range() { [ "$PORT" -ge 18097 ] && [ "$PORT" -le 18197 ]; }
 listener_pids() { lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true; }
 pid_cwd() { lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -1; }
 http_code() { curl -s -o /dev/null -w '%{http_code}' --max-time "${2:-10}" "$1" || true; }
-env_value() { sed -n "s/^$1=//p" "$ENV_FILE" 2>/dev/null | tail -1 | tr -d '"' | tr -d "'"; }
+env_value() {
+  local v; v="$(printenv "$1" || true)"
+  if [ -n "$v" ]; then printf '%s' "$v"; return; fi
+  sed -n "s/^$1=//p" "$ENV_FILE" 2>/dev/null | tail -1 | tr -d '"' | tr -d "'"
+}
 host_of() { printf '%s' "$1" | sed -E 's#^[a-z]+://##; s#[/:].*$##'; }
 
 cmd_url() { printf '%s\n' "$LANE_URL"; }
@@ -147,7 +152,7 @@ cmd_doctor() {
         printf 'v2 gateway   %s UNREACHABLE through the system resolver; the tailnet resolver %s answers %s, which is reachable. Fix: KIYO_BROWSER_ARGS='"'"'--host-resolver-rules=MAP %s %s'"'"', then reopen the browser session\n' \
           "$gw" "$TAILNET_DNS" "$tailnet" "$gw" "$tailnet"
       else
-        printf 'v2 gateway   %s UNREACHABLE (system resolver and tailnet resolver %s)\n' "$gw" "$TAILNET_DNS"
+        printf 'v2 gateway   %s UNREACHABLE (system resolver and tailnet resolver %s). Fix: export VITE_V2_WEB_SOCKET_DOMAIN=%s, then down, up and reopen the browser session\n' "$gw" "$TAILNET_DNS" "$PUBLIC_V2_GATEWAY"
       fi
       fail=1
     fi
