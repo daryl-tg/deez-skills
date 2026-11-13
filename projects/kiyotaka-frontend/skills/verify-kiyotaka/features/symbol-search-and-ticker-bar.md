@@ -4,7 +4,12 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-13 against product tree `963af59de1`
+was last DRIVEN on 2026-11-14 against product tree `c7d4eccfac`
+(`origin/main`, 62 commits past `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): the V2 dialog (`v2` 20,
+`legacy` 0), `venue-row-BINANCE_FUTURES|SOLUSDT-btn` and `-ETHUSDT-btn`, the
+quick intervals, the interval menu with no `Custom…` row for a guest, and a
+`GC1!` search that found nothing on this lane. Before that, last DRIVEN on
+2026-11-13 against product tree `963af59de1`
 (`origin/main`, 87 commits past `74ccd3cdcc`), lane `18103`, a guest-JWT lane.
 Driven that day: `venue-row-BINANCE_FUTURES|BTCUSDT-btn`, `-ETHUSDT-btn` and
 `-SOLUSDT-btn`; `tb-interval-pinned-1m-btn` to `1m` (586 bars on SOLUSDT);
@@ -443,6 +448,14 @@ Preconditions:
   `tb-interval-pinned-1h-btn` and `tb-interval-pinned-1m-btn` both exist. For the full list use `button "Interval"` — that is the
   chevron, and interval binds hover-open to the chevron only, so a snapshot after
   a plain click on the label proves nothing.
+  **Typed widths have a menu row behind a dark flag (`de79bfe6e9`,
+  `9e3f9d33eb`; source).** With `typed-interval-widths` on, the desktop menu
+  leads with `tb-interval-custom-btn` (`Custom…`), which turns into
+  `tb-interval-custom-input` (placeholder `20, 90, 3h`) and a
+  `tb-interval-custom-hint` (`20m ↵` or `not available`); the offered widths
+  are `4m 6m 8m 9m 12m 16m 18m 20m 40m 80m 90m 3h`. A guest reads the flag
+  off: on 2026-11-14 the menu opened from `tb-interval-chevron-btn` with
+  `tb-interval-option-tape-btn` first and no `tb-interval-custom-btn`.
 - **Chart type.** `button "Candle"` peeks on hover and pins on click; the entries
   (`Hollow Candle`, `Heikin Ashi`, `Line`, `Line with Markers`, `Step Line`,
   `HLC Area`, `Area`, `Baseline`) do snapshot, so `hover` then `snapshot` proves

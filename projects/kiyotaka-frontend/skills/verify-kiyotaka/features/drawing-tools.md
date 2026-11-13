@@ -3,7 +3,11 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last re-driven 2026-11-13 on `963af59de1`
+lock, settings and delete. Last re-driven 2026-11-14 on `c7d4eccfac`
+(`origin/main`, 62 commits past `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): a trend line placed and
+deleted, an FRVP's settings put back by Reset (see `dt-frvp`), and the chart
+menu's price card with its Copy price and Add alert (see `dt-chart-menu`).
+Before that, re-driven 2026-11-13 on `963af59de1`
 (`origin/main`, 87 commits past `74ccd3cdcc`, lane `18103`, a guest JWT) on
 BINANCE.F SOLUSDT: an FRVP drawn from Super Search's tool row with its new
 settings (see `dt-frvp`), the Order submenu's two rows and its hint (see
@@ -118,6 +122,8 @@ the cancelled creation, the right-click menu and the magnet.
   background, and range stats.
 - `dt-multi` with several drawings selected, the right-click menu, the
   floating toolbar and the gear act on all of them (source only).
+- `dt-chart-menu` a right-click on the plot opens the chart menu, led by a card
+  with the price under the pointer, a copy button and an alert button.
 
 ## How to get to it (user POV)
 
@@ -195,7 +201,8 @@ the top overlay cleared.
   and a `CHART` section (`chart-ctx-paste`, `-copy-price`,
   `-add-to-watchlist`, `-reset-view`, `-add-alert`, `-grid`, `-settings`,
   `-report-problem`, `-remove-indicators`). Every row leads with an icon
-  (`5c2d8603a6`). On a Trend Line a guest got no `chart-ctx-drawing-alert`
+  (`5c2d8603a6`). Since `c075ba7681` `-copy-price` and `-add-alert` sit in
+  the price card that leads the CHART section (see `dt-chart-menu`). On a Trend Line a guest got no `chart-ctx-drawing-alert`
   or `-sync` row. A flat drawing differs: a guest's Horizontal Line listed
   `chart-ctx-drawing-alert` (driven 2026-11-12, see `dt-alert`).
   `chart-ctx-drawing-remove` deletes the line. **The Order submenu (driven
@@ -271,6 +278,28 @@ the top overlay cleared.
   overlay's `settings` read `displayMode` `cluster` and `rangeCandle`
   `body`, and the box drew cells with a range candle at its left. Remove it
   with right-click → `chart-ctx-drawing-remove`.
+  **Reset puts back the stock profile (driven 2026-11-14 on `c7d4eccfac`;
+  `01f008b490`).** The card's `tool-settings-reset-btn` after `Volume
+  Cluster` (`cluster`) and `Candle` (`body`) read `displayMode` `buyAndSell`
+  and `rangeCandle` `none` again. Source: it also restores the bar width,
+  orientation, value area, ticks per row, theme colours and a box with no fill
+  or frame, and keeps the window, Follow chart, session, market and block
+  size. The Display mode trigger is the `combo-box-trigger-btn` whose text is
+  its value (`Total`); the row label sits under a `Display` heading.
+- **`dt-chart-menu` (driven 2026-11-14 on `c7d4eccfac`; `c075ba7681`).**
+  With nothing under the pointer, `mouse move 700 300`, `mouse down right`,
+  `mouse up right`. The menu now opens with `chart-ctx-price-card`:
+  `chart-ctx-price` (the price at the pointer, read `80.26`),
+  `chart-ctx-copy-price` (`aria-label` `Copy price`) and `chart-ctx-add-alert`
+  (`Add alert`), then `chart-ctx-paste`, `-add-to-watchlist`, `-reset-view`,
+  `-grid`, `-settings`, `-report-problem` and `-remove-indicators`. The old
+  `Copy price {price}` and `Add alert on {symbol} at {price}` rows are gone
+  from the main pane (a sub-pane keeps `Copy price`). A guest gets no size row
+  and no `chart-ctx-order-buy` or `-sell` (they need a trading session).
+  `chart-ctx-copy-price` toasted `Copied 80.26 to clipboard` and closed the
+  menu. `chart-ctx-add-alert` opened the price alert dialog at the clicked
+  price with no wall, and its `Set Alert` showed a raw `Unauthenticated`
+  line (the open product gap in `dt-alert`).
 - **`dt-multi` (source, `c3395cb9e8`, `443e995b45`, `732cb5c3e3`,
   `203e8aa0c6`, `4187613adb`, `616fd44539`).** With several drawings selected
   the right-click heading reads `{count} drawings` and drops

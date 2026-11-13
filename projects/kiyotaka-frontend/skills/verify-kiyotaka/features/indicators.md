@@ -4,7 +4,13 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-13 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-14 against
+product tree `c7d4eccfac` (`origin/main`, 62 commits past `963af59de1`),
+lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): a `pivot points` fill listed
+`indicator-name-pivot-points-standard-official-pivot-points`, whose detail
+read `v0.1.5` (`ab701ff15c`: Quarterly and Yearly levels read the right
+period), and its `Add to chart` raised the `indicators` wall with the counter
+still `Indicators 1/3`. Before that, last DRIVEN on 2026-11-13 against
 product tree `963af59de1` (`origin/main`, 87 commits past `74ccd3cdcc`), lane
 `18103`, a guest-JWT lane: `tb-indicators-btn` opened `indicator-panel-v2`,
 an `RSI` fill listed

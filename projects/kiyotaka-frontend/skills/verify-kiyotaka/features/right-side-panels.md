@@ -5,7 +5,17 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-13 against product tree `963af59de1` (`origin/main`, 87
+DRIVEN on 2026-11-14 against product tree `c7d4eccfac` (`origin/main`, 62
+commits past `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): the Panels menu's 17 rows, the Orderbook
+(`orderbook-canvas`) and the Tape that took its seat printing on COINBASE
+BTC-USD (`69,022.79▲`, `No liquidation feed for these markets`), and the
+`watchlist` wall from its row. The first Orderbook open made vite reload the
+page (see the README). Source since `963af59de1`: CME, options and US stock
+books, the DOM, the delta, the Tape and the Footprint panel now print a whole
+size under 1,000 with no decimals (`12`, not `12.00`), and the Delta drawer
+locks its USD segment on a CME book (`aria-disabled`, tooltip `USD sizing
+isn't available for CME futures. This book is served in contracts.`); the
+crypto default shows neither. Before that, last DRIVEN on 2026-11-13 against product tree `963af59de1` (`origin/main`, 87
 commits past `74ccd3cdcc`), lane `18103`, a guest-JWT lane: the Tape on
 COINBASE BTC-USD printing with its Liquidations dock reading `No liquidation
 feed for these markets`, on BINANCE.F SOLUSDT printing liquidation rows, and on

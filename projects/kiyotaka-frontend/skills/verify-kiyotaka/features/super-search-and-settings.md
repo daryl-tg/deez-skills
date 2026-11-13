@@ -7,6 +7,11 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-14 against product tree `c7d4eccfac` (`origin/main`, 62 commits past
+`963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): the price line style rows (see `set-price-line`), the
+Tooltips row and switch (see `set-tooltips`), a typed `EURUSD` in the palette
+(see `ss-forex`), the absent trade rows, the password pane's refusal line (see
+`guest-refusal`) and Release Notes for a guest. Before that, last DRIVEN on
 2026-11-13 against product tree `963af59de1` (`origin/main`, 87 commits past
 `74ccd3cdcc`), lane `18103`, a guest-JWT lane: the `Settings` row and its
 dialog (see `ss-settings`), `performance`, the formula gate (see
@@ -172,6 +177,14 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
 - `ss-cursor` until the pointer or an arrow moves, the highlighted row is the
   first row after every keystroke, and words typed apart find one name.
 - `ss-typed-interval` the comma key opens the palette to type an interval.
+- `set-price-line` the Price axis page sets the last price line's width and
+  its bullish and bearish colours, and the palette finds each row.
+- `set-tooltips` one switch hides or shows the app's tooltips, on the Display
+  page and as a palette row.
+- `ss-forex` a forex pair typed in the palette (`EURUSD`, `XAU/USD`) lists the
+  pair and charts it.
+- `guest-refusal` a refused sign-in says so in the app's words, never the
+  server's.
 
 The editor row is covered in [script editor](./script-editor-and-kscript.md)
 `ks-open`.
@@ -482,6 +495,54 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   signed-in trading context.
 
 - **Proof.** The store read, the overlay or page testid, and a screenshot.
+- **`set-price-line` (driven 2026-11-14 on `c7d4eccfac`; `fd7c368a8c`).** Fill
+  `price line width` and click `super-search-result-axis:price-line-width-btn`
+  (the palette also lists `Bullish price line` and `Bearish price line`; all
+  three open the page and toggle nothing). The docked settings card opens on
+  `chart-settings-page-priceAxis`, where `price-axis-line-width` (`Price line
+  width`, `1 px`), `price-axis-line-bullish` and `price-axis-line-bearish`
+  (colour pickers) sit under `Last price`. They show only while Last price is
+  `Line` or `Both`: its `segmented-label-btn` hid all three, and
+  `segmented-line-btn` brought them back. The width is a scrub number whose
+  value span covers its input, so a click on the input fails with `covered by
+  <span.scrub-number__value>`: run `browser click "[data-testid=price-axis-line-width]
+  .scrub-number__value"`, type the width and press `Enter`. Proof:
+  `chartStore.mergedAllCharts[0].metadata.customChartStyles` read
+  `{"priceLineWidth":2}`; the card's `overlay-settings-reset-defaults-btn`
+  cleared it to `{}`. An edit made while the tab is hidden never reaches the
+  store (the write waits for an animation frame): re-front the tab first.
+- **`set-tooltips` (driven 2026-11-14; `af600b6397`).** Fill `tooltips`: the
+  row `super-search-result-tooltips:global:tooltips-btn` reads `Tooltips Hide
+  tooltips ON`. Its click wrote `localStorage['kiyotaka:tooltips:v1']` `off`
+  and put `tips-off` on `document.body`; the row then read `Show tooltips
+  OFF`, and a second click wrote `on`. On the Display page
+  (`chart-settings-page-display-btn`) the group `display-settings-group-general`
+  (`General`) holds `tooltips-setting-row` (`Tooltips`, `The small box that
+  names a button when the pointer rests on it`) with an `on-off-toggle-btn`
+  (`aria-checked` `true`). Desktop only. The app now draws its own tooltip in
+  place of the browser's `title` box.
+- **`ss-forex` (driven 2026-11-14; `40c9e7f45c`).** Fill `EURUSD`:
+  `super-search-result-symbols:forex:EUR-btn` (`EURUSD Euro · Forex`) leads,
+  then `symbols:open-search`. `XAU/USD` listed `symbols:forex:XAU-btn`
+  (`XAUUSD Gold (one troy ounce) · Forex`). The EUR row charted `FX_OTC`
+  `EUR/USD` (252 bars), and on `4h` the bars held through 65 s
+  (`9089a0c6c6`).
+- **`guest-refusal` (driven 2026-11-14; `c93de362ff`).** Raise the wall
+  (`global-nav-screenshot-btn`), click `login-signup-use-password-btn`, fill
+  `.login-signup-overlay input[type=text]` with a made-up address and
+  `input[type=password]` with 8 to 20 characters (a 21-character password
+  keeps `Log In` disabled: the rules cap it at 20), then
+  `login-signup-submit-btn`. Proof: `login-signup-failure` read `Could not
+  sign in with that email and password. Try again.`, and the console logged
+  `[auth] signIn refused` with `ZKP_USER_NOT_FOUND`. An unknown address and a
+  wrong password read the same line on purpose. Never submit `Email me a
+  code` (it sends a real code).
+- **Release Notes for a guest (driven 2026-11-14).** The `4.55.0` `Trade with
+  Tradovate.` spotlight (`1a7075d760`, `TradovateLaunchHero`, CTAs
+  `release-spotlight-tradovate-connect-btn` and `-not-now-btn`) is for the
+  `ninjatrader` audience (`futures-trading` and `futures-ninjatrader` on), so
+  a guest's list still starts at `release-notes-version-4.53.0-btn` (`4.53.0
+  Latest Spotlight The US tape.`) with no `4.55.0` row.
 
 
 ## Gotchas
@@ -655,10 +716,15 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   pools out of the exact-ticker row. `academy.ts` adds `academy:open-clips`
   (`clips`, `reels`, `videos`) behind `isChartClipsOn()` (`om-board` and
   `chart-clips`), so a guest sees no clips row (driven: `clips` lists
-  nothing). `settings.ts` adds `trade:futures-order-confirm`, and since
-  `215896e614` also `trade:futures-change-confirm`,
-  `trade:futures-cancel-confirm` and `trade:futures-position-confirm`, all
-  behind the futures flag on desktop (absent for a guest).
+  nothing). `settings.ts` holds the four `Ask before sending` rows,
+  `trade:confirm-order` (`New orders`), `trade:confirm-change` (`Changes`),
+  `trade:confirm-cancel` (`Cancels`) and `trade:confirm-position` (`Flatten,
+  Reverse and Cancel all`), one set for every account since `72b80f37c7`
+  (they replaced the `trade:futures-*-confirm` rows), behind the signed-in
+  trading gate on desktop and phone. `quickTrade.ts` adds `quick-trade-pill`
+  (`Quick trade pill`), listed only while a mounted pill has published its
+  pane. A guest gets neither (driven 2026-11-14: `ask before sending` and
+  `quick trade` list nothing).
   `featureCommands.ts` dropped its `trade-history` and `open-trades` rows for
   a `show-on-chart` row and `show-on-chart:<family>` toggles, listed only while
   the trader's own account draws on a pane (`useOwnChartPanes().listed`), so

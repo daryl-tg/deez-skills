@@ -3,7 +3,11 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-13 against product tree `963af59de1`
+entry was last DRIVEN on 2026-11-14 against product tree `c7d4eccfac`
+(`origin/main`, 62 commits past `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): boot to 250 bars on
+COINBASE BTC-USD 1h with VWAP 10 s after `open`, the last bar's close and
+volume moving between two reads 20 s apart, and the settle dim's ring on two
+light loads (see `boot-settle-dim`). Before that, last DRIVEN on 2026-11-13 against product tree `963af59de1`
 (`origin/main`, 87 commits past `74ccd3cdcc`), lane `18103`, a guest-JWT lane
 with the gateway name mapped to `10.1.1.10` (`doctor` green with the map):
 boot to 250 bars on COINBASE BTC-USD 1h with VWAP 12 s after `open`, the
@@ -139,8 +143,9 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   back to normal.
 - `boot-go-to-date` the footer's Go to date moves the chart to a past window,
   and that window keeps the live price off the tab title and the price axis.
-- `boot-settle-dim` after a pick, the chart dims with `Loading indicators...`
-  until its indicators have drawn.
+- `boot-settle-dim` after a pick, a pane whose indicators are still loading
+  400 ms after its first candles shows a thin load line along the top of the
+  plot until they have drawn; the plot greys only while the pane is held.
 - `boot-scale-held` a zoom gesture pauses the price scale's auto fit, the `A`
   says so, and one click fits the axis again.
 - `wake-heal` after a hidden or sleeping stretch, the wake backfills every blank
@@ -257,10 +262,25 @@ Preconditions:
   `cached-paint-updating-chip` reading `Loading indicators...` for about
   280 ms, and `__dumpKiyoLazyLoadDebug()` held `settle-dim-raised`,
   `settle-dim-paint`, `settle-dim-lowered` (`reason` `settled`, `heldMs`
-  243) and `settle-hold-refused` (`reason` `audience`). The last one is the
-  guest's proof that the pan and zoom hold (`79148c48b8`) is for internal
-  viewers only. The veil and chip are the stale-frame dim's own handles; a
-  stale frame shows `Updating` in the same chip.
+  243) and `settle-hold-refused` (`reason` `audience`).
+  **Since `13a73ab4fb` and `8bf9b42de2` the settle dim has no chip and holds
+  only a heavy page (re-driven 2026-11-14 on `c7d4eccfac`).** The veil carries
+  `data-settle-line` (a 2 px line on its top edge) and, on a pane that is not
+  held, `data-settle-free` (the line alone, no grey wash);
+  `Loading indicators...` now belongs to the window-cell loader only. A hold
+  needs both an internal role and a page load weight of at least 1000 ms on
+  two reads in a row (heatmap 200, script 50, indicator 100 per pane), so a
+  guest's single chart never asks for one and the ring carries no
+  `settle-hold-refused` any more. Driven: `tb-interval-pinned-1h-btn` and
+  then `-1m-btn` on BINANCE.F SOLUSDT with VWAP gave `settle-dim-raised`,
+  `settle-load-weight` (`weight` 0, `heavy` false) and `settle-dim-lowered`
+  (`settled`, `heldMs` 367 and 567, `revealed` empty); a `MutationObserver`
+  saw no veil, because the indicators finished inside the 400 ms reveal. A
+  heavier set (three indicators, or a grid) is needed to photograph the line.
+  **The dim does nothing on a hidden tab:** two loads made while the tab had
+  drifted hidden left no `settle-` event at all. Re-front the tab before the
+  load. The veil and `cached-paint-updating-chip` remain the stale-frame
+  dim's handles; a stale frame shows `Updating` in the chip.
 - **`boot-scale-held`: the price scale's paused auto fit (driven 2026-11-13 on
   `963af59de1`; `58ea64190f`).** Read
   `[data-testid=price-scale-corner-auto]`: `data-scale-state` is `auto`,
