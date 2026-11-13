@@ -11,12 +11,15 @@ read exactly as the trading store writes it, at most six fraction digits), `evm-
 and `solana-connect`, and every request carries `issuedAt`, the app's clock when it opened the page; an old request
 reads expired. It has an EIP-1193 face for Hyperliquid (connect, approveAgent, approveBuilderFee, usdClassTransfer,
 personal_sign) and a Wallet Standard face for the 1-click link proof (connect, signMessage, and no transaction
-signing). Last driven 2026-11-13 on tree `963af59de1` (`origin/main`; the sign page, `sign-request.util.ts`, the handoff
-and wallet utilities, `handoff.mjs` and `desktop-sign.mjs` unchanged), on a testnet lane warmed to `71,381.7 BTC-USD`
-while the v2 streaming host did not resolve, with the console session locked, with the same results: the six sign-page
-states by hand through agent-browser (`sign-by-hand/sign-*.png`), `run sign` failing `desktop-sign-summary` (78 s,
-MetaMask 13.50.0; `desktop-sign.mjs` still carries no `issuedAt`), `hl` once to the `personal_sign` stall at
-`handoff.mjs:645` (200 s), and `solana` at the Phantom pin (22 s). Before that, driven 2026-11-12 on tree `74ccd3cdcc` (`origin/main`; the sign page, `sign-request.util.ts`, the
+signing). Last driven 2026-11-14 on tree `c7d4eccfac` (`origin/main`; the sign page, `sign-request.util.ts`, the handoff
+and wallet utilities, `handoff.mjs` and `desktop-sign.mjs` unchanged), on a testnet lane warmed to `68,888.2 ▼ BTC-USD`
+with 1 bar while the v2 streaming host did not resolve, with the console session locked, with the same results as
+2026-11-13 on `963af59de1`: the six sign-page states in one Playwright pass of fresh Chromium pages
+(`sign-kinds/sign-*.png`: the agent summary, expired, a truncated `r` invalid, "Transfer USDC" Spot to perps 25.5 and
+Perps to spot 100, `1.2345678` invalid), `run sign` failing `desktop-sign-summary` (72 s, MetaMask 13.50.0;
+`desktop-sign.mjs` still carries no `issuedAt`), `hl` once through connect and two approveAgent returns to the
+`personal_sign` stall at `handoff.mjs:645` (211 s), and `solana` at the Phantom pin (21 s, "Phantom CRX is not the
+pinned 26.32.0 build", `handoff.mjs:95`). Before that, driven 2026-11-12 on tree `74ccd3cdcc` (`origin/main`; the sign page, `sign-request.util.ts`, the
 handoff and wallet utilities, `handoff.mjs` and `desktop-sign.mjs` unchanged since `c2c02b7b42`), on a testnet lane
 warmed to `73,659.9 ▲ BTC-USD` with 250 bars and the console session unlocked, with the same results: the six sign-page
 states in one Playwright pass of fresh Chromium pages (`chromium-pages/page-sign-*.png`), `run sign` failing

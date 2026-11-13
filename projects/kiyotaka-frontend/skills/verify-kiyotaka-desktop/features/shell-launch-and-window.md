@@ -11,12 +11,14 @@ views fill what the screen shows of the window, never the raw content size: in f
 maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
 content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
-2026-11-13 on product tree `963af59de1` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`, still 0.1.10) with the
-console session locked again, at a load average of 4 to 7 on 10 cores. The `window` scenario on production, run on its
-own, passed 9 of 12 in 103 s: the first launch, the second instance and the saved bounds passed, and the three relaunch
-checks went red on the lock, the same split as from 2026-10-29 to 2026-11-10. `capture --prod` logged `desktop: loaded
+2026-11-14 on product tree `c7d4eccfac` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`, still 0.1.10) with the
+console session locked, at a load average of 5 to 7 on 10 cores, the same result as 2026-11-13 on `963af59de1`. The
+`window` scenario on production, run on its own, passed 9 of 12 in 103 s: the first launch, the second instance and the
+saved bounds passed, and the three relaunch checks (`relaunchBtcTitle`, `relaunchCanvas`, `relaunchMaximized`) went red
+on the lock, the same split as from 2026-10-29 to 2026-11-10. `capture --prod` logged `desktop: loaded
 https://openmarket.xyz/chart/` and then failed after 240 s with "the window had no display surface", leaving only
-`shell-chart-prod.shell.log`; the last frames are 2026-11-12's. Before that, driven
+`shell-chart-prod.shell.log`; the last frames are 2026-11-12's. In the combined `run launch ... window links` the
+`links` half throws, so no JSON summary prints and the `window` result is lost; run `window` on its own. Before that, driven
 2026-11-12 on product tree `74ccd3cdcc` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`) with the console session
 unlocked for the first time since 2026-10-28, at a load average of 5 to 20 on 10 cores. The `window` scenario on
 production, run on its own, passed 12 of 12 in 36 s: first launch `73,736.4 ▲ BTC-USD`, the second instance focused it,

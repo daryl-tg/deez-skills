@@ -7,7 +7,7 @@ plot region is blank in either capture; a step also fails when the hosts disagre
 steps plus the `login-wall` pair) and a signed-in phase (about 70 `si-*` steps plus `si-oauth-<provider>`; `ad67d47c62`,
 on 2026-11-02's tree, retired `si-panel-trades-liquidations` and renamed the `panel-tape` inventory row "Tape /
 Footprint panel", since one tape now serves every market, and left the guest steps alone) that signs in as the
-operator's real account on the deployed chart. On 2026-11-13 on tree `963af59de1` (`origin/main`; `parity.mjs` unchanged) it was not run: `nc -z tsdb-gateway.int.ore.kiyotaka.ai 443` did not resolve before the first drive or after the last, and the engine on the dev lane held 0 bars under a `BTC-USD` title. Last driven 2026-11-12 on tree `74ccd3cdcc` (`origin/main`;
+operator's real account on the deployed chart. On 2026-11-14 on tree `c7d4eccfac` and 2026-11-13 on `963af59de1` (`origin/main`; `parity.mjs` unchanged) it was not run: `nc -z tsdb-gateway.int.ore.kiyotaka.ai 443` did not resolve before the first drive or after the last, and the engine on the dev lane held 1 bar under `68,845.6 ▼ BTC-USD` and the "Still reconnecting" bar (0 bars under `BTC-USD` on 2026-11-13). Last driven 2026-11-12 on tree `74ccd3cdcc` (`origin/main`;
 `parity.mjs` unchanged, and no testid it reads went dead since `c2c02b7b42`), guest steps named, with the console session
 unlocked, at a load average of 4 to 15, on a lane with candles (250 bars, `nc -z` to the v2 host before and after), in
 8 min 33 s with its pack: the same 0 green, 6 blocked and 21 findings, from the same Escape cascade from `ind-search` on

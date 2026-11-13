@@ -9,19 +9,24 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-13, on tree
-`963af59de1` (`origin/main`; the four desktop pages, `useTurnstile.ts`, `passkey.service.ts`, the download gate and
-`stripe-handoff.util.ts` unchanged; `featureCommands.ts` only gained an order-preview toggle), every read below held
-again in Chromium on the dev lane through agent-browser, one page at a time through `about:blank`, on a lane with 0
-bars (none of these pages needs candles): the return page valid and invalid, the four checkout-return states, the signin
-redirect, the card's placement (address, then `login-signup-turnstile`, then `login-signup-submit-btn`, off while empty
-and on once an address was typed) and the super-search command as the only result. Since `51738ed440` (after
-`74ccd3cdcc`) the card also carries `login-signup-failure` and `login-signup-failure-line`, read present and empty on a
-fresh card: a password or passkey sign-in that fails says why over the button it was pressed on, in the server's words
-or "Could not sign in with that email and password. Try again." (`auth.errors.failedPasswordLogin`), where it used to
-raise a toast, and an edit, the next press or a reset of the card clears it (`AuthFormView.vue` `signInFailure`,
-`src/components/common/FailureLines.vue`; the failing state is source-read). The shell's sign-in capture was not
-attempted on the locked console. On 2026-11-12, on tree `74ccd3cdcc` (`origin/main`; the desktop pages, the sign-in
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-14, on tree
+`c7d4eccfac` (`origin/main`; the four desktop pages, `useTurnstile.ts`, `passkey.service.ts`, the download gate and
+`stripe-handoff.util.ts` unchanged), every read below held again in Chromium on the dev lane, through one Playwright
+pass of fresh pages through `about:blank`, on a lane with 1 bar (none of these pages needs candles): the return page
+valid and invalid, the four checkout-return states, the signin redirect, the card's placement (address, then
+`login-signup-turnstile`, then `login-signup-failure`, then `login-signup-submit-btn`, off while empty and on once an
+address was typed) and the super-search command as the only result. The same reads held on 2026-11-13 on `963af59de1`
+through agent-browser. Since `51738ed440` (after `74ccd3cdcc`) the card carries `login-signup-failure` and
+`login-signup-failure-line`, present and empty on a fresh card: a password or passkey sign-in that fails says why over
+the button it was pressed on, where it used to raise a toast, and an edit, the next press or a reset of the card clears
+it (`AuthFormView.vue` `signInFailure`, `src/components/common/FailureLines.vue`). Since `c93de362ff` (2026-11-14, after
+`963af59de1`) the line is the app's own translated words for the refusal's tag and status
+(`src/utility/auth/auth-refusal.util.ts`), never the server's English sentence; an unknown address and a wrong password
+read the same line, so it does not confirm an address. Live 2026-11-14: a guest password sign-in as
+`nightly-refusal@example.com` (`/api/v1/auth-v2/start` answered 404) read "Could not sign in with that email and
+password. Try again." (`auth.errors.failedPasswordLogin`) over Log In, and one more typed character in the password
+cleared it (`pages/page-signin-refused.png`). The shell's sign-in capture failed on the locked console (see
+[launch](./shell-launch-and-window.md)). On 2026-11-12, on tree `74ccd3cdcc` (`origin/main`; the desktop pages, the sign-in
 card's files, `useTurnstile.ts`, `passkey.service.ts`, the download gate and `stripe-handoff.util.ts` unchanged since
 `c2c02b7b42`), every read below held again in Chromium on the dev lane (250 bars), through one Playwright pass of
 fresh pages rather than agent-browser, and `capture --prod --path '?login=1'` drew the shell's one-card dialog for the
@@ -95,11 +100,17 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   5 s for a token (`TURNSTILE_WAIT_MS`, `src/composables/useTurnstile.ts:113`; `abcb149af8` made it 10 s and
   `1b5ad78f88` put it back), showing only the button's loading state, while Cloudflare retries an error every 2 s
   (`retry: 'auto'`). Since `4fe6fb323e` (after `27fb2d4621`) a code auth-service refuses for its bot check
-  (`LOGIN_CODE_HUMAN_CHECK_REQUIRED`, `src/components/dialogs/LoginCodePanel.vue:487`) shows the error toast "We
+  (`LOGIN_CODE_HUMAN_CHECK_REQUIRED`, `src/components/dialogs/LoginCodePanel.vue:498`, `leaveForHumanCheck`) shows the error toast "We
   couldn't confirm you're human. Complete the check on the sign-in screen and request a new code." and returns to the
   address step, instead of "invalid code". Placement live in Chromium on the dev lane; the disabled state, the wait,
   the code step's check and the bot-check refusal need a sitekey that asks or a refusing auth-service, so they are
-  source-read only (2026-11-10, `c2c02b7b42`).
+  source-read only (2026-11-10, `c2c02b7b42`; the line moved, unchanged, on `c7d4eccfac`).
+- `signin-refusal` a refused sign-in or account action reads in the app's own words (`c93de362ff`,
+  `src/utility/auth/auth-refusal.util.ts`): a failed password sign-in "Could not sign in with that email and password.
+  Try again." on `login-signup-failure-line`, a passkey that timed out "That took too long. Try your passkey again.",
+  and the code panel's send and create-account toasts (`LoginCodePanel.vue` `refusalLine`) "Too many tries. Try again
+  in {time}." when a 429 names a wait. The password line is live 2026-11-14 on `c7d4eccfac` in Chromium on the dev
+  lane as a guest; the passkey, rate-limit and create-account lines are source-read.
 - `checkout-return-page` `/desktop/checkout-return` reads "Payment received" (`?product=<p>&session_id=cs_...`),
   "Checkout cancelled" (`?product=<p>`) or "Billing updated" (`?flow=portal`) with `desktop-checkout-return-open`, wipes
   the query, and shows `desktop-checkout-return-invalid` with `desktop-checkout-return-chart` for anything else.
@@ -146,6 +157,12 @@ Preconditions:
   `login-signup-submit-btn`. On the dev lane the submit is disabled while the address is empty and enabled once it is
   typed; a disabled submit with the field message "Complete the security check above to continue." needs a sitekey
   that asks for the checkbox.
+- **The refusal line.** On the same card, click `login-signup-use-password-btn`, type an address that has no account
+  (`nightly-refusal@example.com`) and a password of 8 to 20 characters (`passwordRules`, `src/helpers/inputRules.ts`)
+  with keystrokes (Playwright `pressSequentially`), press Log In (`login-signup-submit-btn`), and poll
+  `login-signup-failure-line` for "Could not sign in with that email and password. Try again."; type one more character
+  and read it empty. On 2026-11-14 a pass that set both fields with Playwright `fill()` left Log In disabled for 30 s
+  (cause not isolated); the keystroke pass turned it on. One attempt per run: the address is a real auth-service call.
 - **Download door.** In Chromium, once the chart shows its guest button, close whatever overlay covers it (the
   "Draw by holding" tip's `ink-tutorial-close` or the guest signup prompt's `guest-signup-modal-close-btn`; see
   Gotchas) and poll until no `.dialog-overlay` remains, then click `global-nav-search-btn`,

@@ -10,7 +10,7 @@ registers, and the offline and online events fire. A download saves to Downloads
 prompt. A same-origin `/chart/` `window.open` lands in the window, signed in. The product contract is the web repo's
 `docs/features/desktop/desktop-shell.md#electron-gaps`, and the lane is `desktop/tools/verify/gaps.mjs`.
 
-On 2026-11-13 on tree `963af59de1` (`origin/main`; `gaps.mjs` unchanged) the lane was not run: `nc -z tsdb-gateway.int.ore.kiyotaka.ai 443` did not resolve before the first drive or after the last, and the engine on the dev lane held 0 bars under a `BTC-USD` title. Last driven 2026-11-12, on tree `74ccd3cdcc` (`origin/main`; `gaps.mjs` unchanged; `dd45cde8b5`'s Ctrl + wheel zoom and
+On 2026-11-14 on tree `c7d4eccfac` and 2026-11-13 on `963af59de1` (`origin/main`; `gaps.mjs` unchanged) the lane was not run: `nc -z tsdb-gateway.int.ore.kiyotaka.ai 443` did not resolve before the first drive or after the last, and the engine on the dev lane held 1 bar under `68,845.6 ▼ BTC-USD` (0 bars under `BTC-USD` on 2026-11-13); the console was locked both nights, which also blocks the key rows. Last driven 2026-11-12, on tree `74ccd3cdcc` (`origin/main`; `gaps.mjs` unchanged; `dd45cde8b5`'s Ctrl + wheel zoom and
 `3a64fcc3af`'s typed interval entry touch no row: the lane has no wheel row, and only a comma or a NumLock Numpad digit
 opens the interval entry), straight after the parity sweep with `GAPS_REUSE_PACKAGE=1`, in 168 s, with the console
 session unlocked: the eight `keys-*` rows ran live for the first time through this map. 23 of 24 rows passed: the 16

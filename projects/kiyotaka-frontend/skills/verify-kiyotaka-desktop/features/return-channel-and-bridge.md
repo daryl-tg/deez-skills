@@ -7,10 +7,12 @@ The main process tries three parsers in order, sign-in (`openmarket://oauth/call
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
 window shows a chart page. The bridge's members are `version`, `onReturn`, `updates`, `analytics` and, from 0.1.9,
 `reports`, plus `browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last
-driven 2026-11-13 by the `returns` scenario on tree `963af59de1` (`origin/main`; `desktop/` unchanged), on a dev lane
-warmed to a `BTC-USD` title with 0 bars (the v2 streaming host did not resolve): 20 of 21 in 76 s with its pack, the
-same split, `bridge.keys` reading the six members; `unit-03-return.png` shows the `onReturn {"id":"abc",...}` banner over
-an empty plot, "Loading chart..." and the "Your network is slow" bar. Before that, driven 2026-11-12 by the `returns` scenario on tree `74ccd3cdcc` (`origin/main`; `desktop/` unchanged since
+driven 2026-11-14 by the `returns` scenario on tree `c7d4eccfac` (`origin/main`; `desktop/` unchanged), on a dev lane
+warmed in Chromium to `68,845.6 ▼ BTC-USD` with 1 bar (the v2 streaming host did not resolve): 20 of 21 in 84 s with its
+pack, only `bridgeTwoMembers` red, `bridge.keys` reading the six members (`analytics`, `browserSignIn`, `onReturn`,
+`reports`, `updates`, `version`); `unit-03-return.png` shows the `onReturn {"id":"abc",...}` banner over two bars,
+"Loading chart..." and the "Your network is slow" bar. On 2026-11-13 on `963af59de1`, with 0 bars, the same 20 of 21 in
+76 s. Before that, driven 2026-11-12 by the `returns` scenario on tree `74ccd3cdcc` (`origin/main`; `desktop/` unchanged since
 `c2c02b7b42`), after the dev lane was warmed in Chromium (`73,802.2 ▲ BTC-USD`, 250 bars): 20 of 21 in 111 s with its
 pack at a load average of 16, the same split, `bridge.keys` reading the six members; `unit-03-return.png` shows the
 `onReturn {"id":"abc",...}` banner over candles and the guest signup prompt. Before that, driven 2026-11-10 by the `returns` scenario on tree `c2c02b7b42` (`origin/main`, desktop 0.1.10; `desktop/src/` last
