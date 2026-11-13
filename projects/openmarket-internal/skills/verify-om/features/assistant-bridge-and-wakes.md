@@ -156,6 +156,29 @@ Pending proof:
 - Two assistants on one daemon (needs a second credential on the rig's gateway).
 - The daemon's unlisted `request_change` against a hosted build from main (unit-test proof only).
 
+## Answer budget and pages (PR #2482, open on 2026-11-13, not on main yet)
+
+*Driven on the rig on 2026-11-13 on build `01982b88d3` (the PR commit `983e706dc8` is that tree squashed and rebased): 120 watches written as files, one paper account, 200 journal events, the hosted binary on 18119, the lane on 18150. Evidence: `http://127.0.0.1:8098/assistant-answers/r1/`. Not driven live: the live daemon and the live hosted host do not carry it yet.*
+
+- `the budget`: a successful answer is at most 12,000 characters, or 40,000 with `response_format: "detailed"`, counted on `JSON.stringify(structuredContent)`. Check that copy, not the text: Claude Code hands the model the structured copy with tabs, line breaks and quotes escaped (8 to 12 percent longer than the text).
+- `pages`: `page` (an integer from 1) sits beside `response_format` on `read` and on a read called by name. A page that is not the last ends ``(Page 1 of 3. For the next page, send the same call with `page: 2`.)``; the last ends `(Page 3 of 3.)`. A page past the end, `page: 0` and `page: "2"` are refused. `page` inside `args` answers ``args: `page` sits beside `args`, not inside it``. `find`, `describe`, `change` and `deposit` refuse the key.
+- `rows`: concise `watch_list`, `watching_overview`, `watch_history` and `usage_llm` answer tab-separated rows. The first line counts the rows under it (`watch_list: rows 1 to 63 of 150, worst first`). Order is broken, needs you or degraded, paused, expired, working. The history cursor (`more: call watch_history again with before: …`) rides the last page only. An unpriced usage row reads `unpriced`, not `$0`.
+- `the overview's attention lines`: after `attention_needed: <n>` come every line no other read holds (daemon, held notices, folders, a paper desk's unapproved book step), then `watches that need you: <n>` with ten lines and ``<k> more: `read` with `watch_list` …``, then `feeds that need you: <n>` with three lines and a count naming `news_overview`. A paper desk never appears in `watch_list`, so its line must be printed: make one with `om paper create <name> --cash 1000 -y` on the lane and grep the overview for `paper desk`.
+- `detailed`: the JSON view. Short facts lead (`attention_needed` ahead of `watches`; `total_matching`, `truncated`, `next_cursor` ahead of `events`). The pages of one detailed answer, with their page sentences removed, join back to valid JSON; one page alone does not parse.
+- `changes`: a change, a carded result handed back and `deposit` are never paged. Over the budget the answer is cut once and ends `(Kept … of … characters. The change ran. Do not send it again to read the rest.)`. No change on the rig answers that long; the four bridge tests in `assistant-carded-call.test.ts`, `assistants-call.test.ts` and `hosted-catalog-face.test.ts` are the proof.
+- `the gate`: `packages/cli/test/assistant-answer-budget.test.ts` seeds 150 watches, a paper desk, 300 events and 300 usage rounds and reads every page of every free read in both formats.
+- `measured with a real client` (Claude Code headless, Haiku and Sonnet, the client's own usage records): overview page 1 is 11,970 characters handed over and 6,221 to 6,383 tokens; a full detailed page is 39,990 and 20,458 tokens, under Claude Code's 25,000 limit; no call refused.
+
+Driving it:
+
+- Rig up as in the section above, then seed and drive with the scripts in `~/dev-notes-artifacts/om-assistant-broker/run-artifacts/answer-budget/`: `seed.sh 120 200`, `pages.ts` (every page of seven reads in both formats, the budget on the serialized copy, count lines, row coverage, the refusals), `one.ts <tool> '<json>'` (one answer's raw text), `client.ts` (the four asks on two models, tokens per answer).
+- `control-om up` boots the public entry since #2422, so the lane has no relay link: restart it through `bootstrap.internal.ts` with `answer-budget/lane-internal.sh`, then `assistant-loops/lane-setup.sh` turns assistant calls on and approves the test assistant.
+
+Pending proof:
+
+- Deploy order is hosted first. With the hosted build from before this change, `read` of an answer over 12,000 characters stops at page 1, because that build refuses `page`. Read from the code and a review probe; no older hosted build was run against this daemon.
+- The owner's real home: an offline estimate from a saved answer gives two overview pages. Not driven live.
+
 ## Gotchas
 
 - Two links can share one label (the key's label). `allow` and `revoke` then need the `asst_` id, which `om assistants --format json` prints.
@@ -170,3 +193,4 @@ Pending proof:
 - The dashboard's `/dashboard/watches` address renders an empty page when opened directly; reach Watches through the sidebar link (it lands on `/alerts`).
 - `control-om up` boots `packages/cli/src/bootstrap.ts`, the public entry. Since #2422 the private families load only through `bootstrap.internal.ts`, so a lane has no relay link and an assistant call reads `daemon_offline`. Until the wrapper picks the internal entry, restart the lane daemon by hand with the same env through `bootstrap.internal.ts` and write its pid to the lane's pid file.
 - The image tag for the hosted service is set by the platform controller after the pipeline pushes it. A sync made before the pipeline is green applies the old tag; sync again and check the tag. The server version in `initialize` tells which image a host runs.
+- An answer is sized on its structured copy as serialized, not on its text. A drive that checks `content[0].text.length` against 12,000 passes pages a client then hands over 8 to 12 percent longer.
