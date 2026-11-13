@@ -1,6 +1,6 @@
 # A plan limit after signing in to another account
 
-*Verified: 2026-11-13, branch `daryl/plan-cap-follows-sign-in` commit `8011668d43` (on origin/main `2a163ffb81`), source `om chat` in tmux on a scratch home with no daemon. Gallery `http://127.0.0.1:8098/plan-cap-sign-in/r1/` (3 screenshots). Not on main until the PR merges.*
+*Verified: 2026-11-13, branch `daryl/plan-cap-follows-sign-in` commit `8011668d43` (on origin/main `2a163ffb81`), source `om chat` in tmux on a scratch home with no daemon. Gallery `http://127.0.0.1:8098/plan-cap-sign-in/r1/` (3 screenshots). Merged to main as `d6354e12f6` (#2479) on 2026-11-13.*
 
 A provider's plan record lives in `<home>/plan-usage.json`. A cap read off the usage page carries no account, so before the fix it held every account on that provider. A sign-in through `/setup` or `om init` (`executeWizardChoice`) now drops the provider's record, and the `om chat` footer re-reads the record whenever the file changes.
 
