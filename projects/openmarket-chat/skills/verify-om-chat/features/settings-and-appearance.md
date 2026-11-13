@@ -221,7 +221,7 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 | Page | First text |
 |---|---|
 | Privacy | **Privacy** — "Control who can follow you, who can message you…" |
-| Sealed Messages | **Sealed Messages** — "Sealed messages are managed by the OM app on the device that holds your keys" |
+| Sealed Messages | **Sealed Messages** — "Sealed messages are managed by the OM app on the device that holds your keys" unless a `/secrets/*` fetch stub answers on `/rooms/`; then RECOVERY CODE, TRUSTED DEVICES, LOST A DEVICE and CHANGED IDENTITIES (see Sealed Messages sections below). `/chat/` always shows the managed-by-the-OM-app text. |
 | Notifications | crashes in the shell fixture; renders in `settings-fixture.html?host=user&page=notifications` (**Notifications**, THIS DEVICE, a **Sound** group with the range **Notification volume**, IN THE CHANNEL **Ringing strip at the top**, NOTIFY ME FOR) |
 | Audio | **Audio** — "Choose the microphone, speakers, and processing…" (DEVICES) |
 | To-dos | **To-dos** — "Choose which to-do rows appear in chat and topics by default." |
@@ -515,6 +515,112 @@ JS
 With it, the `/chat/` page shows **Moderation**, **Member actions**, **Active
 timed mutes** and **Channel bans** with no console error (driven 2026-11-10).
 
+### Sealed Messages sections (added 2026-11-14)
+
+Since `f0c5d67a` the page is built from sections that follow
+`fetchSecretsStatus()` (`settings/SecretsPage.tsx`; nav entry
+`UserSettings.tsx:150`). The data comes from a module adapter, not the session:
+`src/lib/secrets.ts` fetches `daemonUrl("/secrets/<path>")` and unwraps
+`{ok:true,data}`, and any network failure becomes "unavailable"
+(`src/lib/secrets.ts:104-147`). The cloud adapter `apps/cloud/src/lib/secrets.ts`
+always throws, so `/chat/` only ever shows **Sealed messages are managed by the
+OM app on the device that holds your keys. Open OM Chat there to view or save
+your recovery code.** The fixtures have no daemon, so `/rooms/` shows the same
+text until a fetch stub answers.
+
+The `Object.prototype` seam cannot reach a module adapter, and the fixture
+assigns `window.fetch` itself, so the stub wraps the assignment with a
+getter/setter. It picks a status from `?secretsSeed=`:
+
+```bash
+cat > "$SCRATCH/fixture-secrets-stub.js" <<'JS'
+(() => {
+  const seed = new URLSearchParams(location.search).get("secretsSeed") || "ready";
+  const devices = [
+    { deviceId: "d1", label: "MacBook Air", linkedAt: "2026-11-01T09:00:00Z", linkedBy: null },
+    { deviceId: "d2", label: "Mac mini", linkedAt: "2026-11-05T09:00:00Z", linkedBy: "d1" },
+  ];
+  const alarms = [
+    { userId: "u-dax", previousIdentityPub: "aa", newIdentityPub: "bb", kind: "verified-reset", raisedAt: "2026-11-10T00:00:00Z" },
+    { userId: "u-mira", previousIdentityPub: "cc", newIdentityPub: "dd", kind: "support-reset", raisedAt: "2026-11-11T00:00:00Z" },
+  ];
+  const base = { userId: "u-self", readiness: "ready", hasRecoveryBlob: true, recoveryVerified: true, devices, alarms };
+  const status = {
+    ready: base,
+    unverified: { ...base, recoveryVerified: false, alarms: [] },
+    nocode: { ...base, hasRecoveryBlob: false, alarms: [] },
+    badlist: { ...base, devices: undefined, devicesUnverified: true, alarms: [] },
+    restore: { userId: "u-self", readiness: "needs-restore", hasRecoveryBlob: true, alarms: [] },
+    fresh: { userId: "u-self", readiness: "needs-restore", hasRecoveryBlob: false, alarms: [] },
+  }[seed] || base;
+  const code = "otter-maple-cinder-velvet-harbor-quill";
+  const routes = {
+    status: () => status,
+    devices: () => ({ devices }),
+    "link/start": () => ({ code: "amber-river-stone-lamp", pairingId: "p1", expiresAt: new Date(Date.now() + 300000).toISOString() }),
+    "link/pending": () => ({ state: "request", label: "Pixel 9", deviceId: "d3" }),
+    "link/approve": () => ({ approved: true }),
+    reset: () => ({ code, signedOutOthers: false }),
+    "recovery/mint": () => ({ code, rotated: true }),
+    "alarms/ack": () => ({ acknowledged: true }),
+  };
+  const calls = (window.__secretsCalls = []);
+  const wrap = (f) => (i, o) => {
+    const m = String(typeof i === "string" ? i : (i && (i.url || i.href)) || "").match(/\/secrets\/([^?]+)/);
+    if (!m || !routes[m[1]]) return f(i, o);
+    calls.push(m[1]);
+    return Promise.resolve(new Response(JSON.stringify({ ok: true, data: routes[m[1]]() }),
+      { status: 200, headers: { "content-type": "application/json" } }));
+  };
+  let inner = window.fetch.bind(window);
+  Object.defineProperty(window, "fetch", { configurable: true, get: () => wrap(inner), set: (v) => { inner = v; } });
+})();
+JS
+cat "$SCRATCH/fixture-people-stub.js" "$SCRATCH/fixture-secrets-stub.js" > "$SCRATCH/init-secrets.js"
+agent-browser --init-script "$SCRATCH/init-secrets.js" open about:blank
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=settings&alerts=quiet&settingsPage=secrets&secretsSeed=ready')"
+```
+
+Driven 2026-11-14 on `/rooms/` (18173):
+
+- **`ready`.** h1 **Sealed Messages**, then h2 **Recovery Code** ("A recovery
+  code is saved for this account.", a code textbox and **Create a new code**,
+  disabled until it holds text), **Trusted Devices** (two `[data-sealed-device]`
+  rows, "Linked Nov 1, 2026", and **Add a device**), **Lost a Device** and
+  **Changed Identities** (`[data-identity-alarm="u-dax"]` "dax reset their
+  sealed keys on Nov 10, 2026 · confirm to keep sending"; `u-mira`'s
+  support-reset row is the loud yellow one, each with **Accept new key**).
+- **Add a device.** Shows `[data-link-code]` **amber-river-stone-lamp** with
+  "Expires in". The section polls `link/pending` (`SealedDevicesSection.tsx:66-89`);
+  a few seconds later `[data-link-request]` reads **Give "Pixel 9" your sealed
+  keys?** with **Approve** and **Cancel**. **Approve** posts `link/approve` and
+  re-reads `status`. Its success toast does not render: the shell fixture's
+  `toast` is a no-op.
+- **Lost a Device.** **Reset sealed keys** stays disabled after the textbox
+  **Recovery code for reset** is filled, and enables once the checkbox **Other
+  devices lose access and every other login is signed out** is ticked. Pressing
+  it replaces the page with one RECOVERY CODE card: "Write this down somewhere
+  safe. It won't be shown again. Your previous code no longer works. Sign out
+  your other sessions from your account page.", the code, **Copy** and **I saved
+  it**. **I saved it** brings the four sections back.
+- **`unverified`.** Recovery Code adds "Re-enter your recovery code once so a
+  stolen login can't swap your keys" with **Verify**.
+- **`nocode`.** "Recovery code not saved. …" with **Create my recovery code**;
+  no Lost a Device section (it needs a saved code).
+- **`badlist`.** Trusted Devices reads "This device list failed its check, so it
+  isn't shown."
+- **`restore`.** h2 **Link This Device** ("On a trusted device, open Sealed
+  Messages and press Add a device.", **Link**) and **Restore This Device**
+  (**Restore**).
+- **`fresh`.** **Link This Device** and **Start Fresh**: the explainer, the
+  checkbox **I understand old sealed messages are lost for good** and **Start
+  fresh**.
+
+On `/chat/` (18174) the same stub makes no `/secrets/*` call and the page shows
+only the managed-by-the-OM-app text. Not driven: **Copy**, **Verify**, **Create a
+new code**, **Accept new key**, **Link**/**Restore**/**Start fresh** submits, the
+code-expired and code-mismatch notes, and a real daemon.
+
 ## Gotchas
 
 - **The shell fixtures do not paint a seeded chat background at boot.** The
@@ -610,7 +716,9 @@ timed mutes** and **Channel bans** with no console error (driven 2026-11-10).
 
 ### Verification record
 
-**Last verified:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `settings-fixture.html` on `/rooms/` (18170) and `/chat/` (18171): Audio (**Devices**, **Output**, **Microphone processing**, **Test microphone**, no meter), Server **Recovery** (status callout, **Preview recovery** disabled), Server **Projects** (with the Projects stub; see [projects.md](projects.md)); `/rooms/`: one `[data-chat-backdrop]` holding tape and composer on room, DM and topic. **Limitations:** the microphone test, the Projects confirmations and a painted background. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 32-33, 39, 43).
+**Last verified:** 2026-11-14 (nightly maintenance). **Product commit:** `62fcc01a` (GitLab origin/main; 9 commits past `504b08d5`). **Scope:** `shell-fixture.html?view=settings&settingsPage=secrets` on `/rooms/` (18173) with the people stub and the `/secrets/*` fetch stub: the six seeds, **Add a device** through **Approve**, and the **Reset sealed keys** gate to the minted-code card; on `/chat/` (18174) the managed-by-the-OM-app text. **Limitations:** a real daemon, toasts (fixture no-op), and the submits listed in the recipe. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261114/r1/`.
+
+**Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `settings-fixture.html` on `/rooms/` (18170) and `/chat/` (18171): Audio (**Devices**, **Output**, **Microphone processing**, **Test microphone**, no meter), Server **Recovery** (status callout, **Preview recovery** disabled), Server **Projects** (with the Projects stub; see [projects.md](projects.md)); `/rooms/`: one `[data-chat-backdrop]` holding tape and composer on room, DM and topic. **Limitations:** the microphone test, the Projects confirmations and a painted background. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 32-33, 39, 43).
 
 **Previous record:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** the rail account panel on `/rooms/` (18141) and `/chat/` (18142) with the people stub (five rows; on `/rooms/` also the presence choices and **Settings** opening the Settings dialog); on `/rooms/`, the notification settings' invalid time zone disabling **Save** with its described reason. **Limitations:** no presence change, profile edit or username copy; the time-zone reason was not driven on `/chat/`. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/`.
 

@@ -237,7 +237,7 @@ Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 17-20, 25).
 the pinned **Message requests** row above the DMs. On
 `shell-fixture.html?view=dm&requests=3&alerts=quiet` the sidebar shows a
 `treeitem` named **3 message requests** (`Sidebar.tsx:4742`); clicking it
-changes nothing (`openMessageRequests`, `lib/session.ts:38154`, is unstubbed,
+changes nothing (`openMessageRequests`, `lib/session.ts:38155`, is unstubbed,
 so the click resolves to `INERT`), and the hash stays `#/dm/ana`. The
 Connections **Requests** tab's **Messages 0** tab (`FriendsPane.tsx:1171`) is
 the other door and renders **No message requests waiting.** without the seed.
@@ -263,7 +263,7 @@ formatter, only the pill and the headline do. No channel or topic seed exceeds
 
 `?view=dm&dmTyping=peer` no longer shows anything: the fixture writes `typing`
 onto `DmState`, but the strip reads `session.ephemeral.typistsFor(...)`
-(`Composer.tsx:1601`), which neither fixture stubs. Driven without a stub, the
+(`Composer.tsx:1609`), which neither fixture stubs. Driven without a stub, the
 DM shows no typing line. Seed `ephemeral` instead:
 
 ```bash

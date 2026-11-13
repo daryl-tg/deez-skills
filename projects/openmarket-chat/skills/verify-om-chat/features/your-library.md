@@ -170,7 +170,7 @@ Driven 2026-11-08: the row on `/rooms/`, its absence on `/chat/`.
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
 with `data-daily-note-day` set to the local day, `LibraryView.tsx:3233-3241`;
 the add menu lists it as **Daily note**, `:3771`, `:4141`; the `d` key at
-`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:39061`),
+`:1766`) calls `session.openDailyNote()` (`:1597`; `lib/session.ts:39062`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
 no doc pane, no `.library-daily-note` section (`:6481`), no toast, hash still

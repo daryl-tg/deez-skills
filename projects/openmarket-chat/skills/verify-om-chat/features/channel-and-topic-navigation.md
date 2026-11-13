@@ -178,7 +178,7 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
   no state change and no toast, and `roomAttentionFor` / `roomMuteUntilFor`
   answer `null`. Since `4ca34c9a`, muting a room this socket never joined (an
   alert channel never opened this session) retries over REST after the relay's
-  `NOT_IN_ROOM` refusal (`lib/session.ts:35796`, `:35891`). That path is
+  `NOT_IN_ROOM` refusal (`lib/session.ts:35797`, `:35892`). That path is
   covered only by `packages/chat-ui/test/ui/mute-durations.test.ts`. The topic
   pill's mute is stubbed (`tools/visual/shell-fixture.tsx:2961-2971`, writes
   `data-fixture-topic-attention`), but it is a different code path.

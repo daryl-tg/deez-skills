@@ -16,8 +16,8 @@ main. Driven on main at `47cb13bf` (2026-10-30).
 
 - **Home.** h1 **"Agents"**, a **Map / Grid** segmented toggle (`aria-pressed`),
   **Templates**, **New agent**, **How agents work** and **Inbox**. The sidebar
-  `aside` is **"Agents sidebar"** (`AgentCenterPane.tsx:1132`). Its `nav`
-  **"Agents sections"** (`:1179`) holds **All agents, N**, **Needs you, N** and
+  `aside` is **"Agents sidebar"** (`AgentCenterPane.tsx:1156`). Its `nav`
+  **"Agents sections"** (`:1203`) holds **All agents, N**, **Needs you, N** and
   **Running, N** (counts in the names; 8 / 9 / 3 on the default
   `agent-center-fixture`). PERSONA is unchanged, and AGENTS lists every agent
   with om first (`Open <name>, <state>`, e.g. **Open argue, 2 need you**).
@@ -40,18 +40,33 @@ main. Driven on main at `47cb13bf` (2026-10-30).
   The **Get work agents running** setup checklist sits above it.
 - **Needs you.** `#/agents/waiting`, h1 **"Needs you"**. A pending `@om-skills`
   update renders here as a region **Update for <name>** with **Approve <name>
-  update** and **Keep <name> at <version>** (`agents/NeedsYou.tsx:877`). The
+  update** and **Keep <name> at <version>** (`agents/NeedsYou.tsx:894`). The
   consent rows' labels are `Allow`, `Accept` and `Reject`
-  (`agents/NeedsYou.tsx:274-311`); on `?roster=none` the visible pair is
+  (`agents/NeedsYou.tsx:280-317`); on `?roster=none` the visible pair is
   **Allow** / **Deny**. On the default fixture the feed's buttons read, in
   order: **Review**; **Approve argue update** / **Keep argue at 1.0.0**;
   **Allow** / **No** (two knocks); **Yes, remember it** / **No, forget it**;
   **Dismiss: <text>** (two); a **Coding Plan review** region with **Review
-  Plan**; and **Accept** / **Reject** for the doc proposal. Pressed
+  Plan**; and, for the doc proposal, **Review the edit to
+  playbooks/momentum.md** then **Accept** / **Reject**. Pressed
   2026-10-30 on `/rooms/`: **Allow** took **Needs you** from 9 to 8, **Approve
   argue update** and **Yes, remember it** to 6, and a **Dismiss** to 5. Each
   row settles after about a second. **Accept** changed nothing, because the
   fixture scripts no proposal accept route.
+- **A library edit opens what it changes** (`657100e5`). The doc proposal row
+  (`[data-testid="pending-edit-row"]`, "research bot proposed an edit ·
+  playbooks/momentum.md") shows its path as a link-styled door:
+  `button.needs-door[data-testid="pending-edit-review"]`, named **Review the
+  edit to <path>**, titled "See what this edit changes", with an eye icon
+  (`EditDoor`, `AgentCenterWork.tsx:490`; Needs you `agents/NeedsYou.tsx:844-852`).
+  The Grid's Needs you strip shows the same door without the "proposed an edit
+  ·" words (`agents/NeedsYou.tsx:729-738`). A click opens the shared proposal
+  review over the Agents page, not Your Library: a `role="dialog"` **Review the
+  agent's proposal** with **Result** / **Changes** tabs, **Accept merge**,
+  **Later**, and **Keep current note (reject)** inside the **Other ways out of
+  this** disclosure (`useProposalReview`, `DocProposals.tsx:387`, hosted at
+  `AgentCenterPane.tsx:353`). The fixture has no `proposals/review` route, so
+  on the bare fixture the click does nothing visible; the recipe below stubs it.
 - **Agent page.** `#/agents/a/<id>` on `/rooms`, `/chat/agents/a/<id>` on cloud.
   Old `#/agents/badge/<id>` addresses rewrite there (`src/lib/routing.ts:304-307`).
   Top bar: **Back to agents**, h1 `<name>`, a `switch` **Run <name>** and a
@@ -157,7 +172,7 @@ before the matrix runs. That is the environment, not the product.
 `01bf4481`.** `AgentCenterSurface.tsx`, `components/roster/` and
 `lib/roster-*.ts` landed there; see [agent-creator.md](agent-creator.md) for
 the creator, its fixture door (`agent-center-fixture.html` → **New agent**)
-and the live-lane prerequisites. **+ Wire an agent** (`AgentCenterPane.tsx:1430`)
+and the live-lane prerequisites. **+ Wire an agent** (`AgentCenterPane.tsx:1454`)
 still opens Agent Settings; it is not the creator entry point. The shell
 fixture's `?view=agents` scripts no roster host: it shows only the `your om`
 card, **+ Wire an agent** and "server apps live in server settings →".
@@ -280,14 +295,14 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 
   **Since `#978` persona lives inside Agents, not beside it.** Since
   `3e9c88f3` the context rail is an `aside` named **"Agents sidebar"**
-  (`AgentCenterPane.tsx:1132`) holding, top to bottom:
+  (`AgentCenterPane.tsx:1156`) holding, top to bottom:
 
   - a `searchbox` **Search agents**;
-  - a `nav` named **"Agents sections"** (`:1179`) — **All agents, N**, **Needs
+  - a `nav` named **"Agents sections"** (`:1203`) — **All agents, N**, **Needs
     you, N**, **Running, N** (the counts ride the accessible names);
-  - a group named **"Persona"** (`:1224`) holding a `nav` named **"Persona
-    sections"** (`:1228`) — **Voice**, **Away coverage, off** (state in the
-    name again, `:261-275`; with no away snapshot after a load has failed or
+  - a group named **"Persona"** (`:1248`) holding a `nav` named **"Persona
+    sections"** (`:1252`) — **Voice**, **Away coverage, off** (state in the
+    name again, `:262-276`; with no away snapshot after a load has failed or
     finished it reads **Away coverage, status can't tell right now** and the
     visible text **Can't tell**, which the agent-center fixture and the
     shell's unmocked routes show; the shell's mocked
@@ -356,7 +371,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:6212-6213`),
+  composer with no lane toggle and no target (`Composer.tsx:6227-6228`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -499,7 +514,7 @@ Open a fresh session for the drag, or check `document.visibilityState` first.
 The fixture also forces the `reduced-motion` class on `<html>`.
 
 **Update for argue** is the `RosterUpdateNotice` section (`roster/RosterUpdateNotice.tsx:78`)
-and mounts only in the **Needs you** feed (`agents/NeedsYou.tsx:877`), not on
+and mounts only in the **Needs you** feed (`agents/NeedsYou.tsx:894`), not on
 the Grid card or the agent page; the fixture drops it once **Approve argue
 update** or **Keep argue at 1.0.0** is pressed (`agent-center-fixture.tsx:737`).
 **More actions for argue** listed two items tonight, **Check routing** and
@@ -540,6 +555,52 @@ text. Clear `om.chat.messageDisplay` after (see
 the README). The owner-picture face is **live verification pending**: no
 fixture seeds an agent entry whose owner has an avatar (`profileFor` returns no
 avatar), so it needs a fixture seed or a daemon-pair lane with a badge agent.
+
+### Review a library edit from Needs you (added 2026-11-14)
+
+`agent-center-fixture.html` answers `GET /api/library/proposals` with `prop_1`
+but has no `/api/library/proposals/review` or `/accept` route, and it assigns
+`window.fetch` itself. An init script that wraps that assignment answers both:
+
+```bash
+cat > "$SCRATCH/fixture-proposal-review-stub.js" <<'JS'
+(() => {
+  const proposal = { id: "prop_1", docId: "doc_1", spaceId: "s1", path: "playbooks/momentum.md", baseRev: 4,
+    credentialId: "agcr_research", agentName: "research bot", runId: null, note: "", createdAt: Date.now() - 1860000 };
+  const routes = {
+    "/api/library/proposals/review": () => ({ proposal, base: "# Momentum\n\nEnter on breakout.\n", mine: "# Momentum\n\nEnter on breakout.\n",
+      theirs: "# Momentum\n\nEnter on breakout with volume.\n", headRev: 4, headAuthor: "kyle", headNote: "", archived: false }),
+    "/api/library/proposals/accept": () => ({ result: { status: "published", rev: 5, path: "playbooks/momentum.md", unchanged: false } }),
+  };
+  const seen = (window.__proposalCalls = []);
+  const wrap = (f) => (i, o) => {
+    const u = String(typeof i === "string" ? i : (i && (i.url || i.href)) || "");
+    const p = u.replace(/^https?:\/\/[^/]+/, "").split("?")[0];
+    const hit = Object.keys(routes).find((k) => p.endsWith(k));
+    if (hit) { seen.push(hit); return Promise.resolve(new Response(JSON.stringify(routes[hit]()), { status: 200, headers: { "content-type": "application/json" } })); }
+    return f(i, o);
+  };
+  let inner = window.fetch.bind(window);
+  Object.defineProperty(window, "fetch", { configurable: true, get: () => wrap(inner), set: (v) => { inner = v; } });
+})();
+JS
+agent-browser --init-script "$SCRATCH/fixture-proposal-review-stub.js" open about:blank
+agent-browser open "$(control-om-chat url 'tools/visual/agent-center-fixture.html#/agents/waiting')"
+agent-browser eval '(()=>{const l=document.createElement("link");l.rel="stylesheet";l.href="/rooms/packages/chat-ui/src/components/doc-review.css";document.head.appendChild(l);return 1})()'
+agent-browser find role button click --name "Review the edit to playbooks/momentum.md"
+# dialog "Review the agent's proposal": "Both changes fit. Nothing to choose." and Accept merge
+agent-browser find role button click --name "Accept merge"
+# window.__proposalCalls: ["/api/library/proposals/review", "/api/library/proposals/accept"]; the dialog closes
+```
+
+Driven 2026-11-14 on `/rooms/` (18173). Without the stub the click makes no
+request the fixture answers and no dialog opens. The `eval` line adds
+`doc-review.css`, which both apps' `main.tsx` import but
+`agent-center-fixture.tsx` does not; without it the dialog renders as unstyled
+text below the feed instead of covering the page (a fixture gap, not product
+behavior). The row stays after **Accept
+merge** because the fixture's proposal list is static. Not driven: **Keep
+current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
 
 ## Gotchas
 
@@ -605,7 +666,9 @@ avatar), so it needs a fixture seed or a daemon-pair lane with a badge agent.
 
 ### Verification record
 
-**Last verified:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `/rooms/` (18170) `agent-center-fixture.html`: the agent page tabs (`h2.agent-section-h`: At a glance, Details, Work, Rooms, Can do, Limits, Memory with **Memory used** 29; no Today), the agent chat with `?hold=4000` ("churning · working out the next move", then the reply), and **Coding work** on main; `/chat/` (18171) `view=agents`: **Coding work** with the one-line repo requests notice. **Limitations:** the thinking row and agent-tag shimmer in rooms have no fixture seed; desk writes answer from the fixture only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 34-38).
+**Last verified:** 2026-11-14 (nightly maintenance). **Product commit:** `62fcc01a` (GitLab origin/main; 9 commits past `504b08d5`). **Scope:** `/rooms/` (18173) `agent-center-fixture.html#/agents/waiting`: the doc proposal row's **Review the edit to playbooks/momentum.md** door; with the review stub it opens **Review the agent's proposal** and **Accept merge** posts the accept. **Limitations:** reject, Later and the Grid strip door; the fixture's proposal list does not refresh. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261114/r1/`.
+
+**Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `/rooms/` (18170) `agent-center-fixture.html`: the agent page tabs (`h2.agent-section-h`: At a glance, Details, Work, Rooms, Can do, Limits, Memory with **Memory used** 29; no Today), the agent chat with `?hold=4000` ("churning · working out the next move", then the reply), and **Coding work** on main; `/chat/` (18171) `view=agents`: **Coding work** with the one-line repo requests notice. **Limitations:** the thinking row and agent-tag shimmer in rooms have no fixture seed; desk writes answer from the fixture only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 34-38).
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `away-panel-fixture.html` (**AWAY**, **Pause**, **I'm back**), `agent-center-fixture.html`, and `?view=agent&omSessions=drafts` with the `/healthz*` and people stubs (**Research A**, **Research B**, **Watches**). **Limitations:** daemon-backed agents. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
