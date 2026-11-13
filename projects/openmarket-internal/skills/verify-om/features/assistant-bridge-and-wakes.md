@@ -156,7 +156,7 @@ Pending proof:
 - Two assistants on one daemon (needs a second credential on the rig's gateway).
 - The daemon's unlisted `request_change` against a hosted build from main (unit-test proof only).
 
-## Answer budget and pages (PR #2482, open on 2026-11-13, not on main yet)
+## Answer budget, pages and agent runs (PR #2482, open on 2026-11-13, not on main yet)
 
 *Driven on the rig on 2026-11-13 on build `01982b88d3` (the PR commit `983e706dc8` is that tree squashed and rebased): 120 watches written as files, one paper account, 200 journal events, the hosted binary on 18119, the lane on 18150. Evidence: `http://127.0.0.1:8098/assistant-answers/r1/`. Not driven live: the live daemon and the live hosted host do not carry it yet.*
 
@@ -168,6 +168,10 @@ Pending proof:
 - `changes`: a change, a carded result handed back and `deposit` are never paged. Over the budget the answer is cut once and ends `(Kept … of … characters. The change ran. Do not send it again to read the rest.)`. No change on the rig answers that long; the four bridge tests in `assistant-carded-call.test.ts`, `assistants-call.test.ts` and `hosted-catalog-face.test.ts` are the proof.
 - `the gate`: `packages/cli/test/assistant-answer-budget.test.ts` seeds 150 watches, a paper desk, 300 events and 300 usage rounds and reads every page of every free read in both formats.
 - `measured with a real client` (Claude Code headless, Haiku and Sonnet, the client's own usage records): overview page 1 is 11,970 characters handed over and 6,221 to 6,383 tokens; a full detailed page is 39,990 and 20,458 tokens, under Claude Code's 25,000 limit; no call refused.
+
+- `plain text through read` (PR #2482, second build): a row answer, a page or a cut change that comes through `read`, `change` or `deposit` carries its text and no `structuredContent`; the client hands the model plain rows (`read watch_list`, 120 rows: 8,682 characters, about 4,400 tokens). The five listed reads still carry `{data: <text>}`. Check which copies an answer carries with `answer-budget/raw.ts <tool> '<json>'`.
+- `agent runs` (PR #2482, second build): `agent_runs` is a `free` read behind an allow-list of fields and values. The list answers id, agent, kind, door, executor, state, queue position, times, stalled and the pool; one run (`runId`) adds revision, attempt, `result.status` and event kinds. Room, thread, task and invocation ids, the ask, the result summary, artifacts and proposals never appear. A handler error answers its code and the bridge's sentence (`No run has that id.`). By its own name it is `Tool agent_runs not found`.
+- `starting an agent run on a bare lane`: `POST http://127.0.0.1:<lane>/rpc/v1/roster/tasks` with `{"id":"t_rig_1","agent":"explain","ask":"<words>","requestedBy":{"surface":"cli","userId":"rig-owner"}}` (no auth on loopback; the fake model answers). The owner's view is `om agent ps`, which exists only on the internal entry: run `bun packages/cli/src/bootstrap.internal.ts agent ps` with the lane's `OM_HOME` and `OM_BIND`. Grep the assistant's answers for the ask's words and for the forbidden keys; both counts must be 0.
 
 Driving it:
 
