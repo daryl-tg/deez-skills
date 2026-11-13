@@ -67,3 +67,24 @@
 - No live eval area covers how a real model chooses these tools.
 - A click is not floored: on a signed-in site with a saved card, `Buy` rides only the skill's rule. The payment-field floor stops typing, not `select` or the browser's autofill.
 - Since 2026-11-12 the PR is one level of a stack: main, #2465 database fix, #2442, #2466, #2448, #2451, #2453. Rebasing any level can merge its changelog entry into a released section; check it sits under `[Unreleased]`.
+
+## Live pass on the real daemon (2026-11-13, Grok 4.3)
+
+Proven live:
+
+- `om computer open`, `status`, `release`, `history`, `stats`, `sites`, `forget` and `close` behave as the recipe says.
+- A watch ai step created with `--tools computer_open,computer_read` reads a page with nobody attending and delivers to its channel.
+- The venue floor refuses a click (`computer_venue_read_only`). A form fill ends with `done`.
+- With `computer.windows 1`, a chat ask waits for a watch's window and gets it (`Queue: 1 waited`).
+
+How to drive it:
+
+- `om chat --once` appends to the live `cli` conversation. Send `/new` first and `/resume <id>` after.
+- Two `--once` asks at once run one after the other, so contention needs a watch step plus a chat ask.
+- Never run `om computer off` in a test: `om computer on` needs a person.
+- On Grok, say "load computer_open with tool_search" in the ask, or the turn may loop on `skill_read`.
+- Read cost from `om usage llm` before and after a turn.
+
+Known defects, not fixed: idle windows end only at the next browser call; steps skip `done`; `computer_open` on an XML feed returns viewer controls, so read with `computer_read` in text mode; `release` marks the site signed in.
+
+Pending proof: the card-field floor on a public checkout page, `om computer off` mid-run, the dashboard live view.
