@@ -88,3 +88,23 @@ How to drive it:
 Known defects, not fixed: idle windows end only at the next browser call; steps skip `done`; `computer_open` on an XML feed returns viewer controls, so read with `computer_read` in text mode; `release` marks the site signed in.
 
 Pending proof: the card-field floor on a public checkout page, `om computer off` mid-run, the dashboard live view.
+
+## Blocked sources read through the browser (#2481, on main since 2026-11-13)
+
+What it is: a feed or page source whose host challenges or refuses the plain fetch reads its own address through om's browser, before Firecrawl, with no model call. Setting `computer.sources`.
+
+Recipe, on a daemon whose cooldowns stand (the live one; a fresh lane often reads the same hosts by plain fetch):
+
+1. `om computer status` reads `Computer: on`.
+2. Wait for the source's poll, or restart the daemon so every source polls.
+3. `om computer history`: a row `source <host>  clean-1  done` per read, seconds long.
+4. `om watch show <watch>`: the source row reads `working · reads through om's browser`.
+5. `om computer stats`: a `source` row; errors `source_human_check` or `source_driver_failed`.
+6. A host showing a human check: the source reads `<host> asks for a human check; open <address> once`. Nothing is clicked.
+7. `/healthz` lists the loop `computer-leases` with verdict `ok`; no browser process stays after a read.
+
+Proven live 2026-11-13: Ars Technica, VentureBeat and Product Hunt feeds served; hltv.org stopped at its check; Reddit failed in the browser too.
+
+Lane notes: start the daemon with `bootstrap.internal.ts run`; switch the computer on in a scratch home through `setComputerEnabled`; to restart, kill the pid that holds the port, not the wrapper's.
+
+Pending proof: a page source (not a feed) through the browser, and the hand pass (`om computer open`, pass the check, `om computer release`) letting a held source read again.
