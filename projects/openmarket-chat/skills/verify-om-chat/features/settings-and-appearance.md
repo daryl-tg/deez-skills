@@ -7,8 +7,8 @@ interaction end to end.
 
 ## Sub-features
 
-- User settings, nineteen entries: My Account, Profiles, Privacy, Sealed
-  Messages, Appearance, Notifications, Audio, To-dos, Keyboard Shortcuts,
+- User settings, eighteen entries plus a conditional OM Settings: My Account, Profiles, Privacy, Sealed
+  Messages, Appearance, Notifications, Audio, Keyboard Shortcuts,
   Accessibility, Doc Editing, **Recovered Drafts**, Agent Settings — then a Help
   group (How Agents Work, How the Library Works, How Apps Work, Slash Commands,
   Moderating Servers) and Log Out. Recovered Drafts arrived with `#741` and its
@@ -19,7 +19,7 @@ interaction end to end.
 
   **Nineteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4617` always does, so the **running app shows twenty**;
+  `Shell.tsx:4606` always does, so the **running app shows twenty**;
   `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
   inferred. Count nineteen here and you have confirmed the fixture, not the
   product. To count twenty without a daemon, open Settings through the shell:
@@ -47,20 +47,22 @@ interaction end to end.
 - The settings nav has no build or version footer since `55a41da9`.
 - High-contrast mode and its interaction with every palette. The system
   contrast preset follows `prefers-contrast: more` independently of the
-  explicit high-contrast switch (`packages/chat-ui/src/components/settings/appearance.ts`, `prefers-contrast: more` at `:312`).
+  explicit high-contrast switch (`packages/chat-ui/src/components/settings/appearance.ts`, `prefers-contrast: more` at `:311`).
 - Server settings: Overview, Roles, Members, Moderation, Invites, Integrations,
   Work Ledger, Library, Recovery, Import Vault, Danger. There is **no Access
   page on the server host** — Access is a channel page.
 - Channel settings: Overview, Access, Webhooks, Moderation, Danger — gated by
-  the viewer's role. Overview carries the per-channel to-do widget placement
-  control ("To-do widgets", gated by `canManageTodoDisplay`). The matching
-  *per-viewer* override is not reachable from this fixture — see Gotchas.
+  the viewer's role (`ChannelSettings.tsx:733-747`). Overview has no to-do
+  control: `83b02ee4` retired the channel's "To-do widgets" dial and the
+  per-viewer override with the legacy board (driven 2026-11-15 on both hosts:
+  `host=channel&page=overview&perms=owner` shows **Overview**, **Topics** and
+  **Channel index**, and no to-do text).
   Webhooks also offers **Convert webhooks to alerts**. Its review step lets the
   owner select legacy webhooks; URLs and senders stay while deliveries become
   alert cards in that channel's tape (`WebhooksPage.tsx:600`,
   `ConvertWebhooksStepper.tsx:342,419`).
 - Keyboard Shortcuts carries an **Editing** group with one switch, **Vim mode**
-  (`UserSettings.tsx:1305`, `878049d8`/`b1ed7135`). It is off by default and
+  (`UserSettings.tsx:1110`, `878049d8`/`b1ed7135`). It is off by default and
   stored as `localStorage["om.chat.vimMode"]` (`"true"`/`"false"`). It is synced and
   scoped per account (`lib/prefs.ts`) and turns on Vim keys in the message box
   ([composer-and-sending.md](composer-and-sending.md)) and the doc editor
@@ -99,12 +101,11 @@ agent-browser open "$(control-om-chat url \
 | `settings-fixture.html?host=user&page=appearance&contrast=high` | High contrast |
 | `settings-fixture.html?host=user&page=notifications` | Notifications |
 | `settings-fixture.html?host=user&page=accessibility` | Accessibility |
-| `settings-fixture.html?host=user&page=todos` | To-dos — **account-wide defaults only**, not the per-channel override |
 | `settings-fixture.html?host=user&page=draft-recovery` | Recovered Drafts — **empty state only**; nothing seeds a draft |
 | `settings-fixture.html?host=server&page=roles&perms=owner` | Server roles, as owner |
 | `settings-fixture.html?host=server&page=moderation&perms=owner` | Server moderation |
 | `settings-fixture.html?host=channel&page=access&perms=owner` | Channel access |
-| `settings-fixture.html?host=channel&page=overview&perms=owner` | Channel overview, incl. to-do widget placement |
+| `settings-fixture.html?host=channel&page=overview&perms=owner` | Channel overview |
 | `settings-fixture.html?host=channel&page=webhooks&perms=owner` | Webhooks, including the conversion review step |
 
 On the Webhooks route, choose **Convert webhooks to alerts** and check the
@@ -147,7 +148,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4562`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4504`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -202,15 +203,16 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2451-2456`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2403-2408`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
 `moderation`, `invites`, `integrations`, `library`, `recovery`, `danger`.
 Reload between pages that crash (see Gotchas).
 
-The user nav lists 20 entries in the shell: My Account, Profiles, Privacy, Sealed
-Messages, Appearance, Notifications, Audio, To-dos, Keyboard Shortcuts,
+The user nav lists 19 entries in the shell (driven 2026-11-15 on both hosts;
+`USER_NAV`, `UserSettings.tsx:121-202`): My Account, Profiles, Privacy, Sealed
+Messages, Appearance, Notifications, Audio, Keyboard Shortcuts,
 Accessibility, Doc Editing, Recovered Drafts, Agent Settings, OM Settings, How
 Agents Work, How the Library Works, How Apps Work, Slash Commands, Moderating
 Servers, Log Out. The server nav lists 10: Overview, Roles, Members,
@@ -224,7 +226,6 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 | Sealed Messages | **Sealed Messages** — "Sealed messages are managed by the OM app on the device that holds your keys" unless a `/secrets/*` fetch stub answers on `/rooms/`; then RECOVERY CODE, TRUSTED DEVICES, LOST A DEVICE and CHANGED IDENTITIES (see Sealed Messages sections below). `/chat/` always shows the managed-by-the-OM-app text. |
 | Notifications | crashes in the shell fixture; renders in `settings-fixture.html?host=user&page=notifications` (**Notifications**, THIS DEVICE, a **Sound** group with the range **Notification volume**, IN THE CHANNEL **Ringing strip at the top**, NOTIFY ME FOR) |
 | Audio | **Audio** — "Choose the microphone, speakers, and processing…" (DEVICES) |
-| To-dos | **To-dos** — "Choose which to-do rows appear in chat and topics by default." |
 | Accessibility | **Accessibility** — MOTION AND FEEDBACK, **Enable reduced motion** |
 | Doc Editing | **Doc Editing** — AUTO-PUBLISH WHILE EDITING |
 | Recovered Drafts | **Recovered Drafts** (an h2, no h1) — the empty state |
@@ -241,7 +242,7 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 | Danger | **Danger** — TRANSFER OWNERSHIP |
 
 In the role editor the colour row is a `role=group` named **Role Color**
-(`settings/ColorSwatches.tsx`, used at `settings/RolesEditor.tsx:741`): 21
+(`settings/ColorSwatches.tsx`, used at `settings/RolesEditor.tsx:738`): 21
 `.color-swatch` buttons, the first **Default (no color)**, the rest **Role
 color #xxxxxx**, each with `aria-pressed`. Driven 2026-11-07 on both hosts at
 `?host=server&page=roles&perms=owner`: **Role color #e67e22** starts pressed,
@@ -256,19 +257,19 @@ manage the server or ticket labels (`settings/ServerSettings.tsx:207-210`,
 verification pending.
 
 There is no server **Access** page. Access is a channel page
-(`ChannelSettings.tsx:799`), reached only through
+(`ChannelSettings.tsx:739`), reached only through
 `settings-fixture.html?host=channel&perms=owner`. Toggles and saves on these
 pages call unstubbed session methods, so only the bodies are proved, not their
 effects.
 
 Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`settings-*`, `server-settings-*`, `settings-fixture-notifications-*`).
 
-### Appearance switches, Profiles, Privacy and To-dos handles (added 2026-10-31)
+### Appearance switches, Profiles and Privacy handles (added 2026-10-31)
 
 - **Appearance** (`settings-fixture.html?host=user&page=appearance`) carries
   three switches above the radiogroups: **Show link previews** (on by default;
   clicking it writes `localStorage["om.chat.linkPreviews"]="false"`, clicking
-  again `"true"`; `UserSettings.tsx:1866`, `lib/prefs.ts`), **Underline links**
+  again `"true"`; `UserSettings.tsx:1671`, `lib/prefs.ts`), **Underline links**
   and **High contrast mode**. The radiogroups read **Theme** (Dark theme /
   Light theme / Sync with OS theme), **Palette** (five), **Chat layout**
   (Bubbles / Streamlined / Custom; the fixture starts on Custom), **Server
@@ -278,7 +279,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
 - **Profiles** (`?page=profiles`): heading **Profiles**, the display-name field
   (`justintg`), a custom-status field (`long $BTC`) with **Clear custom status
   after**, **Tell people who you are**, **Change avatar**, and the presence
-  choices **Online** / **Idle** / **Do not disturb** (`UserSettings.tsx:1257-1259`).
+  choices **Online** / **Idle** / **Do not disturb** (`UserSettings.tsx:1062-1064`).
   The presence radios have no accessible name, and clicking **Idle** changed
   nothing in the fixture (no setter is stubbed). The hint under the avatar
   reads "Click the avatar to change it, then drag to choose which part shows.
@@ -287,15 +288,16 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
   (`settings/AvatarCropDialog.tsx`) with a `slider` **Avatar position**
   ("Whole picture shown" for a square picture), **Cancel** and **Save**.
   **Cancel** closes it and uploads nothing (driven 2026-11-06 on both hosts).
-- **To-dos** (`?page=todos`): two radiogroups, **Which to-dos appear in chat or
-  topics** (All to-dos / Only mine / None) and **Whether to-do status updates
-  appear in chat** (Show updates / Hide updates) (`UserSettings.tsx:638-670`).
+- **No To-dos page.** `83b02ee4` removed it with `om.chat.todoVisibility`. An
+  unknown id falls back to My Account (`UserSettings.tsx:251-260` keeps only
+  ids in `USER_NAV`), so `settings-fixture.html?host=user&page=todos` opens
+  **My Account** with no radiogroup (driven 2026-11-15 on both hosts).
 - **Privacy**: `settings-fixture.html?host=user&page=privacy` renders a blank
   page (no nav, no body) on this lane; use the shell route
   `shell-fixture.html?view=settings&settingsPage=privacy&alerts=quiet`, which
   shows heading **Privacy** and the switch **Private account**. The
   who-can-message choices Everyone / People you follow / No one
-  (`UserSettings.tsx:1007-1021`) are a select, not radios.
+  (`UserSettings.tsx:812-826`) are a select, not radios.
 
 Driven 2026-10-31 on `/rooms/` (18135) at `936f5b64`.
 
@@ -335,12 +337,12 @@ proves nothing here.
 ### Motion and feedback sounds (added 2026-11-02)
 
 `settings-fixture.html?host=user&page=accessibility` has a **Motion and
-feedback** card (`settings/UserSettings.tsx:2085-2110`) with four switches:
+feedback** card (`settings/UserSettings.tsx:1890-1915`) with four switches:
 **Enable reduced motion**, **Resolve sound**, **GOAT ceremony sound** and
 **GOAT bleat**. On a fresh lane the three sound switches read
 `aria-checked="true"` and reduced motion reads `false`. `find role switch click
 --name "Resolve sound"` turns it off and writes `om.chat.resolveSound=false`
-to `localStorage` (`lib/prefs.ts:548`); assert the key, not only the switch.
+to `localStorage` (`lib/prefs.ts:535`); assert the key, not only the switch.
 **GOAT ceremony sound** and **GOAT bleat** write `om.chat.goatSoundEnabled`
 and `om.chat.goatBleatEnabled` the same way (`lib/goat-ceremony.ts:9-10`).
 Switching them shows the save receipt **Saved · just now**
@@ -376,7 +378,7 @@ matches “zzqqx”.** with curly quotes (`settings/SettingsShell.tsx:283`).
 The **Discard unsaved changes?** alertdialog (`SettingsShell.tsx:435`) is
 reached on `page=profiles` (plural; `page=profile` has no editable input).
 Type into the textbox **Display name** (`#om-display-name`,
-`settings/UserSettings.tsx:1123`); a **Reset** button appears. Press Escape:
+`settings/UserSettings.tsx:928`); a **Reset** button appears. Press Escape:
 the alertdialog reads "Your unsaved changes will be lost." with **Keep
 editing** and **Discard changes**. **Keep editing** closes it and keeps the
 typed value (2026-11-08, both hosts). **Discard changes** and leaving by a nav
@@ -393,7 +395,7 @@ agent-browser find role button click --name "Keep editing"
 
 User path: **Settings** → **Appearance** → **CHAT BACKGROUND** (a `region`
 with `data-settings-group="chat-background"`, between Accent and Advanced;
-`ChatBackgroundSettings.tsx`, mounted at `UserSettings.tsx:1601`). Click
+`ChatBackgroundSettings.tsx`, mounted at `UserSettings.tsx:1406`). Click
 **Upload picture**, pick a PNG, JPEG or WebP, then choose **Chat only** or
 **Whole window** and set **Dim**. **Remove** clears it.
 
@@ -466,13 +468,13 @@ The **LIVE PREVIEW** (`[aria-label="Message appearance preview"]`, tablist
 Agent (with the **AGENT** chip) and You on the **Server** tab, and **Avery
 Lane** with "The new layout is ready on example.com" and an **Example Domain**
 card on **Direct message**. It never reads "Jiin", "# design" or
-`openmarket.xyz` (`UserSettings.tsx:1642`).
+`openmarket.xyz` (`UserSettings.tsx:1447`).
 
 ### Server mutes and the Mute Members grant (added 2026-11-09)
 
 `591b1e11` added a mute that holds a member in every channel and in Projects.
 Two surfaces come from it, and both are gated on the store's
-`permissionsVersion` being at least 7 (`lib/room-actions.ts:83-87`):
+`permissionsVersion` being at least 7 (`lib/room-actions.ts:77-81`):
 
 - **Moderation** gains an `h2` **Server mutes** (`ModerationPage.tsx:399`) for
   whoever holds `mute-members`. Empty, it reads "No one is muted across this
@@ -482,7 +484,7 @@ Two surfaces come from it, and both are gated on the store's
   **Member actions**, **Active timed mutes** and **Channel bans**.
 - **Roles** gains a **Mute Members** row with the hint "Mute a member in every
   channel and in Projects until a set time" (`lib/space-actions.ts:83`), hidden
-  below version 7 (`RolesEditor.tsx:475`).
+  below version 7 (`RolesEditor.tsx:472`).
 
 No fixture stubs the version or the grant, so add to the init script from
 [README.md](README.md) / Stub the people directory first:
@@ -491,7 +493,12 @@ No fixture stubs the version or the grant, so add to the init script from
 read **Moderation**, **Member actions**, **Server mutes**, **Active timed mutes**
 and **Channel bans**, with the empty line above (driven 2026-11-09 on `/rooms/`).
 On `settings-fixture.html?host=server&page=roles&perms=owner` open **Permissions**
-and find **Mute Members** with its hint (driven 2026-11-09 on both hosts). The
+and find **Mute Members** with its hint (driven 2026-11-09 on both hosts). With
+the version stub the tab lists 26 rows, Manage Server through Administrator,
+and no **Nudge People**: `6aeb4bbc` dropped that row, because nothing in the app
+sends the channel `!nudge` page any more. A role that already holds `nudge`
+keeps it, since the editor saves the whole grant list (driven 2026-11-15 on
+both hosts). The
 member-row flyout is out of reach: `session.userMenu` is `null` and `openUserMenu`
 is unstubbed on both shell fixtures, so **Mute in server**, **Remove server mute**
 and the row **Remove** are still `live verification pending`.
@@ -519,7 +526,7 @@ timed mutes** and **Channel bans** with no console error (driven 2026-11-10).
 
 Since `f0c5d67a` the page is built from sections that follow
 `fetchSecretsStatus()` (`settings/SecretsPage.tsx`; nav entry
-`UserSettings.tsx:150`). The data comes from a module adapter, not the session:
+`UserSettings.tsx:135`). The data comes from a module adapter, not the session:
 `src/lib/secrets.ts` fetches `daemonUrl("/secrets/<path>")` and unwraps
 `{ok:true,data}`, and any network failure becomes "unavailable"
 (`src/lib/secrets.ts:104-147`). The cloud adapter `apps/cloud/src/lib/secrets.ts`
@@ -677,15 +684,7 @@ code-expired and code-mismatch notes, and a real daemon.
   `dataset.accent` is always undefined and an assertion on it always fails.
 - Changing the theme mid-run changes every later screenshot. Capture the frames
   that need dark **before** you flip, or reopen with `?theme=` and start clean.
-- **The per-channel viewer override cannot be reached from the settings
-  fixture.** After the to-do consolidation (5416196a) it lives in
-  `TodosSettingsPage`, which renders its "this channel" section only when
-  `UserSettings` is given an `initialRoom` prop. `settings-fixture.tsx` never
-  passes one and has no `room=` parameter, so `?host=user&page=todos` shows
-  only the account-wide radiogroups ("Which to-dos appear in chat or topics",
-  "Whether to-do status updates appear in chat"). Proving that sub-feature
-  needs a fixture change, not a different query.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4615` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4604` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -716,7 +715,9 @@ code-expired and code-mismatch notes, and a real daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-14 (nightly maintenance). **Product commit:** `62fcc01a` (GitLab origin/main; 9 commits past `504b08d5`). **Scope:** `shell-fixture.html?view=settings&settingsPage=secrets` on `/rooms/` (18173) with the people stub and the `/secrets/*` fetch stub: the six seeds, **Add a device** through **Approve**, and the **Reset sealed keys** gate to the minted-code card; on `/chat/` (18174) the managed-by-the-OM-app text. **Limitations:** a real daemon, toasts (fixture no-op), and the submits listed in the recipe. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261114/r1/`.
+**Last verified:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176): the shell `?view=settings` nav lists 19 entries with no To-dos; `settings-fixture.html?host=user&page=todos` falls back to **My Account** with no radiogroup; `host=channel&page=overview&perms=owner` shows **Overview**, **Topics**, **Channel index** and no to-do control; `host=server&page=roles&perms=owner` → **Permissions**, with the version stub, lists 26 rows with **Manage Labels** and **Mute Members** and no **Nudge People**. **Limitations:** the other page bodies were not re-driven (the 2026-11-14 record stands); no grant was saved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 11, 12, 13, 17).
+
+**Previous record:** 2026-11-14 (nightly maintenance). **Product commit:** `62fcc01a` (GitLab origin/main; 9 commits past `504b08d5`). **Scope:** `shell-fixture.html?view=settings&settingsPage=secrets` on `/rooms/` (18173) with the people stub and the `/secrets/*` fetch stub: the six seeds, **Add a device** through **Approve**, and the **Reset sealed keys** gate to the minted-code card; on `/chat/` (18174) the managed-by-the-OM-app text. **Limitations:** a real daemon, toasts (fixture no-op), and the submits listed in the recipe. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261114/r1/`.
 
 **Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `settings-fixture.html` on `/rooms/` (18170) and `/chat/` (18171): Audio (**Devices**, **Output**, **Microphone processing**, **Test microphone**, no meter), Server **Recovery** (status callout, **Preview recovery** disabled), Server **Projects** (with the Projects stub; see [projects.md](projects.md)); `/rooms/`: one `[data-chat-backdrop]` holding tape and composer on room, DM and topic. **Limitations:** the microphone test, the Projects confirmations and a painted background. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 32-33, 39, 43).
 

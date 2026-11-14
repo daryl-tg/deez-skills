@@ -14,7 +14,7 @@ Open Your om and choose a recent conversation. Type without sending, choose anot
 
 ## Driving it with control-om-chat
 
-Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2460-2478` and binds local session switching/creation at `:2759-2811`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:528` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
+Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2412-2430` and binds local session switching/creation at `:2711-2763`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:516` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
 
 ```bash
 agent-browser network route "**/healthz*" --body '{"uptime_seconds":120,"pid":1,"version":"fixture","started_at":"2026-10-27T00:00:00Z","booting":false,"stalls":[],"channels":[],"loops":[]}'
@@ -35,7 +35,7 @@ With the `**/healthz*` stub in place on `?view=agent&alerts=quiet&omSessions=dra
 ## Gotchas
 
 - This fixture seeds session selection and captures sends locally. It proves composer ownership and the real UI transitions; it does not prove daemon conversation persistence, model execution, or remote delivery.
-- The daemon origin supplies presence for Your om. On the bare vite lane the gate is a race: `running` starts `null`, so the rail renders until the first `/healthz` answer, and `poll()` returns early while `document.visibilityState === "hidden"` (`ChatPane.tsx:279`). A background tab therefore stays in the null state and shows the rail. That is why one nightly session passed the gate and replays did not. Use the `**/healthz*` route stub above instead of relying on it.
+- The daemon origin supplies presence for Your om. On the bare vite lane the gate is a race: `running` starts `null`, so the rail renders until the first `/healthz` answer, and `poll()` returns early while `document.visibilityState === "hidden"` (`ChatPane.tsx:267`). A background tab therefore stays in the null state and shows the rail. That is why one nightly session passed the gate and replays did not. Use the `**/healthz*` route stub above instead of relying on it.
 - The `/chat/` shell fixture seeds om presence as running (its `?view=agent` lands on "your om running" with no stub) but has no `omSessions` seed, so the A/B draft recipe is `/rooms/`-only.
 - Private `om:` drafts deliberately do not persist across reload. Test session switches within one app instance; public room/DM/topic draft persistence follows a separate contract.
 - New-session preparation changes the active session before sending. Its draft owner must remain stable through that async transition.
@@ -43,7 +43,7 @@ With the `**/healthz*` stub in place on `?view=agent&alerts=quiet&omSessions=dra
 - **The fixture's New session path is stale.** The landing's first send calls
   `session.startNewOmSession()` (`ChatPane.tsx`, `prepareSend`; since
   `758ba4dd`), but the `omSessions=drafts` seed binds only `createOmSession`
-  (`tools/visual/shell-fixture.tsx:2804`). The unstubbed method resolves to INERT,
+  (`tools/visual/shell-fixture.tsx:2756`). The unstubbed method resolves to INERT,
   the active session never changes, and the send lands in the session that was
   already open (Research A in the 2026-10-27 drive). That is a fixture gap, not
   proof of a product carry bug. Prove the new-session send on a daemon origin.

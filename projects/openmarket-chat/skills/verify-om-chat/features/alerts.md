@@ -12,7 +12,7 @@ in [settings-and-appearance.md](settings-and-appearance.md).
 - **No channel-header beacon since `dc6a9a47`** (2026-10-01). `ChatPane.tsx`
   stopped mounting `AlertsBeacon`; the file survives only for the board's
   `BOARD_WIDTH`. A channel with a live alert feed gets an **Alerts** door on
-  the right-edge dock instead (`RightPanels.tsx:234-257`, gated by
+  the right-edge dock instead (`RightPanels.tsx:229-252`, gated by
   `rightSlotTabsFor`), and the sidebar carries the ringing count. The fixture's
   `#ops` has no live feed, so its dock shows Library, Bookmarks, Members and
   Pins only, and the door is live verification pending (re-measured
@@ -61,7 +61,7 @@ plain `generic` there.
 
 A channel with a live alert feed is gathered into a virtual **Alerts** group
 in the sidebar (`lib/alerts-group.ts:178-199`; the auto setting is
-`om.chat.alertsGroupAuto`, `Sidebar.tsx:792`). On `/rooms/`,
+`om.chat.alertsGroupAuto`, `Sidebar.tsx:770`). On `/rooms/`,
 `shell-fixture.html?view=room&alerts=board` renders
 `[data-alerts-group=""]` with a row named **category Alerts, 1 channel**,
 holding `#ops` and its **store-5xx, ringing** row. Under `alerts=quiet` the
@@ -92,7 +92,7 @@ Adopting the group as a real category was not driven. Driven 2026-11-08.
   true since at least `5820fbea`, so do not judge alert visuals from the shell;
   use `fixture.html?surface=alert-card` or the bundled app.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
-  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:454-464`
+  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:447-457`
   and opened in the product by `session.openAlertsTab`). The fixture's
   plain-object `alertsStub` (`shell-fixture.tsx:1425`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,

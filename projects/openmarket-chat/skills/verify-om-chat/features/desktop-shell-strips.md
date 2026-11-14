@@ -2,7 +2,7 @@
 
 The desktop app (Electron, `desktop/`) injects `window.omShell` before the
 bundle runs. The shared Shell reads it and shows up to three status strips at
-the top of the app (`packages/chat-ui/src/components/Shell.tsx:3396-3398`).
+the top of the app (`packages/chat-ui/src/components/Shell.tsx:3385-3387`).
 Neither browser host has the bridge, so a person sees these strips only in the
 desktop app.
 
@@ -76,7 +76,7 @@ phase after load.
   launchd registration need the shell itself (`cd desktop && bun run probe` /
   `smoke`; agents never launch a visible window).
 - Defining `window.omShell` also turns on the Shell's other desktop-only paths
-  (`Shell.tsx:1419`, `:2733`: desktop setup and daemon recovery). A minimal stub
+  (`Shell.tsx:1409`, `:2722`: desktop setup and daemon recovery). A minimal stub
   without `getAppSetupStatus` keeps them quiet. Add only the methods you mean to
   drive.
 - The background strip needs all three of `getBackgroundStatus`,

@@ -101,7 +101,10 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   `#ops`, **Deleted channel**, **Private channel** (no channel name is known) or
   `#ops (archived)`. The table's CHANNEL column uses the same names.
 - **Channel panel** (`ChannelTodosPanel.tsx`, mounted by `RightPanels.tsx` when
-  `rightPanel === "todos"` and the server is on Projects). It is the
+  `rightPanel === "todos"` and the server is on Projects, `RightPanels.tsx:445-446`;
+  the lazy surface is named `Tickets`, `lazy-surfaces.tsx:233-236`). Off
+  Projects `panel=todos` opens nothing: since `05df35a7` there is no legacy
+  to-dos panel to fall back to (driven 2026-11-15 on both hosts). It is the
   `complementary` region **Tickets in #ops**, with **New ticket in #ops** and
   one button per open ticket, such as "Fix alert dedupe !1 Open High".
   Pressing a row opens the ticket inside the panel (`ChannelTicket.tsx`,
@@ -116,7 +119,9 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   `aria-required` with an `aria-hidden` `*`; **Home channel** carries one too
   unless the home is fixed, as it is in the panel (`c99f628c`).
 - **Message menu entry.** In records mode a message's **More** menu lists
-  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1842`).
+  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1668-1680`),
+  and the hover toolbar shows the same button (`[data-add-todo]`). Off Projects
+  there is no promote at all; see [message-actions.md](message-actions.md).
 - **Projects switch** (`ProjectsSettings.tsx:70-190`; `b29feb5a`, `8d2014cc`).
   Server Settings → **Projects** holds a `role=switch` named **Projects**
   (`data-projects-switch`). Switching on first reads the mode: while that read
@@ -485,7 +490,9 @@ Projects stub the page falls to its error boundary, because the bare
 
 ## Verification record
 
-**Last verified:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** people stub, the extended Projects stub above and the session-capture shim, on `/rooms/` (18170) and `/chat/` (18171). Both hosts: tiles **Open mosaic-1.svg** / **Play clip.mov** / **Preparing file-3.txt**, description ticks (`saveDescription` called), the pill "Ticket !2, In progress, dax", the comment `!` list, a page paste reaching `setFields({addAttachmentKeys})` and, in the final re-drive with the published stubs, × remove with the **Undo** toast and a held **Uploading** tile, the channel-panel ticket **Ticket !1** (Back, Escape) and the Server Settings **Projects** switch (on, pending line, held read). `/rooms/` only: keyboard image open, paste → **Upload failed**, the drag veils, a drop and a paste into the comment, a files-only comment, a comment's **Edit** with tiles and the `!` list, `@` roles, the comment box's Vim, the loading frame, the required TITLE mark, and a sent card opening in the panel (shim `showRightPanel`). **Limitations:** no write reaches a store; paste and drop are synthetic; the description editor's lists, the Settings confirmations and Needs you were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 01-12, 26-32, 40).
+**Last verified:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176), people stub: with the Projects stub `?panel=todos` renders **Tickets in #ops** with **New ticket in #ops**, and a message offers **Make a ticket from this message** on the toolbar and in **More**; without the stub `panel=todos` opens nothing and no promote shows. **Limitations:** no ticket write; the ticket page, files and editors were not re-driven (the 2026-11-13 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 09, 10, 15, 16).
+
+**Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** people stub, the extended Projects stub above and the session-capture shim, on `/rooms/` (18170) and `/chat/` (18171). Both hosts: tiles **Open mosaic-1.svg** / **Play clip.mov** / **Preparing file-3.txt**, description ticks (`saveDescription` called), the pill "Ticket !2, In progress, dax", the comment `!` list, a page paste reaching `setFields({addAttachmentKeys})` and, in the final re-drive with the published stubs, × remove with the **Undo** toast and a held **Uploading** tile, the channel-panel ticket **Ticket !1** (Back, Escape) and the Server Settings **Projects** switch (on, pending line, held read). `/rooms/` only: keyboard image open, paste → **Upload failed**, the drag veils, a drop and a paste into the comment, a files-only comment, a comment's **Edit** with tiles and the `!` list, `@` roles, the comment box's Vim, the loading frame, the required TITLE mark, and a sent card opening in the panel (shim `showRightPanel`). **Limitations:** no write reaches a store; paste and drop are synthetic; the description editor's lists, the Settings confirmations and Needs you were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 01-12, 26-32, 40).
 
 **Previous record:** 2026-11-10 (scheduled maintenance). **Product commit:** `eae9681d` (GitLab origin/main, rooms-client 0.115.0). **Scope:** the muted ticket (`ticketFiles=2&ticketMuted=1#/todo/s1/1`) on `/rooms/` (18141) and `/chat/` (18142), probed with `[aria-disabled=true][aria-describedby]`: twelve controls on each host (the title, **Status**, **Assignee**, **Add a label**, **Priority**, **Set due date**, **Add description**, **Attach a file to the ticket**, the **Comment** box, **Attach a file**, **Mention someone** and the **Comment** button), every one focusable, none `disabled`, each described by "You're muted in this server until Jan 1, 8:00 AM.". **Limitations:** no write was attempted. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/` (frames 20-21).
 

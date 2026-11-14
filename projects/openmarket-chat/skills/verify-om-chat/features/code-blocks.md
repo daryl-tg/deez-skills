@@ -31,7 +31,7 @@ The default `#ops` tape seeds one block: dax's
 send a long unbroken line from the composer, because no seed has one.
 
 **Neither shell fixture imports `code-block.css`.** Only the app entries do
-(`src/main.tsx:40`, `apps/cloud/src/main.tsx:44`). On the fixture lane the block
+(`src/main.tsx:39`, `apps/cloud/src/main.tsx:43`). On the fixture lane the block
 renders with `white-space: pre` and an inline `<code>`, which looks like the
 pre-`2350a0fd` behavior. Load the real stylesheet into the page through vite
 before you measure:

@@ -33,7 +33,7 @@ fixture cannot reach.
   (measured at `f7d7c987`).
 - A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
   font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
-  home session (`Shell.tsx:4615`; lazy import at `:249`). Reach it through
+  home session (`Shell.tsx:4604`; lazy import at `:248`). Reach it through
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
@@ -137,7 +137,7 @@ shows the chat pane doing anything. `tools/openscape-preview/` does: it mounts
 `WorldCanvas`, `WorldSim` and `WorldChatPane` over local fixtures with 32
 occupants, five seeded rows and a scripted delivery ladder. It is a separate
 Vite config whose server block pins **port 8098, the review renderer's port**
-(`tools/openscape-preview/vite.config.ts:38`), so always pass a port:
+(`tools/openscape-preview/vite.config.ts:37`), so always pass a port:
 
 ```bash
 world_port=18139                                   # a free agent slot, preflighted
@@ -235,7 +235,7 @@ template for its waits.
 ### Occupancy on the sidebar row (added 2026-11-09)
 
 The Open World sidebar row shows a walker count from `session.worldPresenceFor`
-(`Sidebar.tsx:4682-4713`). Neither shell fixture stubs it, and only `/rooms/`
+(`Sidebar.tsx:4060-4091`). Neither shell fixture stubs it, and only `/rooms/`
 mounts the row (`daemonFeatures` is false on `/chat/`). Seed it with an
 `Object.prototype` stub beside the people stub:
 
@@ -248,7 +248,7 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # -> [data-testid=world-presence-count] with aria-label "3 walking" and text "3"
 ```
 
-The rail tooltip (`Shell.tsx:3277`) was not hovered.
+The rail tooltip (`Shell.tsx:3266`) was not hovered.
 
 ## Gotchas
 

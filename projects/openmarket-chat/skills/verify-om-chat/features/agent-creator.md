@@ -4,7 +4,7 @@
 > work setup", 2026-10-26).** `AgentCenterSurface.tsx`, `components/roster/`
 > and the `lib/roster-*.ts` helpers are on main, with every label this guide
 > names: **Review agent** (`roster/RosterCreateForm.tsx:1389`), **Choose a
-> brain** (`:1264`), **Install in shadow mode** (`roster/RosterCatalogPanel.tsx:1166`),
+> brain** (`:1264`), **Install in shadow mode** (`roster/RosterCatalogPanel.tsx:1168`),
 > **Apply update** / **Apply rollback** (`roster/RosterCatalogTransitions.tsx:785`),
 > **Review Plan** / **Approve Plan** / **Start approved work**
 > (`roster/RosterWorkPlan.tsx:389`, `:453`, `:481`), **View recorded proof**

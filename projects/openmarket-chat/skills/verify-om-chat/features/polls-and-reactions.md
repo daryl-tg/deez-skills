@@ -10,7 +10,7 @@ who reacted.
   **Close poll**.
 - **Poll composer** (`PollComposer.tsx`): a `Create poll in #<channel>` form with
   **Add option** and **Post poll**. (**Create another poll** is a gallery
-  control in `tools/visual/fixture.tsx:1318`, not part of the composer.)
+  control in `tools/visual/fixture.tsx:1203`, not part of the composer.)
 - **Closed-poll results** (`PollResultsDialog.tsx`): `Final results · N votes`
   with per-option percentages.
 - **Roster cache** (`#752`): reopening results in the same session does not
@@ -133,7 +133,7 @@ session.
 - None of these routes travel the wire. Reaction chip clicks change no count.
   On `surface=poll-ux`, however, a vote **does** settle locally: after a 700 ms
   timeout `ye 8 · 80%` becomes `ye 9 · 82%` (`PollUxFixture`'s `settleVote`,
-  `tools/visual/fixture.tsx:1272`). That proves the card's optimistic update,
+  `tools/visual/fixture.tsx:1157`). That proves the card's optimistic update,
   not delivery. Close the **Create poll in #chat** dialog (Escape) first: its
   backdrop covers the card and the click is refused. Vote and reaction
   persistence still need the daemon-pair lane. Live verification pending.
@@ -147,7 +147,7 @@ session.
   4–10 s, then mounts 1,870 buttons. A `snapshot -c` taken while it is open ran
   past 75 s and had to be killed. Assert with a targeted eval instead, e.g.
   `document.querySelector('[aria-label="Choose an emoji"]').querySelectorAll('button').length`.
-- **Every `fixture.html` gallery forces reduced motion.** `fixture.tsx:52` adds
+- **Every `fixture.html` gallery forces reduced motion.** `fixture.tsx:50` adds
   `reduced-motion` to `<html>` (only `surface=resizable-panel` removes it), and
   `reducedMotionActive` honours that class as well as the media query. So every
   scene there takes the reduced path and dies at 320 ms. A themed (non-shipped)

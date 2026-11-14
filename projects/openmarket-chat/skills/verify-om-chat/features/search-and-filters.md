@@ -146,7 +146,7 @@ Driven 2026-10-31 on `/rooms/` (18135); the scope picker also on `/chat/`
 ### Cmd+F opens channel search (added 2026-11-09)
 
 From the page body, `press Meta+f` focuses the combobox **Search #<channel>**
-(`Shell.tsx:766`). Escape closes it.
+(`Shell.tsx:765`). Escape closes it.
 
 ## Gotchas
 
