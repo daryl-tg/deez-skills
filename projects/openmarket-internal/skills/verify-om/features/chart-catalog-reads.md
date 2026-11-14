@@ -1,5 +1,7 @@
 # Chart catalog reads
 
+*Re-driven 2026-11-15 (nightly), tree `5a4cb146d4` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `chart indicator schema rsi` (with and without `--keys period`), `nonsense` exit 2 `indicator_unknown`, `@backquant/order-blocks` exit 2 `kind_retired`, `TECHNICAL_SCRIPT` with no `--sub-type` exit 2 `invalid_arguments`, `--sub-type RSI` (`target.kind script`), `--sub-type NOPE` `indicator_unknown` naming the 15 chart scripts; `indicator list --query rsi` (`scriptSubTypes: ["RSI"]`); `drawing schema TrendLine`, `trend_line` exit 2 `invalid_options`; `chart status` `workspaces: []`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261115/r1/` (`cli/08-chart-catalog.txt`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `chart indicator schema rsi` (`@om-core/rsi`) and `chart drawing schema` (`anchorFormat`, `TrendLine` first); `chart status --format json` reads `workspaces: []` on a lane with no chart. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `chart indicator schema rsi` (`@om-core/rsi` 0.1.1) and `chart drawing schema` (`TrendLine` first). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/ind-schema.txt`, `cli/draw-schema.txt`).*
@@ -69,6 +71,13 @@ Preconditions: a lane the run started. No chart, workspace or account needed.
 - **Filter keys.** `--keys period` returns only that field.
 - **Unknown type.** `chart indicator schema nonsense --format json` returns
   `indicator_unknown`, and its message lists the accepted stock names.
+- **A chart script.** `chart indicator schema TECHNICAL_SCRIPT --sub-type RSI
+  --format json` returns `target.kind` `script` with `subType` `RSI` and its
+  `fields` (`colors`, `width`, `period`, `smooth`, all `exact`). Without
+  `--sub-type` it exits 2 with `invalid_arguments` (`indicatorType
+  TECHNICAL_SCRIPT needs subType: …`); an unknown sub-type such as `NOPE` is
+  `indicator_unknown`, naming the chart's scripts (`VOLUME_BUBBLES`, …,
+  `PSAR`).
 - **The catalog.** `control-om om -- chart indicator list --query rsi
   --format json` returns `indicators`, `scriptSubTypes` and `packages`. Each
   package row carries `id` (`wrun/@om-core/rsi/rsi`), `placement` and `params`.

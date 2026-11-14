@@ -1,5 +1,7 @@
 # Local reads and discovery
 
+*Re-driven 2026-11-15 (nightly), tree `5a4cb146d4` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, no guest 429. First live proofs: the `todo_records_off` refusal against a loopback relay stub (#2500), and the partial-bar wash in four order-flow templates (#2506): `wrun create … --template dark-pool-prints|strike-footprint|flow-marks|option-prints` each wrote scaffold 118; the first two declare a `shown_in_part` output that gates the `Bars with missing prints` wash, and the last two have no wash. `wrun templates` is still 93. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261115/r1/` (`cli/todo-records-off.txt`, `cli/wrun-partial-tint.txt`).*
+
 *Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, no guest 429. First live proofs: the sealed-secrets doors and verbs added by the secrets series (`7e5a380b20` to `9d7308e143`), and the weekly-candles refusal (#2503). Not re-driven: the series, plans, `enum` and `schema` reads. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/secrets-*`, `cli/wrun-weekly-*`).*
 
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `config show` (masked key), `config key-info`, `enum`, `wrun templates`, `notis --format json` (the fire row), `wrun create @nightly/sizeprobe --template sma` (`.wrun-scaffold` `scaffold_version: 118`) and `wrun build` on it; `schema read watch_create` is `unknown_intent` with the intent list; `todo list --space x` is `room_social_failed` `Unauthorized`; `skill list` takes no `--format`. Not re-driven: the size-unit warning, `space_muted`, the interval-window warning. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
@@ -76,6 +78,7 @@ bundled constants. None needs an account or a model.
 - `wrun-regimes-flat` (added 2026-11-09, #2414): `wrun create <id> <dir> --template positioning-regimes` writes the `flat` histogram output (`theme.muted`), and `wrun build` lists `wrun/<id>/flat` beside `regime`. A flat bar's values are unit-tested; the build proves only the output exists.
 - `wrun-style-names` (added 2026-11-09, #2407): scaffold **118**. The sheet gains a top-level `style_names` table, and `label` / `color_labels` on marks, spans, rays, flags, renderers and outputs. An `@om-core` package with an unnamed Style line, or an unnamed colour list of two or more, is refused `wrun_style_unnamed` at publish and by `om wrun validate` (`runner/wrun/authoring.ts:1359`); other scopes are not refused. The `positioning-regimes` template names every line, so `wrun validate` on an `@om-core` copy passes; the refusal itself is source only.
 - `wrun-size-unit-words` (added 2026-11-10, #2430): `wrun build` and `wrun validate` warn when an output's `unit` names a size word (`coins`, `shares`, `sh`, `contracts`) on every market: `output 'cvd' prints " coins" on every market, but only a size_unit 1 market counts in coins: gate it with visible_by: { size_unit: [1] } beside a twin without the word on [0, 2, 3]`. An `@om-core/` package is refused at `wrun validate` (and `om publish`) with `wrun_size_unit_word`, exit 2. The CVD Divergence template (0.3.0) builds `cvd` and `cvd_swing` gated to `size_unit [1]` and the unitless twins `cvd_units` and `cvd_swing_units`, with no warning.
+- `wrun-partial-tint` (added 2026-11-15, #2506): the grey `Bars with missing prints` wash covers only a bar that draws part of its data. `dark-pool-prints` and `strike-footprint` scaffold a data-only `shown_in_part` output (`1 on a bar that shows some of its prints but not all of them`) and their `render.bgcolor("served_in_part", …)` reads `where: "shown_in_part"`; `partial` keeps its meaning. `flow-marks` and `option-prints` lose the wash (`it draws nothing, partial reads 1 and no wash covers it`). Proved on the scaffold only: the chart drawing itself belongs to the chart's own verification.
 - `wrun-weekly-calendar-backing` (added 2026-11-14, #2503): an input that reads weekly candles (`candles.cells` with `interval: "1w"`) is refused for an `@om-core/` package by `wrun validate` (and `om publish`) with `wrun_weekly_calendar_backing`, exit 2, naming the line and the daily-candles repair. A line ending `// om-allow weekly-candles: <reason>` passes. Any other scope passes with a `warnings[]` entry in `validate`'s JSON and a row under `Warnings:` in `wrun build`.
 - `wrun-build-window-warning` (added 2026-11-08, #2405, scaffold 117): `wrun
   build` warns `WRUN_DECL_INTERVAL_WINDOW_SHORT` when a window fed by an input
@@ -211,7 +214,7 @@ with no account:
 | Call | Observed |
 |---|---|
 | `approvals list` / `--format json` | `No pending approvals.` / `[]`; `GET /rpc/v1/approvals` returned `{"ok":true,"data":{"approvals":[]}}` |
-| `approvals list --kind draft` / `--kind bogus` (#2258: one inbox of five kinds, `chain`, `mcp`, `grant`, `draft`, `proposal`) | `No pending approvals.` / exit 2 `--kind must be one of: chain \| mcp \| grant \| draft \| proposal`; `GET /rpc/v1/approvals/inbox` returned `{"items":[],"counts":{"total":0,"byKind":{…all 0}}}` |
+| `approvals list --kind draft` / `--kind bogus` (#2258: one inbox of kinds `chain`, `mcp`, `grant`, `draft`, `proposal`, and since #2450 `repo`; see [approvals-ledger.md](./approvals-ledger.md)) | `No pending approvals.` / exit 2 `--kind must be one of: chain \| mcp \| grant \| draft \| proposal \| repo` (2026-11-15); `GET /rpc/v1/approvals/inbox` returned `{"items":[],"counts":{"total":0,"byKind":{…all 0}}}` |
 | `approve nope` | exit 2 `nope is not an approval id` / ``Run `om approvals list` to see pending ids.`` |
 | `todo get 12` (#2291) | exit 1 `12 is a ticket number, which names a ticket only within its server` / `Pass spaceId and number.` |
 | `todo get om://todo/room/12/5`, `todo get om://todo/lab/12abc` (#2410; driven 2026-11-08, `5590b4d1c`) | each exit 1 `invalid_ref` `Not a server ticket link: <ref>` / `Projects lives in servers: pass the server's spaceId and the ticket number`. A ticket link has one form, `om://todo/<spaceId>/<number>`: the retired room form and a link the text runs on from are not links. `todo get om://todo/lab/12` parses and reaches the relay: `room_social_failed` 401 on a guest key. |
@@ -247,6 +250,19 @@ control-om om -- todo create "x" --room general --url http://127.0.0.1:<stub-por
 - `mutedUntil` absent: the refusal stays `room_authority_required`, as before #2417.
 - `todo update --ids a,b --status done` hits `POST /todos/bulk`, whose `200` body is `{"results":[{"todoId":"a","ok":false,"tag":"SPACE_MUTED","mutedUntil":"<ISO>"},…]}`. Nothing changed and every refusal is the mute: `space_muted` at the latest end. One row `ok:true`: exit 1 with the batch report, the muted id under `failed` as `space_muted`.
 - The reaction, edit, topic and upload paths share the mapping and are not driven here.
+
+### Projects off, against a loopback relay stub (added 2026-11-15, #2500)
+
+The same stub shape proves the refusal on a server where Projects is off. Answer every path containing `todo` with `409` and `{"tag":"TODO_RECORDS_OFF","code":"TODO_RECORDS_OFF","error":"<message>"}`, then:
+
+```bash
+control-om om -- todo list --space vom-space --url http://127.0.0.1:<stub-port> --format json
+control-om om -- todo create x --room general --url http://127.0.0.1:<stub-port> --format json
+```
+
+- Each exits 1 with `error: todo_records_off`, the relay's own message, `details.status` and the hint `Projects is off for this server; its owner switches it on in Server Settings → Projects.` The text form prints the message, then the hint.
+- Before #2500 the hint pointed at the legacy board tool (`room_todo_board`), which is gone from every surface, MCP included.
+- The stub sees `GET /todos?spaceId=<space>` for the list and `POST /todos` for the create.
 
 ## Gotchas
 

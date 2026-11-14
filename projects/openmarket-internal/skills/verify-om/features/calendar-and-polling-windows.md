@@ -1,5 +1,7 @@
 # Calendar scheduling and polling windows
 
+*Re-driven 2026-11-15 (nightly), tree `5a4cb146d4` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `calendar list` empty (JSON and `no occurrences`); `calendar show cocc_none` exit 2 `calendar_occurrence_not_found`; a `calendar_candidate` push on `calendar-probe` (`delivery: daemon`) admitted `cocc_fe0277f8…` (`scheduled`, `candidate`, revision 1); `show` carried `provider_occurrence_id verify-1115-occ`; `select` `selected` `change_seq 2`; `revise --status cancelled` `changed: true`, revision 3; the same revise again printed `Changed: nothing, it already states this`; `watch window set calendar-probe calendar-probe …` exit 2 `no_polling_block`; `watch window list` `windows: []`. Not re-driven: a window on a polled source. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261115/r1/` (`cli/07-calendar-*.txt`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `calendar list --format json` on an empty home (`occurrences: []`, `events: []`, `truncated: false`). Not re-driven: polling windows. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `calendar list` on a fresh home (`occurrences: []`). Windows and links are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/cal-list.txt`).*
@@ -106,10 +108,18 @@ control-om om -- event push calendar-probe \
 - **Revise.** `calendar revise <cocc_id> --status cancelled --evidence-url
   https://example.com/verify --format json` returns `changed: true` and
   `revision: 3`; a follow-up `calendar list` shows `status: "cancelled"`.
+  The same revise again changes nothing; its text form ends
+  `Changed: nothing, it already states this`.
+- **An unknown id.** `calendar show cocc_none --format json` exits 2 with
+  `calendar_occurrence_not_found`, `No calendar occurrence cocc_none` and the
+  hint ``Run `om calendar list`.``
 - **Proof.** Keep the push result, the two `calendar list` payloads either side
   of the revise, and the select receipt. The minted occurrence id ties them.
-- The selected watch source must support polling. `watch window set` refuses a
-  source without a polling block.
+- The selected watch source must support polling. `watch window set <watch>
+  <source>` (both are required) refuses a source without one: on the inbound
+  `calendar-probe` source it exits 2 with `no_polling_block` and the hint
+  `Give the source a polling block first (om watch edit --polling-json), then
+  set the window.`
 
 1. Run `control-om om -- calendar list --format json`. A fresh guest lane returns
    an empty `occurrences` and `events` array. Admit an occurrence first (above)

@@ -1,5 +1,7 @@
 # The approval ledger from the CLI
 
+*Re-driven 2026-11-15 (nightly), tree `5a4cb146d4` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. Read-only: `approvals list` `No pending approvals.`, `approvals ls --format json` `[]`, `--kind bogus` exit 2 now naming six kinds (`repo` is new since #2450), `--kind repo --format json` `[]`, `approvals show nope`, `approve nope` and `deny apr_doesnotexist` each exit 2, `GET /rpc/v1/approvals/inbox` with six `byKind` zeros and `GET /rpc/v1/approvals` `{"approvals":[]}`. Not re-driven: seeded rows, `deny` on a real row, the stream frames. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261115/r1/` (`cli/06-approvals.txt`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `approvals list --format json` on an empty home is `[]`; a badge's room knock over MCP listed as `apr_…  grant  <expiry>  <badge> asks: read #vom-room` under `1 pending: 1 grant`; `om agent grants deny <id>` resolved it (`resolvedBy: cli`) and the list read `No pending approvals.` Not re-driven: `om approve` and `om deny`, the stream frames, tool and order cards. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `approvals list` on a fresh home (`No pending approvals.`). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/approvals.txt`).*
@@ -17,16 +19,19 @@
 Every card om raises (an MCP tool call that needs a yes, a chat card that parked,
 a Firecrawl offer, an agent's room-access knock, an MCP chain request) is one row
 in a single approval ledger in the home's database. `om approvals list` shows
-the pending rows of five kinds, and `om approve <id>` or `om deny <id>` answers
+the pending rows of six kinds, and `om approve <id>` or `om deny <id>` answers
 one from the terminal. The first answer wins on every surface, and the stream
 announces each change. A card that can move money is answered only on its own
 card, and a chain request only at an interactive terminal.
 
 ## Sub-features
 
-- `inbox-read`: `om approvals list [--kind chain|mcp|grant|draft|proposal]
-  [--format json]`, and `GET /rpc/v1/approvals/inbox` with `{items, counts}`
-  per kind.
+- `inbox-read`: `om approvals list [--kind chain|mcp|grant|draft|proposal|repo]
+  [--format json]` (alias `om approvals ls`), `om approvals show <id>` for one
+  card, `GET /rpc/v1/approvals/inbox` with `{items, counts}` per kind, and
+  `GET /rpc/v1/approvals` with the raw ledger list `{approvals}`. The `repo`
+  kind (#2450, `runner/approvals/inbox.ts:20`) lists a coding agent's repo
+  grants, which only a plug-in supplies; it is always empty on a fresh lane.
 - `answer`: `om approve <id>` and `om deny <id>` resolve a ledger row by its
   `apr_…` id. An unknown id is refused with exit 2.
 - `harness-refusal`: `om approve` refuses when its process ancestry is an
@@ -34,7 +39,8 @@ card, and a chain request only at an interactive terminal.
   deny` has no such door.
 - `money-card` (#2344, source only): `om approve` on a `tool_call` row that
   reaches capital is `answer_on_card`; a card with a typed size is
-  `approval_typed_mismatch` (`runner/approvals/wire.ts:105-118`).
+  `approval_typed_mismatch` (`refuseCapitalYesOffCard`,
+  `runner/approvals/wire.ts:107-125`).
 - `chain-request` (#2340, source only): a `chain_arm` row's card reads
   `Answer in your terminal: om approve <id>`; `om approve` is
   `terminal_required` off a TTY or with `--format json`.
@@ -57,10 +63,12 @@ seed rows the way the product's own test does.
 
 1. **The empty reads.** `control-om om -- approvals list` prints `No pending
    approvals.`; `--format json` prints `[]`; `--kind bogus` exits 2 with
-   `--kind must be one of: chain | mcp | grant | draft | proposal`.
+   `--kind must be one of: chain | mcp | grant | draft | proposal | repo`.
    `curl -s "$(control-om url /rpc/v1/approvals/inbox)"` returns
-   `{"ok":true,"data":{"items":[],"counts":{"total":0,"byKind":{"chain":0,"mcp":0,"grant":0,"draft":0,"proposal":0}}}}`.
-2. **Unknown ids.** `approve nope`, `approve apr_doesnotexist` and
+   `{"ok":true,"data":{"items":[],"counts":{"total":0,"byKind":{"chain":0,"mcp":0,"grant":0,"draft":0,"proposal":0,"repo":0}}}}`;
+   `curl -s "$(control-om url /rpc/v1/approvals)"` returns
+   `{"ok":true,"data":{"approvals":[]}}`.
+2. **Unknown ids.** `approvals show nope`, `approve nope`, `approve apr_doesnotexist` and
    `deny apr_doesnotexist` each exit 2 with `<id> is not an approval id` and
    ``Run `om approvals list` to see pending ids.``
 3. **Open the stream first.** `curl -sN --max-time 25 "$(control-om url

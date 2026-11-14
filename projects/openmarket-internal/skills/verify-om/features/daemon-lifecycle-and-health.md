@@ -278,6 +278,7 @@ Preconditions:
 - `[library] could not read the saved watches: registry answered 403` repeats
   every minute in the lane log. That is the guest session failing an
   authenticated registry read, not a fault in the change under test.
+- `ERROR [roster-todo] roster todo records server modes unavailable` and `ERROR [roster-watcher] roster watcher source auto room discovery failed` each repeat every 20 s on a guest lane started through `bootstrap.internal.ts` (10 of each in about 3 minutes, observed 2026-11-15 at `5a4cb146d4`). A guest has no rooms account, so the roster's ticket and room reads fail (`packages/roster/src/todo-record-watch.ts:398`, `packages/roster/src/watcher.ts:1823`). They are not a fault in the change under test; the repeat itself is a product gap (README, known product gaps).
 - `[roster] om-skills defaults unavailable (registry lookup failed (404) … @om-skills/argue …); retrying in 30s` (then 60, 120 and so on, up to 30 min) is an ERROR on every fresh lane while the production registry does not list the default agents (driven 2026-10-28). `[roster-watcher] … room discovery failed` and `[roster-todo] roster todo rooms unavailable` repeat every 20 s on a guest. Neither is a fault in the change under test. See [agent creator](./agent-creator-lifecycle.md) for the install path.
 - The boot log prints the bind from `OM_BIND`, but the `run` command's own
   `--help` text still says `:31337`. The text is a default, not what this lane
