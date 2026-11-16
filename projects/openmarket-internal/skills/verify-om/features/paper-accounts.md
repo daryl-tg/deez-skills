@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Re-driven 2026-11-16 (nightly), tree `53885683de` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (PR #24's wrapper), booted with no guest 429. `create --yes`, `create` without `--yes` (exit 2), `ls`, `show`, `digest --format text`, `show nope` (`paper_book_unknown`), bare `om paper` (lists, like `ls`). First live proofs: `set --ticket 10 --yes`, `log` (empty, and `--outcome bogus` exit 2 `invalid_options`), `digest-set on --cadence weekly --yes` (exit 2 `paper_digest_day`), `open --signal '{bad'` (exit 2 `paper_signal_invalid`) and `reset --yes` (`generation 1`). Not driven: the Paper tab. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261116/r1/`.*
+
 *Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `paper create verify-book --yes` (`cash: 1000`, `desk: off`), `paper ls` (`starting_cash 1000`, `open_lots 0`), `paper show verify-book` (rules `ticket 25`, `ticket_cap 50`, `entries_per_day 4`, `open_stakes 250`), and `paper digest --format text` (`Paper verify-book`, `Cash: $1,000.00`, `Fills: none`). Not re-driven: the Paper tab, reset. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/paper-kscript.txt`).*
 
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. Refusals only: `paper create` without `--yes` exits 2 `confirmation_required`, and `paper show` on a name that does not exist exits 2 `paper_book_unknown` with the `om paper ls` hint. Not re-driven: create with `--yes`, `ls`, `digest`, the Paper tab. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
@@ -108,10 +110,19 @@ credential, no venue.
   CLI's blanket treatment of account-shaped verbs, not a sign it touches money.
 - A new account's `desk` is `off`. Nothing automates against it until that
   changes, so a driver waiting for activity on a fresh book waits forever.
-- `log`, `set` and `reset` were driven at `db6e76ef5` (shapes in the stamp).
-  `reset` without `--yes` is refused with `confirmation_required`. `open
-  [account] --signal <json>`, `close <account> <lot>`, `reset-all` and `digest-set` exist but were
-  not driven; treat their output shapes as unverified.
+- `log`, `set` and `reset` were driven at `db6e76ef5` and again 2026-11-16
+  (shapes in the stamps). `reset` without `--yes` is refused with
+  `confirmation_required`. `set` takes `--rename`, `--ticket`, `--entries`
+  and `--open-stakes`; `log` takes `--outcome opened|skipped|closed|reviewed`,
+  `--watch`, `--limit` and `--cursor`. Driven refusals: `log --outcome bogus`
+  (exit 2 `invalid_options`), `digest-set on --cadence weekly` with no `--day`
+  (exit 2 `paper_digest_day`, hint `--day fri`), `open --signal '<not JSON>'`
+  (exit 2 `paper_signal_invalid`). A successful `open`, `close <account> <lot>`,
+  `reset-all` and a stored `digest-set` were not driven; treat their output
+  shapes as unverified.
+- `paper create` also writes a `watches/paper-desk-<account uuid>.json` desk
+  watch, even with `desk: off`. `watch archive` refuses it while the account
+  exists (see [watch archive](./watch-archive.md)).
 - **`desk` is not always `off`.** `paper create` from a human terminal or chat
   sets `desk: "on"` when the setting `paper.auto_arm` reads on (`on`, `true`, `1`
   or `yes`; `actions/paper/create.ts`, `runner/paper/desk.ts`). A fresh guest

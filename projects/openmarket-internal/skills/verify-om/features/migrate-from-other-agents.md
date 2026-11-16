@@ -1,5 +1,7 @@
 # Import another agent's setup
 
+*Re-driven 2026-11-16 (nightly), tree `53885683de` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (PR #24's wrapper), booted with no guest 429. The fixture copies: Hermes plan, the refusal without `--yes`, apply (memories, `instructions.md`, `migrate/hermes/event-routines.md`), the `exists` re-run; OpenClaw's plan (`conflict memory About the user`); Grok Bot with `--yes` (`imported (6 items)` after the Hermes import, then `already here; nothing new`); `migrate_source_missing` and an unknown source. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261116/r1/`.*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. Refusal only: `migrate hermes --dry-run` with no `~/.hermes` exits 2 `migrate_source_missing` and names `--source <path>`. Not re-driven: the three fixtures and `--yes`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `migrate hermes --source <scratch>/hermes --dry-run` on a one-line `memories/MEMORY.md`, exit 0. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/migrate-hermes.txt`).*
@@ -92,5 +94,6 @@ cp -R packages/cli/test/fixtures/migrate/{hermes,openclaw,grok-bot} <scratch>/
   pass `--source` in an unattended run.
 - Routines only become watches once the home has a default channel; a guest
   lane has none, so `--yes` lands memories, the role and notes only.
+- **The import count depends on what is already in the home.** After a Hermes import, Grok Bot's `About the user` memory is a `conflict` (`a different memory holds this slug`), so `--yes` ends `Grok Bot: imported (6 items)`, not 7 (driven 2026-11-16). Both end with `Keys and tokens: not imported`.
 - The fixture folders carry `plan.json` and `anchors.json` for the product's
   tests; the CLI ignores them.

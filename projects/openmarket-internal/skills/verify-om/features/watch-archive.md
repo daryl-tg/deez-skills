@@ -1,5 +1,7 @@
 # Watch archive and the auto-archive sweep
 
+*Re-driven 2026-11-16 (nightly), tree `53885683de` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (PR #24's wrapper), booted with no guest 429. `watch archive` of two ids (one archived, one refused for its reader, exit 1), `watch list --archived` (text and JSON, reason `manual`, shown as `by you`), the `watch remove` guard, `watch unarchive` (paused), `config get watch.auto_archive` (`unset (default: on)`), and a new refusal: a paper account's desk watch (`Fix: close the desk first`). Not re-driven: the sweep. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261116/r1/`.*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `watch archive` (`Undo: om watch unarchive <id>`), `watch list --archived` (`archived 2026-11-11 · by you`), `watch unarchive` (`paused`, with the resume line). The `watch-archive` lane read `ok` on `/healthz`. Not re-driven: the sweep. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143. `watch archive lane-quiet` (`Archived lane-quiet (lane-quiet)`, `Undo: om watch unarchive <id>`), `watch list --archived` (`lane-quiet  lane-quiet  inbound  archived 2026-11-09 · by you`), `watch remove` on it exits 2 `not removed: it is archived`, `watch unarchive` (`Unarchived lane-quiet: paused`, `Resume: om watch resume lane-quiet`), then remove. The list's reason word for a manual archive is `by you` (`ARCHIVE_REASON_WORDS`, `cmd/watch-verbs.ts:3552`; JSON keeps `reason: manual`); the map said `manual`. The sweep is not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/wa-*.txt`).*
@@ -29,17 +31,27 @@ off.
 - `archive`: `watch archive <id...>` moves `watches/<id>.json` to
   `watches/archive/<id>.json`. A watch with readers is refused `Not archived
   <id>: read by <reader>` / `Fix: archive or edit <reader> first`; the command
-  exits 1 when any id is refused and ends with `Undo: om watch unarchive <id>`.
+  exits 1 when any id is refused and ends with `Undo: om watch unarchive <id>`
+  (the literal `<id>`). A paper account's desk watch is refused `'paper desk:
+  <name>' is the desk watch of a paper account that still exists` / `Fix: close
+  the desk first` (driven 2026-11-16). Source also refuses a published watch
+  (`watch_published`, `unpublish it first`) and one shared to a room
+  (`watch_shared_to_room`, `unshare it first`) (`actions/watch/archive.ts:70-125`;
+  not driven).
 - `unarchive`: `watch unarchive <id>` answers `Unarchived <id>: paused` and
   `Resume: om watch resume <id>`.
 - `list`: `watch list --archived` prints `<id>  <label>  <kinds>  archived
   <date> · <reason>` (`by you`, `paused 30+ days`, `finished 7+ days`), then `Unarchive: om watch
-  unarchive <id>`. JSON puts them under `archived[]` with `{at, by, reason}`.
+  unarchive <id>`. JSON puts them under `archived[]` with `{at, by, reason}`; a manual archive is `by: "you"`, `reason: "manual"`.
 - `remove-guard`: `watch remove <archived id> --yes` exits 2 `not removed: it
   is archived` with `om watch unarchive <id>, then remove it`.
 - `sweep`: the housekeeping tick runs it once per 24 h, gated by the settings
   row `watch_archive_sweep_at`. It skips package, paper-desk and money-step
-  watches and broken running ones (`runner/watching/archive-sweep.ts:20-100`).
+  watches and broken running ones (`runner/watching/archive-sweep.ts`: the `kept` reasons
+  `package`, `paper_desk`, `money_step`, `unread`, `broken`,
+  `finished_recently`, `paused_recently` and `running` at `:28-36`,
+  `verdictOf` at `:89`). The setting `watch.auto_archive` (default `on`)
+  switches it off.
 - `notice`: one held or delivered notice, `Archived N unused watch(es)`, with
   a row per reason, `See: om watch list --archived` and `Undo: om watch
   unarchive <id>`.

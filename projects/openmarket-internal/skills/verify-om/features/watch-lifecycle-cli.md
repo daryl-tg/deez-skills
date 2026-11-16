@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Re-driven 2026-11-16 (nightly), tree `53885683de` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (PR #24's wrapper), booted with no guest 429. Newly driven: a strategy package backtest end to end (`wrun create --template strategy-ma-cross`, `wrun build`, `install`, `backtest run @vom/macross --asset BINANCE:BTCUSDT`, exit 0, 2 trades, no `declared.pointValue`) and the CME refusal `license_display_only`; see "Backtest an Indicator strategy package". Not re-driven: the rest of this guide. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261116/r1/`.*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `watch create --inbound`, `watch edit --classifier-mode accept_all`, `pause`, `resume`, `history`, `remove` without `--yes` (refused, names the 0 rows it deletes) and with it; `watch amend` with no event id is `missing required argument 'event-id'`. Not re-driven: timers, conditions, upstream stand-down. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (scheduled maintenance), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18161. First drives: `watch amend`'s refusals (`watch_amend_empty`, `watch_no_lane`, and raw `ZodError`s for an empty id and a bad `--weight`) on an `accept_all` row; every-other-week and three-week timers created over MCP `watch_create` (`every other Monday at 09:00 UTC`, `every 3 weeks on Mon and Thu at 09:00 UTC`), read back by `watch show` (`every 2 weeks from 2026-11-16`), `watch list` and the dashboard (no words). The amend success path needs a topic share (relay). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261110/r1/` (`cli/17`-`24`, `09`-`10`).*
@@ -219,7 +221,17 @@ Seed one timer watch with `control-om om -- watch create demo --every 1h --forma
 | `watch state clear <condition watch> --format json` | `{"id", "cleared": true, "record_restarts": null}`; `--format text` prints `cleared <id>`; outside a TTY the bare verb prints JSON. Since #2244 the clear also drops a target chain's record anchor and says when the record restarts (`record_restarts` `now` or `at_next_arm`), which needs an armed target chain (pending) |
 | `watch state clear nope` | exit 2 `watch_not_found` |
 
-These prove the verbs answer and refuse correctly on a healthy watch. They do not prove repairing a broken watch, a real backtest, or an approval.
+These prove the verbs answer and refuse correctly on a healthy watch. They do not prove repairing a broken watch or an approval. A real backtest of an Indicator strategy package is in the next section.
+
+### Backtest an Indicator strategy package (added 2026-11-16)
+
+Driven 2026-11-16 on a guest lane, tree `53885683de`. No account and no model are needed.
+
+1. `control-om om -- wrun create @vom/macross <dir> --template strategy-ma-cross`, then `wrun build <dir> --format json` (metrics end `strategy.position`, `strategy.equity`), then `control-om om -- install <dir>/dist/package --yes --format json` (`kind: "wrun-indicator"`, installed under the lane home's `packages/@vom/macross/0.1.0`).
+2. `control-om om -- backtest run @vom/macross --asset BINANCE:BTCUSDT --window 30d --interval 1h --no-open --format json` exits 0 with `kind: "backtest_run_report"`, `report.strategy` (`package`, `version`, `params`, `output`) and one warning, `wrun_strategy_costs_in_sheet` (the package's own commission and slippage). On 2026-11-16 the run made 2 trades.
+3. `report.strategy.output.declared` echoes the sheet's strategy terms (`initialCapital 10000`, `qtyType percentOfEquity`, `qtyValue 50`, `fillModel pessimistic`, `instrument spot`). It has **no `pointValue`** on a market whose point value is 1. Since #2507 a market with another point value (a future) adds `declared.pointValue`, and then `qty` counts contracts and every money figure is price x size x point value.
+4. `backtest run @vom/macross --asset CME:MES ...` exits 2 `license_display_only`: "CME data is licensed for chart display only; research and backtests cannot read it.", with the hint `Use a licensed venue (BINANCE:BTCUSDT, any from om markets); charting CME:MES still works.` and `details.planes ["cme"]`. So the #2507 point-value path cannot be reached on CME. It stays **live verification pending** until a licensed venue lists a future whose point value is not 1.
+
 
 ### Amend a fired row (added 2026-11-10)
 
