@@ -4,7 +4,14 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-16 against product tree `6bfc742bc8` (`origin/main`,
+was last DRIVEN on 2026-11-17 against product tree `60b7e6b190` (`origin/main`,
+60 commits past `6bfc742bc8`), lane `18103`, a no-session lane on the
+internal gateway (the backend unreachable; see the README's Baseline
+preconditions): the V2 dialog (`v2` 20, `legacy` 0), an `ETHUSDT` fill (ETH,
+`5 of 115 venues`) and its BINANCE.F row to BINANCE.F ETHUSDT, the speed
+dial's `tb-interval-option-4h-btn` to `4h` (394 bars), and the header price
+following Value Precision (see `tb-price-precision`). Before that, last
+DRIVEN on 2026-11-16 against product tree `6bfc742bc8` (`origin/main`,
 187 commits past `c7d4eccfac`), lane `18103`, a guest-JWT lane on the internal
 gateway: the interval speed dial (`tb-interval-dial-big`, the `s` and `d`
 rows, `Tape` in the foot, no `Custom…`) and `tb-interval-option-4h-btn` to
@@ -188,6 +195,9 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   (`e12e19a764`): driven 2026-11-16, `find role tab click --name "Economy"
   --exact` listed economic series (India Foreign Exchange Reserves first) and
   no FINRA short-volume rows.
+- `tb-price-precision` the header price, its popover and the tab title print
+  at the chart's Value Precision (Integer or Manual N) on every symbol,
+  crypto indices such as BTC.D included (`8683fb99d7`, `8733808579`).
 - `tb-plot` the chart-type picker changes plot type.
 - `tb-plot-kept` a picked chart type survives a symbol switch.
 - `tb-layout` the layout picker changes the grid.
@@ -731,6 +741,18 @@ Preconditions:
   another value or a non-stock symbol changes no feed (source). A Tape the
   person closed stays closed (see the panels guide, `rp-tape-closed`). The
   `stock-tape:opened` event (`via: 'link'`) goes to analytics only.
+- **`tb-price-precision` (driven 2026-11-17 on `60b7e6b190`).** Right-click
+  the chart (`mouse move 600 400`, `mouse down right`, `mouse up right`) and
+  pick `chart-ctx-settings` (`Chart settings…`): the floating `Main` panel
+  opens on `Display`. `find role tab click --name "Source" --exact`, then the
+  second combobox (`Default`) holds `Default`, `Integer` and `Manual`. On
+  COINBASE BTC-USD `[data-testid=tb-ms] .tb-ms__price` and `document.title`
+  read `64,882.08` at Default, `64,882` at Integer, `64,882.1` at Manual (its
+  spinbutton starts at 1) and `64,882.0800` at Manual 4. Type the decimals
+  into the spinbutton with `Meta+a`, the digit and `Enter`; `fill` did not
+  take. Restore `Default` after. The move pill keeps its own decimals and
+  list rows are untouched (source). Close the panel with its `X` (top right
+  of the panel); `Escape` leaves it open.
 
 ## Gotchas
 

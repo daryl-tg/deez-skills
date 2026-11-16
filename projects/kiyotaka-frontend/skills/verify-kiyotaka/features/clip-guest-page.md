@@ -5,7 +5,10 @@ the clip as a video with captions, its title, author and market, and a Copy
 link button, with Open on my chart (when the clip carries a chart snapshot) and
 Reply (when the clip is not itself a reply) sending them to sign in. A clip
 that is not public, a malformed id and a server error each show their own
-state. Re-driven 2026-11-16 on `6bfc742bc8` (`origin/main`, 187 commits past
+state. Re-driven 2026-11-17 on `60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session lane on the internal gateway: the backend was unreachable, so there was no guest token; see the README's Baseline preconditions):
+`/chart/clip/nightly-probe-20261117` showed `clip-guest-page`,
+`clip-guest-private` and `clip-guest-home-link` with `This clip is not public`
+and `Open the chart`. Before that, re-driven 2026-11-16 on `6bfc742bc8` (`origin/main`, 187 commits past
 `c7d4eccfac`, lane `18103`, a guest JWT, the internal gateway):
 `/chart/clip/nightly-probe-20261116` read `This clip is not public Open the
 chart`; `ClipGuestPage.vue` did not change. Before that, re-driven 2026-11-14 on `c7d4eccfac` (`origin/main`, 62 commits past

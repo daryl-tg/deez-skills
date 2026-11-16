@@ -8,7 +8,13 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-Last re-driven 2026-11-16 against `6bfc742bc8` (`origin/main`, 187 commits
+Last re-driven 2026-11-17 against `60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session lane on the internal gateway: the backend was unreachable, so there was no guest token; see the README's Baseline preconditions): the Panels
+menu's `tb-panels-row-watchlist` raised `Verify your email to unlock
+Watchlist` with an empty address (`We'll send a 6 digit code to .`) instead
+of the `Watchlist` wall, so the wall was not proved that night. The one
+watchlist source change, `112089840a`, stops the market table's poll from
+asking quotes for publisher-only exchanges (`marketTablePoll.ts`, source,
+behind the wall). Before that, re-driven 2026-11-16 against `6bfc742bc8` (`origin/main`, 187 commits
 past `c7d4eccfac`, lane `18103`, a guest JWT, the internal gateway): the
 ticker's `Watchlist` button raised the `Watchlist` sign-in card; no
 `src/components/watchlist` source changed. Before that, re-driven 2026-11-14 against `c7d4eccfac` (`origin/main`, lane `18103`,

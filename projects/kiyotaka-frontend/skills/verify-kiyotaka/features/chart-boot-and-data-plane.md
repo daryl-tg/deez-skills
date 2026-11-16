@@ -3,7 +3,15 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-16 against product tree `6bfc742bc8`
+entry was last DRIVEN on 2026-11-17 against product tree `60b7e6b190`
+(`origin/main`, 60 commits past `6bfc742bc8`), lane `18103`, a no-session
+lane on the internal gateway: the backend `dboons-nutz` did not resolve
+(Tailscale stopped), so no guest token was issued, yet boot drew 250 bars
+on COINBASE BTC-USD 1h with VWAP 10 s after `open`, with no `Guest Mode`
+badge and no signup modal (see Gotchas and the README's Baseline
+preconditions); Go to date's in-place edit, the chart zone's today and the
+`Invalid date` refusal (see `boot-go-to-date`). Before that, last DRIVEN on
+2026-11-16 against product tree `6bfc742bc8`
 (`origin/main`, 187 commits past `c7d4eccfac`), lane `18103`, a guest-JWT
 lane on the internal gateway (`tsdb-gateway.int.ore.kiyotaka.ai` resolving
 to `10.1.1.10` again, no export and no resolver map): boot to 250 bars on
@@ -153,7 +161,8 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
 - `boot-go-to-date` the footer's Go to date moves the chart to a past window,
   and that window keeps the live price off the tab title and the price axis;
   a date past the interval's reach keeps the dialog open and says how far
-  back that interval goes.
+  back that interval goes; an impossible date keeps it open with `Invalid
+  date`.
 - `boot-open-link` the chat app's link `/chart/open?symbol=…&interval=…`
   lands on the chart at that market and interval.
 - `boot-settle-dim` after a pick, a pane whose indicators are still loading
@@ -273,6 +282,18 @@ Preconditions:
   (`chart.historyReach.*`, `src/utility/chart/history-cap.util.ts`); the
   calendar greys the days before the reach (source). An app-built custom
   size is judged at its source interval (`320298b19c`, source).
+  **The field edits in place, today is the chart's, and a bad date is refused
+  (driven 2026-11-17 on `60b7e6b190`; `7712272f20`, `aafd636567`).** The
+  dialog's `date-time-picker-date-input` opened on `2026/11/16` while the
+  device clock read 17 Nov (UTC+8): "today" is the day in the chart's time
+  zone (`user` store `activeTimezone`, here UTC), and the calendar greys the
+  days after it. With the month selected (`setSelectionRange(5,7)`), typing
+  `09` read `2026/09/16` with the caret at 7: an edit stays where it is typed
+  (before, the digits were rebuilt and could read `2026/01/69`). Bare digits
+  `20260230` read `2026/02/30` (one slash each), and `manage-history-apply-btn`
+  kept the dialog open with a `.date-error` row reading `Invalid date`; a bad
+  hour or minute reads `Invalid time` (source). The error words are fixed
+  English, not i18n keys (source). Close with `manage-history-cancel-btn`.
 - **`boot-open-link`: the chat app's link (driven 2026-11-16 on `6bfc742bc8`;
   `5cb00c2155`).** The `/open` route redirects to `/` keeping only `symbol`
   and `interval` and no hash, and `chartSymbolLinkGuard` launches it like the
@@ -514,6 +535,24 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   remote backend issued a real guest JWT and served a SEEDED catalog (241
   official indicators). Probe the lane's own proxy instead, for example
   `curl -s -X POST http://127.0.0.1:<lane>/api/v1/scripts/query -H 'Content-Type: application/json' -d '{"limit":1}'`.
+- **With the backend unreachable the lane has no session at all, not a guest
+  one (driven 2026-11-17).** The `/api/v1` and `/api/v2` proxies follow
+  `VITE_BACKEND_DOMAIN` (`http://dboons-nutz:3000` in `.env.local`;
+  `VITE_BACKEND_PROXY_TARGET` serves only the other `/api` paths), and with Tailscale stopped that name did
+  not resolve: every `/api/v1` call answered `502` (`getaddrinfo ENOTFOUND
+  dboons-nutz` in the lane log). Candles, symbol search, Super Search, the
+  Tape and the Orderbook all worked, but `jwt` read `isGuest: false` with no
+  token, there was no `Guest Mode` badge and no signup modal, and every
+  guest wall became `Verify your email to unlock <feature>` with an empty
+  address (`We'll send a 6 digit code to .`), because `handleGuestAccess`
+  reads an account that is neither a guest nor verified. A guest wall is
+  then not proved, and a guest-only choice (the layout tab colour) does
+  nothing. The Indicators dialog sat on skeletons for about 20 s, then read
+  `Couldn't load all official indicators` with `Retry` over a fallback list
+  whose testids end `-openmarket` instead of the catalog's names. Record such
+  a pass as a no-session pass. The public backend (`https://openmarket.xyz`)
+  answers `/api/v1` but refuses the lane's dev `Origin` with `403 Not
+  allowed by CORS`; do not spoof the production origin to get past it.
 - Guest emits a benign `401`; `:3000` down adds `[refresh-token] 502` and
   `http proxy error: /api/v1/... ECONNREFUSED`. None of these are the bug.
 - The canvas is WebGL and invisible to the a11y tree — a snapshot alone can never

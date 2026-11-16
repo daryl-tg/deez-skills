@@ -5,7 +5,15 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-16 against product tree `6bfc742bc8` (`origin/main`, 187
+DRIVEN on 2026-11-17 against product tree `60b7e6b190` (`origin/main`, 60
+commits past `6bfc742bc8`), lane `18103`, a no-session lane on the internal
+gateway (the backend unreachable, so no guest token; see the README's
+Baseline preconditions): the Tape on COINBASE BTC-USD opening grouped by
+`1s` with no preset row in `Tape settings` (see `rp-tape`), the Orderbook's
+Delta with the `5 Minutes` window (see `rp-orderbook`), the Panels menu's 17
+rows, Objects, and the Watchlist row raising `Verify your email to unlock
+Watchlist` instead of the wall. Before that, last DRIVEN on 2026-11-16
+against product tree `6bfc742bc8` (`origin/main`, 187
 commits past `c7d4eccfac`), lane `18103`, a guest-JWT lane on the internal
 gateway: the Tape on BINANCE.F ETHUSDT in its one grid with Group by and the
 hover cards (see `rp-tape`), the Orderbook's Book and Delta on COINBASE
@@ -164,7 +172,8 @@ panels, which a guest is not offered.
   every market; the Trades and Liquidations panel is retired (`ad67d47c62`).
   Since `4572edeb1a` heads and rows share one grid and the markets menu can
   group prints by time; since `e1d1eed6a1` every row has a hand cursor and a
-  hover card.
+  hover card. Since `24a1b4b7d6` the Tape has one look with no presets and
+  opens grouped by the second (`1s`); single prints are a pick.
 - `rp-tape-closed` a Tape the person closed stays closed when they pick a
   market that would open it; their own open clears that.
 - `rp-stock-tape` on a US stock the Tape is the stock Tape, open to guests
@@ -229,7 +238,17 @@ an open panel.
   Delta view draws its own canvas, so `orderbook-canvas` reads absent there;
   `01a68ae4c0` keeps the rows live after the open and lists only real size
   changes; a window where no shared price changed reads `No size changed at
-  shared prices`, source). On 2026-10-28 (`tb-panels-row-orderbook`,
+  shared prices`, source). **The Delta window list has `5 Minutes` (driven
+  2026-11-17 on `60b7e6b190`; `35bc1a10ef`).** With Delta drawing,
+  `ob-sidebar-toggle-settings-btn` opened `OB Delta settings`, and
+  `ob-delta-time-window-open-btn` (`1 Hour`) listed five
+  `ob-delta-select-time-window-btn`: `5 Minutes`, `1 Hour` (active), `4
+  Hours`, `12 Hours`, `1 Day`. Picking `5 Minutes` set the trigger to it and
+  the ladder redrew. The settings button toggles the drawer: a second press
+  slides it closed (its `.ws-drawer-panel` reads `translateY(187px)`) while
+  the trigger stays in the DOM, so a click on it then lands on the ladder
+  and opens nothing. Read the panel's transform, or press the settings
+  button once, before the dropdown. On 2026-10-28 (`tb-panels-row-orderbook`,
   COINBASE BTC-USD) it drew live levels on both sides and an imbalance line
   (`48.1% bid · 51.9% ask`). Re-driven 2026-10-29 on BINANCE.F SOLUSDT with
   `tb-orderbook-toggle-btn`: live asks and bids on both sides with amount and
@@ -453,8 +472,8 @@ an open panel.
   `stock-tape-columns` read `TIME PRICE SIZE` over rows on the same grid; under
   300 px the size bar and the tag drop out (source). The markets menu now
   carries `tape-markets-group`: `tape-group-by-{each,chart,1s,1m,5m,15m}-btn`
-  (`Each trade`, `Match chart`, `1s` … `15m`; `aria-pressed`, `Each trade`
-  by default) and `tape-group-rows-{split,net}-btn` (`Bought and sold`,
+  (`Each trade`, `Match chart`, `1s` … `15m`; `aria-pressed`; `1s` by
+  default since `24a1b4b7d6`, see below) and `tape-group-rows-{split,net}-btn` (`Bought and sold`,
   `Net`). `tape-group-by-1m-btn` filled `tape-groups-list` with 120
   `tape-group-row` (time, the bought and sold sums with bars, the largest
   print), the newest carrying `data-forming`; the markets line read `Binance
@@ -464,6 +483,19 @@ an open panel.
   chips once the menu has been reopened, so `find testid … click` reports
   `covered by <div.tape-markets__backdrop>`; click the chip by its
   coordinates with `mouse move` and `mouse down`/`mouse up`, then `Escape`.
+  **One look, grouped by the second (driven 2026-11-17 on `60b7e6b190`;
+  `24a1b4b7d6`).** A fresh Tape on COINBASE BTC-USD opened with
+  `tape-group-by-1s-btn` `aria-pressed=true` (the other five `false`), 120
+  `tape-group-row` in `tape-groups-list` before any pick, and the markets line
+  `Coinbase · 1s`. `stock-tape-view-btn` opened `Tape settings` with no
+  preset row and no `Custom` badge (`stock-tape-preset-*` and
+  `stock-tape-settings-custom` count 0): Row color `Size bar`, Fade small
+  prints OFF, Emphasize big prints ON, Block and Sweep tags ON, Size in
+  `Coins`, Venue `Logo`, Time `Clock`, Hide prints under `All`,
+  Liquidations section `Bottom`, Sound OFF. A Tape saved before this change
+  with no version moves once: an old Vanilla or Flow look takes the one look
+  and a stored `Each trade` reads as `1s`; a later `Each trade` pick sticks
+  (source, `stock-tape-settings.util.ts`).
   Back on `Each trade`, a print's rows carry `cursor: pointer` and no
   `title`, and a mouse at rest on one raised `tape-trade-card` (`$231 Bought
   0.127 ETH at 1,822.02 Binance Futures 02:57:22.130`; the sentence is

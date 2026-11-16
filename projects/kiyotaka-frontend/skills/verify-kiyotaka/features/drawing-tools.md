@@ -3,7 +3,13 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Re-stamped 2026-11-16 on `6bfc742bc8`
+lock, settings and delete. Last DRIVEN 2026-11-17 on `60b7e6b190`
+(`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session
+lane on the internal gateway; see the README's Baseline preconditions): a
+trend line placed on BINANCE.F ETHUSDT 4h with its floating toolbar and the
+`78 x +169.39 (+7.31%)` tag, then removed with the floating toolbar's trash,
+and the cursor group's Arrow kept across a reload (see `dt-cursor-memory`).
+Before that, re-stamped 2026-11-16 on `6bfc742bc8`
 (`origin/main`, 187 commits past `c7d4eccfac`, lane `18103`, a guest JWT, the
 internal gateway): every frame of the pass shows the left rail's line and
 position tools drawn as the shapes they make (`1cca58722e`; the
@@ -130,6 +136,11 @@ the cancelled creation, the right-click menu and the magnet.
   floating toolbar and the gear act on all of them (source only).
 - `dt-chart-menu` a right-click on the plot opens the chart menu, led by a card
   with the price under the pointer, a copy button and an alert button.
+- `dt-cursor-memory` the cursor group's pick (Crosshair or Arrow) holds across
+  a reload: the chart engine starts on the remembered cursor (`f17e7dd90c`).
+- `dt-magnifier-chip` on a phone, a `Magnifier` switch sits beside the `Draw
+  by holding` pen while a tool with a lens is armed (`d3537e5ac1`; phone
+  only, source).
 
 ## How to get to it (user POV)
 
@@ -322,7 +333,27 @@ the top overlay cleared.
   `drawingRenderSets` and `drawingHitBoxes` read `0` before the placement, with
   the line on screen, and after the delete alike. The frames are the proof.
   `toolbar-item-delete-icon-btn` is not a literal in source (the id is built at
-  runtime), but it resolved live on 2026-10-28.
+  runtime), but it resolved live on 2026-10-28. On 2026-11-17 a `find testid
+  toolbar-item-delete-icon-btn click` left the line in place (the left rail's
+  trash carries the same id), and a mouse press on the floating toolbar's
+  trash at its right end removed it.
+- **`dt-cursor-memory` (driven 2026-11-17 on `60b7e6b190`).** The cursor
+  group's submenu opens only on a real mouse press of its arrow: `find testid
+  toolbar-item-default-submenu-arrow click` opened nothing, while `mouse move
+  26 105` (hover the cursor tool), `mouse move 46 106`, `mouse down`, `mouse
+  up` showed `Crosshair` and `Arrow`. A press on `Arrow` set
+  `window.tc[0].defaultCursorMode` to `default` and the `toolGroupMemory`
+  store's `lastByGroup.cursor` to `cursor`; after a full `browser open` of the
+  chart URL both read the same (before the fix the engine came back as
+  `crosshair` while the toolbar showed Arrow). Pick `Crosshair` the same way
+  to restore it (`defaultCursorMode` `crosshair`).
+- **`dt-magnifier-chip` (source, `d3537e5ac1`).** `draw-magnifier-chip`
+  (`aria-label` `Magnifier`, `aria-pressed`) renders on the phone layout only,
+  not in simple mode, for a tool with a lens (not Pencil or Highlighter); a
+  tap shows `Magnifier off` (`draw-magnifier-chip-label`) for 1.5 s and
+  writes `kiyotaka:draw-magnifier` and the engine's
+  `settings.touchMagnifier`. Not reachable at 1440x900; needs a phone
+  viewport with `isMobile` true.
 
 ## Gotchas
 

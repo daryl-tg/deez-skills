@@ -8,7 +8,11 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-16 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-17 against
+`60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session lane on the internal gateway: the backend was unreachable, so there was no guest token; see the README's Baseline preconditions): the Panels menu's
+`tb-panels-row-editor` raised `Verify your email to unlock Indicator Editor`
+(an empty address), not the `Indicator Editor` wall, so the wall was not
+proved that night. Before that, re-driven 2026-11-16 against
 `6bfc742bc8` (`origin/main`, 187 commits past `c7d4eccfac`, lane `18103`, a
 guest JWT, the internal gateway): with the Orderbook open the toggle was
 folded away (`No element found`); on a fresh chart with no panel
@@ -364,7 +368,9 @@ Preconditions:
   jump. The partial-bar shading row reads `Bars with missing prints`
   (`98af74515b`). Twins moved: Big Trades `@om-core/big-trades` `0.11.0`,
   Pivot Points standard `0.1.4` (`src/constants/wrun-twins.json`); on
-  `6bfc742bc8` they are `0.12.0` (`5ca53ece24`) and `0.1.6` (`f16f0b44f3`).
+  `6bfc742bc8` they were `0.12.0` (`5ca53ece24`) and `0.1.6` (`f16f0b44f3`);
+  on `60b7e6b190` Big Trades is `0.13.0` (`5123080fc9`) and Pivot Points
+  standard is still `0.1.6`.
 - **A browser-run Indicator fails in the browser; a cloud-run one fails on the
   server.** A client-side error is in `./control-kiyotaka browser console`; a
   cloud run that "loads forever" needs its `clientRequestId` from the in-app

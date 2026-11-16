@@ -60,7 +60,10 @@ the range's voice-adjacent commits (`f9adfb4c53` the STT token's server
 clock, `54331e6699` the clip voice) are not guest-visible, and
 `voiceControlEnabled()` is still `isSignedInSession()` (source).
 
-**Re-checked 2026-11-16 on tree `6bfc742bc8` (`origin/main`, lane `18103`, a
+**Re-checked 2026-11-17 on tree `60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session lane on the internal gateway: the backend was unreachable, so there was no guest token; see the README's Baseline preconditions): no node matched
+`[data-testid*=voice]`, `[aria-label*=Voice i]` or
+`[aria-label*=microphone i]`, and no voice source changed since
+`6bfc742bc8`.** **Re-checked 2026-11-16 on tree `6bfc742bc8` (`origin/main`, lane `18103`, a
 guest JWT, the internal gateway): still unreachable.** After the guest pass the
 page held no `[data-testid*=voice]`, `[aria-label*=oice]` or
 `[aria-label*=icrophone]` node, and no voice source changed since

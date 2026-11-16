@@ -7,6 +7,12 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-17 against product tree `60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session lane on the internal gateway: the backend was unreachable, so there was no guest token; see the README's Baseline preconditions): Super Search's
+`theme` fill (four theme rows and a `THEMES 12` group) and, with no
+session, the wall's other face: every `handleGuestAccess` door (Indicators
+Add, Watchlist, Indicator Editor) raised `Verify your email to unlock
+<feature>` with an empty address, because the account was neither a guest
+nor verified (see Gotchas). Before that, last DRIVEN on
 2026-11-16 against product tree `6bfc742bc8` (`origin/main`, 187 commits past
 `c7d4eccfac`), lane `18103`, a guest-JWT lane on the internal gateway: a long
 market code in the palette (see `ss-long-code`), the Highlights and Clean
@@ -597,6 +603,16 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 
 ## Gotchas
 
+- **With no session the wall is the email card (driven 2026-11-17 on
+  `60b7e6b190`).** `handleGuestAccess` (`src/composables/useGuestAccess.ts`)
+  raises the sign-in wall only for a guest; an account that is not a guest
+  and not verified gets `promptEmailVerification` instead. A lane whose
+  backend is unreachable has no token at all, `jwt.isGuest` reads `false`,
+  and every walled door then shows `Verify your email to unlock <feature>`
+  with `We'll send a 6 digit code to .` (no address) and `Send me a code`,
+  while `dialogStore.guestLoginFeatureId` stays `null`. Do not count that card
+  as the guest wall; restore the backend (see the chart boot guide's Gotchas)
+  and re-drive.
 - **A fresh headless device gets Lite charts by itself, with a staying notice
   (driven 2026-11-09 on `32dd0c6354`).** The software GL lane counts as a weak
   class: about 12 s into a boot with no stored decision the preset turned on and a

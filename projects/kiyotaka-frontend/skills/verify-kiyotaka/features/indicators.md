@@ -4,7 +4,17 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-16 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-17 against
+product tree `60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`),
+lane `18103`, a no-session lane on the internal gateway (the backend
+unreachable; see the README's Baseline preconditions): a programmatic
+`TIME_PRICE_OPPORTUNITY` (12 rows, `Indicators 2/3`) whose Profile tab kept
+`Thickness` with the POC off while the Volume POC drew (see the TPO bullet),
+then removed with `legends.closeBtn`; the dialog on the unreachable catalog
+(`Couldn't load all official indicators`, a fallback list) and a `big
+trades` row whose Add raised `Verify your email to unlock Technical
+Indicators`, so Big Trades `0.13.0` was not mounted. Before that, last
+DRIVEN on 2026-11-16 against
 product tree `6bfc742bc8` (`origin/main`, 187 commits past `c7d4eccfac`), lane
 `18103`, a guest-JWT lane on the internal gateway: hovering `tb-indicators-btn`
 showed the slot card (see `ind-limit`), a `net longs` fill listed
@@ -592,13 +602,21 @@ Preconditions:
     on crypto charts (`c45a9f4e80`), and since `83d1683b82` Big Trades
     0.11.0 draws one bubble per aggressor order (fills that share a
     sub-millisecond stamp and side join) and Min size filters bubbles but
-    never resizes one; Big Trades 0.12.0 (`5ca53ece24`) defaults its Style
+    never resizes one; Big Trades 0.13.0 (`5123080fc9`, `7e11c07d72`) adds a
+    `Size position` select, `Beside` (the default) or `Inside`, which writes
+    the size inside a bubble where it fits and beside it otherwise (the
+    sheet holds the word `fit`); the row hides while `Show size` is `Off`
+    (source, not driven: the 2026-11-17 lane could not mount it), and since
+    `640d8ac061` its default Min value reads the last 24 hours the market
+    traded, closed days removed, on stock Tape charts too (source); Big
+    Trades 0.12.0 (`5ca53ece24`) defaults its Style
     page's Look to Glass and adds Solid (Soft dot, Ring and Square stay), takes
     the candle colours, and offers Bubble size, Opacity (hidden for Solid) and
     Show size beside the bubble (source, not driven); a wrun banded order-book input with a
     `when` gate (`47fff639e5`); the kit was `0.109.0` on `a4488341f6`,
     `0.110.0` from `987eb6e7ac` (the Liquidation Map look) was `0.118.0`
-    from `49653af1f6`, and is `0.119.0` since `2ea15572d9` (source).
+    from `49653af1f6`, `0.119.0` from `2ea15572d9`, and is `0.120.0` since
+    `957dcb6036` (source).
 - **New on `849fb08e95`, source only, never driven:**
   - The moving average ribbon is a built-in, `MA_RIBBON` (`dedda2c7bf`,
     `src/indicators/controls/ma-ribbon/`, chart-schema `0.8.1`). It needs no
@@ -620,6 +638,17 @@ Preconditions:
     with Color-tab switches `highlightOpen` and `highlightClose`. Since
     `b477d40c8b` (titan `0.0.4-alpha.1292`) a closed session's block fills its
     whole span with no gap at its edges (source, engine-side).
+  - **TPO's POC `Thickness` stays while any POC line draws (driven
+    2026-11-17 on `60b7e6b190`; `f8ebe47323`).** Mount
+    `TIME_PRICE_OPPORTUNITY`, open its card with `legends.settingsBtn.click()`
+    and `find role tab click --name "Profile" --exact`: `Point of Control
+    (POC)` ON with `Color` and `Thickness` under it. Its switch off (a mouse
+    press on the row's `[role=switch]`) hid `Thickness`; the `Volume` tab's
+    `Volume profile` on (its own `Point of Control (POC)` ON by default) brought
+    `Thickness` back on the Profile tab with the POC still OFF. The
+    prior-session POC keeps it too (source). Since `84ac56af37` a session
+    volume profile's POC outline keeps its mark on rows thinner than 2 px
+    (engine, source).
   - A footprint whose rows set its geometry waits for the main candles and
     asks once, so a market switch no longer shows an aborted first ask and a
     re-ask (`64c9c0b522`, `9ed29c0009`; source).
@@ -782,7 +811,12 @@ Preconditions:
   `Slow network` (funding), not the `Needs …` words, and no `Needs` text was
   anywhere in the page. Whether the dialog path, which a guest cannot take,
   shows the words is live verification pending on a signed-in session; read
-  the `errorMessage` from `window.tc[0].metadata` and the legend row.
+  the `errorMessage` from `window.tc[0].metadata` and the legend row. Since
+  `b9304f474d` an empty Liquidations pane's status chip reads `No
+  liquidation data for this exchange` (`indicatorStatus.chip.noLiquidationData`)
+  instead of `No data in range`; the matching legend sentence was reverted
+  (`87683be1e9`). Source only: it needs a derivatives venue with no
+  liquidation feed, where the pane is not gated hidden.
 - **Pane merge is open to every plan (`ee80751357`; driven 2026-11-04).**
   `FEATURE_LIMITS.paneMerge` is `{ free: true, plus: true }` and the Plus
   sheet's pane merge line is gone, so a free account no longer meets `Pane
