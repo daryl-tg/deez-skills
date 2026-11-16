@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Driven 2026-11-16 (feature run, branch `daryl/paper-multi-signal`, commit `e114cc338d`, unmerged), guest lane on 18150 from source. First live proof of booking: `paper open --yes` (arms the desk, books one Hyperliquid lot off the public mid), an imported watch with one inputless `book` step armed by `watch arm --yes`, and one `event push` whose text is a JSON array of two signals, booking two lots (`money_invocations` `signal_index` 0 and 1). The second lot closed on its own `max_hold_secs` exit under `signal_index 1, leg 1`, and the Paper tab's Decisions table agreed. Evidence: `http://127.0.0.1:8098/paper-multi-signal-20261116/r1/`. The array answer and `signal_index` exist only on that branch until it merges.*
+
 *Re-driven 2026-11-16 (nightly), tree `53885683de` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (PR #24's wrapper), booted with no guest 429. `create --yes`, `create` without `--yes` (exit 2), `ls`, `show`, `digest --format text`, `show nope` (`paper_book_unknown`), bare `om paper` (lists, like `ls`). First live proofs: `set --ticket 10 --yes`, `log` (empty, and `--outcome bogus` exit 2 `invalid_options`), `digest-set on --cadence weekly --yes` (exit 2 `paper_digest_day`), `open --signal '{bad'` (exit 2 `paper_signal_invalid`) and `reset --yes` (`generation 1`). Not driven: the Paper tab. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261116/r1/`.*
 
 *Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `paper create verify-book --yes` (`cash: 1000`, `desk: off`), `paper ls` (`starting_cash 1000`, `open_lots 0`), `paper show verify-book` (rules `ticket 25`, `ticket_cap 50`, `entries_per_day 4`, `open_stakes 250`), and `paper digest --format text` (`Paper verify-book`, `Cash: $1,000.00`, `Fills: none`). Not re-driven: the Paper tab, reset. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/paper-kscript.txt`).*
@@ -99,6 +101,29 @@ credential, no venue.
   shows the empty state `No paper accounts yet: om paper create <name>.`
 - **Proof.** Keep the create and `ls` JSON and the Paper-tab snapshot. The
   account id ties them together.
+
+## Booking through a book step
+
+- **Price with Hyperliquid.** A guest lane prices a `hyperliquid` perp from
+  the public mid, so `{"venue":"hyperliquid","coin":"ETH"}` with
+  `limit_price` above the mid books. Read the mids with a POST of
+  `{"type":"allMids"}` to `https://api.hyperliquid.xyz/info`.
+- **Arm the desk by hand.** `paper open <account> --yes --signal '<json>'`
+  arms the desk watch and books one lot through the errands money lane
+  (`[errands-money] delivered … --book` in the lane log).
+- **The desk takes hand trades only.** A plain `event push` into
+  `paper-desk-<uuid>` fails with `the pipeline could not keep the event`.
+  To drive a book step, import a watch with one inbound `accept_all`
+  source and one money step `{"mode":"book","account","account_id"}` with no
+  `input`, then `watch arm <slug> --yes`. Its row text is parsed as the
+  signal (or a JSON array of signals, on `daryl/paper-multi-signal`).
+- **Read the claims.** `sqlite3 <lane home>/om.sqlite "select root_row_id,
+  signal_index, leg_index, state, json_extract(receipt,'$.outcome') from
+  money_invocations"`. An exit close appears as the next `leg_index` under
+  the lot's own `signal_index`.
+- **Get the Paper tab.** It needs `bun run build:dashboard` in the worktree
+  and a lane restart (`control-om down`, then `up`, which keeps the home).
+  Before that, `/strategies` shows `Dashboard build pending`.
 
 ## Gotchas
 
