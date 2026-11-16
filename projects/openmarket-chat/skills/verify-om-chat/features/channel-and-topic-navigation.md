@@ -80,6 +80,7 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   by those names, not by a toolbar role.
 - Message deep links (`#/room/<name>/msg/<seq>`) jump to and flash the message; the **New topic** draft pane (`TopicDraftPane.tsx`, `panel=topic-draft`).
 - **Topic handoff banner** ("This conversation continues in …", **Dismiss** persisted) and the **Alt+Up / Alt+Down** channel chords.
+- **Add People to a private topic** (`TopicAddPeoplePopover.tsx`, mounted at `Shell.tsx:4638`): a popover named **Add people to <topic>** with a channel search and one **Add** row per channel member not already in the topic.
 
 ## How to get to it (user POV)
 
@@ -148,7 +149,7 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 ### Topic inbox panel and Resolve (added 2026-10-28)
 
 - **Topic inbox:** `shell-fixture.html?view=room&topics=on&panel=inbox&alerts=quiet` mounts an `aside` named **Inbox** with `data-right-panel="inbox"` (`TopicInbox.tsx:376`, mounted from the `rightPanel === "inbox"` branch at `RightPanels.tsx:443`). It reads "Inbox 9", with a `#OPS` group, a stream row (4), **ETF flows, week of the 28th** (2) and **CPI print — Aug** (3). Its buttons are **Close inbox**, **Mark #ops read**, **Topic <name>, followed** and **Mark <name> read**, and its footer hints `⌘⇧U inbox`, `⌥⇧↓ next unread` and `Esc close`. `?inbox=open` only sets `session.inboxOpen` (`shell-fixture.tsx:3078-3080`), and the fixture's `toggleInbox` flips only that flag (`:3396`). So neither `?inbox=open` nor the **Inbox: 9 unread** button opens the panel here: use `panel=inbox`. `TopicCatchUp` is only the keyboard host for those chords and renders nothing. Driven on `/rooms/` and `/chat/`. The mark-read effects are fixture no-ops.
-- **Resolve a topic:** open a topic row's menu as described in Gotchas (Mark As Unread), then choose **Resolve <topic> (closes the conversation; the history stays)** (`TopicPill.tsx:148-151`). It opens a `dialog` named **Resolve <topic>**, for example **Resolve Funding flipped negative on Hyperliquid**. The dialog has an optional "What settled it?" note and **Resolve Topic** (`TopicResolvePopover.tsx:113-114`). The fixture implements `openTopicResolvePrompt` (`shell-fixture.tsx:3528`). **Resolve Topic** was pressed on 2026-10-31: the dialog closes with no toast and no row change, because the fixture's resolve is local. Driven on `/rooms/` and `/chat/`. **Add People...** has no route, because the fixture sets `topicAddPicker: null` (`:3265`).
+- **Resolve a topic:** open a topic row's menu as described in Gotchas (Mark As Unread), then choose **Resolve <topic> (closes the conversation; the history stays)** (`TopicPill.tsx:148-151`). It opens a `dialog` named **Resolve <topic>**, for example **Resolve Funding flipped negative on Hyperliquid**. The dialog has an optional "What settled it?" note and **Resolve Topic** (`TopicResolvePopover.tsx:113-114`). The fixture implements `openTopicResolvePrompt` (`shell-fixture.tsx:3528`). **Resolve Topic** was pressed on 2026-10-31: the dialog closes with no toast and no row change, because the fixture's resolve is local. Driven on `/rooms/` and `/chat/`. **Add People...** needs three method stubs; see the next section.
 
 Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 09, 36-37, 41, 43).
 
@@ -557,6 +558,42 @@ pending on this lane: Alt+N needs `news.supported`; Cmd+Shift+A calls a no-op
 Cmd+Shift+O and Alt+C call unstubbed openers; Cmd+Shift+M and Cmd+Shift+D need
 `voice`; Shift+Esc, Alt+M and Alt+S call no-op stubs with nothing to see.
 
+### Add People to a private topic (added 2026-11-16)
+
+The topic row menu lists **Add People...** for a private topic when the
+viewer may manage the room (`TopicPill.tsx:338`). It calls
+`session.openTopicAddPicker`, which neither fixture spells out, and the
+fixtures set `topicAddPicker: null` (`tools/visual/shell-fixture.tsx:3265`,
+`apps/cloud/tools/visual/shell-fixture.tsx:1800`). Add an init script after
+the people stub. Inside it, `this` is the session proxy, so the assignment
+lands on the fixture state and `closeConfirm()` repaints:
+
+```bash
+cat > "$SCRATCH/topic-add-stub.js" <<'JS'
+(function(){
+  const def=(k,v)=>Object.defineProperty(Object.prototype,k,{configurable:true,enumerable:false,writable:true,value:v});
+  def("openTopicAddPicker",function(t){this.topicAddPicker=t;this.closeConfirm();});
+  def("closeTopicAddPicker",function(){this.topicAddPicker=null;this.closeConfirm();});
+  def("addTopicMembers",function(r,t,ids){document.documentElement.dataset.fixtureTopicAdd=r+":"+t+":"+ids.join(",");return Promise.resolve();});
+})();
+JS
+agent-browser --init-script "$SCRATCH/fixture-people-stub.js" --init-script "$SCRATCH/topic-add-stub.js" open about:blank
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&topics=on&alerts=quiet')"
+agent-browser find role tab click --name "Topics 6"
+agent-browser find role button click --name "Actions for Basis desk review"
+# 12 items: Follow, Mute, Link, Resolve, Open Topic, Add People... (4 members), Manage Members..., ...
+agent-browser find role menuitem click --name "Add People..."
+# dialog "Add people to Basis desk review": search "Search the channel for people to add", one row: rho / Add
+```
+
+Typing `zzz` gives "No one in this channel matches." Pressing **Add** on rho
+sets `data-fixture-topic-add="ops:basis-desk-review:u-rho"`, and the popover
+stays open, as source says it should. Driven 2026-11-16 on both hosts. The
+candidate list and the add call are real product code, but the stubbed
+methods stand in for the session, so the member write itself is not proved.
+On `/chat/` the topic list row reads **0 members** while the menu says
+**4 members**, which is a fixture seeding difference.
+
 ## Gotchas
 
 - **"Hide this channel's topics" is a `title`, not an `aria-label`.**
@@ -724,7 +761,9 @@ Cmd+Shift+O and Alt+C call unstubbed openers; Cmd+Shift+M and Cmd+Shift+D need
 
 ### Verification record
 
-**Last verified:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176), people stub: the sidebar's only mode button is **Focus: only what needs you** (no To-dos toggle); Meta+Shift+F left it unpressed with the tree unchanged; the seeded `om.chat.sidebarFocus=["s1"]` gives **Focus on: show all channels** with 26 → 16 treeitems on `/rooms/` and 25 → 15 on `/chat/`; **More channel actions** lists 13 items with no to-do entry. **Limitations:** the Focus toggle's effect stays pending (`setSidebarFocus` unstubbed); the other navigation recipes were not re-driven, so the 2026-11-13 record stands for them. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 01, 04, 07).
+**Last verified:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub plus the topic-add stub: **Topics 6** → **Actions for Basis desk review** (12 items) → **Add People...** → **Add people to Basis desk review** with the one candidate rho; `zzz` → "No one in this channel matches." and **Add** → `ops:basis-desk-review:u-rho` (`/rooms/`). The Esc ladder's topic → channel and topic-peek rungs were driven for [composer-and-sending.md](composer-and-sending.md). **Limitations:** the member write is a stub; the other navigation recipes keep the 2026-11-15 record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frames 03-05).
+
+**Previous record:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176), people stub: the sidebar's only mode button is **Focus: only what needs you** (no To-dos toggle); Meta+Shift+F left it unpressed with the tree unchanged; the seeded `om.chat.sidebarFocus=["s1"]` gives **Focus on: show all channels** with 26 → 16 treeitems on `/rooms/` and 25 → 15 on `/chat/`; **More channel actions** lists 13 items with no to-do entry. **Limitations:** the Focus toggle's effect stays pending (`setSidebarFocus` unstubbed); the other navigation recipes were not re-driven, so the 2026-11-13 record stands for them. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 01, 04, 07).
 
 **Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** the DM row mute tile on `/rooms/` (18170) and `/chat/` (18171); every guide route load-smoked by DOM probe on both hosts. **Limitations:** channel, topic and server mute effects stay unstubbed; channel history paging and the cold search jump (`d3aebbb5`) need a relay lane. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/`.
 

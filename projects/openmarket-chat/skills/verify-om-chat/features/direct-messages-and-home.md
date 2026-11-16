@@ -17,6 +17,7 @@ conversation, and the friends surfaces that feed it.
 - Inbox and message search openers — **mobile only**, see Gotchas.
 - Edit a group DM's name and picture, and add a mutual connection to it (`RenameGroupDmModal.tsx`, `AddGroupMemberModal.tsx`). Since `5607d23e` any member who may rename can also set or remove a group picture, which `GroupFaces` draws on the DM list row, the conversation header and the rail tile instead of the stacked member faces; with no picture, or a picture that fails to load, the stacked faces stay.
 - **Typing indicator**: "ana is typing" above a DM composer (needs an `ephemeral` stub; `dmTyping=peer` is stale).
+- **Change Name** (`NameEditModal`, `Modals.tsx:691`, mounted at `Shell.tsx:4836`): your display name everywhere, or a nickname in one server, with **Clear nickname** and **Save**.
 
 ## How to get to it (user POV)
 
@@ -190,7 +191,7 @@ Verified 2026-10-28 at `2dd7aad1` on `/rooms/` and `/chat/` (nightly maintenance
 
 ### Create Category name prompt (added 2026-10-28)
 
-On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:38`) opens `NamePromptModal` (`Modals.tsx:162`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2367`, `:6093`) and was not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. The other display-name modals have no seed. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu), which the fixture leaves unstubbed with `nameEditPrompt: null` (`shell-fixture.tsx:3014`). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
+On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:38`) opens `NamePromptModal` (`Modals.tsx:162`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2367`, `:6093`) and was not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu). The fixture leaves that unstubbed, with `nameEditPrompt: null` (`shell-fixture.tsx:3014`), so seed it instead (next section). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
 
 Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-create-category-name-prompt.png`).
 
@@ -278,6 +279,29 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # -> "ana is typing" above the composer (TypingIndicator.tsx)
 ```
 
+### Change Name (added 2026-11-16)
+
+With the session-capture shim from [message-actions.md](message-actions.md),
+assign the prompt directly. The shape is `{spaceId, userId, username,
+initialScope}` (`lib/session.ts:5090`):
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
+agent-browser eval '(()=>{const o=window.__om;o.nameEditPrompt={spaceId:"s1",userId:"u1",username:"kyle",initialScope:"server"};o.closeConfirm();return 1})()'
+# dialog "Change Name": radios Everywhere / Only in Thanefield Capital (checked),
+# the nickname box (placeholder kyle), Clear nickname, Save
+agent-browser find role radio click --name "Everywhere"
+# placeholder "loading current name...", Save disabled: the fixture's profileReady() is false
+```
+
+Driven 2026-11-16 on both hosts. Use `initialScope:"server"`, because the
+**Everywhere** face waits on `profileReady()`, and both fixtures answer false.
+`closeNameEditPrompt` is unstubbed, so by source Esc and Save leave the modal
+open (not driven). Set `nameEditPrompt` back to `null` and call
+`closeConfirm()` to close it. The
+natural door, **Change Name** on your own user menu, needs `userMenu` seeded
+and still calls the unstubbed `openNameEditPrompt`, so it was not driven.
+
 ## Gotchas
 
 - **`rail=counts` is a `/rooms/` seed only.** The `/chat/` fixture has no
@@ -356,7 +380,9 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 
 ### Verification record
 
-**Last verified:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `/rooms/` (18170) and `/chat/` (18171), people stub: `view=dm` has no header mute bell; the ana row menu with the **Mute** quick tile and seven items; the 15m / 1h / 8h / 24h / Until unmuted flyout on both hosts; on `/rooms/`, **1h** → **Muted** "until HH:MM" and **Unmute conversation**, and **OM chatters** with **Only @mentions**. **Limitations:** the `/chat/` mute is an offer only (`setDmMuted` no-op); the menu's other verbs stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 17-20, 25).
+**Last verified:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub and session-capture shim: a seeded `nameEditPrompt` mounts **Change Name** on the **Only in Thanefield Capital** face, with **Clear nickname** and **Save**. On `/chat/`, **Everywhere** shows "loading current name..." with **Save** disabled. **Limitations:** Save and Clear call stubs; the user-menu door was not driven; the other DM and Home recipes keep the 2026-11-13 record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frame 06).
+
+**Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `/rooms/` (18170) and `/chat/` (18171), people stub: `view=dm` has no header mute bell; the ana row menu with the **Mute** quick tile and seven items; the 15m / 1h / 8h / 24h / Until unmuted flyout on both hosts; on `/rooms/`, **1h** → **Muted** "until HH:MM" and **Unmute conversation**, and **OM chatters** with **Only @mentions**. **Limitations:** the `/chat/` mute is an offer only (`setDmMuted` no-op); the menu's other verbs stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 17-20, 25).
 
 **Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) and `/chat/` (18142): with the `ephemeral` stub, `view=dm` shows "ana is typing" on both hosts; without it, `view=dm&dmTyping=peer` shows no typing line (`/rooms/`). **Limitations:** a real typing frame and the group-DM roster were not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 

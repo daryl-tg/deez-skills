@@ -20,6 +20,12 @@ in [settings-and-appearance.md](settings-and-appearance.md).
 - **Alerts board** (`AlertsBoard.tsx`): a dialog named **Alerts board** with Ring
   feeds and Log feeds, one button per feed, plus **New alert...** and **All
   alerts**.
+- **Feed peek on the board** (`AlertsBoard.tsx:348-378`, `AlertFeedPeek.tsx:91`):
+  pointing at a feed row opens a dialog named **<feed> at a glance**. It holds
+  the feed name, its class (**Ring** or **Log**) and one stat line. A Ring
+  feed with a 30-day series adds 30 bars (**daily trigger counts, 30 days**,
+  each titled like "Oct 18 · 1") and reads "67% answered · 3 open · 4m to
+  ack". With no series the chart is absent and the line reads **3 open**.
 - **Alert card** in the tape (`AlertMessageRow.tsx`), with **Discuss**, **I'm on
   it**, **Mark fixed** and **Flag noisy**.
 - Creating a feed (`AlertCreateDialog.tsx`) and the full alerts home
@@ -71,6 +77,29 @@ cloud `alertsStub` (`apps/cloud/tools/visual/shell-fixture.tsx:539`) has
 `tools/visual/shell-fixture.tsx:1437`), so the board never reads as ready.
 Adopting the group as a real category was not driven. Driven 2026-11-08.
 
+### The board's feed peek (added 2026-11-16)
+
+Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1465`,
+`apps/cloud/tools/visual/shell-fixture.tsx:567`), so the bare board shows the
+chart-less peek. `alertsStub` is a plain object, so the session-capture shim
+from [message-actions.md](message-actions.md) can replace the method:
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=board')"
+agent-browser eval '(()=>{const o=window.__om,pts=[];for(let i=0;i<30;i++){const d=new Date(2026,9,18+i);
+  pts.push({day:d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0"),
+  triggers:(i*7)%5+1,responses:(i*7)%5})}const s={series:pts,medianAckMs:240000};
+  o.alerts.seriesFor=()=>s;o.closeConfirm();return 1})()'
+agent-browser find role button hover --name "Ring store-5xx"
+agent-browser wait 1200
+# dialog "store-5xx at a glance": 30 children in .alert-peek-bars,
+# "store-5xx / Ring / 67% answered · 3 open · 4m to ack"
+```
+
+Driven 2026-11-16 on both hosts. Without the shim the same hover gives
+**store-5xx**, **Ring**, **3 open** and no bars. A **Log** feed's trend line
+was not driven.
+
 ## Gotchas
 
 - **`surface=alert-card` mounts late.** 1.8 s after `open` none of the four
@@ -107,7 +136,9 @@ Adopting the group as a real category was not driven. Driven 2026-11-08.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `view=room&alerts=board`, with the people stub: dialog **Alerts board** on both hosts; `[data-alerts-group]` count 1 on `/rooms/` and 0 on `/chat/` (the `/chat/` `alertsStub` has no `lastRefreshedAt`). **Limitations:** no daemon feeds. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub and session-capture shim: `view=room&alerts=board` → hover **Ring store-5xx** → dialog **store-5xx at a glance**. Bare, it reads **store-5xx**, **Ring**, **3 open** with no chart (`/rooms/`). With a seeded 30-point series it shows 30 bars and "67% answered · 3 open · 4m to ack" on both hosts. The route smoke still finds `?panel=alerts` blank on both hosts. **Limitations:** the series is a seed, not daemon data; the Log trend line and the per-bar hover title were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frames 01, 02).
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `view=room&alerts=board`, with the people stub: dialog **Alerts board** on both hosts; `[data-alerts-group]` count 1 on `/rooms/` and 0 on `/chat/` (the `/chat/` `alertsStub` has no `lastRefreshedAt`). **Limitations:** no daemon feeds. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `view=room`: the strip (`store-5xx`); `alerts=board`: the automatic **Alerts** group (new). `/chat/` (18184): no group under `alerts=board`, because the cloud stub lacks `lastRefreshedAt`. **Limitations:** `panel=alerts` still renders blank on both hosts (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

@@ -64,6 +64,7 @@ Archive renders `data-home-library-archive` (`LibraryView.tsx:8717`) with an
 "Archived" heading, a **Refresh** button, and per-row **Restore** buttons on
 `data-home-archived-doc={docId}` (`:8767`).
 - Import a folder into Your Library (`ImportFolderModal.tsx`; `homeImport=open`). The conversation To-dos panel is gone: `05df35a7` deleted `TodosPanel.tsx`, and a channel's right panel now offers only the Projects tickets panel ([projects.md](projects.md) / Channel panel).
+- **Canvas docs** (`CanvasPane.tsx`, passed as `renderCanvasBody` at `Shell.tsx:610`, `:666`, `:677`): a doc whose path ends in `.excalidraw` opens as an Excalidraw canvas in the doc pane instead of the Markdown editor (`lib/canvas-doc-kind.ts:68`).
 
 ## How to get to it (user POV)
 
@@ -176,6 +177,32 @@ there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
 no doc pane, no `.library-daily-note` section (`:6262`), no toast, hash still
 `#/library`. Driven 2026-11-01 on `/rooms/` at `936f5b64`. The daily note
 itself is live verification pending.
+
+### Canvas docs (added 2026-11-16)
+
+No fixture seeds an `.excalidraw` doc, and `docPane` is a spelled-out getter.
+Open a Markdown note, then re-point the pane with the session-capture shim
+from [message-actions.md](message-actions.md):
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&doc=journal&alerts=quiet')"
+agent-browser eval '(()=>{const o=window.__om,cur=o.docPane;
+  const body=JSON.stringify({type:"excalidraw",version:2,source:"om-chat",omSchema:1,elements:[],
+    appState:{viewBackgroundColor:"#ffffff",gridSize:null},files:{}});
+  const pane={...cur,doc:{...cur.doc,docId:"canvas-1",path:"Boards/plan.excalidraw",
+    title:"Boards/plan.excalidraw",content:body},mode:"view",draft:body,dirty:false};
+  Object.defineProperty(o,"docPane",{configurable:true,get:()=>pane});o.closeConfirm();return 1})()'
+agent-browser wait 6000
+# [data-canvas-pane][data-canvas-mode=view] with one .excalidraw stage, header "Plan",
+# "in Boards/plan.excalidraw", footer "Synced r4"; no [data-canvas-invalid] or [data-canvas-load-error]
+```
+
+`omSchema` must equal `CANVAS_SCHEMA_VERSION` (`lib/canvas-doc.ts:1`, now 1);
+a body that fails `parseCanvasBody` renders `[data-canvas-invalid]` instead.
+The Excalidraw runtime loads lazily (`lib/excalidraw-loader.ts`), and it
+loaded under both vite lanes. Driven 2026-11-16 on both hosts, in view mode
+only: **Edit** calls the doc store's autoflush hooks and was not pressed.
+Drawing and saving are not proved.
 
 ## Doc pane states (`doc=server`)
 
@@ -325,7 +352,9 @@ with its **Edit** control. Driven 2026-11-09 on both hosts; no write was submitt
 
 ### Verification record
 
-**Last verified:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176): `?view=library&lens=todos` → `#/library/todos` with **Todos** · **2 open** ("Review the launch checklist", "Share the customer notes") on `/rooms/`, and `/chat/library/todos` with **1 open** ("Share the customer notes") on `/chat/`; `?panel=todos` on a bare fixture opens no panel and no lazy-surface error; `fixture.html?surface=conversation-qol` has no to-dos tab. **Limitations:** the rest of the Library was not re-driven tonight (the 2026-11-09 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 06, 18, 19).
+**Last verified:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub and session-capture shim: a `doc=journal` pane re-pointed at `Boards/plan.excalidraw` mounts `[data-canvas-pane]` in view mode with the Excalidraw stage, header **Plan** and **Synced r4**. On `/rooms/`, Esc in the note editor drops to reading, and Esc from `BODY` closes the pane. **Limitations:** canvas edit, draw and save were not driven; the rest of the Library keeps the 2026-11-15 record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frame 11).
+
+**Previous record:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176): `?view=library&lens=todos` → `#/library/todos` with **Todos** · **2 open** ("Review the launch checklist", "Share the customer notes") on `/rooms/`, and `/chat/library/todos` with **1 open** ("Share the customer notes") on `/chat/`; `?panel=todos` on a bare fixture opens no panel and no lazy-surface error; `fixture.html?surface=conversation-qol` has no to-dos tab. **Limitations:** the rest of the Library was not re-driven tonight (the 2026-11-09 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 06, 18, 19).
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/`, with the people stub: `view=library` (`#/library`), `lens=agents` (h1 **Agents**), and the **Note metadata** section on `view=room&doc=server&docMode=edit` on both hosts. **Limitations:** the frontmatter write path was not submitted. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

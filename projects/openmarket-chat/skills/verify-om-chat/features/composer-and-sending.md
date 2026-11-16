@@ -187,6 +187,7 @@ Read the gotchas for where the line now falls.
   fixtures' `sendToActiveDurably` resolve at once
   (`tools/visual/shell-fixture.tsx:3604`, `apps/cloud/tools/visual/shell-fixture.tsx:2077`),
   so the proof is the unit test `packages/chat-ui/test/composer/dm-send-clears-while-typing.test.tsx`.
+- **Esc steps back out** and **image preview zoom and pan** (each in its own section below; `/rooms/` only).
 
 ## How to get to it (user POV)
 
@@ -548,6 +549,54 @@ were driven 2026-11-15 on both hosts. `/todo buy milk` + Enter appends a row
 reading "/todo buy milk" (rows 16 → 17) and clears the box, and a bare `!`
 opens no listbox. The `→ me` capture was not driven.
 
+### Esc steps back out (added 2026-11-16)
+
+With focus outside an editor, each Esc closes the topmost dismissable thing
+(`Shell.tsx:1175-1216`). The order is: the poll composer, a modal, the quick
+switcher, the topic peek, the right panel, the doc pane, an agent lane, and
+finally the topic view, which steps out to its channel. A plain channel keeps
+Esc inert. The settings shells handle their own Esc. Blur first with
+`eval '(()=>{document.activeElement.blur();return 1})()'`, or the composer's
+own rungs take the press. Driven 2026-11-16 on `/rooms/`:
+
+- `?view=topic&topic=cpi-print-aug`: Esc → `#/room/ops`, heading **#ops**.
+- **Pins** pressed in the dock (**Close Pins**): Esc closes the panel. A
+  second Esc in plain `#ops` changes nothing.
+- `?view=room&topics=on&peek=cpi-print-aug` plus the topic hash: Esc closes
+  the topic peek.
+- `?view=room&doc=journal`: the note opens with the editor focused. Esc there
+  only drops to reading (no `contenteditable=true` left; `DocPane.tsx:2178`).
+  Esc from `BODY` closes the pane: `data-fixture-doc="closed"` at once, and the
+  `[data-doc-pane-header]` leaves after about a second. A read at 700 ms still
+  finds the header, which looks like a failure.
+
+The poll composer, modal and switcher rungs were not driven, and nothing was
+driven on `/chat/`.
+
+### Zooming and panning an image preview (added 2026-11-16)
+
+Every full-screen image preview shares `ImagePreviewShell.tsx` and
+`lib/image-zoom-pan.ts:95`. The pill holds **Zoom out** and **Zoom in**; the
+levels are 1, 1.5, 2 and 3 (`image-zoom-pan.ts:26`). The wheel zooms about
+the pointer, and a drag pans within a clamp that keeps the image over the
+stage. `/rooms/` only: the `/chat/` fixture has no image seed.
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&tape=mosaic5&alerts=quiet')"
+agent-browser click 'img[alt="mosaic-1.svg"]'          # .ui-lightbox dialog; Zoom out disabled
+agent-browser find role button click --name "Zoom in"   # img.lightbox-img.zoomed, scale(1.5)
+# two more: scale(3), Zoom in disabled
+agent-browser set viewport 800 600
+agent-browser mouse move 400 300 && agent-browser mouse down
+agent-browser mouse move 280 240 && agent-browser mouse up   # translate3d(-120px, -60px, 0px) scale(3)
+```
+
+At 1440×900 the 400 px mosaic image still fits the stage at 3×, so the clamp
+pins it to `translate3d(0px, 0px, 0px)` and a drag reads as a no-op. Use a
+smaller viewport. `agent-browser mouse wheel -300` over the stage steps the
+zoom up one level at a time, and `+300` steps it back to fit. Driven
+2026-11-16.
+
 ### Ticket references (added 2026-11-10)
 
 Start the session with the people stub and the Projects stub from
@@ -709,7 +758,9 @@ support or an `isAgent` member, and neither fixture has either.
 
 ### Verification record
 
-**Last verified:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176), people stub: `/` in `#ops` lists 28 commands without `/nudge`; `/todo buy milk` + Enter appends a row reading "/todo buy milk" (16 → 17) and clears the box; a bare `!` opens no listbox. **Limitations:** `/todo … → me` and the DM `!nudge` were not driven; the other composer recipes were not re-driven (the 2026-11-14 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 05, 21).
+**Last verified:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177), people stub: the Esc ladder's topic → channel, topic peek, right panel and doc pane rungs, and the editor's step back to reading; the image preview on `tape=mosaic5`, with **Zoom in** to 3× (button disabled), the wheel up and back to fit, and a drag pan of (−120, −60) at 800×600. The route smoke loaded both `composer-code-panel-fixture` routes (one `[data-code-panel]`, label **ts**). **Limitations:** the poll composer, modal and switcher rungs were not driven, and neither recipe was driven on `/chat/`, which has no image seed. The other composer recipes keep their 2026-11-15 record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frames 12, 13).
+
+**Previous record:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176), people stub: `/` in `#ops` lists 28 commands without `/nudge`; `/todo buy milk` + Enter appends a row reading "/todo buy milk" (16 → 17) and clears the box; a bare `!` opens no listbox. **Limitations:** `/todo … → me` and the DM `!nudge` were not driven; the other composer recipes were not re-driven (the 2026-11-14 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 05, 21).
 
 **Previous record:** 2026-11-14 (nightly maintenance). **Product commit:** `62fcc01a` (GitLab origin/main; 9 commits past `504b08d5`). **Scope:** `/rooms/` (18173) and `/chat/` (18174), people stub: the `@` picker's **Members**/**Roles** tabs, tab click selecting the first role, Enter inserting `@admin `, and `@tr` narrowing to **Roles 1**. **Limitations:** the Agents tab and the scroll-following active tab (the fixture list fits without scrolling); the DM in-flight clear is unit-proved only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261114/r1/`.
 
