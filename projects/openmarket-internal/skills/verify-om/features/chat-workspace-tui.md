@@ -1,5 +1,7 @@
 # Chat workspace TUI (`om chat`)
 
+*Re-driven 2026-11-17 (nightly), tree `8e350d253a` (origin/main, v0.495.0+internal), guest lane on 18188 (guest sign-in 429) with a fake model on 18189 handed to `om chat` through `OPENMARKET_LLM_*`, private tmux at 170x45. First live proof of the four-row top bar (#2523): row 1 and row 3 filler, row 2 the tabs with `[  prev    ]  next` at the right, row 4 a `▀` shadow edge; the transcript starts on row 5. A mouse move over `watches` paints it `48;2;66;70;77` on the `48;2;53;57;64` band, and `chat` stays lit `48;2;227;233;239`. What's new is `1 of 22`, with `2 of 22` `om's browser, from chat` / `/computer shows it and turns it on.` (#2521). `/computer` prints the computer's status rows into the transcript (`Chrome: not checked` there). Not re-driven: the `‹`/`›` cut-tab marks on a narrow terminal, a watch page's folder row, everything else in this file. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261117/r1/` (`02-tui-topbar-hover.png`, `03-tui-slash-computer.png`, `cli/tui-*.ansi`, `cli/tui-whats-new.txt`).*
+
 *Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), bare lane on 18187 with a fake model on 18186, private tmux at 170x45. The workspace opened on `What's new · 1 of 22` (`Workspace is now the default`); ctrl+x `.` showed `2 of 22` `Blocked sources read in om's browser` (`A source a site blocks reads in om's browser.`, `No model call, and no human check is passed.`), then `3 of 22` `Cap your monthly model spend`. `/version` read `revision  not embedded in this build` and `daemon  0.495.0, pid <lane pid>`. Not re-driven: page tabs, sidebar cards, `/watches`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/tui-0*.txt`).*
 
 *Re-driven 2026-11-13 (nightly), tree `298c469dd7` (origin/main, v0.495.0+internal), bare lane on 18187 with a fake model on 18186, private tmux at 170x45. The workspace opened on `What's new · 1 of 21`; ctrl+x `.` showed `2 of 21` `Cap your monthly model spend` (`One dollar limit for chat, watches, agents.`, `[ Show me ]  set spend.monthly_usd`), then `3 of 21`. `/version` read `om 0.495.0`, `revision  not embedded in this build`, `daemon  0.495.0, pid <lane pid>`. Not re-driven: page tabs, sidebar cards, `/watches`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/` (`tui/`).*
@@ -128,7 +130,10 @@ announces the change on a **What's new** card that turns it off in one press.
 Preconditions: a lane the run started, from the checkout under test; a private
 tmux server; and a model, because `om chat` refuses to open without one (a
 guest lane opens the setup walk instead). Use a local fake model: it costs
-nothing, and it streams long replies, which the scroll checks need.
+nothing, and it streams long replies, which the scroll checks need. The
+model rides the CLI call's `OPENMARKET_LLM_*` variables (the launcher below), so
+a plain guest lane works too, even while its guest sign-in is rate limited
+(driven 2026-11-17); the header then reads `guest` and `fake · openai-compatible`.
 
 - **Fake model.** Use a second assigned agent port beside the lane's
   (preflight it with `lsof -nP -iTCP:<port> -sTCP:LISTEN`), save this as
@@ -213,7 +218,7 @@ nothing, and it streams long replies, which the scroll checks need.
   (add `--workspace` once the setting is `off`),
   wait about 15 s. Capture with `tmux -L ws -f /dev/null capture-pane -t ws -p`
   (add `-e` for colour, `-S -` for history).
-  - Frame (before #2457; since it, rows 1 to 3 are the page tab bar and the rows below shift by 3, see **Page tabs**): there was no top bar. Row 1 is transcript text with `│` at column
+  - Frame (before #2457; since it the top rows are the page tab bar, rows 1 to 3 until #2523 and rows 1 to 4 since, and the rows below shift by that much, see **Page tabs**): there was no top bar. Row 1 is transcript text with `│` at column
     104. The sidebar's row 1 is a dotted `┄┄┄` rule, row 2 reads `▾ WATCHES`
     with `1 fired · 1 paused` on the right, and row 3 is another rule. Under
     the watch rows, a rule, `▾ FIRES` and a rule, then the seeded fire.
@@ -382,8 +387,8 @@ panel.
 
 *Re-driven 2026-11-12 on main `82094c3a83` (see the header): the bar, `]` around the ring and ctrl+x `1`. First driven 2026-11-11 on the branch before its rebase and merge, over `21c4c32b3d`: bare lane on 18183 with a fake model on 18184, workspace at 170x45 and plain chat at 100x40. Evidence: `http://127.0.0.1:8098/om-tui-topbar-tabs/r1/`. The workspace's rows 1 to 3 are now the bar, so every workspace row number recorded elsewhere in this file before this date is 3 too small until its section is re-driven.*
 
-- **The bar.** Workspace rows 1 to 3 are a raised band; row 2 reads `chat agents watches news follows packages wallet notis usage`. The lit tab carries background `48;2;227;233;239` in a `capture-pane -e` read of row 2; grep that to name the active tab. Plain chat has no bar on the chat or over `/agents`; every frame page shows it.
-- **Hop keys.** Inside a page, `]` and `[` walk the ring and wrap: `/watches` then `]` seven times lights news, follows, packages, wallet, notis, usage, then lands on the chat. A page's facts sit at the right of row 2 (row 3 at 100 columns) and the page name is not repeated.
+- **The bar.** Workspace rows 1 to 4 are a raised slab since #2523 (rows 1 to 3 before it): rows 1 and 3 are filler, row 2 reads `chat agents watches news follows packages wallet notis usage` with the key hint `[  prev    ]  next` at the right, and row 4 is a `▀` shadow edge (`─` when the theme has no depth). On a narrow terminal the hint goes before any tab, and cut tabs read `‹` and `›`. A mouse move over a tab (SGR `\e[<35;<col>;2M`) lifts it to a ghost pill, `48;2;66;70;77` on the band's `48;2;53;57;64` (driven 2026-11-17); the open tab keeps its ink pill. The lit tab carries background `48;2;227;233;239` in a `capture-pane -e` read of row 2; grep that to name the active tab. Plain chat has no bar on the chat or over `/agents`; every frame page shows it.
+- **Hop keys.** Inside a page, `]` and `[` walk the ring and wrap: `/watches` then `]` seven times lights news, follows, packages, wallet, notis, usage, then lands on the chat. Since #2523 a page's facts (its count, `as of`, the wallet's cluster) are no longer in the bar, and a watch page names its folder and watch on the row under it (source only); the page name is not repeated.
 - **Click.** Click a label on row 2 (`click <col> 2`). Find the column from the text capture of row 2; the last label has no trailing space once tmux trims the row, so search for ` usage`, not ` usage `.
 - **ctrl+x.** The menu lists `1 agents` to `8 usage` after the sidebar and What's new rows, in plain chat too. There is no `a agents` row.
 - **Plain hop stays on the alternate screen.** Sample `display -p '#{alternate_on}'` every 50 ms across a `]`: every sample reads `1`. After Esc it reads `0` with one `❯` prompt in `capture-pane -p -S -`.

@@ -1,5 +1,7 @@
 # The daemon's own browser
 
+*Re-driven 2026-11-17 (nightly), tree `8e350d253a` (origin/main, v0.495.0+internal), guest lane on 18188 (guest sign-in 429 all pass, which none of this needs). First live proofs of #2501, #2521 and #2524: the `browser` row in `om doctor`, `Browser:` in `om status` and `om's browser` in `om setup`; `computer.offers` read, set `off` and back; `computer.sources` is gone (`unsupported config key`); `om computer sources` with no route; `om computer on` in a private tmux, after which the daemon installed the headless shell by itself (9 s, `SHA-256 verified`, 205 MB under the lane home); then a loopback feed whose plain fetch is challenged read through the browser 3 s later, its route kept the browser across a lane restart, retried the plain fetch at 5 and 10 minutes, and went back to the plain fetch on the first direct success; the idle browser closed five minutes after its last read (`blocked-source-route`). `/computer` in om chat ([chat-workspace-tui.md](chat-workspace-tui.md)). Not driven: `om init`'s browser question, the daemon's offer card, a human-check hold through the browser, the memory cap. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261117/r1/` (`01-dash-computer.png`, `cli/computer*.txt`, `cli/blocked-route-*.txt`, `cli/stub-requests.log`).*
+
 *Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185: the `computer.sources` setting read, set `off`, set `on`; the dashboard Computer page rendered. The browser read itself was not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/computer-sources.txt`, `dash/02-computer.png`).*
 
 *Re-driven on main 2026-11-13 (nightly), tree `298c469dd7` (v0.495.0+internal), guest lane on 18185. `om computer status` (`Computer: off`, the driver and Chrome rows, `Windows: 0 of 4 in use`); `om computer on` from the run's own shell is refused exit 2 (`refusing to approve from an auto-approve harness`), and from a tmux terminal answers `Computer: on` with the `om computer open <address>` next step; `off`; `history`, `stats` and `sites` on an unused computer; `config set computer.asks bogus` exit 2. The dashboard's Computer page. MCP stdio lists no `computer_*` tool. Not re-driven: a task using the browser, the queue, the owner taking over, the MCP `computer_needs_owner_surface` refusals. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/`.*
@@ -14,9 +16,11 @@
 
 ## Sub-features
 
-- The switch: `om computer on`, `off`, `status`. `on` refuses when the driver or Chrome is missing and names `om computer setup`.
+- The switch: `om computer on`, `off`, `status`. Since #2501 one switch covers agent use and blocked-source reads. `on` checks the driver and Chrome before the human check, so a missing driver refuses with `computer_driver_missing` (or `_too_old`, `computer_chrome_missing`) even from an auto-approve harness; with both present the harness refusal comes next. When on, `status` adds `Sources: <n> through the browser · <n> reads last hour · <n> held · engine headless shell|full Chrome`, and `Loopback: allowed on 127.0.0.1:<port> in the last 24h (test rig)` under `OM_COMPUTER_ALLOW_LOOPBACK`.
+- Where it shows (#2521): `om doctor`'s `browser` row (`off · om computer on turns it on`, `on · headless shell`, or a warn naming a missing driver, Chrome or shell); `om status` `Browser:    off → om computer on` or `on · headless shell`; the `om setup` overview `✓ om's browser (on, headless shell)`; `/computer` in om chat; `om init` asks `Turn on om's browser?` once in a real terminal (source only: it needs a TTY and skips on a pipe or a headless box).
+- `computer.offers` (default `on`): the daemon raises one owner card to turn the browser on when blocked sites keep breaking watches; a no is quiet for 30 days. Source only for the card.
 - Sites and windows: `om computer sites`, `allow`, `revoke`, `readonly`, `hide` and `close`; the `computer.window` setting is `hidden` or `visible` (source only).
-- Setup: `om computer setup` downloads the pinned driver after a yes, checks its SHA-256, then offers Chrome. A stale `computer.driver_path` refuses up front.
+- Setup: `om computer setup` downloads the pinned driver after a yes, checks its SHA-256, then offers Chrome and the headless shell, with a download progress line. A stale `computer.driver_path` refuses up front. Since #2521 the daemon installs the headless shell by itself whenever the computer is on and the shell is missing, into `<home>/computer/engines/` (lane log `installing the headless shell 157.0.8103.78 for source reads`, then `installed ... SHA-256 verified`).
 - Free use: under `computer.asks never` (the default) open, read, every act step and screenshot run with no card, attended and unattended.
 - Strict mode: `om config set computer.asks sites` brings back the read card per new site and the act card per site per 24 hours.
 - Floors in both modes: `computer_venue_read_only`, `computer_site_read_only`, `computer_password_field`, `computer_payment_field` (any `autocomplete` token starting `cc-`), `computer_key_not_allowed`, `computer_private_address`.
@@ -93,16 +97,31 @@ Pending proof: the card-field floor on a public checkout page, `om computer off`
 
 ## Blocked sources read through the browser (#2481, on main since 2026-11-13)
 
-What it is: a feed or page source whose host challenges or refuses the plain fetch reads its own address through om's browser, before Firecrawl, with no model call. Setting `computer.sources`, on by default, and it matters only while the computer is on.
+What it is: a feed or page source whose host challenges or refuses the plain fetch reads its own address through om's browser, before Firecrawl, with no model call. Since #2501 there is no separate setting: `computer.sources` is gone (`om config get computer.sources` exits 2 `unsupported config key`), and `om computer on|off` covers source reads and agent use together. Since #2501 and #2524 the site's route is remembered: polls go straight to the browser, the plain fetch is tried again after 5 minutes, then 10, 20, 40 and every 60, and one direct success sends the source back to the plain fetch. The route is a database row and survives a restart. Source reads run in om's own `sources-1`/`sources-2` browsers, two at a time at most, take no agent window and leave `om computer history` empty.
 
-- `om config get computer.sources` reads `computer.sources = unset (default: on)`, `rule: on or off`, and the description `Whether a feed or page source a site blocks reads the same address through om's computer; …`.
-- `om config set computer.sources off` answers `om: set computer.sources=off`, and the get then reads `source: config`. `on` turns it back on (driven 2026-11-14).
+- `om computer sources` lists each routed origin: `<origin>  browser|direct`, `Last: HH:MM through the browser|direct, ok`, `Today: N through the browser, M direct`, `Next direct try: HH:MM` while it routes to the browser, and `Held: <address> until HH:MM (human check|refused)`. With none: `No source has needed om's browser yet.`
+- `om computer pass <address>` opens the address in your window to pass a human check by hand (source only).
+
+### Blocked-source route on a lane (added 2026-11-17)
+
+Proved with a loopback stub whose challenge spares the browser, so the plain fetch is refused and the browser read is served:
+
+1. Copy `helpers/origin-challenge-stub.ts` into a scratch directory and change its challenge test to `m === "challenge" || (m === "plainchallenge" && !/HeadlessChrome/.test(req.headers.get("user-agent") ?? ""))`, logging the user agent. om's plain fetch sends a desktop Chrome user agent; the headless shell's carries `HeadlessChrome`. Run it on an agent port (18111) from its own data directory with `echo ok > mode`.
+2. `control-om up --env OM_FEED_ALLOW_LOOPBACK=1 --env OM_FEED_POLL_INTERVAL_MS=60000 --env OM_COMPUTER_ALLOW_LOOPBACK=18111`. Without the last switch the browser refuses a loopback address.
+3. Turn the computer on from a private tmux (`control-om om -- computer on`). The daemon installs the headless shell into the lane home by itself (9 s, 205 MB on 2026-11-17). `computer status` reads `Loopback: allowed on 127.0.0.1:18111 in the last 24h (test rig)` and `Sources: 0 through the browser · ... · engine headless shell`.
+4. `OM_FEED_ALLOW_LOOPBACK=1 control-om om -- watch page-add http://127.0.0.1:18111/rss --prefer feed --every 60s` → `feed_created`; the stub logs one plain `ok GET /rss` a minute.
+5. `echo plainchallenge > mode`. Driven 2026-11-17: the next poll logged `challenge GET /rss headless=false` at 19:27:31Z and the browser's `ok GET /rss headless=true` at 19:27:34Z. `computer sources` read `http://127.0.0.1:18111  browser`, `Last: 03:27 through the browser, ok`, `Next direct try: 03:32`; `computer status` `Sources: 1 through the browser · 1 reads last hour · 0 held`; `watch show` `Coverage: ok (browser, last poll ...)`. Every later poll went straight to the browser, with no plain request.
+6. At 19:32:34Z the plain fetch was tried again, challenged, and the browser read 74 ms later; `Next direct try: 03:42` (10 minutes). A lane restart (`down`, `up` with the same switches) kept the route, `Last` and `Next direct try` unchanged.
+7. `echo ok > mode`. The direct try at 19:42:52Z succeeded: `computer sources` read `http://127.0.0.1:18111  direct`, `Last: 03:42 direct, ok`, `Today: 16 through the browser, 1 direct`; `Sources: 0 through the browser`; `watch show` `Coverage: ok (feed, ...)`.
+8. The warm browser closes by itself (#2524, `SOURCE_BROWSER_IDLE_MS` 5 minutes): the headless shell and its driver, started at the lane restart (19:32:50Z), exited at 19:46:56Z, five minutes after the last browser read (19:41:52Z). The pre-restart browser was already gone after the restart. Check with `ps` for `chrome-headless-shell` under the lane home's `computer/engines/`.
+
+On a guest lane the watch's headline names the AI-filter fault, so `watch show`'s `reads through om's browser` status line is displaced; read `Coverage:` instead. The dashboard's Computer page shows no `Sources` row (2026-11-17).
 
 Recipe, on a daemon whose cooldowns stand (the live one; a fresh lane often reads the same hosts by plain fetch):
 
 1. `om computer status` reads `Computer: on`.
 2. Wait for the source's poll, or restart the daemon so every source polls.
-3. `om computer history`: a row `source <host>  clean-1  done` per read, seconds long.
+3. `om computer sources` names the host's route (since #2501 source reads no longer appear in `om computer history`).
 4. `om watch show <watch>`: the source row reads `working · reads through om's browser`.
 5. `om computer stats`: a `source` row; errors `source_human_check` or `source_driver_failed`.
 6. A host showing a human check: the source reads `<host> asks for a human check; open <address> once`. Nothing is clicked.
@@ -110,6 +129,6 @@ Recipe, on a daemon whose cooldowns stand (the live one; a fresh lane often read
 
 Proven live 2026-11-13: Ars Technica, VentureBeat and Product Hunt feeds served; hltv.org stopped at its check; Reddit failed in the browser too.
 
-Lane notes: start the daemon with `bootstrap.internal.ts run`; switch the computer on in a scratch home through `setComputerEnabled`; to restart, kill the pid that holds the port, not the wrapper's.
+Lane notes: see the lane recipe above. A computer switched on in a lane makes its daemon download the headless shell into the lane home; delete the lane home afterwards.
 
 Pending proof: a page source (not a feed) through the browser, and the hand pass (`om computer open`, pass the check, `om computer release`) letting a held source read again.

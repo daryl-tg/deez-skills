@@ -1,5 +1,7 @@
 # Market data reads
 
+*Re-driven 2026-11-17 (nightly), tree `8e350d253a` (origin/main, v0.495.0+internal), guest lane on 18188; the guest sign-in answered 429 at boot and minted at 20:05Z. First live proof of #2493's expiry filters on the v3 catalog (`instruments-expiry`): under `OM_DATA_TRANSPORT=v3`, Deribit BTC puts between 2026-12-01 and 2026-12-26 are the `25DEC26` contracts; `--expiry-max 2026-12-25` keeps the 08:00 UTC expiry and `2026-12-25T00:00:00Z` drops it; `--option-type` and the strike range are applied; a millisecond epoch and a non-date are refused before any read, and month 13 after it. The HL flattened heatmap (#2513) is `tier_forbidden` for a guest on both transports. Not re-driven: the other reads in this file. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261117/r1/` (`cli/instruments-expiry.txt`, `cli/instruments-v3.txt`, `cli/hl-flatten.txt`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `coins`, `exchanges`, `enum`, `markets --exchange BINANCE_FUTURES`, and `points --exchange BINANCE_FUTURES --raw-symbol BTCUSDT --type TRADE_SIDE_AGNOSTIC_AGG --interval HOUR --lookback 3h` all returned live data; `points` without `--lookback` exits 1 `required option '--lookback <duration>' not specified`. Not re-driven: `instruments`, `option-chain`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `coins`, `exchanges`, `enum`, `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h`, `resolve BTC` (bound `HYPERLIQUID_FUTURES`), all exit 0 with live data. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`cli/`).*
@@ -196,6 +198,41 @@ Preconditions:
   1` returned `expiries`. Per source (`runner/v2/url.ts`), a home that sets
   `OM_BASE_URL` without `OM_DATA_V3_URL` resolves no v3 endpoint and falls back
   to the same refusal. #2114 changed only the signed-in path.
+- **`instruments-expiry` (#2493, live 2026-11-17).** `om instruments` takes
+  `--expiry-min` and `--expiry-max` (`<when>`: epoch seconds of up to ten
+  digits, an ISO 8601 date-time, or a bare date). The expiry range, the strike
+  range and `--option-type` go to the v3 catalog, which returns only matching
+  contracts. Driven under `OM_DATA_TRANSPORT=v3`:
+  - `instruments DERIBIT --underlying BTC --option-type PUT --expiry-min
+    2026-12-01 --expiry-max 2026-12-26 --limit 5 --format json` → `{exchange:
+    "DERIBIT", arm: "options", received: 5, truncated: false}`, every row a
+    `BTC-25DEC26-<strike>-P` with `expiryUnixS` 1798185600 (Deribit's December
+    expiry is the 25th, 08:00 UTC).
+  - A bare date in `--expiry-max` keeps the whole day: `--expiry-min
+    2026-12-25 --expiry-max 2026-12-25` returns the 08:00 contracts (50 rows,
+    PUT only); `--expiry-max 2026-12-25T00:00:00Z` returns none.
+  - `--expiry-min 1798185600 --expiry-max 1798185600` returns that expiry's calls
+    and puts.
+  - `--option-type CALL --strike-min 100000 --strike-max 110000 --expiry-max
+    2026-12-26` with no `--expiry-min` starts with expired contracts
+    (`BTC-21MAR25-100000-C`, `inverse: true`): the catalog keeps them.
+  - Refused before any read, exit 2 `invalid_options` (also on the default
+    transport): `--expiry-max 1798329599000` (`expiry.lte`) and `--expiry-min tomorrow`
+    (`expiry.gte`) → `Input validation failed — expiry.<lte|gte>: an ISO 8601 date or date-time, or
+    epoch SECONDS as up to ten digits (e.g. 1755216000); eleven or more digits
+    is milliseconds`.
+  - Refused after the transport check, exit 2 `invalid_query`: `--expiry-min
+    2026-13-01` → `instruments: expiry.gte is not a date: 2026-13-01` with the
+    hint `Pass epoch seconds, an ISO 8601 UTC date-time such as
+    2026-12-26T08:00:00Z, or a date such as 2026-12-26.` On the default
+    transport the v3-only refusal answers first.
+  - A day past the month's end is not refused: Bun reads `2026-02-30` as
+    2026-03-02 and `2026-11-31` as 2026-12-01 (see Known product gaps).
+- **The HL heatmaps are not on the guest plan.** `points --exchange
+  HYPERLIQUID_FUTURES --raw-symbol BTC --type HYPERLIQUID_LIQUIDATION_AGG
+  --interval HOUR --lookback 3h --flatten --block-size 100` exits
+  `tier_forbidden` (`403 Forbidden: type not permitted`) on `v3` and on `auto`,
+  so #2513's flattened v3 read needs a paid key.
 - **The `exchange_id` domain is narrower than `om exchanges`** (driven
   2026-10-28). On `auto`, `exchanges` listed 48 venues. (45 on 2026-10-30, a service-side count that moves.) `enum --list`
   reported `exchange_id` with 35, and `enum --domain exchange_id --query

@@ -1,5 +1,7 @@
 # The capability layer over MCP (stdio)
 
+*Re-driven 2026-11-17 (nightly), tree `8e350d253a` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts`; the guest sign-in was rate limited (429) for this whole pass, which no stdio call here needs. First live proofs of the lean face (#2502) and the session-bound arm (#2478, #2515): `mcp serve --stdio --no-fire-bridge --face lean` lists **4** tools (`find`, `describe`, `read`, `change`, 2,008 schema characters) against the full face's **490** (958,117); `find {}` counts 490 tools in 20 categories; `read watch_list` answers text rows; `not_a_read`, `unknown_tool` and `invalid_input` refusals; `change order_place` reaches the capital gate (`capital_yolo_harness`); `change watch_mute` runs with no card. Loopback `--http` answers `order_place` with `capital_no_session`. `om mcp arms`, `disarm` and the three `arm` refusals (`mcp-lean-face`, `mcp-arm-session`). Not driven: a successful arm, the 40,000-character cut (no lane answer is that long), `om setup`/`om connect` writing `--face lean`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261117/r1/` (`cli/mcp-lean*.txt`, `cli/mcp-arm*.txt`, `cli/mcp-http-capital.txt`).*
+
 *Re-driven 2026-11-15 (nightly), tree `5a4cb146d4` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `mcp serve --stdio --no-fire-bridge`: server `openmarket` 0.495.0, **490** tools (491 before #2500): `room_todo_board` is gone, and a `tools/call` to it is `isError` `tool_failed` `MCP error -32602: Tool room_todo_board not found`; the 13 `todo_*` tools remain. `watch_list` answered. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261115/r1/` (`cli/mcp-stdio.txt`).*
 
 *Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `mcp serve --stdio --no-fire-bridge`: server `openmarket` 0.495.0, **491** tools (unchanged), none named `computer_*`, `connector_*` or `secret*`; `watch_list` lists `nightly-probe`; no non-JSON line on stdout. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/mcp-stdio.txt`).*
@@ -62,7 +64,31 @@ mid-call never places an order on its own.
   by default, rooms tools included).
 - `mcp-read`: a read action such as `watch_list` runs and returns JSON text.
 - `mcp-capital-gate`: a capital action returns `capital_not_armed`, with a hint
-  naming `om mcp arm`, before the handler can reach a venue.
+  naming `om mcp arm` and the session pid, before the handler can reach a venue.
+  The gate's order: an off-box session, then `capital_yolo_harness` (an
+  auto-approve ancestor), then `capital_no_session` (no server process an arm
+  can name: every loopback `--http` session), then `capital_not_armed`.
+- `mcp-lean-face` (#2502, added 2026-11-17): `om mcp serve --stdio --face lean`
+  lists four tools instead of the whole catalog. `find` with no arguments counts
+  the tools per category (`{categories, total}`); `find {query}` ranks matches
+  `{name, category, summary, kind}`, `kind` being `read` or `change`; `describe
+  {name}` answers one tool's description and input schema; `read {name, args}`
+  runs a read and `change {name, args}` runs anything else through the same
+  gates as a call by name. The `initialize` instructions open `This server
+  lists four tools: ...`. The default face is still `full`. `--face` is
+  stdio-only: `--http ... --face lean` exits 2 `face_stdio_only`, and a bad value
+  exits 2 `invalid_face: --face takes 'full' or 'lean', got '<x>'`.
+- `mcp-stdio-answers` (#2502, source only): every stdio answer is at most 40,000
+  characters, compact JSON; a longer one is cut and ends with a line naming a
+  narrower call. `watch_list`, `watching_overview`, `watch_history` and
+  `usage_llm` answer tab-separated text rows on stdio, first line `<tool>: rows
+  1 to N of M, worst first` (an empty home: `watch_list: 0 rows`).
+- `mcp-arm-session` (#2478, #2515, added 2026-11-17): an `om mcp arm` opens only
+  the stdio MCP session it names. `om mcp arm --session <pid>` takes the pid
+  the refused call named; a bare `om mcp arm` arms the one session in its own
+  shell's process tree. `om mcp arms` lists each arm's session (`Not armed.`
+  when none), `om mcp disarm` closes it (`No live capital approval to
+  revoke.`).
 - `mcp-validation`: invalid arguments come back as one compact `invalid_arguments`
   line (`Schema validation failed: <path>: <msg>`), not the SDK's verbose error.
 - `mcp-version-warning` (PR #2231, on main since `3498391e7`; not re-driven on main): when the servant's om version and the daemon's `/healthz` version differ, the fire bridge sends one `notifications/message` (`logger` `openmarket.servant`, `level` `warning`) per daemon version and writes the same line to stderr. Older servant: `om MCP servant 0.478.0 is older than the daemon 0.480.2. Restart this Claude Code session to upgrade.` Older daemon: `Daemon 0.478.0 is older than this MCP servant 0.480.2. Restart it to catch up.` The servant never exits on its own.
@@ -73,7 +99,10 @@ mid-call never places an order on its own.
 ## How to get to it (user POV)
 
 - `om setup claude-desktop` or `om setup cursor-mcp` writes a client config that
-  launches `om mcp serve --stdio`. The dashboard's `/connections` page offers
+  launches `om mcp serve --stdio --face lean` (#2502); Claude Code keeps the full
+  face. Both write the real client file under `$HOME` unless `--config-path
+  <file>` is given, and `om connect` has no such override, so neither belongs
+  on a lane without a scratch `HOME`. The dashboard's `/connections` page offers
   the same through its `Coding agents` rows.
 - Or run `om mcp serve --stdio` by hand and speak newline-delimited JSON-RPC.
 
@@ -116,6 +145,19 @@ home rather than the operator's.
 - **`channel_default_set` over stdio (added 2026-10-31).** `{"name":"nope"}`
   on a home with no channels is `isError` with `error: channel_not_found`,
   `details.channels: []`; the happy path needs a paired channel.
+
+### The lean face and the session-bound arm (added 2026-11-17, #2502, #2478, #2515)
+
+- **Lean.** Spawn `control-om om -- mcp serve --stdio --no-fire-bridge --face lean` and run the same handshake. `tools/list` names exactly `find,describe,read,change`. Then:
+  - `find {}` → `{"categories":[{"category":"agents","count":19},...,{"category":"watch","count":67},{"category":"wrun","count":5}],"total":490}`.
+  - `find {"query":"watch list"}` → `watch_window_list`, `watch_share`, `watch_list`, `watch_archive`, `event_journal_list` in that order (`watch_list` third).
+  - `describe {"name":"watch_list"}` → `{name, kind:"read", description, ...}`.
+  - `read {"name":"watch_list","args":{}}` → text, not JSON: `watch_list: rows 1 to 2 of 2, worst first`, `watches: 2 (2 broken)`, then a tab-separated header `slug label state kinds last fire group why fix` and one row per watch.
+  - `read {"name":"order_place","args":{}}` → `not_a_read` (`` `order_place` is a change, and `read` runs reads only. ``, hint ``Ask for it with `change`.``).
+  - `read {"name":"nope"}` → `unknown_tool`, hint ``Search with `find`.``; `find {"query":"x","bad":1}` → `invalid_input` (``arguments: Unrecognized key: "bad". `find` takes `query`, `category`.``).
+  - `change {"name":"order_place","args":<the valid arguments above>}` → the capital gate's code, exactly as a call by name. `change {"name":"watch_mute","args":{"id_or_slug":"<slug>","for":"1h"}}` runs with no card and answers `muted_until`. Arguments a tool refuses come back as that tool's `invalid_arguments`, naming the keys it takes.
+- **Loopback HTTP.** `order_place` over `mcp serve --http 127.0.0.1:<port>` is `isError` with `capital_no_session`: `order_place moves capital, and this MCP session has no server process an arm can name`, hint ``Make the call from a local stdio MCP session. Ask the user to run `om order place` in a terminal on this machine.`` HTTP answers keep indented JSON; stdio's are compact.
+- **The arm verbs.** `control-om om -- mcp arms` prints `Not armed.`; `mcp disarm` prints `No live capital approval to revoke.` From the run's own shell every `mcp arm` form exits 2 `this shell runs under --permission-mode bypassPermissions, so an arm typed here proves no human's approval` / ``Run `om mcp arm` in your own terminal.`` From a private tmux (no auto-approve ancestor): `mcp arm --session 999999` and `--session abc` exit 2 `--session <x> is not a running stdio MCP server` / `Use the pid the refused capital call named.`; a bare `mcp arm` exits 2 `no MCP session runs in this shell's process tree` / `Pass --session <pid> with the pid the refused capital call named.` Do not arm a session successfully from an agent's tmux: the arm is the owner's keystroke.
 
 ### Badge ticket reads over stdio (added 2026-11-09, #2411)
 
@@ -199,7 +241,12 @@ Needs a badge session (`--session merged` or a badge stdio servant) against a ho
   call, so either proves the no-spend claim. Assert `isError` and a `capital_`
   code, and record which one you got and why.
 - The tool count (451 here) is the stdio catalog, which is not the registry count
-  (478 at this tree). Assert membership, not a number.
+  (478 at this tree). Assert membership, not a number. The lean face is the
+  exception: it lists exactly four, and `find {}`'s `total` is the full count.
+- **`harness-sniff` reads process command lines, not environment variables.**
+  A session started by `claude -p ... --permission-mode bypassPermissions` is
+  flagged through its ancestors; a tmux server (PPID 1) is not, which is why
+  the `om mcp arm` refusals past the harness check need a private tmux.
 - `--no-fire-bridge` keeps watch-fire log notifications off stdout, so the
   response stream stays request/response only. Drop it only when the bridge is
   under test.
