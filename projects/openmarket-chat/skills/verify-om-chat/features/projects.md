@@ -82,7 +82,7 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   .composer-vim-mode[data-vim-mode]`), a block cursor `.vim-block-cursor`
   shows outside insert mode (`data-partial` while an operator is pending),
   and Ctrl/Cmd+Enter posts (`4f2accbc`, `a420490b`).
-- **Comments** (`TodoActivity.tsx:126-300`). A comment's files are tiles in
+- **Comments** (`TodoActivity.tsx:127-302`). A comment's files are tiles in
   `ul[aria-label="Comment files"]`; one with no body and no surviving file reads
   "The file in this comment is no longer available.". **Edit** opens the shared
   edit box (`textarea[aria-label="Edit message"]`) with the comment's tiles
@@ -101,7 +101,7 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   `#ops`, **Deleted channel**, **Private channel** (no channel name is known) or
   `#ops (archived)`. The table's CHANNEL column uses the same names.
 - **Channel panel** (`ChannelTodosPanel.tsx`, mounted by `RightPanels.tsx` when
-  `rightPanel === "todos"` and the server is on Projects, `RightPanels.tsx:445-446`;
+  `rightPanel === "todos"` and the server is on Projects, `RightPanels.tsx:446-447`;
   the lazy surface is named `Tickets`, `lazy-surfaces.tsx:233-236`). Off
   Projects `panel=todos` opens nothing: since `05df35a7` there is no legacy
   to-dos panel to fall back to (driven 2026-11-15 on both hosts). It is the
@@ -452,7 +452,7 @@ Projects stub the page falls to its error boundary, because the bare
   `/rooms/`, send `om://todo/s1/1` alone (a local send appends the card), then
   set `__om.showRightPanel=(p)=>{__om.rightPanel=p;__om.closeConfirm()}`
   through the capture shim: clicking the card's title **Fix alert dedupe**
-  opens **Tickets in #ops** with **Ticket !1** (`TodoRefCard.tsx:68-75`;
+  opens **Tickets in #ops** with **Ticket !1** (`TodoRefCard.tsx:73-80`;
   driven 2026-11-13). The root shell fixture does not define
   `showRightPanel`, so without the shim the click does nothing. The ticket
   list closing on send stays source only.

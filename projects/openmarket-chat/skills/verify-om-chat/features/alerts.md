@@ -12,7 +12,7 @@ in [settings-and-appearance.md](settings-and-appearance.md).
 - **No channel-header beacon since `dc6a9a47`** (2026-10-01). `ChatPane.tsx`
   stopped mounting `AlertsBeacon`; the file survives only for the board's
   `BOARD_WIDTH`. A channel with a live alert feed gets an **Alerts** door on
-  the right-edge dock instead (`RightPanels.tsx:229-252`, gated by
+  the right-edge dock instead (`RightPanels.tsx:230-253`, gated by
   `rightSlotTabsFor`), and the sidebar carries the ringing count. The fixture's
   `#ops` has no live feed, so its dock shows Library, Bookmarks, Members and
   Pins only, and the door is live verification pending (re-measured
@@ -53,7 +53,7 @@ agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=ale
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=room` | Strip firing: `.alert-strip` text `store-5xx · check pods` |
-| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1430-1438`) |
+| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1467-1475`) |
 | `shell-fixture.html?view=room&alerts=amber` | A second strip state (`:1442-1443`) |
 | `shell-fixture.html?view=room&alerts=quiet` | No strip: use this for every non-alert proof |
 | `fixture.html?surface=alert-card` | The alert card with its four actions |
@@ -74,12 +74,12 @@ holding `#ops` and its **store-5xx, ringing** row. Under `alerts=quiet` the
 group is absent, because `feeds` is empty. On `/chat/` no group forms: the
 cloud `alertsStub` (`apps/cloud/tools/visual/shell-fixture.tsx:539`) has
 `feeds` but no `lastRefreshedAt` (the root has it at
-`tools/visual/shell-fixture.tsx:1437`), so the board never reads as ready.
+`tools/visual/shell-fixture.tsx:1474`), so the board never reads as ready.
 Adopting the group as a real category was not driven. Driven 2026-11-08.
 
 ### The board's feed peek (added 2026-11-16)
 
-Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1465`,
+Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1502`,
 `apps/cloud/tools/visual/shell-fixture.tsx:567`), so the bare board shows the
 chart-less peek. `alertsStub` is a plain object, so the session-capture shim
 from [message-actions.md](message-actions.md) can replace the method:
@@ -121,9 +121,9 @@ was not driven.
   true since at least `5820fbea`, so do not judge alert visuals from the shell;
   use `fixture.html?surface=alert-card` or the bundled app.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
-  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:447-457`
+  channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:448-458`
   and opened in the product by `session.openAlertsTab`). The fixture's
-  plain-object `alertsStub` (`shell-fixture.tsx:1425`) lacks members the
+  plain-object `alertsStub` (`shell-fixture.tsx:1462`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,
   `setSelectedFeed`, `tapeFeedFilter` and `setTapeFeedFilter`. Which one throws
   first was not isolated. No error boundary wraps the panel, so `#root`

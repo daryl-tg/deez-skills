@@ -187,7 +187,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   **"Agents, needs your om running"**. An armed count does not mask away: the
   desktop label states both, **"Agents, N armed, your om is not running"**,
   and only a connected, armed om reads the bare **"Agents, N armed"**
-  (`Shell.tsx:3117-3132`; mobile segments `Shell.tsx:3660-3705`). So an
+  (`Shell.tsx:3119-3134`; mobile segments `Shell.tsx:3662-3707`). So an
   `--exact` match on the bare name misses several different ways, and matching
   the mobile string on desktop misses too. Away is a whole-app state, a
   different thing from the daemon not running.
@@ -195,19 +195,19 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3837`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3839`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3123`, `:3128`). Two states is the old shape; matching on it
+  (`Shell.tsx:3125`, `:3130`). Two states is the old shape; matching on it
   during a flaky connect misses silently.
 
   **Away has a remote-control spelling too.** When the session is away and a
   remote device answers over the relay, the doors read
   **"Your om, connected remotely"** and **"Agents, connected remotely"**, or
   **"…, remote control off"** when a device is reachable but none is selected
-  (`Shell.tsx:1559`; accessible names at `:3130`, `:3672`, `:3697`,
-  `:3799`). The tooltips spell it with a colon instead, "Agents: connected
-  remotely" (`:3081`, `:3781`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4135`). The pane
+  (`Shell.tsx:1560`; accessible names at `:3132`, `:3674`, `:3699`,
+  `:3801`). The tooltips spell it with a colon instead, "Agents: connected
+  remotely" (`:3083`, `:3783`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4189`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -237,8 +237,8 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:4079-4132` for spaces; the zone-1 feature folders use the same
-  markers at `Shell.tsx:3899-3937`).
+  (`Shell.tsx:4081-4134` for spaces; the zone-1 feature folders use the same
+  markers at `Shell.tsx:3901-3939`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -257,7 +257,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   ```
 
   The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
-  **`u1`** (`shell-fixture.tsx:1045` maps the `kyle` handle to `u1`; every
+  **`u1`** (`shell-fixture.tsx:1048` maps the `kyle` handle to `u1`; every
   other handle becomes `u-<handle>`). Write it under the wrong id and nothing
   happens, silently. Proven end to end on lane 18118: after the reload one
   `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
@@ -270,7 +270,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:476`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:482`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -356,7 +356,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:254`), supplied by `Shell.tsx:4606`. That is
+  remains (`UserSettings.tsx:254`), supplied by `Shell.tsx:4590`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
@@ -371,7 +371,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:6103-6104`),
+  composer with no lane toggle and no target (`Composer.tsx:6113-6114`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -607,7 +607,7 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
 - **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
   state — `h1` *"om isn't running"*, *"No recent daemon snapshot is available on
   this device"* on this lane. The gate is `presence.running === false`
-  (`ChatPane.tsx:516`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
+  (`ChatPane.tsx:522`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
   reads any 4xx except 429, or a non-JSON 200, as down. The fixture has two
   session modes: `omSessions=drafts` seeds Research A/B locally, and
   `omSessions=daemon` wires real session-list/history operations. Neither fakes
@@ -617,14 +617,14 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
   `/healthz?lite=1` poll, which otherwise 404s and drops the gate about 30 s in.
   Proved on 2026-10-27 (maintenance re-drive). The single nightly session that
   passed without a stub was the `running === null` window, before the first
-  poll answer or while the tab is hidden (`ChatPane.tsx:267`). Do not plan a
+  poll answer or while the tab is hidden (`ChatPane.tsx:273`). Do not plan a
   proof on that window. The stub answers health only, so Watches still need
   daemon watch RPCs and QA watch data, and unread still needs daemon events.
 - **On `/rooms/`, persona is unreachable from a `view=agents` page load — by any control,
   not just the old query.** (On `/chat/` the same Voice click reaches the hosted
   page and reads the desk-offline copy; see
   [persona-setup-and-editing.md](persona-setup-and-editing.md).) The fixture decides whether to mock persona
-  **once, at page load** (`shell-fixture.tsx:199-211`): it mocks when the query
+  **once, at page load** (`shell-fixture.tsx:202-214`): it mocks when the query
   is `view=agent&panel=voice|away|activity` *or* the hash is already
   `#/agents/voice|away|activity`. Anything that only *arrives* at those hashes
   after load finds the real, un-mocked client and reads *"Your voice could not
@@ -727,6 +727,38 @@ Proven on both hosts at chat `14509e60` with lane daemon `4f4db0510`. Rig owner 
 - In this rig the daemon's owner handle is empty, so agents assert "| <name>" and agent posts arrive `isAgent=false` under the owner; the GUI's `agentOwnName` and the daemon's own-post guard cover both.
 - A fake model that holds every call long makes the run fail as a provider hiccup; hold only `post_reply` turns, for a few seconds.
 - The room post budget throttles an agent for the hour after a burst; switch agents for fresh captures.
+
+## Agent tag card (`b2692dfd`, driven 2026-11-17)
+
+Clicking an `@agent` tag (`.agent-mention[data-handle]`, `role="link"`, named
+"@debugger, agent") opens a compact card, not the full profile
+(`MessageRow.tsx:2522-2532`, `lib/agents/agent-tag-card.ts`). The card is a
+dialog named **Agent <name>** (`AgentTagPopover.tsx:31`). It shows the name
+and an **AGENT** chip over "<owner>'s agent", with the owner's face. The owner
+comes from the room's agent directory: the account an agent posts as
+(`<owner>___<agent>`) tells the room whose it is. When the room cannot say,
+for example when two owners each run a `debugger`, the line reads just
+**agent** (`AgentProfileCard.tsx:80`). With a known owner, the row is a
+button named "<name>, <owner>'s agent. View full profile" (`:116`,
+`[data-profile-door]`) that opens the agent's profile panel.
+
+`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1370-1390`; card
+handlers `openProfileCard` and `openMentionCard` at `:3415-3430`). The `/chat/`
+fixture has neither the seed nor the handlers, so the card is `/rooms/` only.
+
+```bash
+# people stub, then:
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&agentTag=1')"
+agent-browser scrollintoview '.agent-mention[data-handle="debugger"]'
+agent-browser click '.agent-mention[data-handle="debugger"]'
+# dialog "Agent debugger": "debugger AGENT … ana's agent"
+agent-browser click '[data-profile-door]'
+# right panel: "ana · debugger AGENT", "Message Agent"
+agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet&agentTag=unknown&_s=2')"
+# click the LAST .agent-mention[data-handle=debugger]: the card reads "debugger AGENT agent", no door
+```
+
+**Last verified:** 2026-11-17 (nightly maintenance). **Product commit:** {TREE}. **Scope:** `/rooms/` (18171), people stub: `agentTag=1` opened **Agent debugger** reading "ana's agent", whose door opened the **ana · debugger** profile panel; `agentTag=unknown` read just "agent" with no door. **Limitations:** `/chat/` has no seed; the card's look in light theme and on a phone width was not captured. Evidence: `{EVU}` (frames 01–03).
 
 ## Coding work panel (MR !244, driven 2026-11-11)
 

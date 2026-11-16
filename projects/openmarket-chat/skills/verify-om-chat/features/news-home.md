@@ -3,7 +3,7 @@
 The **News** view: stories the operator's news watches have fired, plus filing
 one into a room so it rides the next message. Source:
 `packages/chat-ui/src/components/NewsHomePane.tsx`, mounted by
-`ChatPane.tsx:808-814` when `session.active.kind === "news"`; the composer chip
+`ChatPane.tsx:814-820` when `session.active.kind === "news"`; the composer chip
 is `NewsStagedChip` in `NewsCard.tsx`.
 
 ## Sub-features
@@ -20,8 +20,8 @@ is `NewsStagedChip` in `NewsCard.tsx`.
   attached story** (`NewsCard.tsx:153`).
 - **Related story suggestion** in the composer (**Attach**, **Dismiss story
   suggestion**), from `session.news.matchDraft`. Not reachable: see Gotchas.
-- The rail's **News** feature (`Shell.tsx:2534-2545`) and the `news` key
-  binding (`:907`) exist only when `session.news.supported === true`, which
+- The rail's **News** feature (`Shell.tsx:2535-2546`) and the `news` key
+  binding (`:908`) exist only when `session.news.supported === true`, which
   needs a daemon news plane behind the origin.
 
 ## How to get to it (user POV)
@@ -35,7 +35,7 @@ the story waits in the composer and goes out under your next message.
 Neither fixture can reach the view on its own. `#/news` calls
 `session.openNews()`, which neither fixture defines, and the fixture `news`
 store is an inert plain object with `supported: false`
-(`tools/visual/shell-fixture.tsx:2768-2782`). There is no `?view=news`. With the
+(`tools/visual/shell-fixture.tsx:2805-2819`). There is no `?view=news`. With the
 people stub and the session-capture shim from
 [message-actions.md](message-actions.md), replace the `news` store and point
 `active` at the view. Keep the original `active` descriptor so you can return

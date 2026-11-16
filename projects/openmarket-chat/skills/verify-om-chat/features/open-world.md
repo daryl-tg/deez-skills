@@ -26,14 +26,14 @@ fixture cannot reach.
 - Transport connect / retry, and the offline banner when it cannot reach the
   relay.
 - A resizable channel column beside the world (`#948`): a handle
-  `[data-world-channel-resize]` (`WorldChatPane.tsx:343-374`) that drags,
+  `[data-world-channel-resize]` (`WorldChatPane.tsx:344-375`) that drags,
   moves with the arrow keys, and resets on Home or double-click. Width is
   76–280px and persists to `localStorage` key `om.chat.world.channelWidth`
   (`channelWidth.ts`). It is present in `mocks/world-solo/index.html?worldprobe=1`
   (measured at `f7d7c987`).
 - A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
   font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
-  home session (`Shell.tsx:4604`; lazy import at `:248`). Reach it through
+  home session (`Shell.tsx:4588`; lazy import at `:249`). Reach it through
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
@@ -111,7 +111,7 @@ fullscreen"**, and five `.world-look` swatches — **Wayfarer, Ranger,
 Surveyor, Violet, Rust** (`packages/chat-ui/src/world/scene/characterModel.ts`, Wayfarer at `:11`).
 
 **Hide** collapses the chat pane and the control then reads **Open chat**
-(`WorldChatPane.tsx:400`); **Enter fullscreen** reads **Exit fullscreen** only
+(`WorldChatPane.tsx:401`); **Enter fullscreen** reads **Exit fullscreen** only
 once the browser grants fullscreen, which the headless lane did not
 (2026-10-31). Open the harness under the lane's `/rooms/` base, as
 `control-om-chat url` does: a bare `/mocks/world-solo/index.html` answers with
@@ -166,7 +166,7 @@ Drive the selects with `agent-browser select 'select[aria-label="Preview state"]
 confirmation** row and one **Not sent** row with **Retry** and **Discard**),
 `loading` (**Loading history**), `error` (**History unavailable**), `offline`
 (**Showing saved history**), `empty` (the status stays **History loaded**;
-the `role="log"` reads **No messages yet.**, `WorldChatPane.tsx:458`), `missing` (**No
+the `role="log"` reads **No messages yet.**, `WorldChatPane.tsx:459`), `missing` (**No
 #world channel**, no composer) and `readonly` (the textarea is `disabled`).
 Every status line ends in the `<strong>` **Simulated chat**.
 
@@ -248,7 +248,7 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # -> [data-testid=world-presence-count] with aria-label "3 walking" and text "3"
 ```
 
-The rail tooltip (`Shell.tsx:3266`) was not hovered.
+The rail tooltip (`Shell.tsx:3268`) was not hovered.
 
 ## Gotchas
 

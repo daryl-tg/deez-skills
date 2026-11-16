@@ -31,11 +31,20 @@ who reacted.
   load." with **Try again** (`LazySurface.tsx:512-530`).
 - **Emoji picker**: **Add a reaction** opens a dialog named **Choose an emoji**,
   with a `Search emoji (:fire:)` field and, once the table loads, 1,870 emoji
-  buttons (rooms-client `0.104.0`, `7e57ee84`).
+  buttons (rooms-client `0.104.0`, `7e57ee84`). Since `de32f43d` the marks are
+  searchable (`lib/emoji-search.ts:33-35`): `?` lists ❓ ❔ ⁉️ and the
+  questioning faces (🤔 🤨 😕 🧐, the shrugs; 15 hits), and `!` lists ❗ ❕ ⁉️
+  ‼️. Before it, `?` read `No emoji match "?"`. The composer's own picker
+  (**Choose emoji or GIF (⌘E)**) shares the same search.
 - **Reaction scenes** (`afabb11c`). When a visible chip's count rises, a scene
   plays over the viewport. Hand-built emoji (hearts, 🎉, 🔥, ⚡, 👀, the GOAT,
   the signature and shipped ones) keep their own scenes. Every other emoji now
   plays one of six family scenes: rise, burst, pulse, fall, shake or shimmer.
+  Since `de32f43d` a one-piece mark plays a one-piece scene: ❓ has its own
+  hand-built **question** scene (1,500 ms, `lib/reaction-scenes.ts:79`), ❔ and
+  🤨 alias to it (`:161-162`), and the two-piece ⁉️ keeps **double take**
+  (`:75`). Its layer is `.reaction-scene--question`, with no `--family-` part.
+  😠 😡 🤬 now play **fall**, not shake (`lib/reaction-scene-themes.ts:62`).
   The family is picked by keyword rules over the emoji table
   (`lib/reaction-scene-themes.ts`, overrides in `THEME_OVERRIDES`). Faces and
   hands without a clear theme pulse. The layer is
@@ -92,10 +101,24 @@ agent-browser eval '(()=>{document.documentElement.classList.remove("reduced-mot
   for(const n of m.addedNodes)if(n.nodeType===1&&n.classList.contains("reaction-scene-layer"))born.set(n,performance.now());
   for(const n of m.removedNodes)if(born.has(n))window.__life.push(n.className.split(" ")[1]+":"+Math.round(performance.now()-born.get(n)))}})
   .observe(document.body,{childList:true,subtree:true});return 1})()'
-for e in 😭 😭 🤬 🤔; do agent-browser eval "(()=>{reactionSceneIntegrationFixture.rise('$e');return 1})()"; sleep 2; done
+for e in 😭 😭 🤬 🤔 😱; do agent-browser eval "(()=>{reactionSceneIntegrationFixture.rise('$e');return 1})()"; sleep 2; done
 agent-browser eval 'JSON.stringify(window.__life)'
-#   ["reaction-scene--family-fall:1122","reaction-scene--family-shake:1202","reaction-scene--family-pulse:1002"]
-#   (the first 😭 is the lazy-chunk miss: three scenes for four rises)
+#   ["reaction-scene--family-fall:1124","reaction-scene--family-fall:1213","reaction-scene--family-pulse:1108","reaction-scene--family-shake:1235"]
+#   (2026-11-17: the first 😭 is the lazy-chunk miss; 🤬 is fall since de32f43d, so 😱 stands in for shake)
+```
+
+The integration row has no ❓. To prove the **question** scene, import the
+scene fixture module into any `/rooms/` fixture page, the way
+`tools/visual/reaction-scenes.visual.ts` does, and mount a row of your own:
+
+```bash
+agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=reaction-polish')"
+# same reduced-motion removal and MutationObserver as above, then:
+agent-browser eval '(async()=>{window.__fx=await import("/rooms/tools/visual/reaction-scene-fixture.tsx");
+  window.__fx.mountReactionSceneIntegrationFixture(["❓","❔","🤨","⁉️"]);return 1})()'
+for e in ❓ ❓ ❔ 🤨 ⁉️; do agent-browser eval "(()=>{window.__fx.riseNow('$e');return 1})()"; sleep 2.6; done
+agent-browser eval 'JSON.stringify(window.__life)'
+#   2026-11-17: question 1734, question 1664, question 1631, question 1627, double-take 2027
 ```
 
 In this row 😭 and 😴 fall, 🤬 and 😱 shake, 🤔 and 😄 pulse, and 👏🏽
@@ -167,7 +190,9 @@ session.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `fixture.html?surface=reaction-polish` (**See who reacted** opens **Reactions**) and `surface=poll-ux` (the poll card and **Create poll in #chat**). **Limitations:** reaction scenes and super reactions not re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-17 (nightly maintenance). **Product commit:** `c18cfa37` (GitLab origin/main; rooms-client 0.119.0; 14 commits past `96644a29`). **Scope:** `/rooms/` (18171): `surface=reaction-scene-integration` in a visible page read 😭 fall 1213 ms, 🤬 **fall** 1124 (it was shake), 🤔 pulse 1108 and 😱 shake 1235. With `reaction-scene-fixture.tsx` imported into `surface=reaction-polish`, ❓ ❔ 🤨 each played `reaction-scene--question` (about 1.6–1.7 s) and ⁉️ played `double-take` (2027 ms). The composer's **Choose emoji or GIF (⌘E)** picker on `shell-fixture.html?view=room&alerts=quiet` (people stub) listed 15 hits for `?` (`:question:`, `:grey_question:`, `:interrobang:`, `:thinking:`, `:raised_eyebrow:` …) and ❗ ❕ ⁉️ ‼️ for `!`; `/chat/` (18172) listed the same 15 for `?`. **Limitations:** the question scene was not driven on `/chat/`, and no scene came from a real in-shell reaction; polls were not re-driven (the 2026-11-09 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261117/r1/` (frames 05, 13, 14).
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `fixture.html?surface=reaction-polish` (**See who reacted** opens **Reactions**) and `surface=poll-ux` (the poll card and **Create poll in #chat**). **Limitations:** reaction scenes and super reactions not re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `fixture.html?surface=reaction-polish`: **See who reacted** opens **Reactions**. **Limitations:** polls only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

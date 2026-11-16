@@ -31,7 +31,7 @@ agent-browser snapshot -i -c
 
 The DM route is `tools/visual/shell-fixture.html?view=dm&dm=ana&alerts=quiet&mermaid=1`. On both routes, drive the button named `Open Mermaid diagram as PNG`, then check for the named preview region.
 
-Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1033`) shifts when seeds change:
+Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1036`) shifts when seeds change:
 
 ```bash
 agent-browser find role textbox fill --name 'Message #ops · $ for markets · /chart to post one' 'https://openmarket.xyz/chat/room/ops/msg/116'

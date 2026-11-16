@@ -5,7 +5,7 @@
 - A fenced block in a message renders as `pre.code-wrap` inside the message's
   `.agent-md.agent-md-chat`, with a `.code-header` band (the language control,
   e.g. **Plain text**) and a copy control: `span.code-copy` with `role="button"`
-  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2451`).
+  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2504`).
 - Since `2350a0fd`, chat messages wrap long lines instead of scrolling them:
   `.agent-md-chat .code-wrap > code` is `white-space: pre-wrap` and
   `overflow-wrap: anywhere`, so an unbroken token breaks anywhere
@@ -26,7 +26,7 @@ however long the line is.
 
 The default `#ops` tape seeds one block: dax's
 `om alert list --room ops --since 24h` (`msg-ops-106`;
-`tools/visual/shell-fixture.tsx:1114`, and
+`tools/visual/shell-fixture.tsx:1117`, and
 `apps/cloud/tools/visual/shell-fixture.tsx:350` on `/chat/`). To prove wrapping,
 send a long unbroken line from the composer, because no seed has one.
 

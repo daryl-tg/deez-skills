@@ -36,7 +36,7 @@ proof.
   **Everywhere** (options `SearchPanel.tsx:75-102`, the picker with trigger
   `Search in: <label>` and menu `Search in` at `:459-501`).
 - Date filters from **More filters**: `before:`, `after:`, and `during:`
-  (`search-query.ts:3-38`).
+  (`search-query.ts:8-43`).
 - The search-unavailable error state.
 - The two other header search affordances, "Open search in #ops" and
   "Open search panel" / "Close search panel" (`SearchBar.tsx:561`). The toggle
@@ -146,7 +146,14 @@ Driven 2026-10-31 on `/rooms/` (18135); the scope picker also on `/chat/`
 ### Cmd+F opens channel search (added 2026-11-09)
 
 From the page body, `press Meta+f` focuses the combobox **Search #<channel>**
-(`Shell.tsx:765`). Escape closes it.
+(`Shell.tsx:766`). Escape closes it.
+
+Since `9db9ac06` and `a5354f9d` (source and unit tests only, `lib/search-query.ts`,
+`lib/search-seam.ts`; `packages/chat-ui/test/search/query.test.ts`):
+`mentions:@handle` also matches a message carrying an `om://user/` link to
+that handle's account, and `has:link` no longer counts a user or role link as
+a link. Live verification is pending: the fixture search has no seam for the
+handle-to-account lookup.
 
 ## Gotchas
 
