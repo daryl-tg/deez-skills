@@ -125,9 +125,10 @@ cmd_doctor() {
     printf 'chart-schema not-aliased %s (dev serves node_modules)\n' "${pin:-?}"
   fi
 
-  local target; target="$(env_value VITE_BACKEND_PROXY_TARGET)"
+  local target; target="$(env_value VITE_BACKEND_DOMAIN)"; [ -n "$target" ] || target="$(env_value VITE_BACKEND_PROXY_TARGET)"
+  local health=''
   if [ -n "$pids" ] && [ "${mine:-0}" -eq 1 ]; then
-    local health; health="$(curl -s --max-time 20 "$API_URL/health/services" 2>/dev/null | grep -o '"status":"[a-z]*"' | head -1 || true)"
+    health="$(curl -s --max-time 20 "$API_URL/health/services" 2>/dev/null | grep -o '"status":"[a-z]*"' | head -1 || true)"
     printf 'backend      proxy -> %s: health %s%s\n' "$(host_of "${target:-http://localhost:3000}")" "${health:-UNREACHABLE}" \
       "$( [ -z "$health" ] && echo ' (guest lane only: candles still load from the gateway; no login, no catalog)')"
   else
@@ -159,7 +160,8 @@ cmd_doctor() {
     case "$cat" in
       2*) printf 'catalog      /scripts/query serves (%s; SERVES is not SEEDED: an empty official shelf in the dialog means an unseeded backend)\n' "$cat" ;;
       000) printf 'catalog      /scripts/query timed out (20 s; re-run doctor once, the first transform is cold)\n' ;;
-      5*) printf 'catalog      /scripts/query answered %s\n' "$cat"; fail=1 ;;
+      5*) if [ -n "$health" ]; then printf 'catalog      /scripts/query answered %s\n' "$cat"; fail=1
+          else printf 'catalog      /scripts/query answered %s (the backend is unreachable: guest lane only)\n' "$cat"; fi ;;
       *) printf 'catalog      /scripts/query answered %s (the endpoint serves)\n' "$cat" ;;
     esac
   fi
