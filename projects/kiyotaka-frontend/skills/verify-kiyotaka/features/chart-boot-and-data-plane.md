@@ -3,7 +3,16 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-14 against product tree `c7d4eccfac`
+entry was last DRIVEN on 2026-11-16 against product tree `6bfc742bc8`
+(`origin/main`, 187 commits past `c7d4eccfac`), lane `18103`, a guest-JWT
+lane on the internal gateway (`tsdb-gateway.int.ore.kiyotaka.ai` resolving
+to `10.1.1.10` again, no export and no resolver map): boot to 250 bars on
+COINBASE BTC-USD 1h with VWAP about 10 s after `open`, the `/chart/open`
+link (see `boot-open-link`) and the history-reach notice in Go to date (see
+`boot-go-to-date`). The signup modal raised only after the first
+paint, after a first `guest-signup-modal-close-btn` probe had found nothing,
+and the ink tutorial raised later still, after a click; re-read the top
+overlay before every click. Before that, last DRIVEN on 2026-11-14 against product tree `c7d4eccfac`
 (`origin/main`, 62 commits past `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): boot to 250 bars on
 COINBASE BTC-USD 1h with VWAP 10 s after `open`, the last bar's close and
 volume moving between two reads 20 s apart, and the settle dim's ring on two
@@ -142,7 +151,11 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   closes into a top-bar pill that opens the status list, and says when it is
   back to normal.
 - `boot-go-to-date` the footer's Go to date moves the chart to a past window,
-  and that window keeps the live price off the tab title and the price axis.
+  and that window keeps the live price off the tab title and the price axis;
+  a date past the interval's reach keeps the dialog open and says how far
+  back that interval goes.
+- `boot-open-link` the chat app's link `/chart/open?symbol=…&interval=…`
+  lands on the chart at that market and interval.
 - `boot-settle-dim` after a pick, a pane whose indicators are still loading
   400 ms after its first candles shows a thin load line along the top of the
   plot until they have drawn; the plot greys only while the pane is held.
@@ -252,6 +265,26 @@ Preconditions:
   `document.querySelector('[aria-label="Reset chart"]').click()`; the title
   read `73,777.4 ▲ BTC-USD` again. A first `Apply` was followed by the `Draw by
   holding` tip (close it with `Got it`).
+  **A date past the interval's reach is refused in place (driven 2026-11-16
+  on `6bfc742bc8`; `cc34a9b534`, `320298b19c`).** On COINBASE BTC-USD `1m`,
+  `fill "2020/01/05"` then `Apply` kept the dialog open
+  (`manage-history-apply-btn` still there) with `1m charts go back to Nov 5,
+  17:24. Pick a later date, or use a larger interval for older dates.`
+  (`chart.historyReach.*`, `src/utility/chart/history-cap.util.ts`); the
+  calendar greys the days before the reach (source). An app-built custom
+  size is judged at its source interval (`320298b19c`, source).
+- **`boot-open-link`: the chat app's link (driven 2026-11-16 on `6bfc742bc8`;
+  `5cb00c2155`).** The `/open` route redirects to `/` keeping only `symbol`
+  and `interval` and no hash, and `chartSymbolLinkGuard` launches it like the
+  symbol link (`?symbol=BINANCE:BTCUSDT`). `browser open
+  "<lane>/chart/open?symbol=BINANCE:ETHUSDT&interval=15m&junk=1#x"` read
+  `/chart/` at once and settled on BINANCE ETHUSDT `15m` (471 bars) within
+  about 15 s; on the way the symbol button read `COINBASE ETHUSDT` at `1h`
+  for a moment, so poll until the exchange and interval both match. The
+  symbol names an exchange id split on the first `:`: `BINANCE.F:SOLUSDT`
+  (the display name) landed on the default COINBASE BTC-USD `1h`. A bare
+  `/chart/open` lands on `/chart/`. On Android and iOS the chart app claims
+  the path itself, which a browser lane cannot show.
 - **`boot-settle-dim`: the dim while indicators load (driven 2026-11-13 on
   `963af59de1`; `3a9d439865`).** The dim shows only after 400 ms, so a fast
   pick can finish under it; read it with a `MutationObserver` or the ring

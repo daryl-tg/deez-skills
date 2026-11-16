@@ -4,7 +4,13 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-14 against product tree `c7d4eccfac`
+was last DRIVEN on 2026-11-16 against product tree `6bfc742bc8` (`origin/main`,
+187 commits past `c7d4eccfac`), lane `18103`, a guest-JWT lane on the internal
+gateway: the interval speed dial (`tb-interval-dial-big`, the `s` and `d`
+rows, `Tape` in the foot, no `Custom…`) and `tb-interval-option-4h-btn` to
+`4h` (389 bars) with `4h` joining the quick buttons, an `ETHUSDT` fill in the
+V2 dialog and the BINANCE.F row, and the `Economy` tab (see `sym-economy`).
+Before that, last DRIVEN on 2026-11-14 against product tree `c7d4eccfac`
 (`origin/main`, 62 commits past `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): the V2 dialog (`v2` 20,
 `legacy` 0), `venue-row-BINANCE_FUTURES|SOLUSDT-btn` and `-ETHUSDT-btn`, the
 quick intervals, the interval menu with no `Custom…` row for a guest, and a
@@ -174,8 +180,14 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
 - `sym-memecoins` the gated memecoin lane, liquidity-floor refinement, and Pulse
   rows load or report their explicit warning/empty state.
 - `tb-interval` quick buttons, the interval chevron and the in-chart interval
-  menu beside the legend change interval. Since `0011621cef` the three interval
-  menus share one look.
+  menu beside the legend change interval. Since `8eb725bd17` the chevron opens
+  the speed dial for every desktop user (the `interval-menu-short` flag is
+  gone): eight standing sizes large, one row per unit led by its sign, `Tape`
+  in the foot.
+- `sym-economy` the dialog's `Economy` tab lists only economic publishers
+  (`e12e19a764`): driven 2026-11-16, `find role tab click --name "Economy"
+  --exact` listed economic series (India Foreign Exchange Reserves first) and
+  no FINRA short-volume rows.
 - `tb-plot` the chart-type picker changes plot type.
 - `tb-plot-kept` a picked chart type survives a symbol switch.
 - `tb-layout` the layout picker changes the grid.
@@ -306,10 +318,11 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   group (`stock-feed-row-live-all`, `stock-feed-live-note`). Read the rows
   by `[data-testid^=stock-feed-]` across the page: the menu is teleported,
   so a `.sfc-menu` scoped read came back empty. **A US stock offers no seconds intervals** (`8465b1e6fb`): on
-  AAPL `tb-interval-chevron-btn` opened only `tb-interval-section-minutes`,
-  `-hours` and `-days` (12 options, `1m` to `1Y`), where BTC also shows
-  `tb-interval-section-seconds` with `tape`, `1s`, `5s`, `15s` and `30s`; a
-  saved seconds interval lands on `1m`.
+  AAPL (2026-11-06, before the speed dial) the chevron menu had no seconds
+  section, where BTC also showed `tape`, `1s`, `5s`, `15s` and `30s`; a saved
+  seconds interval lands on `1m`. In the speed dial the seconds are the
+  `tb-interval-dial-row-s` row (source: a market without seconds drops the
+  row; not re-driven on a stock).
 - `tb-undo` the footer's undo and redo buttons (`footer-undo-btn`,
   `footer-redo-btn`; there is no `tb-undo` testid) put back a symbol switch, a
   compare, an interval, a chart type, a chart setting, the session, the price
@@ -448,14 +461,26 @@ Preconditions:
   `tb-interval-pinned-1h-btn` and `tb-interval-pinned-1m-btn` both exist. For the full list use `button "Interval"` — that is the
   chevron, and interval binds hover-open to the chevron only, so a snapshot after
   a plain click on the label proves nothing.
-  **Typed widths have a menu row behind a dark flag (`de79bfe6e9`,
-  `9e3f9d33eb`; source).** With `typed-interval-widths` on, the desktop menu
-  leads with `tb-interval-custom-btn` (`Custom…`), which turns into
-  `tb-interval-custom-input` (placeholder `20, 90, 3h`) and a
-  `tb-interval-custom-hint` (`20m ↵` or `not available`); the offered widths
-  are `4m 6m 8m 9m 12m 16m 18m 20m 40m 80m 90m 3h`. A guest reads the flag
-  off: on 2026-11-14 the menu opened from `tb-interval-chevron-btn` with
-  `tb-interval-option-tape-btn` first and no `tb-interval-custom-btn`.
+  **The chevron opens the speed dial (driven 2026-11-16 on `6bfc742bc8`;
+  `b39d19d457`, `361f95fc68`, `8eb725bd17`).** `tb-interval-chevron-btn`
+  opens `tb-interval-dial-big` (`1m 5m 15m 30m 1h 4h 1d 1w`), then one row
+  per unit, `tb-interval-dial-row-{s,m,h,d}`, led by its sign with bare
+  numbers in the cells (a guest on BTC-USD saw `s` `1 5 15 30` and `d`
+  `1M 3M 6M 1Y`), and `tb-interval-option-tape-btn` (`Tape`) in the foot.
+  Every cell is `tb-interval-option-<interval>-btn` (its `aria-label` the long
+  name) beside a `tb-interval-favorite-<interval>-btn` star. There are no
+  `tb-interval-section-*` heads or toggles any more (only the phone sheet keeps
+  `tb-interval-mobile-section-*`). `tb-interval-option-4h-btn` closed the
+  dial, gave `4h` (389 bars) and added `4h` to the quick buttons beside `1m`
+  and `1h`.
+  **A custom size sits in the dial's foot behind a dark flag (source).** With
+  `typed-interval-widths` on, the foot carries `tb-interval-custom-btn`, which
+  opens `TBIntervalCustomMoment` (`tb-interval-custom-input`, `-say`, `-act`,
+  `-use-btn`, `-plus-btn`, `-back-btn`, `-near-<iv>-btn`, `-unit-<u>-btn`; no
+  hint testid). Since `5d17f30a99` and `8c98010383` custom sizes reach every
+  round-the-clock market and, under a day, CME, US stocks, options and forex.
+  A guest reads the flag off: on 2026-11-16 the dial had no
+  `tb-interval-custom-btn`.
 - **Chart type.** `button "Candle"` peeks on hover and pins on click; the entries
   (`Hollow Candle`, `Heikin Ashi`, `Line`, `Line with Markers`, `Step Line`,
   `HLC Area`, `Area`, `Baseline`) do snapshot, so `hover` then `snapshot` proves
@@ -893,10 +918,10 @@ Preconditions:
   `chart-symbol-interval-section-<id>` and the rows
   `chart-symbol-interval-<interval>-btn` (21 interactive nodes on
   `120d5d5d32`); `chart-symbol-interval-1h-btn` put the interval back to `1h`
-  (`chartStore.activeInterval`). The ticker-bar chevron menu has the same
-  shape: `tb-interval-chevron-btn` opens `tb-interval-section-{seconds,minutes,
-  hours,days}` (each with a `-toggle-btn`) and `tb-interval-option-<interval>-btn`
-  rows (17 visible); `tb-interval-option-5m-btn` switched to `5m` (273 bars).
+  (`chartStore.activeInterval`). The ticker-bar chevron opened the
+  same sectioned shape on 2026-11-01; since `8eb725bd17` it opens the speed
+  dial instead (see the Interval recipe), while the rows keep their
+  `tb-interval-option-<interval>-btn` ids.
   The `ChartArea` menu, a third copy, still uses the `pm-csb__dropdown-group`
   class.
 - **A venue-rail row needs a real pointer click.** Driven 2026-10-27: a JS

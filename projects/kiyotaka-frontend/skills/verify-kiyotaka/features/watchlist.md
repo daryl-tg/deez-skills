@@ -8,7 +8,10 @@ hover ×, drags rows to reorder, and can import TradingView lists. Read-only
 built-in lists (seven seeded "starter" lists, hotlists, sector and flagged views)
 sit beside the user's own in the same picker.
 
-Last re-driven 2026-11-14 against `c7d4eccfac` (`origin/main`, lane `18103`,
+Last re-driven 2026-11-16 against `6bfc742bc8` (`origin/main`, 187 commits
+past `c7d4eccfac`, lane `18103`, a guest JWT, the internal gateway): the
+ticker's `Watchlist` button raised the `Watchlist` sign-in card; no
+`src/components/watchlist` source changed. Before that, re-driven 2026-11-14 against `c7d4eccfac` (`origin/main`, lane `18103`,
 a guest JWT, the public v2 gateway): `tb-panels-row-watchlist` raised the
 `watchlist` wall (`dialogStore.guestLoginFeatureId` `watchlist`). Since
 `963af59de1` only the symbol panel body changed (whole-lot volume on CME,

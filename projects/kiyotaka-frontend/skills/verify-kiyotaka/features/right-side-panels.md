@@ -5,6 +5,12 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-16 against product tree `6bfc742bc8` (`origin/main`, 187
+commits past `c7d4eccfac`), lane `18103`, a guest-JWT lane on the internal
+gateway: the Tape on BINANCE.F ETHUSDT in its one grid with Group by and the
+hover cards (see `rp-tape`), the Orderbook's Book and Delta on COINBASE
+BTC-USD (see `rp-orderbook`), the `watchlist` wall from `Watchlist`, and the
+price alert box seeded on the live price (see `rp-alerts`). Before that, last
 DRIVEN on 2026-11-14 against product tree `c7d4eccfac` (`origin/main`, 62
 commits past `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): the Panels menu's 17 rows, the Orderbook
 (`orderbook-canvas`) and the Tape that took its seat printing on COINBASE
@@ -156,6 +162,9 @@ panels, which a guest is not offered.
   glyph and a tag icon, a Heatmap view, a markets menu, and a docked
   Liquidations section with Prints and Levels views. It is the one tape for
   every market; the Trades and Liquidations panel is retired (`ad67d47c62`).
+  Since `4572edeb1a` heads and rows share one grid and the markets menu can
+  group prints by time; since `e1d1eed6a1` every row has a hand cursor and a
+  hover card.
 - `rp-tape-closed` a Tape the person closed stays closed when they pick a
   market that would open it; their own open clears that.
 - `rp-stock-tape` on a US stock the Tape is the stock Tape, open to guests
@@ -213,7 +222,14 @@ an open panel.
   `lastUsedId` on `a4488341f6`; its `items` getter, which earlier passes read,
   was not re-read.
 - **`rp-orderbook`.** `tb-orderbook-toggle-btn` opened `Orderbook` with
-  `Book / Delta / DOM` and no wall. On 2026-10-28 (`tb-panels-row-orderbook`,
+  `Book / Delta / DOM` and no wall. **Driven 2026-11-16 on `6bfc742bc8`:**
+  on COINBASE BTC-USD `orderbook-canvas` mounted within 3 s of the open on a
+  freshly loaded, visible tab, and `segmented-delta-btn` drew live rows under
+  `PRICE ADDED SUBTRACTED` with the mid price between them and no wall (the
+  Delta view draws its own canvas, so `orderbook-canvas` reads absent there;
+  `01a68ae4c0` keeps the rows live after the open and lists only real size
+  changes; a window where no shared price changed reads `No size changed at
+  shared prices`, source). On 2026-10-28 (`tb-panels-row-orderbook`,
   COINBASE BTC-USD) it drew live levels on both sides and an imbalance line
   (`48.1% bid · 51.9% ask`). Re-driven 2026-10-29 on BINANCE.F SOLUSDT with
   `tb-orderbook-toggle-btn`: live asks and bids on both sides with amount and
@@ -257,6 +273,18 @@ an open panel.
   The menu item has no accessible role. Click it with
   `eval "document.querySelector('[data-testid=alert-add-menu-price-btn]').click()"`,
   because `find text "Price"` matches a covered element.
+  **The price box opens on the live price (driven 2026-11-16 on `6bfc742bc8`;
+  `9674fb0847`, `e3687fbe7a`).** `Alt+A` on BINANCE.F ETHUSDT (pointer over
+  the chart, no layer up) opened the dialog with
+  `alert-dialog-custom-price-input` already holding `1822.02`, beside a Tape
+  print of `1,822.26`, and `alert-dialog-set-btn` enabled; the panel's `+`, a
+  re-arm and the price card's `chart-ctx-add-alert` seed it the same way, and
+  a chart with no price yet opens empty and takes the live price when it
+  lands (source). `alert-dialog-blocked-reason` now shows from the open on,
+  except while a live price is about to fill an empty box. `Alt+A` stands
+  down under any `aria-modal` layer, such as a data-terms wall. For a guest
+  `Set Alert` still put a raw `Unauthenticated` in
+  `alert-dialog-status-error` and raised no wall (product gap).
   **A failed delivery now shows (source, `1d48f6b088`).** A fired alert that
   could not reach Telegram raises a `kscript-alert-delivery-failed-content`
   notice (toast, notification panel and compact row), its History card reads
@@ -419,7 +447,31 @@ an open panel.
   (`tape-markets-show-{all,10k,50k,100k}-btn`, `Show All trades / $10K+ /
   $50K+ / $100K+`), `tape-markets-follow-btn` (`Follow the chart`),
   `tape-markets-chart-market` (`Binance Futures ETHUSDT`) and
-  `tape-markets-add-btn` (`Add a market (10 at most)`). Docked below the
+  `tape-markets-add-btn` (`Add a market (10 at most)`).
+  **One grid, Group by and the hover cards (driven 2026-11-16 on
+  `6bfc742bc8`; `4572edeb1a`, `e1d1eed6a1`).** On BINANCE.F ETHUSDT the head
+  `stock-tape-columns` read `TIME PRICE SIZE` over rows on the same grid; under
+  300 px the size bar and the tag drop out (source). The markets menu now
+  carries `tape-markets-group`: `tape-group-by-{each,chart,1s,1m,5m,15m}-btn`
+  (`Each trade`, `Match chart`, `1s` … `15m`; `aria-pressed`, `Each trade`
+  by default) and `tape-group-rows-{split,net}-btn` (`Bought and sold`,
+  `Net`). `tape-group-by-1m-btn` filled `tape-groups-list` with 120
+  `tape-group-row` (time, the bought and sold sums with bars, the largest
+  print), the newest carrying `data-forming`; the markets line read `Binance
+  Futures · 1m`, and a hovered row raised `tape-group-card` (`+$561.9K net
+  02:54 to 02:55 Binance Futures`). The menu's backdrop
+  (`.tape-markets__backdrop`) answers agent-browser's hit test over the
+  chips once the menu has been reopened, so `find testid … click` reports
+  `covered by <div.tape-markets__backdrop>`; click the chip by its
+  coordinates with `mouse move` and `mouse down`/`mouse up`, then `Escape`.
+  Back on `Each trade`, a print's rows carry `cursor: pointer` and no
+  `title`, and a mouse at rest on one raised `tape-trade-card` (`$231 Bought
+  0.127 ETH at 1,822.02 Binance Futures 02:57:22.130`; the sentence is
+  `tape-trade-card-words`) while the list froze behind `stock-tape-hold-chip`
+  (`47 new`). A click pins the card and `Escape` lets go (source). On a stock
+  Tape the option flow's day button `stock-tape-option-flow-range-btn` opens a
+  calendar of kept days from 2026-09-04 (`f18d30947c`) and a one-share print
+  says `1 share` (`ed3f299184`), both source. Docked below the
   prints is `tape-liquidations` with `tape-liquidations-head`
   (`Liquidations Today Prints Levels`), `-range-btn` (`Today`),
   `-view-prints-btn` and `-view-levels-btn`, `-collapse-btn`, `-list`, `-row`
@@ -549,7 +601,10 @@ an open panel.
   Orderbook ladder never mounted its canvas until the tab was fronted. When
   `orderbook-canvas` is absent, read `document.visibilityState` before anything
   else, run `browser tab` and then `browser tab t1`, read it again, and reopen
-  the panel.
+  the panel. **On 2026-11-16 that was not enough:** with the tab fronted
+  (`visible`) and the panel toggled closed and open, the canvas stayed absent
+  for 21 s; a full `browser open` of the chart URL, then the Orderbook on the
+  visible tab, mounted it within 3 s.
 - **The US options alert lane is retired (source, `b059e70852`).** An alert on
   a US option or a US stocks tape is refused with one flat sentence
   (`dialogs.alertCreate.blocked.opra`) and no way out; `opraAlertDoorVerdict`

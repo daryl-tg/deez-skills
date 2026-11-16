@@ -4,7 +4,16 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-14 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-16 against
+product tree `6bfc742bc8` (`origin/main`, 187 commits past `c7d4eccfac`), lane
+`18103`, a guest-JWT lane on the internal gateway: hovering `tb-indicators-btn`
+showed the slot card (see `ind-limit`), a `net longs` fill listed
+`indicator-name-net-longs-shorts-official-open-interest-positions` and its row
+Add raised the `indicators` wall, a programmatic `OPEN_INTEREST_POSITIONS`
+drew (see `ind-net-longs`), and traders' words found official rows (see
+`ind-trader-names`). Pivot Points Standard is `v0.1.6` on this tree
+(`f16f0b44f3`, labels kept inside the plot; source: the search fill did not
+land, so the detail was not read). Before that, last DRIVEN on 2026-11-14 against
 product tree `c7d4eccfac` (`origin/main`, 62 commits past `963af59de1`),
 lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): a `pivot points` fill listed
 `indicator-name-pivot-points-standard-official-pivot-points`, whose detail
@@ -144,7 +153,26 @@ indicators were not driven.
 - `ind-add` an indicator mounts as an overlay.
 - `ind-legend` the legend's settings / visibility / close controls work.
 - `ind-catalog` official indicators are listed when the catalog is seeded.
-- `ind-limit` the guest cap is enforced.
+- `ind-limit` the guest cap is enforced. Since `a0bf0ea5b6` hovering
+  `tb-indicators-btn` shows `tb-indicators-tip`: `n of 3 slots across your
+  charts`, a row of cells, `tb-indicators-tip-used` and
+  `tb-indicators-tip-room` (`2 left`, then `Full`). Driven 2026-11-16: `1 of 3
+  slots`, `2 left`; at `2/3` the dialog's head read `1 slot left / Some larger
+  indicators may no longer fit.` Ultimate's 40 per chart and 80 per workspace
+  are signed-in only.
+- `ind-net-longs` Net Longs & Shorts (`OPEN_INTEREST_POSITIONS`,
+  `fa22c19308`) splits open interest by the side that traded at market, perps
+  only. A guest's dialog Add raises `indicators`, so mount it with
+  `chartStore.addIndicator('OPEN_INTEREST_POSITIONS',{},0)`. Driven
+  2026-11-16 on BINANCE.F ETHUSDT 4h: its own pane, 138 rows, legend `Net
+  Longs & Shorts New longs … New shorts … Longs closed … Shorts closed …`,
+  `Indicators 2/3`; four floating bars per candle about a zero line. The
+  `Display` row's `Running total` (two lines) was not driven.
+- `ind-trader-names` the dialog and Super Search find an official indicator by
+  the words traders type (`923b75656e`, `src/constants/indicator-names.ts`).
+  Driven 2026-11-16: `large lot tracker` listed
+  `indicator-name-big-trades-official-big-trades`, and `cvd` listed
+  `indicator-name-cvd-official-cumulative-volume-delta` first.
 - `ind-settings-search` a long built-in's settings card filters its rows in
   place from a search field.
 - `ind-session-default` a session volume profile on an intraday chart defaults
@@ -564,10 +592,13 @@ Preconditions:
     on crypto charts (`c45a9f4e80`), and since `83d1683b82` Big Trades
     0.11.0 draws one bubble per aggressor order (fills that share a
     sub-millisecond stamp and side join) and Min size filters bubbles but
-    never resizes one; a wrun banded order-book input with a
+    never resizes one; Big Trades 0.12.0 (`5ca53ece24`) defaults its Style
+    page's Look to Glass and adds Solid (Soft dot, Ring and Square stay), takes
+    the candle colours, and offers Bubble size, Opacity (hidden for Solid) and
+    Show size beside the bubble (source, not driven); a wrun banded order-book input with a
     `when` gate (`47fff639e5`); the kit was `0.109.0` on `a4488341f6`,
-    `0.110.0` from `987eb6e7ac` (the Liquidation Map look) and is `0.118.0`
-    since `49653af1f6` (source).
+    `0.110.0` from `987eb6e7ac` (the Liquidation Map look) was `0.118.0`
+    from `49653af1f6`, and is `0.119.0` since `2ea15572d9` (source).
 - **New on `849fb08e95`, source only, never driven:**
   - The moving average ribbon is a built-in, `MA_RIBBON` (`dedda2c7bf`,
     `src/indicators/controls/ma-ribbon/`, chart-schema `0.8.1`). It needs no

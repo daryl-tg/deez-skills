@@ -3,7 +3,13 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last re-driven 2026-11-14 on `c7d4eccfac`
+lock, settings and delete. Re-stamped 2026-11-16 on `6bfc742bc8`
+(`origin/main`, 187 commits past `c7d4eccfac`, lane `18103`, a guest JWT, the
+internal gateway): every frame of the pass shows the left rail's line and
+position tools drawn as the shapes they make (`1cca58722e`; the
+`toolbar-item-<tool>:tool-icon-btn` ids are unchanged, and the a11y names
+are still `More tools`), and `Draw by holding` raised after the first
+interval pick; no drawing was placed. Last re-driven 2026-11-14 on `c7d4eccfac`
 (`origin/main`, 62 commits past `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): a trend line placed and
 deleted, an FRVP's settings put back by Reset (see `dt-frvp`), and the chart
 menu's price card with its Copy price and Add alert (see `dt-chart-menu`).

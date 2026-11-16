@@ -7,6 +7,11 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-16 against product tree `6bfc742bc8` (`origin/main`, 187 commits past
+`c7d4eccfac`), lane `18103`, a guest-JWT lane on the internal gateway: a long
+market code in the palette (see `ss-long-code`), the Highlights and Clean
+look rows (see `set-highlights`), and the plans page at `/chart/plus` (see
+`plans-page`). Before that, last DRIVEN on
 2026-11-14 against product tree `c7d4eccfac` (`origin/main`, 62 commits past
 `963af59de1`), lane `18103`, a guest-JWT lane with the v2 gateway pointed at the public `wss://api.chart.ore.openmarket.xyz/v2/` (see the README's Baseline preconditions): the price line style rows (see `set-price-line`), the
 Tooltips row and switch (see `set-tooltips`), a typed `EURUSD` in the palette
@@ -185,6 +190,14 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
   pair and charts it.
 - `guest-refusal` a refused sign-in says so in the app's words, never the
   server's.
+- `ss-long-code` a market code longer than 12 characters (an OSI option code,
+  `1000000MOGUSDT`, `FRED:CPIAUCSL`) still offers `Open symbol search`, and
+  an OSI code lists its contract where `opra` is on.
+- `set-highlights` the chart's `Highlights` switch calms volume bars and bar
+  indicators unless a bar stands far above its usual size; the palette row and
+  the Display page row toggle it.
+- `plans-page` `/chart/plus` shows the plans, the compare table and the
+  questions to a guest.
 
 The editor row is covered in [script editor](./script-editor-and-kscript.md)
 `ks-open`.
@@ -527,6 +540,43 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   (`XAUUSD Gold (one troy ounce) · Forex`). The EUR row charted `FX_OTC`
   `EUR/USD` (252 bars), and on `4h` the bars held through 65 s
   (`9089a0c6c6`).
+- **`ss-long-code` (driven 2026-11-16 on `6bfc742bc8`; `b68e436042`).** Fill
+  `AAPL261120C00360000`: the list read `No results found` over
+  `super-search-result-symbols:open-search-btn` (`Open symbol search for
+  "AAPL261120C00360000"` with `Tab`); before `b68e436042` a market text over
+  12 characters was dropped. `queryShape.ts` now reads the shape
+  (`symbolQueryShape`, `symbolLookupText`), and `No results found` waits while
+  an OSI lookup is pending. The contract row (`symbols:contract:OPRA|…`, a
+  title like `AAPL 20 Nov 2026 360 Call`) needs the `opra` flag, which a
+  guest reads off (source).
+- **`set-highlights` (driven 2026-11-16 on `6bfc742bc8`; `8f44e9c9cc`).**
+  Fill `highlights`: `super-search-result-settings:toggle:bar-highlights-btn`
+  leads (`Highlights ON`); a click turned it to `Highlights OFF` and a second
+  back on. The store field is the main pane's `axis.barHighlights`
+  (`chartStore.setBarHighlights`); `window.tc[0].metadata[0]` does not carry
+  it, so read the row. The Display page row is
+  `display-settings-row-barHighlights` after Momentum arrows (source). The
+  same commit ends the VWAP line in a plate (`VWAP Session 64877.03` in
+  every frame of the pass) with a `Label` switch in VWAP's Display group
+  (source). Fill `clean look`: `settings:toggle:layout-look-clean-btn`
+  (`Look: Clean OFF`, `d8a23b47d6`) is listed, and it acts only in a
+  multi-chart layout, which a guest cannot open.
+- **`plans-page` (driven 2026-11-16 on `6bfc742bc8`).** Open
+  `/chart/plus` as a guest: `console-subscription-billing-{monthly,annual}-btn`,
+  `console-subscription-plus-card` (`Plus`, `$29/mo` annual, `$348 a year`,
+  `console-subscription-cta-plus-btn` `Get Plus`), the indicator row and
+  points, `console-subscription-free-bar` with
+  `console-subscription-start-free-btn`, `console-subscription-compare`, the
+  live-data add-ons, `Have a code?`, and since `6231da90e9` a `Questions?`
+  block of eleven `console-subscription-faq-q-<n>-btn` rows and
+  `console-subscription-faq-live-link`. `console-subscription-faq-q-0-btn`
+  opened `What data is included on the Free plan?` (`Every market and every
+  chart type. Crypto is live. CME futures are free on a 10 minute delay and US
+  stocks on a 15 minute delay …`, `See what is live, by market`). The page
+  fades in behind a loader, so wait about 10 s before shooting. No Ultimate
+  card and no `console-subscription-sale-strip` showed: the plan list and the
+  sale come from the backend (`b4a028d14d`, `427c082876`), and the Ultimate
+  offer at a plan limit is signed-in only.
 - **`guest-refusal` (driven 2026-11-14; `c93de362ff`).** Raise the wall
   (`global-nav-screenshot-btn`), click `login-signup-use-password-btn`, fill
   `.login-signup-overlay input[type=text]` with a made-up address and

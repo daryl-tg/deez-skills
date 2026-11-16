@@ -8,7 +8,19 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-14 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-16 against
+`6bfc742bc8` (`origin/main`, 187 commits past `c7d4eccfac`, lane `18103`, a
+guest JWT, the internal gateway): with the Orderbook open the toggle was
+folded away (`No element found`); on a fresh chart with no panel
+`tb-editor-toggle-btn` raised the `Indicator Editor` sign-in card. Source
+since `c7d4eccfac`: a trapped draft Indicator now says what it tripped on, in
+which function and line, what called it and on which bar (`bfd3b8bf97`,
+`3d4e84942c`), and the editor marks the whole failing statement with an info
+mark on the call site (`495697b685`, `371be63a20`), built by a trap replay
+from the run's own compile request (`6ebd427ce4`, `a165a5b235`,
+`2658296f51`; `src/utility/scriptEditor/wrun-trap-replay.controller.ts`,
+`runtime-lint-marks.util.ts`). Not driven: the editor's write paths wall a
+guest. Before that, re-driven 2026-11-14 against
 `c7d4eccfac` (`origin/main`, 62 commits past `963af59de1`, lane `18103`, a
 guest JWT, the public v2 gateway): `tb-editor-toggle-btn` raised
 `script-editor` once the Tape was closed (with a right-side panel open the
@@ -351,7 +363,8 @@ Preconditions:
   its `title`; room stays for the apply mark and the reset, so rows do not
   jump. The partial-bar shading row reads `Bars with missing prints`
   (`98af74515b`). Twins moved: Big Trades `@om-core/big-trades` `0.11.0`,
-  Pivot Points standard `0.1.4` (`src/constants/wrun-twins.json`).
+  Pivot Points standard `0.1.4` (`src/constants/wrun-twins.json`); on
+  `6bfc742bc8` they are `0.12.0` (`5ca53ece24`) and `0.1.6` (`f16f0b44f3`).
 - **A browser-run Indicator fails in the browser; a cloud-run one fails on the
   server.** A client-side error is in `./control-kiyotaka browser console`; a
   cloud run that "loads forever" needs its `clientRequestId` from the in-app
