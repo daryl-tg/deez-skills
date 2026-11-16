@@ -8,6 +8,16 @@ The shell also hands eight analytics events (`app-opened`, `update-installed`, `
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
 Since 0.1.8 the shell also reports its crashes and failed loads as three more `desktop:` events, which ride their own
 channel and the page's beacon instead (see [crash recovery and reports](./crash-recovery-and-reports.md)). Last driven
+2026-11-16 by the `notify` scenario on tree `6bfc742bc8` (`origin/main`; `desktop/` unchanged, 0.1.10). It ran with
+`update` in 162 s for both, at a load average of 3 to 6, with the console session unlocked. Result: 15 of 17, the most
+since the lane was written. `screenUnlocked`, `notificationCaptured` and `dockCaptured` passed: `screencapture` could
+read the display, so the Screen Recording precondition was met that night. `unit-04-notification.png` shows macOS's own
+authorization banner, `"OpenMarket" Notifications` / "Notifications may include alerts, sounds, and icon badges.", with
+the mascot icon, over the shell window. That frame is the first live proof that the OS names the sender OpenMarket and
+uses its icon. It is the permission request, not the page's notification. `unit-04-dock.png` passed but shows no dock,
+because the dock autohid (`dockAutohide: true`). The two reds were `osAuthorized`, because nobody allowed the request,
+and the stale `bridgeUnchanged`. Both captures are full-screen frames of the console, so they also show whatever else
+is on it. Before that, driven
 2026-11-14 by the `notify` scenario on tree `c7d4eccfac` (`origin/main`; `desktop/` unchanged, 0.1.10), run with `update`
 in 180 s for both at a load average of 5 to 7 with the console session locked: 12 of 17, the same five reds as on
 2026-11-13 (`963af59de1`, run on its own in 53 s): `screenUnlocked` (the lock), `osAuthorized`, `notificationCaptured`,

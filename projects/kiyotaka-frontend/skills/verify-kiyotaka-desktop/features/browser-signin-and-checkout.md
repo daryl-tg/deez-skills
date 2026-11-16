@@ -9,7 +9,18 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-14, on tree
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-16, on tree
+`6bfc742bc8` (`origin/main`; the four desktop pages, `login-signup-dialog/`, `useTurnstile.ts`, `auth-refusal.util.ts`,
+`passkey.service.ts`, `featureCommands.ts` and the download gate unchanged; `ProfilePanel.vue` changed only to name an
+Ultimate plan, `61ac3de124`), every Chromium read below held again on the dev lane with 250 bars, in one Playwright
+pass. That covered the return page valid and invalid, the four checkout-return states, the signin redirect, the card's
+testids, the refusal line and the super-search command as the only result. The refusal drive needs a password the card
+accepts: `passwordRules()` (`src/helpers/inputRules.ts:45`) wants 8 to 20 characters, and a 21-character password kept
+Log In disabled with no message. The shell's production capture showed the code card in a state never seen live
+before. Cloudflare drew its "Verify you are human" checkbox (`login-signup-turnstile`) under an address the console
+had typed (see the index's `capture` convention). `login-signup-field-message` read "Complete the security check
+above to continue.", and "Email me a code" was disabled. No Passkey pill showed. `14c0c29f8b` (after `c7d4eccfac`)
+signs a tab out only on the backend's own 401 or 403, not a proxy's. It adds no copy (source-read). On 2026-11-14, on tree
 `c7d4eccfac` (`origin/main`; the four desktop pages, `useTurnstile.ts`, `passkey.service.ts`, the download gate and
 `stripe-handoff.util.ts` unchanged), every read below held again in Chromium on the dev lane, through one Playwright
 pass of fresh pages through `about:blank`, on a lane with 1 bar (none of these pages needs candles): the return page
@@ -59,7 +70,8 @@ The reason a send went without a token (`script`, `render`, `challenge:<code>`, 
 analytics (`signin:code-dialog`) and auth-service, never to the screen; only auth-service refusing the code for its bot check shows a toast (see `signin-human-check`). The dev lane's test sitekey never asks: on
 2026-11-07 to 2026-11-12 the button was disabled with an empty address and turned on once an address was typed (not
 submitted). The
-disabled state and the code step's own check are source-read only. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
+disabled state was seen live in the shell's production card on 2026-11-16 (above). The code step's own check is
+source-read only. `4b8f78a775` (2026-11-03, after `1af9ebbe07`) rebuilt `AuthFormView.vue` as one card: the providers
 sit in one row of outlined pills under "Or continue with", a successful password, code, passkey or 2FA sign-in shows a
 welcome screen (`login-signup-welcome`) and then reloads once behind index.html's sign-in handoff card
 (`handOffSignIn`, `src/utility/auth/signin-handoff.util.ts`), and `ResendCountdown.vue` is new. The shell's browser

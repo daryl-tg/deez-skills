@@ -11,7 +11,10 @@ There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
-from 2026-10-27 to 2026-11-14, under high and low machine load and on a locked and an unlocked console; the last was
+from 2026-10-27 to 2026-11-16, under high and low machine load and on a locked and an unlocked console; the last was
+2026-11-16 on tree `6bfc742bc8` (`origin/main`; `launch.mjs` and the guest prompt unchanged), in the combined `run launch ... window links`
+(92 s on the unlocked console), with the same `dialog-style dialog-overlay backdrop-dim` interception at
+`launch.mjs:234`. Before that,
 2026-11-14 on tree `c7d4eccfac` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), in the
 SKILL.md's combined `run launch ... window links` (185 s on the locked console at a load average of 5 to 7), the same
 interception at `launch.mjs:234`, which again lost the `window` summary; on 2026-11-13 on `963af59de1` the same combined

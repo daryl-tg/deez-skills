@@ -7,7 +7,10 @@ The main process tries three parsers in order, sign-in (`openmarket://oauth/call
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
 window shows a chart page. The bridge's members are `version`, `onReturn`, `updates`, `analytics` and, from 0.1.9,
 `reports`, plus `browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last
-driven 2026-11-14 by the `returns` scenario on tree `c7d4eccfac` (`origin/main`; `desktop/` unchanged), on a dev lane
+driven 2026-11-16 by the `returns` scenario on tree `6bfc742bc8` (`origin/main`; `desktop/` unchanged). The dev lane was
+first warmed in Chromium to `65,057.31 ▼ BTC-USD` with 250 bars. Result: 20 of 21 in 72 s with its pack. Only
+`bridgeTwoMembers` was red, and `bridge.keys` read the six members. `unit-03-return.png` shows the
+`onReturn {"id":"abc",...}` banner over candles under the guest signup prompt. Before that, driven 2026-11-14 by the `returns` scenario on tree `c7d4eccfac` (`origin/main`; `desktop/` unchanged), on a dev lane
 warmed in Chromium to `68,845.6 ▼ BTC-USD` with 1 bar (the v2 streaming host did not resolve): 20 of 21 in 84 s with its
 pack, only `bridgeTwoMembers` red, `bridge.keys` reading the six members (`analytics`, `browserSignIn`, `onReturn`,
 `reports`, `updates`, `version`); `unit-03-return.png` shows the `onReturn {"id":"abc",...}` banner over two bars,

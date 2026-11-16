@@ -11,6 +11,18 @@ views fill what the screen shows of the window, never the raw content size: in f
 maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
 content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
+2026-11-16 on product tree `6bfc742bc8` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`, still 0.1.10), with the
+console unlocked (`IOConsoleLocked` false) at a load average of 3 to 6 on 10 cores. `capture` on the warmed dev lane
+(`65,073.99 ▲ BTC-USD`, 18 canvases) and `capture --prod` (`65,067.55 ▼ BTC-USD`) both drew candles with VWAP under the
+guest signup prompt. This is the first production capture since 2026-10-28 that is not the boot splash.
+`capture --prod --path '?login=1'` drew the one-card sign-in dialog with Google and X and no Passkey pill. The `window`
+scenario on production, run on its own, passed 9 of 12 in 103 s and again in 102 s, then 12 of 12 in 28 s. In the two
+red runs the three relaunch checks failed with `relaunchCapture: {}` and no `unit-01-relaunch.png`. The relaunch child
+logged `desktop: loaded` and no `capture:` line before the lane's 90 s kill (`launch.mjs:117`). In the green run the
+child ran 14 s and drew a maximized candle frame at the saved 120,110 bounds. A hand relaunch of `capture.js` on the
+red run's profile (`desktop/.verify-userdata/window`) drew the same frame in 16 s. So the relaunch also fails on an
+unlocked console; the cause is not isolated. The combined `run launch ... window links` printed the relaunch's capture
+line (maximized, priced) before `links` threw. Before that, driven
 2026-11-14 on product tree `c7d4eccfac` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`, still 0.1.10) with the
 console session locked, at a load average of 5 to 7 on 10 cores, the same result as 2026-11-13 on `963af59de1`. The
 `window` scenario on production, run on its own, passed 9 of 12 in 103 s: the first launch, the second instance and the

@@ -13,7 +13,9 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-14 on product tree `c7d4eccfac`
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-16 on product tree `6bfc742bc8`
+(`origin/main`; `desktop/` unchanged since `c2c02b7b42`) by the `crash` scenario, run on its own: 34 of 34 checks in 42 s
+with the console session unlocked, at a load average of 3 to 6 on 10 cores. Before that, driven 2026-11-14 on product tree `c7d4eccfac`
 (`origin/main`; `desktop/` unchanged since `c2c02b7b42`) by the `crash` scenario, run on its own: 34 of 34 checks in 46 s
 with the console session locked, at a load average of 5 to 7 on 10 cores; the first report arrived after 1388 ms, the
 dump carried `sentry[release]` `openmarket-desktop@0.1.10`, and `crash-held.png` shows "This page keeps stopping" with
