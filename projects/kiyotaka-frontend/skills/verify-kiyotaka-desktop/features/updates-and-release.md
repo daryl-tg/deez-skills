@@ -12,6 +12,10 @@ policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice i
 linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the version on tree `c2c02b7b42`
 (`origin/main`, 2026-11-10) is 0.1.10 (`bbeb2ee20e` took it to 0.1.8 and `354da31277` to 0.1.9, both for the crash
 recovery; `920afc7199` to 0.1.10, for the Linux full-screen view sizing). The update round trip was last driven
+2026-11-17 on tree `eb485636f1` (`origin/main`; `desktop/` unchanged, still 0.1.10), after `notify` in one
+`run launch ... notify update` (143 s for both with the packs, on the locked console, feed on `18150`): 15 of 15, with
+`launchRequests` `GET /beta-mac.yml` first, so `launchCheckReadBetaFeed` passed, and the same Squirrel.Mac boundary
+(`desktop: update downloaded 0.1.0-beta.2, waiting for Squirrel.Mac to stage it`). Before that, driven
 2026-11-16 on tree `6bfc742bc8` (`origin/main`; `desktop/` unchanged, still 0.1.10), after `notify` in one
 `run launch ... notify update`. Both took 162 s with the packs, on the unlocked console, with the feed on `18150`. The
 result was 14 of 15, ending at the same Squirrel.Mac refusal, with `launchRequests` `GET /policy.json` first. Before that,
@@ -35,6 +39,7 @@ code requirement(s)`, `desktop: update error ...`, `desktop: update not staged 0
 same feed at launch and race. The policy request came first on every run from 2026-10-27 to 2026-11-06 (14 of 15 on
 2026-11-06, `8bcd72f8f5`, feed on `18151`), the beta feed came first on 2026-11-07 with `desktop/` unchanged, and the policy request came first again on
 2026-11-08, 2026-11-09, 2026-11-10, 2026-11-12, 2026-11-13, 2026-11-14 and 2026-11-16 (`launchRequests` `GET /policy.json`, `GET /beta-mac.yml`).
+The beta feed came first again on 2026-11-17, with `desktop/` unchanged.
 The title-bar button, the restart dialog, the page toast, the policy notice and block, and the internal build have no
 live driver; the release jobs need `mac-runner` (the office Mac mini, runner tag `macos`), the certificate, the notary
 key and the bucket. Since `f15423d973` (2026-11-13) a `desktop canary` job (`.gitlab-ci.yml`, after `desktop release`)
@@ -94,7 +99,7 @@ Preconditions:
   `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27, 2026-10-29 (`30481b57f8`),
   2026-10-31 (`5475ab32d5`, in 2.2 s), 2026-11-01 (`2646a76a83`, in 2.2 s), 2026-11-02 (`39b22dd2ec`, in 2.3 s), 2026-11-03 (`1af9ebbe07`, in 2.3 s), 2026-11-04 (`8436920004`, in 2.5 s) and 2026-11-05 (`bf1c9bac3c`, in 2.4 s). On 2026-11-06 (`8bcd72f8f5`) the suite
   had 38 files and 463 tests, all passed in 2.4 s, the three new files being `crash-reporter`, `process-gone` and
-  `report-hand-over`; the same 38 files and 463 tests passed on 2026-11-07 (`dced88e06a`, in 2.4 s); on 2026-11-13 (`963af59de1`) 39 files and 469 tests passed in 2.7 s, on 2026-11-14 (`c7d4eccfac`) the same in 3.0 s, and on 2026-11-16 (`6bfc742bc8`) the same 39 files and 469 tests in 3.9 s;
+  `report-hand-over`; the same 38 files and 463 tests passed on 2026-11-07 (`dced88e06a`, in 2.4 s); on 2026-11-13 (`963af59de1`) 39 files and 469 tests passed in 2.7 s, on 2026-11-14 (`c7d4eccfac`) the same in 3.0 s, on 2026-11-16 (`6bfc742bc8`) the same 39 files and 469 tests in 3.9 s, and on 2026-11-17 (`eb485636f1`) the same in 2.3 s;
   on 2026-10-30 the subprocess tests timed out under machine load. Not a live proof.
 - **Upload set.** The publish script refuses unless every file it uploads exists and each feed file names the
   version, so a dry run needs a release build in `DIST_DIR` or placeholders. With placeholders, run:
@@ -104,7 +109,7 @@ Preconditions:
   ```
 
   It printed 13 `dry-run: upload` lines on 2026-10-12 (`d554bfb38c`, unit 12) and again on 2026-11-02 on `39b22dd2ec`,
-  2026-11-03 on `1af9ebbe07`, 2026-11-04 on `8436920004`, 2026-11-05 on `bf1c9bac3c`, 2026-11-13 on `963af59de1`, 2026-11-14 on `c7d4eccfac` and 2026-11-16 on `6bfc742bc8` under macOS `/bin/bash` 3.2.57: the eight installers, `latest-mac.yml`, `latest.yml` and the three `latest/`
+  2026-11-03 on `1af9ebbe07`, 2026-11-04 on `8436920004`, 2026-11-05 on `bf1c9bac3c`, 2026-11-13 on `963af59de1`, 2026-11-14 on `c7d4eccfac`, 2026-11-16 on `6bfc742bc8` and 2026-11-17 on `eb485636f1` under macOS `/bin/bash` 3.2.57: the eight installers, `latest-mac.yml`, `latest.yml` and the three `latest/`
   aliases, then `Published OpenMarket 0.1.0 to s3://dry/desktop/stable`, exit 0. `DESKTOP_TARGETS` defaults to
   `mac win`, so the Linux target adds lines only when named. `c57cc3af80` (on 2026-11-02's tree) rewrote the script's
   five array loops as `${ARR[@]+"${ARR[@]}"}` so an empty array passes under bash 3.2's `set -u`; that dry run under

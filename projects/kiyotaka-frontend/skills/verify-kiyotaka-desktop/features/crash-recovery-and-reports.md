@@ -13,7 +13,10 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-16 on product tree `6bfc742bc8`
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-17 on product tree `eb485636f1`
+(`origin/main`; `desktop/` unchanged since `c2c02b7b42`) by the `crash` scenario, run on its own: 34 of 34 checks in 45 s
+with the console session locked, at a load average of 4 to 7 on 10 cores; the first report arrived after 1280 ms. Before
+that, driven 2026-11-16 on product tree `6bfc742bc8`
 (`origin/main`; `desktop/` unchanged since `c2c02b7b42`) by the `crash` scenario, run on its own: 34 of 34 checks in 42 s
 with the console session unlocked, at a load average of 3 to 6 on 10 cores. Before that, driven 2026-11-14 on product tree `c7d4eccfac`
 (`origin/main`; `desktop/` unchanged since `c2c02b7b42`) by the `crash` scenario, run on its own: 34 of 34 checks in 46 s
@@ -82,7 +85,7 @@ Preconditions:
   `titlebarBack`, `gpuReported`, `offlineLaunchScreenShown`, `reloadAfterOfflineLaunch`,
   `screenGoneAfterOfflineReload`, `firstResponseHeld`, `earlyDeathComesBack` and `screenGoneAfterEarlyDeath`, and
   `pass: true`. If `reloadedAfterKill` fails the lane returns after the first stage with only its checks.
-- **Read.** `firstReportAfterMs` (1315 ms on 2026-11-06, 1435 ms on 2026-11-13, 1388 ms on 2026-11-14), `dump` (`sentry[release]`
+- **Read.** `firstReportAfterMs` (1315 ms on 2026-11-06, 1435 ms on 2026-11-13, 1388 ms on 2026-11-14, 1280 ms on 2026-11-17), `dump` (`sentry[release]`
   `openmarket-desktop@<desktop/package.json version>`: 0.1.10 since `920afc7199`, 0.1.9 on 2026-11-06,
   `sentry[environment]` `desktop-dev`, a minidump of about 770 KB), `crashLoop` (one `reportId` per round, each with
   `handOvers` 1), `heldReport` (`action: hold`, `recentCrashes` 7, the memory fields) and `events`.

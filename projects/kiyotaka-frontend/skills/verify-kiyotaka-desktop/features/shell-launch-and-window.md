@@ -11,6 +11,13 @@ views fill what the screen shows of the window, never the raw content size: in f
 maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
 content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
+2026-11-17 on product tree `eb485636f1` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`, still 0.1.10), with the
+console session locked at a load average of 3 to 7 on 10 cores. The `window` scenario on production, run on its own,
+passed 9 of 12 in 102 s: the first launch drew `64,958.82 ▲ BTC-USD` with candles and VWAP in `unit-01-chart.png`, the
+second instance and the saved bounds passed, and the three relaunch checks went red on the lock. `capture --prod` logged
+`desktop: loaded https://openmarket.xyz/chart/` and failed after 240 s with no display surface. The dev-lane `capture`
+and the sign-in capture were not run, because the dev lane's `doctor` failed on its backend (see the
+[index](./README.md), a backend proxy host that does not resolve). Before that, driven
 2026-11-16 on product tree `6bfc742bc8` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`, still 0.1.10), with the
 console unlocked (`IOConsoleLocked` false) at a load average of 3 to 6 on 10 cores. `capture` on the warmed dev lane
 (`65,073.99 ▲ BTC-USD`, 18 canvases) and `capture --prod` (`65,067.55 ▼ BTC-USD`) both drew candles with VWAP under the

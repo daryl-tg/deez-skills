@@ -11,10 +11,11 @@ There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
-from 2026-10-27 to 2026-11-16, under high and low machine load and on a locked and an unlocked console; the last was
-2026-11-16 on tree `6bfc742bc8` (`origin/main`; `launch.mjs` and the guest prompt unchanged), in the combined `run launch ... window links`
-(92 s on the unlocked console), with the same `dialog-style dialog-overlay backdrop-dim` interception at
-`launch.mjs:234`. Before that,
+from 2026-10-27 to 2026-11-17, under high and low machine load and on a locked and an unlocked console; the last was
+2026-11-17 on tree `eb485636f1` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), run on its own
+(63 s on the locked console), with the same `dialog-style dialog-overlay backdrop-dim` interception at
+`launch.mjs:234`. Before that, 2026-11-16 on tree `6bfc742bc8`, in the combined `run launch ... window links`
+(92 s on the unlocked console), the same interception. Before that,
 2026-11-14 on tree `c7d4eccfac` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), in the
 SKILL.md's combined `run launch ... window links` (185 s on the locked console at a load average of 5 to 7), the same
 interception at `launch.mjs:234`, which again lost the `window` summary; on 2026-11-13 on `963af59de1` the same combined
@@ -76,7 +77,7 @@ Preconditions:
   `navigationStayedOnChart`, `navigationOpenedInBrowser`, `windowOpenDocs`, `windowOpenSign`,
   `windowOpenChartInPlace`, `updateCheckSkippedUnpackaged`, `darwinStaysOpenWithNoWindow`,
   `darwinSecondInstanceReopens` and `darwinActivateReopens`. It saves `unit-02-external-link.png`.
-- **Known red since 2026-10-27 (last 2026-11-06).** The scenario clicks "Got it" on the "Draw by holding" tip, then clicks `chart-watermark-link`.
+- **Known red since 2026-10-27 (last 2026-11-17).** The scenario clicks "Got it" on the "Draw by holding" tip, then clicks `chart-watermark-link`.
   A `.dialog-overlay` (the guest signup prompt, `guest-signup-modal-close-btn`) intercepts the click and Playwright times out after 30 s at
   `launch.mjs:234`, so no summary prints. Until the lane dismisses that dialog, report every links sub-feature as
   pending and quote the timeout. The parity sweep closes the same prompt itself.

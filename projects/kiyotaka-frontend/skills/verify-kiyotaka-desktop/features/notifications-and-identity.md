@@ -8,6 +8,10 @@ The shell also hands eight analytics events (`app-opened`, `update-installed`, `
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
 Since 0.1.8 the shell also reports its crashes and failed loads as three more `desktop:` events, which ride their own
 channel and the page's beacon instead (see [crash recovery and reports](./crash-recovery-and-reports.md)). Last driven
+2026-11-17 by the `notify` scenario on tree `eb485636f1` (`origin/main`; `desktop/` unchanged, 0.1.10), with `update` in
+143 s for both, on the locked console: 12 of 17, `osAddedRequest` read `Added notification request: [ hasError: 0 hasCompletionHandler: 1 ]`, and
+`screenUnlocked`, `notificationCaptured`, `dockCaptured`, `osAuthorized` and the stale `bridgeUnchanged` went red, the same
+split as on 2026-11-13 and 2026-11-14. Before that, driven
 2026-11-16 by the `notify` scenario on tree `6bfc742bc8` (`origin/main`; `desktop/` unchanged, 0.1.10). It ran with
 `update` in 162 s for both, at a load average of 3 to 6, with the console session unlocked. Result: 15 of 17, the most
 since the lane was written. `screenUnlocked`, `notificationCaptured` and `dockCaptured` passed: `screencapture` could
