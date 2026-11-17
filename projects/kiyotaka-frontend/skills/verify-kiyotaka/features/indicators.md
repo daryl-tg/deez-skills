@@ -4,7 +4,14 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-17 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-18 against
+product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`), lane `18103`, a guest JWT on the
+internal gateway: a programmatic `TIME_PRICE_OPPORTUNITY` (11 rows,
+`Indicators 2/3`) through a Dark flip, its `Block shape` term card, its typed
+number fields and its hover card under a chart menu (see the TPO bullets), a
+bare `addIndicator('BIG_TRADES')` refused, and the dialog's `big trades`
+search (`indicator-name-big-trades-official-big-trades` first) whose Add
+raised `indicators`. Before that, last DRIVEN on 2026-11-17 against
 product tree `60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`),
 lane `18103`, a no-session lane on the internal gateway (the backend
 unreachable; see the README's Baseline preconditions): a programmatic
@@ -583,8 +590,8 @@ Preconditions:
     `legend-diagnostic-card-switch-trades` (`IndicatorRow.vue`,
     `LegendDiagnosticCard.vue`; `dc92b520b5`, `94f2354f15`). The add doors are
     wrapped by `answerRefusedAdd` and `stockFeedWallFor`
-    (`chart.add-indicator.ts`); a crypto lane never meets them, and a guest
-    reads the `us-equities-full` flag off.
+    (`chart.add-indicator.ts`); a crypto lane never meets them, and since
+    `06e62c10c2` no `us-equities-full` flag stands in front of them.
   - The settings card's template menu gains a "Save as default" row and
     `settings-template-default-note` (`SettingsTemplatesMenu.vue`,
     `3ed1679add`; toasts `defaultSaved` and `defaultNothingToKeep`). On
@@ -606,7 +613,15 @@ Preconditions:
     `Size position` select, `Beside` (the default) or `Inside`, which writes
     the size inside a bubble where it fits and beside it otherwise (the
     sheet holds the word `fit`); the row hides while `Show size` is `Off`
-    (source, not driven: the 2026-11-17 lane could not mount it), and since
+    (source, not driven: the 2026-11-17 lane could not mount it); Big
+    Trades 0.14.0 (`d14df5186e`, `c18000ee96`) makes it four choices,
+    `Beside`, `Inside` (rounds the size to fit, `$20.5M` reads `$21M`; sheet
+    word `fit_short`), `Inside only` (no number on a bubble too small;
+    `fit_only`) and `Inside, full number` (0.13.0's `Inside`; `fit`), and a
+    size stays inside its bubble under a smaller bubble on top (source; on
+    2026-11-18 a bare `addIndicator('BIG_TRADES')` refused with `no
+    indicatorControl registered`: it is a wrun twin, so the dialog, which
+    walls a guest, is its door), and since
     `640d8ac061` its default Min value reads the last 24 hours the market
     traded, closed days removed, on stock Tape charts too (source); Big
     Trades 0.12.0 (`5ca53ece24`) defaults its Style
@@ -649,6 +664,37 @@ Preconditions:
     prior-session POC keeps it too (source). Since `84ac56af37` a session
     volume profile's POC outline keeps its mark on rows thinner than 2 px
     (engine, source).
+  - **TPO's `Block shape` and the theme's inks (driven 2026-11-18 on
+    `cff04f9a01`).** `Block shape` sits on the Color tab
+    (`indicator-time-price-opportunity-blockShape-term`, `Wide`); hovering the
+    term showed `Square: every block is a square, as tall as its price row at
+    most and never wider than a Wide block, so the profile stays inside its
+    session.` (`aa8e3f2274`). A Dark flip through Super Search
+    (`super-search-result-themes:mode:dark-btn`) moved the TPO's level inks
+    with it: `pocColor` `#000000` to `#FFFFFF`, `vahColor` and `valColor`
+    `#505050` to `#B0B0B0` (`3deefef41d`). Other profiles take the same white
+    or black level inks, a template's edited mark ignores them
+    (`aee367890b`, `70d4c23da5`, `af3807ab99`), and leaving `Volume only` puts
+    the volume profile back as it was (`eb485636f1`): source.
+  - **The profile cell hover card hides under a chart menu (driven
+    2026-11-18; `b848bc77ab`).** On a visible tab a pointer on a TPO block
+    showed the card (its root holds `[data-profile-cell-title]`,
+    `data-placement` `right`; `64825.00 – 64925.00`, `3 of 48 TPOs`). A
+    right-click opened the chart menu and the card's root went `display:
+    none`; pointer moves kept it hidden while the menu stayed, and after
+    `Escape` the next hover showed it again. The price-axis, time-axis and TPO
+    period menus and the level badge card follow the same rule (source). The
+    hover lights one block: the row-wide light (`924073484f`) was reverted by
+    `58bffa0e83`. A tab that has drifted hidden shows no card at all, so read
+    `document.visibilityState` first.
+  - **Typed number fields (driven 2026-11-18; `8d41a00a97`, `cff04f9a01`).**
+    The card's number rows (`indicator-time-price-opportunity-
+    valueAreaPercentage-number`, `-pocThickness-number`, `-ibrMinutes-number`)
+    are bare inputs with `inputmode` `decimal` and no minus or plus buttons;
+    Up and Down step them (source: a keyboard step on this drive did not
+    show cleanly in the engine settings, so it is unproven). The heatmap
+    popover's Intensity grid and the editor's `settings-font-size-field` (10
+    to 28) use the same field and are walled for a guest.
   - A footprint whose rows set its geometry waits for the main candles and
     asks once, so a market switch no longer shows an aborted first ask and a
     re-ask (`64c9c0b522`, `9ed29c0009`; source).
@@ -664,7 +710,7 @@ Preconditions:
     Open the card with `legends.settingsBtn.click()` and the list with the
     `.combo-box__trigger` that holds `Chart session`. On a crypto chart Chart
     session draws the whole day; the regular-hours case needs a US stock
-    chart with the `us-equities-full` flag, which a guest reads off. TPO and
+    chart (the `us-equities-full` flag graduated in `06e62c10c2`; not driven). TPO and
     range profiles now draw on US stock charts instead of `No data in range`
     (`e5dee82216`, source), and the order-flow and session tools start a
     regular-hours stock day at 09:30 (`e4bda0a273`, source).
@@ -679,8 +725,9 @@ Preconditions:
     `indicators` wall first, so this needs a signed-in session.
   - **Order-flow tools pause on a stock's free `Price only` feed (source,
     `315fa465d9`).** Their legend chip reads `Paused. {feed} has no trades.`
-    and the legend card offers Back to Trades and Get real-time. Needs the
-    `us-equities-full` flag, so not guest-reachable.
+    and the legend card offers Back to Trades and Get real-time. Needs a stock
+    on its free `Price only` feed (the `us-equities-full` flag graduated in
+    `06e62c10c2`); not driven.
   - The Indicators dialog's favourite star reads disabled, with its reason in
     the title, on a row that cannot take one (`f6ba61116e`); a guest's
     favourite write is walled.

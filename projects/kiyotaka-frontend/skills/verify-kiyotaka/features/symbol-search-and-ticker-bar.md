@@ -4,7 +4,13 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-17 against product tree `60b7e6b190` (`origin/main`,
+was last DRIVEN on 2026-11-18 against product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`),
+lane `18103`, a guest JWT on the internal gateway: the V2 dialog (`v2` 20,
+`legacy` 0), `btc.d` leading with `asset-row-CRYPTOCAP|BTC.D-btn`, `us2000`
+listing IWM and a GATE_IO.F `US2000` perp (no index venue: `indices-otc` is
+dark), `asset-row-NVDA|4-btn` to NVDA on Trades (252 bars), a bare `5`
+switching `1h` to `30m` while `Alt+5` left it (see `tb-digit-keys`), and no
+`tb-options-btn`. Before that, last DRIVEN on 2026-11-17 against product tree `60b7e6b190` (`origin/main`,
 60 commits past `6bfc742bc8`), lane `18103`, a no-session lane on the
 internal gateway (the backend unreachable; see the README's Baseline
 preconditions): the V2 dialog (`v2` 20, `legacy` 0), an `ETHUSDT` fill (ETH,
@@ -198,6 +204,8 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
 - `tb-price-precision` the header price, its popover and the tab title print
   at the chart's Value Precision (Integer or Manual N) on every symbol,
   crypto indices such as BTC.D included (`8683fb99d7`, `8733808579`).
+- `tb-digit-keys` a bare digit (or a Numpad digit, Shift allowed) picks an
+  interval; Ctrl, Cmd and Alt with a digit go to the browser (`f0e506ecaf`).
 - `tb-plot` the chart-type picker changes plot type.
 - `tb-plot-kept` a picked chart type survives a symbol switch.
 - `tb-layout` the layout picker changes the grid.
@@ -279,8 +287,9 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   gateway reachable a guest gets a "Join for free" modal that blocks the hover;
   close it first.
 - **`sym-om-series` titles and bound watch, driven 2026-11-17 on branch
-  `daryl/series-title-watch` (`435edbfe2d`, unmerged, MR !13317), guest lane
-  `18113`.** Seeded as above with the real `significant-wave-height` frame
+  `daryl/series-title-watch` (`435edbfe2d`), guest lane `18113`; landed on
+  `main` as `3c942b94dd` (one naming source, `om-target-name.ts`), not
+  re-driven there.** Seeded as above with the real `significant-wave-height` frame
   exported from `collab_sticky_payloads` (retitled `Current wave height`) plus
   a metric-sourced main frame. A picked series target names itself by its
   title everywhere: `.tb-symbol__name`, the legend `.csb__coin`,
@@ -317,9 +326,10 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   loaded (`AAPL Apple Inc. Equities 355.60`) charted AAPL. So wait for the
   row's price before a click, or use Enter, and read the symbol button
   (`EQUITIES · TRADES · ALL US EXCHANGES AAPL`) after every stock pick. The exchange pick moved into the Tape's Time
-  and sales (see the right-side panels guide, `rp-stock-tape`). Since
-  `bda0563ab1` a guest reads `us-equities-full` ON (`GUEST_DEFAULT_FLAGS`), so
-  this is guest-reachable: `fill "AAPL"` listed `asset-row-AAPL|4-btn` first,
+  and sales (see the right-side panels guide, `rp-stock-tape`). A guest
+  read `us-equities-full` ON from `bda0563ab1` (`GUEST_DEFAULT_FLAGS`), and
+  since `06e62c10c2` the flag is gone and the stocks surfaces are every
+  session's, so this is guest-reachable: `fill "AAPL"` listed `asset-row-AAPL|4-btn` first,
   then a tokenized `Apple Inc. · Crypto` row and the AAPL ETFs, and the click
   charted POLYGON `AAPL/USD`. **The display is the bare ticker** (`8bcf77ee46`):
   read the symbol button, the tab title or the legend, never
@@ -582,8 +592,9 @@ Preconditions:
   **`tb-super-search-btn` is gone** (`TBSuperSearchButton.vue` was deleted). Super
   Search now opens from the top navbar capsule `global-nav-search-btn`
   (`Ask anything ⌘K`); the ticker bar keeps only `tb-super-search-full-btn`, and
-  only in full-chart mode. `tb-options-btn` (`Options`) sits after Indicators and
-  was visible to a guest on this lane. `tb-terminal-*` and
+  only in full-chart mode. `tb-options-btn` (`Options`) sits after Indicators for a
+  signed-in session only since `b1f10f1e3b` (absent for a guest on
+  2026-11-18; before that it was visible to a guest on this lane). `tb-terminal-*` and
   `tb-tweet-caller-trigger-btn` are gone. `tb-objects-toggle-btn`,
   `tb-journal-toggle-btn` and `tb-replay-toggle-btn` exist only once pinned; by
   default they are `tb-panels-row-{objects,journal,replay}`. Panel seats are
@@ -769,6 +780,13 @@ Preconditions:
 
 ## Gotchas
 
+- **`tb-digit-keys` (driven 2026-11-18 on `cff04f9a01`).** Click the chart
+  once with the cursor tool so the page, not a field, holds the keys
+  (`document.activeElement` `BODY`), then `browser press Alt+5`: the chart
+  store's interval stayed `1h`. `browser press 5` switched it to
+  `30m` (`chart-symbol-interval-toggle-btn` `30m`). Before `f0e506ecaf` an
+  Alt digit everywhere, and a Ctrl digit on a Mac, switched the interval;
+  Ctrl and Cmd digits are the browser's tab keys, so do not drive them.
 - **Undo and redo live in the footer, not the ticker bar. Driven 2026-11-01 on
   `120d5d5d32`, guest, no JWT.** On a fresh boot `footer-undo-btn` read
   `aria-label="Undo"` with `aria-disabled="true"` and the store's `undoStack`

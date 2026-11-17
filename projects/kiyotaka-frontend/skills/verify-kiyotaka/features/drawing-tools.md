@@ -3,7 +3,13 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last DRIVEN 2026-11-17 on `60b7e6b190`
+lock, settings and delete. Last DRIVEN 2026-11-18 on `cff04f9a01`
+(`origin/main`, 79 commits past `60b7e6b190`, lane `18103`, a guest JWT, the internal gateway): on NVDA 1h a
+Horizontal Line's quick bar (17 `tqb-*` handles, the plain bell), its menu
+row `chart-ctx-drawing-alert` (`data-alert-state` `ready`) and Order
+submenu, its alert dialog (see `dt-alert`), and the cursor button's face kept
+across a reload (see `dt-cursor-memory`). Before that, last DRIVEN 2026-11-17
+on `60b7e6b190`
 (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session
 lane on the internal gateway; see the README's Baseline preconditions): a
 trend line placed on BINANCE.F ETHUSDT 4h with its floating toolbar and the
@@ -229,8 +235,10 @@ the top overlay cleared.
   `Orders drawings against each other. Drawings stay above the candles.`
   (`ff6911af3d`). `Send behind candles` and `Bring in front of candles`
   (`chart-ctx-drawing-under-candles`, `tqb-menu-under-candles`, and the
-  Objects row's `data-action="under-candles"`, `9fa71e44a1`) sit behind the
-  dark flag `drawings-under-candles`; a guest saw none. Since `12906d4136` the chart
+  Objects row's `data-action="under-candles"`, `9fa71e44a1`) read the
+  signed-in session since `06e62c10c2` graduated the `drawings-under-candles`
+  flag; a guest saw none (re-driven 2026-11-18 on a Horizontal Line: only the
+  two rows). Since `12906d4136` the chart
   cancels the browser menu only on `#main-chart`, and text fields keep the
   native menu (source).
 - **`dt-alert`: the alert on a drawing (driven 2026-11-12 on `74ccd3cdcc`).**
@@ -252,14 +260,26 @@ the top overlay cleared.
   `Set Alert` keeps the dialog open and says the failure above its button:
   `alert-dialog-status-error` reading `Unauthenticated`, with
   `alert-dialog-copy-error-btn`; no toast and still no `alert` wall (the
-  product gap stands). Close with `alert-dialog-close-btn`. With
-  `drawing-alert-one-click` on, the bell also greys with a reason
+  product gap stands). Close with `alert-dialog-close-btn`. For a
+  signed-in session (`drawing-alert-one-click` graduated to it in
+  `06e62c10c2`), the bell also greys with a reason
   (`data-alert-state` `blocked`, `data-alert-blocked-reason` such as `feed`,
   `interval` or `limit`) and a plan caps alerts on drawings (free 5, Plus
   50; `59bbc4c5a2`, `a7c862553a`, source). One-click alerts (`9860308996`: the armed pill
   `tqb-alert-btn` with `data-state`, `tqb-alert-menu-{once,every,off,more}`,
-  sloped lines, snap back) sit behind the dark flag `drawing-alert-one-click`,
-  which a guest cannot turn on (source).
+  sloped lines, snap back) are the signed-in session's since `06e62c10c2`; a guest
+  keeps the plain bell (source). **Re-driven 2026-11-18 on `cff04f9a01`, NVDA
+  1h:** the bell read `Add alert on Horizontal Line` with no `data-state`, the
+  menu row `chart-ctx-drawing-alert` carried `data-alert-state` `ready`, and it
+  opened `Alert on Horizontal Line` (`Nasdaq · NVDA · 1h`) with a `TRADING
+  HOURS` `RTH` row (`Evaluate only from 9:30 AM to 4:00 PM New York time.`).
+  `More options`' Trigger (`alert-create-trigger-select-btn`) listed only
+  `Once only` and `Every time`, and the Check's `Instantly`
+  (`alert-create-check-tick-btn`) was open, so the Check's Trigger lock
+  (`alert-create-check-close-trigger`, `a8bf80405b`: on a delayed market that
+  offers instant alerts, `Once per bar close` names the Trigger, not the late
+  data) was not reachable. The chart menu's `chart-ctx-add-alert` gave the
+  same two Triggers.
 - **`dt-parallel-levels`: a Parallel Line's levels (driven 2026-11-12;
   `c5d9998560`, `71f733bd54`).** Pick `dropdown-item-parallelline:tool` from
   the lines group and click three points (`400 450`, `800 350`, `800 550`),
@@ -346,7 +366,10 @@ the top overlay cleared.
   store's `lastByGroup.cursor` to `cursor`; after a full `browser open` of the
   chart URL both read the same (before the fix the engine came back as
   `crosshair` while the toolbar showed Arrow). Pick `Crosshair` the same way
-  to restore it (`defaultCursorMode` `crosshair`).
+  to restore it (`defaultCursorMode` `crosshair`). **Re-driven 2026-11-18 on
+  `cff04f9a01` (`6731e838d1`):** after the reload the cursor group's own button
+  (`toolbar-item-default-icon-btn`) still drew the arrow glyph, not the
+  crosshair; leaving a drawing tool no longer writes the memory (source).
 - **`dt-magnifier-chip` (source, `d3537e5ac1`).** `draw-magnifier-chip`
   (`aria-label` `Magnifier`, `aria-pressed`) renders on the phone layout only,
   not in simple mode, for a tool with a lens (not Pencil or Highlighter); a

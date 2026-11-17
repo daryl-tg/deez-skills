@@ -8,8 +8,11 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-17 against
-`60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session lane on the internal gateway: the backend was unreachable, so there was no guest token; see the README's Baseline preconditions): the Panels menu's
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-18 against
+`cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`, lane `18103`, a guest JWT):
+`tb-editor-toggle-btn` raised the `Indicator Editor` wall
+(`script-editor`), cleared by `Escape`. Before that, re-driven 2026-11-17
+against `60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session lane on the internal gateway: the backend was unreachable, so there was no guest token; see the README's Baseline preconditions): the Panels menu's
 `tb-panels-row-editor` raised `Verify your email to unlock Indicator Editor`
 (an empty address), not the `Indicator Editor` wall, so the wall was not
 proved that night. Before that, re-driven 2026-11-16 against
@@ -370,7 +373,8 @@ Preconditions:
   Pivot Points standard `0.1.4` (`src/constants/wrun-twins.json`); on
   `6bfc742bc8` they were `0.12.0` (`5ca53ece24`) and `0.1.6` (`f16f0b44f3`);
   on `60b7e6b190` Big Trades is `0.13.0` (`5123080fc9`) and Pivot Points
-  standard is still `0.1.6`.
+  standard is still `0.1.6`; on `cff04f9a01` Big Trades is `0.14.0`
+  (`d14df5186e`).
 - **A browser-run Indicator fails in the browser; a cloud-run one fails on the
   server.** A client-side error is in `./control-kiyotaka browser console`; a
   cloud run that "loads forever" needs its `clientRequestId` from the in-app

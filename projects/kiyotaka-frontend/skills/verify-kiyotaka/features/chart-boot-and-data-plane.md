@@ -3,7 +3,15 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-17 against product tree `60b7e6b190`
+entry was last DRIVEN on 2026-11-18 against product tree `cff04f9a01`
+(`origin/main`, 79 commits past `60b7e6b190`), lane `18103`, a guest-JWT lane on the internal
+gateway with the backend answering again (the lane's refresh-token call
+`200`): boot drew 250 bars on COINBASE BTC-USD 1h with VWAP (`Indicators
+1/3`, `Guest Mode`, `__BOOT_ERRORS__` `[]`), the signup modal came first and
+the ink tutorial after it was closed (see Gotchas), the tab drifted hidden
+once and `tab t1` brought it back, and the footer connection card read
+`Connected` (see `boot-connection-card`). Before that, last DRIVEN on
+2026-11-17 against product tree `60b7e6b190`
 (`origin/main`, 60 commits past `6bfc742bc8`), lane `18103`, a no-session
 lane on the internal gateway: the backend `dboons-nutz` did not resolve
 (Tailscale stopped), so no guest token was issued, yet boot drew 250 bars
@@ -155,6 +163,8 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
 - `boot-worker` the worker is alive, so websockets can open at all.
 - `boot-strip` on desktop, a degraded or lost connection raises one yellow
   strip above the ticker bar that says what is wrong and when it is back.
+- `boot-connection-card` the footer's connection button opens a card that
+  says in words whether orders and prices arrive on time, slow or offline.
 - `boot-notices` an admin's service notice shows as a banner over the chart,
   closes into a top-bar pill that opens the status list, and says when it is
   back to normal.
@@ -618,7 +628,10 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   indefinitely. Poll for `ink-tutorial` rather than assuming a fixed delay. Its
   "once per device" scope is localStorage for guests but per-account when signed
   in. `ink-tutorial-close` resolves on mobile too (the sheet reuses the testid).
-- **The signup modal is no longer the first overlay a guest meets.** A once-per-
+- **The signup modal is no longer the first overlay a guest meets** (but on
+  2026-11-18 the order was reversed: the signup modal was up at first
+  candles and the ink tutorial raised once it was closed; clear whichever is
+  on top by its own testid). A once-per-
   device `InkTutorialDialog` ("Draw by holding") arms shortly after first paint
   and sits in the SAME `.dialog-style.dialog-overlay` shell, so it blocks clicks
   identically — but it answers to a different testid, and probing the signup
@@ -707,7 +720,10 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   is a real wake, so expect the wake chain in the ring. Re-confirmed 2026-11-01:
   the tab was `hidden` within a minute of `open`, the footer clock froze at
   `21:20:54` across three panel frames, and `tab t1` brought it back; the ring
-  then logged 13 `lifecycle-hidden-return` rows over the pass.
+  then logged 13 `lifecycle-hidden-return` rows over the pass. Again
+  2026-11-18: the clock froze at `20:13:48`, the Orderbook opened with an
+  empty body and no TPO hover card would show; `tab t1` brought the ladder and
+  the card back.
 - **The v2 gateway is a tailnet-only name; when it stops resolving, every live
   surface goes quiet while candles still paint (seen 2026-11-01).** From about
   21:55 UTC `tsdb-gateway.int.ore.kiyotaka.ai` returned NXDOMAIN from the
@@ -751,6 +767,12 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   path without an upgrade). With that address in `KIYO_BROWSER_ARGS`, `doctor`
   passed and the lane drew live candles all pass. So try the last known
   address before calling the pass blocked.
+- **`boot-connection-card` (driven 2026-11-18 on `cff04f9a01`;
+  `2ad3af4310`).** `find testid footer-connection-btn click` opens the card:
+  `connection-status-headline` `Connected`, `connection-status-help` `Orders
+  and prices arrive on time.`, the root's `data-net` `good` (`slow` on a slow
+  network) and `connection-leg-ping` `Ping 13 ms`. `trade-network-mark`, the
+  slow-network mark on desktop ticket title bars, needs a trading session.
 - **A yellow strip replaced the chip (driven 2026-11-06 on `8bcd72f8f5`;
   `b2623958e8`, waits from `c16de1bf2e`).** `connection-strip`
   (`src/components/banners/ConnectionStrip.vue`, mounted in `ChartArea.vue`;

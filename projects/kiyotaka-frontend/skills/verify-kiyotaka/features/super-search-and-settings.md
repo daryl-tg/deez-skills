@@ -7,6 +7,13 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-18 against product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`, lane `18103`,
+a guest JWT on the internal gateway): `dark mode` to
+`super-search-result-themes:mode:dark-btn` (`Dark Mode OFF`) and back,
+`options chain` (no rows), `polymarket` and `variational` (only
+`symbols:open-search-btn`), the Watchlist (`watchlist`), editor
+(`script-editor`) and heatmap (`orderbook-heatmap`) walls, and `/chart/plus`
+(see `plans-page`). Before that, last DRIVEN on
 2026-11-17 against product tree `60b7e6b190` (`origin/main`, 60 commits past `6bfc742bc8`, lane `18103`, a no-session lane on the internal gateway: the backend was unreachable, so there was no guest token; see the README's Baseline preconditions): Super Search's
 `theme` fill (four theme rows and a `THEMES 12` group) and, with no
 session, the wall's other face: every `handleGuestAccess` door (Indicators
@@ -324,8 +331,10 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   the `OPTIONS_GEX`, `OPTIONS_HEATMAP` and `OPTIONS_GEX_CURVE` indicator rows.
 - **No Polymarket row for a guest — driven 2026-10-28.** `polymarket` returned
   only `symbols:open-search`. The `Link Polymarket` command
-  (`providers/polymarket.ts`) is listed only when the `polymarket-execution`
-  flag is on and the session is signed in.
+  (`providers/polymarket.ts`) is listed only for a signed-in session (the
+  `polymarket-execution` flag graduated in `b1f10f1e3b`). Re-driven
+  2026-11-18: `polymarket` and `variational` listed only
+  `symbols:open-search-btn`; Variational is a signed-in venue like Bitget.
 - **`ss-formula`.** Fill `SPY / GLD`. The `FORMULA` section offers
   `super-search-result-formula:SPY/GLD-btn` (`Plot SPY ÷ GLD`). Driven, a click
   switched the chart to `NYSE SPY / GLD` with title `SPY / USD / GLD / USD` and
@@ -371,15 +380,15 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   **Driven 2026-11-13 on `963af59de1`:** a guest's page still led with
   `4.53.0 Latest Spotlight The US tape.` and listed no `4.54.0`. `4.54.0`
   (`Alerts on drawings.`, `3b007b5f4f`) has the audience `drawing-alerts`,
-  which lists it only while `drawing-alert-one-click` reads on; a guest reads
-  it off. With the flag on, its spotlight carries
+  which lists it only for a signed-in session since `06e62c10c2` graduated
+  `drawing-alert-one-click`; a guest never sees it. For a signed-in session its spotlight carries
   `release-spotlight-drawing-alerts-draw-btn` (`Draw a line`, which arms the
   trend line tool) and `release-spotlight-drawing-alerts-got-it-btn` (source).
   **Driven 2026-11-06 on `8bcd72f8f5`:** the Super Search row
   `super-search-result-settings:tab:notes-btn` (query `release notes`) opened
   the page with 82 rows, `4.53.0 Latest Spotlight The US tape. November 5,
-  2026` first: its audience is `stocks`, and a guest reads `us-equities-full`
-  ON. A version row's click only selects it. **The spotlight opens from the
+  2026` first: its audience is `stocks`, and a guest then read `us-equities-full`
+  ON (since `06e62c10c2` the flag is gone and the spotlight is everyone's). A version row's click only selects it. **The spotlight opens from the
   row's `Spotlight` badge**, which has no testid:
   `browser click '[data-testid="release-notes-version-4.53.0-btn"] .rn-ver__badge--spotlight'`.
   It raised the `The US tape.` spotlight (`NEW IN V4.53.0`, `Raw trade
@@ -428,7 +437,7 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   | `tb-watchlist-toggle-btn` | `watchlist` |
   | `tb-news-toggle-btn` | `news` |
   | `tb-editor-toggle-btn` | `script-editor` |
-  | `tb-options-btn` | `terminal` |
+  | `tb-options-btn` (absent for a guest since `b1f10f1e3b`) | `terminal` (until then) |
   | `tb-heatmap-toggle-btn` (turning the heatmap on) | `orderbook-heatmap` |
   | `tb-heatmap-kind-<kind>-btn` (2026-11-08) | `orderbook-heatmap` |
   | `alert-add-menu-price-btn` | `alert` |
@@ -567,7 +576,10 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   (source). Fill `clean look`: `settings:toggle:layout-look-clean-btn`
   (`Look: Clean OFF`, `d8a23b47d6`) is listed, and it acts only in a
   multi-chart layout, which a guest cannot open.
-- **`plans-page` (driven 2026-11-16 on `6bfc742bc8`).** Open
+- **`plans-page` (driven 2026-11-16 on `6bfc742bc8`; re-driven 2026-11-18 on
+  `cff04f9a01`: the Plus card with `50 indicator alerts` and `200 price
+  alerts`, still no Ultimate card; an Ultimate card lists 1,000 price and 250
+  indicator alerts since `5bdb3ba1fc`, source).** Open
   `/chart/plus` as a guest: `console-subscription-billing-{monthly,annual}-btn`,
   `console-subscription-plus-card` (`Plus`, `$29/mo` annual, `$348 a year`,
   `console-subscription-cta-plus-btn` `Get Plus`), the indicator row and

@@ -5,7 +5,12 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-17 against product tree `60b7e6b190` (`origin/main`, 60
+DRIVEN on 2026-11-18 against product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`), lane
+`18103`, a guest JWT on the internal gateway: the Orderbook's Book ladder
+with its imbalance line on COINBASE BTC-USD (once the tab, drifted hidden,
+was brought back), NVDA's Tape falling back to `No trades for this market`,
+and no Options door for a guest (see `rp-options`). Before that, DRIVEN on
+2026-11-17 against product tree `60b7e6b190` (`origin/main`, 60
 commits past `6bfc742bc8`), lane `18103`, a no-session lane on the internal
 gateway (the backend unreachable, so no guest token; see the README's
 Baseline preconditions): the Tape on COINBASE BTC-USD opening grouped by
@@ -319,9 +324,9 @@ an open panel.
   toggle is gone). In a short panel every docked section keeps its head and
   two rows and the live rows give way first. Late-report prints no longer
   enter Dark pool or the Tape's last price. The Option flow section shows by
-  default (`496e83f2ed`). Since `bda0563ab1` a guest reads `us-equities-full`
-  ON (it is in `GUEST_DEFAULT_FLAGS`), so a guest gets the stock Tape; see
-  `rp-stock-tape` below.
+  default (`496e83f2ed`). A guest read `us-equities-full` ON from
+  `bda0563ab1` (`GUEST_DEFAULT_FLAGS`), and since `06e62c10c2` the flag is
+  gone, so every session gets the stock Tape; see `rp-stock-tape` below.
 - **`rp-stock-tape` (driven 2026-11-06 on `8bcd72f8f5`, chrome only).** Chart
   POLYGON AAPL from its one search row (`asset-row-AAPL|4-btn`), then open
   `Panels` → `tb-panels-row-tape`. **The stock Tape needs the stocks gate
@@ -331,7 +336,8 @@ an open panel.
   websocket connection failed`) and the panel falls back to the old trades
   stream: an `AAPL/USD` head over `No trades match filters` (since
   `754f3871c0`, `tape-no-trade-feed` `No trades for this market`, driven
-  2026-11-13), with no
+  2026-11-13, and on NVDA, whose pick opened the Tape, 2026-11-18 on
+  `cff04f9a01`), with no
   `stock-tape-*` handle. To see the stock Tape, export the two stocks lines
   from the product's `.env.sample`
   (`VITE_STOCKS_V2_WEB_SOCKET_DOMAIN=wss://stream.stocks.openmarket.xyz/v2/`,
@@ -419,8 +425,12 @@ an open panel.
   `-opacity-preset-<v>-btn`, `-sensitivity-reset-btn`,
   `-all-settings-btn`), replacing `tb-heatmap-options-settings-btn` (source,
   signed-in with OPRA data).
-- **`rp-options`.** `tb-options-btn` (`Options`) was visible to the guest. A
-  click raised the `terminal` wall.
+- **`rp-options`.** Since `b1f10f1e3b` the Options gate is the signed-in
+  session (the `options-panel` flag graduated), so a guest has no door: on
+  2026-11-18 on `cff04f9a01` the ticker bar had no `tb-options-btn`, the
+  Panels menu no options row, and Super Search's `options chain` listed
+  nothing. Before that `tb-options-btn` (`Options`) was visible to the guest
+  and a click raised the `terminal` wall.
   **The head reads every futures month on a continuous CME chart
   (`685c96d6ba`, source; signed-in with CME data).** On `ES1!` the head's
   all-expiry figures (P/C, GEX, RR, expected move) come from the fold across

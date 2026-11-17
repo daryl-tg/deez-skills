@@ -12,6 +12,11 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-18 on tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`, lane `18103`, a
+guest JWT): still unreachable.** No testid held `voice` or `mic` beyond the
+search's `economics` ones. In range, the voice context refuses a chart's last
+price on the index and yield venue (`chartCarriesIndexOtc`, dark), source.
+
 **Re-driven 2026-11-13 on tree `963af59de1` (`origin/main`, lane `18103`, a
 guest JWT): still unreachable.** `window.__voiceControl` was absent and no
 voice or mic control rendered (the only `*mic*` testids were the search's
