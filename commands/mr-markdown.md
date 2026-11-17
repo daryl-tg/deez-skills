@@ -7,9 +7,9 @@ Generate a condensed MR markdown for the changes on the current branch.
 Rules:
 - Final output must be a single inline markdown code block the user can click to copy/paste.
 - No file hyperlinks anywhere — refer to files/symbols using backtick code spans (e.g. `sentry.util.ts`, `V2StreamingError`).
-- Keep the final markdown brief — terse bullet points, no fluff. It is a one-minute briefing that becomes the squash commit body, so stay under about 40 lines. Match length to change size; a small change gets a few short bullets.
+- Keep the final markdown brief — terse bullet points, no fluff. It is a one-minute briefing for the reviewer, so stay under about 40 lines. Match length to change size; a small change gets a few short bullets.
 - Write so a non-technical reader understands it. Describe user-facing behavior and impact, not implementation. Avoid jargon (chunk, lazy-load, fall-through, refs); name files/symbols only when they add clarity.
-- First line of the code block is the MR title: imperative, ≤ 72 chars, no trailing period. Match the repo's commit convention if it has one (e.g. Conventional Commits `type(scope): summary`). Blank line after it, then the sections.
+- First line of the code block is the MR title: imperative, ≤ 72 chars, no trailing period. Match the repo's commit convention if it has one (e.g. Conventional Commits `type(scope): summary`), and run its message checker on the title when it ships one (`openmarket-internal`: `bun scripts/check-commit-message.ts --title "<title>"`). Blank line after it, then the sections.
 - Below the title, these sections in order: `## Why`, `## What changed`, `## Scope`, `## Tradeoffs`, `## Blast Radius`, `## Verification`. `## Scope` is always present, even when it is one line. `## Tradeoffs` appears only when there are some; every other section is always present.
 - `## Verification` must be numbered steps a reviewer can follow in whatever form the project runs — app, service, CLI, library test suite: where to go, what to do, what to look for. Prefer steps that mirror how the change was actually reproduced/verified during the session over steps invented from the diff.
 
