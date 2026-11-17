@@ -58,7 +58,19 @@ Read the gotchas for where the line now falls.
   rereads the roster and inserts `@name ` (`Composer.tsx:3419-3452`); a refused
   grant puts the refusal text in the row's detail. The row needs the
   `instances.grant` capability (`Composer.tsx:1757`).
-  No fixture reports roster support, so none of it renders on the fixture lane.
+  Only your own agents are offered: a member agent is kept only when it posts
+  from your account (agent handles are bare names, so ownership is the
+  `userId`), and another member's agent is left out even for a typed
+  `@sco` (MR !278). While your om is offline your agents stay listed, dimmed
+  with "offline · your om is off" and `aria-disabled="true"`, `@om` included;
+  click, Enter and Tab insert nothing. Agent rows show the agent's own name,
+  not the owner's nickname.
+  Fixture seed (both hosts, from MR !278): `?view=room&agentPicker=1` puts
+  your `argue` and ana's `scout` in `#ops`; `agentPicker=offline` also reports
+  your om offline (on `/chat/` the `om` row appears only for `@o`). Click the
+  picker's **Agents N** tab through `button.composer-autocomplete-tab`; a
+  role/name find for "Agents" hits the left rail's Agents page instead.
+  Without the seed no fixture reports roster support.
 - A bare `@` lists the whole server (`5e38077c`): every member in roster order,
   then every role, in a scrolling `listbox` named **MEMBERS & ROLES** (or
   **MEMBERS** with no role rows). `mentionCandidates` now defaults to no limit
