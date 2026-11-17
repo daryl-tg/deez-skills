@@ -207,7 +207,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   (`Shell.tsx:1560`; accessible names at `:3132`, `:3674`, `:3699`,
   `:3801`). The tooltips spell it with a colon instead, "Agents: connected
   remotely" (`:3083`, `:3783`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4189`). The pane
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4237`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -270,7 +270,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:482`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:483`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -367,11 +367,11 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - **Remote control (away).** `RemoteHome` in `RemoteControlPane.tsx` is the om
   pane of an away session that drives a desktop's om over the relay. It
   reuses the session rail with **no Watches destination**
-  (`showWatches={false}`, `RemoteControlPane.tsx:143`: the cloud pane has no
+  (`showWatches={false}`, `RemoteControlPane.tsx:142`: the cloud pane has no
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:6113-6114`),
+  composer with no lane toggle and no target (`Composer.tsx:6122-6123`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -607,7 +607,7 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
 - **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
   state — `h1` *"om isn't running"*, *"No recent daemon snapshot is available on
   this device"* on this lane. The gate is `presence.running === false`
-  (`ChatPane.tsx:522`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
+  (`ChatPane.tsx:523`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
   reads any 4xx except 429, or a non-JSON 200, as down. The fixture has two
   session modes: `omSessions=drafts` seeds Research A/B locally, and
   `omSessions=daemon` wires real session-list/history operations. Neither fakes
@@ -617,7 +617,7 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
   `/healthz?lite=1` poll, which otherwise 404s and drops the gate about 30 s in.
   Proved on 2026-10-27 (maintenance re-drive). The single nightly session that
   passed without a stub was the `running === null` window, before the first
-  poll answer or while the tab is hidden (`ChatPane.tsx:273`). Do not plan a
+  poll answer or while the tab is hidden (`ChatPane.tsx:274`). Do not plan a
   proof on that window. The stub answers health only, so Watches still need
   daemon watch RPCs and QA watch data, and unread still needs daemon events.
 - **On `/rooms/`, persona is unreachable from a `view=agents` page load — by any control,
@@ -702,7 +702,7 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
 
 ## Tag an agent from the composer and allow it the room (MR !158, driven 2026-11-04)
 
-The composer's `@` picker lists every agent the daemon sends (name and owner; a description is optional, the daemon's instance list never carries one). An agent not yet allowed in the room keeps a selectable row under the **agents** group reading `<name> can't post here yet · Enter allows it`; Enter calls `roster.instances.grant` for that agent and room, re-reads readiness and inserts `@<name> `. A refused grant puts the daemon's words on the row and inserts nothing; a host without `instances.grant` in the roster capabilities keeps the dimmed `aria-disabled` row.
+The composer's `@` picker lists your own agents from the daemon's instance list (name and owner; a description is optional, the daemon's instance list never carries one). Since `b69d4f49` another member's agent is left out, and while your om does not answer your agents stay listed, dimmed with "offline · your om is off" (see [composer-and-sending.md](composer-and-sending.md), Agents in the `@` menu). An agent not yet allowed in the room keeps a selectable row under the **agents** group reading `<name> can't post here yet · Enter allows it`; Enter calls `roster.instances.grant` for that agent and room, re-reads readiness and inserts `@<name> `. A refused grant puts the daemon's words on the row and inserts nothing; a host without `instances.grant` in the roster capabilities keeps the dimmed `aria-disabled` row.
 
 Recipe, needs a daemon-backed lane (the fixture lane has no roster): the agents cloud-parity rig (`~/Documents/dev-notes/om-agent-mention-rooms/rig/`, relay 18120, store 18121, fake model 18124, lane daemon 18123 with `ACP_ROOMS_GUI_DEV_URL` pointing at a rooms vite on 18126; cloud app on 4178 with `tokens/browser-seed.js` evaluated once on `/chat/`). Create a server from the rail (the seed's `room create` makes no server), open `#general`, then:
 
@@ -732,7 +732,7 @@ Proven on both hosts at chat `14509e60` with lane daemon `4f4db0510`. Rig owner 
 
 Clicking an `@agent` tag (`.agent-mention[data-handle]`, `role="link"`, named
 "@debugger, agent") opens a compact card, not the full profile
-(`MessageRow.tsx:2522-2532`, `lib/agents/agent-tag-card.ts`). The card is a
+(`MessageRow.tsx:2530-2540`, `lib/agents/agent-tag-card.ts`). The card is a
 dialog named **Agent <name>** (`AgentTagPopover.tsx:31`). It shows the name
 and an **AGENT** chip over "<owner>'s agent", with the owner's face. The owner
 comes from the room's agent directory: the account an agent posts as
@@ -743,7 +743,7 @@ button named "<name>, <owner>'s agent. View full profile" (`:116`,
 `[data-profile-door]`) that opens the agent's profile panel.
 
 `/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1370-1390`; card
-handlers `openProfileCard` and `openMentionCard` at `:3415-3430`). The `/chat/`
+handlers `openProfileCard` and `openMentionCard` at `:3463-3478`). The `/chat/`
 fixture has neither the seed nor the handlers, so the card is `/rooms/` only.
 
 ```bash
@@ -758,7 +758,7 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # click the LAST .agent-mention[data-handle=debugger]: the card reads "debugger AGENT agent", no door
 ```
 
-**Last verified:** 2026-11-17 (nightly maintenance). **Product commit:** {TREE}. **Scope:** `/rooms/` (18171), people stub: `agentTag=1` opened **Agent debugger** reading "ana's agent", whose door opened the **ana · debugger** profile panel; `agentTag=unknown` read just "agent" with no door. **Limitations:** `/chat/` has no seed; the card's look in light theme and on a phone width was not captured. Evidence: `{EVU}` (frames 01–03).
+**Last verified:** 2026-11-17 (nightly maintenance). **Product commit:** `c18cfa37` (GitLab origin/main; rooms-client 0.119.0). **Scope:** `/rooms/` (18171), people stub: `agentTag=1` opened **Agent debugger** reading "ana's agent", whose door opened the **ana · debugger** profile panel; `agentTag=unknown` read just "agent" with no door. **Limitations:** `/chat/` has no seed; the card's look in light theme and on a phone width was not captured. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261117/r1/` (frames 01–03).
 
 ## Coding work panel (MR !244, driven 2026-11-11)
 

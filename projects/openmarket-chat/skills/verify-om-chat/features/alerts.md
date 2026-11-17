@@ -72,7 +72,7 @@ in the sidebar (`lib/alerts-group.ts:178-199`; the auto setting is
 `[data-alerts-group=""]` with a row named **category Alerts, 1 channel**,
 holding `#ops` and its **store-5xx, ringing** row. Under `alerts=quiet` the
 group is absent, because `feeds` is empty. On `/chat/` no group forms: the
-cloud `alertsStub` (`apps/cloud/tools/visual/shell-fixture.tsx:539`) has
+cloud `alertsStub` (`apps/cloud/tools/visual/shell-fixture.tsx:540`) has
 `feeds` but no `lastRefreshedAt` (the root has it at
 `tools/visual/shell-fixture.tsx:1474`), so the board never reads as ready.
 Adopting the group as a real category was not driven. Driven 2026-11-08.
@@ -80,7 +80,7 @@ Adopting the group as a real category was not driven. Driven 2026-11-08.
 ### The board's feed peek (added 2026-11-16)
 
 Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1502`,
-`apps/cloud/tools/visual/shell-fixture.tsx:567`), so the bare board shows the
+`apps/cloud/tools/visual/shell-fixture.tsx:568`), so the bare board shows the
 chart-less peek. `alertsStub` is a plain object, so the session-capture shim
 from [message-actions.md](message-actions.md) can replace the method:
 
@@ -116,7 +116,7 @@ was not driven.
 - Without `alerts=quiet` the strip shifts every surface below it. That is why
   the other guides add it.
 - **The shell fixture never imports `shared/alerts.css`** (only `src/main.tsx:22`,
-  `apps/cloud/src/main.tsx:26` and the two gallery `fixture.tsx` files do). Under
+  `apps/cloud/src/main.tsx:25` and the two gallery `fixture.tsx` files do). Under
   `alerts=board` the strip and board render as unstyled text. That has been
   true since at least `5820fbea`, so do not judge alert visuals from the shell;
   use `fixture.html?surface=alert-card` or the bundled app.

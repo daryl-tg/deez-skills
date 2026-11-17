@@ -20,13 +20,20 @@ fixture cannot reach.
   role titles, the emote wheel, and the camera controls. Driveable only in
   `tools/openscape-preview/` (see below); the solo harness shows the shell of
   the pane with no occupants.
+- Links in world chat (`97a926de`): a user link reads as the person's pill
+  (`.mention-pill.world-message-mention`, which opens their card) and a role
+  link as the role's name (`WorldChatPane.tsx:135-195`); speech bubbles read
+  both as names (`world/bubbles.ts`, wired at `WorldView.tsx:543-547`). The
+  preview harness passes no room people, so there only the **@unknown member**
+  fallback can show; the named pill and the bubbles are unit-tested
+  (`test/world-view-lifecycle.test.tsx`). Live verification pending.
 - The unavailable-world refusal when there is no connected daemon: show
   "Open World requires a connected daemon" and leave the canvas unmounted
-  (`WorldView.tsx:158,289-297,709-714`).
+  (`WorldView.tsx:160,289-297,709-714`).
 - Transport connect / retry, and the offline banner when it cannot reach the
   relay.
 - A resizable channel column beside the world (`#948`): a handle
-  `[data-world-channel-resize]` (`WorldChatPane.tsx:344-375`) that drags,
+  `[data-world-channel-resize]` (`WorldChatPane.tsx:370-401`) that drags,
   moves with the arrow keys, and resets on Home or double-click. Width is
   76–280px and persists to `localStorage` key `om.chat.world.channelWidth`
   (`channelWidth.ts`). It is present in `mocks/world-solo/index.html?worldprobe=1`
@@ -91,7 +98,7 @@ agent-browser eval '(()=>document.querySelector(".world-conversation")?.textCont
 ```
 
 **Do not reach for `.world-status-area` as the cheap second observation any
-more.** The element still exists (`WorldView.tsx:818`) but it is filled through
+more.** The element still exists (`WorldView.tsx:829`) but it is filled through
 a **ref**, imperatively, from the running renderer — so with the solo harness
 offline it stays **empty**, and an assertion on `#west-bank-street` now fails
 against a perfectly healthy rig. Use `.world-status` for liveness instead.
@@ -111,7 +118,7 @@ fullscreen"**, and five `.world-look` swatches — **Wayfarer, Ranger,
 Surveyor, Violet, Rust** (`packages/chat-ui/src/world/scene/characterModel.ts`, Wayfarer at `:11`).
 
 **Hide** collapses the chat pane and the control then reads **Open chat**
-(`WorldChatPane.tsx:401`); **Enter fullscreen** reads **Exit fullscreen** only
+(`WorldChatPane.tsx:427`); **Enter fullscreen** reads **Exit fullscreen** only
 once the browser grants fullscreen, which the headless lane did not
 (2026-10-31). Open the harness under the lane's `/rooms/` base, as
 `control-om-chat url` does: a bare `/mocks/world-solo/index.html` answers with
@@ -166,7 +173,7 @@ Drive the selects with `agent-browser select 'select[aria-label="Preview state"]
 confirmation** row and one **Not sent** row with **Retry** and **Discard**),
 `loading` (**Loading history**), `error` (**History unavailable**), `offline`
 (**Showing saved history**), `empty` (the status stays **History loaded**;
-the `role="log"` reads **No messages yet.**, `WorldChatPane.tsx:459`), `missing` (**No
+the `role="log"` reads **No messages yet.**, `WorldChatPane.tsx:485`), `missing` (**No
 #world channel**, no composer) and `readonly` (the textarea is `disabled`).
 Every status line ends in the `<strong>` **Simulated chat**.
 
@@ -224,7 +231,7 @@ Escape closes an open wheel. Typing E into the composer does nothing, by design.
 `aria-pressed` (true → false on click); `button[aria-label="Enter fullscreen"]`
 keeps its label in the headless lane. The **Character look** select (values
 `0`–`4`) writes `characters()[solo].preset`; it is the harness's substitute for
-the real **Your look** `role="group"` in `WorldView.tsx:822-833`.
+the real **Your look** `role="group"` in `WorldView.tsx:833-844`.
 
 **Not here:** the `.world-minimap`, the real **Your look** swatches, the
 sidebar **Open World** row, mention warnings, and anything over a relay. Those
@@ -235,7 +242,7 @@ template for its waits.
 ### Occupancy on the sidebar row (added 2026-11-09)
 
 The Open World sidebar row shows a walker count from `session.worldPresenceFor`
-(`Sidebar.tsx:4060-4091`). Neither shell fixture stubs it, and only `/rooms/`
+(`Sidebar.tsx:4120-4151`). Neither shell fixture stubs it, and only `/rooms/`
 mounts the row (`daemonFeatures` is false on `/chat/`). Seed it with an
 `Object.prototype` stub beside the people stub:
 

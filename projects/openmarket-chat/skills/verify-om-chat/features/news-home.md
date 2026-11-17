@@ -3,7 +3,7 @@
 The **News** view: stories the operator's news watches have fired, plus filing
 one into a room so it rides the next message. Source:
 `packages/chat-ui/src/components/NewsHomePane.tsx`, mounted by
-`ChatPane.tsx:814-820` when `session.active.kind === "news"`; the composer chip
+`ChatPane.tsx:817-823` when `session.active.kind === "news"`; the composer chip
 is `NewsStagedChip` in `NewsCard.tsx`.
 
 ## Sub-features
@@ -35,7 +35,7 @@ the story waits in the composer and goes out under your next message.
 Neither fixture can reach the view on its own. `#/news` calls
 `session.openNews()`, which neither fixture defines, and the fixture `news`
 store is an inert plain object with `supported: false`
-(`tools/visual/shell-fixture.tsx:2805-2819`). There is no `?view=news`. With the
+(`tools/visual/shell-fixture.tsx:2853-2867`). There is no `?view=news`. With the
 people stub and the session-capture shim from
 [message-actions.md](message-actions.md), replace the `news` store and point
 `active` at the view. Keep the original `active` descriptor so you can return

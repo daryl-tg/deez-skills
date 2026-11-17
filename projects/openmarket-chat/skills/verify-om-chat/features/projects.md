@@ -77,7 +77,11 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   it uploads), and **Comment** posts with files and no text (`9cd9cf96`). `!`
   opens **TICKETS MATCHING !<query>** and `@` opens **MEMBERS & ROLES** with the
   server's roles; ArrowDown then Enter inserts the pick, which the backdrop
-  paints as a pill (`composer-token-role`). With Vim mode on, the box runs the
+  paints as a pill (`composer-token-role`). Since `8e4c3b14` a picked person
+  is sent as `om://user/<id>` from the comment box and the description editor
+  (`components/projects/description-mentions.ts`), and since `6c989fd6` the
+  description's pills read the server's people once per pass and follow
+  renames. A fixture person needs a 24-hex id for this; not driven. With Vim mode on, the box runs the
   shared Vim engine: Escape enters NORMAL (`.ticket-comment-bar
   .composer-vim-mode[data-vim-mode]`), a block cursor `.vim-block-cursor`
   shows outside insert mode (`data-partial` while an operator is pending),
@@ -119,7 +123,7 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   `aria-required` with an `aria-hidden` `*`; **Home channel** carries one too
   unless the home is fixed, as it is in the panel (`c99f628c`).
 - **Message menu entry.** In records mode a message's **More** menu lists
-  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1668-1680`),
+  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1675-1687`),
   and the hover toolbar shows the same button (`[data-add-todo]`). Off Projects
   there is no promote at all; see [message-actions.md](message-actions.md).
 - **Projects switch** (`ProjectsSettings.tsx:70-190`; `b29feb5a`, `8d2014cc`).

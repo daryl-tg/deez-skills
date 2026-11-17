@@ -27,11 +27,11 @@ however long the line is.
 The default `#ops` tape seeds one block: dax's
 `om alert list --room ops --since 24h` (`msg-ops-106`;
 `tools/visual/shell-fixture.tsx:1117`, and
-`apps/cloud/tools/visual/shell-fixture.tsx:350` on `/chat/`). To prove wrapping,
+`apps/cloud/tools/visual/shell-fixture.tsx:351` on `/chat/`). To prove wrapping,
 send a long unbroken line from the composer, because no seed has one.
 
 **Neither shell fixture imports `code-block.css`.** Only the app entries do
-(`src/main.tsx:39`, `apps/cloud/src/main.tsx:43`). On the fixture lane the block
+(`src/main.tsx:39`, `apps/cloud/src/main.tsx:42`). On the fixture lane the block
 renders with `white-space: pre` and an inline `<code>`, which looks like the
 pre-`2350a0fd` behavior. Load the real stylesheet into the page through vite
 before you measure:

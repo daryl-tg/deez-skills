@@ -8,6 +8,7 @@ who reacted.
 - **Poll card** (`packages/chat-ui/src/components/PollCard.tsx`; the closed rule now lives in `lib/poll-closed.ts`): one button per
   option, named `<option>\n<votes> · <percent>`, plus **Show results** and
   **Close poll**.
+- **A reply to a poll** (`ccaa2b89`) is quoted as italic "Poll: <question>" with the composer's poll glyph (`[data-reply-glyph="poll"]`), on the room quote and the **Replying to** strip; see [message-actions.md](message-actions.md). Neither shell fixture seeds a poll in `#ops`, so this is unit-tested only.
 - **Poll composer** (`PollComposer.tsx`): a `Create poll in #<channel>` form with
   **Add option** and **Post poll**. (**Create another poll** is a gallery
   control in `tools/visual/fixture.tsx:1203`, not part of the composer.)

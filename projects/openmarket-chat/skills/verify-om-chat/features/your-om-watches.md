@@ -2,7 +2,7 @@
 
 ## Sub-features
 
-- A single Watches destination in expanded desktop, collapsed desktop, and mobile conversation navigation. The away remote-control pane has none: it mounts the rail with `showWatches={false}` (`RemoteControlPane.tsx:143`) because the cloud pane has no watch RPC. Measured on `remote-home-fixture.html?state=live` at `f7d7c987`.
+- A single Watches destination in expanded desktop, collapsed desktop, and mobile conversation navigation. The away remote-control pane has none: it mounts the rail with `showWatches={false}` (`RemoteControlPane.tsx:142`) because the cloud pane has no watch RPC. Measured on `remote-home-fixture.html?state=live` at `f7d7c987`.
 - Canonical watch state, actions, timing, attention, groups, and schedule diagnostics.
 - Whole-watch pause/resume, refreshed persisted state, and daemon refusal messages.
 - Structured attention cards: Clear past error, Retire schedule, Attach feed, and Resume watch; technical details expand in place. Attachment and retirement have a confirmation dialog.

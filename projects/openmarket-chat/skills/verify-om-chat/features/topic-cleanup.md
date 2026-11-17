@@ -35,7 +35,7 @@ tools/visual/shell-fixture.html?view=room&alerts=quiet&quiet=on
 The entry is on the **server header menu**, not the channel header's **More
 channel actions** (earlier passes looked there and recorded an absence that
 was never the gate). On `/rooms/` the root host's `daemonFeatures` is true, so
-`Sidebar.tsx:5441` renders **Clean up topics** between **Open World** and
+`Sidebar.tsx:5501` renders **Clean up topics** between **Open World** and
 **Notification Settings**:
 
 ```bash

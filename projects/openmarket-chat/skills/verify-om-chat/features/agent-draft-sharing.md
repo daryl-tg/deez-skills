@@ -56,8 +56,8 @@ session methods.
   you load and edit an agent draft, leave the topic, and the agent re-stages
   while you are away, coming back keeps your edit and the dock reads "v<N>
   waiting; your text is untouched." with **Load v<N>** and **Keep mine**
-  (`AgentDraftDock.tsx:345`), not "Edited privately from v<N>; the agent still
-  sees its original." (`:328`). The fixture mounts the dock over a bare
+  (`AgentDraftDock.tsx:349`), not "Edited privately from v<N>; the agent still
+  sees its original." (`:332`). The fixture mounts the dock over a bare
   `textarea` with no Composer, draft store or topic navigation, so it cannot
   reproduce the round trip. `packages/chat-ui/test/agent/draft-replace-loaded.test.tsx`
   is the only proof; live verification is pending a daemon-pair lane with a
@@ -71,20 +71,20 @@ session methods.
   action before making a claim about room delivery.
 
 - Exact names: the head discard shows **Discard** and is named "Discard this
-  draft (nothing posts)" (`AgentDraftDock.tsx:162-173`, `:266-275`). With
+  draft (nothing posts)" (`AgentDraftDock.tsx:166-177`, `:270-279`). With
   several waiting drafts from one agent it shows **Discard all N** ("Discard all
   N of <agent>'s waiting drafts in this room (nothing posts)"); with several
   agents, **Discard all** ("Discard every agent's drafts here (nothing
   posts)"). The old **Dismiss agent draft** name is gone. A History row's
-  button is **Discard v<N> (<draft id>)** (`:491`); with several lanes each
-  lane head adds **Discard all from <agent>** (`:423`). The fixture seeds one
+  button is **Discard v<N> (<draft id>)** (`:495`); with several lanes each
+  lane head adds **Discard all from <agent>** (`:427`). The fixture seeds one
   lane with one version (`agdr_visual_1`) and a no-op discard, so only the
   single-draft names and the row are reachable there. Load is `Load
-  v<N>` for a waiting head (`:353`), `Load v<N> into the composer` per version in
-  History (`:474`, beside `Preview v<N>`), and `Load into composer` (`:378`).
-  **Keep mine** (`:361`) appears when a newer version arrives while the
+  v<N>` for a waiting head (`:357`), `Load v<N> into the composer` per version in
+  History (`:478`, beside `Preview v<N>`), and `Load into composer` (`:382`).
+  **Keep mine** (`:365`) appears when a newer version arrives while the
   composer holds your text, and several agents get a tablist **Agents with
-  drafts** (`:393`).
+  drafts** (`:397`).
 
 ### Verification record
 

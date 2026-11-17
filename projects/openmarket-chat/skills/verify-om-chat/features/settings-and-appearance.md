@@ -148,7 +148,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4558`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4606`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -203,7 +203,7 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2440-2445`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2488-2493`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -641,7 +641,7 @@ code-expired and code-mismatch notes, and a real daemon.
 - **Notifications crashes the shell fixture's whole User settings surface.**
   `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:607`),
   and neither fixture's plain-object `alertsStub` has it
-  (`shell-fixture.tsx:1462`, `apps/cloud/tools/visual/shell-fixture.tsx:539`).
+  (`shell-fixture.tsx:1462`, `apps/cloud/tools/visual/shell-fixture.tsx:540`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
   settings could not load** / **Try again**. Any further page click finds no
   button, and **Try again** returns to My Account. Reload before driving the
