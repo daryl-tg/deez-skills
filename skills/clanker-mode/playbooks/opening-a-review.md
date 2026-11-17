@@ -27,10 +27,17 @@ a GitLab repository fails at the first call with nothing landed.
    **principle-visual-approval-gates-delivery**. If it does not, stop here.
    Motion is judged in the recording, not in the code, so the evidence shows it
    running.
-5. **Push the feature branch only.** Never main. Never push unless the operator
+5. **Check the title and the branch commits.** The title becomes main's commit
+   subject, per **principle-one-commit-lands**, so write it in the repo's
+   commit convention. When the repo ships a message checker, run it on the
+   title and the branch and fix what it flags before pushing. CI may never run
+   it. In `openmarket-internal` that is
+   `bun scripts/check-commit-message.ts --title "<title>"` and
+   `bun scripts/check-commit-message.ts --range origin/main..HEAD`.
+6. **Push the feature branch only.** Never main. Never push unless the operator
    asked.
-6. **Open the PR or MR** with the standard body. It is a one-minute briefing
-   that becomes the squash commit body, so keep it under about 40 lines. Use
+7. **Open the PR or MR** with the standard body. It is a one-minute briefing
+   for the reviewer, so keep it under about 40 lines. Use
    these `##` headings in order: Why, What changed, Scope, Tradeoffs, Blast
    Radius, Verification. Scope is always present. Tradeoffs appears only when
    there are some. On Claude, `/mr-markdown` drafts the same set.
@@ -39,9 +46,9 @@ a GitLab repository fails at the first call with nothing landed.
    reads as a broken promise of proof. Describe what was driven and what it
    showed; the URL belongs in the reply, per
    **principle-visual-approval-gates-delivery**.
-7. **Announce** with the link and read the announcement back, per
+8. **Announce** with the link and read the announcement back, per
    **principle-announce-the-linked-review**.
-8. **Clean up** the worktree.
+9. **Clean up** the worktree.
 
 Landing, where the family lands, is squash-merge **through the review request**.
 Never a local merge, in any repository.

@@ -22,5 +22,9 @@ adds an interactive rebase that can go wrong.
   amend-until-there-is-one.
 - The PR squash produces main's single commit. See
   **principle-rebase-pr-squash**.
-- The commit message on main is the PR title and body, so those carry the
-  weight. Write them for someone reading `git log` a year from now.
+- Main's commit is the PR title plus the squash body, which the forge builds
+  from the PR body or from the branch commits' messages (`openmarket-internal`
+  uses the commit messages). Every one of them is a receipt agents read back:
+  what changed and why, in the repo's commit convention, and nothing else. No
+  sign-off or co-author trailers, no tool attribution, no verification notes.
+  Verification belongs in the PR body.
