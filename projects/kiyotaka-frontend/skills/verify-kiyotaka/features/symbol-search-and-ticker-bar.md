@@ -278,6 +278,19 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   section shown; off, both gone with the series still in the store. With the
   gateway reachable a guest gets a "Join for free" modal that blocks the hover;
   close it first.
+- **`sym-om-series` titles and bound watch, driven 2026-11-17 on branch
+  `daryl/series-title-watch` (`435edbfe2d`, unmerged, MR !13317), guest lane
+  `18113`.** Seeded as above with the real `significant-wave-height` frame
+  exported from `collab_sticky_payloads` (retitled `Current wave height`) plus
+  a metric-sourced main frame. A picked series target names itself by its
+  title everywhere: `.tb-symbol__name`, the legend `.csb__coin`,
+  `document.title` (`0.36000 ▼ Current wave height`) and the current-symbol
+  chip in both pickers; before, all four read `series:<id>`. A watch-sourced
+  row (`source.kind` watch, ref `watch/<slug>/<key>`) shows the slug muted:
+  dialog `asset-list-om-series-<symbol>-watch` after the title
+  (`--symbol-dialog-text-sub`), quick list `quick-search-om-series-watch` in
+  the caption after `OM ·`. A metric-sourced row shows none. Dark mode is
+  `document.body.classList.add('body--dark')` for a dialog check.
 
 - **`sym-forex`, driven 2026-11-05 on `87a325f4ab` (`105356d766`,
   `0b49c541a9`, `6ff6849f09`).** The search no longer asks the gateway for
