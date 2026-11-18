@@ -11,6 +11,11 @@ views fill what the screen shows of the window, never the raw content size: in f
 maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
 content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
+2026-11-19 on product tree `70ca7763c6` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`, still 0.1.10), with the
+console session locked at a load average of about 2.5 on 10 cores: `window` on production, run on its own, passed 9 of 12
+in 104 s (the first launch drew `62,451.49 ▼ BTC-USD` with candles and VWAP in `unit-01-chart.png`; the second instance
+and the saved maximized bounds passed; the three relaunch checks red on the lock), and `capture --prod` logged
+`desktop: loaded https://openmarket.xyz/chart/` and failed after 260 s with no display surface. Before that, driven
 2026-11-18 on product tree `c5bba6b889` (`origin/main`; `desktop/` unchanged since `c2c02b7b42`, still 0.1.10), with the
 console session locked at a load average of about 3.5 on 10 cores: `window` on production, run on its own, passed 9 of 12
 (the first launch drew `63,938.57 ▲ BTC-USD` with candles and VWAP in `unit-01-chart.png`; `secondInstanceLine`,

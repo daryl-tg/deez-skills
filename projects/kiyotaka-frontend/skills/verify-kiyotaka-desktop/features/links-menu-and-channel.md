@@ -12,6 +12,9 @@ edit menu, downloads save to Downloads without a prompt, and only chart pages ho
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
 from 2026-10-27 to 2026-11-18, under high and low machine load and on a locked and an unlocked console; the last was
+2026-11-19 on tree `70ca7763c6` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), in the combined
+`run launch ... window links` on the locked console (167 s), the same `dialog-style dialog-overlay backdrop-dim`
+interception at `launch.mjs:234` over `chart-watermark-link`, which again lost the `window` summary. Before that,
 2026-11-18 on tree `c5bba6b889` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), in the combined
 `run launch ... window links` on the locked console, which threw at `launch.mjs:234` with the same interception and so
 printed no `window` summary either; run `window` on its own to read it. Before that,
