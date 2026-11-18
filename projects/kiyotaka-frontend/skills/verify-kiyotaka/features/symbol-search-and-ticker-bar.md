@@ -4,11 +4,18 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-18 against product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`),
+was last DRIVEN on 2026-11-19 against product tree `413f86e5af` (`origin/main`,
+184 commits past `cff04f9a01`), lane `18103`, a guest JWT with the backend
+answering: the V2 dialog's `dxy` led with `asset-row-USD Index|7-btn` (DXY
+`Indices`), the pick opened `INDEX DXY` 1h with 252 bars, `us2000` led with
+two `Indices` tiles and `us10y` with `US 10Y Yield` (see `sym-index`), AAPL
+opened on Trades (252 bars), and at a 900 x 700 window the speed dial
+`tb-interval-dial-big` stayed inside it (x 25 to 268). Before that, last
+DRIVEN on 2026-11-18 against product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`),
 lane `18103`, a guest JWT on the internal gateway: the V2 dialog (`v2` 20,
 `legacy` 0), `btc.d` leading with `asset-row-CRYPTOCAP|BTC.D-btn`, `us2000`
-listing IWM and a GATE_IO.F `US2000` perp (no index venue: `indices-otc` is
-dark), `asset-row-NVDA|4-btn` to NVDA on Trades (252 bars), a bare `5`
+listing IWM and a GATE_IO.F `US2000` perp (no index venue that night:
+`indices-otc` was dark for a guest until `03b9fb5888`), `asset-row-NVDA|4-btn` to NVDA on Trades (252 bars), a bare `5`
 switching `1h` to `30m` while `Alt+5` left it (see `tb-digit-keys`), and no
 `tb-options-btn`. Before that, last DRIVEN on 2026-11-17 against product tree `60b7e6b190` (`origin/main`,
 60 commits past `6bfc742bc8`), lane `18103`, a no-session lane on the
@@ -235,6 +242,9 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   all US exchanges, reads as the bare ticker, and offers no seconds intervals.
 - `sym-stock-link` a link with `?symbol=<a US stock>&feed=trades` opens that
   stock on its Trades feed.
+- `sym-index` a typed index, the dollar index or a Treasury yield (`DXY`,
+  `US2000`, `US10Y`) leads with its `Indices` tile for every session, guest
+  included, and the pick opens the index chart.
 - `sym-om-series` a pane holding the operator's own om series (`OM`
   `series:<id>`, pushed by the om daemon) lists it under `YOUR SERIES` in both
   pickers, and a pick switches back and repaints it with no daemon push.
@@ -765,6 +775,22 @@ Preconditions:
   another value or a non-stock symbol changes no feed (source). A Tape the
   person closed stays closed (see the panels guide, `rp-tape-closed`). The
   `stock-tape:opened` event (`via: 'link'`) goes to analytics only.
+- **`sym-index` (driven 2026-11-19 on `413f86e5af`; `03b9fb5888`).** Since
+  `03b9fb5888` the guest table `GUEST_DEFAULT_FLAGS` lists `indices-otc` as
+  `true` and the store publishes venue visibility for a guest
+  (`applyGuestFlags`), so a guest gets the index and yield venue that
+  signed-in accounts have had since 2026-11-17. Open the dialog
+  (`tb-symbol-info-btn`) and fill `symbol-selection-search-input`:
+  - `dxy`: first row `asset-row-USD Index|7-btn` `DXY USD Index Indices
+    103.879`, then the UUP fund. Its click opened `INDEX DXY` (legend `DXY USD
+    Index`) on 1h with 252 bars.
+  - `us2000`: `asset-row-US 2000|7-btn` (`US 2000 Indices 2,715.56`) and
+    `asset-row-US2000|7-btn` (`US2000 Indices 2,720.00`) before IWM. Two
+    `Indices` tiles showed for one name; which venue the second is was not
+    read.
+  - `us10y`: `asset-row-US 10Y Yield|7-btn` (`US10Y US 10Y Yield Indices
+    5.07%`) before a crypto `US10Y` and the `econ:us_treasury:us10y` row.
+  The `indices-otc` flag row stays the signed-in kill switch.
 - **`tb-price-precision` (driven 2026-11-17 on `60b7e6b190`).** Right-click
   the chart (`mouse move 600 400`, `mouse down right`, `mouse up right`) and
   pick `chart-ctx-settings` (`Chart settings…`): the floating `Main` panel

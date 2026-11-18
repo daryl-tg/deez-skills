@@ -7,6 +7,13 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-19 against product tree `413f86e5af` (`origin/main`, 184 commits past
+`cff04f9a01`, lane `18103`, a guest JWT with the backend answering):
+`global-nav-search-btn` and `release notes` to
+`super-search-result-settings:tab:notes-btn`, whose page led with `4.53.0`
+(82 versions) and, under the `pane-sides` dev override, with `4.56.0` (83;
+see `set-notes`), and `/chart/plus`'s broker answer in its plain wording (see
+`plans-page`). Before that, last DRIVEN on
 2026-11-18 against product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`, lane `18103`,
 a guest JWT on the internal gateway): `dark mode` to
 `super-search-result-themes:mode:dark-btn` (`Dark Mode OFF`) and back,
@@ -377,6 +384,15 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   switch and Remove rows do not.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
   `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  **Driven 2026-11-19 on `413f86e5af`:** a guest's page led with `4.53.0
+  Latest Spotlight The US tape.` (82 versions). With
+  `kiyo.flag-overrides` `{"pane-sides":true}` and a reload it led with
+  `4.56.0 Latest Spotlight Panes on any side. November 18, 2026` (83
+  versions). `4.56.0` (`92d1f0f188`) has the audience `pane-sides`, which
+  needs the flag on a desktop layout, so with the flag dark nobody gets it.
+  Its spotlight (`PanesLaunchHero`, CTA
+  `release-spotlight-panes-browse-layouts-btn`) opens once per established
+  account (source); a guest never gets a spotlight at boot.
   **Driven 2026-11-13 on `963af59de1`:** a guest's page still led with
   `4.53.0 Latest Spotlight The US tape.` and listed no `4.54.0`. `4.54.0`
   (`Alerts on drawings.`, `3b007b5f4f`) has the audience `drawing-alerts`,
@@ -576,7 +592,15 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   (source). Fill `clean look`: `settings:toggle:layout-look-clean-btn`
   (`Look: Clean OFF`, `d8a23b47d6`) is listed, and it acts only in a
   multi-chart layout, which a guest cannot open.
-- **`plans-page` (driven 2026-11-16 on `6bfc742bc8`; re-driven 2026-11-18 on
+- **`plans-page` (driven 2026-11-16 on `6bfc742bc8`; re-driven 2026-11-19 on
+  `413f86e5af`: `console-subscription-faq-q-10-btn` `My broker is connected.
+  What goes live?` expanded to its plain last sentence, `The heatmap, the DOM,
+  TPO and alerts stay 10 minutes delayed.` Since `37d2147e5e` that sentence
+  becomes the depth wording (`The DOM and the heatmap's newest columns are
+  live when your broker account has market depth; …`) where a connected
+  session may write the book (`isNinjaTraderDepthOn()` or
+  `isFuturesByofKindOn('book')`), which a guest never reads (source).
+  Re-driven 2026-11-18 on
   `cff04f9a01`: the Plus card with `50 indicator alerts` and `200 price
   alerts`, still no Ultimate card; an Ultimate card lists 1,000 price and 250
   indicator alerts since `5bdb3ba1fc`, source).** Open

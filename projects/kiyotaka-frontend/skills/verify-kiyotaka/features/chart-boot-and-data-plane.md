@@ -3,8 +3,15 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-18 against product tree `cff04f9a01`
-(`origin/main`, 79 commits past `60b7e6b190`), lane `18103`, a guest-JWT lane on the internal
+entry was last DRIVEN on 2026-11-19 against product tree `413f86e5af`
+(`origin/main`, 184 commits past `cff04f9a01`), lane `18103`, a guest-JWT
+lane with the backend answering (`doctor` passed twice in two): boot drew 250
+bars on COINBASE BTC-USD 1h with VWAP (`Indicators 1/3`, `Guest Mode`) and
+the candle countdown under the price tag with no stored choice (see
+`boot-countdown`), the footer's `RTH` word opened its session menu on AAPL
+(see `boot-footer-session`), and the tab drifted hidden once more (see
+Gotchas). Before that, last DRIVEN on 2026-11-18 against product tree
+`cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`), lane `18103`, a guest-JWT lane on the internal
 gateway with the backend answering again (the lane's refresh-token call
 `200`): boot drew 250 bars on COINBASE BTC-USD 1h with VWAP (`Indicators
 1/3`, `Guest Mode`, `__BOOT_ERRORS__` `[]`), the signup modal came first and
@@ -165,6 +172,11 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   strip above the ticker bar that says what is wrong and when it is back.
 - `boot-connection-card` the footer's connection button opens a card that
   says in words whether orders and prices arrive on time, slow or offline.
+- `boot-countdown` a chart with no stored choice shows the candle countdown
+  under the last price; a chart where it was switched off stays off, and a
+  calendar interval or a delayed feed shows none.
+- `boot-footer-session` on a market with extended hours, the footer's `RTH` /
+  `ETH` word opens a menu of both sessions with their hours.
 - `boot-notices` an admin's service notice shows as a banner over the chart,
   closes into a top-bar pill that opens the status list, and says when it is
   back to normal.
@@ -723,7 +735,8 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   then logged 13 `lifecycle-hidden-return` rows over the pass. Again
   2026-11-18: the clock froze at `20:13:48`, the Orderbook opened with an
   empty body and no TPO hover card would show; `tab t1` brought the ladder and
-  the card back.
+  the card back. Again 2026-11-19: the Orderbook opened with only its column
+  heads while `visibilityState` read `hidden`; `tab t1` filled the ladder.
 - **The v2 gateway is a tailnet-only name; when it stops resolving, every live
   surface goes quiet while candles still paint (seen 2026-11-01).** From about
   21:55 UTC `tsdb-gateway.int.ore.kiyotaka.ai` returned NXDOMAIN from the
@@ -773,6 +786,32 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   and prices arrive on time.`, the root's `data-net` `good` (`slow` on a slow
   network) and `connection-leg-ping` `Ping 13 ms`. `trade-network-mark`, the
   slow-network mark on desktop ticket title bars, needs a trading session.
+- **`boot-countdown` (driven 2026-11-19 on `413f86e5af`; `de94b0271b`).**
+  The countdown is drawn on the canvas, so the proof is the pixel frame: the
+  DOM corner `price-scale-corner-countdown` stays empty. With no stored
+  choice the tag under the last price read `11:02` on the boot COINBASE
+  BTC-USD 1h, `10:23` on INDEX DXY 1h and `38:40` on AAPL 1h. AAPL showed it
+  because this seat leaves the stocks plane unrouted (see the README's
+  Baseline preconditions), so no delayed tier applies. On a delayed feed (CME
+  10 minutes, the stocks tape 15) and on a calendar interval (`1M`, `3M`,
+  `6M`, `1Y`) `shownCandleCountdown` in
+  `src/utility/chart/candle-countdown.util.ts` holds it off (source). The
+  Super Search setting row and Apply to all charts read the same default
+  (source).
+- **`boot-footer-session` (driven 2026-11-19 on `413f86e5af`;
+  `5b02dfdcb9`).** The session word is a menu button, not a flip. On AAPL 1h,
+  `footer-session-toggle-btn` (text `RTH`, `aria-label` `Regular hours`,
+  `data-session` `regular`, `aria-haspopup` `menu`) opened
+  `footer-session-menu` (`role=menu`) with `footer-session-menu-row-regular`
+  (`RTH · 09:30 to 16:00 New York`, `aria-checked` true) and
+  `footer-session-menu-row-extended` (`ETH · 04:00 to 20:00 New York`).
+  Picking ETH set `data-session` `extended` and the word `ETH`, and the chart
+  reloaded (252 to 254 bars). A session the interval cannot use is disabled,
+  with a caption that it needs an intraday interval (source,
+  `FooterChartSessionMenu.vue`). `footer-back-adjust-toggle-btn` needs a CME
+  continuous chart, which this seat cannot open. Since `7ef0ab4bc6` a pane's
+  B-ADJ choice is kept per pane in localStorage `chart.backAdjustMemory`
+  through a detour to another market (source).
 - **A yellow strip replaced the chip (driven 2026-11-06 on `8bcd72f8f5`;
   `b2623958e8`, waits from `c16de1bf2e`).** `connection-strip`
   (`src/components/banners/ConnectionStrip.vue`, mounted in `ChartArea.vue`;

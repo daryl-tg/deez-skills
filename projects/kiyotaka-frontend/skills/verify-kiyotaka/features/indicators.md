@@ -4,7 +4,13 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-18 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-19 against
+product tree `413f86e5af` (`origin/main`, 184 commits past `cff04f9a01`), lane
+`18103`, a guest JWT with the backend answering: the slot card at `2/3` with
+no rows (see `ind-limit`), the dialog's `big trades` search, the pane-sides
+legend menu and a guest's move of a pane to the right under the dev override
+(see `ind-pane-sides`), and a spot-gated Net Longs & Shorts that kept its
+gate on a perp (see Gotchas). Before that, last DRIVEN on 2026-11-18 against
 product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`), lane `18103`, a guest JWT on the
 internal gateway: a programmatic `TIME_PRICE_OPPORTUNITY` (11 rows,
 `Indicators 2/3`) through a Dark flip, its `Block shape` term card, its typed
@@ -176,7 +182,18 @@ indicators were not driven.
   `tb-indicators-tip-room` (`2 left`, then `Full`). Driven 2026-11-16: `1 of 3
   slots`, `2 left`; at `2/3` the dialog's head read `1 slot left / Some larger
   indicators may no longer fit.` Ultimate's 40 per chart and 80 per workspace
-  are signed-in only.
+  are signed-in only. Since `52a152326b` the card lists who holds the slots
+  (`tb-indicators-tip-rows`, one `tb-indicators-tip-row` per indicator, then
+  `tb-indicators-tip-more`, `tb-indicators-tip-no-slot` and the heavy note
+  `tb-indicators-tip-foot`), but only when some indicator holds no slot or
+  more than one and the rows add up to the count (`slotTipRows` in
+  `src/utility/chart/slot-tip-rows.util.ts`). Driven 2026-11-19 with VWAP
+  and Net Longs & Shorts: `Indicators 2 of 3 slots 1 left` and no rows. The
+  rows themselves need a zero-slot or multi-slot indicator and are not
+  driven.
+- `ind-pane-sides` with the dark `pane-sides` flag, an indicator's own pane
+  moves left, right, above or below the chart from its legend's menu, and a
+  pane below takes a Classic or Clean look.
 - `ind-net-longs` Net Longs & Shorts (`OPEN_INTEREST_POSITIONS`,
   `fa22c19308`) splits open interest by the side that traded at market, perps
   only. A guest's dialog Add raises `indicators`, so mount it with
@@ -202,6 +219,27 @@ indicators were not driven.
 - `ind-oi-plot` Open Interest and Agg. Open Interest draw as Candles (the
   default) or as a Line of the closes, picked from the settings card's
   `Plot type`.
+
+- **`ind-pane-sides` (driven 2026-11-19 on `413f86e5af` under the dev
+  override; `de043a4789`, `ae7a5da789`).** The flag is dark: unminted, absent
+  and guest read off. On this lane
+  `localStorage.setItem('kiyo.flag-overrides','{"pane-sides":true}')` and a
+  reload made a guest's `feature-flags` store read `isOn('pane-sides')`
+  `true`. Mount Net Longs & Shorts on a perp (BINANCE.F BTCUSDT; on spot it is
+  gated hidden, see Gotchas). Hover its legend title
+  (`[data-legend-id^=OPEN_INTEREST_POSITIONS] .titan-charts-legend-title-text`)
+  so the row's buttons get a box, then click `.titan-charts-legend-more-btn`
+  (accessible name `More`) by its coordinates. `indicator-menu` opened with
+  `Settings…`, `Copy`, `Move to price pane`, the `place-menu-block`, `Scale`,
+  `Show on`, `Fold legend` and `Remove`. The block held `place-map` with
+  `place-map-left`, `-top`, `-bottom` and `-right`, and `pane-look-pair` with
+  `pane-look-classic` (`aria-checked` true) and `pane-look-clean`.
+  `place-map-right` raised no wall for the guest: the pane became a small
+  chart in a right-hand column and its settings read `panePlace` `{side:
+  right, order: 0}`. With the override, the Release Notes page leads with
+  `4.56.0` (see the Super Search guide's `set-notes`). Not driven: the Clean
+  look, the `Current period` scope, the greyed scope and display picks, the
+  column width grip and the hidden-for-space tag.
 
 ## How to get to it (user POV)
 
@@ -571,6 +609,20 @@ Preconditions:
   claim is about settings.
 
 ## Gotchas
+
+- **A spot-gated Net Longs & Shorts keeps its gate on a perp (driven
+  2026-11-19 on `413f86e5af`; possible product gap).** On COINBASE BTC-USD
+  1h a guest's `chartStore.addIndicator('OPEN_INTEREST_POSITIONS',{},0)`
+  mounted gated hidden, as the spot rule says. A switch through the symbol
+  dialog to BINANCE.F BTCUSDT (the store's exchange read
+  `BINANCE_FUTURES`) cleared its `errorMessage`, but the engine meta kept
+  `isHidden` and `isPaneHidden` `true`. The overlay gate module (imported in
+  the page through vite as
+  `/chart/src/utility/chart/overlay-gate-visibility.util.ts`) read
+  `overlayGates` `["mode"]`, while the workspace row's `isHidden` was
+  `false`. It held 25 s later and with the `pane-sides` override on and off.
+  The same indicator added directly on BINANCE.F drew its pane. Only the
+  programmatic mount was driven; the dialog Add walls a guest.
 
 - **New in `dced88e06a..943281a2eb`, source only, not driven:** CVD flow
   dominance and CVD draw a bar grey (no side) where the spot or perps leg did

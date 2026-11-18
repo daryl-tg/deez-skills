@@ -12,6 +12,13 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-19 on tree `413f86e5af` (`origin/main`, 184 commits past
+`cff04f9a01`, lane `18103`, a guest JWT): still unreachable.** The only testid
+holding `mic` was the search's `search-v2-category-economics-btn`. The index
+and yield venue is no longer dark (signed-in since 2026-11-17, guests since
+`03b9fb5888`), so the voice context's refusal of a last price on it
+(`chartCarriesIndexOtc`) now applies to live charts (source).
+
 **Re-driven 2026-11-18 on tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`, lane `18103`, a
 guest JWT): still unreachable.** No testid held `voice` or `mic` beyond the
 search's `economics` ones. In range, the voice context refuses a chart's last

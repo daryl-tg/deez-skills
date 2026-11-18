@@ -3,7 +3,12 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last DRIVEN 2026-11-18 on `cff04f9a01`
+lock, settings and delete. Last DRIVEN 2026-11-19 on `413f86e5af`
+(`origin/main`, 184 commits past `cff04f9a01`, lane `18103`, a guest JWT): a
+Long Position's one-pill bar with its Risk edit and More menu (see
+`dt-position-bar`), the Emoji picker put down by `Escape` (see
+`dt-picker-settle`), and a magnet-placed trend line point holding its candle
+time from 1m to 1h (see `dt-points`). Before that, last DRIVEN 2026-11-18 on `cff04f9a01`
 (`origin/main`, 79 commits past `60b7e6b190`, lane `18103`, a guest JWT, the internal gateway): on NVDA 1h a
 Horizontal Line's quick bar (17 `tqb-*` handles, the plain bell), its menu
 row `chart-ctx-drawing-alert` (`data-alert-state` `ready`) and Order
@@ -144,6 +149,11 @@ the cancelled creation, the right-click menu and the magnet.
   with the price under the pointer, a copy button and an alert button.
 - `dt-cursor-memory` the cursor group's pick (Crosshair or Arrow) holds across
   a reload: the chart engine starts on the remembered cursor (`f17e7dd90c`).
+- `dt-position-bar` a selected Long or Short Position gets a one-pill bar:
+  Risk, Settings, More and Remove, with Lock and Templates inside More; a
+  signed-in trader also gets an order button and an alert.
+- `dt-picker-settle` a picker tool (Emoji, Icon, Image) closed with nothing
+  picked is put down, and the toolbar returns to the cursor.
 - `dt-magnifier-chip` on a phone, a `Magnifier` switch sits beside the `Draw
   by holding` pen while a tool with a lens is armed (`d3537e5ac1`; phone
   only, source).
@@ -408,6 +418,32 @@ the top overlay cleared.
   `magnet` toggle restore the last strength instead of always `weak`
   (`useMagnetMode.ts`, localStorage `orange-tc-magnet-strength`): the first
   press on a fresh profile wrote `weak`.
+- **`dt-position-bar` (driven 2026-11-19 on `413f86e5af`; `a46a35a692`,
+  `b899aa9439`, `90ebc15657`).** Arm the tool with `find testid
+  "toolbar-item-longposition:tool-icon-btn" click` (the testid holds a
+  colon) and click the plot once. The selected `LongPosition` (3 points)
+  showed one pill: `tqb-risk` (`Risk 25%`, with `tqb-risk-btn` `25%`),
+  `tqb-settings-btn`, `tqb-more-btn` and `tqb-remove-btn`. It had no colour
+  swatches and no `tqb-lock-btn` on the bar. `tqb-more-btn` opened `tqb-lock-btn`,
+  `tqb-templates-btn`, `tqb-menu-clone`, `-copy`, `-front`, `-back` and the
+  four `tqb-menu-show-on-*` rows. `tqb-risk-btn` opened `tqb-risk-input`
+  (`inputmode` `decimal`, value `25`); filling `10` and `Enter` made the pill
+  read `Risk 10%`. `tqb-remove-btn` removed it. A guest gets no
+  `tqb-order-btn` (shown only when `isTradeOffered`, a signed-in trade rail)
+  and no alert pill. For a signed-in trader, the order button opens a draft
+  order with the take profit, stop loss and size from Risk, and never sends
+  (source, `ToolQuickBarOrderButton.vue`, `position-order.util.ts`). A
+  position placed in the past drew `SL hit` with a dashed line to the bar that
+  ended its trade (`ed86a661c9`).
+- **`dt-picker-settle` (driven 2026-11-19 on `413f86e5af`; `91f480aa42`).**
+  `find testid "toolbar-item-emoji:tool-icon-btn" click` opened the glyph
+  picker (`glyph-picker-cell-*` cells) and lit the button
+  (`tool-item__image--selected`). `Escape` closed the picker, unlit the Emoji
+  button and lit `toolbar-item-default-icon-btn` again; a chart click after
+  that drew nothing. A click outside and a cancelled image dialog settle the
+  same way, and a glyph picked before the close stays in hand (source,
+  `useToolSelection.ts` `settlePickerToolClose`). The picker's category tabs
+  (`glyph-picker-category-<id>-btn`) are navigation, never a pick.
 - **Favourite tools reorder by drag (source, `38af41350d`).** A favourite row
   carries `data-favorite-tool`, lifts 4 px and drops through
   `userStore.reorderFavoriteTools` (`ToolsItemWidget.vue`). A guest meets the
@@ -473,6 +509,19 @@ the top overlay cleared.
   17:20` and `Enter` stored `1794244800000`. After `tb-interval-pinned-1h-btn`
   (the card stayed open) filling `9 Nov 17:40` stored `1794246000000`, 17:40,
   not the 17:00 bar open. Arrows step one bar from the stored time (source).
+  **A magnet point holds its candle (`44c3fa5534`, `0f84e48619`; driven
+  2026-11-19 on `413f86e5af`).** A free placement still stores a time
+  between bars: a trend line on HIP-3 GOLD-USDC 1m stored
+  `1795024502880`. With `toolbar-item-magnet-icon-btn` on
+  (`tool-item__image--toggled`) the first point snapped to
+  `{price 3735.6, time 1795024560000}`, a whole minute, and read the same
+  after `tb-interval-pinned-1h-btn`. The engine writes the candle mark
+  (`xSpace: 'bar'`) only on a magnet placement and draws a marked point on
+  the candle that holds its time on every interval; `points` does not
+  expose the mark (the pin is
+  `tests/utility/chart/drawing-point-holds-candle.pin.spec.ts`). The app
+  keeps the mark through alert snap-back, undo and redo and the Points
+  editor (source).
   The field shows the footer's zone (UTC on the lane).
   **Paste lands where the pointer is (source).** A paste goes to the chart a
   menu names, else the chart under the pointer, else the active chart; with no

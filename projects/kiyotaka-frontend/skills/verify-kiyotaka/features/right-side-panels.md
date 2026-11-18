@@ -5,7 +5,13 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-18 against product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`), lane
+DRIVEN on 2026-11-19 against product tree `413f86e5af` (`origin/main`, 184
+commits past `cff04f9a01`), lane `18103`, a guest JWT with the backend
+answering: the Orderbook ladder on COINBASE BTC-USD (`Imbalance 54.4% bid`,
+once the tab, drifted hidden, was brought back), AAPL's Tape falling back to
+`AAPL/USD` `No trades for this market`, the crypto Tape's settings holding
+its per-print lines while rows are grouped (see the Tape's held settings),
+and no Options door. Before that, last DRIVEN on 2026-11-18 against product tree `cff04f9a01` (`origin/main`, 79 commits past `60b7e6b190`), lane
 `18103`, a guest JWT on the internal gateway: the Orderbook's Book ladder
 with its imbalance line on COINBASE BTC-USD (once the tab, drifted hidden,
 was brought back), NVDA's Tape falling back to `No trades for this market`,
@@ -349,7 +355,13 @@ an open panel.
   `Waiting for trades...`, `stock-tape-dark-pool` (`Today`, `Prints` and
   `Levels`, `stock-tape-dark-pool-resize-handle`), and
   `stock-tape-option-flow` (`No option trades of $1M premium or more`,
-  `stock-tape-option-flow-resize-handle`). The venue menu
+  `stock-tape-option-flow-resize-handle`). Since `2a551574a0` both sections
+  carry a size chip (`stock-tape-dark-pool-size-btn`, default `$1M+`) whose
+  `role=menu` list of six sizes is teleported to `body`; the empty line names
+  the size picked, the Dark pool floor can go under $1M (kept from
+  2026-11-16, older days show `stock-tape-dark-pool-not-kept`), and a day
+  holds up to 40,000 prints (source; live verification pending, the stocks
+  gate is unrouted on this seat). The venue menu
   (`stock-tape-venue-menu`) held only `stock-tape-venue-menu-all-btn` (checked):
   the venues come from the prints. **No print arrived**: the gate answered
   nothing for this guest (`StreamMarkets timed out after 15000ms`), the Dark
@@ -506,6 +518,16 @@ an open panel.
   with no version moves once: an old Vanilla or Flow look takes the one look
   and a stored `Each trade` reads as `1s`; a later `Each trade` pick sticks
   (source, `stock-tape-settings.util.ts`).
+  **Held while grouped (driven 2026-11-19 on `413f86e5af`; `f373fcd41e`).**
+  On the grouped crypto Tape the settings lines a grouped row does not read
+  are disabled with the title `Applies to Each trade`:
+  `stock-tape-setting-fade-small-toggle`, `-bigger-type-toggle`,
+  `-tags-toggle`, the `-size-in-*`, `-venue-*` and `-time-*` buttons, and the
+  `-hide-under-*` buttons (held while the sounds are off). Row color, the
+  Liquidations section and Sound stayed live. Row color is held only while
+  no docked section shows, and a docked section's place is never held
+  (source, `STOCK_TAPE_LINE_READERS` in `stock-tape-settings.util.ts`).
+  Picking `Each trade` makes the lines live again (source).
   Back on `Each trade`, a print's rows carry `cursor: pointer` and no
   `title`, and a mouse at rest on one raised `tape-trade-card` (`$231 Bought
   0.127 ETH at 1,822.02 Binance Futures 02:57:22.130`; the sentence is
