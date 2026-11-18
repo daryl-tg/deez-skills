@@ -1,8 +1,10 @@
 # Paper trading accounts
 
-*Driven 2026-11-16 (feature run, branch `daryl/paper-engine` at `d630c88743`, unmerged), lane on 18150 from source with a dummy `OM_API_KEY`, dead om service URLs, a scripted openai-compatible fake model and `OM_PAPER_PRICE_FIXTURE`. One judge answering a three-trade list booked three lots through one book step (`signal_index` 0 to 2), the SOL lot closed by its own exit, `paper show` printed `Fees`, `paper set --fee` changed one venue, `arm-prepare` answered `terminal_required` true then false as `paper.arm_from_chat` flipped, a scripted void refunded a Polymarket lot, six `paper.decision` events arrived, the Decisions table showed a Market column, and `om backtest` refused the book watch by step. Evidence: `http://127.0.0.1:8098/paper-engine-20261116/r1/`. These behaviours exist only on that branch until it merges.*
+*Re-driven 2026-11-19 (nightly), tree `1e71657cdd` (origin/main, v0.496.0+internal; #2575 merged as `14d78e17b9`), guest lane on 18188 through `bootstrap.internal.ts`. First live proofs on main: `paper show --format json` carries `fees` `{polymarket:0, hyperliquid:4.5, market_data:5}` on a new account, the text form prints `Fees: polymarket 0 bps, hyperliquid 4.5 bps, market data 5 bps`; `paper set --fee hyperliquid=2 --fee polymarket=1 --yes` and `paper create --fee polymarket=3 --yes` store theirs (a second `show` agrees); `--fee hyperliquid=`, `bogus=1` and `hyperliquid=1001` are each exit 2 `paper_fee_invalid`; `log --outcome adjusted` reads `{entries:[],next_cursor:null}`; `paper open fee-book --yes` booked a Hyperliquid ETH lot off the public mid, its `paper log` entry and the `/events/v1` `paper.decision` event both carry `market:{venue:"hyperliquid",id:"ETH",label:"Hyperliquid ETH"}`, and the Paper tab's Open lots and Decisions tables both read `Hyperliquid ETH` under MARKET; `event push` into the desk is exit 2 `paper_desk_doorless`; `arm-prepare` on an imported book chain answers `terminal_required:true` with the paper reason, `false` with `paper.arm_from_chat on`, and `true` again after `off`; `backtest run` on that watch is `backtest_unsupported_step`. Not re-driven: a list answer, settlement, the digest's lot counts, `watch execute history`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261119/r1/` (`cli/40-47`, `02-paper-tab.png`).*
 
-*Driven 2026-11-16 (feature run, branch `daryl/paper-multi-signal`, commit `e114cc338d`, unmerged), guest lane on 18150 from source. First live proof of booking: `paper open --yes` (arms the desk, books one Hyperliquid lot off the public mid), an imported watch with one inputless `book` step armed by `watch arm --yes`, and one `event push` whose text is a JSON array of two signals, booking two lots (`money_invocations` `signal_index` 0 and 1). The second lot closed on its own `max_hold_secs` exit under `signal_index 1, leg 1`, and the Paper tab's Decisions table agreed. Evidence: `http://127.0.0.1:8098/paper-multi-signal-20261116/r1/`. The array answer and `signal_index` exist only on that branch until it merges.*
+*Driven 2026-11-16 (feature run, branch `daryl/paper-engine` at `d630c88743`, unmerged), lane on 18150 from source with a dummy `OM_API_KEY`, dead om service URLs, a scripted openai-compatible fake model and `OM_PAPER_PRICE_FIXTURE`. One judge answering a three-trade list booked three lots through one book step (`signal_index` 0 to 2), the SOL lot closed by its own exit, `paper show` printed `Fees`, `paper set --fee` changed one venue, `arm-prepare` answered `terminal_required` true then false as `paper.arm_from_chat` flipped, a scripted void refunded a Polymarket lot, six `paper.decision` events arrived, the Decisions table showed a Market column, and `om backtest` refused the book watch by step. Evidence: `http://127.0.0.1:8098/paper-engine-20261116/r1/`. These merged with #2575 (`14d78e17b9`).*
+
+*Driven 2026-11-16 (feature run, branch `daryl/paper-multi-signal`, commit `e114cc338d`, unmerged), guest lane on 18150 from source. First live proof of booking: `paper open --yes` (arms the desk, books one Hyperliquid lot off the public mid), an imported watch with one inputless `book` step armed by `watch arm --yes`, and one `event push` whose text is a JSON array of two signals, booking two lots (`money_invocations` `signal_index` 0 and 1). The second lot closed on its own `max_hold_secs` exit under `signal_index 1, leg 1`, and the Paper tab's Decisions table agreed. Evidence: `http://127.0.0.1:8098/paper-multi-signal-20261116/r1/`. The array answer and `signal_index` merged with #2575.*
 
 *Re-driven 2026-11-16 (nightly), tree `53885683de` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (PR #24's wrapper), booted with no guest 429. `create --yes`, `create` without `--yes` (exit 2), `ls`, `show`, `digest --format text`, `show nope` (`paper_book_unknown`), bare `om paper` (lists, like `ls`). First live proofs: `set --ticket 10 --yes`, `log` (empty, and `--outcome bogus` exit 2 `invalid_options`), `digest-set on --cadence weekly --yes` (exit 2 `paper_digest_day`), `open --signal '{bad'` (exit 2 `paper_signal_invalid`) and `reset --yes` (`generation 1`). Not driven: the Paper tab. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261116/r1/`.*
 
@@ -58,6 +60,9 @@ product's money-shaped surfaces, because none of it is money.
 - `paper-ls` lists accounts with cash, open lots, staked, open value and P&L.
 - `paper-tab` renders the same accounts in the dashboard.
 - `paper-desk` is the per-account automation switch, `off` on a new account.
+- `paper-fees` (#2575, live 2026-11-19): each account charges a fee per venue in bps, shown as `Fees:` on `show`, `set` and the TUI paper card; `create` and `set` take `--fee <venue>=<bps>`, and new rules and fees apply from the next booking.
+- `paper-decisions` (#2575, live 2026-11-19): each decision carries its market (`paper log` text adds `Hyperliquid ETH`, JSON `market:{venue,id,label}`), the daemon publishes `paper.decision` on `/events/v1`, and the dashboard's Decisions table gains a MARKET column (Open lots shows the same label).
+- `paper-arm-from-chat` (#2575, live 2026-11-19): `paper.arm_from_chat` (default `off`) decides whether a paper chain arms from a chat card or only at the terminal.
 - `paper-digest` renders the digest now, without posting it. The all-accounts form opens with a `Steps:` paragraph: `Steps: none`, or the step count with `Holding` and `Realized`. Each account block may add `Step: <id> of <watch>` rows for target-step lots (#2192).
 
 ## How to get to it (user POV)
@@ -82,7 +87,7 @@ credential, no venue.
 - **Show one book.** `control-om om -- paper show verify-book --format json`
   returns `account` (`id`, `name`, `cash`, `starting_cash`, `generation`,
   `venue`, `holds`), `rules` (`ticket 25`, `ticket_cap 50`, `entries_per_day
-  4`, `open_stakes 250`, `one_position_per_market`), `lots: []` and `desk`
+  4`, `open_stakes 250`, `one_position_per_market`), `fees` (bps per venue: `polymarket`, `hyperliquid`, `market_data`; a new account starts at 0, 4.5 and 5, an account made before #2575 holds 0 for each), `lots: []` and `desk`
   (driven 2026-10-28). Each lot carries its `exit`. Since #2176, a target
   step rests the package's nearest closing stop and limit there
   (`{"sl_price", "tp_price"}`), and the `paper-exits` loop fills them when the
@@ -114,17 +119,17 @@ credential, no venue.
   arms the desk watch and books one lot through the errands money lane
   (`[errands-money] delivered … --book` in the lane log).
 - **The desk takes hand trades only.** A plain `event push` into
-  `paper-desk-<uuid>` fails with `the pipeline could not keep the event`.
+  `paper-desk-<uuid>` exits 2 `paper_desk_doorless` (`a paper account's desk takes hand trades only (om paper open); the event was NOT stored`, hint `Place a hand trade with paper_open or paper_close.`; the ingest door answers 409 with the same body).
   To drive a book step, import a watch with one inbound `accept_all`
   source and one money step `{"mode":"book","account","account_id"}` with no
   `input`, then `watch arm <slug> --yes`. Its row text is parsed as the
-  signal (or a JSON array of signals, on `daryl/paper-multi-signal`).
+  signal, or a JSON array of up to 10 signals, each booked as its own lot.
 - **Read the claims.** `sqlite3 <lane home>/om.sqlite "select root_row_id,
   signal_index, leg_index, state, json_extract(receipt,'$.outcome') from
   money_invocations"`. An exit close appears as the next `leg_index` under
   the lot's own `signal_index`.
 - **Drive a judge-fed book chain.** An unattended ai step refuses a guest sign-in (`credential unusable for unattended work`). Boot with `--env OM_API_KEY=om_dummy_proto`, the om service URLs at `http://127.0.0.1:9`, and `OPENMARKET_LLM_PROVIDER=openai-compatible`, `OPENMARKET_LLM_BASE_URL`, `OPENMARKET_LLM_MODEL`, `OPENMARKET_LLM_API_KEY` pointing at a scratch fake model. Export the same LLM variables in the shell that runs `control-om om -- watch arm`: the arm seals the model in the CLI process, so a daemon-only `--env` answers `no LLM is configured on this home`. Hyperliquid paper prices come from Hyperliquid's own public API, so the dead om URLs do not stop a booking.
-- **Arm review over RPC.** `POST /rpc/v1/watch/arm-prepare {watch, chain_id}` with `Authorization: Bearer <lane runner.token>` answers `terminal_required` and `terminal_reason`; the chain id is `data.watch.chains[0].id` from `POST /rpc/v1/watch/show`.
+- **Arm review over RPC.** `POST /rpc/v1/watch/arm-prepare {watch, chain_id}` with `Authorization: Bearer <lane runner.token>` answers `terminal_required` and `terminal_reason`. A paper chain (book or target steps) answers `true` with `These steps trade on paper: approve at the installing machine's terminal, or turn on paper.arm_from_chat.` until `om config set paper.arm_from_chat on`, then `false` (live 2026-11-19); a money chain keeps `Money steps require approval on the installing machine's terminal.`, and `paper.auto_arm` answers a chat arm card only while `arm_from_chat` is on; the chain id is `data.watch.chains[0].id` from `POST /rpc/v1/watch/show`.
 - **Script a resolution.** `OM_PAPER_PRICE_FIXTURE` is re-read on every quote and resolution check; a key `pm:<condition>` set to `{"resolution":"void"}` (or `"open"`, or `{"resolution":"resolved","winner":"Yes"}`) settles that market's lots within one exit-lane pass, and `pm:<condition>:<outcome>` sets its price.
 - **Get the Paper tab.** It needs `bun run build:dashboard` in the worktree
   and a lane restart (`control-om down`, then `up`, which keeps the home).
@@ -142,8 +147,11 @@ credential, no venue.
   changes, so a driver waiting for activity on a fresh book waits forever.
 - `log`, `set` and `reset` were driven at `db6e76ef5` and again 2026-11-16
   (shapes in the stamps). `reset` without `--yes` is refused with
-  `confirmation_required`. `set` takes `--rename`, `--ticket`, `--entries`
-  and `--open-stakes`; `log` takes `--outcome opened|skipped|closed|reviewed`,
+  `confirmation_required`. `set` takes `--rename`, `--ticket`, `--entries`,
+  `--open-stakes` and a repeatable `--fee <venue>=<bps>` (0 to 1000; `create`
+  takes `--fee` too, and a bad one is exit 2 `paper_fee_invalid`, hint `Venues:
+  polymarket, hyperliquid, market_data. Bps: 0 to 1000. Example: --fee
+  hyperliquid=4.5`); `log` takes `--outcome opened|skipped|closed|reviewed|adjusted`,
   `--watch`, `--limit` and `--cursor`. Driven refusals: `log --outcome bogus`
   (exit 2 `invalid_options`), `digest-set on --cadence weekly` with no `--day`
   (exit 2 `paper_digest_day`, hint `--day fri`), `open --signal '<not JSON>'`

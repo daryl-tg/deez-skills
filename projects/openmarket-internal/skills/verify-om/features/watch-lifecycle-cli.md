@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Re-driven 2026-11-19 (nightly), `watch roster` only, tree `1e71657cdd` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. First live proof of #2581's `om watch roster`: `No watches.` on a fresh home (and `{"watches":[],"total":0}`); with three watches, one row each (`nightly-probe-b  nightly-probe-b  timer every hour`); `--limit 1` ends `1 of 3 shown. Next: om watch roster --limit 1 --cursor nightly-probe-a`, and that cursor answers the next row; `--limit 0` is exit 2 `Invalid --limit '0': must be a positive integer`, `--limit 201` exit 2 `limit: Too big: expected number to be <=200`; with three paper desks on the home the roster leaves them out and a book watch reads `steps: money`. Over MCP `watch_roster` is on the full face and behind `read` on the lean one. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261119/r1/` (`cli/12-13`).*
+
 *Re-driven 2026-11-16 (nightly), tree `53885683de` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (PR #24's wrapper), booted with no guest 429. Newly driven: a strategy package backtest end to end (`wrun create --template strategy-ma-cross`, `wrun build`, `install`, `backtest run @vom/macross --asset BINANCE:BTCUSDT`, exit 0, 2 trades, no `declared.pointValue`) and the CME refusal `license_display_only`; see "Backtest an Indicator strategy package". Not re-driven: the rest of this guide. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261116/r1/`.*
 
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429. `watch create --inbound`, `watch edit --classifier-mode accept_all`, `pause`, `resume`, `history`, `remove` without `--yes` (refused, names the 0 rows it deletes) and with it; `watch amend` with no event id is `missing required argument 'event-id'`. Not re-driven: timers, conditions, upstream stand-down. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
@@ -57,6 +59,7 @@ whole lifecycle is provable on a guest lane.
   `--every`, `--upstream`, `--stream-ref`).
 - `watch-list` shows one row per watch with status and last fire.
 - `watch-show` reads one watch: status per part, steps, sources, channel.
+- `watch-roster` (#2581, live 2026-11-19): `om watch roster [--limit 1..200] [--cursor <id>] [--format text|json]` lists every watch in one slim row, `<id>  <label>  [off]  [folder: g]  [package]  <kind subject; ...> (+N more)  steps: a, b`, paged in watch-id order (default 100; a page short of the total ends `N of T shown. Next: om watch roster --limit L --cursor <id>`). JSON is `{watches:[{id,slug,label,enabled,group,kinds,package,sources:[{kind,subject}],more_sources?,steps}],total,next_cursor?}`. Paper desks are left out. The cursor is any id, not checked: `--cursor nope` prints `No watches.` (nothing sorts after it) and `--cursor a` starts at the first watch. It reads only the watch files: no model, network or database. A model step reads it by default, and `agent_create` can grant it (source).
 - `watch-create` also accepts bands, multiple sources and inline steps; the
   simple inbound recipe does not cover those combinations.
 - `event-tools` include `history`, `export`, `backfill`, `reclassify`,
@@ -73,7 +76,7 @@ whole lifecycle is provable on a guest lane.
 
 - `om watch <sentence>` composes a set from natural language (needs a model).
 - `om watch create <label> --inbound` builds one directly, no model involved.
-- `om watch list`, `om watch show <id>`, `om watch pause|resume|remove <id>`.
+- `om watch list`, `om watch roster`, `om watch show <id>`, `om watch pause|resume|remove <id>`.
 
 ## Driving it with control-om
 

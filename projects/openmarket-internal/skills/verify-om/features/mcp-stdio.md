@@ -1,5 +1,7 @@
 # The capability layer over MCP (stdio)
 
+*Re-driven 2026-11-19 (nightly), tree `1e71657cdd` (origin/main, v0.496.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (the guest mint failed at boot; reads re-minted). The full face lists **492** tools (491 before): `watch_roster` is new (#2581) and `plan_facts` (#2558) is not served (`Tool plan_facts not found`). `watch_roster {limit:1}` answers one row with `total` and `next_cursor`; `{limit:0}` is `invalid_arguments`. First live proof of #2562 on the lean face: it lists **8** tools (`find`, `describe`, `read`, `change`, `watch_list`, `watching_overview`, `watch_show`, `memory_search`; 9,286 schema characters), and the `initialize` instructions open with the `find` sentence and an `Also listed, called by their own name:` line. `find {query:"watch roster"}` ranks `watch_roster` first and `read watch_roster` runs it. Zero non-JSON lines on stdout. Not re-driven: the arm, loopback HTTP. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261119/r1/` (`cli/10-mcp-full.json`, `cli/11-mcp-lean.json`, `cli/14-mcp-lean-instructions.txt`).*
+
 *Re-driven 2026-11-17 (nightly), tree `8e350d253a` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts`; the guest sign-in was rate limited (429) for this whole pass, which no stdio call here needs. First live proofs of the lean face (#2502) and the session-bound arm (#2478, #2515): `mcp serve --stdio --no-fire-bridge --face lean` lists **4** tools (`find`, `describe`, `read`, `change`, 2,008 schema characters) against the full face's **490** (958,117); `find {}` counts 490 tools in 20 categories; `read watch_list` answers text rows; `not_a_read`, `unknown_tool` and `invalid_input` refusals; `change order_place` reaches the capital gate (`capital_yolo_harness`); `change watch_mute` runs with no card. Loopback `--http` answers `order_place` with `capital_no_session`. `om mcp arms`, `disarm` and the three `arm` refusals (`mcp-lean-face`, `mcp-arm-session`). Not driven: a successful arm, the 40,000-character cut (no lane answer is that long), `om setup`/`om connect` writing `--face lean`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261117/r1/` (`cli/mcp-lean*.txt`, `cli/mcp-arm*.txt`, `cli/mcp-http-capital.txt`).*
 
 *Re-driven 2026-11-15 (nightly), tree `5a4cb146d4` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. `mcp serve --stdio --no-fire-bridge`: server `openmarket` 0.495.0, **490** tools (491 before #2500): `room_todo_board` is gone, and a `tools/call` to it is `isError` `tool_failed` `MCP error -32602: Tool room_todo_board not found`; the 13 `todo_*` tools remain. `watch_list` answered. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261115/r1/` (`cli/mcp-stdio.txt`).*
@@ -68,14 +70,19 @@ mid-call never places an order on its own.
   The gate's order: an off-box session, then `capital_yolo_harness` (an
   auto-approve ancestor), then `capital_no_session` (no server process an arm
   can name: every loopback `--http` session), then `capital_not_armed`.
-- `mcp-lean-face` (#2502, added 2026-11-17): `om mcp serve --stdio --face lean`
-  lists four tools instead of the whole catalog. `find` with no arguments counts
+- `mcp-lean-face` (#2502, added 2026-11-17; #2562 adds the direct reads,
+  live 2026-11-19): `om mcp serve --stdio --face lean` lists 8 tools instead of
+  the whole catalog: the four doors below plus `watch_list`,
+  `watching_overview`, `watch_show` and `memory_search`, each called by its own
+  name as the full face lists it. `find` with no arguments counts
   the tools per category (`{categories, total}`); `find {query}` ranks matches
   `{name, category, summary, kind}`, `kind` being `read` or `change`; `describe
   {name}` answers one tool's description and input schema; `read {name, args}`
   runs a read and `change {name, args}` runs anything else through the same
-  gates as a call by name. The `initialize` instructions open `This server
-  lists four tools: ...`. The default face is still `full`. `--face` is
+  gates as a call by name. The `initialize` instructions open `` `find` searches
+  every OpenMarket tool this server serves, ... `` and add `Also listed, called
+  by their own name: ...` with the four reads, naming only tools the server serves
+  (a badge-only session lists the four doors alone, source only). The default face is still `full`. `--face` is
   stdio-only: `--http ... --face lean` exits 2 `face_stdio_only`, and a bad value
   exits 2 `invalid_face: --face takes 'full' or 'lean', got '<x>'`.
 - `mcp-stdio-answers` (#2502, source only): every stdio answer is at most 40,000
