@@ -242,7 +242,7 @@ template for its waits.
 ### Occupancy on the sidebar row (added 2026-11-09)
 
 The Open World sidebar row shows a walker count from `session.worldPresenceFor`
-(`Sidebar.tsx:4120-4151`). Neither shell fixture stubs it, and only `/rooms/`
+(`Sidebar.tsx:3996-4027`). Neither shell fixture stubs it, and only `/rooms/`
 mounts the row (`daemonFeatures` is false on `/chat/`). Seed it with an
 `Object.prototype` stub beside the people stub:
 

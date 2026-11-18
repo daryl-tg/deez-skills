@@ -47,7 +47,7 @@ present in this lane; Archive is the newest. **`?lens=agents` renders on both
 hosts since `e7c375ce`.** It crashed on `/rooms/` through 2026-11-03 ("Your
 Library could not load", `TypeError … reading 'tone'` in `LibraryPersonaCard`):
 the shell fixture never stubs `session.libraryDaemon`, so the autofill proxy
-answers `INERT` (`shell-fixture.tsx:2612-2617`), `LibraryView.tsx:6967` takes the
+answers `INERT` (`shell-fixture.tsx:2700-2705`), `LibraryView.tsx:6967` takes the
 `ready` branch, and `personaStatusPresentation` matched no state. It now has a
 `default` branch, "Unknown status" (`LibraryView.tsx:6164-6196`), and the
 production client no longer rejects unlisted states (`src/lib/om-daemon.ts:1393`
@@ -119,11 +119,11 @@ Other seeding routes confirmed present in the fixture: `?docs=500` (a
 writes `localStorage["om.chat.libraryList"]` and the `else` branch at
 `:137-138` removes it, so the next load without the parameter clears it;
 measured live: `flat`, then `null`), `?note=long|wrapped`, and
-`?libraryState=error` (`:4301`, applied only while the active view is library).
+`?libraryState=error` (`:4384`, applied only while the active view is library).
 
 ### Import folder and the library to-dos lens (added 2026-10-27)
 
-- **Import folder:** `shell-fixture.html?view=home&alerts=quiet&homeImport=open` opens dialog **Import folder into Your Library** on `/rooms/`. On `/chat/` the same URL showed no dialog. `import=<phase>` (`shell-fixture.tsx:4253`) seeds later phases, which were not driven.
+- **Import folder:** `shell-fixture.html?view=home&alerts=quiet&homeImport=open` opens dialog **Import folder into Your Library** on `/rooms/`. On `/chat/` the same URL showed no dialog. `import=<phase>` (`shell-fixture.tsx:4336`) seeds later phases, which were not driven.
 - **No conversation To-dos panel.** `05df35a7` removed it, its cached skeleton, the promote popover and the create dialog. The shell's `?panel=todos` mounts the lazy surface `Tickets` (`lazy-surfaces.tsx:233-236`) only on a Projects server (`RightPanels.tsx:446-447`). On a bare fixture it opens nothing: no aside, and no "could not load" text. With the Projects stub it is the **Tickets in #ops** panel. Both were driven 2026-11-15 on both hosts. The gallery's `fixture.html?surface=conversation-qol` now shows only the `#product-feedback` conversation, with no to-dos tab and no **Add a to-do** (driven 2026-11-15, both hosts).
 
 - **Library to-dos lens per host:** `?view=library&lens=todos` routes to `#/library/todos` on `/rooms/`, where the **Todos** heading reads **2 open** and lists "Review the launch checklist" and "Share the customer notes" (driven 2026-11-15). Since `f6a1c31b` the count is the open tasks the lens lists. On `/chat/` it routes to `/chat/library/todos` and shows the cloud fixture's own seed instead: a **Todos** heading with **1 open** beside it and "Share the customer notes". The two read as "Todos · 1 open" on screen but are separate text nodes, so `innerText.includes("Todos · 1 open")` is false; assert "1 open" and "Share the customer notes" (re-measured 2026-11-02 on `/chat/`). Both seeds are fine; assert the right one for each host.
@@ -144,9 +144,9 @@ rename, Make read-only, Archive and Delete. Escape closes it. The full page's
 
 The verbs are not proved: `setDocReadOnly` and `setDocRestriction` are
 unstubbed. The `/chat/` fixture stubs `openDocMenu` as a no-op
-(`apps/cloud/tools/visual/shell-fixture.tsx:2407`), so no menu opens there.
+(`apps/cloud/tools/visual/shell-fixture.tsx:2406`), so no menu opens there.
 The **Set topic index...** picker (`DocIndexPicker.tsx`) has no fixture route
-(`docIndexPicker: null`, `shell-fixture.tsx:4238`).
+(`docIndexPicker: null`, `shell-fixture.tsx:4321`).
 
 Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, absence on `/chat/`). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`doc-menu-*`).
 
@@ -171,10 +171,10 @@ Driven 2026-11-08: the row on `/rooms/`, its absence on `/chat/`.
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
 with `data-daily-note-day` set to the local day, `LibraryView.tsx:3226-3234`;
 the add menu lists it as **Daily note**, `:3762`, `:4133`; the `d` key at
-`:1771`) calls `session.openDailyNote()` (`:1602`; `lib/session.ts:36829`),
+`:1771`) calls `session.openDailyNote()` (`:1602`; `lib/session.ts:36959`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
-no doc pane, no `.library-daily-note` section (`:6279`), no toast, hash still
+no doc pane, no `.library-daily-note` section (`:6324`), no toast, hash still
 `#/library`. Driven 2026-11-01 on `/rooms/` at `936f5b64`. The daily note
 itself is live verification pending.
 
@@ -249,10 +249,10 @@ agent-browser eval "$D"                                   # mode "view", editor 
 Send ex commands one key at a time with `press`. `agent-browser keyboard type
 ":w"` inserts the literal text into the document, because it bypasses the Vim
 keymap, even in normal mode. `:w` cannot be proved here. The fixture's
-`session.docs` stub (`shell-fixture.tsx:4019-4095`) has no `publish` method, so
+`session.docs` stub (`shell-fixture.tsx:4102-4178`) has no `publish` method, so
 `:w`, like the **Publish** button, calls a method that does not exist. Driven,
 Publish stayed enabled and `fixtureDocDirty` stayed `true`. (The
-"Fixture publish is not configured" stub at `:4368` belongs to the checkpoint
+"Fixture publish is not configured" stub at `:4451` belongs to the checkpoint
 restore store, not to this pane.)
 
 ## Doc reader select-all

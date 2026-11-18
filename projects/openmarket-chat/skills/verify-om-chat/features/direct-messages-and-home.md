@@ -17,7 +17,7 @@ conversation, and the friends surfaces that feed it.
 - Inbox and message search openers — **mobile only**, see Gotchas.
 - Edit a group DM's name and picture, and add a mutual connection to it (`RenameGroupDmModal.tsx`, `AddGroupMemberModal.tsx`). Since `5607d23e` any member who may rename can also set or remove a group picture, which `GroupFaces` draws on the DM list row, the conversation header and the rail tile instead of the stacked member faces; with no picture, or a picture that fails to load, the stacked faces stay.
 - **Typing indicator**: "ana is typing" above a DM composer (needs an `ephemeral` stub; `dmTyping=peer` is stale).
-- **Change Name** (`NameEditModal`, `Modals.tsx:691`, mounted at `Shell.tsx:4820`): your display name everywhere, or a nickname in one server, with **Clear nickname** and **Save**.
+- **Change Name** (`NameEditModal`, `Modals.tsx:708`, mounted at `Shell.tsx:4820`): your display name everywhere, or a nickname in one server, with **Clear nickname** and **Save**.
 
 ## How to get to it (user POV)
 
@@ -41,7 +41,7 @@ Routes:
 |---|---|
 | `?view=home` | Home landing surface |
 | `?view=dm&dm=ana` | One DM conversation (`dm=` picks the peer; defaults to `ana`) |
-| `?view=dm&dm=OM%20chatters` | Seeded group DM with link/file messages and a driveable Members panel |
+| `?view=dm&dm=OM%20chatters` | Seeded group DM with link/file messages and a driveable Members panel (`/rooms/` only: the `/chat/` fixture has no OM chatters seed, so the same query opens an empty DM that reads **Loading messages in OM chatters**, 2026-11-19) |
 | `?view=dm&dm=OM%20chatters&panel=members` | The same group DM with Members already open |
 | `?view=friends&tab=connections` | Connections — the default, an empty state |
 | `?view=friends&tab=requests` | Requests (what this file used to call Pending) |
@@ -78,8 +78,8 @@ agent-browser find role button click --name "save"
 agent-browser eval 'document.documentElement.dataset.fixtureMermaidEdit'
 ```
 
-The last command returns the literal `dm-saved` (`shell-fixture.tsx:3608`); a
-channel edit writes `channel-saved` to the same key (`:3585`). There is no
+The last command returns the literal `dm-saved` (`shell-fixture.tsx:3691`); a
+channel edit writes `channel-saved` to the same key (`:3668`). There is no
 `fixtureDmEdit` key, and the value carries no conversation or message id.
 Measured at `f7d7c987`. `More` only appears while the row is hovered, so mark
 the row first, then hover it:
@@ -134,7 +134,7 @@ seeded presence state — a good second observation alongside the route.
 
 ### Group DM name, picture and add (added 2026-10-27; picture since `5607d23e`)
 
-The shell fixture seeds a group DM named **OM chatters**, owned by the viewer `u1` (`shell-fixture.tsx:2037-2043`).
+The `/rooms/` shell fixture seeds a group DM named **OM chatters**, owned by the viewer `u1` (`shell-fixture.tsx:2086-2092`).
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=dm&dm=OM%20chatters&alerts=quiet')"
@@ -147,7 +147,7 @@ agent-browser find role button click --name "Add someone"   # dialog "Add to gro
 
 `addGroupDmMember` and rename resolve to INERT no-ops, so a name save proves nothing. The dialog was **Rename group** until `5607d23e`; a `find title "Rename group"` now misses.
 
-**Group picture.** Each face cluster is `.group-faces` with `data-faces="picture"` or the member count (`data-faces="2"` for OM chatters). The fixture's `session.groupIcons` stub (`shell-fixture.tsx:3393-3404`) keeps the picture locally, because there is no relay:
+**Group picture.** Each face cluster is `.group-faces` with `data-faces="picture"` or the member count (`data-faces="2"` for OM chatters). The fixture's `session.groupIcons` stub (`shell-fixture.tsx:3476-3487`) keeps the picture locally, because there is no relay:
 
 - Choosing a file previews it in the well (`img.icon-well-img`, a `blob:` URL). **Save** closes the dialog and the header cluster switches to `data-faces="picture"`; the DM list row and the rail tile keep the stacked faces until the next load, because the stub does not notify the list. That is a fixture limit, not the product.
 - **Remove picture** then **Save** puts the header back to `data-faces="2"`.
@@ -172,7 +172,7 @@ seeded panel never opens. That is the phone default above, not a fault.
 
 ### New DM, Create or join a server, Getting started (added 2026-10-28)
 
-- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:747`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4483`); the old `NewDmModal` was deleted in `228c35f9`. The sidebar DMS header `+` (**New message**, `Sidebar.tsx:4248`) opens the same **New Message** dialog, and Escape returns focus to the `+`. It lives in the DMS group, which the sidebar shows on `?view=dm` and `?view=home`, not on `?view=room`. Driven on both hosts 2026-10-29. Starting the DM needs the daemon-pair lane.
+- **New DM:** on `shell-fixture.html?view=home&alerts=quiet`, button **New DM** (`HomeHub.tsx:747`) opens a dialog named **New Message**. It has textbox **Search connections** and the four seeded connections ana, dax, mira and rho (`NewMessageModal.tsx:250`). Shell mounts `NewMessageModal` (`Shell.tsx:4483`); the old `NewDmModal` was deleted in `228c35f9`. The sidebar DMS header `+` (**New message**, `Sidebar.tsx:4124`) opens the same **New Message** dialog, and Escape returns focus to the `+`. It lives in the DMS group, which the sidebar shows on `?view=dm` and `?view=home`, not on `?view=room`. Driven on both hosts 2026-10-29. Starting the DM needs the daemon-pair lane.
 - **Create or join a server:** the rail button **Create or join a server** (`Shell.tsx:4156`) opens a dialog named **Create or Join a Server**, with **Create a server** and **Join with invite link** (`Modals.tsx:119-160`). **Create a server** moves to **Create your server**, with **Server name**, **Back** and **Create server**. Creating a server, and the channel, topic and doc modals, were not driven.
 - **Getting started checklist:** the checklist shows only for an enrolled account or a first-run candidate with zero spaces and zero DMs (`HomeHub.tsx:621-625`, `:284`), and the fixture always has spaces. Seed it in the browser before loading Home:
 
@@ -191,17 +191,17 @@ Verified 2026-10-28 at `2dd7aad1` on `/rooms/` and `/chat/` (nightly maintenance
 
 ### Create Category name prompt (added 2026-10-28)
 
-On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:38`) opens `NamePromptModal` (`Modals.tsx:162`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2427`, `:6153`) and was not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu). The fixture leaves that unstubbed, with `nameEditPrompt: null` (`shell-fixture.tsx:3099`), so seed it instead (next section). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
+On `shell-fixture.html?view=room&alerts=quiet`, open the sidebar server header button **Thanefield Capital**. Its menu lists Read, Mute, Invite, Server Settings, Create Channel, **Create Category**, Server Library, Open World, Clean up topics (`/rooms/` only), Notification Settings, the mute durations, Leave Server and Copy server ID. **Create Category** (`ServerMenu.tsx:38`) opens `NamePromptModal` (`Modals.tsx:163`) as a dialog named **Create Category**, with the hint "Shows as a separator in the sidebar…", focus in the **Category name** input and a **Create Category** button. Escape closes it. Submitting calls `createCategory` (`Sidebar.tsx:2405`, `:5803`). Since `12f1ea24`, a viewer who can arrange categories also sees an **Alert category** checkbox. With the category stubs from [channel-and-topic-navigation.md](channel-and-topic-navigation.md) (Categories: order, move and alert mark), submitting `Pager` with the box ticked adds an empty **category Pager, empty** header and holds `{"s1":["Pager"]}` in `om.chat.pendingAlertCategories` (both hosts, 2026-11-19). Without the stubs the box is absent, and the submit is still not driven. Find the header button by its text: there are two **Thanefield Capital** buttons, and the sidebar one is the last. `NameEditModal` opens only from `session.openNameEditPrompt` (**Change Name** on your own user menu). The fixture leaves that unstubbed, with `nameEditPrompt: null` (`shell-fixture.tsx:3190`), so seed it instead (next section). `DisplayNameAskModal` needs `profileReady()`, which the fixture stubs to false.
 
 Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-create-category-name-prompt.png`).
 
-The sidebar's own **Create channel** button (`Sidebar.tsx:4419`, shown because the fixture stubs `spaceActionVisible` true) opens the same dialog as the server menu's **Create Channel**: **Create channel**, with the textbox **Channel name**, a private-channel checkbox and a **Create channel** submit. Escape closes it. Driven 2026-11-08 on `/rooms/` and `/chat/`. The Library panel's **New doc** is not reachable: it calls `session.requestNewDoc` (`LibraryPanel.tsx:1440`), which neither shell fixture stubs (`newDocRequest: null`, `shell-fixture.tsx:3666`), so no dialog opens.
+The sidebar's own **Create channel** button (`Sidebar.tsx:4295`, shown because the fixture stubs `spaceActionVisible` true) opens the same dialog as the server menu's **Create Channel**: **Create channel**, with the textbox **Channel name**, a private-channel checkbox and a **Create channel** submit. Escape closes it. Driven 2026-11-08 on `/rooms/` and `/chat/`. The Library panel's **New doc** is not reachable: it calls `session.requestNewDoc` (`LibraryPanel.tsx:1440`), which neither shell fixture stubs (`newDocRequest: null`, `shell-fixture.tsx:3749`), so no dialog opens.
 
 ### DM row menu (added 2026-10-31)
 
 On `shell-fixture.html?view=dm&alerts=quiet`, dispatch a `contextmenu` event
 on the `.channel-row-identity` of **Direct message with ana, 2 unread**
-(`Sidebar.tsx:5988-6142`). The `contextmenu` must target the identity
+(`Sidebar.tsx:5629-5778`). The `contextmenu` must target the identity
 element itself: a parent row element opens nothing. The menu opens with an
 identity header (**ana**), a quick bar holding the **Mute** tile (since
 `9d16dfed`; see below) and seven items: **Follow**, **Invite to Server** (a submenu), **Add to Desk**,
@@ -234,11 +234,11 @@ Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 17-20, 25).
 
 ### Message requests row (added 2026-11-01)
 
-`?requests=N` (`shell-fixture.tsx:2781-2792`, 0–9) knocks N strangers onto
+`?requests=N` (`shell-fixture.tsx:2872-2883`, 0–9) knocks N strangers onto
 the pinned **Message requests** row above the DMs. On
 `shell-fixture.html?view=dm&requests=3&alerts=quiet` the sidebar shows a
-`treeitem` named **3 message requests** (`Sidebar.tsx:4180`); clicking it
-changes nothing (`openMessageRequests`, `lib/session.ts:35925`, is unstubbed,
+`treeitem` named **3 message requests** (`Sidebar.tsx:4056`); clicking it
+changes nothing (`openMessageRequests`, `lib/session.ts:36055`, is unstubbed,
 so the click resolves to `INERT`), and the hash stays `#/dm/ana`. The
 Connections **Requests** tab's **Messages 0** tab (`FriendsPane.tsx:1171`) is
 the other door and renders **No message requests waiting.** without the seed.
@@ -252,13 +252,13 @@ Since `4cd3434f` the Home headline caps its count: `formatUnreadCount`
 grouped number up to 99 and the literal **99+** past it, and `HomeHub.tsx:694`
 wraps only the number in `<b>`. The fixture lane reaches it through the rail
 seed: `shell-fixture.html?view=home&alerts=quiet&rail=counts` seeds the **vex**
-DM at 120 unread (`shell-fixture.tsx:1905`), and the `h1` reads
+DM at 120 unread (`shell-fixture.tsx:1954`), and the `h1` reads
 **99+ unread across 4 conversations.** (driven 2026-11-02 on `/rooms/`). The
 same seed leaves the DM treeitem named **Direct message with vex, 120 unread**
 while its `.rail-badge` reads **99+**: the row label does not go through the
 formatter, only the pill and the headline do. No channel or topic seed exceeds
 99 (`channels=many` tops out at 20), so the sidebar channel label's
-**, 99+ unread** form (`Sidebar.tsx:2957`) is source-only here.
+**, 99+ unread** form (`Sidebar.tsx:2905`) is source-only here.
 
 ### Typing indicator in a DM (added 2026-11-09)
 
@@ -283,7 +283,7 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 
 With the session-capture shim from [message-actions.md](message-actions.md),
 assign the prompt directly. The shape is `{spaceId, userId, username,
-initialScope}` (`lib/session.ts:5134`):
+initialScope}` (`lib/session.ts:5179`):
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
@@ -330,7 +330,7 @@ and still calls the unstubbed `openNameEditPrompt`, so it was not driven.
   predicts `?tab=pending` lands on `#/connections/pending`, and it does not.
   The cause is a **fixture stub**: `openFriends` there is written
   `openFriends: () => navigate({ kind: "friends", tab: "online" })`
-  (`tools/visual/shell-fixture.tsx:3342`) — no parameter, hardcoded tab, unlike
+  (`tools/visual/shell-fixture.tsx:3425`) — no parameter, hardcoded tab, unlike
   the real `ChatSession.openFriends`, which honours its argument. Boot seeds the
   hash, routing parses it back, the parsed view differs in shape from the raw
   fixture view for every id except `requests` and `blocked`, so navigation
@@ -380,7 +380,9 @@ and still calls the unstubbed `openNameEditPrompt`, so it was not driven.
 
 ### Verification record
 
-**Last verified:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub and session-capture shim: a seeded `nameEditPrompt` mounts **Change Name** on the **Only in Thanefield Capital** face, with **Clear nickname** and **Save**. On `/chat/`, **Everywhere** shows "loading current name..." with **Save** disabled. **Limitations:** Save and Clear call stubs; the user-menu door was not driven; the other DM and Home recipes keep the 2026-11-13 record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frame 06).
+**Last verified:** 2026-11-19 (nightly maintenance). **Product commit:** `12f1ea24` (GitLab origin/main; rooms-client 0.120.0; 12 commits past `c19e2f70`). **Scope:** `/rooms/` (18191) and `/chat/` (18192). The **Create Category** dialog was driven with and without the category stubs: without them it has no checkbox; with them it shows **Alert category**, and a ticked submit adds **category Pager, empty** and the pending entry. A route smoke found that `/chat/` `view=dm&dm=OM%20chatters` reads **Loading messages in OM chatters**, because the cloud fixture has no group-DM seed. The table now says the route is `/rooms/`-only. **Limitations:** the category write is stubbed; DM surfaces outside Create Category were covered only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261119/r1/` (frames 11, 12).
+
+**Previous record:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub and session-capture shim: a seeded `nameEditPrompt` mounts **Change Name** on the **Only in Thanefield Capital** face, with **Clear nickname** and **Save**. On `/chat/`, **Everywhere** shows "loading current name..." with **Save** disabled. **Limitations:** Save and Clear call stubs; the user-menu door was not driven; the other DM and Home recipes keep the 2026-11-13 record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frame 06).
 
 **Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `/rooms/` (18170) and `/chat/` (18171), people stub: `view=dm` has no header mute bell; the ana row menu with the **Mute** quick tile and seven items; the 15m / 1h / 8h / 24h / Until unmuted flyout on both hosts; on `/rooms/`, **1h** → **Muted** "until HH:MM" and **Unmute conversation**, and **OM chatters** with **Only @mentions**. **Limitations:** the `/chat/` mute is an offer only (`setDmMuted` no-op); the menu's other verbs stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 17-20, 25).
 

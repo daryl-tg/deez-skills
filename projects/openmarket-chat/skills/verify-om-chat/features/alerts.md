@@ -28,6 +28,10 @@ in [settings-and-appearance.md](settings-and-appearance.md).
   ack". With no series the chart is absent and the line reads **3 open**.
 - **Alert card** in the tape (`AlertMessageRow.tsx`), with **Discuss**, **I'm on
   it**, **Mark fixed** and **Flag noisy**.
+- **Feed sub-row and alert categories** (since `335c4304`): a feed channel
+  keeps its own category and shows a `store-5xx · check pods` sub-row. A
+  category marked as an alert category shows a mark and **N ringing** while
+  expanded. The derived **Alerts** group is retired.
 - Creating a feed (`AlertCreateDialog.tsx`) and the full alerts home
   (`#/alerts`, `AlertsPage.tsx`) exist in source. Neither is reachable in the
   fixture; see Gotchas.
@@ -54,7 +58,7 @@ agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=ale
 |---|---|
 | `shell-fixture.html?view=room` | Strip firing: `.alert-strip` text `store-5xx · check pods` |
 | `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1467-1475`) |
-| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`:1442-1443`) |
+| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1479-1480`) |
 | `shell-fixture.html?view=room&alerts=quiet` | No strip: use this for every non-alert proof |
 | `fixture.html?surface=alert-card` | The alert card with its four actions |
 
@@ -63,19 +67,32 @@ On the board, the feed buttons are named with their state, for example
 Read the strip through `.alert-strip-text`, not the snapshot tree: its row is a
 plain `generic` there.
 
-### The automatic Alerts group (added 2026-11-08)
+### A feed channel stays in its own category; alert categories (since `335c4304`)
 
-A channel with a live alert feed is gathered into a virtual **Alerts** group
-in the sidebar (`lib/alerts-group.ts:178-199`; the auto setting is
-`om.chat.alertsGroupAuto`, `Sidebar.tsx:770`). On `/rooms/`,
-`shell-fixture.html?view=room&alerts=board` renders
-`[data-alerts-group=""]` with a row named **category Alerts, 1 channel**,
-holding `#ops` and its **store-5xx, ringing** row. Under `alerts=quiet` the
-group is absent, because `feeds` is empty. On `/chat/` no group forms: the
-cloud `alertsStub` (`apps/cloud/tools/visual/shell-fixture.tsx:540`) has
-`feeds` but no `lastRefreshedAt` (the root has it at
-`tools/visual/shell-fixture.tsx:1474`), so the board never reads as ready.
-Adopting the group as a real category was not driven. Driven 2026-11-08.
+The virtual **Alerts** group is gone. `om.chat.alertsGroupAuto` and
+`[data-alerts-group]` no longer exist. A channel with a live feed now stays in
+the category it is filed in. It carries its feed as a sub-row under the channel
+(`alertsRowForRoom`, `lib/alerts-group.ts:83`, rendered at
+`packages/chat-ui/src/components/Sidebar.tsx:4684-4692`).
+
+To check the sub-row, open `shell-fixture.html?view=room&alerts=board`. On
+**both** hosts, `#ops` under **category Desk, 5 channels** carries
+`.channel-alert-row.ringing` with the text **store-5xx · check pods**
+(`data-row-key="alert:ops"`). Collapse the category (`button.category-separator`):
+the header reads **DESK** and **1 ringing**. The old `/chat/` gap, where
+`lastRefreshedAt` was missing, no longer applies, because the sidebar row needs
+only `feeds.length > 0`. Under `alerts=quiet` there is no sub-row.
+
+A category can also be marked as an **alert category** (`alert: true` in the
+space's stored `categories`). It then shows `.category-alerts-mark` and its
+ringing count even while expanded (`Sidebar.tsx:4913-4919`, `:4935-4948`). A
+plain category shows counts only when collapsed. You mark one from the category
+header menu (**Mark as alert category**), or with the **Alert category** box in
+**Create Category**. The recipe, with the stubs that make it reachable, is in
+[channel-and-topic-navigation.md](channel-and-topic-navigation.md), "Categories:
+order, move and alert mark". On both hosts, marking **Desk** writes
+`{name:"Desk",alert:true}` and paints the mark. The header then reads **DESK**
+and **1 ringing** while expanded. Driven 2026-11-19.
 
 ### The board's feed peek (added 2026-11-16)
 
@@ -136,7 +153,9 @@ was not driven.
 
 ### Verification record
 
-**Last verified:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub and session-capture shim: `view=room&alerts=board` → hover **Ring store-5xx** → dialog **store-5xx at a glance**. Bare, it reads **store-5xx**, **Ring**, **3 open** with no chart (`/rooms/`). With a seeded 30-point series it shows 30 bars and "67% answered · 3 open · 4m to ack" on both hosts. The route smoke still finds `?panel=alerts` blank on both hosts. **Limitations:** the series is a seed, not daemon data; the Log trend line and the per-bar hover title were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frames 01, 02).
+**Last verified:** 2026-11-19 (nightly maintenance). **Product commit:** `12f1ea24` (GitLab origin/main; rooms-client 0.120.0; 12 commits past `c19e2f70`). **Scope:** `/rooms/` (18191) and `/chat/` (18192), with no init script, `view=room&alerts=board`. Both hosts show the `#ops` feed sub-row **store-5xx · check pods** inside **Desk**, with no `[data-alerts-group]`. Collapsed, Desk reads **1 ringing**. With the category stubs and the session-capture shim, **Mark as alert category** on Desk wrote `alert:true` and painted `.category-alerts-mark` on both hosts. **Limitations:** the mark comes from a stubbed `categoriesFor`/`setSpaceCategories`, not a store, and a store-side rename or delete by another viewer was not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261119/r1/` (frames 06, 07, 09).
+
+**Previous record:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub and session-capture shim: `view=room&alerts=board` → hover **Ring store-5xx** → dialog **store-5xx at a glance**. Bare, it reads **store-5xx**, **Ring**, **3 open** with no chart (`/rooms/`). With a seeded 30-point series it shows 30 bars and "67% answered · 3 open · 4m to ack" on both hosts. The route smoke still finds `?panel=alerts` blank on both hosts. **Limitations:** the series is a seed, not daemon data; the Log trend line and the per-bar hover title were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frames 01, 02).
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `view=room&alerts=board`, with the people stub: dialog **Alerts board** on both hosts; `[data-alerts-group]` count 1 on `/rooms/` and 0 on `/chat/` (the `/chat/` `alertsStub` has no `lastRefreshedAt`). **Limitations:** no daemon feeds. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

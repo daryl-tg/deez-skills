@@ -62,7 +62,7 @@ The 2026-09-09 unchanged-edit run attached actual ChatSession edit methods to th
 
 `?roleEdit=1` posts kyle's message "**Need from om://role/r-devops**" with a
 line of member mentions and opens it already in the edit box
-(`tools/visual/shell-fixture.tsx:1357-1368`, `:1642`). It exists on `/rooms/`
+(`tools/visual/shell-fixture.tsx:1357-1368`, `:1691`). It exists on `/rooms/`
 only; the `/chat/` fixture has no such seed.
 
 ```bash
@@ -119,7 +119,7 @@ Full server persistence and other clients receiving the edit require the local a
   (`[data-inline-edit-loading]`) shows first, then the textbox **Edit message**
   mounts. Wait for the textbox; do not assert it synchronously.
 - **`/chat/` cannot open the editor in the fixture.** The cloud shell fixture
-  stubs `beginEdit` as `noop` (`apps/cloud/tools/visual/shell-fixture.tsx:2023`),
+  stubs `beginEdit` as `noop` (`apps/cloud/tools/visual/shell-fixture.tsx:2022`),
   so **Edit** on `/chat/` does nothing there. That is a harness limit, not a
   product failure.
 
@@ -155,6 +155,6 @@ Full server persistence and other clients receiving the edit require the local a
 
 **Previous record (channel path):** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-104` → **Edit** opened the **Edit message** textbox; a changed value plus **save** closed the editor, and the row read "edited by nightly 1028 (edited)". The first `hover` plus 0.6 s plus `find role button --name Edit --exact` reported no **Edit**, although `.msg-toolbar` held `button[title="Edit"]` and the row had grown to 81 px. A second hover succeeded. **Limitations:** The DM path and `/chat/` were not re-driven; this is local fixture edit state only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 32).
 
-**Previous record (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3603`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3073`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:11679`, `:12058`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
+**Previous record (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3686`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3073`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:11750`, `:12129`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
 
 **Previous record:** verified 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-108` **Edit** showed **Loading message editor**, then the **Edit message** textbox; `save` closed it, and the row read the new text plus `(edited)`. On `/chat/`, **Edit** was a no-op (fixture `beginEdit: noop`). **Limitations:** The DM **More** → **Edit Message** path was not re-driven. Local fixture edit state only; relay persistence and other viewers are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 18-19, 40). Previous record: 2026-10-26 at `5820fbea`.

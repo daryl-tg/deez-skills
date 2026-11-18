@@ -129,7 +129,7 @@ The DM path is `?view=dm&dm=ana&alerts=quiet`: hover `#dm-msg-m2`, then click
 
 Open `shell-fixture.html?view=room&alerts=quiet&reply=1`. The composer shows
 the reply strip **Replying to dax** with a **Cancel reply** button
-(`Composer.tsx:6223`; the fixture seeds seq 103, `shell-fixture.tsx:2477`).
+(`Composer.tsx:6223`; the fixture seeds seq 103, `shell-fixture.tsx:2565`).
 Scroll `#msg-ops-104` into view, hover it, and click
 `#msg-ops-104 .msg-toolbar button[title="Reply"]`: the strip retargets to
 **Replying to kyle: @ana the alert fired twice last night …** and the composer
@@ -176,7 +176,7 @@ nothing is searched. The title drops the link and a polite lead-in, so
 "`om://user/<nova> could you rerun the job`" becomes **Rerun the job**.
 
 The toolbar button calls `session.openTodoPromote` (`MessageRow.tsx:3185`),
-and both fixtures spell out `todoPromote: null` (`tools/visual/shell-fixture.tsx:3123`,
+and both fixtures spell out `todoPromote: null` (`tools/visual/shell-fixture.tsx:3214`,
 cloud `:1652`), so the click opens nothing until the shim stubs it. The
 fixture also leaves `isAppAccount` out, so the autofill proxy answers a truthy
 `INERT` and every person reads as an app account until it is stubbed too:
@@ -229,7 +229,7 @@ agent-browser eval '(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));cons
 
 Past `SWIPE_COMMIT_PX` (56) the pull gains resistance (70 → 60.9), and the
 release past the commit calls `session.setReplyTarget`, which the fixture
-implements (`shell-fixture.tsx:3520`). A long press is `pointerdown`, a 700 ms
+implements (`shell-fixture.tsx:3603`). A long press is `pointerdown`, a 700 ms
 wait, `pointerup` on the same row: it opens the row menu as a sheet,
 `div.msg-sheet[role=menu][data-mobile-sheet]` behind `.msg-sheet-backdrop`,
 22 menu items for `msg-ops-104`; Escape closes it.
@@ -476,7 +476,7 @@ Stack role members**.
 - **Every verb is a fixture no-op except the clipboard.** The shell fixture
   stubs `toggleBookmark`, `togglePin`, `markUnreadFrom`, `removeUnfurls`,
   `askAgentAboutMessage`, `summarizeThreadWithAgent` and `captureFromSeq`
-  as `noop` or `asyncNoop` (`shell-fixture.tsx:3561-3645`), and `openForward` never sets
+  as `noop` or `asyncNoop` (`shell-fixture.tsx:3644-3728`), and `openForward` never sets
   `forwardSource`. Prove the offer here; the effects need the daemon-pair lane.
   The copy verbs write to the clipboard, which this lane did not read back.
 - A data attribute set by `eval` can vanish when React re-renders the row.

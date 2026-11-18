@@ -35,7 +35,7 @@ the story waits in the composer and goes out under your next message.
 Neither fixture can reach the view on its own. `#/news` calls
 `session.openNews()`, which neither fixture defines, and the fixture `news`
 store is an inert plain object with `supported: false`
-(`tools/visual/shell-fixture.tsx:2853-2867`). There is no `?view=news`. With the
+(`tools/visual/shell-fixture.tsx:2944-2958`). There is no `?view=news`. With the
 people stub and the session-capture shim from
 [message-actions.md](message-actions.md), replace the `news` store and point
 `active` at the view. Keep the original `active` descriptor so you can return

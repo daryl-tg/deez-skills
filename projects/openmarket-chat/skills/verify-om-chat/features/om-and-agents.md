@@ -207,7 +207,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   (`Shell.tsx:1560`; accessible names at `:3132`, `:3674`, `:3699`,
   `:3801`). The tooltips spell it with a colon instead, "Agents: connected
   remotely" (`:3083`, `:3783`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4237`). The pane
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4320`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -743,7 +743,7 @@ button named "<name>, <owner>'s agent. View full profile" (`:116`,
 `[data-profile-door]`) that opens the agent's profile panel.
 
 `/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1370-1390`; card
-handlers `openProfileCard` and `openMentionCard` at `:3463-3478`). The `/chat/`
+handlers `openProfileCard` and `openMentionCard` at `:3546-3561`). The `/chat/`
 fixture has neither the seed nor the handlers, so the card is `/rooms/` only.
 
 ```bash

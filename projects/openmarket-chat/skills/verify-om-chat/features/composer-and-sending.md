@@ -94,7 +94,7 @@ Read the gotchas for where the line now falls.
   `/rooms/` shell fixture's `#ops`, the list has 14 options: 5 members (ana,
   dax, kyle, mira, rho) and 9 roles (admin, Devops, everyone, Full Stack, here,
   member, mod, owner, traders). **Devops** came with the `roleEdit` seed's role
-  list (`f8baae2a`, `tools/visual/shell-fixture.tsx:3291`) and is listed whether
+  list (`f8baae2a`, `tools/visual/shell-fixture.tsx:3382`) and is listed whether
   or not `roleEdit=1` is set. The `/chat/` fixture has no Devops role and lists
   13. The old budget would have shown 10: 5 members plus 5 roles.
 - The `@` list is a sectioned picker (`022af9cd`). Its head is a
@@ -211,7 +211,7 @@ Read the gotchas for where the line now falls.
   rewritten some other way is left alone, and a refused send keeps everything
   (`Composer.tsx:4321-4332`). The fixture cannot open that window: both
   fixtures' `sendToActiveDurably` resolve at once
-  (`tools/visual/shell-fixture.tsx:3706`, `apps/cloud/tools/visual/shell-fixture.tsx:2110`),
+  (`tools/visual/shell-fixture.tsx:3789`, `apps/cloud/tools/visual/shell-fixture.tsx:2109`),
   so the proof is the unit test `packages/chat-ui/test/composer/dm-send-clears-while-typing.test.tsx`.
 - **Esc steps back out** and **image preview zoom and pan** (each in its own section below; `/rooms/` only).
 - **User links and base roles in message text** (`6577416f`, `a5354f9d`,
@@ -387,12 +387,12 @@ path-based: `/chat/room/ops`).
 
 ### GIF picker (added 2026-10-27)
 
-In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4550-4568`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
+In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4633-4651`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
 
 ### Chart card and cashtag pill (added 2026-10-28)
 
 - **Chart card:** send a message that is only a chart URI, such as `om://chart/BTC?i=15m`. The grammar is `CHART_URI_RE` (`lib/message-preview.ts:19`). The sent row renders a chart card reading **BTC · 15m · LIVE** with **Copy link**.
-- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2498-2502`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3118`), so the peek cannot be proved here.
+- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2498-2502`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3209`), so the peek cannot be proved here.
 - **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture parses `?draft=` (`apps/cloud/tools/visual/shell-fixture.tsx:1253-1256`), but its composer still loads empty on a room or a DM (re-measured 2026-10-30), so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
 - **Not seeded:** `UnfurlCard` (no fixture seeds `entry.unfurls`, and a send never adds one) and `WebhookEmbedBlock` (it needs `metadata.embeds` on a webhook sender; the gallery's webhook rows have none, `tools/visual/fixture.tsx:1315-1375`).
 
@@ -402,7 +402,7 @@ Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenan
 
 Since `389f414e` a role name typed as `@traders` is painted like its
 `om://role` pill (`Markdown.tsx:535`, `:2124`, `:2232`). Both shell fixtures
-name the role `traders` and colour it `#d19a3a` (`shell-fixture.tsx:3253-3254`;
+name the role `traders` and colour it `#d19a3a` (`shell-fixture.tsx:3344-3345`;
 cloud `:1751`). Click the composer textbox (its name starts **Message #ops**;
 the full name is **Message #ops · $ for markets · /chart to post one**), type
 `@traders hi` so the space closes the autocomplete, and press Enter. The new
@@ -444,8 +444,8 @@ Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
 `/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
 Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
 renders the guide page **Slash commands**. Running a command is pending: the
-real handler is `ChatSession.handleSlash` (`lib/session.ts:41054`, called at
-`:13517`, `:13735`, `:14062` and `:14128`), and the fixture's send only appends the text, so `/nick`,
+real handler is `ChatSession.handleSlash` (`lib/session.ts:41184`, called at
+`:13588`, `:13806`, `:14133` and `:14199`), and the fixture's send only appends the text, so `/nick`,
 `/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
 authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
@@ -479,7 +479,7 @@ agent-browser eval '(()=>{const t=document.querySelector("textarea[data-composer
 #   "probe.png", and the region named "Message attachments" reads "probe.png Ready · 1 KB"
 ```
 
-That staged card is the fixture's `acceptFile` stub (`shell-fixture.tsx:4201-4221`)
+That staged card is the fixture's `acceptFile` stub (`shell-fixture.tsx:4284-4304`)
 pushing a pending attachment and stamping `data-fixture-attachment`; no upload
 or scan runs. OS drops onto the tape, the topic list or the library
 (`useFileDropZone.tsx`) still need a real file through `setInputFiles` or a CDP
@@ -512,7 +512,7 @@ a room's new-below count that high (`bulk=120` pads the tape but the reader
 sits at the bottom), so this is source-only. The banner itself mounts on
 `shell-fixture.html?view=room&history=detached&alerts=quiet` and reads **You're
 viewing older messages** with **Jump to present**, with no count, because the
-fixture room's `unread` is a constant 0 (`shell-fixture.tsx:1552-1557`; driven
+fixture room's `unread` is a constant 0 (`shell-fixture.tsx:1601-1606`; driven
 2026-11-03 on `/rooms/`). See
 [channel-and-topic-navigation.md](channel-and-topic-navigation.md) / Unread
 labels past 99.
@@ -601,7 +601,7 @@ fixture.
 
 **The legacy to-do grammar is text off Projects.** In a channel that is not on
 a Projects server, `/todo`, `/nudge`, `/assign` and `/unassign` post exactly as
-typed (`CHANNEL_TODO_FORMS`, `lib/session.ts:1906`, used at `:41067`). The one
+typed (`CHANNEL_TODO_FORMS`, `lib/session.ts:1910`, used at `:41197`). The one
 exception is `/todo <text> → me|here`, which still files to an Inbox. Typing `!`
 offers no verb list there either (`lib/composer-complete.ts:1609-1666`): a 1:1
 DM offers only `!nudge`, and a Projects channel offers the ticket verbs. Both
@@ -784,7 +784,7 @@ echoes kyle's row, and its `.jumbo-emoji` reads 48px.
 ## Gotchas
 
 - **The connection strip waits out a grace delay.** `?connection=reconnecting`
-  (`shell-fixture.tsx:2764`) renders **Reconnecting...** in the
+  (`shell-fixture.tsx:2855`) renders **Reconnecting...** in the
   `.ui-connection-strip` (`role=status`, `shared/ui/ConnectionStrip.tsx:93`),
   but only after `CONNECTION_GRACE_MS`: a read 2 s after load finds an empty
   `.ui-connection-strip-slot`, a read at 8 s finds the text (2026-10-31,
@@ -799,7 +799,7 @@ echoes kyle's row, and its `.jumbo-emoji` reads 48px.
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:3692-3693`), with a comment naming the lock
+  (`tools/visual/shell-fixture.tsx:3775-3776`), with a comment naming the lock
   it was removing. Measured again on `9902d149`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
@@ -829,7 +829,7 @@ echoes kyle's row, and its `.jumbo-emoji` reads 48px.
   only by `session.acceptFile` behind the real file input. The maintained
   `tools/visual/mobile-conversation.visual.ts:667` path drives the hidden input
   with `setInputFiles`, and the shell fixture accepts the file at
-  `tools/visual/shell-fixture.tsx:4201`. Preview/lightbox behavior still needs
+  `tools/visual/shell-fixture.tsx:4284`. Preview/lightbox behavior still needs
   preview-ready attachment metadata and is not established by that fixture
   path.
 - **The seeded room video is a stub and only proves the fallback ladder.** The
