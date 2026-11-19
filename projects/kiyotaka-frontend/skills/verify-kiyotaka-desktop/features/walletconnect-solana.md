@@ -10,7 +10,10 @@ refuses the pending connect. It registers only when `isDesktopShell()` holds and
 Live verification pending: never driven live. Unit 10's lane launch on 2026-10-12 was refused by the session's
 permission classifier. On 2026-10-27 (tree `7290d33d10`) source was re-read and nothing was driven, because the wrapper
 passes no project id and Pulse's connect needs a signed-in account. Pairing, signing and a swap need a phone wallet. The
-behavior is proved by `tests/utility/solana/wallet/walletconnect-wallet-standard.spec.ts`.
+spec this guide named for it, `tests/utility/solana/wallet/walletconnect-wallet-standard.spec.ts`, no longer exists
+(`ef44039505` cut it), and no spec names `walletconnect-wallet-standard.util.ts` now (source-read 2026-11-20 on
+`cf9dbea566`). The pairing block's QR, Copy and hidden states are covered by
+`tests/components/onchain/OnchainWalletControl.spec.ts`, which passed that night (40 tests).
 
 ## Sub-features
 
@@ -43,7 +46,8 @@ Preconditions:
   of 0 lamports to self, which is signed and never sent. Exit `0` and a last JSON line with `signatureValid: true`
   settle whether a versioned transaction crosses WalletConnect intact.
 - **Spec level.** `control-kiyotaka-desktop cli -- pnpm vitest run --config vitest.node.config.ts
-  tests/utility/solana/wallet/walletconnect-wallet-standard.spec.ts`.
+  tests/components/onchain/OnchainWalletControl.spec.ts` covers the pairing block only (passed 2026-11-20 on
+  `cf9dbea566`); the wallet's own registration and signing have no spec since `ef44039505`.
 - **Proof.** The QR capture with the relay socket in the network log; for pairing, the operator's screenshot of the
   connected row and the probe's verdict.
 

@@ -12,6 +12,12 @@ edit menu, downloads save to Downloads without a prompt, and only chart pages ho
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
 from 2026-10-27 to 2026-11-18, under high and low machine load and on a locked and an unlocked console; the last was
+2026-11-20 on tree `cf9dbea566` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), run on its own
+(63 s on the locked console), with the same `dialog-style dialog-overlay backdrop-dim` interception at `launch.mjs:234`.
+The same night a scratch drive that mirrors the scenario and closes the guest signup prompt before the click passed 14
+of 14 on that tree (see Driving): the link policy, the menu and the macOS close-then-activate lifecycle work, and the
+lane's red is its missing step. That is the first live proof of the link policy since 2026-10-12; it is a scratch
+drive, not the lane. Before that,
 2026-11-19 on tree `70ca7763c6` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), in the combined
 `run launch ... window links` on the locked console (167 s), the same `dialog-style dialog-overlay backdrop-dim`
 interception at `launch.mjs:234` over `chart-watermark-link`, which again lost the `window` summary. Before that,
@@ -54,7 +60,9 @@ by unit tests only.
 - `menu-items` the menus, their ids (`app`, `edit`, `view`, `window`) and the macOS close-then-activate lifecycle.
   View also holds Reload, Force Reload, Actual Size, Zoom In, Zoom Out and Toggle Full Screen (`desktop/src/main/menu.ts`
   item ids `reload`, `force-reload`, `reset-zoom`, `zoom-in`, `zoom-out`, `fullscreen`); the `links` lane reads only
-  `menuTop` and `noDeveloperItems`, so those items are source-read, not driven (2026-11-02).
+  `menuTop` and `noDeveloperItems`, so those items are source-read, not driven (2026-11-02). On 2026-11-20 a
+  scratch drive read the View menu's item ids from the running shell: `back`, `forward`, `home`, `reload`,
+  `force-reload`, `reset-zoom`, `zoom-in`, `zoom-out` and `fullscreen`; it clicked none of them.
 - `menu-history` View, Back (Cmd+[ or Alt+Left), Forward and Return to OpenMarket, plus mouse side buttons on Windows
   and Linux.
 - `in-window-context-menu` undo, redo, cut, copy, paste and select all on a field, the chart page's fields included
@@ -83,10 +91,22 @@ Preconditions:
   `navigationStayedOnChart`, `navigationOpenedInBrowser`, `windowOpenDocs`, `windowOpenSign`,
   `windowOpenChartInPlace`, `updateCheckSkippedUnpackaged`, `darwinStaysOpenWithNoWindow`,
   `darwinSecondInstanceReopens` and `darwinActivateReopens`. It saves `unit-02-external-link.png`.
-- **Known red since 2026-10-27 (last 2026-11-18).** The scenario clicks "Got it" on the "Draw by holding" tip, then clicks `chart-watermark-link`.
+- **Known red since 2026-10-27 (last 2026-11-20).** The scenario clicks "Got it" on the "Draw by holding" tip, then clicks `chart-watermark-link`.
   A `.dialog-overlay` (the guest signup prompt, `guest-signup-modal-close-btn`) intercepts the click and Playwright times out after 30 s at
   `launch.mjs:234`, so no summary prints. Until the lane dismisses that dialog, report every links sub-feature as
   pending and quote the timeout. The parity sweep closes the same prompt itself.
+- **While the lane is red: a scratch drive.** Copy `linksScenario`'s steps into a script outside the repo (resolve
+  `playwright` from `desktop/package.json` with `createRequire`, import `tools/verify/shell-page.mjs`, launch `.` with
+  `-r tools/verify/quiet-mac.cjs` on its own fresh `.verify-userdata/<name>` profile, replace `shell.openExternal` with
+  a recorder as the lane does) and add one step before the watermark click: wait up to 20 s for
+  `guest-signup-modal-close-btn`, click it, and wait for `.dialog-overlay` to detach. Run it with `desktop/` as the
+  working directory. On 2026-11-20 on `cf9dbea566` (production chart, `61,834.99 ▲ BTC-USD`, locked console) that drive
+  passed 14 of 14: `menuTop`, `noDeveloperItems`, `clickStayedOnChart`, `clickOneExternalLine`, `clickOpenedInBrowser`
+  (`https://percept.one/`), `clickNoNewWindow`, `navigationStayedOnChart`, `navigationOpenedInBrowser`,
+  `windowOpenDocs`, `windowOpenSign`, `windowOpenChartInPlace`, `updateCheckSkippedUnpackaged`,
+  `darwinStaysOpenWithNoWindow` and `darwinActivateReopens`; it has no second-instance step, so
+  `darwinSecondInstanceReopens` stays the lane's. The "Got it" tip did not show; the guest signup prompt ("See what
+  moves price.") did. Report it as a scratch drive, never as the `links` lane, and keep the lane's red in the report.
 - **Unit level.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test` covers `link-policy`,
   `menu`, `navigation`, `context-menu`, `downloads`, `permissions` and `permission-consent`. It is not a live proof.
 - **Proof.** The lane's JSON summary and its PNG.

@@ -1,12 +1,18 @@
 # Return channel and bridge
 
-The shell owns the `openmarket://` scheme. A browser that navigates to `openmarket://return?id=<id>&payload=<base64url>`
+The shell owns the `openmarket://` scheme. A packaged build claims it on launch with
+`app.setAsDefaultProtocolClient`; a Microsoft Store install (`process.windowsStore`) skips that call and takes the
+scheme from its package manifest, which electron-builder's appx target writes from `protocols`
+(`desktop/src/main/index.ts`, `desktop/electron-builder.yml`; since `d5f716e49d`, source-read 2026-11-20 on
+`cf9dbea566`, never driven). A browser that navigates to `openmarket://return?id=<id>&payload=<base64url>`
 hands the result to the running app: macOS through `open-url`, Windows and a cold start through the launch arguments.
 The main process tries three parsers in order, sign-in (`openmarket://oauth/callback`), checkout
 (`openmarket://checkout`) and return; anything none of them takes is dropped as `desktop: dropped openmarket://<host>`.
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
 window shows a chart page. The bridge's members are `version`, `onReturn`, `updates`, `analytics` and, from 0.1.9,
-`reports`, plus `browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Last
+`reports`, plus `browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Not run
+2026-11-20 on tree `cf9dbea566`: the dev lane's backend host did not resolve, `doctor` failed on each of three tries,
+and the lane was not driven (see the [index](./README.md)). Last
 driven 2026-11-19 by the `returns` scenario on tree `70ca7763c6` (`origin/main`; `desktop/` unchanged), on a testnet dev lane warmed in Chromium to `62,536.7 ▼ BTC-USD` with 250 bars, with the console session locked: 20 of 21 in 78 s with its pack, `bridgeTwoMembers` the one red, `bridge.keys` the same six members, and `unit-03-return.png` showing the `onReturn` payload over candles under the guest signup prompt ("See what moves price."). Before that, driven 2026-11-18 by the `returns` scenario on tree `c5bba6b889` (`origin/main`; `desktop/` unchanged), on a dev lane warmed in Chromium to `63,997.11 ▲ BTC-USD` with 250 bars, with the console session locked: 20 of 21 in 71 s with its pack, `bridgeTwoMembers` the one red, `bridge.keys` the six members (`analytics`, `browserSignIn`, `onReturn`, `reports`, `updates`, `version`), and `unit-03-return.png` showing the `onReturn` payload over candles and the guest signup prompt. Before that, driven 2026-11-16 by the `returns` scenario on tree `6bfc742bc8` (`origin/main`; `desktop/` unchanged). The dev lane was
 first warmed in Chromium to `65,057.31 ▼ BTC-USD` with 250 bars. Result: 20 of 21 in 72 s with its pack. Only
 `bridgeTwoMembers` was red, and `bridge.keys` read the six members. `unit-03-return.png` shows the
@@ -35,7 +41,7 @@ bars under "Reconnecting..." or, from 2026-11-05, "Your network is slow" and an 
 tip) because the dev lane's
 streaming host was unreachable; the scenario's checks need a canvas, not a price, so a green `returns` says nothing about candles, and only
 the frame does. Windows registration
-and delivery are unproven on a real machine. The sign-in and checkout links are covered in
+and delivery, both the call an installer build makes and the Store package's manifest, are unproven on a real machine. The sign-in and checkout links are covered in
 [browser sign-in and checkout](./browser-signin-and-checkout.md).
 
 ## Sub-features
@@ -86,7 +92,8 @@ Preconditions:
   Playwright launches the executable directly, so a bundle in a new place is not registered until `open` or `lsregister`
   sees it.
 - Only a packaged build registers the scheme. A dev launch (`pnpm start`) registers nothing, so an unpackaged shell
-  never receives `open openmarket://...`.
+  never receives `open openmarket://...`. A Microsoft Store package does not make the call either: its manifest
+  declares the scheme, because the package virtualizes the registry key the call writes.
 - A packaged app ignores `-r` preloads, so no listener can be injected before load; the lane reads the chart's own
   subscription and the page's console instead.
 - The bridge follows the window. While an OAuth page is in the window the preload still runs there, which is why the
