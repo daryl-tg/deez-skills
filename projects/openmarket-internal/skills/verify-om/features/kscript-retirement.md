@@ -114,6 +114,7 @@ needs the registry.
 
 ## Gotchas
 
+- **Always pass `--print` to `om open` on a lane.** Without it `om open <package>` launches the machine's default browser on the operator's desktop (driven by mistake 2026-11-20: `om open @om-core/nope` resolved a real package and opened a chart tab).
 - `om open` and `package_open` of a kScript reference cannot be driven from a
   guest lane: the verb searches the registry for a `wrun-indicator` of that
   name first and reads the kind only on a miss, and production answered
