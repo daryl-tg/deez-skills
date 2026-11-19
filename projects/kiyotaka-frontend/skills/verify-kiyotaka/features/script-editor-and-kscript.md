@@ -8,7 +8,15 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-19 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-20 against
+`7c937b0a1f` (`origin/main`, 82 commits past `413f86e5af`, lane `18104`, a no-session lane with the backend unreachable): `tb-editor-toggle-btn` raised
+`Verify your email to unlock Indicator Editor` with an empty address (the
+no-session form of the wall) and `.cm-editor` stayed `0`; the read-only
+drawer was not opened. Since `e72a775508` a script plot of a near-neutral
+colour is lifted to grey, not pure red, and since `c9aa8fde68` and
+`77575cedb5` an indicator's coarser Timeframe draws on stock, forex and
+index charts and a `1W` Timeframe reads weekly candles (source, not driven:
+no catalog, and those planes are unrouted here). Before that, re-driven 2026-11-19 against
 `413f86e5af` (`origin/main`, 184 commits past `cff04f9a01`, lane `18103`, a
 guest JWT): `tb-editor-toggle-btn` raised the `Indicator Editor` wall
 (`guestLoginFeatureId` `script-editor`). Before that, re-driven 2026-11-18 against

@@ -3,6 +3,23 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
+entry was last DRIVEN on 2026-11-20 against product tree `7c937b0a1f`
+(`origin/main`, 82 commits past `413f86e5af`), lane `18104`, a no-session
+lane: Tailscale was stopped, `dboons-nutz` did not resolve and every
+`/api/v1` call answered `502`, while the internal gateway was reachable.
+`doctor` failed twice on the tracked wrapper (its catalog line reads a `502`
+as a failure even when the backend line says unreachable) and passed twice
+with the wrapper from the open hub PR #26. Boot drew 250 bars on COINBASE
+BTC-USD 1h with VWAP (`Indicators 1/3`, no `Guest Mode` badge,
+`__BOOT_ERRORS__` `[]`) 20 s after `open`, with the countdown under the
+price tag. Also driven: the hover warm and its press join (see
+`boot-intent-warm`), the `Latest` glide with Lite charts off and its cut with
+Lite on (see `boot-glide`), the countdown held off on `1M` (see
+`boot-countdown`), the perp ticker on BINANCE.F ETHUSDT (`1761.07 +0.37%`,
+`24H VOLUME $8.07B`, `OPEN INTEREST $4.34B`, `FUNDING / COUNTDOWN +0.0030% ·
+03:38:23`), and the tab drifting hidden at least seven times. Not driven:
+the countdown on a delayed feed (the stocks and CME planes are unrouted
+here), a wake heal, and every guest-only state. Before that, this
 entry was last DRIVEN on 2026-11-19 against product tree `413f86e5af`
 (`origin/main`, 184 commits past `cff04f9a01`), lane `18103`, a guest-JWT
 lane with the backend answering (`doctor` passed twice in two): boot drew 250
@@ -192,6 +209,13 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   plot until they have drawn; the plot greys only while the pane is held.
 - `boot-scale-held` a zoom gesture pauses the price scale's auto fit, the `A`
   says so, and one click fits the axis again.
+- `boot-intent-warm` resting the pointer on a market row (the symbol
+  dialog, Super Search, a watchlist row) loads that market's candles ahead
+  of the click, and the click joins that load (`de79b1d733`, `0d9aee7ad3`,
+  `b27e0f8d6c`).
+- `boot-glide` `Latest` and `Reset view` slide to a near target and cut to a
+  far one; a person's own pick of Auto eases the price range back
+  (`0cb582eb9f`, `02de83a38a`).
 - `wake-heal` after a hidden or sleeping stretch, the wake backfills every blank
   slot the outage left, including slots before lone bars a trickling feed drew.
 
@@ -572,7 +596,13 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   nothing. The Indicators dialog sat on skeletons for about 20 s, then read
   `Couldn't load all official indicators` with `Retry` over a fallback list
   whose testids end `-openmarket` instead of the catalog's names. Record such
-  a pass as a no-session pass. The public backend (`https://openmarket.xyz`)
+  a pass as a no-session pass. **Seen again 2026-11-20 on `7c937b0a1f`**
+  with the same cause: `Verify your email to unlock Watchlist` and `…
+  Indicator Editor`, each with an empty address; the settings pages' nav
+  listed all ten items with `Sign Out` at the foot (a guest's lists four);
+  the Indicators dialog still listed 19 rows under the failed Official
+  shelf. The tracked `doctor` fails such a lane on its catalog line; hub PR
+  #26 holds the fix. The public backend (`https://openmarket.xyz`)
   answers `/api/v1` but refuses the lane's dev `Origin` with `403 Not
   allowed by CORS`; do not spoof the production origin to get past it.
 - Guest emits a benign `401`; `:3000` down adds `[refresh-token] 502` and
@@ -737,6 +767,11 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   empty body and no TPO hover card would show; `tab t1` brought the ladder and
   the card back. Again 2026-11-19: the Orderbook opened with only its column
   heads while `visibilityState` read `hidden`; `tab t1` filled the ladder.
+  Again 2026-11-20: at least seven drifts in one pass. Two drives that
+  failed once (an `Escape` that left the legend's `More` menu open, and a
+  bare letter over the toolbar that opened nothing) were each followed by a
+  `hidden` read and passed after `tab t1`. Read `visibilityState` and run
+  `tab t1` before every drive step, not only before a capture.
 - **The v2 gateway is a tailnet-only name; when it stops resolving, every live
   surface goes quiet while candles still paint (seen 2026-11-01).** From about
   21:55 UTC `tsdb-gateway.int.ore.kiyotaka.ai` returned NXDOMAIN from the
@@ -792,12 +827,58 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   choice the tag under the last price read `11:02` on the boot COINBASE
   BTC-USD 1h, `10:23` on INDEX DXY 1h and `38:40` on AAPL 1h. AAPL showed it
   because this seat leaves the stocks plane unrouted (see the README's
-  Baseline preconditions), so no delayed tier applies. On a delayed feed (CME
-  10 minutes, the stocks tape 15) and on a calendar interval (`1M`, `3M`,
-  `6M`, `1Y`) `shownCandleCountdown` in
-  `src/utility/chart/candle-countdown.util.ts` holds it off (source). The
+  Baseline preconditions), so no delayed tier applies. **Since `fc0f54ec54`
+  a delayed feed shows the countdown too (source, not driven):** the engine
+  reads a feed clock that is server time less the served delay (CME 10
+  minutes, the stocks tape 15), so the tag reaches `00:00` when the bar
+  closes on the user's screen. No word or tooltip beside it says so yet.
+  The older claim here, that a delayed feed holds it off, is stale. Only a
+  calendar interval (`1M`, `3M`, `6M`, `1Y`) still holds it off
+  (`shownCandleCountdown` in `src/utility/chart/candle-countdown.util.ts`).
+  **Driven 2026-11-20 on `7c937b0a1f`:** on HYPERLIQUID.F BTC, after
+  `tb-interval-option-1M-btn` (26 bars) the price tag showed no countdown
+  while `price-scale-corner-countdown` still read `aria-pressed` `true`;
+  back on 1h the tag read `36:12`. The
   Super Search setting row and Apply to all charts read the same default
   (source).
+- **`boot-intent-warm` (`de79b1d733`, `0d9aee7ad3`, `b27e0f8d6c`; driven
+  2026-11-20 on `7c937b0a1f`).** The only observable is the debug ring.
+  `eval "window.__enableKiyoLazyLoadDebug()"`, then
+  `eval "window.__enableKiyoLazyLoadVerboseTicks()"`: without verbose ticks
+  the dump folds a second's `interval-prefetch` rows into one
+  `kscript-tick-rollup` count with a single exemplar, so `dispatched` and
+  `fetched` are lost. `window.__dumpKiyoLazyLoadDebug()` returns a string of
+  JSON lines; match the rows whose `details.lane` is `market-intent`. Open
+  the symbol dialog, fill `ETHUSDT`, and move the pointer onto a row with
+  two real `mouse move` calls (rows are `[data-flat-index]`; the first sat
+  at `594 334`). Read: `dispatched` then `fetched` for `BINANCE` `WBETHUSDT`
+  `1h`, and on the first row `dispatched` then `fresh-skip` for
+  `BINANCE_FUTURES` `ETHUSDT` `1h` (it had been warmed a moment before).
+  Moving between rows logged `aborted` with `reason` `superseded`. A
+  `mouse down`, `mouse up` on the row logged `kept` with `reason` `press`
+  and the chart switched to BINANCE.F ETHUSDT. Turn the ticks off after
+  (`__disableKiyoLazyLoadVerboseTicks()`). Not driven: the Super Search
+  cursor's warm (`kept`, `pick`), the `ineligible` rows for a stock or CME
+  row, a touch pointer (`pointer-gated`), and the `switch-prefetch-join`
+  ring the product doc names (no such row was in the dump).
+- **`boot-glide` (`0cb582eb9f`, `02de83a38a`; driven 2026-11-20 on
+  `7c937b0a1f`).** Sample the view each frame with a
+  `requestAnimationFrame` loop over `window.tc[0].lastProcessedRange`
+  (`startKey`, `endKey`). Drag the plot back (`mouse down` at `600 450`,
+  moves to `900 450`, `mouse up`): the range read `325..580` and
+  `chart-nav-scroll-latest` appeared. `press "Alt+Shift+ArrowRight"` with
+  Lite charts off stepped `348`, `367`, `381`, `390`, `394`, `395..649`
+  over about 500 ms, and the Latest button left at the end. **With Lite
+  charts on, which is this lane's own default, the same press cut in one
+  step** (`86..341` to `145..399`): the glide is off under the
+  fewer-frames lever (source: also on heatmap and volume-candle plots, with
+  OS Reduce Motion, and past three spans). Turn Lite off through
+  `light-charts-chip` then `light-charts-turn-off`, and back on through the
+  Performance page (see `set-lite`). The nav overlay buttons
+  (`chart-nav-scroll-left`, `-right`, `-zoom-in`, `-zoom-out`, `-reset`)
+  were covered by the canvas for a `find testid` click; `mouse wheel` did
+  not move the range. Not driven: `Reset view` (`Alt+R`), a far target's
+  cut, and the Auto ease.
 - **`boot-footer-session` (driven 2026-11-19 on `413f86e5af`;
   `5b02dfdcb9`).** The session word is a menu button, not a flip. On AAPL 1h,
   `footer-session-toggle-btn` (text `RTH`, `aria-label` `Regular hours`,

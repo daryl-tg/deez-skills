@@ -3,7 +3,19 @@
 The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
-lock, settings and delete. Last DRIVEN 2026-11-19 on `413f86e5af`
+lock, settings and delete. A tool search (the `;` key or the magnifier at the
+top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-20 on
+`7c937b0a1f` (`origin/main`, 82 commits past `413f86e5af`, lane `18104`, a
+no-session lane: the backend was unreachable; see the README's Baseline
+preconditions): the tool search (see `dt-search`), a Fibonacci Retracement's
+one-colour row, level chips and Classic template (see `dt-levels-ink`), a
+trend line's boxed number rows, free-placed points that now sit on a candle
+(see `dt-points`), and a Long Position reading `No entry`, staying planned
+above price and filling at 100% opacity (see `dt-position-bar`). Not driven
+tonight: the Gann and pitchfork families, the eight tools' Opacity rows other
+than the position's, a pasted drawing, a sloped alert on another interval, the
+CME point-value Qty and the alert delay row (see the README inventory). Before
+that, last DRIVEN 2026-11-19 on `413f86e5af`
 (`origin/main`, 184 commits past `cff04f9a01`, lane `18103`, a guest JWT): a
 Long Position's one-pill bar with its Risk edit and More menu (see
 `dt-position-bar`), the Emoji picker put down by `Escape` (see
@@ -157,10 +169,21 @@ the cancelled creation, the right-click menu and the magnet.
 - `dt-magnifier-chip` on a phone, a `Magnifier` switch sits beside the `Draw
   by holding` pen while a tool with a lens is armed (`d3537e5ac1`; phone
   only, source).
+- `dt-search` the tool search: `;` or the magnifier opens a small panel
+  beside the toolbar; typing ranks the tools, `Return` or a click arms the
+  pick, and four toolbar switches (Magnet, Stay in drawing mode, Lock, Hide)
+  can be flipped from it (`9a0ab7a3cf`).
+- `dt-levels-ink` a Fibonacci, Gann or pitchfork drawing takes one colour:
+  Auto, Up, Down or a picked colour, on the floating bar and in the settings
+  card, with `Color each level` and the built-in `Classic` template for the
+  old per-level look (`8ebbd28367`, `694c096f0c`).
 
 ## How to get to it (user POV)
 
 - Click a tool in the left toolbar, then click two points on the chart.
+- Press `;` (or click the magnifier at the top of the toolbar, or type a
+  letter with the pointer over the toolbar), type a tool's name and press
+  `Return` to arm it.
 - Select a drawing to get its floating toolbar. `Delete` removes it.
 - In the floating toolbar, click the `+` swatch to pick a custom colour or type
   a hex; click away to keep it, press `Escape` to drop it.
@@ -176,11 +199,20 @@ the top overlay cleared.
   `toolbar-item-fibonacciretracement:tool-icon-btn` and
   `toolbar-item-rectangle:tool-icon-btn`. The cursor is
   `toolbar-item-default-icon-btn`, then `toolbar-item-ruler`. Hide and show the
-  bar with `toolbar-hide-btn` and `toolbar-show-btn`.
+  bar with `toolbar-hide-btn` and `toolbar-show-btn`. **Since `9a0ab7a3cf`
+  the first item is the tool search magnifier** (`toolbar-item-tool-search`
+  with `toolbar-item-tool-search-icon-btn`), and the order read 2026-11-20 was
+  `tool-search`, `default`, `trendline:tool`, `fibonacciretracement:tool`,
+  `xabcdpattern:tool`, `longposition:tool`, `brush:tool`, `rectangle:tool`,
+  `arrowmarker:tool`, `text:tool`, `emoji:tool`, `ruler`, `magnet`,
+  `drawing-mode`, `ink-gesture`, `toolbar-after-drawing`, `lock`,
+  `show/hide`, `delete`, `favorite-drawing-tools`.
 - **`dt-place`.** `find testid "toolbar-item-trendline:tool-icon-btn" click`,
   then `browser mouse move 400 400`, `mouse down`, `mouse up`, then the same at
   `800 300`. Quote the testid: it contains a colon.
-- **`dt-toolbar`.** After placement the floating toolbar shows colour swatches,
+- **`dt-toolbar`.** (A Fibonacci, Gann or pitchfork drawing shows one
+  `tqb-levels-ink` row instead of swatches since `8ebbd28367`; see
+  `dt-levels-ink`.) After placement the floating toolbar shows colour swatches,
   text colour, width, line style, lock, settings, more and delete
   (`toolbar-item-delete-icon-btn`). The chart shows the line, an `+ Add Text`
   label and a dimensions tag (`78 x 0.092 (+0.15%)` on the driven run).
@@ -387,9 +419,71 @@ the top overlay cleared.
   writes `kiyotaka:draw-magnifier` and the engine's
   `settings.touchMagnifier`. Not reachable at 1440x900; needs a phone
   viewport with `isMobile` true.
+- **`dt-search` (`9a0ab7a3cf`; driven 2026-11-20 on `7c937b0a1f`).** Move
+  the pointer onto the plot and `press ";"`. Proof: `tool-search-panel`
+  (`role="dialog"`, name `Search tools`), focus on `tool-search-input`, and
+  the Pinia store `toolSearch` reading `isOpen` `true`. Rows are
+  `tool-search-row-<slug>` with `role="option"`; an empty box listed `Trend
+  Line ⌥ T`, `Ray`, `Info Line` and on (a fresh profile has no Recent
+  group). `keyboard type "channel"` ranked `tool-search-row-parallelline-tool`
+  first with the alias `channel` at its right, then `disjointchannel`,
+  `fibchannel`, `regressiontrend` and `flattopbottom`. `press Enter` closed
+  the panel, set `toolSearch.lastPick` to `{name: 'ParallelLine:Tool'}`, put
+  the name first in the store `toolRecents` (`names`), and the line group
+  button took the Parallel Line glyph and lit. The toolbar magnifier
+  (`find testid toolbar-item-tool-search-icon-btn click`) opens the same
+  panel; `aria-expanded` and `aria-haspopup="dialog"` sit on its wrapper
+  `toolbar-item-tool-search`, not on the icon button. `zzzz` showed
+  `tool-search-empty` (`No tools match`). `Escape` once cleared the words
+  and a second `Escape` closed the panel. `magnet` listed one row,
+  `tool-search-row-switch-magnet` reading `Magnet Off`; `Enter` closed the
+  panel, the next open read `Magnet On` and `toolbar-item-magnet-icon-btn`
+  carried `tool-item__image--toggled` (flip it back the same way). With the
+  pointer over the toolbar (`mouse move 26 395`, a real move, not `hover`),
+  a bare `c` opened the panel with `c` typed and `Cross Line ⌥ C` first;
+  with the pointer over the plot a bare `t` opened the symbol dialog with
+  `T` typed instead. A toolbar click also feeds Recent: after a Fib from the
+  toolbar and a Trend Line from the search, `toolRecents.names` read
+  `TrendLine:Tool`, `ParallelLine:Tool`, `FibonacciRetracement:Tool`. Not
+  driven: the floating toolbar's own magnifier
+  (`floating-toolbar-tool-search-btn`), the Favorites group (a guest's is
+  read-only, source) and the other three switch rows.
+- **`dt-levels-ink` (`8ebbd28367`, `694c096f0c`; driven 2026-11-20 on
+  `7c937b0a1f`).** Place a Fibonacci Retracement
+  (`toolbar-item-fibonacciretracement:tool-icon-btn`, two clicks). Its bar
+  read `tqb-levels-ink` holding `levels-ink-swatch-text` (Auto,
+  `aria-pressed` `true`), `-up`, `-down` and `-add`, then `tqb-lock-btn`,
+  `tqb-templates-btn`, `tqb-settings-btn`, `tqb-more-btn` and
+  `tqb-remove-btn`: no `tqb-swatch-*` rows. The drawing's
+  `settings.levelsInk` read `text`. `levels-ink-swatch-up` set it to `up`
+  and every level and label drew in the Up colour. The settings card holds
+  `tool-ink-row` (the same four swatches), a boxed `Opacity`,
+  `tool-text-size-{s,m,l}` and `tool-text-bold`, 24 level chips
+  (`tool-levels-chip-fibLevels-<i>`: `0`, `0.236`, `0.382` and on),
+  `tool-levels-each-toggle` (`Color each level`) and the sections
+  `tool-props-section-{ink,text,levels,levelValues,lines,more,position,showOn}`.
+  The toggle set `levelsInk` to `each` with no swatch pressed. With `down`
+  picked, `tqb-templates-btn` then `settings-template-builtin-classic`
+  (`Classic`) set it back to `each`. Not driven: a picked colour through
+  `levels-ink-swatch-add` (`custom`), the recent-colour swatches, and the
+  Gann and pitchfork families (19 types share the row, source).
+- **Number rows in a settings card are boxed fields (`81b587279f`; driven
+  2026-11-20).** A trend line's card read `tool-props-lineWidth-stepper`
+  (`Width`, `2`) and `tool-props-fontSize-stepper` (`Size`, `14`), each a
+  bordered field with its glyph. The Highlighter's wider card was not opened.
 
 ## Gotchas
 
+- **A group button arms the group's last pick, not the tool in its testid
+  (driven 2026-11-20).** After the tool search armed Parallel Line,
+  `find testid "toolbar-item-trendline:tool-icon-btn" click` armed
+  `ParallelLine` again: two clicks left a half-made three-point drawing and
+  no floating bar. The testid names the group, and the group remembers. Arm
+  an exact tool through the search (`;`, type `trend line`, `Enter`) or
+  check `getSelectedTools()[0].type` after placing.
+- **`Escape` with a settings card open also drops the selection (driven
+  2026-11-20).** The card closed, `getSelectedTools()` read `0` and the bar
+  was gone. Click an end point of the drawing to select it again.
 - **Place with two clicks, not a drag (driven 2026-11-02).** `mouse move 400
   400`, `mouse down`, `mouse up`, then `mouse move 800 300`, `mouse down`,
   `mouse up`. A `down`, `move`, `up` drag followed by a click left no selected
@@ -435,6 +529,22 @@ the top overlay cleared.
   (source, `ToolQuickBarOrderButton.vue`, `position-order.util.ts`). A
   position placed in the past drew `SL hit` with a dashed line to the bar that
   ended its trade (`ed86a661c9`).
+  **A box price never traded reads `No entry` (`c8f7198d15`; driven
+  2026-11-20 on `7c937b0a1f`, COINBASE BTC-USD 1h).** A Long Position
+  clicked at `1200 200`, above price with its box running past the newest
+  candle, read `Long`, `R/R 1.00`, `Qty 0.1106` with `TP +250.00` and `SL
+  -250.00` tags and no `TP hit`: it stays planned. One clicked at `600 230`,
+  wholly in the past and above every candle it spans, read `No entry` with
+  `R/R 1.00` and `Qty 0.1106`. So the `SL hit` claim above holds only where
+  price traded the entry. `tqb-settings-btn` opens a card with
+  `tool-sizing-risk`, `-entry`, `-target`, `-stop` and `-rr`; its `More`
+  fold adds `tool-sizing-account`, `tool-sizing-lot`, an `Opacity` field and
+  `tool-props-lineWidth-stepper`. Typing `100` into Opacity and `Enter` set
+  `settings.backgroundOpacity` from `19` to `100` and both zones drew in the
+  full picked colours (`b97785739f`). Not driven: the Qty on a CME contract
+  at its point value (`34ee9e4e42`, needs a CME pane and an engine with
+  `setSizingMarket`), and the same Opacity row on Regression Trend, the
+  Price and Date ranges, Signpost and Callout.
 - **`dt-picker-settle` (driven 2026-11-19 on `413f86e5af`; `91f480aa42`).**
   `find testid "toolbar-item-emoji:tool-icon-btn" click` opened the glyph
   picker (`glyph-picker-cell-*` cells) and lit the button
@@ -509,8 +619,21 @@ the top overlay cleared.
   17:20` and `Enter` stored `1794244800000`. After `tb-interval-pinned-1h-btn`
   (the card stayed open) filling `9 Nov 17:40` stored `1794246000000`, 17:40,
   not the 17:00 bar open. Arrows step one bar from the stored time (source).
+  **Every placed point now sits on a candle (`0ebad54604`, `f713057a3e`,
+  `ab955b9c1d`, engine 1329.59; driven 2026-11-20 on `7c937b0a1f`).** With
+  the magnet off, a trend line clicked at `403 400` and `797 300` on
+  COINBASE BTC-USD 1h stored `1794466800000` and `1794744000000`, both whole
+  hours, and `points` now exposes the mark: each point read
+  `{price, time, xSpace: 'bar'}`. A Fibonacci Retracement and a Parallel
+  Line read the same. So the two older claims below are stale on this tree:
+  a free placement no longer stores a time between bars, and `points` does
+  show `xSpace`. A typed time still keeps its minute: filling
+  `tool-position-time-0` with `12 Nov 09:25` and `Enter` stored
+  `1794475500000` (09:25) with `xSpace: 'bar'`. The engine also carries
+  `toolTypeHoldsCandles(type)` (`true` for `TrendLine`). Not driven: a
+  pasted drawing and a hold across an interval switch for a free point.
   **A magnet point holds its candle (`44c3fa5534`, `0f84e48619`; driven
-  2026-11-19 on `413f86e5af`).** A free placement still stores a time
+  2026-11-19 on `413f86e5af`).** On that tree a free placement stored a time
   between bars: a trend line on HIP-3 GOLD-USDC 1m stored
   `1795024502880`. With `toolbar-item-magnet-icon-btn` on
   (`tool-item__image--toggled`) the first point snapped to

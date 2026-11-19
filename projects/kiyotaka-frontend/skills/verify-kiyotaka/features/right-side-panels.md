@@ -5,6 +5,15 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-20 against product tree `7c937b0a1f` (`origin/main`, 82
+commits past `413f86e5af`), lane `18104`, a no-session lane with the backend
+unreachable: the Panels menu's 17 rows; the Orderbook on HYPERLIQUID.F BTC
+(`Book`, `Delta` and `DOM`, `62247.50`, `Imbalance 58.1% bid`, after the tab,
+drifted hidden, was brought back); the Tape on the same market grouped by
+`1s` with its docked Liquidations (`Prints`, `Levels`); no Options door; the
+Watchlist row's verify-email card. Not driven: the alert delay row, CME
+dollar figures and every trading surface (source only, see below). Before
+that, last
 DRIVEN on 2026-11-19 against product tree `413f86e5af` (`origin/main`, 184
 commits past `cff04f9a01`), lane `18103`, a guest JWT with the backend
 answering: the Orderbook ladder on COINBASE BTC-USD (`Imbalance 54.4% bid`,
@@ -226,6 +235,27 @@ an open panel.
   labels, and always on mobile. Crypto shows none (driven 2026-11-07). The
   DOM ladder also caps each side at 5000 rows and starts governed CME
   groupings at the finest served size (`9d09f1365d`, source).
+  **The alert forms' delay line is one row on a delayed CME market
+  (`70ca7763c6`; source, not driven: the CME plane is unrouted here).** A
+  clock, the delay in bold (`10 min`), a sentence (`Fires with your chart,
+  10 min behind the market`) and `Get real-time` at the right
+  (`alert-create-cme-delay-notice`, `alert-dialog-cme-delay-notice`, action
+  `<id>-get-realtime`); hover or focus opens a card with the reason. Where
+  the plan sells no real-time data the row has no action, and a US stock
+  tape with no live chart keeps the older paragraph.
+- **CME dollar figures use the contract's point value (`974097bcb2`,
+  `d2bede84fe`; source, not driven).** Volume Delta, Volume Stats, Market
+  Stats, the Scanner and DOM big lots price a live CME figure at the point
+  value (ES 50, MNQ 2); a market with no priced point value shows contracts
+  with no `$`. Needs a routed CME pane.
+- **Signed-in trading doors added on `7c937b0a1f` (source, not driven).**
+  The Trading Hub account menu's Trade menu has a foot row
+  `trading-hub-account-menu-one-click` (an on/off switch, shown only while
+  one-click can be armed), with a Super Search row `one-click-trading`; a
+  right-click on a routed futures pane sends an order without the ticket
+  (`chart-ctx-size`, `chart-ctx-order-buy`, `chart-ctx-order-sell`,
+  `chart-ctx-open-ticket`; `18843c8e4d`); the Hyperliquid ticket fills its
+  size from the chosen size (`2426af0110`).
 - **The row count follows the chart's market (driven 2026-11-03).** On
   BINANCE.F ETHUSDT the menu listed 17 `tb-panels-row-*`; on the NYSE `SPY /
   GLD` formula it listed 16, without `orderbook`. Count on a crypto perp

@@ -12,6 +12,9 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-20 on tree `7c937b0a1f` (`origin/main`, 82 commits past `413f86e5af`, lane `18104`, a no-session lane with the backend unreachable): still unreachable.** `window.__voiceControl` and
+`voice-control-mic-btn` were both absent on a lane with no session.
+
 **Re-driven 2026-11-19 on tree `413f86e5af` (`origin/main`, 184 commits past
 `cff04f9a01`, lane `18103`, a guest JWT): still unreachable.** The only testid
 holding `mic` was the search's `search-v2-category-economics-btn`. The index

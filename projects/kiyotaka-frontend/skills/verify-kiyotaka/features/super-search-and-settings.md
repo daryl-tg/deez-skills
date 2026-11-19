@@ -7,6 +7,17 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-20 against product tree `7c937b0a1f` (`origin/main`, 82 commits past
+`413f86e5af`, lane `18104`, a no-session lane with the backend unreachable):
+Super Search whole on its first frame, `channel` leading with the Parallel
+Line tool, `one click trading` listing nothing, `auto scale` listing
+`axis:auto-scale` (see `ss-rows`); the settings pages with all ten nav items
+and a first nav click that did not take (see Gotchas); Release Notes with 84
+versions led by `4.53.0` and no `4.57.0` row (see `set-notes`); the Lite
+charts chip, card and Performance switch (see `set-lite`); the plans page
+with no member-only content (see `plans-page`); and the Watchlist and editor
+walls as verify-email cards. Not driven: any guest wall, the moved-member
+notice and `Add a year`, and share links. Before that, last DRIVEN on
 2026-11-19 against product tree `413f86e5af` (`origin/main`, 184 commits past
 `cff04f9a01`, lane `18103`, a guest JWT with the backend answering):
 `global-nav-search-btn` and `release notes` to
@@ -217,7 +228,9 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
   indicators unless a bar stands far above its usual size; the palette row and
   the Display page row toggle it.
 - `plans-page` `/chart/plus` shows the plans, the compare table and the
-  questions to a guest.
+  questions to a guest. A member moved from annual Plus to Ultimate also
+  gets a `4.57.0` notice at boot and an `Add a year` control here
+  (`ebbd08ef1d`; signed-in members only, source).
 
 The editor row is covered in [script editor](./script-editor-and-kscript.md)
 `ks-open`.
@@ -370,6 +383,21 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `settings-pages-nav-{shortcuts,performance,language,notes}-btn` (driven
   2026-11-09 on `32dd0c6354`). Close with
   `settings-pages-close-btn`.
+- **`ss-rows`, re-driven 2026-11-20 on `7c937b0a1f`.** The overlay shows
+  whole on its first frame (`28f0ccf993`): a `MutationObserver` read
+  `.ssv3-overlay` and `.ssv3-pill-input` at `opacity` `1`, `animation-name`
+  `none`, no `entered` class, at insert. Tool rows take their aliases from
+  the tool search's registry (`9a0ab7a3cf`): `channel` led with
+  `super-search-result-tools:ParallelLine:Tool-btn` (`Parallel Line`,
+  `Drawing tool`), then CCI, Donchian and Keltner, then Fib Channel,
+  Disjoint Channel and Flat Top/Bottom. `auto scale` listed
+  `axis:auto-scale` (`Auto Scale ON`), `axis:scale-price-only` and
+  `commands:changeScaleMode`; the row's return to Auto now eases
+  (`02de83a38a`, source). `one click trading` listed nothing: the
+  `one-click-trading` row exists only with a connected Hyperliquid session
+  (`2426af0110`, source). `hyperliquid btc` listed only the `Open symbol
+  search` row. A symbol row under the cursor warms its market (see the
+  chart boot guide's `boot-intent-warm`; not driven here).
 - **`ss-rows` (driven 2026-11-06 on `8bcd72f8f5`, `6c0164fd35`).** Typing
   `anchored vwap` listed `super-search-result-wrun-registry:wrun-registry:@om-core/anchored-vwap-btn`
   leading with its store cover (`.isp img`), then
@@ -384,6 +412,11 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   switch and Remove rows do not.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
   `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  **Driven 2026-11-20 on `7c937b0a1f` (no session):** 84 versions, led by
+  `4.53.0 Latest Spotlight The US tape. November 5, 2026`, then `4.50.0`
+  and `4.49.0`; no `release-notes-version-4.57.0-btn`, whose audience is
+  the moved-to-Ultimate member (`ebbd08ef1d`, source). The first nav click
+  after the open may not take (see Gotchas).
   **Driven 2026-11-19 on `413f86e5af`:** a guest's page led with `4.53.0
   Latest Spotlight The US tape.` (82 versions). With
   `kiyo.flag-overrides` `{"pane-sides":true}` and a reload it led with
@@ -639,6 +672,17 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 
 ## Gotchas
 
+- **The first settings nav click right after the dialog opens can be undone
+  (driven 2026-11-20 on `7c937b0a1f`).** `press Meta+Slash`, a 1 s wait and
+  a click on `settings-pages-nav-language-btn` (or `-notes-`) left
+  `.nav-item.active` on `shortcuts`, four times in four. A later click on
+  the same item took (`notes` then listed 84 versions), and so did every
+  click after it. Click, read `.nav-item.active`, and click again when it
+  has not moved. Seen on a no-session dev lane only; the cause was not
+  traced, and whether a built app does the same was not checked.
+- **A no-session lane shows the signed-in settings nav (driven 2026-11-20).**
+  `settings-pages-nav-{my-info,subscriptions,connections,api,referral,support,shortcuts,performance,language,notes}-btn`
+  with `Sign Out` at the foot, where a guest gets four items.
 - **With no session the wall is the email card (driven 2026-11-17 on
   `60b7e6b190`).** `handleGuestAccess` (`src/composables/useGuestAccess.ts`)
   raises the sign-in wall only for a guest; an account that is not a guest

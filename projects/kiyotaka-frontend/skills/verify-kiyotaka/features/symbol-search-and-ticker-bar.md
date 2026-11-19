@@ -4,6 +4,17 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
+was last DRIVEN on 2026-11-20 against product tree `7c937b0a1f` (`origin/main`,
+82 commits past `413f86e5af`), lane `18104`, a no-session lane with the
+backend unreachable: the V2 dialog read `v2` 20, `legacy` 0; `ETHUSDT` listed
+`ETH`, `STETH` and `WBETH` and a press on the `ETH` row opened BINANCE.F
+ETHUSDT (395 bars; the row had been warmed under the pointer, see the chart
+boot guide's `boot-intent-warm`); `BTC` listed 101 venues at the right and a
+click on its `BTCUSD HYPERLIQUID.F PERP` row opened HYPERLIQUID.F BTC; the
+interval dial listed `1m` to `1w`, the seconds row, `1M` to `1Y` and `Tape`
+with no `tb-interval-custom-btn`, and `1M` drew 26 bars. Not driven: the
+custom size's plan sentence, the index venue and the footer session menu
+(driven 2026-11-19). Before that, this entry
 was last DRIVEN on 2026-11-19 against product tree `413f86e5af` (`origin/main`,
 184 commits past `cff04f9a01`), lane `18103`, a guest JWT with the backend
 answering: the V2 dialog's `dxy` led with `asset-row-USD Index|7-btn` (DXY
@@ -523,7 +534,21 @@ Preconditions:
   hint testid). Since `5d17f30a99` and `8c98010383` custom sizes reach every
   round-the-clock market and, under a day, CME, US stocks, options and forex.
   A guest reads the flag off: on 2026-11-16 the dial had no
-  `tb-interval-custom-btn`.
+  `tb-interval-custom-btn`, and neither did a no-session lane on 2026-11-20.
+  **The plan sentence names both plans (`0870a5906c`, `c66b95bc2c`; source,
+  not driven):** a free viewer's say line (`tb-interval-custom-say`, with
+  `data-verdict="plan"` on `tb-interval-custom-act`) reads `Custom sizes are
+  part of Plus and Ultimate`, and the Plus popup opened by
+  `tb-interval-custom-plus-btn` is titled with the same sentence, not `More
+  Intervals`. A futures custom size no longer falls back to a history the
+  browser builds: the server builds it, and a refusal keeps the market on
+  its standard size (`fc471acb6b`, source). A long window is read in pieces
+  (`87c02566ac`, nothing to see).
+  **The rail's exchange buttons can be covered (driven 2026-11-20).** `find
+  testid search-v2-rail-exchange-hyperliquid-btn click` failed as `covered
+  by <div.views-rail__heading>`: the row sat under the `Compare on chart`
+  heading at 1440x900. Pick the venue from the right-hand venue list
+  instead (hover an asset row, then click the venue row by coordinates).
 - **Chart type.** `button "Candle"` peeks on hover and pins on click; the entries
   (`Hollow Candle`, `Heikin Ashi`, `Line`, `Line with Markers`, `Step Line`,
   `HLC Area`, `Area`, `Baseline`) do snapshot, so `hover` then `snapshot` proves

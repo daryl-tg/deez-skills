@@ -4,7 +4,19 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-19 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-20 against
+product tree `7c937b0a1f` (`origin/main`, 82 commits past `413f86e5af`), lane
+`18104`, a no-session lane with the backend unreachable (no catalog, every
+Add walled by the verify-email card): the legend row's buttons shown only
+under the pointer and its `More` menu (see `ind-legend-row`), the settings
+number field as a typed text field (see `ind-number-field`), the dialog's
+look with no catalog and its Ask tiles on a spot chart, a Binance perp and a
+Hyperliquid perp (see `ind-ask-tiles`). Not driven tonight, source only: Big
+Trades' ranked default and Whale lift, Skew and Put/Call Ratio on stock and
+CME charts, a coarser indicator Timeframe on stock, forex and index charts,
+the session profile's roll at the open, CME dollar figures at the point
+value, and the small-chart buttons under `pane-sides` (see the README
+inventory). Before that, last DRIVEN on 2026-11-19 against
 product tree `413f86e5af` (`origin/main`, 184 commits past `cff04f9a01`), lane
 `18103`, a guest JWT with the backend answering: the slot card at `2/3` with
 no rows (see `ind-limit`), the dialog's `big trades` search, the pane-sides
@@ -175,6 +187,16 @@ indicators were not driven.
 - `ind-dialog` the Indicators dialog opens and searches.
 - `ind-add` an indicator mounts as an overlay.
 - `ind-legend` the legend's settings / visibility / close controls work.
+- `ind-legend-row` a legend row shows its buttons only while the pointer is
+  on it (or on a lone pane), and keeps them while its `More` menu is open;
+  guide, copy, code, fold, pin and add-alert moved into `More`
+  (`e19acd9a19`, engine 1329.65).
+- `ind-number-field` a number in an indicator's settings is a real text
+  field: the first click selects it, long numbers take group marks, `Up`
+  and `Down` step it, and there is no drag or wheel (`76c1ff02fe`).
+- `ind-ask-tiles` the Indicators dialog's `Ask in your own words` block
+  offers question tiles chosen for the chart; the stop loss question is
+  offered only where its answer can run (`7c937b0a1f`).
 - `ind-catalog` official indicators are listed when the catalog is seeded.
 - `ind-limit` the guest cap is enforced. Since `a0bf0ea5b6` hovering
   `tb-indicators-btn` shows `tb-indicators-tip`: `n of 3 slots across your
@@ -239,7 +261,12 @@ indicators were not driven.
   right, order: 0}`. With the override, the Release Notes page leads with
   `4.56.0` (see the Super Search guide's `set-notes`). Not driven: the Clean
   look, the `Current period` scope, the greyed scope and display picks, the
-  column width grip and the hidden-for-space tag.
+  column width grip and the hidden-for-space tag. **Since `d7ba8f37b4` and
+  `c8eebcd9e1` (source, not driven)** a small chart shows its two buttons,
+  `pane-options-door-<id>` (move) and `pane-options-more-<id>` (`More`),
+  while the pointer is anywhere in its pane, not only on its name row, and a
+  wheel over a button scrolls the column; the card is `pane-options-popover`.
+  Side columns shrink before a side hides (engine contract v 9, source).
 
 ## How to get to it (user POV)
 
@@ -404,7 +431,61 @@ Preconditions:
   (`onchart` / `offchart`), not an indicator key, so a bare `?? m.type` prints
   placeholders that read like overlays.
   The new key is in the array — that is the assertion, not the legend text.
-- **Drive the legend.** It is engine-built DOM, not Vue:
+- **`ind-legend-row` (`e19acd9a19`, `48ca667bbe`, `3bdbb07b7b`; driven
+  2026-11-20 on `7c937b0a1f`, COINBASE BTC-USD 1h with VWAP).** Each row's
+  buttons live in `.titan-charts-legend-control-pane`. At rest all three
+  panes (Main, Vol, VWAP) computed `visibility: hidden`, `opacity: 0`. Tag
+  the row's `.titan-charts-legend-title-text` and `browser hover` it: the
+  VWAP pane computed `visible` and held four shown buttons,
+  `.titan-charts-legend-eye-btn` (`data-tooltip` `Hide`), an unclassed gear
+  (`data-tooltip` `Settings`), `.titan-charts-legend-close-btn` (`Remove
+  indicator`) and `.titan-charts-legend-more-btn` (`aria-label` `More`). The
+  fifth, Move to, needs the dark `pane-sides` flag and was absent. Main
+  showed Hide and Settings only; Vol showed Hide, Remove and More. On this
+  three-row price pane the pointer elsewhere in the pane (`mouse move 900
+  450`) left the VWAP pane `hidden`: the whole-pane rule is for a lone pane
+  (source). A click on the `More` button opened `indicator-menu` with
+  `indicator-menu-settings` (`Settings…`), `-copy` (`Copy VWAP`),
+  `-pane-move` (`Move to new pane`), `-show-on` and `-remove` (`Remove
+  VWAP`), and the button read `aria-expanded="true"`; with the pointer moved
+  to the ticker bar the row stayed `visible` while the menu was open.
+  `Escape` did not close the menu on this drive; a click on the plot did.
+  Not driven: the armed alert bell on the row, the Guide and Code rows of a
+  script-backed row, and the menu's alert row (`indicator-menu-alert`).
+- **`ind-number-field` (`76c1ff02fe`; driven 2026-11-20).** Open VWAP's
+  settings from the row's gear. The fields are `.scrub-number` wrappers
+  (`indicator-vwap-momentumLength-number`) holding an
+  `input.scrub-number__input` with `data-testid="scrub-number-input"`,
+  `type="text"` and `data-typed-number="own"`; they read `9` and `2`. A
+  first click selected the whole value. Typing `12345` showed `12,345` while
+  the engine still read `9`; `Enter` committed and clamped to the row's
+  maximum (`500`, `settings.momentumLength` `500`). `ArrowDown` stepped to
+  `499`. A second click in a focused field places the caret, so more typing
+  appends: reopen the dialog, click once and type to replace the value (`9`
+  and `Enter` restored it). Not driven: `10k`, `5m` and `1e-6` on a row with
+  room for them, a pasted `$1,000,000`, and that a drag no longer scrubs.
+- **`ind-ask-tiles` (`7c937b0a1f`; driven 2026-11-20, partial).** The block
+  is `indicator-ask-block` with `indicator-ask-promise`,
+  `indicator-ask-hide-btn` and tiles `indicator-ask-question-<family>`. On
+  COINBASE BTC-USD no tile had drawn 0.8 s after the open (not read again
+  later). On BINANCE.F ETHUSDT, 2.5 s after the open, it read
+  `delta_cvd` (`Are buyers or sellers more aggressive?`), `volume_profile`
+  and `macro_flows` (`Are ETFs buying or selling ETH?`), with no
+  `indicator-ask-question-derivatives`. On HYPERLIQUID.F BTC it read
+  `footprint`, `levels` and `market_structure`, again with no derivatives
+  tile. The stop loss tile (`Where are stop losses piling up?`, answered by
+  the Hyperliquid TP/SL heatmap) never showed, so the fix's positive case is
+  not proved: this lane had no catalog, and the tiles shown differ per
+  chart. Re-drive on a lane whose `doctor` catalog line reads `serves`.
+- **The dialog with no catalog (driven 2026-11-20).** The Official shelf
+  read `Couldn't load all official indicators` with `Retry` over skeleton
+  tiles, the Community list still listed `Price Action Toolkit`, and 19
+  `indicator-name-*` rows were present. `Add to chart` raises the
+  verify-email card on a no-session lane.
+- **Drive the legend.** Since `e19acd9a19` a DOM click on a row button needs
+  the hover first (see `ind-legend-row`); the handles below are `.click()`
+  calls on engine objects, and the flags that hide the guide, copy, pin and
+  fold glyphs make some of them absent (not re-read 2026-11-20). It is engine-built DOM, not Vue:
   `./control-kiyotaka browser eval "window.tc[0].metadata.find(m=>m.settings?.ovType==='<KEY>').legends.settingsBtn.click()"`.
   Also available: `closeBtn`, `toggleVisibilityBtn`, `loader`, plus `codeBtn`,
   `infoBtn`, `guideBtn`, `alertBtn`, `maximizeBtn`, `moveUpBtn` / `moveDownBtn`,
@@ -675,7 +756,17 @@ Preconditions:
     indicatorControl registered`: it is a wrun twin, so the dialog, which
     walls a guest, is its door), and since
     `640d8ac061` its default Min value reads the last 24 hours the market
-    traded, closed days removed, on stock Tape charts too (source); Big
+    traded, closed days removed, on stock Tape charts too (source); since
+    `20bfd15ccc` and `b71bdb8a6d` a fresh Big Trades ranks the loaded orders
+    for its minimum (about one bubble per five candles, never under ten
+    orders, rounded down on a 1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8 ladder and
+    never under the market base), an untouched Whale is lifted to the larger
+    of its default and ten times a typed Min, a typed value never moves, and
+    since `8e99c32598` a Min typed in coins or contracts stays on its own
+    market and candle size at every door (source, not driven: no catalog on
+    2026-11-20 and the Add walls a guest; with the debug ring on, its
+    `wrun-market-size-ranked` event carries `source` `ranked`, `held` or
+    `base`, `n`, `orders`, `value` and `whale`, source); Big
     Trades 0.12.0 (`5ca53ece24`) defaults its Style
     page's Look to Glass and adds Solid (Soft dot, Ring and Square stay), takes
     the candle colours, and offers Bubble size, Opacity (hidden for Solid) and
