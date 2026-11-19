@@ -403,6 +403,7 @@ and pays a full live sweep to do it. `open-world.md` arrived this way.
 - [menu-select-and-phone-sheet.md](menu-select-and-phone-sheet.md) — the multi-pick menu select and the phone bottom sheet's tap-to-close handle.
 - [projects.md](projects.md) — a server's Projects page (Table, Board, bulk bar, card menu), a channel's ticket panel and **New ticket** form, and the single-ticket page (files, comment box, server mute, home chip), through an init-script `todos` store.
 - [news-home.md](news-home.md) — the News view and filing a story into a room, through a seeded `news` store.
+- [self-hosted-model-settings.md](self-hosted-model-settings.md). OM Settings lists self-hosted model servers, connects and switches them, and picks the review model. Branch `daryl/own-model-settings` (`fd25a732`), not on main. Driven 2026-11-18 and 2026-11-19 through the dev daemon against a real llama-server.
 
 ## Surface inventory
 
