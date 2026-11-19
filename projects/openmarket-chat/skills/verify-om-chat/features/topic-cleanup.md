@@ -62,7 +62,7 @@ with topic triage. Do not target the operator daemon.
 ## Gotchas
 
 - `quiet=on` seeds the quiet followed topics the sheet lists and the bottom-rail
-  button **Quiet topics 20** (`shell-fixture.tsx:2296-2310`; `showQuiet=1` also
+  button **Quiet topics 20** (`shell-fixture.tsx:2297-2311`; `showQuiet=1` also
   seeds the shown state). Pressing the button flips `aria-pressed` and shows the
   hidden rows (the sidebar's level-2 treeitems went 14 → 30 on 2026-10-31);
   read the attribute after the re-render, not in the click's own tick.
@@ -70,7 +70,7 @@ with topic triage. Do not target the operator daemon.
   writes the synced pref `om.chat.sidebarQuietTopics` (`"1"` while shown, key
   absent while hidden; `lib/prefs.ts`, `lib/quiet-topics.ts`). The shell
   fixture swaps `session.quietTopics` for a plain object that never reads or
-  writes the pref (`shell-fixture.tsx:2302-2309`), so a reload there cannot
+  writes the pref (`shell-fixture.tsx:2303-2310`), so a reload there cannot
   prove it. Use a real session: press **Quiet topics N**
   (`[data-quiet-topics-row]`, `aria-pressed`), read the key, reload. Source
   discovery 2026-10-30; live verification pending.
@@ -86,7 +86,9 @@ with topic triage. Do not target the operator daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `quiet=on`, server menu → **Clean up topics**: the sheet with **Retry**, **Not sorted** and 31 checkboxes. **Limitations:** the triage groups need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193): the server menu's **Clean up topics** opens the dialog **Clean up topics** with "Could not reach om to sort these topics. Pick by hand below, or retry.", **Retry** and **Not sorted 15**. **Limitations:** the selection and the sweep were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `quiet=on`, server menu → **Clean up topics**: the sheet with **Retry**, **Not sorted** and 31 checkboxes. **Limitations:** the triage groups need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `quiet=on`, server menu → **Clean up topics**: the sheet with **Retry**, **Not sorted** and 31 checkboxes. **Limitations:** the triage groups need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

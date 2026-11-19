@@ -207,7 +207,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   (`Shell.tsx:1560`; accessible names at `:3132`, `:3674`, `:3699`,
   `:3801`). The tooltips spell it with a colon instead, "Agents: connected
   remotely" (`:3083`, `:3783`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4320`). The pane
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4318`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -257,7 +257,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   ```
 
   The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
-  **`u1`** (`shell-fixture.tsx:1048` maps the `kyle` handle to `u1`; every
+  **`u1`** (`shell-fixture.tsx:1049` maps the `kyle` handle to `u1`; every
   other handle becomes `u-<handle>`). Write it under the wrong id and nothing
   happens, silently. Proven end to end on lane 18118: after the reload one
   `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
@@ -270,7 +270,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - Your om: the running conversation, and its *not-running* empty state.
 - The running om's **three** sub-surfaces, held in one local `surface` state:
   **conversation** (the chat), **compose** (the new-session landing), and
-  **watches** (`ChatPane.tsx:483`). Settings used to be the fourth and is not
+  **watches** (`ChatPane.tsx:488`). Settings used to be the fourth and is not
   any more: `c40dbc5d` moved it to the global Settings dialog, and
   `38d0c72d`'s F18 then **removed the OM settings and Persona rows from the om
   home rail entirely** as duplicates. `ChatPane` no longer calls
@@ -371,7 +371,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:6122-6123`),
+  composer with no lane toggle and no target (`Composer.tsx:6093-6094`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -449,7 +449,7 @@ Roster page; nothing under `components/` renders that string at `47cb13bf`.
 
 ### Invite an agent to a channel (added 2026-10-28)
 
-In a channel, open **More channel actions** (the header `…`). Its menu has 14 items on the default fixture: Join voice, Brief, Invite people, **Invite agent**, Your agents..., New topic..., Summon your om, Channel settings, Mark as read, Notification settings, Mute channel, Hide to-dos, Convert to alerts..., Copy channel link. **Invite agent** (`ChannelHeaderMenus.tsx:114`; absent in away mode) opens a dialog named **✦ Invite your agent to #ops**. With no badge wired, it reads "No agent badge is wired yet. Run the command below: it wires your Claude Code, asks for read access to this channel, and the consent card appears right here.", then shows `om claude "#ops"` with **Copy**, **Open Front Desk** and **How agents work**. No daemon is needed for this state.
+In a channel, open **More channel actions** (the header `…`). Its menu has 14 items on the default fixture: Join voice, Brief, Invite people, **Invite agent**, Your agents..., New topic..., Summon your om, Media and files, Channel settings, Mark as read, Notification settings, Mute channel, Convert to alerts..., Copy channel link (re-read 2026-11-20 at `7e3f0cde` on both hosts: **Hide to-dos** is gone off Projects, and **Media and files** is new). **Invite agent** (`ChannelHeaderMenus.tsx:114`; absent in away mode) opens a dialog named **✦ Invite your agent to #ops**. With no badge wired, it reads "No agent badge is wired yet. Run the command below: it wires your Claude Code, asks for read access to this channel, and the consent card appears right here.", then shows `om claude "#ops"` with **Copy**, **Open Front Desk** and **How agents work**. No daemon is needed for this state.
 
 `find role menuitem click --name "Invite agent"` missed the item once while the menu was still opening. Take a snapshot and click the item by its ref instead. Driven on `/rooms/` and `/chat/` 2026-10-28 at `2dd7aad1` (frames 13, 42). The wired-badge state, the consent card and the **Channel agents** panel need a daemon with a wired badge.
 
@@ -607,7 +607,7 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
 - **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
   state — `h1` *"om isn't running"*, *"No recent daemon snapshot is available on
   this device"* on this lane. The gate is `presence.running === false`
-  (`ChatPane.tsx:523`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
+  (`ChatPane.tsx:528`), fed by `fetchOmHealth()` (`lib/om-health.ts`), which
   reads any 4xx except 429, or a non-JSON 200, as down. The fixture has two
   session modes: `omSessions=drafts` seeds Research A/B locally, and
   `omSessions=daemon` wires real session-list/history operations. Neither fakes
@@ -617,14 +617,14 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
   `/healthz?lite=1` poll, which otherwise 404s and drops the gate about 30 s in.
   Proved on 2026-10-27 (maintenance re-drive). The single nightly session that
   passed without a stub was the `running === null` window, before the first
-  poll answer or while the tab is hidden (`ChatPane.tsx:274`). Do not plan a
+  poll answer or while the tab is hidden (`ChatPane.tsx:279`). Do not plan a
   proof on that window. The stub answers health only, so Watches still need
   daemon watch RPCs and QA watch data, and unread still needs daemon events.
 - **On `/rooms/`, persona is unreachable from a `view=agents` page load — by any control,
   not just the old query.** (On `/chat/` the same Voice click reaches the hosted
   page and reads the desk-offline copy; see
   [persona-setup-and-editing.md](persona-setup-and-editing.md).) The fixture decides whether to mock persona
-  **once, at page load** (`shell-fixture.tsx:202-214`): it mocks when the query
+  **once, at page load** (`shell-fixture.tsx:203-215`): it mocks when the query
   is `view=agent&panel=voice|away|activity` *or* the hash is already
   `#/agents/voice|away|activity`. Anything that only *arrives* at those hashes
   after load finds the real, un-mocked client and reads *"Your voice could not
@@ -732,7 +732,7 @@ Proven on both hosts at chat `14509e60` with lane daemon `4f4db0510`. Rig owner 
 
 Clicking an `@agent` tag (`.agent-mention[data-handle]`, `role="link"`, named
 "@debugger, agent") opens a compact card, not the full profile
-(`MessageRow.tsx:2530-2540`, `lib/agents/agent-tag-card.ts`). The card is a
+(`MessageRow.tsx:2528-2538`, `lib/agents/agent-tag-card.ts`). The card is a
 dialog named **Agent <name>** (`AgentTagPopover.tsx:31`). It shows the name
 and an **AGENT** chip over "<owner>'s agent", with the owner's face. The owner
 comes from the room's agent directory: the account an agent posts as
@@ -742,8 +742,8 @@ for example when two owners each run a `debugger`, the line reads just
 button named "<name>, <owner>'s agent. View full profile" (`:116`,
 `[data-profile-door]`) that opens the agent's profile panel.
 
-`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1370-1390`; card
-handlers `openProfileCard` and `openMentionCard` at `:3546-3561`). The `/chat/`
+`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1371-1391`; card
+handlers `openProfileCard` and `openMentionCard` at `:3541-3556`). The `/chat/`
 fixture has neither the seed nor the handlers, so the card is `/rooms/` only.
 
 ```bash

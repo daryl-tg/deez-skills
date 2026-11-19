@@ -148,7 +148,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4689`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4750`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -203,7 +203,7 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2576-2581`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2577-2582`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -641,7 +641,7 @@ code-expired and code-mismatch notes, and a real daemon.
 - **Notifications crashes the shell fixture's whole User settings surface.**
   `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:607`),
   and neither fixture's plain-object `alertsStub` has it
-  (`shell-fixture.tsx:1462`, `apps/cloud/tools/visual/shell-fixture.tsx:540`).
+  (`shell-fixture.tsx:1463`, `apps/cloud/tools/visual/shell-fixture.tsx:540`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
   settings could not load** / **Try again**. Any further page click finds no
   button, and **Try again** returns to My Account. Reload before driving the
@@ -715,7 +715,9 @@ code-expired and code-mismatch notes, and a real daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176): the shell `?view=settings` nav lists 19 entries with no To-dos; `settings-fixture.html?host=user&page=todos` falls back to **My Account** with no radiogroup; `host=channel&page=overview&perms=owner` shows **Overview**, **Topics**, **Channel index** and no to-do control; `host=server&page=roles&perms=owner` → **Permissions**, with the version stub, lists 26 rows with **Manage Labels** and **Mute Members** and no **Nudge People**. **Limitations:** the other page bodies were not re-driven (the 2026-11-14 record stands); no grant was saved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 11, 12, 13, 17).
+**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=settings&settingsPage=appearance`: **Light theme** turns `data-theme` from `dark` to `light`. Every settings route in this guide mounted in the route smoke on both hosts. **Limitations:** a theme switch only; no other page was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
+
+**Previous record:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176): the shell `?view=settings` nav lists 19 entries with no To-dos; `settings-fixture.html?host=user&page=todos` falls back to **My Account** with no radiogroup; `host=channel&page=overview&perms=owner` shows **Overview**, **Topics**, **Channel index** and no to-do control; `host=server&page=roles&perms=owner` → **Permissions**, with the version stub, lists 26 rows with **Manage Labels** and **Mute Members** and no **Nudge People**. **Limitations:** the other page bodies were not re-driven (the 2026-11-14 record stands); no grant was saved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 11, 12, 13, 17).
 
 **Previous record:** 2026-11-14 (nightly maintenance). **Product commit:** `62fcc01a` (GitLab origin/main; 9 commits past `504b08d5`). **Scope:** `shell-fixture.html?view=settings&settingsPage=secrets` on `/rooms/` (18173) with the people stub and the `/secrets/*` fetch stub: the six seeds, **Add a device** through **Approve**, and the **Reset sealed keys** gate to the minted-code card; on `/chat/` (18174) the managed-by-the-OM-app text. **Limitations:** a real daemon, toasts (fixture no-op), and the submits listed in the recipe. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261114/r1/`.
 

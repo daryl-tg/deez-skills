@@ -31,7 +31,7 @@ agent-browser snapshot -i -c
 
 The DM route is `tools/visual/shell-fixture.html?view=dm&dm=ana&alerts=quiet&mermaid=1`. On both routes, drive the button named `Open Mermaid diagram as PNG`, then check for the named preview region.
 
-Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1036`) shifts when seeds change:
+Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1037`) shifts when seeds change:
 
 ```bash
 agent-browser find role textbox fill --name 'Message #ops · $ for markets · /chart to post one' 'https://openmarket.xyz/chat/room/ops/msg/116'
@@ -62,7 +62,9 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `mermaid=1`, with the people stub: one `.doc-mermaid svg`. **Limitations:** the cloud host has no mermaid seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=quiet&mermaid=1`: one `.doc-mermaid` with one `svg` after scrolling it into view. **Limitations:** a mount check only; the forward card and the DM route were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `mermaid=1`, with the people stub: one `.doc-mermaid svg`. **Limitations:** the cloud host has no mermaid seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `mermaid=1`: one `.doc-mermaid svg`; `/chat/` (18184) renders none (no seed). **Limitations:** the cloud host has no mermaid seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

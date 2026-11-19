@@ -13,15 +13,15 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   topic**, **Make a ticket from this message** (a Projects server only) and
   **More**. Every button is named by `title` only. There is no to-do promote
   any more: `05df35a7` removed **Add to Channel To-dos** with the legacy board.
-- **Message menu** (`MessageRow.tsx:3297-3478`). Opened by a right-click on
+- **Message menu** (`MessageRow.tsx:3293-3474`). Opened by a right-click on
   kyle's `#ops` row it lists 18 items off Projects (19 on a Projects server,
   where **Make a ticket from this message** follows **Turn into topic...**):
   four quick reactions, **Add Reaction**, **Reply**, **Turn into topic...**, **Forward**,
   **Edit Message**, **Copy Text**, **Copy Message Link**, **Bookmark
-  Message**, **Save to Your Library** (`:3386`), **Pin Message**, **Mark
-  Unread**, **Agent**, **Delete Message** and **Copy Message ID** (`:3468`). Opened from the hover
+  Message**, **Save to Your Library** (`:3382`), **Pin Message**, **Mark
+  Unread**, **Agent**, **Delete Message** and **Copy Message ID** (`:3464`). Opened from the hover
   toolbar's **More** it lists the same entries: the tile row (`MenuQuickBar`,
-  `:3302-3306`, with the four recent emoji above it) is unconditional, so the
+  `:3298-3302`, with the four recent emoji above it) is unconditional, so the
   quick tiles sit in the menu whether or not the toolbar is showing (measured
   2026-11-02 on both hosts, by a real click and by `eval`). The 11-entry
   reading recorded on 2026-10-31 and 2026-11-01 did not reproduce; read the
@@ -31,9 +31,9 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   (`[data-reply-glyph="image|video|file"]`, `role="img"` named **Image
   attached**, **Video attached** or **File attached**; the first attachment
   picks, a held one draws the paperclip). It shows on the room quote line and
-  bubble quote (`ReplyQuote`, `MessageRow.tsx:3993-4157`), the DM quotes
-  (`ChatPane.tsx:3797-3812`) and the composer's **Replying to** strip
-  (`Composer.tsx:6200-6209`). A text-less poll is quoted as italic
+  bubble quote (`ReplyQuote`, `MessageRow.tsx:3989-4153`), the DM quotes
+  (`ChatPane.tsx:3810-3825`) and the composer's **Replying to** strip
+  (`Composer.tsx:6171-6180`). A text-less poll is quoted as italic
   "Poll: <question>" with an `aria-hidden` poll glyph, a poll with text keeps
   the text and adds `role="img"` **Poll**, and a quote with nothing nameable
   reads "Click to see message" (`lib/attachment-quote-hint.ts`,
@@ -45,10 +45,10 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   keeps its side as lazy rows land (`shared/ui/Popover.tsx`,
   `useMenuPosition`). The same placement serves the sidebar, channel, topic,
   user and People-pane menus and the **Agent** flyout.
-- **Agent submenu** (`MessageRow.tsx:2101-2152`): **Copy for Agent**, **Mark
+- **Agent submenu** (`MessageRow.tsx:2099-2150`): **Copy for Agent**, **Mark
   for agent** (⌥M), **Ask about this...** and **Capture to doc from here**.
   **Copy for Agent** and **Copy for Agent (since here)** need the host's
-  `daemonFeatures` (`MessageRow.tsx:2106`, `:2114`; `d3aebbb5`): true on
+  `daemonFeatures` (`MessageRow.tsx:2104`, `:2112`; `d3aebbb5`): true on
   `/rooms/` (`src/lib/session-host.ts:2`), false on `/chat/`
   (`apps/cloud/src/lib/session-host.ts:3`). So on `/chat/` the flyout reads
   **Mark for agent**, **Ask about this...** and **Capture to doc from here**
@@ -62,22 +62,22 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   message: four quick reactions, **Add Reaction**, **Copy Text**, **Reply**,
   **Mark Unread**, **Forward**, **Pin Message**, **Edit Message**, **Delete
   Message** and **Copy Message ID**.
-- **Remove Link Previews** (`MessageRow.tsx:3445`) shows only on a message
+- **Remove Link Previews** (`MessageRow.tsx:3441`) shows only on a message
   with `unfurls`, which no fixture seeds.
 - **Forward** from the message menu opens **Forward message** with a **Comment** box (needs the session-capture shim; see the Forward section).
-- **Keys on a focused row** (`lib/message-keyboard.ts:12-30`, `MessageRow.tsx:1983-2025`):
+- **Keys on a focused row** (`lib/message-keyboard.ts:12-30`, `MessageRow.tsx:1981-2023`):
   ArrowUp/ArrowDown walk the rows, **R** replies, **E** edits your own
   message, **Delete** asks to delete it (Shift+Delete skips the confirm),
   **+** or **=** opens the emoji picker, **M** opens the message menu, **P**
   opens the author's profile card and **Enter** opens the row's first link or
   image. Alt, Ctrl or Meta held turns them off.
-- **Image right-click menu** (`lib/image-menu.ts`, `MediaGallery.tsx:1276`):
+- **Image right-click menu** (`lib/image-menu.ts`, `MediaGallery.tsx:1321`):
   **Copy Image**, **Save Image** and **Open in Browser**. Copy stays greyed
   ("Available after security scan") while the scan is pending.
 - **Nothing renders for an attachment still being scanned**
-  (`ScanState.tsx:31`, `MediaGallery.tsx:1217`): `ScanPendingCard` returns
+  (`ScanState.tsx:31`, `MediaGallery.tsx:1262`): `ScanPendingCard` returns
   `null`, so the row keeps its text and shows no placeholder and no Retry.
-- **@role pill → role popover** (`MessageRow.tsx:2508-2522`, `RolePopover.tsx`,
+- **@role pill → role popover** (`MessageRow.tsx:2506-2520`, `RolePopover.tsx`,
   `Shell.tsx:4697`): clicking a role mention opens **<Role> role members**
   with "<Role> — <n>" and one row per known holder.
 
@@ -129,7 +129,7 @@ The DM path is `?view=dm&dm=ana&alerts=quiet`: hover `#dm-msg-m2`, then click
 
 Open `shell-fixture.html?view=room&alerts=quiet&reply=1`. The composer shows
 the reply strip **Replying to dax** with a **Cancel reply** button
-(`Composer.tsx:6223`; the fixture seeds seq 103, `shell-fixture.tsx:2565`).
+(`Composer.tsx:6194`; the fixture seeds seq 103, `shell-fixture.tsx:2566`).
 Scroll `#msg-ops-104` into view, hover it, and click
 `#msg-ops-104 .msg-toolbar button[title="Reply"]`: the strip retargets to
 **Replying to kyle: @ana the alert fired twice last night …** and the composer
@@ -143,16 +143,16 @@ retest…`) carries the same glyph. On `/rooms/`, `&lateImage=1` gives
 `#msg-ops-101` an image, and its quote ends in **Image attached**. Driven on
 both hosts at `c19e2f70`.
 
-**Turn into topic** (`[data-turn-into-topic]`, `MessageRow.tsx:3171`) calls
+**Turn into topic** (`[data-turn-into-topic]`, `MessageRow.tsx:3167`) calls
 `session.openTopicDraft`, which the shell fixture leaves unstubbed, so it
 resolves to `INERT` and nothing opens: no aside, no dialog, no route change.
 Prove the offer (the button renders by `title`) and leave the effect pending.
 The quick reactions **React 👍 / 🔥 / 😂** were not pressed.
 
 The only promote left is the Projects ticket. On a server whose tickets run in
-records mode, the toolbar button (`[data-add-todo]`, `MessageRow.tsx:3184`) and
+records mode, the toolbar button (`[data-add-todo]`, `MessageRow.tsx:3180`) and
 the menu entry read **Ticket**, with aria and title "Make a ticket from this
-message" (`MessageRow.tsx:1675-1687`), for any member of the server, a
+message" (`MessageRow.tsx:1673-1685`), for any member of the server, a
 read-only channel included (`08dea2dd`); a visitor to a public channel sees
 neither. The entry also needs a sent row in a channel with a space, and a row
 that is not itself a to-do marker. Everywhere else there is no promote at all:
@@ -175,8 +175,8 @@ and never an app account. A link to anyone else leaves **Unassigned**, and
 nothing is searched. The title drops the link and a polite lead-in, so
 "`om://user/<nova> could you rerun the job`" becomes **Rerun the job**.
 
-The toolbar button calls `session.openTodoPromote` (`MessageRow.tsx:3185`),
-and both fixtures spell out `todoPromote: null` (`tools/visual/shell-fixture.tsx:3214`,
+The toolbar button calls `session.openTodoPromote` (`MessageRow.tsx:3181`),
+and both fixtures spell out `todoPromote: null` (`tools/visual/shell-fixture.tsx:3215`,
 cloud `:1652`), so the click opens nothing until the shim stubs it. The
 fixture also leaves `isAppAccount` out, so the autofill proxy answers a truthy
 `INERT` and every person reads as an app account until it is stubbed too:
@@ -207,7 +207,7 @@ above plus `, cc om://role/admin` it read `@nova could you rerun the job, cc @ad
 
 `MessageTouchRow` (`MessageTouchRow.tsx:41-145`) spreads `useRowTouch`'s
 pointer handlers onto every `[data-message-row]` that is not pending
-(`MessageRow.tsx:2175`), and those handlers act only on `pointerType ===
+(`MessageRow.tsx:2173`), and those handlers act only on `pointerType ===
 "touch"` (`lib/touch.ts:108-200`). There is no coarse-pointer or
 `maxTouchPoints` gate, so a synthetic `PointerEvent` with `pointerType:
 "touch"` drives both gestures, **provided the dispatches are paced**: React
@@ -229,7 +229,7 @@ agent-browser eval '(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));cons
 
 Past `SWIPE_COMMIT_PX` (56) the pull gains resistance (70 → 60.9), and the
 release past the commit calls `session.setReplyTarget`, which the fixture
-implements (`shell-fixture.tsx:3603`). A long press is `pointerdown`, a 700 ms
+implements (`shell-fixture.tsx:3598`). A long press is `pointerdown`, a 700 ms
 wait, `pointerup` on the same row: it opens the row menu as a sheet,
 `div.msg-sheet[role=menu][data-mobile-sheet]` behind `.msg-sheet-backdrop`,
 22 menu items for `msg-ops-104`; Escape closes it.
@@ -476,7 +476,7 @@ Stack role members**.
 - **Every verb is a fixture no-op except the clipboard.** The shell fixture
   stubs `toggleBookmark`, `togglePin`, `markUnreadFrom`, `removeUnfurls`,
   `askAgentAboutMessage`, `summarizeThreadWithAgent` and `captureFromSeq`
-  as `noop` or `asyncNoop` (`shell-fixture.tsx:3644-3728`), and `openForward` never sets
+  as `noop` or `asyncNoop` (`shell-fixture.tsx:3639-3723`), and `openForward` never sets
   `forwardSource`. Prove the offer here; the effects need the daemon-pair lane.
   The copy verbs write to the clipboard, which this lane did not read back.
 - A data attribute set by `eval` can vanish when React re-renders the row.
@@ -484,7 +484,9 @@ Stack role members**.
 
 ## Verification record
 
-**Last verified:** 2026-11-18 (nightly maintenance). **Product commit:** `c19e2f70` (GitLab origin/main; rooms-client 0.119.0; 28 commits past `c18cfa37`). **Scope:** `/rooms/` (18181) and `/chat/` (18182), fixture init (README): toolbar **Reply** on `#msg-ops-110` put **Video attached** after the quoted text in the strip and on the sent row's quote line on both hosts; on `/rooms/` `lateImage=1` `#msg-ops-101` gave **Image attached**. On `/rooms/`, with the session-capture and Projects stubs, **Make a ticket** quoted a link-led `#msg-ops-110` as `@nova could you rerun the job, cc @admin`. **Limitations:** the poll quote, "Click to see message", the DM quotes and the file glyph were not driven (no seed); menu counts were not re-driven (the 2026-11-15 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261118/r1/`.
+**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193): kyle's `#msg-ops-104` **More** lists 18 entries off Projects (React ×4, Add Reaction, Reply, Turn into topic..., Forward, Edit Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library, Pin Message, Mark Unread, Agent, Delete Message, Copy Message ID); another author's `#msg-ops-110` lists 15. **Limitations:** a re-read of the menu only; no item was pressed and `/chat/` was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 22).
+
+**Previous record:** 2026-11-18 (nightly maintenance). **Product commit:** `c19e2f70` (GitLab origin/main; rooms-client 0.119.0; 28 commits past `c18cfa37`). **Scope:** `/rooms/` (18181) and `/chat/` (18182), fixture init (README): toolbar **Reply** on `#msg-ops-110` put **Video attached** after the quoted text in the strip and on the sent row's quote line on both hosts; on `/rooms/` `lateImage=1` `#msg-ops-101` gave **Image attached**. On `/rooms/`, with the session-capture and Projects stubs, **Make a ticket** quoted a link-led `#msg-ops-110` as `@nova could you rerun the job, cc @admin`. **Limitations:** the poll quote, "Click to see message", the DM quotes and the file glyph were not driven (no seed); menu counts were not re-driven (the 2026-11-15 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261118/r1/`.
 
 **Previous record:** 2026-11-17 (nightly maintenance). **Product commit:** `c18cfa37` (GitLab origin/main; rooms-client 0.119.0; 14 commits past `96644a29`). **Scope:** `/rooms/` (18171), people stub, session-capture shim and Projects stub: **Forward** on `#msg-ops-110`, rewritten to carry a user link and `om://role/admin`, showed a source card naming **@Nova Reyes** and **@admin**. **Make a ticket from this message** on a link-led `#msg-ops-110`, with `openTodoPromote` and `isAppAccount` stubbed, opened **Make a ticket** with title **Rerun the job**, the Assignee set and "the person the message addressed". A link to a non-member read **Unassigned**. **Limitations:** no ticket was created and no forward sent; the defang of forwarded text is unit-only; `/chat/` was not driven for these two (shared code); the menu counts and the Agent flyout were not re-driven (the 2026-11-15 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261117/r1/` (frames 09, 10).
 

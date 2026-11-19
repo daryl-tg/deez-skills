@@ -22,7 +22,7 @@ fixture cannot reach.
   the pane with no occupants.
 - Links in world chat (`97a926de`): a user link reads as the person's pill
   (`.mention-pill.world-message-mention`, which opens their card) and a role
-  link as the role's name (`WorldChatPane.tsx:135-195`); speech bubbles read
+  link as the role's name (`WorldChatPane.tsx:136-196`); speech bubbles read
   both as names (`world/bubbles.ts`, wired at `WorldView.tsx:543-547`). The
   preview harness passes no room people, so there only the **@unknown member**
   fallback can show; the named pill and the bubbles are unit-tested

@@ -6,22 +6,22 @@ says about them.
 ## Sub-features
 
 - **Profile drawer** (`packages/chat-ui/src/components/ProfilePanel.tsx`): a
-  right-panel drawer with **Close profile** (`:320`, `:337`, `:425`), the avatar,
-  the display name and handle, **Copy username** (`:447`), and the action
-  buttons **Message** (`:472`), **Mention** (`:481`), **Follow** / **Following**
-  / **Requested** (`:495`) and **Cancel request** (`:501`); on your own profile,
-  **Edit profile** (`:459`).
-- **Profile sections** tablist (`:534`): **Info** (selected by default),
+  right-panel drawer with **Close profile** (`:325`, `:342`, `:430`), the avatar,
+  the display name and handle, **Copy username** (`:452`), and the action
+  buttons **Message** (`:477`), **Mention** (`:486`), **Follow** / **Following**
+  / **Requested** (`:500`) and **Cancel request** (`:506`); on your own profile,
+  **Edit profile** (`:464`).
+- **Profile sections** tablist (`:539`): **Info** (selected by default),
   **Media** and **Links**. The To-dos tab went with the legacy board
   (`05df35a7`); driven 2026-11-15 on `/rooms/`, the tablist holds exactly three
   tabs.
 - **Info** content: About, Mutual servers with a count and chips, Member since,
-  Connections (follower count), and at its foot **Report user** (`:781`, only
+  Connections (follower count), and at its foot **Report user** (`:786`, only
   when the person has a DM conversation with you) and **Block user** /
-  **Unblock user** (`:793`). The `?profile=1` seed has no DM conversation id,
+  **Unblock user** (`:798`). The `?profile=1` seed has no DM conversation id,
   so it shows **Block user** without **Report user**.
 - The DM header's identity button (`A Online ana`) opens the same drawer.
-- The floating identity card (`?card=1`, `shell-fixture.tsx:3181`): a `dialog`
+- The floating identity card (`?card=1`, `shell-fixture.tsx:3182`): a `dialog`
   named **Profile for ana** (`.profile-popover`) with the avatar, name, the
   about line, ROLES (traders), `2 mutual servers · 128 followers` and the
   buttons **View ana (ops)'s full profile**, **Message**, **Mention**,
@@ -68,8 +68,8 @@ agent-browser eval '(()=>JSON.stringify([...document.querySelectorAll("[aria-lab
 #   state dots img "working", "waiting", "blocked"; link "Open Backfilling CME options" (https)
 ```
 
-`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3188`, origin
-`dm:ana`) and sets `rightPanel` to `profile` (`:3246`). Use it on the DM view;
+`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3189`, origin
+`dm:ana`) and sets `rightPanel` to `profile` (`:3247`). Use it on the DM view;
 the room view has no matching origin. The user path is the header button:
 open `?view=dm&dm=ana&alerts=quiet` and click
 `find role button --name "A Online ana"`. `Close profile` appears.
@@ -96,14 +96,14 @@ relay.
 
 - The sections have no `role="tabpanel"`. A query for the panel finds nothing,
   so read the drawer's text instead.
-- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:3116`). It
+- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:3117`). It
   proves layout and the tab and close mechanics, not that a real profile fetch
   works. Media and Links switched selection but were not asserted for
   content.
 - Blocking is not exercised: the fixture does not persist it, and the Blocked
   tab under Connections crashes (see
   [direct-messages-and-home.md](direct-messages-and-home.md)).
-- **An agent's name is its owner's, with the persona beside it** (`DisplayName.tsx:78-194`, since `52a968b3`; this replaced the persona-handle-only rule of `01bf4481`). An agent row reads `<owner name> · <persona>`, for example "Daryl Boon · researcher" (`:157-161`; `test/ui/display-name-degraded.test.tsx:122`). With no picked persona it reads the owner's name alone. A degraded handle, the auto-wired badge's stock name `openmarket-chat` (`lib/wired-agent.ts:6`) and a name equal to the owner's name or account do not count as personas. If the owner has not loaded, the old handle-based name stays. Owner nicknames never relabel an agent, and the hover title keeps the handle. The shell fixture seeds one agent post, `#ops` seq 191 (`userId` `u-bot-4c81aa`, degraded handle `om-4c81aa`, `isAgent: true`; `tools/visual/shell-fixture.tsx:1208-1220`). It renders **om-mod-bot started a topic** with no ` · ` suffix on both hosts. No fixture seeds an agent with a picked persona, so the `Owner · persona` form is unit-test only.
+- **An agent's name is its owner's, with the persona beside it** (`DisplayName.tsx:78-194`, since `52a968b3`; this replaced the persona-handle-only rule of `01bf4481`). An agent row reads `<owner name> · <persona>`, for example "Daryl Boon · researcher" (`:157-161`; `test/ui/display-name-degraded.test.tsx:122`). With no picked persona it reads the owner's name alone. A degraded handle, the auto-wired badge's stock name `openmarket-chat` (`lib/wired-agent.ts:6`) and a name equal to the owner's name or account do not count as personas. If the owner has not loaded, the old handle-based name stays. Owner nicknames never relabel an agent, and the hover title keeps the handle. The shell fixture seeds one agent post, `#ops` seq 191 (`userId` `u-bot-4c81aa`, degraded handle `om-4c81aa`, `isAgent: true`; `tools/visual/shell-fixture.tsx:1209-1221`). It renders **om-mod-bot started a topic** with no ` · ` suffix on both hosts. No fixture seeds an agent with a picked persona, so the `Owner · persona` form is unit-test only.
 - **`profile=1` is a `/rooms/` seed only.** The `/chat/` shell fixture never
   reads `profile`, so `?view=dm&dm=ana&profile=1` there opens the DM with no
   drawer (measured 2026-10-29). The DM header button **ana Online ana** does not open it there either
@@ -113,7 +113,9 @@ relay.
 
 ### Verification record
 
-**Last verified:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) `view=dm&dm=ana&alerts=quiet&profile=1`, people stub: the **Profile sections** tablist holds **Info** (selected), **Media** and **Links**, and **Links** takes the selection; the drawer's buttons read **Close profile**, **Copy username**, **Message**, **Mention**, **Follow** and **Block user**. **Limitations:** `/chat/` has no `profile=1` seed; **Report user** needs a DM conversation id the seed lacks; the card, Working on and Block effects were not re-driven (2026-11-09 stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 14, 20).
+**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=dm&dm=ana&alerts=quiet&profile=1`: tabs **Info**, **Media** and **Links** with **Info** selected; **Links** takes the selection; **Close profile** unmounts the tablist. **Limitations:** the Links tab's skipping of URLs in code (`7fbe9218`, `ProfilePanel.tsx`) is source only, because the fixture panel rendered no link rows; **Working on** and the header entry were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
+
+**Previous record:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) `view=dm&dm=ana&alerts=quiet&profile=1`, people stub: the **Profile sections** tablist holds **Info** (selected), **Media** and **Links**, and **Links** takes the selection; the drawer's buttons read **Close profile**, **Copy username**, **Message**, **Mention**, **Follow** and **Block user**. **Limitations:** `/chat/` has no `profile=1` seed; **Report user** needs a DM conversation id the seed lacks; the card, Working on and Block effects were not re-driven (2026-11-09 stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 14, 20).
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `view=dm&dm=ana&alerts=quiet&profile=1` with the people stub: the `tablist` **Profile sections** with **Info**, **Media**, **Links** and **To-dos**. `/chat/`: no drawer (carried cloud fixture limit). **Limitations:** the popover and user menu; names from the new people cards (`431f630e`) are source only: a `people.held` seed for `u-ana` did not change the tape's name, and it was not root-caused. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

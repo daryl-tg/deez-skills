@@ -123,7 +123,7 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   `aria-required` with an `aria-hidden` `*`; **Home channel** carries one too
   unless the home is fixed, as it is in the panel (`c99f628c`).
 - **Message menu entry.** In records mode a message's **More** menu lists
-  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1675-1687`),
+  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1673-1685`),
   and the hover toolbar shows the same button (`[data-add-todo]`). Off Projects
   there is no promote at all; see [message-actions.md](message-actions.md).
 - **Projects switch** (`ProjectsSettings.tsx:70-190`; `b29feb5a`, `8d2014cc`).

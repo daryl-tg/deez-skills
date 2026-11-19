@@ -5,7 +5,9 @@
 - A fenced block in a message renders as `pre.code-wrap` inside the message's
   `.agent-md.agent-md-chat`, with a `.code-header` band (the language control,
   e.g. **Plain text**) and a copy control: `span.code-copy` with `role="button"`
-  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2504`).
+  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2478`).
+- A fence tagged `progress` draws as bars, not as a code block, when every
+  line parses (`feb9be62`): see [progress-blocks.md](progress-blocks.md).
 - Since `2350a0fd`, chat messages wrap long lines instead of scrolling them:
   `.agent-md-chat .code-wrap > code` is `white-space: pre-wrap` and
   `overflow-wrap: anywhere`, so an unbroken token breaks anywhere
@@ -26,7 +28,7 @@ however long the line is.
 
 The default `#ops` tape seeds one block: dax's
 `om alert list --room ops --since 24h` (`msg-ops-106`;
-`tools/visual/shell-fixture.tsx:1117`, and
+`tools/visual/shell-fixture.tsx:1118`, and
 `apps/cloud/tools/visual/shell-fixture.tsx:351` on `/chat/`). To prove wrapping,
 send a long unbroken line from the composer, because no seed has one.
 
@@ -65,7 +67,9 @@ Expect `pre-wrap`, `fits: true` and `copyInside: true` at 1440×900 and at
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `view=room`, with the people stub: `span.code-copy[role=button]` **Copy** and **Code block language**. **Limitations:** the clipboard was not read back. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193): the seeded `#msg-ops-106` block is `pre.code-wrap` with the **Plain text** header and `span.code-copy[role=button]` **Copy**. A `progress` fence that fails to parse falls back to this block (see progress-blocks.md). **Limitations:** wrapping was not re-measured, and **Copy** was not pressed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 10).
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `view=room`, with the people stub: `span.code-copy[role=button]` **Copy** and **Code block language**. **Limitations:** the clipboard was not read back. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `view=room`: the code block's `span.code-copy[role=button]` **Copy** and **Code block language**. **Limitations:** the clipboard was not read back. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

@@ -11,7 +11,7 @@ who reacted.
 - **A reply to a poll** (`ccaa2b89`) is quoted as italic "Poll: <question>" with the composer's poll glyph (`[data-reply-glyph="poll"]`), on the room quote and the **Replying to** strip; see [message-actions.md](message-actions.md). Neither shell fixture seeds a poll in `#ops`, so this is unit-tested only.
 - **Poll composer** (`PollComposer.tsx`): a `Create poll in #<channel>` form with
   **Add option** and **Post poll**. (**Create another poll** is a gallery
-  control in `tools/visual/fixture.tsx:1203`, not part of the composer.)
+  control in `tools/visual/fixture.tsx:1197`, not part of the composer.)
 - **Closed-poll results** (`PollResultsDialog.tsx`): `Final results · N votes`
   with per-option percentages.
 - **Roster cache** (`#752`): reopening results in the same session does not
@@ -157,7 +157,7 @@ session.
 - None of these routes travel the wire. Reaction chip clicks change no count.
   On `surface=poll-ux`, however, a vote **does** settle locally: after a 700 ms
   timeout `ye 8 · 80%` becomes `ye 9 · 82%` (`PollUxFixture`'s `settleVote`,
-  `tools/visual/fixture.tsx:1157`). That proves the card's optimistic update,
+  `tools/visual/fixture.tsx:1151`). That proves the card's optimistic update,
   not delivery. Close the **Create poll in #chat** dialog (Escape) first: its
   backdrop covers the card and the click is refused. Vote and reaction
   persistence still need the daemon-pair lane. Live verification pending.
@@ -191,7 +191,9 @@ session.
 
 ### Verification record
 
-**Last verified:** 2026-11-17 (nightly maintenance). **Product commit:** `c18cfa37` (GitLab origin/main; rooms-client 0.119.0; 14 commits past `96644a29`). **Scope:** `/rooms/` (18171): `surface=reaction-scene-integration` in a visible page read 😭 fall 1213 ms, 🤬 **fall** 1124 (it was shake), 🤔 pulse 1108 and 😱 shake 1235. With `reaction-scene-fixture.tsx` imported into `surface=reaction-polish`, ❓ ❔ 🤨 each played `reaction-scene--question` (about 1.6–1.7 s) and ⁉️ played `double-take` (2027 ms). The composer's **Choose emoji or GIF (⌘E)** picker on `shell-fixture.html?view=room&alerts=quiet` (people stub) listed 15 hits for `?` (`:question:`, `:grey_question:`, `:interrobang:`, `:thinking:`, `:raised_eyebrow:` …) and ❗ ❕ ⁉️ ‼️ for `!`; `/chat/` (18172) listed the same 15 for `?`. **Limitations:** the question scene was not driven on `/chat/`, and no scene came from a real in-shell reaction; polls were not re-driven (the 2026-11-09 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261117/r1/` (frames 05, 13, 14).
+**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193): `poll-results-fixture.html` reads **Final results · 14 votes** with the four options; `fixture.html?surface=poll-ux` mounts **Show results**, **Close poll**, **Create another poll** and **Post poll**. **Limitations:** a mount check only; no vote, reaction or scene was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
+
+**Previous record:** 2026-11-17 (nightly maintenance). **Product commit:** `c18cfa37` (GitLab origin/main; rooms-client 0.119.0; 14 commits past `96644a29`). **Scope:** `/rooms/` (18171): `surface=reaction-scene-integration` in a visible page read 😭 fall 1213 ms, 🤬 **fall** 1124 (it was shake), 🤔 pulse 1108 and 😱 shake 1235. With `reaction-scene-fixture.tsx` imported into `surface=reaction-polish`, ❓ ❔ 🤨 each played `reaction-scene--question` (about 1.6–1.7 s) and ⁉️ played `double-take` (2027 ms). The composer's **Choose emoji or GIF (⌘E)** picker on `shell-fixture.html?view=room&alerts=quiet` (people stub) listed 15 hits for `?` (`:question:`, `:grey_question:`, `:interrobang:`, `:thinking:`, `:raised_eyebrow:` …) and ❗ ❕ ⁉️ ‼️ for `!`; `/chat/` (18172) listed the same 15 for `?`. **Limitations:** the question scene was not driven on `/chat/`, and no scene came from a real in-shell reaction; polls were not re-driven (the 2026-11-09 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261117/r1/` (frames 05, 13, 14).
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `fixture.html?surface=reaction-polish` (**See who reacted** opens **Reactions**) and `surface=poll-ux` (the poll card and **Create poll in #chat**). **Limitations:** reaction scenes and super reactions not re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

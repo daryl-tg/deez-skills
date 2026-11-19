@@ -187,7 +187,9 @@ handle-to-account lookup.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141), with the people stub: `panel=search` reads "1 results"; Meta+f focuses **Search #signals**. `/chat/` (18142): the route smoke only. **Limitations:** filter chips by route smoke only. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
+**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=quiet`: **Search #ops** → **From a specific user** → **@ana ana (ops)** leaves `from:@ana ` in the box. **Limitations:** the run, the results panel and the topic and DM scopes were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 23).
+
+**Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141), with the people stub: `panel=search` reads "1 results"; Meta+f focuses **Search #signals**. `/chat/` (18142): the route smoke only. **Limitations:** filter chips by route smoke only. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` `panel=search`, with the people stub: "1 results". **Limitations:** filter chips by route smoke only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
