@@ -8,6 +8,7 @@ The model step of `om init` asks how the assistant will reach an AI before it li
 
 ## Sub-features
 
+- **Superseded on a branch, 2026-11-19.** On `daryl/own-model-connections` (`5a8577bb0c`, not on main) the `My own endpoint` answer is replaced by one row per self-hosted server (Ollama, LM Studio, llama.cpp, vLLM, any other running kind) and `Another server`. The row list below is the main-tree text verified 2026-11-11. The branch rows are in [self-hosted-models.md](self-hosted-models.md).
 - The first question has four answers: `A login I already have`, `An API key`, `My own endpoint`, `Not now`. Its default is the login answer when a local login is detected and the key answer otherwise.
 - The second screen lists only that answer's rows. No default row opens a browser or starts a device sign-in. Esc returns to the first question.
 - A pasted key or endpoint is checked once, within 6 seconds: `Checked: <provider> answered`, or `<provider> rejected that key` with try again, keep and skip.
