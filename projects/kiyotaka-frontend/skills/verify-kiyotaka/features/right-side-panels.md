@@ -5,6 +5,41 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
+lane `18104`, a guest JWT with the backend answering: the Orderbook on BINANCE.F
+ETHUSDT (`panel-header-title` `Orderbook`, `orderbook-canvas`,
+`orderbook-source-btn`; its first open made vite re-optimise and reload
+the page once, see the README's Baseline preconditions); the Tape on the
+same market from Super Search's `panels:Tape` row, grouped by `1s`
+(`tape-group-row`, `Bought · Sold`, `Largest`) with its docked
+Liquidations printing (`Prints`, `Levels`, `Today`); the Alerts panel
+(`alert-list-create-btn` opening `alert-add-menu`, whose
+`alert-add-menu-price-btn` raised the `Price Alerts` wall,
+`guestLoginFeatureId` `alert`); the `news` wall from
+`tb-news-toggle-btn` (`Stay Ahead of the Market`); the heatmap popover's
+kind buttons (`tb-heatmap-kind-book-btn`, `-options-btn`); and no Options
+door. Close a panel with `panel-header-close-btn`: three later presses on
+`tb-alerts-toggle-btn` each left the Alerts panel in the DOM on this drive
+(the cause was not looked into).
+Source only, not driven (all need a signed-in trading session, and
+cTrader its dark flag): a cTrader account traded from the chart behind
+`fx-ctrader` (`249761fa12`; doors `trading-hub-card-ctrader`,
+`connections-ctrader-card`, `ctrader-connect-dialog` and a `Link cTrader`
+palette row, all absent for a guest, whose flag read `false`); the broker
+ticket saying why the live quote is down with a `Resume` for a closed or
+taken session (`1c308dd401`, `hl-ticket-quote-note`,
+`hl-ticket-quote-resume`); a dollar size from the chart menu or the quick
+pill reaching the Hyperliquid ticket as dollars (`47cb20cf14`); the
+One-click switch reading the focused pane's own account, with
+`hl-accounts-menu-one-click-hint` where that pane cannot trade
+(`2611ca559d`); the heatmap keeping a typed sensitivity range across a
+symbol or interval visit and its last exchange chip (`bc05d3e13a`,
+`2373f3fc0b`); the Scanner following the list the Watchlist pane shows
+(`fa0c8875cb`); and a replay kept, with the toast `{interval} isn't
+available this far back in replay`, when the new interval's candles do
+not reach the anchor (`671529a5bb`; Replay stops at a guest's
+`chart-actions` wall, re-driven tonight from `Start Bar Replay`). Before
+that, last
 DRIVEN on 2026-11-20 against product tree `7c937b0a1f` (`origin/main`, 82
 commits past `413f86e5af`), lane `18104`, a no-session lane with the backend
 unreachable: the Panels menu's 17 rows; the Orderbook on HYPERLIQUID.F BTC

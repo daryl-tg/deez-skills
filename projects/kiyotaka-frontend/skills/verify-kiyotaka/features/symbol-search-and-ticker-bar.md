@@ -4,6 +4,18 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
+was last DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
+lane `18104`, a guest JWT with the backend answering: the V2 dialog read `v2` 20,
+`legacy` 0; a bare `T` over the plot opened it with `T` typed; switches to
+BINANCE.F BTCUSDT, COINBASE BTC-USD, BINANCE.F ETHUSDT, HYPERLIQUID.F BTC
+and AAPL on Trades each kept `tb-symbol-info-btn` 178 px wide (see
+`tb-symbol-seat`); digits now type an interval through Super Search (see
+`tb-digit-keys`, corrected); `Escape` closed the interval dial; and under
+the `typed-interval-widths` override the dial's `Custom` moment read
+`Custom sizes are part of Plus and Max` (see `tb-interval`). The venue
+list opened on the Perp pill each time (see Gotchas). Not driven: `Alt`
+and `Shift` digits, the index venue, the footer session menu, day and
+week custom sizes. Before that, this entry
 was last DRIVEN on 2026-11-20 against product tree `7c937b0a1f` (`origin/main`,
 82 commits past `413f86e5af`), lane `18104`, a no-session lane with the
 backend unreachable: the V2 dialog read `v2` 20, `legacy` 0; `ETHUSDT` listed
@@ -222,8 +234,14 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
 - `tb-price-precision` the header price, its popover and the tab title print
   at the chart's Value Precision (Integer or Manual N) on every symbol,
   crypto indices such as BTC.D included (`8683fb99d7`, `8733808579`).
-- `tb-digit-keys` a bare digit (or a Numpad digit, Shift allowed) picks an
-  interval; Ctrl, Cmd and Alt with a digit go to the browser (`f0e506ecaf`).
+- `tb-digit-keys` a number-row or Numpad digit opens Super Search with the
+  digit typed, and `Enter` switches the interval (`30e7cf86f1`); no bare
+  digit switches by itself any more. Ctrl, Cmd and Alt with a digit go to
+  the browser (`f0e506ecaf`).
+- `tb-symbol-seat` the symbol button keeps one width for every market, so
+  the interval buttons do not slide on a symbol change (`9c5a2b92b4`).
+- `tb-type-symbol` a bare `T` over the chart opens the symbol dialog with
+  `T` typed; the trade rail's key moved to `Alt+Shift+T` (`ef98d427d4`).
 - `tb-plot` the chart-type picker changes plot type.
 - `tb-plot-kept` a picked chart type survives a symbol switch.
 - `tb-layout` the layout picker changes the grid.
@@ -533,17 +551,52 @@ Preconditions:
   `-use-btn`, `-plus-btn`, `-back-btn`, `-near-<iv>-btn`, `-unit-<u>-btn`; no
   hint testid). Since `5d17f30a99` and `8c98010383` custom sizes reach every
   round-the-clock market and, under a day, CME, US stocks, options and forex.
+  Since `f459aa7d5f` those session markets also take day and week sizes
+  (`2d` to `20d` less `3d`, `7d` and `14d`, and `2w` to `20w`), folded
+  from the market's own daily and weekly candles, and the candle countdown
+  is held off on them (source, `docs/features/chart/custom-intervals.md`;
+  needs the CME or stocks plane and Plus). Since `ed79f240c9` and
+  `3d85243e66` script feeds, a script's buy and sell volume, futures open
+  interest and the Big Trades tape are served at custom sizes, and the
+  interval menu names a script whose ask is refused (source).
   A guest reads the flag off: on 2026-11-16 the dial had no
-  `tb-interval-custom-btn`, and neither did a no-session lane on 2026-11-20.
-  **The plan sentence names both plans (`0870a5906c`, `c66b95bc2c`; source,
-  not driven):** a free viewer's say line (`tb-interval-custom-say`, with
-  `data-verdict="plan"` on `tb-interval-custom-act`) reads `Custom sizes are
-  part of Plus and Ultimate`, and the Plus popup opened by
-  `tb-interval-custom-plus-btn` is titled with the same sentence, not `More
+  `tb-interval-custom-btn`, and neither did a no-session lane on 2026-11-20
+  or a guest on 2026-11-21.
+  **The plan sentence names both plans (`0870a5906c`, `c66b95bc2c`; driven
+  2026-11-21 on `92f4a841ef` under the override).** Set localStorage
+  `kiyo.flag-overrides` to `{"typed-interval-widths":true}` and reload
+  (the `feature-flags` store's `isOn('typed-interval-widths')` read
+  `true`; remove the key and reload after). The dial's foot then held
+  `tb-interval-custom-btn` (`Custom`), which opened
+  `tb-interval-custom-moment` with `tb-interval-custom-input`, the unit
+  buttons `tb-interval-custom-unit-{m,h,d,w}-btn`, `-say` (`Type a
+  number`, `data-verdict="empty"` on `-act`) and `-use-btn`. Filling
+  `20` made a guest's say line (`tb-interval-custom-say`, with
+  `data-verdict="plan"` on `tb-interval-custom-act`) read `Custom sizes
+  are part of Plus and Max` (the top plan's name since `0ebf5de381`; it
+  read `Plus and Ultimate` before) and swapped `-use-btn` for
+  `tb-interval-custom-plus-btn` (`See Plus`). `Enter` raised a guest's
+  sign-in card headed `Premium Features` (`guestLoginFeatureId`
+  `default`) and the interval stayed `1h`. With the override, digits `2`
+  then `0` listed `customIntervals:typed-width` (`Switch to 20m
+  Interval`) first in Super Search. Not driven: the Plus popup's title
+  for a signed-in free account (the same sentence, source), not `More
   Intervals`. A futures custom size no longer falls back to a history the
   browser builds: the server builds it, and a refusal keeps the market on
   its standard size (`fc471acb6b`, source). A long window is read in pieces
   (`87c02566ac`, nothing to see).
+  **The venue list opens on the Perp pill (driven 2026-11-21).** After a
+  fill of `BTC-USD` or `BTCUSDT` the right-hand venue list held perp rows
+  only (`venue-row-BINANCE_FUTURES|BTCUSDT-btn`, `-OKEX_SWAP|…`, 16 rows),
+  on a spot chart and on a perp chart alike, with
+  `search-v2-product-perp-pill` carrying `active`. A spot pair's row
+  (`venue-row-COINBASE|BTC-USD-btn`) existed only after `find testid
+  search-v2-product-spot-pill click`. A helper that waits for a spot
+  venue row without that click times out and leaves the dialog open over
+  the chart. The pills are `search-v2-product-{spot,perp,future}-pill`.
+  **A fill sent straight after a page reload can land in an empty field
+  (driven 2026-11-21):** read `symbol-selection-search-input`'s value
+  back before waiting on rows.
   **The rail's exchange buttons can be covered (driven 2026-11-20).** `find
   testid search-v2-rail-exchange-hyperliquid-btn click` failed as `covered
   by <div.views-rail__heading>`: the row sat under the `Compare on chart`
@@ -831,7 +884,34 @@ Preconditions:
 
 ## Gotchas
 
-- **`tb-digit-keys` (driven 2026-11-18 on `cff04f9a01`).** Click the chart
+- **`tb-digit-keys` now types (`30e7cf86f1`; driven 2026-11-21 on
+  `92f4a841ef`).** With `document.activeElement` `BODY`, `browser press 5`
+  opened Super Search with `5` in `super-search-input` and
+  `super-search-result-commands:select5mInterval-btn` (`Select 5m
+  interval`) first; the chart store's interval stayed `1h` until `Enter`
+  set it to `5m`. `press 1`, `press 5`, `Enter` set `15m` (first row
+  `commands:select15mInterval`). So the 2026-11-18 read below, a bare `5`
+  switching to `30m`, is stale. The twelve `select<interval>Interval`
+  commands carry no default key, and Settings, Keyboard Shortcuts, Time
+  Intervals says so under its header (source). Not proved: that `Shift`
+  with a digit does nothing. `browser press Shift+1` opened the palette,
+  but the synthetic key carries `1` where a keyboard sends `!`, so the
+  harness cannot show it. Not driven tonight: `Alt` with a digit.
+- **`tb-symbol-seat` (`9c5a2b92b4`; driven 2026-11-21).**
+  `document.querySelector('[data-testid=tb-symbol-info-btn]').getBoundingClientRect().width`
+  read `178` on COINBASE BTC-USD, BINANCE.F BTCUSDT, BINANCE.F ETHUSDT,
+  HYPERLIQUID.F BTC and `EQUITIES · TRADES AAPL` (the seat is 180 px in
+  `src/styles/ticker-bar.scss`, source), with `tb-symbol-logo` 24 px.
+- **`tb-type-symbol` (`ef98d427d4`; driven 2026-11-21).** With the pointer
+  over the plot and `activeElement` `BODY`, `browser press t` opened the
+  V2 dialog with `T` in `symbol-selection-search-input`. `browser press
+  Alt+Shift+T` changed nothing for a guest (no rail, no wall): the chord
+  is live only where Trade is offered (`when: 'tradeOffered'` in
+  `src/constants/keymap.constants.ts`, source). Super Search's `trade
+  panel` still lists `commands:toggleTradePanel` (`Trade panel`, `⌥ ⇧ T`)
+  for a guest. The rail itself needs a signed-in trade session.
+- **`tb-digit-keys` as driven 2026-11-18 on `cff04f9a01` (stale since
+  `30e7cf86f1`, see above).** Click the chart
   once with the cursor tool so the page, not a field, holds the keys
   (`document.activeElement` `BODY`), then `browser press Alt+5`: the chart
   store's interval stayed `1h`. `browser press 5` switched it to

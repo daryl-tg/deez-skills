@@ -4,7 +4,21 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-20 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-21 against
+product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`), lane `18104`, a guest JWT with the backend answering
+(the catalog served: the Official shelf read `See all 245`): a crypto spot
+pair's refusal of Open Interest, Open Interest Profile and Net Longs &
+Shorts on the picker row and at a fresh add, the sweep on a perp to spot
+switch and the hide lifting on the way back (see Gotchas; the 2026-11-19
+possible gap is fixed by `03845577ee`), Net Longs & Shorts refitting its
+pane after a Unit change (see `ind-net-longs`), `Escape` closing a legend
+row's `More` menu (see `ind-legend-row`), and the stop loss Ask tile shown
+on a Hyperliquid perp and absent on a Binance perp (see `ind-ask-tiles`).
+Not driven tonight, source only: a removed row put back by Undo under a
+refusing mode (`eceb795bf5`), Big Trades' Whale lifted over a typed Min
+(`cf9dbea566`), a profile price on a row edge (`3ca130591e`) and script
+feeds at custom sizes (`ed79f240c9`, `3d85243e66`). Before that, last
+DRIVEN on 2026-11-20 against
 product tree `7c937b0a1f` (`origin/main`, 82 commits past `413f86e5af`), lane
 `18104`, a no-session lane with the backend unreachable (no catalog, every
 Add walled by the verify-email card): the legend row's buttons shown only
@@ -224,6 +238,16 @@ indicators were not driven.
   Longs & Shorts New longs … New shorts … Longs closed … Shorts closed …`,
   `Indicators 2/3`; four floating bars per candle about a zero line. The
   `Display` row's `Running total` (two lines) was not driven.
+  **The pane refits after a Unit change (`4108f4be57`; driven 2026-11-21
+  on BINANCE.F BTCUSDT 15m).** The row's `More` menu, `Settings…`, then
+  `indicator-open-interest-positions-currency-segmented` (a ComboBox:
+  click its `combo-box-trigger-btn`, then `combo-box-option-USD`). The
+  engine's `settings.currency` went `Coin` to `USD`, the pane's `high`
+  went from about `1119` to about `68.8M`, and the axis read `75M`, `50M`,
+  `25M`, not `75000000.00`. The card's Source tab holds `Pairs`, `Display`
+  (`indicator-open-interest-positions-meta.display-segmented`, `Per
+  candle`) and `Unit`. On a crypto spot pair the same `addIndicator` is
+  now refused with a toast and mounts nothing (see Gotchas).
 - `ind-trader-names` the dialog and Super Search find an official indicator by
   the words traders type (`923b75656e`, `src/constants/indicator-names.ts`).
   Driven 2026-11-16: `large lot tracker` listed
@@ -450,6 +474,13 @@ Preconditions:
   VWAP`), and the button read `aria-expanded="true"`; with the pointer moved
   to the ticker bar the row stayed `visible` while the menu was open.
   `Escape` did not close the menu on this drive; a click on the plot did.
+  **`Escape` closes it since `fa03fc2b92` (driven 2026-11-21 on
+  `92f4a841ef`):** on the Net Longs & Shorts row the menu listed
+  `indicator-menu-settings`, `-copy`, `-pane-move` (`Move to price pane`),
+  `-scale`, `-show-on`, `-fold` (`Fold legend`) and `-remove`, and one
+  `Escape` left no `indicator-menu` in the DOM. The same fix covers the
+  merged-pane menu, the signal dropdown and the pane options door
+  (source).
   Not driven: the armed alert bell on the row, the Guide and Code rows of a
   script-backed row, and the menu's alert row (`indicator-menu-alert`).
 - **`ind-number-field` (`76c1ff02fe`; driven 2026-11-20).** Open VWAP's
@@ -477,6 +508,14 @@ Preconditions:
   the Hyperliquid TP/SL heatmap) never showed, so the fix's positive case is
   not proved: this lane had no catalog, and the tiles shown differ per
   chart. Re-drive on a lane whose `doctor` catalog line reads `serves`.
+  **The positive case, driven 2026-11-21 on `92f4a841ef` (a guest JWT,
+  the catalog serving), about 4 s after the open.** On HYPERLIQUID.F BTC
+  the tiles read `indicator-ask-question-derivatives` (`Where are stop
+  losses piling up?`, `Derivatives`), `order_book` (`Where are the big
+  resting orders?`) and `delta_cvd`. On BINANCE.F BTCUSDT they read
+  `delta_cvd`, `volume_profile` (`At what price did the most volume
+  trade?`) and `macro_flows` (`Are ETFs buying or selling BTC?`), with no
+  derivatives tile. A tile was not clicked.
 - **The dialog with no catalog (driven 2026-11-20).** The Official shelf
   read `Couldn't load all official indicators` with `Retry` over skeleton
   tiles, the Community list still listed `Price Action Toolkit`, and 19
@@ -691,7 +730,33 @@ Preconditions:
 
 ## Gotchas
 
-- **A spot-gated Net Longs & Shorts keeps its gate on a perp (driven
+- **A crypto spot pair refuses Open Interest, Funding Rate, Liquidations
+  and Net Longs & Shorts at the picker, at a fresh add and at a switch
+  (`03845577ee`; driven 2026-11-21 on `92f4a841ef`, a guest JWT).** On
+  COINBASE BTC-USD the dialog's `open interest` search greyed three
+  Official rows with `indicator-disabled-reason-<slug>` reading `Needs
+  open interest data, which this market doesn't have` (Open Interest,
+  Open Interest Profile, Net Longs & Shorts) and a disabled `Add`
+  (`official-indicator-add-official-indicator-open-interest-official-open-interest-btn`,
+  `disabled` `true`; a click added nothing and raised no toast or wall),
+  while Agg. Open Interest, Sector Open Interest, Positioning Regimes, OI
+  Changes and Liquidation Map carried no reason line (their `Add` was not
+  pressed). A programmatic
+  `chartStore.addIndicator('OPEN_INTEREST_POSITIONS',{},0)` there mounted
+  nothing and raised a `.q-notification` with the same sentence (it used
+  to mount gated hidden; the 2026-11-04 Gotcha below describes that older
+  mount). Mounted on BINANCE.F BTCUSDT it drew (`isHidden` `false`,
+  `Indicators 2/3`); a symbol dialog switch to COINBASE BTC-USD swept it
+  (`isHidden` and `isPaneHidden` `true`, zero rows, no toast, the counter
+  still `2/3`); and the switch back to BINANCE.F BTCUSDT lifted the hide
+  (`isHidden` and `isPaneHidden` `false`, 425 rows, the pane drawn). So
+  the possible gap recorded on 2026-11-19, next, is fixed. Funding Rate
+  and Liquidations read `Needs funding rate data, …` and `Needs
+  liquidation data, …` (source, `src/locales/en.json`). Not driven: a
+  hidden row removed and put back by Undo, which keeps the hide on spot
+  and shows on the perp (`eceb795bf5`, source).
+- **FIXED by `03845577ee` (see the entry above): a spot-gated Net Longs &
+  Shorts kept its gate on a perp (driven
   2026-11-19 on `413f86e5af`; possible product gap).** On COINBASE BTC-USD
   1h a guest's `chartStore.addIndicator('OPEN_INTEREST_POSITIONS',{},0)`
   mounted gated hidden, as the spot rule says. A switch through the symbol

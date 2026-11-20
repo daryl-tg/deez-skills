@@ -7,6 +7,21 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
+lane `18104`, a guest JWT with the backend answering: digits
+typing an interval into the palette (see `ss-typed-interval`); the rows
+`plans` (`See OpenMarket plans`, which opens `/chart/plans` in a new tab),
+`trade panel` with its `⌥ ⇧ T` chord, and no row for `ctrader`, `black
+friday`, `one click` or `ninjatrader` (see `ss-rows`); the plans page at
+its new address with `/chart/plus` redirecting to it (see `plans-page`,
+rewritten); the footer timezone menu with its `Exchange` row and search
+(see `set-timezone`, rewritten); Release Notes with 82 versions led by
+`4.53.0` (see `set-notes`); a first settings nav click that took, five
+times in five (see Gotchas); and the guest walls `watchlist`, `news`,
+`script-editor`, `multi-chart`, `alert`, `chart-actions`, `billing` and
+`default`. Not driven: the Black Friday surfaces, a Max holder's look,
+the moved-member card and the plan limit messages (signed-in). Before
+that, last DRIVEN on
 2026-11-20 against product tree `7c937b0a1f` (`origin/main`, 82 commits past
 `413f86e5af`, lane `18104`, a no-session lane with the backend unreachable):
 Super Search whole on its first frame, `channel` leading with the Parallel
@@ -209,10 +224,13 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
   (live verification pending: it needs the backend's `/ask/config` to answer
   `surface:true`).
 - `set-timezone` the footer's timezone menu sets the zone every chart time
-  reads, each zone labelled with its UTC offset at the current instant.
+  reads: a pinned `Exchange` row shows each chart on its market's own
+  clock, then one row per city with its UTC offset at the current
+  instant, and a search box narrows the list (`2c00cd33c6`, `c75024f3ca`).
 - `ss-cursor` until the pointer or an arrow moves, the highlighted row is the
   first row after every keystroke, and words typed apart find one name.
-- `ss-typed-interval` the comma key opens the palette to type an interval.
+- `ss-typed-interval` the comma key, a number-row digit or a Numpad digit
+  opens the palette to type an interval (`30e7cf86f1`).
 - `set-price-line` the Price axis page sets the last price line's width and
   its bullish and bearish colours, and the palette finds each row.
 - `set-tooltips` one switch hides or shows the app's tooltips, on the Display
@@ -227,8 +245,10 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
 - `set-highlights` the chart's `Highlights` switch calms volume bars and bar
   indicators unless a bar stands far above its usual size; the palette row and
   the Display page row toggle it.
-- `plans-page` `/chart/plus` shows the plans, the compare table and the
-  questions to a guest. A member moved from annual Plus to Ultimate also
+- `plans-page` `/chart/plans` (moved from `/chart/plus`, which redirects,
+  `7e88ad6552`) shows the plans, the compare list, the live exchange data
+  add-ons with their bag and the questions to a guest; the top plan is
+  named Max in customer copy (`0ebf5de381`). A member moved from annual Plus to Ultimate also
   gets a `4.57.0` notice at boot and an `Add a year` control here
   (`ebbd08ef1d`; signed-in members only, source).
 
@@ -412,6 +432,14 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   switch and Remove rows do not.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
   `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  **Driven 2026-11-21 on `92f4a841ef` (a guest JWT):** 82
+  `release-notes-version-<ver>-btn` rows, `4.53.0` (`Latest`, `Spotlight`,
+  `The US tape.`, `November 5, 2026`) first, then `4.49.0`, `4.48.0` and
+  `4.45.0`, down to `1.1.0`; no `4.57.0` row and no `4.58.0` row (`Black
+  Friday.`, dated 2026-11-24, for signed-in Free and Plus accounts with
+  the flag `black-friday-2026` on, `3686b10ead`, source). The palette row
+  is `super-search-result-settings:tab:notes-btn`. The nav reads Keyboard
+  Shortcuts, Performance, Preferences and Release Notes for a guest.
   **Driven 2026-11-20 on `7c937b0a1f` (no session):** 84 versions, led by
   `4.53.0 Latest Spotlight The US tape. November 5, 2026`, then `4.50.0`
   and `4.49.0`; no `release-notes-version-4.57.0-btn`, whose audience is
@@ -550,8 +578,29 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   auto-on writes `kiyo:pref:light-charts` `1` but no `:decided` key; `Keep`
   wrote `kiyo:pref:light-charts:decided` `on`, the chip stayed, and a later
   navigation back to `/chart/` raised no notice.
-- **`set-timezone`: the footer's timezone menu (`2cad385819`; driven
-  2026-11-08 on `943281a2eb`).** `find testid footer-timezone-select click`
+- **`set-timezone` rebuilt with an `Exchange` zone and a search
+  (`2c00cd33c6`, `c75024f3ca`; driven 2026-11-21 on `92f4a841ef`, a guest
+  JWT).** `find testid footer-timezone-select click` opens a list of 109
+  `role=option` rows (`.timezone-region`) under a search field
+  `footer-timezone-search` (placeholder `Search time zones`). The first
+  row is `timezone-row-exchange` (`Exchange`, `Market's own time`, and the
+  current chart's zone, `UTC` on a crypto chart); it is the only row with
+  a testid. The rest are one row per city with its offset (`Honolulu
+  UTC-10`, `Alaska UTC-9` and on); `New York` also carries `ET`. Filling
+  the search with `tok` left `Tokyo UTC+9` and `Tokelau UTC+13` and hid
+  the Exchange row; `new y` left `New York ET UTC-5`; `zzzz` read `No time
+  zone matches`. Clicking `timezone-row-exchange` set the `user` store's
+  `settings.timezoneMode` to `exchange` and left `settings.activeTimezone`
+  alone. In that mode the footer read `UTC` on BINANCE.F BTCUSDT and, on
+  `EQUITIES · TRADES AAPL`, `UTC-5` with the clock `15:46:13` against
+  `20:46:13` UTC. A city row returns to a fixed zone: the `Reykjavik` row
+  (search `utc` lists Casablanca, Dublin, Lisbon, London and Reykjavik,
+  all `UTC`) set `timezoneMode` `fixed` with `Atlantic/Reykjavik`, the
+  boot zone; there is no bare `UTC` row any more. No wall rose for the
+  guest, and a reload drops a guest's pick. Not driven: a CME chart on
+  Chicago time, the time axis's menu row and the phone Settings page.
+- **`set-timezone` as driven 2026-11-08 on `943281a2eb` (`2cad385819`; the
+  list and the `UTC` row below are stale since `c75024f3ca`).** `find testid footer-timezone-select click`
   opens a list of `role=option` rows (`.timezone-region`, no per-row testid),
   each a city under its offset for the current instant: after the US clocks
   went back, `Los Angeles` read `UTC-8`. Click the row by its city text. The
@@ -625,7 +674,50 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   (source). Fill `clean look`: `settings:toggle:layout-look-clean-btn`
   (`Look: Clean OFF`, `d8a23b47d6`) is listed, and it acts only in a
   multi-chart layout, which a guest cannot open.
-- **`plans-page` (driven 2026-11-16 on `6bfc742bc8`; re-driven 2026-11-19 on
+- **`plans-page` moved and rebuilt (`7e88ad6552`, `2bf8b7cd57`,
+  `c16023b51a`; driven 2026-11-21 on `92f4a841ef`, a guest JWT).** `open
+  /chart/plus?ref=vk` landed on `/chart/plans?ref=vk`: the old address
+  redirects and keeps the query. The page reads `Elite charting` over
+  `console-subscription-billing-{monthly,annual}-btn` (`Monthly`,
+  `Yearly` with `Save 17%`, Yearly picked), one
+  `console-subscription-plus-card` (`Plus`, `$29/mo` with `$35` struck,
+  `$348 a year`, `console-subscription-cta-plus-btn` `Get Plus`, `10
+  indicators on every chart`, a `KEY FEATURES` list and
+  `console-subscription-plus-point-<key>` rows), a top bar
+  `console-subscription-toolbar` holding
+  `console-subscription-start-free-btn` (`Start with Free`),
+  `console-subscription-compare` (`Compare features`, the views
+  `-compare-view-differences` and `-view-all`, the note `18 features.`,
+  group heads `-compare-group-<key>` and rows such as
+  `-compare-watchlistSymbols` reading `500` for Plus),
+  `console-subscription-exchange-data` (`Live exchange data`, `Add-ons,
+  billed on their own. They work with any plan. Crypto is live on every
+  plan.`) with `console-subscription-cme-addon-card` (`$7/mo`, `Without
+  it: 10 min delayed`, tiers `-cme-addon-tier-{l1,depth}`,
+  `-cme-addon-cta-btn` `Add live data`) and
+  `console-subscription-stocks-addon-card` (`-stocks-addon-cta-btn`
+  `Add`), the bag `market-data-bag-bar` (`market-data-bag-count` `0
+  add-ons`, `-sum` `$0/mo`, `market-data-bag-continue` `Continue`), `Have
+  a code?`, and `console-subscription-faq` (`Questions`) with five
+  `console-subscription-faq-q-<n>-btn` rows: `What happens when I
+  upgrade?`, `What happens to my charts if I downgrade?`, `Can I switch
+  between monthly and yearly?`, `Which markets can AI agents read?` and
+  `Are yearly payments refundable?`. A guest's press on
+  `console-subscription-stocks-addon-cta-btn` raised the sign-in card
+  headed `Purchases` (`guestLoginFeatureId` `billing`) and the bag stayed
+  at `0 add-ons`. The words `Max` and `Ultimate` appeared nowhere on a
+  guest's page and no `black-friday-*` or sale node was present. Gone
+  from the 2026-11-19 page: `console-subscription-free-bar`,
+  `console-subscription-faq-live-link`, the eleven-question list and its
+  broker answer (`q-10`). Super Search's `plans` leads with
+  `featureCommands:plus-page` (`See OpenMarket plans`; `ultimate` finds it
+  too) and `Enter` opened `/chart/plans` in a new browser tab: close it
+  with `browser tab close t2` and return with `browser tab t1`. Not
+  driven: a Max card and a Max holder's look (`ad5a38e0d5`), the bag's
+  sheet and checkout (`market-data-bag-sheet`, signed-in), the Black
+  Friday page and doors (`21e174ae02`, `black-friday-2026`, dark), and
+  the moved member's flipping card (`2a9b9d4e9c`).
+- **`plans-page` as driven before the move (2026-11-16 on `6bfc742bc8`; re-driven 2026-11-19 on
   `413f86e5af`: `console-subscription-faq-q-10-btn` `My broker is connected.
   What goes live?` expanded to its plain last sentence, `The heatmap, the DOM,
   TPO and alerts stay 10 minutes delayed.` Since `37d2147e5e` that sentence
@@ -680,6 +772,13 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   click after it. Click, read `.nav-item.active`, and click again when it
   has not moved. Seen on a no-session dev lane only; the cause was not
   traced, and whether a built app does the same was not checked.
+  **Not reproduced with a guest JWT (driven 2026-11-21 on `92f4a841ef`):**
+  `press Meta+/`, a 1.2 to 1.5 s wait and one click on
+  `settings-pages-nav-language-btn` moved the active nav item and showed
+  the Preferences page (`APPEARANCE`, `Dark`, `Gray`, `Light` …), five
+  times in five. Read the page under the nav, not
+  `settings-pages-body`'s first line: the body's text starts with the nav
+  list itself.
 - **A no-session lane shows the signed-in settings nav (driven 2026-11-20).**
   `settings-pages-nav-{my-info,subscriptions,connections,api,referral,support,shortcuts,performance,language,notes}-btn`
   with `Sign Out` at the foot, where a guest gets four items.
@@ -847,6 +946,21 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   on this chart`) first; `7q` is not read as an interval and listed only
   `Open symbol search for "7q"`. The `typeInterval` command has no palette
   row of its own.
+  **Digits are doors too (`30e7cf86f1`; driven 2026-11-21 on
+  `92f4a841ef`).** With the page holding the keys, `press 5` opened the
+  palette with `5` typed and `commands:select5mInterval` first (then an
+  indicator, `featureCommands:layout-preset-big-topleft-5` and
+  `customIntervals:interval-5s`); `Enter` set `5m`. `press 1`, `press 5`,
+  `Enter` set `15m`. See the ticker guide's `tb-digit-keys`.
+- **`ss-rows` on 2026-11-21 (`92f4a841ef`, a guest JWT).** `trade panel`
+  listed `commands:toggleTradePanel` (`Trade panel`, `⌥ ⇧ T`,
+  `ef98d427d4`) and `panels:Tape`. `plans` led with
+  `featureCommands:plus-page` (`See OpenMarket plans`). `ctrader` listed
+  no `Link cTrader` row (an indicator and two registry rows matched the
+  letters) and `spotware` only `Open symbol search`: the door needs the
+  flag `fx-ctrader`, which read `false` for the guest (`249761fa12`).
+  `black friday` and `one click` listed nothing, and `ninjatrader` only
+  `Open symbol search`. `release notes` listed `settings:tab:notes`.
 - **Super Search mounts lazily.** `isSuperSearchOpen` goes true before the
   overlay is in the DOM, so poll for `super-search-overlay`.
 - **Provider changes in `120d5d5d32..a4488341f6` (source, read on

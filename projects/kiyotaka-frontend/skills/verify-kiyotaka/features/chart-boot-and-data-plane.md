@@ -3,6 +3,18 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
+entry was last DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
+lane `18104`, a guest JWT with the backend answering (`doctor` passed twice in two on the
+tracked wrapper). Boot drew 250 bars on COINBASE BTC-USD 1h with VWAP
+(`Guest Mode`, `Indicators 1/3`, `__BOOT_ERRORS__` empty) about 25 s after
+`open`, with the countdown under the price tag; the signup modal rose about
+12 s later and Lite charts switched itself on (`Keep` cleared the notice).
+Also driven: the hover warm's absence (see `boot-intent-warm`: `a8935a39a2`
+removed it), the perp ticker on BINANCE.F BTCUSDT (`24H VOLUME $25.40B`,
+`OPEN INTEREST $5.62B`, `FUNDING / COUNTDOWN -0.0043% · 03:15:39`), one
+vite re-optimise reload on the first Orderbook open, and the tab drifting
+hidden before most steps. Not driven: the glides, the countdown on a
+delayed feed or a session day size, and a wake heal. Before that, this
 entry was last DRIVEN on 2026-11-20 against product tree `7c937b0a1f`
 (`origin/main`, 82 commits past `413f86e5af`), lane `18104`, a no-session
 lane: Tailscale was stopped, `dboons-nutz` did not resolve and every
@@ -209,10 +221,10 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   plot until they have drawn; the plot greys only while the pane is held.
 - `boot-scale-held` a zoom gesture pauses the price scale's auto fit, the `A`
   says so, and one click fits the axis again.
-- `boot-intent-warm` resting the pointer on a market row (the symbol
-  dialog, Super Search, a watchlist row) loads that market's candles ahead
-  of the click, and the click joins that load (`de79b1d733`, `0d9aee7ad3`,
-  `b27e0f8d6c`).
+- `boot-intent-warm` REMOVED by `a8935a39a2`: a market loads only when it
+  is opened. Resting the pointer on a market row (the symbol dialog, Super
+  Search, a watchlist row) no longer loads its candles ahead of the click
+  (it did from `de79b1d733` to `7c937b0a1f`).
 - `boot-glide` `Latest` and `Reset view` slide to a near target and cut to a
   far one; a person's own pick of Auto eases the price range back
   (`0cb582eb9f`, `02de83a38a`).
@@ -841,8 +853,18 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   back on 1h the tag read `36:12`. The
   Super Search setting row and Apply to all charts read the same default
   (source).
-- **`boot-intent-warm` (`de79b1d733`, `0d9aee7ad3`, `b27e0f8d6c`; driven
-  2026-11-20 on `7c937b0a1f`).** The only observable is the debug ring.
+- **`boot-intent-warm` is removed (`a8935a39a2`; absence driven 2026-11-21
+  on `92f4a841ef`).** `src/utility/chart/market-intent-warm.request.ts` is
+  deleted and the symbol dialog, Super Search and the watchlist no longer
+  warm a row under the pointer. With `__enableKiyoLazyLoadDebug()` and
+  `__enableKiyoLazyLoadVerboseTicks()` on, the symbol dialog filled with
+  `ETHUSDT` and two real `mouse move` calls resting on the `WBETH` row and
+  then the `ETH` row (2.5 s each), the dump's 558 lines held no row whose
+  `details.lane` is `market-intent` and no `dispatched`, `fetched` or
+  `fresh-skip` line. The recipe below is the 2026-11-20 one, kept for the
+  ring's handles; it no longer reproduces.
+  **As driven 2026-11-20 on `7c937b0a1f` (`de79b1d733`, `0d9aee7ad3`,
+  `b27e0f8d6c`).** The only observable was the debug ring.
   `eval "window.__enableKiyoLazyLoadDebug()"`, then
   `eval "window.__enableKiyoLazyLoadVerboseTicks()"`: without verbose ticks
   the dump folds a second's `interval-prefetch` rows into one

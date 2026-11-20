@@ -8,7 +8,17 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-20 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-21 against
+`92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`), lane `18104`, a guest JWT with the backend answering:
+`tb-editor-toggle-btn` raised the `Indicator Editor` wall
+(`guestLoginFeatureId` `script-editor`); the read-only drawer was not
+opened. Since `e17d9f325a` the strategy tester offers a server test over
+the plan's most recent candles on a `1m` chart
+(`strategy-deep-run-bar`; up to 50,000 candles on Plus and 100,000 on
+Max, a lock and an upgrade prompt on Free, off unless the script socket
+lists `wrun-deep-run`, never on a governed venue), and since `93bebabc94`
+a script's US market clock is read off the market kind table (source,
+not driven: the tester is behind the wall). Before that, re-driven 2026-11-20 against
 `7c937b0a1f` (`origin/main`, 82 commits past `413f86e5af`, lane `18104`, a no-session lane with the backend unreachable): `tb-editor-toggle-btn` raised
 `Verify your email to unlock Indicator Editor` with an empty address (the
 no-session form of the wall) and `.cm-editor` stayed `0`; the read-only

@@ -4,7 +4,18 @@ The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
 lock, settings and delete. A tool search (the `;` key or the magnifier at the
-top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-20 on
+top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-21 on
+`92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`), lane `18104`, a guest JWT with the backend answering: a
+Fibonacci Retracement's `Color each level` switched off restoring the
+single ink (see `dt-levels-ink`), a point's time typed as digits with no
+colon (see `dt-points`), a Long Position's levels on printed prices and
+its Risk row committing a draft once (see `dt-position-bar`). Not driven
+tonight, source only: hide all and lock all keeping the account's lines
+(`9a6976da1d`), a multi-select edit clamped per drawing (`eb8a713faa`),
+the selected swatch following the live colour (`5a5e3d5cfd`), placing
+that follows the pointer onto the axes and the brush under the hand on
+volume bars (engine `1329.69`), and a multi-select list opening at its
+field (`ec51acdd84`). Before that, last DRIVEN 2026-11-20 on
 `7c937b0a1f` (`origin/main`, 82 commits past `413f86e5af`, lane `18104`, a
 no-session lane: the backend was unreachable; see the README's Baseline
 preconditions): the tool search (see `dt-search`), a Fibonacci Retracement's
@@ -467,12 +478,36 @@ the top overlay cleared.
   (`Classic`) set it back to `each`. Not driven: a picked colour through
   `levels-ink-swatch-add` (`custom`), the recent-colour swatches, and the
   Gann and pitchfork families (19 types share the row, source).
+  **Switching `Color each level` off restores the single ink
+  (`b50b05eb21`; driven 2026-11-21 on `92f4a841ef`).** With
+  `levels-ink-swatch-down` picked (`levelsInk` `down`, the swatch
+  `aria-pressed` `true`), `tool-levels-each-toggle` set `levelsInk` to
+  `each` with no swatch pressed, and a second click set it back to `down`
+  with the Down swatch pressed again. With no earlier single ink it goes
+  to Auto, and a second selected drawing goes back to its own colour
+  (source).
 - **Number rows in a settings card are boxed fields (`81b587279f`; driven
   2026-11-20).** A trend line's card read `tool-props-lineWidth-stepper`
   (`Width`, `2`) and `tool-props-fontSize-stepper` (`Size`, `14`), each a
   bordered field with its glyph. The Highlighter's wider card was not opened.
 
 ## Gotchas
+
+- **The show/hide toolbar button runs its group's last pick, and that pick
+  may not be drawings (driven 2026-11-21).** `find testid
+  "toolbar-item-show/hide-icon-btn" click` hid the on-chart indicators on
+  a fresh guest profile: the VWAP line left the chart, the button's tip
+  then read `Show onchart indicators`, and the engine's `hideTools` stayed
+  `false` (a second click brought VWAP back). Open the group from
+  `toolbar-item-show/hide-submenu-arrow` and pick the drawings row, or run
+  the palette's `hide all drawings`, before asserting a drawings hide.
+  Since `9a6976da1d` hide all and lock all leave the account's own lines
+  (orders, positions, fills, liquidation, session breaks and events)
+  painted and movable; the engine lists their id prefixes in
+  `window.tc[0].hostToolIdPrefixes` (`hl:`, `cex:`, `futures:order:`,
+  `futures:position:`, `futures:fill:`, `ctrader:`, `sb:`, `ev:` and on,
+  read 2026-11-21). The kept lines themselves need a connected account
+  and were not driven.
 
 - **A group button arms the group's last pick, not the tool in its testid
   (driven 2026-11-20).** After the tool search armed Parallel Line,
@@ -545,6 +580,20 @@ the top overlay cleared.
   at its point value (`34ee9e4e42`, needs a CME pane and an engine with
   `setSizingMarket`), and the same Opacity row on Regression Trend, the
   Price and Date ranges, Signpost and Callout.
+  **Levels land on a printed price (engine `1329.70`, `1329.71`,
+  `64e42b9075`, `3afbd13c5e`; driven 2026-11-21 on `92f4a841ef`, COINBASE
+  BTC-USD 1h, magnet off).** A Long Position clicked once at `700 380`
+  stored `points` prices `71297.33`, `65590.51` and `68443.92`, two
+  decimals each as the price scale prints, and the card read `Entry
+  68,443.92`, `Target 71,297.33`, `Stop 65,590.51`, `R/R 1.00`. Not
+  driven: the same with the magnet on, with Cmd held, and on a log scale.
+  **A number row commits its draft once (`31745dcee1`; driven
+  2026-11-21).** In the card's `tool-sizing-risk` input, select all and
+  `Backspace` left the field empty while `settings.risk` stayed `25`, and
+  `Tab` put `25` back: a cleared field no longer saves `0`. Typing `2.5`
+  kept `settings.risk` at `25` until `Enter`, which stored `2.5` (pill
+  `Risk 2.5%`). The card's rows are `tool-sizing-{qty,risk,entry,target,
+  target-pct,stop,stop-pct,rr}` and the fold `tool-sizing-more`.
 - **`dt-picker-settle` (driven 2026-11-19 on `413f86e5af`; `91f480aa42`).**
   `find testid "toolbar-item-emoji:tool-icon-btn" click` opened the glyph
   picker (`glyph-picker-cell-*` cells) and lit the button
@@ -632,6 +681,14 @@ the top overlay cleared.
   `1794475500000` (09:25) with `xSpace: 'bar'`. The engine also carries
   `toolTypeHoldsCandles(type)` (`true` for `TrendLine`). Not driven: a
   pasted drawing and a hold across an interval switch for a free point.
+  **Digits typed with no colon are read as the clock (`3f595bf2dc`; driven
+  2026-11-21 on `92f4a841ef`, a Fibonacci Retracement on COINBASE BTC-USD
+  1h).** Filling `tool-position-time-0` with `16 Nov 1640` and `Enter`
+  stored `1794847200000` (16 Nov 16:40 UTC) and the field read `16 Nov
+  16:40`; `17 Nov 0905` stored 09:05 and `17 Nov 2031` stored 20:31, not
+  the year 2031. After a comma four digits stay the year: `17 Nov, 2025`
+  stored `1763337600000` and the field read `17 Nov 2025 00:00`. A year
+  outside 1970 to twenty years ahead is refused (source).
   **A magnet point holds its candle (`44c3fa5534`, `0f84e48619`; driven
   2026-11-19 on `413f86e5af`).** On that tree a free placement stored a time
   between bars: a trend line on HIP-3 GOLD-USDC 1m stored
