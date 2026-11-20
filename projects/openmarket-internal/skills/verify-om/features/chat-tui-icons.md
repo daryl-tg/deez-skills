@@ -1,5 +1,7 @@
 # Chat TUI icon modes (`chat.icons`)
 
+*Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, `om chat` on a fake model in a private tmux at 170x45. `config get chat.icons` `emoji`; `config set chat.icons maybe` exits 2 `chat.icons must be one of: emoji, nerd, ascii.`; the card `Nerd Font icons` is `23 of 23`, reached with ctrl+x `.` 22 times; ctrl+x `w` stored `nerd` (`stored_as: tui.icons`), and `config set chat.icons emoji` put it back. Drift fixed: the ordinal. Not re-driven: the glyphs on screen in each mode, `ascii`, `OM_TUI_ICONS`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/58`, `cli/59`).*
+
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143 with a fake model on 18144, tmux 140x40: ctrl+x `.` paged from `1 of 16` to `Nerd Font icons` at `16 of 16`. The `[ Turn it on ]` press was not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`tui/tui-04-whatsnew-16.txt`).*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `config get chat.icons` (default `emoji`, `stored as tui.icons`, rule `emoji or nerd or ascii`) only. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
@@ -22,7 +24,7 @@
 
 ## Sub-features
 
-- `whats-new-try`: the card `Nerd Font icons` and its `[ Turn it on ]` button (ctrl+x `w` while that entry is on screen) store `chat.icons = nerd`. It is the last of sixteen entries in the workspace (`16 of 16` at `c9bc93a355`, live; `15 of 15` at `05f450fc5`; `14 of 14` at `50fcc594b`; one fewer in plain chat): page to it with ctrl+x `.` (or the card's `›`), and back with ctrl+x `,`.
+- `whats-new-try`: the card `Nerd Font icons` and its `[ Turn it on ]` button (ctrl+x `w` while that entry is on screen) store `chat.icons = nerd`. It is the last entry in the workspace (`23 of 23` at `3c4839c59d`, live 2026-11-21; `16 of 16` at `c9bc93a355`, live; `15 of 15` at `05f450fc5`; `14 of 14` at `50fcc594b`; one fewer in plain chat): page to it with ctrl+x `.` (or the card's `›`), and back with ctrl+x `,`.
 - `live-switch`: the next `/watches` draw in the same session uses the new mode.
 - `config-key`: `om config get chat.icons` names the key, the `emoji or nerd or ascii` rule and the `tui.icons` row.
 - `env-override`: `OM_TUI_ICONS=nerd|ascii|emoji` outranks the stored setting; an unknown value falls back to the setting.
@@ -36,7 +38,7 @@ Run `om chat` (the workspace by default; `--no-workspace` shows no card), wide e
 1. Seed a few watches with different source kinds (`watch create … --source feed:…`, `--source x:@…`, an inbound watch).
 2. Start chat with no override: `OM_TUI_ICONS= OM_LANE_PORT=<port> control-om om -- chat`, in a terminal multiplexer pane that can be read back.
 3. Read the card, open `/watches`, and capture the emoji rows. Esc.
-4. Press ctrl+x then `.` until the card reads `Nerd Font icons` (`What's new · 16 of 16` on a fresh home at `c9bc93a355`, live; the ordinal moves as releases add entries), then ctrl+x and `w`. Check `control-om om -- config get chat.icons` reads `nerd`.
+4. Press ctrl+x then `.` until the card reads `Nerd Font icons` (`What's new · 23 of 23` on a fresh home at `3c4839c59d`, live 2026-11-21; the ordinal moves as releases add entries), then ctrl+x and `w`. Check `control-om om -- config get chat.icons` reads `nerd`.
 5. Open `/watches` again and read the code points of the first glyph on each row (private-use code points U+E000 to U+F8FF and U+F0000 and up mean nerd mode).
 
 ## Gotchas

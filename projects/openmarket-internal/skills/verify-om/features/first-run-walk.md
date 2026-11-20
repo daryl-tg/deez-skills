@@ -1,5 +1,7 @@
 # The first run: `om init`, the model step and chat with no AI
 
+*Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), `om init` in a private tmux on a scratch `OM_HOME` and a fake `HOME`, a failing `security` stub, a dummy `OM_API_KEY` and dead service URLs so no guest key is minted. Driven: the welcome and `Before you start` screens, the first question's eight rows and four of their hints, `Not now`, the channel question, the wallet question, then Ctrl-C. Drift fixed: the row list (the server rows replace `My own endpoint`). Not re-driven: a pasted key and its check, `om chat` with no AI, the browser question, the closing card, the guest-key watch fault. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/e0-init-*`).*
+
 *On main since 2026-11-12: PR #2451 merged as `780b76f482`. Not yet re-driven on main.*
 
 *Verified: 2026-11-11, branch `daryl/first-run-fixes` tree `8d3d0a84f2` (PR #2451, on origin/main `0ad4768f66`), from source in tmux with a scratch `OM_HOME`, a fake `HOME` and a stub `security` command, lane on 18181 and a stub model endpoint on 18182. Gallery `http://127.0.0.1:8098/first-run-fixes/r2/` (9 screenshots). Not on main until the PR merges.*
@@ -8,8 +10,8 @@ The model step of `om init` asks how the assistant will reach an AI before it li
 
 ## Sub-features
 
-- **Superseded on a branch, 2026-11-19.** On `daryl/own-model-connections` (`5a8577bb0c`, not on main) the `My own endpoint` answer is replaced by one row per self-hosted server (Ollama, LM Studio, llama.cpp, vLLM, any other running kind) and `Another server`. The row list below is the main-tree text verified 2026-11-11. The branch rows are in [self-hosted-models.md](self-hosted-models.md).
-- The first question has four answers: `A login I already have`, `An API key`, `My own endpoint`, `Not now`. Its default is the login answer when a local login is detected and the key answer otherwise.
+- The first question, `How will the built-in assistant reach an AI?`, has eight answers since #2605 (on main 2026-11-20; live 2026-11-21): `A login I already have`, `An API key`, `Ollama`, `LM Studio`, `llama.cpp`, `vLLM`, `Another server`, `Not now`. The four server rows were listed on a machine with none of them running (nothing listened on their usual ports). The highlighted row shows a hint: `An API key (Anthropic, OpenAI, Gemini, xAI, OpenRouter, Groq, Mistral and more)`, `Ollama (not running · start: ollama serve · beta)`, `Another server (any OpenAI-compatible address: a LAN box or a rented GPU)`, `Not now (market data and watches work without one)`. `My own endpoint` is gone. Its default is the login answer when a local login is detected and the key answer otherwise. The server rows' own screens are in [self-hosted-models.md](self-hosted-models.md).
+- `Not now` goes on to `Where should alerts reach you?` (Telegram, Discord, Slack, Webhook, Email, `Not now`), then to `Your OpenMarket wallet` (`Create a new wallet`, `Restore from a backup file`, `Import a key you already hold`; no skip row) (live 2026-11-21).
 - The second screen lists only that answer's rows. No default row opens a browser or starts a device sign-in. Esc returns to the first question.
 - A pasted key or endpoint is checked once, within 6 seconds: `Checked: <provider> answered`, or `<provider> rejected that key` with try again, keep and skip.
 - The default walk does not ask for the Jev or Firecrawl keys. `om init --full` does.

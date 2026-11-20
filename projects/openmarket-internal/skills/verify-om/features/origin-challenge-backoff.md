@@ -1,5 +1,7 @@
 # Origin challenge backoff
 
+*Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts` (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), the bundled stub on 18111. Steps 1 to 3 through the first hold: `page-add … --prefer feed --every 60s` `feed_created`, one `challenge GET /rss` in the stub log, the lane line ending `reopen held until …: 127.0.0.1 is challenging this machine; next try …`, `/healthz` `connection_state: reconnecting` with a `cooldown`, and the row on `watch list`, `watch show` and its JSON. Drift fixed: the row's offer is now `om's browser can read it` with the fix `om computer on` while the browser is off. Not re-driven: the three-minute silence count, the recovery, the doubling, the dashboard row. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/96`, `cli/98`).*
+
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. guest lane relaunched with `OM_FEED_ALLOW_LOOPBACK=1` and `OM_FEED_POLL_INTERVAL_MS=60000`: `watch page-add http://127.0.0.1:18147/rss --prefer feed --every 60s` `feed_created`, three `ok GET /rss`, the mode flipped to `challenge`, then exactly one `challenge GET /rss` in the following three minutes and one `reopen held until` lane line; `/healthz` `connection_state: reconnecting`, `reconnect_count` 0, a `cooldown` with `until`; `watch show` `FAULT source broken` and `Status: waiting · 127.0.0.1 is challenging this machine since Nov 9 03:28 · next try Nov 9 03:43 · Firecrawl can read it for you`. Recovery after the hold and the article fetches are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/91`, `cli/100-101`, `origin/`).*
 
 *Re-driven 2026-11-06 (nightly), tree `50fcc594b` (origin/main, v0.492.0), guest lane on 18163 (`OM_FEED_ALLOW_LOOPBACK=1`, `OM_FEED_POLL_INTERVAL_MS=60000`), stub on 18166. `OM_FEED_ALLOW_LOOPBACK=1 … watch page-add http://127.0.0.1:18166/rss --prefer feed --every 60s` `feed_created`; three `ok GET /rss` (19:30:14Z to 19:30:17Z); the mode flipped at 19:30:38Z; exactly one `challenge GET /rss` (19:31:17Z) and then nothing for 15 minutes; the lane log `reopen held until 2026-11-05T19:46:17.658Z: 127.0.0.1 is challenging this machine`; `/healthz` `connection_state reconnecting`. With the mode back to `ok` at 19:33Z the stub saw `ok GET /rss` at 19:46:17.670Z and the lane logged `reopened after the window` at 19:46:17.674Z. **`watch show` changed:** at 19:32Z it led with the AI-filter step fault and did not mention the hold; from 19:38Z it read `FAULT source broken · 127.0.0.1: Origin stub` with `not checked since … · om watch run now` and an `Error: … challenging this machine; next try …` row, and only the source's `Status:` row (and the dashboard) read `waiting · … challenging this machine … · Firecrawl can read it for you` (README, known product gaps). Not driven: the doubling branch, a second feed on the host. Evidence: `http://127.0.0.1:8098/vom-nightly-20261106/r1/` (`stub-requests.log`, `lane-18163-excerpt.log`, `cli/oc-*`, `05-held-feed.png`).*
@@ -132,7 +134,10 @@ Steps:
    `source feed 127.0.0.1: unreachable since Sep 23 12:45 · 127.0.0.1 is
    challenging this machine · next try Sep 23 13:00 · Firecrawl can read it for
    you · om setup firecrawl`, with `watch show` additionally splitting it into
-   `FAULT` and `FIX` rows. Times render LOCAL while the lane log and `/healthz`
+   `FAULT` and `FIX` rows. Driven 2026-11-21 on main `3c4839c59d`, with om's
+   browser off: `waiting · feed 127.0.0.1: Origin stub: 127.0.0.1 is challenging
+   this machine since Nov 21 03:48 · next try Nov 21 04:03 · om's browser can
+   read it`, and the `FIX` row reads `om computer on`. Times render LOCAL while the lane log and `/healthz`
    carry UTC. Match a substring, never the whole cell, and note three things
    that moved in `da6121d24`:
 
@@ -146,12 +151,18 @@ Steps:
      (`shared/watch-error-words.ts`): the hostname when the row knows it,
      the literal words `the source` when it does not. Both forms are current —
      grep `is challenging this machine`, not the host.
-   - **A Firecrawl offer is appended on a home holding no key**:
-     `· Firecrawl can read it for you`. No loopback filter applies, so it fires
-     for `127.0.0.1` on a plain guest lane.
-   - **The offered fix changed.** The cooldown branch now returns
-     `om setup firecrawl` where it used to return `om watch run now <slug>`. A
-     recipe asserting the old fix string fails.
+   - **An offer is appended, and which one depends on om's browser.** While the
+     browser is off (the default on a lane) the row ends `· om's browser can
+     read it` and the fix is `om computer on` (live 2026-11-21; the JSON fix is
+     `{"label":"om's browser can read it","command":"om computer on"}` under
+     code `source_retry_waiting`). `· Firecrawl can read it for you` with
+     `om setup firecrawl` is the offer once the browser is on and the home
+     holds no Firecrawl key (source). No loopback filter applies, so the offer
+     fires for `127.0.0.1` on a plain guest lane.
+   - **The offered fix changed twice.** The cooldown branch returned
+     `om watch run now <slug>`, then `om setup firecrawl`, and now
+     `om computer on` while the browser is off. A recipe asserting an older
+     fix string fails.
    - **Read these rows early in the hold.** Once the held source is past its
      expected interval, the staleness row displaces the challenge row. Driven
      2026-10-28 on a dashboard-authored feed, 12 minutes into the hold:

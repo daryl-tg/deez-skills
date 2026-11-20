@@ -1,5 +1,7 @@
 # MCP servers the owner connects
 
+*Re-checked 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`: `connect list` reads ``No connections. Add one with om connect add <name> --url <address>`` and `--format json` `[]`. One of four calls printed that line and then did not exit for eight minutes (stopped by hand); three later calls exited in a second (README gaps). Nothing else re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/81-*`).*
+
 *Re-driven on main 2026-11-13 (nightly), tree `298c469dd7`, bare lane on 18187 with the HTTP fixture (`bun packages/cli/test/_connector-fixture-server.ts --http 18189 --call-log <file>`). In tmux, `om connect add fx --url http://127.0.0.1:18189/mcp` listed the seven fixture tools, asked `Ask before the agent calls a tool?` (default `changes`) and saved `fx, 7 tools, asks changes`; `om connect list` read `fx  http  changes  7 tools  ready`; `om connect set fx --asks never` from the run's own shell exited 2 (`refusing to approve from an auto-approve harness`). MCP stdio lists no `connector_*` tool. Not re-driven: a chat call, the card, the pin, sign-in, stdio servers. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/`.*
 
 *On main since 2026-11-12: PR #2453 merged as `3fa98507ce`. The connector actions load their daemon modules lazily, and both connector tools are `never` in `packages/cli/src/mcp/assistant-reach.ts`. Not yet re-driven on main.*

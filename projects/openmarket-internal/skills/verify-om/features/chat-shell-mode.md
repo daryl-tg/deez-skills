@@ -1,5 +1,7 @@
 # Chat shell mode (`!` in `om chat`)
 
+*Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, `om chat` on a fake model on 18189 in a private tmux at 170x45. `!` on an empty composer showed `!`; `echo VOM_BANG_20261121` printed the marker and `exit 0 · 0.0s` inline; the ANSI capture held the magenta `38;2;209;111;196` three times; the next message carried the marker to the fake once. Not re-driven: a long command, `esc to stop`, the timeout, a second message carrying nothing. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/56`).*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), bare lane on 18183 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18182, tmux 140x40. `!` then `echo NIGHTLY-SHELL-20261111` ran inline (`exit 0 · 0.1s`), and the next message's reply named the marker, so the output rode that message. Not re-driven: the one-time rule (a second message), a failing command. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `run`: `!echo VOM_BANG_1109` printed the line and `exit 0 · 0.0s`; `agent-reads`: the next message's request carried the output and `exit 0`; `prompt-rule` (#2401) present in the system prompt. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*

@@ -1,5 +1,7 @@
 # Firecrawl recovery before whitelist
 
+*Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, no key, the origin stub on 18111 in challenge mode: `OM_FEED_ALLOW_LOOPBACK=1 … watch page-add http://127.0.0.1:18111/article/1 --format json` exits 2 `page_bot_wall_suspected` with the hint ``Run `om setup firecrawl` to retry public pages this machine cannot read.`` Drift fixed: a held watch's row no longer offers Firecrawl while om's browser is off; it reads `om's browser can read it` and `FIX om computer on`. Not re-driven: every configured-key step. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/97`, `cli/98`).*
+
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429, setting only: `config get firecrawl.offers` `unset (default: on)`; `service status` reads `firecrawl-offers INACTIVE (no Firecrawl key)`. Not re-driven: the refusal and offer flow. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/12-svc`, `cli/135`).*
 
 *Re-driven 2026-11-05 (nightly), tree `3a0ea623e` (origin/main, v0.492.0), guest lane on 18163 inside the origin-challenge hold (stub on 18166), no key: `OM_FEED_ALLOW_LOOPBACK=1 … watch page-add http://127.0.0.1:18166/article/1` exit 2 `page_bot_wall_suspected` (`… 127.0.0.1 is challenging this machine; next try 2026-11-04T19:50:23.125Z (HTTP 403).`, hint `Run \`om setup firecrawl\``), one `challenge GET /article/1`; the feed's FAULT row ended `· Firecrawl can read it for you` with `FIX om setup firecrawl`; `config get firecrawl.offers` `unset (default: on)`. Not re-driven: the fixture-key lane (offer pause, `--deny`), the configured path. Evidence: `http://127.0.0.1:8098/vom-nightly-20261105/r1/` (`cli/firecrawl-nokey.out`, `cli/origin-hold-show.txt`).*
@@ -28,7 +30,7 @@ A configured Firecrawl connection retries the first eligible direct-read failure
 - An eligible direct read can recover after one automatic vendor retry, without a whitelist prompt.
 - Repeated refusal makes the site eligible for the existing whitelist offer; paid fetch count stays at one.
 - Restarting the daemon preserves the retry history and the site's refusal status.
-- A missing key offers `om setup firecrawl`. A configured key after repeated refusal makes the row read `Firecrawl can read it if you allow it`, with the fix label `allow Firecrawl to read <host>` (`status-sentence.ts:2560`). The command it points at is still `om setup firecrawl`; the explicit `om setup firecrawl --allow <host>` appears in the `page-add` CLI hint.
+- A missing key offers `om setup firecrawl` on the `page-add` refusal. On the watch's status row the offer depends on om's browser: while the browser is off the row ends `om's browser can read it` and the fix is `om computer on`, and `Firecrawl can read it for you` with `om setup firecrawl` shows only once the browser is on (the row live 2026-11-21 with the browser off; the browser-on wording is source). A configured key after repeated refusal makes the row read `Firecrawl can read it if you allow it`, with the fix label `allow Firecrawl to read <host>` (`status-sentence.ts:2560`). The command it points at is still `om setup firecrawl`; the explicit `om setup firecrawl --allow <host>` appears in the `page-add` CLI hint.
 - Existing allowed sites continue to use their standing Firecrawl permission.
 
 ## How to get to it (user POV)
@@ -37,7 +39,7 @@ A configured Firecrawl connection retries the first eligible direct-read failure
 2. Watch a public page or feed whose origin challenges this machine.
 3. The first eligible direct-read failure retries automatically. If a later read is refused, the source status says `Firecrawl can read it if you allow it`.
 4. Allow that site with `om setup firecrawl --allow <host>` when continued reading is wanted.
-5. Without a key, the blocked read still points to `om setup firecrawl`.
+5. Without a key, the blocked `page-add` still points to `om setup firecrawl`; the held watch's row points to `om computer on` while om's browser is off.
 
 ## Driving it with control-om
 
@@ -49,7 +51,7 @@ Use a fresh, run-owned guest lane. The proved rig uses assigned ports 18121 (dae
 4. Set the origin healthy, then use `control-om om -- watch edit <watch> --classifier-mode accept_all --no-overview --label 'Firecrawl retry proof' --format json`. Boot the lane with the same guarded preload and fixture key, `OM_FEED_ALLOW_LOOPBACK=1`, and `OM_FEED_POLL_INTERVAL_MS=60000`. Wait for a healthy feed poll. Capture `/alerts` with its accessibility snapshot and screenshot.
 5. Challenge the origin again. Wait for an actual failed poll, then capture `/alerts/<watch>` and `control-om om -- watch show <watch> --format json`. The source says it can read the site if allowed. The vendor count stays one and the allowlist stays empty. Repeating `page-add` returns exit 2 and a hint containing `om setup firecrawl --allow 127.0.0.1`.
 6. Restart the same lane and repeat the read. A restart must not buy another scrape. Read-only stored state and pending offer eligibility must agree on this watch and host.
-7. Stop the lane and restart without the fixture key. Repeat the blocked CLI call without the key. Expect exit 2 and `om setup firecrawl`, without `--allow`. Capture the source status and paired browser evidence.
+7. Stop the lane and restart without the fixture key. Repeat the blocked CLI call without the key. Expect exit 2 and `om setup firecrawl`, without `--allow`. On a lane whose browser is off, the held watch's own row reads `om's browser can read it` and `FIX om computer on` instead of a Firecrawl offer. Capture the source status and paired browser evidence.
 8. Publish through `control-om evidence publish <run-id> <revision>` and stop the owned lane and fixtures. The review URL uses the device renderer on 8098.
 
 The 2026-09-30 rig and preload are preserved in `/Users/dboon/Documents/dev-notes/firecrawl-first-block/rig/`; its proof is `firecrawl-first-block-20260930/r2`, archived under `delivery-evidence-archive/` in the same notes directory after the task worktree was removed. Recreate the rig under the next run's assigned ports rather than treating these running servers as shared infrastructure.

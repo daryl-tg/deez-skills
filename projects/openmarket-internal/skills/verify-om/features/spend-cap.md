@@ -2,7 +2,7 @@
 
 *Re-driven on main 2026-11-13 (nightly), tree `298c469dd7` (v0.495.0+internal), bare lane on 18187 with an openai-compatible fake model on 18186 and one seeded priced row in `llm_rounds` ($5.00, this month; test scaffolding). `om config set spend.monthly_usd 1`, then `om chat --once` exited 1 with `Monthly model spend: $5.00 of $1.00 used.` and `Raise it: om config set spend.monthly_usd <n>`; the fake's request count stayed at 3. `om usage llm --format text` printed `Limit:    $5.00 of $1.00 this month (500%)` and `Unpriced: 3 rounds this month, counted as $0`; the JSON carries `month.spent_usd`, `limit_usd`, `percent` and `unpriced_rounds`. `config set spend.monthly_usd 0` from the run's own shell exited 2 (`Raising spend.monthly_usd needs a person at the terminal`): clearing the limit counts as raising it. Not re-driven: the watch hold, the agent limit, the notices. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/` (`cli/11-spend-cap.txt`).*
 
-*On main since 2026-11-12: PR #2448 merged as `1d586e05b6`. Its roster test is now `packages/cli/test/private/roster/agent-spend-cap.test.ts`. Not yet re-driven on main.*
+*On main since 2026-11-12: PR #2448 merged as `1d586e05b6`. Its roster test is now `packages/cli/test/private/roster/agent-spend-cap.test.ts`. Re-driven on main 2026-11-13 (the line above).*
 
 *Re-checked 2026-11-11 (nightly, source only) against origin/main `0ad4768f66` (v0.494.0): PR #2448 is still open and nothing of it is on main. Headings renamed to the map's four-H2 contract; no recipe changed.*
 

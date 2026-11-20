@@ -1,5 +1,7 @@
 # Chat transcript layout (`om chat`)
 
+*Re-driven 2026-11-21 (nightly), smoke depth, tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, `om chat` on a fake model on 18189 in a private tmux at 170x45, workspace mode. The away banner `While you were away · 2 events, 2 stories` with its two fire rows, a sent line as the `┃` panel, an unlabelled two-paragraph reply wrapped inside the pane, later fire and digest rows for the pass's other watches. Not re-driven: colours, replay, the spinner, chimes, the 71-column layout. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/55`).*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. A sent line in the `┃` panel and the fake reply unlabelled and indented (`Fake answer 5: a plain two-line reply.`). Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. fake model in workspace mode: the `┃` user panel, `✓ watch_list → 1 watch`, an unlabelled reply with a list. `--no-workspace`, `--resume` and 71 columns are not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`tui/05`).*

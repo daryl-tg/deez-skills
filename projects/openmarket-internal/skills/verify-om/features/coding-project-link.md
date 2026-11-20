@@ -1,5 +1,7 @@
 # Link a coding project from a repo path and a server
 
+*Re-checked 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`: `project list` in JSON and text reads ``No linked projects. Run `om project link <repo path> --space <server>`.`` Nothing else re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/71-*`).*
+
 *Verified: 2026-11-12 (nightly), tree `82094c3a83` (origin/main, v0.495.0+11; #2450), bare lane on 18193 (dummy `OM_API_KEY`, dead service URLs on the daemon) with a fake model on 18192, and guest lane on 18191. Driven: the link door with a subdirectory of a checkout that has no `origin` (it linked the main checkout), the same checkout again (the same project id), `om project list` grouped by server in text and JSON, `om project unlink` and `om project link` stopping at the server lookup, and `project_link` listed on MCP stdio with `space` required. Not driven: a link or unlink with a real server, the om chat card, the `ask` grant path, the symlink, bare-repository and detached-HEAD refusals on this tree. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261112/r1/` (`cli/work-13-doors.txt`, `cli/work-14-project-list.txt`, `cli/work-16-unlink-nope.txt`, `cli/mcp-stdio.json`).*
 
 *Verified before: 2026-11-11 (nightly), tree `0ad4768f66` (v0.494.0; #2438): the list, the door with seven checkouts, and `project_link` absent from MCP. #2450 changed the refusal set, the list format and the MCP reach, so those notes are history.*

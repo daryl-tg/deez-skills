@@ -1,5 +1,7 @@
 # Agent creator lifecycle and private-state isolation
 
+*Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, the lane log reading `om-skills defaults installed 8 package(s)`. With `OM_DEV=1` on the CLI call: `agent --help` lists `runs`, `pause` and `steer`; `agent runs` answers `{"ok":true,"result":{"items":[],"next":null}}`; `agent runs run_x --proof` exits 1 `Work proof was not found.`; `roster list` shows the six registry agents and a local one. Drift fixed: `steer` is listed. Not re-driven: work runs, the registry install path, sharing, the GUI. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/77`).*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `OM_DEV=1 agent runs` `{ok:true, result:{items:[], next:null}}`; `agent runs run_x --proof` exit 1 `not_found` `Work proof was not found.` Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-07 (nightly), tree `05f450fc5` (origin/main, v0.492.0), guest lane on 18141, booted with no guest 429, CLI reads only. With `OM_DEV=1`: `agent runs` `{"ok":true,"result":{"items":[],"next":null}}`, `agent pause nope` exit 1 `Work run was not found.`, `roster list` six `registry` rows; without it all three are `unknown command`. `GET /rpc/v1/roster/brains` lists `om` `signed_in`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261107/r1/` (`cli/130-132`).*
@@ -35,7 +37,7 @@
 > the `runs`/`pause`/`eval` subcommands of `om agent` register
 > only when the CLI process itself has `OM_DEV=1`. Since #2282 `om agent cancel`
 > is the always-on run cancel ([agents-cli-and-tui.md](agents-cli-and-tui.md)),
-> and `OM_DEV=1 om agent --help` on 2026-11-04 listed no `steer`. The GUI half (openmarket-chat
+> and `OM_DEV=1 om agent --help` lists `steer` beside `runs` and `pause` (live 2026-11-21; it listed none on 2026-11-04). The GUI half (openmarket-chat
 > MR !75, the Agents surface in `/rooms`) belongs to `verify-om-chat` and was not
 > checked here. The closeout record below was driven on the branch and remains
 > historical. Only the guest-lane section was driven on main.
