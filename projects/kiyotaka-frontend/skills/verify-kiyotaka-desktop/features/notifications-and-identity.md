@@ -8,6 +8,10 @@ The shell also hands eight analytics events (`app-opened`, `update-installed`, `
 `openmarketDesktop.analytics`, which forwards them through its own PostHog as `desktop:<event>`; the shell holds no key.
 Since 0.1.8 the shell also reports its crashes and failed loads as three more `desktop:` events, which ride their own
 channel and the page's beacon instead (see [crash recovery and reports](./crash-recovery-and-reports.md)). Last driven
+2026-11-21 by the `notify` scenario on tree `92f4a841ef` (`origin/main`; `desktop/` 0.1.11), on its own in 50 s with its
+pack, on the locked console: 12 of 17, the same five red (`bridgeUnchanged`, `screenUnlocked`, `notificationCaptured`,
+`osAuthorized`, `dockCaptured`), with `osAddedRequest` true; the summary's `page.bridge` read seven members, the new
+`holdsSession` among them. Before that, driven
 2026-11-20 by the `notify` scenario on tree `cf9dbea566` (`origin/main`; `desktop/` 0.1.11), on its own in 50 s with its
 pack, on the locked console: 12 of 17, the same five red (`bridgeUnchanged`, `screenUnlocked`, `notificationCaptured`,
 `osAuthorized`, `dockCaptured`), with `osAddedRequest` true. Before that, driven
@@ -45,7 +49,8 @@ answered `Added notification request: [ hasError: 0 hasCompletionHandler: 1 ]`. 
 since 2026-10-27. The fifth, `screenUnlocked`, is the lane reading a locked console session (`screenLocked: true` in the
 summary); a locked screen also blocks both captures, so it is an unmet precondition, not a regression. Three reds are
 the known ones, `osAuthorized`, `notificationCaptured` and `dockCaptured`: macOS never authorizes notifications for an
-ad-hoc build. The fourth, `bridgeUnchanged`, is the lane's stale two-member bridge assertion (see
+ad-hoc build. The fourth, `bridgeUnchanged`, is the lane's stale two-member bridge assertion (`launch.mjs:672`; the
+bridge has held more since 0.1.8 and seven members on a packaged build since `a2c0975b7b`, see
 [returns](./return-channel-and-bridge.md)). A visible banner waits on a Developer ID build. The analytics hand-off has
 no live driver; `desktop/tests/main/analytics.test.ts` covers it.
 
@@ -59,7 +64,9 @@ no live driver; `desktop/tests/main/analytics.test.ts` covers it.
 - `identity-analytics` the eight shell events reach the page's PostHog as `desktop:<event>`, and every web event
   carries `client: 'desktop'` and `desktopVersion`. Live verification pending: no lane observes PostHog. The three
   crash events (`page-crashed`, `process-crashed`, `page-load-failed`) are not on this channel from 0.1.9; the crash
-  lane proves they reach a page, with a stub page standing in for the chart's beacon.
+  lane proves they reach a page, with a stub page standing in for the chart's beacon. Since `2582c7c232` that beacon
+  names a signed-in account as `u:<accountId>` in place of the PostHog person id (`beaconDistinctId`,
+  `src/utility/chunk-recovery.util.ts`; source-read 2026-11-21, spec-only).
 
 ## How to get to it (user POV)
 

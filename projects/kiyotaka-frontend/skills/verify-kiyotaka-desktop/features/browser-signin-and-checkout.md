@@ -9,7 +9,31 @@ opens the app; the shell exchanges the code at `/api/v1/auth-v2/native/exchange`
 the browser: Stripe opens externally with a toast, then lands on `/chart/desktop/checkout-return`, which opens
 `openmarket://checkout?kind=paid|cancelled|portal...`, and a paid return loads `payment-status` in the window. Passkeys
 are never offered inside the shell. In an ordinary browser, super search offers "Download the OpenMarket desktop app"
-(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. On 2026-11-20, on tree `cf9dbea566` (`origin/main`; the four desktop pages, the sign-in card, the download gate, `featureCommands.ts` and `stripe-handoff.util.ts` unchanged), no page was read: the dev lane's backend host did not resolve, so `doctor` failed and the lane was not driven, and a read of the deployed pages in headless Chromium got Cloudflare's "Performing security verification" page on every URL instead of the app (see Gotchas). On 2026-11-19, on tree `70ca7763c6` (`origin/main`; the four desktop pages, the download gate, `featureCommands.ts` and `stripe-handoff.util.ts` unchanged; `AuthFormView.vue` changed only so the failure line glides with the card, `23b81f7130`, same testid), Chromium on the testnet dev lane read the same: return valid and invalid, the four checkout-return states, `/desktop/signin` on `/chart/auth?redirect=/desktop/signin` with "Sign in or create an account" and `login-signup-passkey-btn`, and `super-search-result-featureCommands:desktop-app-btn` the only result for "desktop app". Four page frames came out as 3.7 KB white images on the first pass with every testid read; a second pass that re-fronted the tab before each `screenshot` drew them. The console was locked, and the refusal line was not re-driven. Before that, on 2026-11-18, on tree `c5bba6b889` (`origin/main`; the four desktop pages, `login-signup-dialog/`, `useTurnstile.ts`, `auth-refusal.util.ts`, `passkey.service.ts`, the download gate and `stripe-handoff.util.ts` unchanged; `featureCommands.ts` changed in comments only and still registers `desktop-app`), Chromium on the dev lane read the return page valid and invalid, the four checkout-return states, `/desktop/signin` landing on `/chart/auth?redirect=/desktop/signin` with "Sign in or create an account", `login-signup-passkey-btn` and a disabled `login-signup-submit-btn` on the empty card, and super search's only result for "desktop app", `super-search-result-featureCommands:desktop-app-btn`. The console was locked, so the shell's own sign-in capture was not driven, and the refusal line was not re-driven. Before that, on 2026-11-16, on tree
+(and the signed-in profile menu a `desktop-app` row), hidden in the shell and on phones. Since `a2c0975b7b` (after
+`cf9dbea566`) the same return page also ends a NinjaTrader link that a packaged app started in the browser: it reads
+"Signed in to NinjaTrader. Open OpenMarket to finish linking" for a link to finish, or "NinjaTrader wasn't linked" with
+the reason for one refused, and hands the app its `openmarket://return?id=ninjatrader.<attempt>` record either way.
+Since `2bf8b7cd57` a market-data bag's checkout return (`product=md-bag`) must carry its `bag` id to read as paid. On
+2026-11-21, on tree `92f4a841ef` (`origin/main`; `return.page.vue`, `return-target.util.ts` and
+`checkout-return.util.ts` changed as above; the checkout-return, signin and sign pages, the sign-in card, the download
+gate and `featureCommands.ts` unchanged), Chromium on the testnet dev lane (`doctor` exit 0, 250 bars) read, in one
+Playwright pass: the return page for a sign-in and for an invalid link; the NinjaTrader return's linked state and each
+refusal line (`cancelled`, `region_unavailable`, `expired`, `disabled`, `paused`, `unavailable`, an unknown code and an
+unreadable payload), with a bad attempt id and a non-NinjaTrader return record both reading invalid; the four
+checkout-return states; a paid bag with its id ("Payment received"), a paid bag without one (invalid) and a cancelled
+bag; `/desktop/signin` on `/chart/auth?redirect=/desktop/signin` with "Sign in or create an account" and a Passkey pill;
+and `super-search-result-featureCommands:desktop-app-btn` as the only result for "desktop app". The frames of the pages
+that open the app came out white on the first shot and drew on a second one three seconds later (see Gotchas). The
+console was locked, so the shell's sign-in capture was not taken, and the refusal line was not re-driven. The same
+night a scratch drive gave the shell's checkout handling its first live proof, on the packaged dev build against the
+dev lane: `openmarket://checkout` links handed over as a second launch's argument logged `desktop: checkout cancelled`,
+`desktop: checkout portal` and `desktop: checkout paid`, an unknown kind logged `desktop: dropped
+openmarket://checkout`, and the paid one moved the window from the chart to
+`/chart/payment-status?product=plus&session_id=cs_test_1` ("Confirming your payment"). It also showed a product gap: a
+paid market-data bag's link landed on `payment-status?product=md-bag&session_id=cs_test_1` with its `bag` id dropped,
+and the page read "Payment cancelled" (see `checkout-shell` and Gotchas). The shell
+half of the NinjaTrader link (the Connect button, the waiting screen and the redeem) was not driven: it needs a
+signed-in account with futures trading on and a packaged build. On 2026-11-20, on tree `cf9dbea566` (`origin/main`; the four desktop pages, the sign-in card, the download gate, `featureCommands.ts` and `stripe-handoff.util.ts` unchanged), no page was read: the dev lane's backend host did not resolve, so `doctor` failed and the lane was not driven, and a read of the deployed pages in headless Chromium got Cloudflare's "Performing security verification" page on every URL instead of the app (see Gotchas). On 2026-11-19, on tree `70ca7763c6` (`origin/main`; the four desktop pages, the download gate, `featureCommands.ts` and `stripe-handoff.util.ts` unchanged; `AuthFormView.vue` changed only so the failure line glides with the card, `23b81f7130`, same testid), Chromium on the testnet dev lane read the same: return valid and invalid, the four checkout-return states, `/desktop/signin` on `/chart/auth?redirect=/desktop/signin` with "Sign in or create an account" and `login-signup-passkey-btn`, and `super-search-result-featureCommands:desktop-app-btn` the only result for "desktop app". Four page frames came out as 3.7 KB white images on the first pass with every testid read; a second pass that re-fronted the tab before each `screenshot` drew them. The console was locked, and the refusal line was not re-driven. Before that, on 2026-11-18, on tree `c5bba6b889` (`origin/main`; the four desktop pages, `login-signup-dialog/`, `useTurnstile.ts`, `auth-refusal.util.ts`, `passkey.service.ts`, the download gate and `stripe-handoff.util.ts` unchanged; `featureCommands.ts` changed in comments only and still registers `desktop-app`), Chromium on the dev lane read the return page valid and invalid, the four checkout-return states, `/desktop/signin` landing on `/chart/auth?redirect=/desktop/signin` with "Sign in or create an account", `login-signup-passkey-btn` and a disabled `login-signup-submit-btn` on the empty card, and super search's only result for "desktop app", `super-search-result-featureCommands:desktop-app-btn`. The console was locked, so the shell's own sign-in capture was not driven, and the refusal line was not re-driven. Before that, on 2026-11-16, on tree
 `6bfc742bc8` (`origin/main`; the four desktop pages, `login-signup-dialog/`, `useTurnstile.ts`, `auth-refusal.util.ts`,
 `passkey.service.ts`, `featureCommands.ts` and the download gate unchanged; `ProfilePanel.vue` changed only to name an
 Ultimate plan, `61ac3de124`), every Chromium read below held again on the dev lane with 250 bars, in one Playwright
@@ -99,7 +123,31 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
 - `signin-exchange` the `openmarket://oauth/callback` exchange and its landing: signed in, two-factor, or
   `auth/login?error=<provider>_auth_failed`. Live verification pending.
 - `signin-return-page` `/desktop/return#to=<openmarket://oauth/callback...>` reads "Signed in. Open OpenMarket to
-  finish" with `desktop-return-open` and wipes the hash; any other `#to` shows `desktop-return-invalid`.
+  finish" (`desktop-return-title`) and "If OpenMarket didn't open by itself, click the button." (`desktop-return-desc`)
+  with `desktop-return-open`, and wipes the hash. Only that callback and a NinjaTrader return record pass
+  (`src/utility/desktop/return-target.util.ts`); any other `#to` shows `desktop-return-invalid` "This sign-in link
+  isn't valid. Start again from the app."
+- `return-ninjatrader-page` `/desktop/return#to=<openmarket://return?id=ninjatrader.<32 hex>&payload=<base64url>>`
+  (`a2c0975b7b`). A payload of `{"handoff":"<43 characters>"}` reads "Signed in to NinjaTrader. Open OpenMarket to
+  finish linking" and "Press Open OpenMarket within 2 minutes. After that, connect again from the app." A payload of
+  `{"code":"<code>"}` reads "NinjaTrader wasn't linked" over one line per code: `cancelled` "Sign-in was cancelled on
+  NinjaTrader's page, so nothing was linked. Open OpenMarket to go back."; `region_unavailable` "NinjaTrader trading
+  isn't available in your region. Open OpenMarket to go back."; `expired` "The sign-in took too long. Open OpenMarket
+  and connect again."; `disabled` and `paused` "OpenMarket has paused NinjaTrader linking for now. Open OpenMarket and
+  try again later."; `unavailable` "OpenMarket couldn't finish the link right now. Open OpenMarket and try again
+  later."; any other code, or a payload that does not read, "Something went wrong. Open OpenMarket and connect again."
+  Every state keeps `desktop-return-open`, because a refused link still goes back to the app, which waits on it. An
+  attempt id that is not 32 lower-case hex, or a return record whose id does not start `ninjatrader.`, shows
+  `desktop-return-invalid`. All live 2026-11-21 on `92f4a841ef` in Chromium on the dev lane.
+- `ninjatrader-link-shell` in a shell whose bridge reports `browserSignIn` (packaged, not an AppImage), Connect in the
+  NinjaTrader connect dialog opens NinjaTrader's sign-in in the system browser and the dialog waits
+  (`ninjatrader-connect-browser`: "NinjaTrader's sign-in is open in your browser. Finish there, then press Open
+  OpenMarket within 2 minutes.", with `ninjatrader-connect-browser-cancel`); the page takes its own
+  `ninjatrader.<attempt>` record from `onReturn` and redeems it. The wait ends after ten minutes; a handoff older than
+  two minutes reads "That NinjaTrader sign-in can't be used anymore..." (`src/services/ninjatrader.service.ts`
+  `linkInDesktop`, `src/store/ninjatrader-trading.ts`, `src/ninjatrader/desktop-link.ts`). Live verification pending:
+  it needs a signed-in account with futures trading and the NinjaTrader flag on, a packaged build, and a NinjaTrader
+  account.
 - `signin-start-page` `/desktop/signin` reads "Sign in to the OpenMarket app" and "Checking your sign-in…" while it
   checks the account, then sends a signed-out visitor to `/auth?redirect=/desktop/signin`.
 - `signin-no-passkey` the shell's sign-in screen has no Passkey pill; Chromium's does (`login-signup-passkey-btn`).
@@ -125,9 +173,22 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   lane as a guest; the passkey, rate-limit and create-account lines are source-read.
 - `checkout-return-page` `/desktop/checkout-return` reads "Payment received" (`?product=<p>&session_id=cs_...`),
   "Checkout cancelled" (`?product=<p>`) or "Billing updated" (`?flow=portal`) with `desktop-checkout-return-open`, wipes
-  the query, and shows `desktop-checkout-return-invalid` with `desktop-checkout-return-chart` for anything else.
-- `checkout-shell` the shell's `openmarket://checkout` handling, `desktop: checkout <kind>`, and a paid return landing on
-  `payment-status`, cold start included. Live verification pending.
+  the query, and shows `desktop-checkout-return-invalid` with `desktop-checkout-return-chart` for anything else. Since
+  `2bf8b7cd57` a market-data bag (`product=md-bag`) is paid only with its id, `&bag=<id>` of up to 64 letters, digits
+  and hyphens: with it the page reads "Payment received"; without it the page reads invalid; with no `session_id` it reads "Checkout cancelled" (live 2026-11-21 on
+  `92f4a841ef`). The link the page then opens carries `bag` (`checkoutReturnLink`, source-read); the shell's own parser
+  (`desktop/src/main/checkout-return.ts`) did not change and drops it (live, see `checkout-shell`).
+- `checkout-shell` the shell's `openmarket://checkout` handling: it logs `desktop: checkout <kind>`, brings the window
+  forward (source-read; the drive did not read focus), and for a paid return loads `payment-status?product=<p>&session_id=<id>` in the window; cancelled and
+  portal leave the page as it was, and anything its parser refuses logs `desktop: dropped openmarket://checkout`. Live
+  2026-11-21 on `92f4a841ef` through a scratch drive of the packaged dev build (see Driving): all four, with the window
+  moving from `/chart/` to `/chart/payment-status?product=plus&session_id=cs_test_1`. A cold start's held landing, a
+  real Stripe session and the page's own poll are still undriven. **Product gap, live the same night:** a paid
+  market-data bag's link (`kind=paid&product=md-bag&session_id=...&bag=<id>`) lands on
+  `payment-status?product=md-bag&session_id=...` with no `bag`, because `checkoutLanding` builds the address from
+  `product` and `session_id` only; the page then reads "Payment cancelled" / "Nothing was charged. Open the plans page
+  to start again." (`market-data-bag-return`, `src/pages/PaymentStatus.vue`, `MarketDataBagReturn.vue`: an empty bag id
+  is its cancelled state). Report it; do not read it as the lane's.
 - `download-door` super search's `super-search-result-featureCommands:desktop-app-btn` "Download the OpenMarket desktop
   app" in a browser. The profile-menu row is signed-in only (a guest's profile button opens sign-in). Hidden in the shell, live on
   2026-11-09 (`27fb2d4621`, scratch Playwright drive of the unpackaged shell on the dev lane): super search for "desktop app" read "No results found" with no `desktop-app` row, and the
@@ -156,9 +217,30 @@ Preconditions:
   - `.../desktop/checkout-return?product=plus`: "Checkout cancelled".
   - `.../desktop/checkout-return?flow=portal`: "Billing updated".
   - `.../desktop/checkout-return?kind=bogus`: `desktop-checkout-return-invalid` "This link is not valid".
+  - `.../desktop/checkout-return?product=md-bag&session_id=cs_test_1&bag=0b1c2d3e-aaaa-bbbb-cccc-1234567890ab`:
+    "Payment received". The same URL without `&bag=...`: `desktop-checkout-return-invalid`. `?product=md-bag` alone:
+    "Checkout cancelled".
+  - `.../desktop/return#to=` plus `encodeURIComponent('openmarket://return?id=ninjatrader.0123456789abcdef0123456789abcdef&payload=<p>')`,
+    with `<p>` the unpadded base64url of one-key JSON: `{"handoff":"<43 of A-Z a-z 0-9 _ ->"}` reads
+    `desktop-return-title` "Signed in to NinjaTrader. Open OpenMarket to finish linking"; `{"code":"cancelled"}`
+    (`eyJjb2RlIjoiY2FuY2VsbGVkIn0`) reads "NinjaTrader wasn't linked" with its line on `desktop-return-desc`. Swap the
+    code for `region_unavailable`, `expired`, `disabled`, `paused`, `unavailable` or an unknown one. An id of `XYZ`
+    reads `desktop-return-invalid`.
   - `.../desktop/signin`: lands on `/chart/auth?redirect=/desktop/signin`, "Sign in or create an account". A read
     before the account check settles sees the page itself, with no `desktop-` testids, so read again before calling
     it a miss.
+- **The shell's checkout handling (no lane; a scratch script).** After a lane that packs (`returns`, or
+  `pnpm package:dev` in `desktop/`), launch `desktop/dist-app/mac-arm64/OpenMarket.app/Contents/MacOS/OpenMarket` with
+  Playwright's `_electron` (`executablePath`, `args: ['--user-data-dir=<fresh dir under desktop/.verify-userdata/>']`,
+  `OPENMARKET_DESKTOP_URL` set to the lane's `/chart/`), take the site page through `tools/verify/shell-page.mjs` and
+  wait for a BTC title. For each link, spawn the same executable with the same `--user-data-dir` and the link as its
+  last argument: the second instance exits `0` and the first takes the link, as the `returns` scenario's argv step
+  does. Read the shell's `desktop: checkout <kind>` or `desktop: dropped openmarket://checkout` line, then
+  `globalThis.openmarketShell.page().getURL()` from `app.evaluate`. Links: `openmarket://checkout?kind=cancelled&product=plus`,
+  `?kind=portal`, `?kind=bogus`, `?kind=paid&product=plus&session_id=cs_test_1`, and the bag,
+  `?kind=paid&product=md-bag&session_id=cs_test_1&bag=0b1c2d3e-aaaa-bbbb-cccc-1234567890ab`. A guest's payment-status
+  page read "Confirming your payment" for the made-up session; nothing is charged. Report
+  it as a scratch drive.
 - **No passkey in the shell.** `control-kiyotaka-desktop capture <dir>/shell-login-prod.png --prod --path '?login=1'`
   shows no Passkey pill; the same dialog in Chromium (`browser ... click '[data-testid="profile-guest-mode-btn"]'`)
   shows one.
@@ -195,7 +277,11 @@ Preconditions:
   with no app markup: no `desktop-` testid rendered and the chart's title never named BTC. That is the site's bot
   check working; do not work around it. The shell's own production launches (`window`, `capture --prod`) were not
   challenged the same night. With the dev lane down, report the browser pages as blocked.
-- The checkout-return page reads `flow`, `product` and `session_id`, not `kind`; `kind` exists only on the
+- A page that opens the app on mount draws late in headless Chromium. On 2026-11-21 the first Playwright screenshot of
+  every valid return and checkout-return state was a 4.7 KB white frame, taken two seconds after its testids read
+  correctly with the tab visible; a second screenshot three seconds later drew the card. The invalid states, which
+  open nothing, drew on the first shot. Shoot those pages twice and open the PNG.
+- The checkout-return page reads `flow`, `product`, `session_id` and, for `product=md-bag`, `bag`, not `kind`; `kind` exists only on the
   `openmarket://checkout` link the page builds. `?kind=portal` alone is invalid.
 - `open` of the same route with only a new hash does not remount the page. Go through `about:blank` between URLs.
 - agent-browser's headless tab drifts to `hidden`, and the boot splash waits on `requestAnimationFrame`, so a page read
@@ -226,5 +312,10 @@ Preconditions:
   not the page: on 2026-11-01 the invalid return page and the expired sign request both read empty that way on the
   first pass, and read correctly after two polls when `tab t1` ran before every poll. Re-front before each read, not only
   before the screenshot.
+- A paid market-data bag bought from the desktop app is shown as cancelled (2026-11-21, `92f4a841ef`): the page side
+  (`2bf8b7cd57`) sends `bag` on the `openmarket://checkout` link, and the shell's `checkoutLanding`
+  (`desktop/src/main/checkout-return.ts`, unchanged since 0.1.7) leaves it off the payment-status address. Until the
+  shell carries it, expect "Payment cancelled" on that landing and report the gap; in a browser the same return keeps
+  its `bag` and polls the order.
 - No lane signs in through the browser end to end. `open 'openmarket://oauth/callback?...'` with no pending sign-in only
   logs `desktop: sign-in return dropped, none-pending`.

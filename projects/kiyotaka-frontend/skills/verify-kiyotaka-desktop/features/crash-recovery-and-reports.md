@@ -13,7 +13,13 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-20 on product tree `cf9dbea566`
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-21 on product tree `92f4a841ef`
+(`origin/main`; `desktop/` 0.1.11; `crash.mjs` unchanged, and `a2c0975b7b` moved the shell's `quitting` mark to module
+level for the [leave guard](./leave-guard.md) without changing when a death counts) by the `crash` scenario, run on its
+own under a 300 s watchdog with the console session locked, at a load average of 6 to 13 on 10 cores: 34 of 34 in 44 s
+on the first run, no stall, first report after 1425 ms, the dump's `sentry[release]` `openmarket-desktop@0.1.11`, a
+769,776-byte minidump, `heldReport` `hold` with `recentCrashes` 7, and the three frames as described. Before that,
+driven 2026-11-20 on product tree `cf9dbea566`
 (`origin/main`; `desktop/` 0.1.11) by the `crash` scenario, run on its own under a 300 s watchdog with the console
 session locked, at a load average of 3 to 5 on 10 cores: the first run stalled in stage 6 (see Gotchas) and was stopped
 at 300 s; the re-run passed 34 of 34 in 44 s, first report after 1373 ms, the dump's `sentry[release]`
@@ -95,7 +101,7 @@ Preconditions:
   `titlebarBack`, `gpuReported`, `offlineLaunchScreenShown`, `reloadAfterOfflineLaunch`,
   `screenGoneAfterOfflineReload`, `firstResponseHeld`, `earlyDeathComesBack` and `screenGoneAfterEarlyDeath`, and
   `pass: true`. If `reloadedAfterKill` fails the lane returns after the first stage with only its checks.
-- **Read.** `firstReportAfterMs` (1315 ms on 2026-11-06, 1435 ms on 2026-11-13, 1388 ms on 2026-11-14, 1280 ms on 2026-11-17, 1360 ms on 2026-11-18, 1358 ms on 2026-11-19, 1373 ms on 2026-11-20), `dump` (`sentry[release]`
+- **Read.** `firstReportAfterMs` (1315 ms on 2026-11-06, 1435 ms on 2026-11-13, 1388 ms on 2026-11-14, 1280 ms on 2026-11-17, 1360 ms on 2026-11-18, 1358 ms on 2026-11-19, 1373 ms on 2026-11-20, 1425 ms on 2026-11-21), `dump` (`sentry[release]`
   `openmarket-desktop@<desktop/package.json version>`: 0.1.11 since `286ae64e72` (read 2026-11-20), 0.1.10 since
   `920afc7199`, 0.1.9 on 2026-11-06,
   `sentry[environment]` `desktop-dev`, a minidump of about 770 KB), `crashLoop` (one `reportId` per round, each with
@@ -118,7 +124,7 @@ Preconditions:
 - `reloadingScreenShown` polls a short window and `reportOnReload` must arrive within 6 s; under heavy machine load
   read a red on those two against the load figures before calling it a regression.
 - The returns lane's `bridgeTwoMembers` and the notify lane's `bridgeUnchanged` still expect a two-member bridge; the
-  `reports` member is one more reason they read red (see [returns](./return-channel-and-bridge.md)).
+  `reports` member, and since `a2c0975b7b` `holdsSession`, are more reasons they read red (see [returns](./return-channel-and-bridge.md)).
 - **The scenario can stall in stage 6 or 7 with no summary.** On 2026-11-20 the first run stalled in stage 6: the
   offline launch logged `page load failed, ERR_EMPTY_RESPONSE` and `load failed ... ERR_EMPTY_RESPONSE (-324)`, then
   nothing until the 300 s watchdog, where a passing run goes on to stage 7's launch. A `sample` again showed the shell's
@@ -127,7 +133,7 @@ Preconditions:
   The re-run passed 34 of 34 in 44 s. On 2026-11-18 the first run printed the early death's
   `page process gone, killed 2, reload` and `load failed ... ERR_ABORTED (-3)`, then nothing for 10 minutes: the shell's
   main thread sat in the Node inspector's dispatcher (a `sample` of the Electron main process), so the untimed
-  `app.close()` in `quit` (`launch.mjs:104`) or the `killPage` evaluate never returned. The three frames were already
+  `app.close()` in `quit` (then `launch.mjs:104`; `:110` since the leave lane's lines) or the `killPage` evaluate never returned. The three frames were already
   written. Wrap `run launch ... crash` in a watchdog of about 5 minutes, stop only the `launch.mjs` and Electron pids
   under your own checkout, and run it once more; the re-run passed 34 of 34 in 46 s. A timeout on those two calls is a
   lane change in `desktop/tools/verify/` (product-lane gap).

@@ -3,7 +3,10 @@
 A packaged build checks its feed (`https://assets.openmarket.xyz/desktop/<channel>/`) on launch, every four hours and
 when the window comes forward after an hour, downloads a newer version in the background, and once Squirrel.Mac has
 staged it turns the title-bar update button blue, badges the dock, swaps the app menu item to Restart to Update and
-asks once per version "OpenMarket X is ready" (Restart Now or Later); it installs on quit and never downgrades. A
+asks once per version "OpenMarket X is ready" (Restart Now or Later); it installs on quit and never downgrades. Since
+`a2c0975b7b` every restart door (the menu item, the title-bar button, the page's toast and Restart Now) asks "Leave
+with a trading session open?" first while the page holds one, and Stay drops the restart (see
+[leave guard](./leave-guard.md)). A
 Microsoft Store install (`process.windowsStore`) is the exception: the Store updates it, so the shell never loads the
 update client there, and a check only logs `desktop: update check skipped, the Microsoft Store updates this install`
 (`desktop/src/main/updater.ts` `storeManaged`, since `d5f716e49d`, 2026-11-19; source-read and unit test only). The
@@ -14,12 +17,19 @@ policy (`<feed>/policy.json`, modes `off`, `notice`, `block`) can put a notice i
 `desktop-v*` tag, runs `desktop release` (macOS, with Windows unless `DESKTOP_SKIP_WINDOWS=1`; with
 `DESKTOP_WINDOWS_UNSIGNED=1` the Windows installer ships unsigned, on a beta and, since `286ae64e72` (2026-11-19), on
 a stable release too), `desktop release linux` and `desktop policy`; 0.1.0 and 0.1.1 shipped stable that way, and the
-version on tree `cf9dbea566` (`origin/main`, 2026-11-20) is 0.1.11 (`bbeb2ee20e` took it to 0.1.8 and `354da31277` to
+version on tree `92f4a841ef` (`origin/main`, 2026-11-21) is 0.1.11 (`bbeb2ee20e` took it to 0.1.8 and `354da31277` to
 0.1.9, both for the crash recovery; `920afc7199` to 0.1.10, for the Linux full-screen view sizing; `286ae64e72` to
 0.1.11, with the unsigned Windows rule). On 2026-11-20 the public stable feed named 0.1.11 in all three files
 (`latest-mac.yml`, `latest.yml` for Windows and `latest-linux.yml`, each dated 2026-11-19), the stable `policy.json`
 read `{ "mode": "off" }`, and `beta/beta-mac.yml` and `beta/beta.yml` answered 404; the feed does not say whether that
-Windows installer is signed. The update round trip was last driven 2026-11-20 on tree `cf9dbea566` (`origin/main`; `desktop/` 0.1.11), on its own
+Windows installer is signed. On 2026-11-21 `release-tag.mjs --main` still read the feed as naming 0.1.11
+(`DESKTOP_ALREADY_RELEASED=1`); the feed files themselves were not re-read. The update round trip was last driven
+2026-11-21 on tree `92f4a841ef` (`origin/main`; `desktop/` 0.1.11), on its own after `notify` (102 s with both packs, on
+the locked console, feed on `18150`): 14 of 15, `launchCheckReadBetaFeed` red with `launchRequests` `GET /policy.json`
+before `GET /beta-mac.yml`, to the same Squirrel.Mac refusal (`desktop: update not staged 0.1.0-beta.2`). The restart
+path's new question was driven the same night by the `leave` scenario's `restartAskedOnce` and `restartWindowGone`,
+through the shell's `restartToUpdate` hook and not through a staged update. Before that, the round trip was driven
+2026-11-20 on tree `cf9dbea566` (`origin/main`; `desktop/` 0.1.11), on its own
 after `notify` (98 s with both packs, on the locked console, feed on `18150`): 14 of 15, `launchCheckReadBetaFeed` red
 with `launchRequests` `GET /policy.json` before `GET /beta-mac.yml`, to the same Squirrel.Mac refusal (`desktop: update
 not staged 0.1.0-beta.2`). The packaged dev build logged `desktop: update check http://127.0.0.1:18150/ beta`, and the
@@ -50,11 +60,12 @@ code requirement(s)`, `desktop: update error ...`, `desktop: update not staged 0
 `GET /policy.json`, `GET /beta-mac.yml`, `GET /beta-mac.yml`, `GET /OpenMarket-0.1.0-beta.2-mac-arm64.zip`, so
 `launchCheckReadBetaFeed` was the red one).
 `launchCheckReadBetaFeed` is order-dependent, not stale: it asks that the first request the feed sees is
-`GET /beta-mac.yml` (`desktop/tools/verify/launch.mjs:915`), but the launch check and the policy watcher both ask the
+`GET /beta-mac.yml` (`desktop/tools/verify/launch.mjs:918`, `:915` before the leave lane's lines), but the launch check and the policy watcher both ask the
 same feed at launch and race. The policy request came first on every run from 2026-10-27 to 2026-11-06 (14 of 15 on
 2026-11-06, `8bcd72f8f5`, feed on `18151`), the beta feed came first on 2026-11-07 with `desktop/` unchanged, and the policy request came first again on
 2026-11-08, 2026-11-09, 2026-11-10, 2026-11-12, 2026-11-13, 2026-11-14 and 2026-11-16 (`launchRequests` `GET /policy.json`, `GET /beta-mac.yml`).
-The beta feed came first again on 2026-11-17, with `desktop/` unchanged.
+The beta feed came first again on 2026-11-17 and 2026-11-19, with `desktop/` unchanged, and the policy request on
+2026-11-18, 2026-11-20 and 2026-11-21.
 The title-bar button, the restart dialog, the page toast, the policy notice and block, and the internal build have no
 live driver; the release jobs need `mac-runner` (the office Mac mini, runner tag `macos`), the certificate, the notary
 key and the bucket. Since `f15423d973` (2026-11-13) a `desktop canary` job (`.gitlab-ci.yml`, after `desktop release`)
@@ -75,6 +86,11 @@ it was observed (it needs the schedule and `mac-runner`).
   is up to date, Couldn't check for updates. Live verification pending: no lane drives the bar.
 - `update-prompt` the native "OpenMarket X is ready" dialog and the page's update toast. Live verification pending:
   ready needs a Developer ID build.
+- `update-restart-asks` a restart from any door asks the leave guard's question first while the page holds a trading
+  session; Leave restarts, and the window close the install brings within ten seconds asks no second time; Stay
+  leaves the window as it was (`desktop/src/main/index.ts` `restartToUpdate`). Live 2026-11-21 on `92f4a841ef` through
+  the `leave` scenario's hook (`restartAskedOnce`, `restartWindowGone`); the four doors themselves and a staged update
+  are undriven.
 - `policy-notice-block` a `notice` shows its message in the title bar; a `block` unloads the site for "This version of
   OpenMarket needs an update" with Update Now; a fetch error keeps the last policy, a 404 clears it. Live verification
   pending: no lane serves a policy, and an unpackaged launch never reads one.
@@ -125,7 +141,7 @@ Preconditions:
   `publish-r2.test.ts` and `policy.test.ts`. 35 files and 422 tests passed on 2026-10-27, 2026-10-29 (`30481b57f8`),
   2026-10-31 (`5475ab32d5`, in 2.2 s), 2026-11-01 (`2646a76a83`, in 2.2 s), 2026-11-02 (`39b22dd2ec`, in 2.3 s), 2026-11-03 (`1af9ebbe07`, in 2.3 s), 2026-11-04 (`8436920004`, in 2.5 s) and 2026-11-05 (`bf1c9bac3c`, in 2.4 s). On 2026-11-06 (`8bcd72f8f5`) the suite
   had 38 files and 463 tests, all passed in 2.4 s, the three new files being `crash-reporter`, `process-gone` and
-  `report-hand-over`; the same 38 files and 463 tests passed on 2026-11-07 (`dced88e06a`, in 2.4 s); on 2026-11-13 (`963af59de1`) 39 files and 469 tests passed in 2.7 s, on 2026-11-14 (`c7d4eccfac`) the same in 3.0 s, on 2026-11-16 (`6bfc742bc8`) the same 39 files and 469 tests in 3.9 s, on 2026-11-17 (`eb485636f1`) the same in 2.3 s, on 2026-11-18 (`c5bba6b889`) the same in 3.1 s, and on 2026-11-19 (`70ca7763c6`) the same in 2.4 s; on 2026-11-20 (`cf9dbea566`) 39 files and 470 tests passed in 2.4 s, the new test being `startUpdater, Microsoft Store` in `updater.test.ts`;
+  `report-hand-over`; the same 38 files and 463 tests passed on 2026-11-07 (`dced88e06a`, in 2.4 s); on 2026-11-13 (`963af59de1`) 39 files and 469 tests passed in 2.7 s, on 2026-11-14 (`c7d4eccfac`) the same in 3.0 s, on 2026-11-16 (`6bfc742bc8`) the same 39 files and 469 tests in 3.9 s, on 2026-11-17 (`eb485636f1`) the same in 2.3 s, on 2026-11-18 (`c5bba6b889`) the same in 3.1 s, and on 2026-11-19 (`70ca7763c6`) the same in 2.4 s; on 2026-11-20 (`cf9dbea566`) 39 files and 470 tests passed in 2.4 s, the new test being `startUpdater, Microsoft Store` in `updater.test.ts`; on 2026-11-21 (`92f4a841ef`) 40 files and 476 tests passed in 2.3 s, the new file being `tests/main/leave-guard.test.ts`;
   on 2026-10-30 the subprocess tests timed out under machine load. Not a live proof.
 - **Upload set.** The publish script refuses unless every file it uploads exists and each feed file names the
   version, so a dry run needs a release build in `DIST_DIR` or placeholders. With placeholders, run:
@@ -135,7 +151,7 @@ Preconditions:
   ```
 
   It printed 13 `dry-run: upload` lines on 2026-10-12 (`d554bfb38c`, unit 12) and again on 2026-11-02 on `39b22dd2ec`,
-  2026-11-03 on `1af9ebbe07`, 2026-11-04 on `8436920004`, 2026-11-05 on `bf1c9bac3c`, 2026-11-13 on `963af59de1`, 2026-11-14 on `c7d4eccfac`, 2026-11-16 on `6bfc742bc8`, 2026-11-17 on `eb485636f1`, 2026-11-18 on `c5bba6b889`, 2026-11-19 on `70ca7763c6` and 2026-11-20 on `cf9dbea566` under macOS `/bin/bash` 3.2.57: the eight installers, `latest-mac.yml`, `latest.yml` and the three `latest/`
+  2026-11-03 on `1af9ebbe07`, 2026-11-04 on `8436920004`, 2026-11-05 on `bf1c9bac3c`, 2026-11-13 on `963af59de1`, 2026-11-14 on `c7d4eccfac`, 2026-11-16 on `6bfc742bc8`, 2026-11-17 on `eb485636f1`, 2026-11-18 on `c5bba6b889`, 2026-11-19 on `70ca7763c6`, 2026-11-20 on `cf9dbea566` and 2026-11-21 on `92f4a841ef` under macOS `/bin/bash` 3.2.57: the eight installers, `latest-mac.yml`, `latest.yml` and the three `latest/`
   aliases, then `Published OpenMarket 0.1.0 to s3://dry/desktop/stable`, exit 0. `DESKTOP_TARGETS` defaults to
   `mac win`, so the Linux target adds lines only when named. `c57cc3af80` (on 2026-11-02's tree) rewrote the script's
   five array loops as `${ARR[@]+"${ARR[@]}"}` so an empty array passes under bash 3.2's `set -u`; that dry run under
@@ -150,7 +166,7 @@ Preconditions:
   `DESKTOP_WINDOWS_UNSIGNED=0`; with `DESKTOP_SKIP_WINDOWS=1`, `DESKTOP_PLATFORMS='--mac'`; with both switches,
   `release-tag: DESKTOP_SKIP_WINDOWS and DESKTOP_WINDOWS_UNSIGNED are both set; unset one` and exit 1; with
   `DESKTOP_WINDOWS_UNSIGNED=yes`, `release-tag: DESKTOP_WINDOWS_UNSIGNED is "yes"; set it to 1 or leave it unset` and
-  exit 1. This drives the script's gate, not the CI job that packs the unsigned exe.
+  exit 1. All five reads were the same on 2026-11-21 on `92f4a841ef`. This drives the script's gate, not the CI job that packs the unsigned exe.
 - **Proof.** The lane's JSON summary and `unit-05-update-available.png`, which is the menu as the main process holds
   it, drawn in a hidden window and labelled as not a screen capture.
 

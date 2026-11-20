@@ -6,13 +6,21 @@ chart host; `/chart/desktop/sign` always leaves. A `window.open` of a `/chart/` 
 any other `window.open` and any other navigation goes to the system browser, and only https, http and mailto reach it.
 The native menu carries app (File on Windows and Linux), edit, view and window menus. View holds Back, Forward and
 Return to OpenMarket plus reload and zoom; the app menu holds Check for Updates, which becomes Restart to Update.
+Since `a2c0975b7b` a reload, Return to OpenMarket and Restart to Update ask first while the page holds a trading
+session (see [leave guard](./leave-guard.md)).
 There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6 (`desktop/src/main/menu.ts`,
 `desktop/src/main/channels.ts`), and `launch.mjs` has no `channel` scenario. A right-click on a field gives a native
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
-from 2026-10-27 to 2026-11-18, under high and low machine load and on a locked and an unlocked console; the last was
-2026-11-20 on tree `cf9dbea566` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), run on its own
+from 2026-10-27 to 2026-11-21, under high and low machine load and on a locked and an unlocked console; the last was
+2026-11-21 on tree `92f4a841ef` (`origin/main`; `launch.mjs` gained only the `leave` scenario, three lines above the
+click, and `GuestSignupPromptDialog.vue` is unchanged), run on its own (65 s on the locked console), with the same
+`dialog-style dialog-overlay backdrop-dim` interception, now at `launch.mjs:237`. The same night the scratch drive that
+closes the guest signup prompt first passed 14 of 14 again on that tree in 28 s (production chart,
+`58,151.05 ▼ BTC-USD`; `links-scratch-external-link.png` shows the chart and its watermark with the prompt gone), so the
+link policy, the menu and the close-then-activate lifecycle hold and the lane's red is still its missing step. Before
+that, 2026-11-20 on tree `cf9dbea566` (`origin/main`; `launch.mjs` and `GuestSignupPromptDialog.vue` unchanged), run on its own
 (63 s on the locked console), with the same `dialog-style dialog-overlay backdrop-dim` interception at `launch.mjs:234`.
 The same night a scratch drive that mirrors the scenario and closes the guest signup prompt before the click passed 14
 of 14 on that tree (see Driving): the link policy, the menu and the macOS close-then-activate lifecycle work, and the
@@ -41,8 +49,8 @@ events" over `chart-watermark-link`. That overlay is the guest signup prompt ("S
 `guest-signup-modal-close-btn`), not the first-run onboarding: `FirstRunOnboarding.vue` never starts for a guest
 (`firstRunStartBlocker`, `src/components/onboarding/first-run-handoff.ts`). On 2026-11-04 the same prompt showed
 over the returns frame in the shell and in Chromium on the dev lane. It is a product-lane gap, not load: `launch.mjs`
-clicks "Got it" on the "Draw by holding" tip and waits up to 10 s for `.dialog-overlay` to detach (`launch.mjs:223`,
-`:228`), then clicks the watermark without closing this prompt. `launch.mjs` changed between `bf1c9bac3c` and `8bcd72f8f5` only to add the `crash` scenario, and
+clicks "Got it" on the "Draw by holding" tip and waits up to 10 s for `.dialog-overlay` to detach (`launch.mjs:226`,
+`:231`; `:223` and `:228` before the leave lane's lines), then clicks the watermark (`:237`) without closing this prompt. `launch.mjs` changed between `bf1c9bac3c` and `8bcd72f8f5` only to add the `crash` scenario, and
 `GuestSignupPromptDialog.vue` and `src/composables/dialogs/useGuestSignupPrompt.ts` did not change between `8436920004`
 and `27fb2d4621`.
 The context menu and the chart CSV download were last driven live by the gaps lane's guest rows (see
@@ -60,8 +68,8 @@ by unit tests only.
 - `menu-items` the menus, their ids (`app`, `edit`, `view`, `window`) and the macOS close-then-activate lifecycle.
   View also holds Reload, Force Reload, Actual Size, Zoom In, Zoom Out and Toggle Full Screen (`desktop/src/main/menu.ts`
   item ids `reload`, `force-reload`, `reset-zoom`, `zoom-in`, `zoom-out`, `fullscreen`); the `links` lane reads only
-  `menuTop` and `noDeveloperItems`, so those items are source-read, not driven (2026-11-02). On 2026-11-20 a
-  scratch drive read the View menu's item ids from the running shell: `back`, `forward`, `home`, `reload`,
+  `menuTop` and `noDeveloperItems`, so those items are source-read, not driven (2026-11-02). On 2026-11-20, and again
+  on 2026-11-21 on `92f4a841ef`, a scratch drive read the View menu's item ids from the running shell: `back`, `forward`, `home`, `reload`,
   `force-reload`, `reset-zoom`, `zoom-in`, `zoom-out` and `fullscreen`; it clicked none of them.
 - `menu-history` View, Back (Cmd+[ or Alt+Left), Forward and Return to OpenMarket, plus mouse side buttons on Windows
   and Linux.
@@ -91,9 +99,9 @@ Preconditions:
   `navigationStayedOnChart`, `navigationOpenedInBrowser`, `windowOpenDocs`, `windowOpenSign`,
   `windowOpenChartInPlace`, `updateCheckSkippedUnpackaged`, `darwinStaysOpenWithNoWindow`,
   `darwinSecondInstanceReopens` and `darwinActivateReopens`. It saves `unit-02-external-link.png`.
-- **Known red since 2026-10-27 (last 2026-11-20).** The scenario clicks "Got it" on the "Draw by holding" tip, then clicks `chart-watermark-link`.
+- **Known red since 2026-10-27 (last 2026-11-21).** The scenario clicks "Got it" on the "Draw by holding" tip, then clicks `chart-watermark-link`.
   A `.dialog-overlay` (the guest signup prompt, `guest-signup-modal-close-btn`) intercepts the click and Playwright times out after 30 s at
-  `launch.mjs:234`, so no summary prints. Until the lane dismisses that dialog, report every links sub-feature as
+  `launch.mjs:237` (`:234` until the leave lane's lines went in above it), so no summary prints. Until the lane dismisses that dialog, report every links sub-feature as
   pending and quote the timeout. The parity sweep closes the same prompt itself.
 - **While the lane is red: a scratch drive.** Copy `linksScenario`'s steps into a script outside the repo (resolve
   `playwright` from `desktop/package.json` with `createRequire`, import `tools/verify/shell-page.mjs`, launch `.` with
@@ -106,14 +114,14 @@ Preconditions:
   `windowOpenDocs`, `windowOpenSign`, `windowOpenChartInPlace`, `updateCheckSkippedUnpackaged`,
   `darwinStaysOpenWithNoWindow` and `darwinActivateReopens`; it has no second-instance step, so
   `darwinSecondInstanceReopens` stays the lane's. The "Got it" tip did not show; the guest signup prompt ("See what
-  moves price.") did. Report it as a scratch drive, never as the `links` lane, and keep the lane's red in the report.
+  moves price.") did. On 2026-11-21 on `92f4a841ef` the same script passed the same 14 in 28 s. Report it as a scratch drive, never as the `links` lane, and keep the lane's red in the report.
 - **Unit level.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test` covers `link-policy`,
   `menu`, `navigation`, `context-menu`, `downloads`, `permissions` and `permission-consent`. It is not a live proof.
 - **Proof.** The lane's JSON summary and its PNG.
 
 ## Gotchas
 
-- `launch.mjs`'s usage string still lists `channel`, but `SCENARIOS` does not: `run launch <dir> channel`, alone or in a
+- `launch.mjs`'s usage string still lists `channel` (and since `a2c0975b7b` `leave`), but `SCENARIOS` has no `channel`: `run launch <dir> channel`, alone or in a
   list, throws `unknown scenario channel` before anything runs. Old `channel`, `updateChannel` and `developerMenu` keys
   in a profile's `config.json` are ignored.
 - The scenario prints its JSON only after every requested scenario finishes. A throw in `links` loses the `window`

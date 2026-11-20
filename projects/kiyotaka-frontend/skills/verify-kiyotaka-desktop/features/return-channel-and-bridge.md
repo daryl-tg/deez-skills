@@ -9,10 +9,20 @@ hands the result to the running app: macOS through `open-url`, Windows and a col
 The main process tries three parsers in order, sign-in (`openmarket://oauth/callback`), checkout
 (`openmarket://checkout`) and return; anything none of them takes is dropped as `desktop: dropped openmarket://<host>`.
 A return logs `desktop: return <id>` and reaches the page through `window.openmarketDesktop.onReturn` only while the
-window shows a chart page. The bridge's members are `version`, `onReturn`, `updates`, `analytics` and, from 0.1.9,
-`reports`, plus `browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Not run
-2026-11-20 on tree `cf9dbea566`: the dev lane's backend host did not resolve, `doctor` failed on each of three tries,
-and the lane was not driven (see the [index](./README.md)). Last
+window shows a chart page. The bridge's members are `version`, `onReturn`, `updates`, `analytics`, from 0.1.9
+`reports` and, since `a2c0975b7b`, `holdsSession` (the page's word to the [leave guard](./leave-guard.md)), plus
+`browserSignIn: true` on a build that signs in through the browser (`desktop/contract.json`). Since the same commit a
+return record has a second reader on the page: a NinjaTrader link started in the app comes back as
+`openmarket://return?id=ninjatrader.<attempt>&payload=<base64url>`, and the page that waits on that attempt redeems it
+(see [sign-in](./browser-signin-and-checkout.md) `ninjatrader-link-shell`; the shell's parser and the record's shape
+did not change). Last driven 2026-11-21 by the `returns` scenario on tree `92f4a841ef` (`origin/main`; `desktop/`
+0.1.11), on a testnet dev lane warmed in Chromium to `58,204.20 ▼ BTC-USD` with 250 bars, with the console session
+locked: 20 of 21 in 70 s with its pack, `bridgeTwoMembers` the one red, `bridge.keys` now seven members (`analytics`,
+`browserSignIn`, `holdsSession`, `onReturn`, `reports`, `updates`, `version`), and `unit-03-return.png` showing the
+`onReturn {"id":"abc",...}` banner over candles under the guest signup prompt. The same night a scratch drive of the
+unpackaged shell read six members there (no `browserSignIn`). Not run 2026-11-20 on tree `cf9dbea566`: the dev lane's
+backend host did not resolve, `doctor` failed on each of three tries, and the lane was not driven (see the
+[index](./README.md)). Before that,
 driven 2026-11-19 by the `returns` scenario on tree `70ca7763c6` (`origin/main`; `desktop/` unchanged), on a testnet dev lane warmed in Chromium to `62,536.7 ▼ BTC-USD` with 250 bars, with the console session locked: 20 of 21 in 78 s with its pack, `bridgeTwoMembers` the one red, `bridge.keys` the same six members, and `unit-03-return.png` showing the `onReturn` payload over candles under the guest signup prompt ("See what moves price."). Before that, driven 2026-11-18 by the `returns` scenario on tree `c5bba6b889` (`origin/main`; `desktop/` unchanged), on a dev lane warmed in Chromium to `63,997.11 ▲ BTC-USD` with 250 bars, with the console session locked: 20 of 21 in 71 s with its pack, `bridgeTwoMembers` the one red, `bridge.keys` the six members (`analytics`, `browserSignIn`, `onReturn`, `reports`, `updates`, `version`), and `unit-03-return.png` showing the `onReturn` payload over candles and the guest signup prompt. Before that, driven 2026-11-16 by the `returns` scenario on tree `6bfc742bc8` (`origin/main`; `desktop/` unchanged). The dev lane was
 first warmed in Chromium to `65,057.31 ▼ BTC-USD` with 250 bars. Result: 20 of 21 in 72 s with its pack. Only
 `bridgeTwoMembers` was red, and `bridge.keys` read the six members. `unit-03-return.png` shows the
@@ -28,13 +38,13 @@ pack at a load average of 16, the same split, `bridge.keys` reading the six memb
 changed in `ade12fe660`, the view sizing) against the dev lane, warmed in Chromium first (`74,737.0 ▲ BTC - USD` with
 250 bars in the engine): 20 of 21 checks in 75 s including the `pnpm package:dev` pack (load average 4 to 5 on 10 cores; 106 s at 15 to 19 on 2026-11-09), the same split as on every run
 from 2026-10-27 (69 s on `dced88e06a` on 2026-11-07, with 1 bar). On 2026-11-03 the first
-run straight after `lane up` threw in `waitForCandles` (then `launch.mjs:94`, now `:97`; no BTC title in 60 s) before
+run straight after `lane up` threw in `waitForCandles` (then `launch.mjs:94`, now `:100`; no BTC title in 60 s) before
 any check, because the cold vite's first chart load failed its dynamic imports and the router never started (see the [index](./README.md)).
 The shell logged `desktop: dropped openmarket://elsewhere`, a `desktop: return <id>` line for `abc`, `second`, the
 handoff's uuid, `before-subscribe`, `held` and `cold`, and `desktop: external .../desktop/sign?r=...` (a
 `solana-connect` request) for the handoff step. The red one, `bridgeTwoMembers`, still expects `onReturn, version`
-while the bridge holds `analytics, browserSignIn, onReturn, reports, updates, version` (`launch.mjs:435`; `bridgeVersion`
-on the next line read 0.1.10 on 2026-11-09 and passes); that is a stale lane assertion, not a regression. On 2026-11-04 and
+while the bridge holds `analytics, browserSignIn, holdsSession, onReturn, reports, updates, version` (`launch.mjs:438`,
+`:435` before the leave lane's lines; `bridgeVersion` on the next line read 0.1.11 on 2026-11-21 and passes); that is a stale lane assertion, not a regression. On 2026-11-04 and
 2026-11-08 `unit-03-return.png` showed the `onReturn {"id":"abc",...}` banner over the 1h candles, with the guest
 signup prompt ("See what moves price.") over the chart. On 2026-11-01, 2026-11-03 and from 2026-11-05 to 2026-11-07 the same frame had no history (two
 bars under "Reconnecting..." or, from 2026-11-05, "Your network is slow" and an empty plot under the "Draw by holding"
@@ -51,18 +61,22 @@ and delivery, both the call an installer build makes and the Store package's man
 - `returns-held` a return that arrives while the window shows an OAuth page is held until the chart is back.
 - `returns-argv` a second instance's argv carries a return, the Windows path.
 - `returns-cold` a cold start through `open -a` logs the return before the window exists, then the chart takes it.
-- `bridge-shape` `window.openmarketDesktop` has `analytics` (`onEvent`), `onReturn`, `reports` (`onReport`, `ack`;
-  from 0.1.9), `updates` (`onState`, `check`, `restart`) and `version`, and `browserSignIn` on a packaged build (or
-  with `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`). The preload (`desktop/src/preload/index.ts`) carries them over the IPC
-  channels `desktop:return`, `desktop:analytics`, `desktop:report`, `desktop:report-ready`, `desktop:report-ack`,
-  `desktop:update-state`, `desktop:check-for-updates` and `desktop:restart-to-update`; the lanes read the members,
-  never the channels. The `returns` summary's `bridge.keys` read all six on 2026-11-06; what `reports` carries is
-  proved by the [crash lane](./crash-recovery-and-reports.md).
+- `bridge-shape` `window.openmarketDesktop` has `analytics` (`onEvent`), `holdsSession` (a function taking a boolean;
+  since `a2c0975b7b`), `onReturn`, `reports` (`onReport`, `ack`; from 0.1.9), `updates` (`onState`, `check`, `restart`)
+  and `version`, and `browserSignIn` on a packaged build (or with `OPENMARKET_DESKTOP_BROWSER_SIGNIN=1`). The preload
+  (`desktop/src/preload/index.ts`) carries them over the IPC channels `desktop:return`, `desktop:analytics`,
+  `desktop:report`, `desktop:report-ready`, `desktop:report-ack`, `desktop:update-state`, `desktop:check-for-updates`,
+  `desktop:restart-to-update` and `desktop:holds-session`; the lanes read the members, never the channels. The
+  `returns` summary's `bridge.keys` read all seven on 2026-11-21 (six before `holdsSession`, from 2026-11-06); what
+  `reports` carries is proved by the [crash lane](./crash-recovery-and-reports.md), and what `holdsSession` does by the
+  [leave lane](./leave-guard.md).
 
 ## How to get to it (user POV)
 
 - Choose Sign in your browser in a wallet or sign-in flow, finish in the browser, and accept the browser's "Open
   OpenMarket?" prompt. The app picks up where it left off.
+- In a packaged app, press Connect in the NinjaTrader connect dialog, sign in on NinjaTrader's page in the browser, and
+  press Open OpenMarket. The dialog in the app finishes the link.
 
 ## Driving it with control-kiyotaka-desktop
 
@@ -98,4 +112,8 @@ Preconditions:
   subscription and the page's console instead.
 - The bridge follows the window. While an OAuth page is in the window the preload still runs there, which is why the
   main process holds returns until a chart page is back.
-- The `returns` scenario has no sign-in or checkout step; those links have no shell driver.
+- The `returns` scenario has no sign-in, checkout or NinjaTrader-link step; those links have no shell driver in the
+  lane.
+- `shell-version.util.ts` no longer names a spec that keeps `MIN_DESKTOP_SHELL_VERSION` equal to
+  `desktop/contract.json`: `tests/utility/desktop/shell-contract.spec.ts` is gone, and the two are kept equal by hand
+  (`a2c0975b7b`). `desktop/tests/main/contract.test.ts` still holds the shell to the file.

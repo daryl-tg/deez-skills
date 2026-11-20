@@ -10,8 +10,17 @@ page reloads; see [crash recovery and reports](./crash-recovery-and-reports.md).
 views fill what the screen shows of the window, never the raw content size: in full screen they fit the display,
 maximized its work area, and they lay out again on a resize, on entering or leaving full screen, on maximize and
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
-content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Last driven
-2026-11-20 on product tree `cf9dbea566` (`origin/main`; `desktop/` now 0.1.11, and `d5f716e49d`'s Microsoft Store checks in
+content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Since
+`a2c0975b7b` a close, a quit, a reload and an update's restart ask first while the page holds a trading session; see
+[leave guard](./leave-guard.md). Last driven 2026-11-21 on product tree `92f4a841ef` (`origin/main`; `desktop/` 0.1.11;
+`a2c0975b7b` added the leave guard's close handler to `index.ts`, which asks nothing of a guest chart), with the
+console session locked at a load average of 5 to 14 on 10 cores: `window` on production, run on its own, passed 9 of 12
+in 105 s (the first launch drew `58,244.0 ▲ BTC-USD` with candles and VWAP in `unit-01-chart.png`; the second instance
+and the saved maximized bounds passed; the three relaunch checks red on the lock), and `capture --prod` logged
+`desktop: loaded https://openmarket.xyz/chart/` and failed after 240 s with no display surface (258 s in all). The
+dev-lane `capture` and the sign-in capture were not run, because the lock gives them no frame either. A scratch drive
+of the unpackaged shell on the dev lane the same night drew `58,238.74 ▼ BTC-USD` (see the leave guard guide). Before
+that, driven 2026-11-20 on product tree `cf9dbea566` (`origin/main`; `desktop/` now 0.1.11, and `d5f716e49d`'s Microsoft Store checks in
 `index.ts` and `updater.ts` do nothing on macOS), with the console session locked at a load average of 3 to 6 on 10
 cores: `window` on production, run on its own, passed 9 of 12 in 105 s (the first launch drew `62,151.89 ▲ BTC-USD` with
 candles and VWAP in `unit-01-chart.png`; the second instance and the saved maximized bounds passed; the three relaunch
@@ -42,7 +51,8 @@ guest signup prompt. This is the first production capture since 2026-10-28 that 
 `capture --prod --path '?login=1'` drew the one-card sign-in dialog with Google and X and no Passkey pill. The `window`
 scenario on production, run on its own, passed 9 of 12 in 103 s and again in 102 s, then 12 of 12 in 28 s. In the two
 red runs the three relaunch checks failed with `relaunchCapture: {}` and no `unit-01-relaunch.png`. The relaunch child
-logged `desktop: loaded` and no `capture:` line before the lane's 90 s kill (`launch.mjs:117`). In the green run the
+logged `desktop: loaded` and no `capture:` line before the lane's 90 s kill (then `launch.mjs:117`, `:120` since the
+leave lane's lines). In the green run the
 child ran 14 s and drew a maximized candle frame at the saved 120,110 bounds. A hand relaunch of `capture.js` on the
 red run's profile (`desktop/.verify-userdata/window`) drew the same frame in 16 s. So the relaunch also fails on an
 unlocked console; the cause is not isolated. The combined `run launch ... window links` printed the relaunch's capture
@@ -150,7 +160,7 @@ Preconditions:
   `desktop/src/main/view-area.ts`. For full screen, call `win.setFullScreen(true)` from `app.evaluate`, poll
   `isFullScreen()` for up to 20 s, then read the bounds; it needs an unlocked console. Stop on any Turnstile screen.
 - **Unit level for the bar and the notice.** `control-kiyotaka-desktop cli -- pnpm --filter @openmarket/desktop test`
-  (39 files, 469 tests on 2026-11-08) covers `titlebar`, `view-area`, `beta-notice`, `navigation` and `user-agent`. That is not a
+  (40 files, 476 tests on 2026-11-21) covers `titlebar`, `view-area`, `beta-notice`, `navigation` and `user-agent`. That is not a
   live proof.
 - **Proof.** The PNG, its JSON report, and the doctor output with its exit code.
 
