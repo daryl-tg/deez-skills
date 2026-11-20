@@ -1,5 +1,7 @@
 # Assistant bridge: daemon tools, deposit and wakes through the hosted MCP
 
+*Verified: 2026-11-20, merged main `2d01b6b5d4` (#2612, #2628, #2642), real relay `9199a77`. Two slices drove the bridge on main for the first time: an MCP client with a made-up key, the hosted om face run from source, a rooms relay stand-in, and a lane daemon on `bootstrap.internal.ts` signed in to the made-up account `@rig`. Driven: the first call's ask and `om approve`, `find` and `describe`, `change create_watch` with `feed_check` behind the owner's card (nothing stored before the yes, the same card on a repeat call, the result after the yes, a denied ask, a money-read feed refused with no card), `feed_append` as a free write on the daemon's own door, `feed_delete` and `feed_key` refused, and the quota refusal through the door. Stand-ins: the gateway key check and the rooms relay. Not driven: `deposit`, `events/subscribe` and wakes, the answer budget, `plot_inbox`, an OAuth sign-in, two assistants on one daemon (the second made-up account called the hosted charts face only). Evidence `~/Documents/dev-notes/om-2026-11-20-e2e-verify/run-artifacts/s5/evidence/c8-*.txt` and `run-artifacts/s3/evidence/c05b-assistant-door.txt`. Galleries `http://127.0.0.1:8098/om-1120-e2e/s5/` and `http://127.0.0.1:8098/om-1120-e2e/s3/`.*
+
 *Re-checked 2026-11-20 (nightly), tree `ba18e48ef3` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, the guest sign-in minted at boot. #2599 (`e70d724657`) read from source for the bridge: the deposit value names and note, deposits that wake watchers, the pool sentence, the `find` aliases and the reworded listings. One part was driven live, over stdio and not the bridge: `watching_overview` rows on a group of three inbound watches with one paused read `group vomgrp: 3 watches, 1 paused`. The bridge itself needs a relay and was not driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261120/r1/` (`cli/24-mcp-overview-group.jsonl`).*
 
 *Re-checked 2026-11-14 (nightly, source only) against origin/main `05300a3142`: #2482 is on main as `172a688d37`, and the 12,000-character budget is `SCHEMA_ANSWER_MAX_CHARS` (`runner/http/assistant-catalog-call.ts:55`). Nothing here was driven this pass.*
@@ -26,6 +28,8 @@ An AI assistant connected to the hosted MCP service reaches the user's own daemo
 ## Driving it
 
 Ports from the agent range, all on 127.0.0.1: relay stand-in 18121, receiver 18122, hosted binary 18119, Mongo 18117, lane 18150. Stop each after the run.
+
+Since 2026-11-20 the build, the Mongo container and the operator's stored key in steps 1, 3 and 5 are avoidable. See "A lighter rig, the feed rule door and the feed tools" below.
 
 1. Mongo as in [hosted-chart-mcp-tenant-state.md](hosted-chart-mcp-tenant-state.md), a run-owned container on 18117.
 2. A relay stand-in. The real relay needs a signed-in daemon, and a lane with a dummy key cannot sign in. The stand-in authenticates anything, routes `AGENT_CONTROL_REQUEST` to the daemon socket and carries emits back. The one used on 2026-11-05 is `~/dev-notes-artifacts/om-assistant-broker/run-artifacts/loop-2/e2e/local-relay.ts` (local artifact, not in the hub).
@@ -187,8 +191,37 @@ Pending proof:
 - Deploy order is hosted first. With the hosted build from before this change, `read` of an answer over 12,000 characters stops at page 1, because that build refuses `page`. Read from the code and a review probe; no older hosted build was run against this daemon.
 - The owner's real home: an offline estimate from a saved answer gives two overview pages. Not driven live.
 
+## A lighter rig, the feed rule door and the feed tools (driven on main 2026-11-20)
+
+*Driven on merged main `2d01b6b5d4` on two rigs: lane 18161 with the hosted om face on 18166, and lane 18141 with it on 18149.*
+
+The rig, with no build, no docker and no real credential:
+
+- The hosted face runs from source: `bun packages/cli/src/hosted/main.ts`, with `OM_HOSTED_ROOT_SURFACE=om` and `OM_HOSTED_RELAY_URL` at the rooms relay stand-in. The env is in `run-artifacts/s3/rig/bin/hosted-up` and `run-artifacts/s5/rig/bin/hosted-up` of that day's evidence root.
+- Mongo is a cached `mongod` replica set with no auth, started by the relay tree's `scripts/mongo-replset-local.sh`. `OM_HOSTED_MONGO_URI` is `mongodb://127.0.0.1:<port>/<db>?replicaSet=rs0`.
+- The caller's key is a rig-signed retail key with a `scope` claim, made by the relay harness at start. It serves both the daemon link and hosted `feed_append` against the real relay harness.
+- A gateway stand-in answers `GET /collab-v2/workspaces` and `users/me`. Point `OM_COLLAB_REST_URL`, `OM_COLLAB_WS_URL` and `OM_AUTH_BASE_URL` at it (`run-artifacts/s5/rig/gateway.ts`, `run-artifacts/s3/rig/gateway-standin.ts`).
+- The rooms relay stand-in is `run-artifacts/s5/rig/wsrelay.ts` or `run-artifacts/s3/rig/rooms-relay.ts`. The lane sets `OM_ROOMS_WS_URL` to it.
+- The lane runs `bootstrap.internal.ts run` with the made-up account seeded (`lane-seed.ts`). `run-artifacts/s5/rig/bin/lane-up` does both.
+- One hosted call is `run-artifacts/s5/rig/hmcp.ts <verb> <tool> '<json>'` or `run-artifacts/s3/rig/mcp-http.ts`.
+- `run-artifacts/s3/rig/door-direct.ts '<{"tool":…,"args":…}>'` sends `mcp.call` straight to the daemon over the stand-in, with the product's own `RoomWsClient`, `forwardToDaemon` and `daemonToolCall`. It is what a hosted build with no tool of that name forwards.
+
+What was seen:
+
+- `first call`: the first `find` makes the daemon ask. `om assistants list` reads `<label>  asks you  never used  om approve apr_…`. `om approvals show <id>` reads `"rig" on <client> (self-named) wants to use this OpenMarket daemon` and `Question: Allow rig to use this daemon?`. After `om approve` the row reads `allowed`.
+- `feed_check`: `describe create_watch` lists `feed_check: {feed, key, op: gt|gte|lt|lte|eq, value, every: 1m|5m|15m|30m|1h|4h|1d}`, all five required, with the line `A rule on the newest reading of a feed, such as one your job pushes to; a feed gone quiet is told once.`
+- `the card`: `change {"name":"create_watch","args":{"label":"<label>","feed_check":{"feed":"@rig/agent.<name>","key":"steps","op":"lt","value":5000,"every":"1m"}}}` answers `daemon_asks_you` with an `apr_` id. `om approvals show` prints `ASSISTANT`, `NAME`, `SOURCE: @rig/agent.<name>: steps below 5,000, checked every 1 min`, `NOTIFIES: desk (this home's default channel)` and `Question: Create the watch "<label>"?`
+- `nothing before the yes`: the lane's `watches/` folder is unchanged after the call and 20 s later. The same call while the card waits names the same approval id.
+- `after the yes`: the watch file appears, and the same call returns `{watch_id, slug, label}`. The watch fired `steps 4,200, below 5,000` at the next slot after a reading below the rule.
+- `refusals`: after `om deny <id>` the same call answers `daemon_declined` and no watch file is written. A rule on a feed a money watch reads answers `shape_not_served` with no card: `A money step reads @rig/<name>, so only you set a rule on it, at your OpenMarket terminal`.
+- `find`: "tell me when my step count drops below 5000" returns `create_watch` third of eight, behind `watch_action_remove` (terminal) and `watch_action_rename`.
+- `feed tools`: `feed_append`, `feed_delete`, `feed_key` and the quota hint through the door are in [account-feeds.md](account-feeds.md) (`assistant-door`, `quota`), with the finding that `change feed_append` on the hosted om surface is answered by the hosted tool.
+- A missing-data notice for a check made this way can be lost when two checks share a tick. See [timer-data-check.md](timer-data-check.md).
+
 ## Gotchas
 
+- After a hand restart on the internal entry, `control-om doctor` still reports the launch as `bootstrap.ts`, or exits non-zero for `lane launch UNKNOWN` on a lane that was hand-started from the beginning.
+- `om setup webhook` sends a test POST, so a lane needs a live loopback sink before a watch with an ai step, or a `create_watch` card that notifies, can be authored.
 - Two links can share one label (the key's label). `allow` and `revoke` then need the `asst_` id, which `om assistants --format json` prints.
 - A scratch lane home copied from an earlier build keeps its old links; an old link with a 64-hex id is from before the identity fix and can be ignored.
 - `OM_HOSTED_ROOT_SURFACE=om` moves the root to the om surface; `OM_HOSTED_DAEMON_CALLS_PER_MINUTE=3` gives a burst of 1 for a quick rate check.

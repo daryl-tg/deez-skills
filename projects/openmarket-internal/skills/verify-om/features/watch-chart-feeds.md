@@ -1,5 +1,7 @@
 # Watch charts on their watch's feed
 
+*Verified: 2026-11-20, merged main `2d01b6b5d4`, relay `9199a77`, collab `18845f6`, on local rigs with the made-up account `@rig`. Two slices touched this surface while proving other features. Driven: a new watch's chart series pushed from chat stayed a snapshot, the lane made the watch's relay feed within a minute, and a second push stored the `FEED` record on `@rig/watch.<slug>` in the rig's collab. An account was filled to the real relay's free limit of 25 feeds with `om feed append`, and `om feed delete` removed a chart series' feed. Not driven: `realign`, `legacy-title`, and the `slot-reclaim` sweep, which the fill run did not look for. Evidence `~/Documents/dev-notes/om-2026-11-20-e2e-verify/run-artifacts/s2/phaseB/c12-*.txt` and `run-artifacts/s3/evidence/c12-feed-delete.txt`, `c13-feed-quota.txt`. Galleries `http://127.0.0.1:8098/om-1120-e2e/s2/` and `http://127.0.0.1:8098/om-1120-e2e/s3/`.*
+
 *Verified: 2026-11-17, live on a signed-in daemon (`@dboon333`, free-tier relay scope of 25 feeds) built from PR #2573's first commit (`8c3e1eb75d`). Merged 2026-11-18 as `b935174603`. The realign and the title rewrite were driven live. The quota-triggered slot reclaim in the merged code was not driven live, because the home was already under its limit; its deletion set was proved by the first commit's live run and by replaying the merged code on a copy of the home database. Evidence: `http://127.0.0.1:8098/om-chart-series-adapt/r1/`.*
 
 A charted watch's series loads from the watch's relay feed (#2475), titled by what it measures (#2533). This entry covers how charts made before those changes catch up, and how a home reclaims feed slots when the relay refuses a feed at the account's limit.
@@ -42,6 +44,9 @@ Nothing to run. Charts made before #2475 move at their watch's next reading. A b
 ## Gotchas
 
 - The reclaim only runs on a `feed_quota` refusal. A home under its limit never sweeps, so it can only be driven live by filling a scope.
+- A scope can be filled without a live account. The local relay rig's free tier caps `@rig` at 25 feeds, and `om feed append` with stamped rows fills it in seconds. The recipe is in [account-feeds.md](account-feeds.md) ("List, delete and the feed limit"). That run read the refusal's hint only; a first sweep drive should start there and read `feed_push_outbox.*` after a daemon push is refused.
+- A chart series pushed from chat stays a snapshot until the watch's next reading, up to a day for a daily watch. The cause and the evidence are in [chart-number-from-address.md](chart-number-from-address.md).
+- Each `chart series push` of rows takes one relay feed, so pushes eat the scope's limit. `om feed delete <name> --yes` removes such a feed and the daemon does not declare it again, but the lane keeps the stored series row (seen 2026-11-20).
 - `keeps its snapshot: no_live_series` every hour on a converted chart is benign: the row is cleared after conversion.
 - The screenshot renderer drew `gpVPAxzJ`'s six lower FEED panes empty while their settings were unchanged; not investigated.
 - Not covered: a pane in a workspace the home holds no rows for, or on another home of the same account, does not protect its feed.
