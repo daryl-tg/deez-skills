@@ -62,7 +62,7 @@ interaction end to end.
   alert cards in that channel's tape (`WebhooksPage.tsx:600`,
   `ConvertWebhooksStepper.tsx:342,419`).
 - Keyboard Shortcuts carries an **Editing** group with one switch, **Vim mode**
-  (`UserSettings.tsx:1110`, `878049d8`/`b1ed7135`). It is off by default and
+  (`UserSettings.tsx:1129`, `878049d8`/`b1ed7135`). It is off by default and
   stored as `localStorage["om.chat.vimMode"]` (`"true"`/`"false"`). It is synced and
   scoped per account (`lib/prefs.ts`) and turns on Vim keys in the message box
   ([composer-and-sending.md](composer-and-sending.md)) and the doc editor
@@ -148,7 +148,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4750`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4761`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -211,7 +211,7 @@ page's nav button. `?settingsPage=<id>` lands on a page directly
 Reload between pages that crash (see Gotchas).
 
 The user nav lists 19 entries in the shell (driven 2026-11-15 on both hosts;
-`USER_NAV`, `UserSettings.tsx:121-202`): My Account, Profiles, Privacy, Sealed
+`USER_NAV`, `UserSettings.tsx:122-203`): My Account, Profiles, Privacy, Sealed
 Messages, Appearance, Notifications, Audio, Keyboard Shortcuts,
 Accessibility, Doc Editing, Recovered Drafts, Agent Settings, OM Settings, How
 Agents Work, How the Library Works, How Apps Work, Slash Commands, Moderating
@@ -223,7 +223,7 @@ What each body opens with, identical on `/rooms/` and `/chat/`:
 | Page | First text |
 |---|---|
 | Privacy | **Privacy** — "Control who can follow you, who can message you…" |
-| Sealed Messages | **Sealed Messages** — "Sealed messages are managed by the OM app on the device that holds your keys" unless a `/secrets/*` fetch stub answers on `/rooms/`; then RECOVERY CODE, TRUSTED DEVICES, LOST A DEVICE and CHANGED IDENTITIES (see Sealed Messages sections below). `/chat/` always shows the managed-by-the-OM-app text. |
+| Sealed Messages | **Sealed Messages** — "Sealed messages are managed by the OM app on the device that holds your keys" unless a `/secrets/*` fetch stub answers on `/rooms/`; then a device status box ("This Mac is linked", since `0751f97f`), RECOVERY CODE, TRUSTED DEVICES, LOST A DEVICE and CHANGED IDENTITIES (see Sealed Messages sections below). `/chat/` always shows the managed-by-the-OM-app text. |
 | Notifications | crashes in the shell fixture; renders in `settings-fixture.html?host=user&page=notifications` (**Notifications**, THIS DEVICE, a **Sound** group with the range **Notification volume**, IN THE CHANNEL **Ringing strip at the top**, NOTIFY ME FOR) |
 | Audio | **Audio** — "Choose the microphone, speakers, and processing…" (DEVICES) |
 | Accessibility | **Accessibility** — MOTION AND FEEDBACK, **Enable reduced motion** |
@@ -269,7 +269,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
 - **Appearance** (`settings-fixture.html?host=user&page=appearance`) carries
   three switches above the radiogroups: **Show link previews** (on by default;
   clicking it writes `localStorage["om.chat.linkPreviews"]="false"`, clicking
-  again `"true"`; `UserSettings.tsx:1671`, `lib/prefs.ts`), **Underline links**
+  again `"true"`; `UserSettings.tsx:1690`, `lib/prefs.ts`), **Underline links**
   and **High contrast mode**. The radiogroups read **Theme** (Dark theme /
   Light theme / Sync with OS theme), **Palette** (five), **Chat layout**
   (Bubbles / Streamlined / Custom; the fixture starts on Custom), **Server
@@ -279,7 +279,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
 - **Profiles** (`?page=profiles`): heading **Profiles**, the display-name field
   (`justintg`), a custom-status field (`long $BTC`) with **Clear custom status
   after**, **Tell people who you are**, **Change avatar**, and the presence
-  choices **Online** / **Idle** / **Do not disturb** (`UserSettings.tsx:1062-1064`).
+  choices **Online** / **Idle** / **Do not disturb** (`UserSettings.tsx:1081-1083`).
   The presence radios have no accessible name, and clicking **Idle** changed
   nothing in the fixture (no setter is stubbed). The hint under the avatar
   reads "Click the avatar to change it, then drag to choose which part shows.
@@ -289,7 +289,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
   ("Whole picture shown" for a square picture), **Cancel** and **Save**.
   **Cancel** closes it and uploads nothing (driven 2026-11-06 on both hosts).
 - **No To-dos page.** `83b02ee4` removed it with `om.chat.todoVisibility`. An
-  unknown id falls back to My Account (`UserSettings.tsx:251-260` keeps only
+  unknown id falls back to My Account (`UserSettings.tsx:252-261` keeps only
   ids in `USER_NAV`), so `settings-fixture.html?host=user&page=todos` opens
   **My Account** with no radiogroup (driven 2026-11-15 on both hosts).
 - **Privacy**: `settings-fixture.html?host=user&page=privacy` renders a blank
@@ -297,7 +297,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence:
   `shell-fixture.html?view=settings&settingsPage=privacy&alerts=quiet`, which
   shows heading **Privacy** and the switch **Private account**. The
   who-can-message choices Everyone / People you follow / No one
-  (`UserSettings.tsx:812-826`) are a select, not radios.
+  (`UserSettings.tsx:831-845`) are a select, not radios.
 
 Driven 2026-10-31 on `/rooms/` (18135) at `936f5b64`.
 
@@ -337,7 +337,7 @@ proves nothing here.
 ### Motion and feedback sounds (added 2026-11-02)
 
 `settings-fixture.html?host=user&page=accessibility` has a **Motion and
-feedback** card (`settings/UserSettings.tsx:1890-1915`) with four switches:
+feedback** card (`settings/UserSettings.tsx:1909-1934`) with four switches:
 **Enable reduced motion**, **Resolve sound**, **GOAT ceremony sound** and
 **GOAT bleat**. On a fresh lane the three sound switches read
 `aria-checked="true"` and reduced motion reads `false`. `find role switch click
@@ -378,7 +378,7 @@ matches “zzqqx”.** with curly quotes (`settings/SettingsShell.tsx:283`).
 The **Discard unsaved changes?** alertdialog (`SettingsShell.tsx:435`) is
 reached on `page=profiles` (plural; `page=profile` has no editable input).
 Type into the textbox **Display name** (`#om-display-name`,
-`settings/UserSettings.tsx:928`); a **Reset** button appears. Press Escape:
+`settings/UserSettings.tsx:947`); a **Reset** button appears. Press Escape:
 the alertdialog reads "Your unsaved changes will be lost." with **Keep
 editing** and **Discard changes**. **Keep editing** closes it and keeps the
 typed value (2026-11-08, both hosts). **Discard changes** and leaving by a nav
@@ -395,7 +395,7 @@ agent-browser find role button click --name "Keep editing"
 
 User path: **Settings** → **Appearance** → **CHAT BACKGROUND** (a `region`
 with `data-settings-group="chat-background"`, between Accent and Advanced;
-`ChatBackgroundSettings.tsx`, mounted at `UserSettings.tsx:1406`). Click
+`ChatBackgroundSettings.tsx`, mounted at `UserSettings.tsx:1425`). Click
 **Upload picture**, pick a PNG, JPEG or WebP, then choose **Chat only** or
 **Whole window** and set **Dim**. **Remove** clears it.
 
@@ -468,7 +468,7 @@ The **LIVE PREVIEW** (`[aria-label="Message appearance preview"]`, tablist
 Agent (with the **AGENT** chip) and You on the **Server** tab, and **Avery
 Lane** with "The new layout is ready on example.com" and an **Example Domain**
 card on **Direct message**. It never reads "Jiin", "# design" or
-`openmarket.xyz` (`UserSettings.tsx:1447`).
+`openmarket.xyz` (`UserSettings.tsx:1466`).
 
 ### Server mutes and the Mute Members grant (added 2026-11-09)
 
@@ -526,10 +526,10 @@ timed mutes** and **Channel bans** with no console error (driven 2026-11-10).
 
 Since `f0c5d67a` the page is built from sections that follow
 `fetchSecretsStatus()` (`settings/SecretsPage.tsx`; nav entry
-`UserSettings.tsx:135`). The data comes from a module adapter, not the session:
+`UserSettings.tsx:136`). The data comes from a module adapter, not the session:
 `src/lib/secrets.ts` fetches `daemonUrl("/secrets/<path>")` and unwraps
 `{ok:true,data}`, and any network failure becomes "unavailable"
-(`src/lib/secrets.ts:104-147`). The cloud adapter `apps/cloud/src/lib/secrets.ts`
+(`src/lib/secrets.ts:106-149`). The cloud adapter `apps/cloud/src/lib/secrets.ts`
 always throws, so `/chat/` only ever shows **Sealed messages are managed by the
 OM app on the device that holds your keys. Open OM Chat there to view or save
 your recovery code.** The fixtures have no daemon, so `/rooms/` shows the same
@@ -551,14 +551,15 @@ cat > "$SCRATCH/fixture-secrets-stub.js" <<'JS'
     { userId: "u-dax", previousIdentityPub: "aa", newIdentityPub: "bb", kind: "verified-reset", raisedAt: "2026-11-10T00:00:00Z" },
     { userId: "u-mira", previousIdentityPub: "cc", newIdentityPub: "dd", kind: "support-reset", raisedAt: "2026-11-11T00:00:00Z" },
   ];
-  const base = { userId: "u-self", readiness: "ready", hasRecoveryBlob: true, recoveryVerified: true, devices, alarms };
+  const presence = { platform: "darwin", enforced: true };   // leave out for "computer" instead of "Mac"
+  const base = { userId: "u-self", readiness: "ready", hasRecoveryBlob: true, recoveryVerified: true, devices, alarms, thisDeviceId: "d1", presence };
   const status = {
     ready: base,
     unverified: { ...base, recoveryVerified: false, alarms: [] },
     nocode: { ...base, hasRecoveryBlob: false, alarms: [] },
     badlist: { ...base, devices: undefined, devicesUnverified: true, alarms: [] },
-    restore: { userId: "u-self", readiness: "needs-restore", hasRecoveryBlob: true, alarms: [] },
-    fresh: { userId: "u-self", readiness: "needs-restore", hasRecoveryBlob: false, alarms: [] },
+    restore: { userId: "u-self", readiness: "needs-restore", hasRecoveryBlob: true, alarms: [], presence },
+    fresh: { userId: "u-self", readiness: "needs-restore", hasRecoveryBlob: false, alarms: [], presence },
   }[seed] || base;
   const code = "otter-maple-cinder-velvet-harbor-quill";
   const routes = {
@@ -567,6 +568,8 @@ cat > "$SCRATCH/fixture-secrets-stub.js" <<'JS'
     "link/start": () => ({ code: "amber-river-stone-lamp", pairingId: "p1", expiresAt: new Date(Date.now() + 300000).toISOString() }),
     "link/pending": () => ({ state: "request", label: "Pixel 9", deviceId: "d3" }),
     "link/approve": () => ({ approved: true }),
+    "link/join": () => ({ joined: true }),
+    "link/finish": () => ({ state: "pending" }),
     reset: () => ({ code, signedOutOthers: false }),
     "recovery/mint": () => ({ code, rotated: true }),
     "alarms/ack": () => ({ acknowledged: true }),
@@ -588,7 +591,9 @@ agent-browser --init-script "$SCRATCH/init-secrets.js" open about:blank
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=settings&alerts=quiet&settingsPage=secrets&secretsSeed=ready')"
 ```
 
-Driven 2026-11-14 on `/rooms/` (18173):
+Driven 2026-11-14 on `/rooms/` (18173). `0751f97f` reworded the **Add a
+device**, `restore` and `fresh` bullets; their current text is in the block
+after this list:
 
 - **`ready`.** h1 **Sealed Messages**, then h2 **Recovery Code** ("A recovery
   code is saved for this account.", a code textbox and **Create a new code**,
@@ -597,10 +602,11 @@ Driven 2026-11-14 on `/rooms/` (18173):
   **Changed Identities** (`[data-identity-alarm="u-dax"]` "dax reset their
   sealed keys on Nov 10, 2026 · confirm to keep sending"; `u-mira`'s
   support-reset row is the loud yellow one, each with **Accept new key**).
-- **Add a device.** Shows `[data-link-code]` **amber-river-stone-lamp** with
-  "Expires in". The section polls `link/pending` (`SealedDevicesSection.tsx:66-89`);
-  a few seconds later `[data-link-request]` reads **Give "Pixel 9" your sealed
-  keys?** with **Approve** and **Cancel**. **Approve** posts `link/approve` and
+- **Add a device.** Shows `[data-link-code]` **amber-river-stone-lamp** (until
+  `0751f97f` with "Expires in"). The section polls `link/pending`
+  (`SealedDevicesSection.tsx:71-94`); a few seconds later `[data-link-request]`
+  shows the request (until `0751f97f` it read **Give "Pixel 9" your sealed
+  keys?**) with **Approve** and **Cancel**. **Approve** posts `link/approve` and
   re-reads `status`. Its success toast does not render: the shell fixture's
   `toast` is a no-op.
 - **Lost a Device.** **Reset sealed keys** stays disabled after the textbox
@@ -616,12 +622,60 @@ Driven 2026-11-14 on `/rooms/` (18173):
   no Lost a Device section (it needs a saved code).
 - **`badlist`.** Trusted Devices reads "This device list failed its check, so it
   isn't shown."
-- **`restore`.** h2 **Link This Device** ("On a trusted device, open Sealed
-  Messages and press Add a device.", **Link**) and **Restore This Device**
-  (**Restore**).
-- **`fresh`.** **Link This Device** and **Start Fresh**: the explainer, the
+- **`restore`.** Until `0751f97f`: h2 **Link This Device** ("On a trusted
+  device, open Sealed Messages and press Add a device.", **Link**) and
+  **Restore This Device** (**Restore**).
+- **`fresh`.** **Link This Device** (now **Link This Mac**) and **Start Fresh**: the explainer, the
   checkbox **I understand old sealed messages are lost for good** and **Start
   fresh**.
+
+**Changed by `0751f97f` (driven 2026-11-21 at `84e88e56`, `/rooms/` 18193).**
+The page now says what this device is, and the 2026-11-14 wording above has
+moved in four places. The stub above carries the three additions the new page
+reads (`thisDeviceId`, `presence` and the `link/join` and `link/finish`
+routes).
+
+- **A status box opens the page** (`[data-device-status]`, `role="status"`,
+  `settings/SecretsPage.tsx:379-410`). The noun is **Mac** when
+  `status.presence.platform` is `darwin`, and **computer** otherwise.
+  - `ready`: `linked`, "This Mac is linked" and "It holds your sealed keys: it
+    can open and send sealed messages, and approve your other devices."
+  - `restore` and `fresh`: `unlinked`, "This Mac isn't linked yet" and "Sealed
+    messages to you show as locked here until this Mac gets your keys from a
+    device that already has them."
+  - While a link waits: `waiting`, "Waiting for approval" and "Your request
+    reached the other device. This page updates as soon as it's approved."
+- **`restore`** now reads h2 **Link This Mac** (`LinkThisDevice.tsx:108`; "Link
+  This computer" without `presence`) over a three-step list: "On a device that
+  already opens sealed messages (your other computer or your phone), open
+  Sealed Messages and press Add a device.", "Type the 4 words it shows below."
+  and "Press Approve on that device." Then the label **4-word code**, the
+  textbox **Pairing code**, **Link** and "Spaces or dashes between the words
+  both work." The second section is h2 **No Other Device With Your Keys?**
+  (`SecretsPage.tsx:271`), where **Restore This Device** used to be.
+- **Link checks the words first.** An empty box reads "Type the 4 words your
+  other device shows" and `one two` reads "Type all 4 words · 2 of 4 so far",
+  each as an alert, with no request sent. `amber river-stone lamp` posts
+  `link/join`; the status box turns to `waiting`, the form is replaced by
+  **Cancel** and "Waiting for the other device to approve", and the page polls
+  `link/finish`.
+- **`fresh`** reads **Link This Mac** and **Start Fresh**, under the same
+  status box.
+- **`ready`, Trusted Devices.** The row for `thisDeviceId` carries a
+  `[data-this-device]` chip, **This Mac** ("MacBook Air | This Mac | Linked
+  Nov 1, 2026", `SealedDevicesSection.tsx:173`).
+- **Add a device** now shows the code with **Copy**, "Waiting for the new
+  device · expires in 4:59", and "On the new computer, open Settings → Sealed
+  Messages and type these 4 words. On a phone, scan or type them in Link this
+  phone. Or run `om secrets join amber-river-stone-lamp`", with **Cancel**.
+  The request box reads **"Pixel 9" asked for your sealed keys. Approve only
+  if that's your device.** with **Approve** and **Cancel**, and on a Mac adds
+  "macOS will ask for your password or Touch ID. The prompt can open behind
+  this window." (`SealedDevicesSection.tsx:219`, `:240`).
+
+Not driven on 2026-11-21: **Copy**, **Approve**, **Cancel** on a waiting link,
+a `link/finish` that answers `linked`, and the code-expired and code-mismatch
+notes.
 
 On `/chat/` (18174) the same stub makes no `/secrets/*` call and the page shows
 only the managed-by-the-OM-app text. Not driven: **Copy**, **Verify**, **Create a
@@ -715,7 +769,9 @@ code-expired and code-mismatch notes, and a real daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=settings&settingsPage=appearance`: **Light theme** turns `data-theme` from `dark` to `light`. Every settings route in this guide mounted in the route smoke on both hosts. **Limitations:** a theme switch only; no other page was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
+**Last verified:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193), `shell-fixture.html?view=settings&settingsPage=secrets` with the people stub and the `/secrets/*` fetch stub: the status box on the `ready`, `restore` and `fresh` seeds, with **Mac** and **computer**; **Link This Mac** with its three steps, the two word-count alerts, the `link/join` post and the waiting state; **No Other Device With Your Keys?**; the **This Mac** chip; **Add a device** with its new copy and the request box. `shell-fixture.html?view=settings&settingsPage=om` is in [self-hosted-model-settings.md](self-hosted-model-settings.md). Every settings route in this guide answered the route smoke on both hosts, with the known blanks (`page=privacy` on both, `host=server&page=moderation` on `/chat/`, and `host=server&page=projects` without the Projects stub). **Limitations:** **Copy**, **Approve**, a finished link and a real daemon were not driven; no other settings page was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 15-18).
+
+**Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=settings&settingsPage=appearance`: **Light theme** turns `data-theme` from `dark` to `light`. Every settings route in this guide mounted in the route smoke on both hosts. **Limitations:** a theme switch only; no other page was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
 
 **Previous record:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176): the shell `?view=settings` nav lists 19 entries with no To-dos; `settings-fixture.html?host=user&page=todos` falls back to **My Account** with no radiogroup; `host=channel&page=overview&perms=owner` shows **Overview**, **Topics**, **Channel index** and no to-do control; `host=server&page=roles&perms=owner` → **Permissions**, with the version stub, lists 26 rows with **Manage Labels** and **Mute Members** and no **Nudge People**. **Limitations:** the other page bodies were not re-driven (the 2026-11-14 record stands); no grant was saved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 11, 12, 13, 17).
 

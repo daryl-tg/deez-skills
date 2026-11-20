@@ -5,7 +5,7 @@
 - A fenced block in a message renders as `pre.code-wrap` inside the message's
   `.agent-md.agent-md-chat`, with a `.code-header` band (the language control,
   e.g. **Plain text**) and a copy control: `span.code-copy` with `role="button"`
-  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2478`).
+  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2453`).
 - A fence tagged `progress` draws as bars, not as a code block, when every
   line parses (`feb9be62`): see [progress-blocks.md](progress-blocks.md).
 - Since `2350a0fd`, chat messages wrap long lines instead of scrolling them:

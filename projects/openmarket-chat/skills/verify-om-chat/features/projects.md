@@ -81,7 +81,14 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   is sent as `om://user/<id>` from the comment box and the description editor
   (`components/projects/description-mentions.ts`), and since `6c989fd6` the
   description's pills read the server's people once per pass and follow
-  renames. A fixture person needs a 24-hex id for this; not driven. With Vim mode on, the box runs the
+  renames. A fixture person needs a 24-hex id for this; not driven. Since
+  `3387846a` and `c9c5206d` a typed `@username` that one person on the server
+  holds is saved as that link too: in a comment, in a description edit and in
+  a new ticket's description (`lib/todos/ticket.ts:277`, `:304`, `:323`,
+  `lib/todos/store.ts:488`). A title stays as typed, and a comment or
+  description saved unchanged converts nothing (`603275fc`). Source and unit
+  tests only (read 2026-11-21): the fixture's `people.heldIn` is empty, so no
+  name resolves there. With Vim mode on, the box runs the
   shared Vim engine: Escape enters NORMAL (`.ticket-comment-bar
   .composer-vim-mode[data-vim-mode]`), a block cursor `.vim-block-cursor`
   shows outside insert mode (`data-partial` while an operator is pending),
@@ -123,7 +130,7 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   `aria-required` with an `aria-hidden` `*`; **Home channel** carries one too
   unless the home is fixed, as it is in the panel (`c99f628c`).
 - **Message menu entry.** In records mode a message's **More** menu lists
-  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1673-1685`),
+  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1660-1672`),
   and the hover toolbar shows the same button (`[data-add-todo]`). Off Projects
   there is no promote at all; see [message-actions.md](message-actions.md).
 - **Projects switch** (`ProjectsSettings.tsx:70-190`; `b29feb5a`, `8d2014cc`).
@@ -439,7 +446,7 @@ Projects stub the page falls to its error boundary, because the bare
 - **The ticket page needs `todos.ticket`.** Without it, `#/todo/s1/1` routes
   and then the surface boundary shows **Projects could not load** ("Cannot
   convert object to primitive value"): `todos.ticket(ref)` answers `INERT`
-  instead of a `TodoTicketController` (`lib/todos/ticket.ts:155`). The stub's
+  instead of a `TodoTicketController` (`lib/todos/ticket.ts:158`). The stub's
   controller returns one cached `state` object; a fresh object per read would
   loop `useSyncExternalStore`.
 - **The Agent row reads "No agent Couldn't list your agents" with Retry.** The

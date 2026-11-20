@@ -356,7 +356,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:254`), supplied by `Shell.tsx:4590`. That is
+  remains (`UserSettings.tsx:255`), supplied by `Shell.tsx:4590`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
@@ -371,7 +371,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:6093-6094`),
+  composer with no lane toggle and no target (`Composer.tsx:6108-6109`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -732,7 +732,7 @@ Proven on both hosts at chat `14509e60` with lane daemon `4f4db0510`. Rig owner 
 
 Clicking an `@agent` tag (`.agent-mention[data-handle]`, `role="link"`, named
 "@debugger, agent") opens a compact card, not the full profile
-(`MessageRow.tsx:2528-2538`, `lib/agents/agent-tag-card.ts`). The card is a
+(`MessageRow.tsx:2512-2522`, `lib/agents/agent-tag-card.ts`). The card is a
 dialog named **Agent <name>** (`AgentTagPopover.tsx:31`). It shows the name
 and an **AGENT** chip over "<owner>'s agent", with the owner's face. The owner
 comes from the room's agent directory: the account an agent posts as

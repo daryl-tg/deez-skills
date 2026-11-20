@@ -140,7 +140,7 @@ press the ContextMenu key (`LibraryPanel.tsx:699`, `:1197`). Either one opens
 Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
 rename, Make read-only, Archive and Delete. Escape closes it. The full page's
 **More note actions** button and doc links in messages open the same menu
-(`LibraryView.tsx:5518`, `MessageText.tsx:1756`).
+(`LibraryView.tsx:5518`, `MessageText.tsx:1738`).
 
 The verbs are not proved: `setDocReadOnly` and `setDocRestriction` are
 unstubbed. The `/chat/` fixture stubs `openDocMenu` as a no-op
@@ -171,10 +171,10 @@ Driven 2026-11-08: the row on `/rooms/`, its absence on `/chat/`.
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
 with `data-daily-note-day` set to the local day, `LibraryView.tsx:3226-3234`;
 the add menu lists it as **Daily note**, `:3762`, `:4133`; the `d` key at
-`:1771`) calls `session.openDailyNote()` (`:1602`; `lib/session.ts:36855`),
+`:1771`) calls `session.openDailyNote()` (`:1602`; `lib/session.ts:36794`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
-no doc pane, no `.library-daily-note` section (`:6324`), no toast, hash still
+no doc pane, no `.library-daily-note` section (`:6316`), no toast, hash still
 `#/library`. Driven 2026-11-01 on `/rooms/` at `936f5b64`. The daily note
 itself is live verification pending.
 

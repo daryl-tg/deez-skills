@@ -191,7 +191,7 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
   no state change and no toast, and `roomAttentionFor` / `roomMuteUntilFor`
   answer `null`. Since `4ca34c9a`, muting a room this socket never joined (an
   alert channel never opened this session) retries over REST after the relay's
-  `NOT_IN_ROOM` refusal (`lib/session.ts:33593`, `:33688`). That path is
+  `NOT_IN_ROOM` refusal (`lib/session.ts:33532`, `:33627`). That path is
   covered only by `packages/chat-ui/test/ui/mute-durations.test.ts`. The topic
   pill's mute is stubbed (`tools/visual/shell-fixture.tsx:3090-3100`, writes
   `data-fixture-topic-attention`), but it is a different code path.
@@ -216,7 +216,7 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
 
 A hover peek previews a conversation without opening it or marking it read. It
 is desktop only. The fetch starts at 440 ms, the popover shows at 500 ms, and
-it closes 120 ms after the pointer leaves (`lib/channel-peek.ts:28-30`).
+it closes 120 ms after the pointer leaves (`lib/channel-peek.ts:27-29`).
 Keyboard focus on the row opens it too. While a row menu is open, or during a
 drag, peeks are off (`Sidebar.tsx:2090-2093`).
 
@@ -404,7 +404,7 @@ Clicking **Focus: only what needs you** (`Sidebar.tsx:4264-4267`) or pressing
 entry (`lib/keymap.ts:84-88`, "Toggle Focus"). The Shell handler is inline
 (`Shell.tsx:881-902`): it calls `session.setSidebarFocus(spaceId, …)` for the
 rendered server column, and does nothing at Home, where `spaceId` is null.
-`setSidebarFocus` (`lib/session.ts:13235`) is unstubbed in both fixtures, so it
+`setSidebarFocus` (`lib/session.ts:13220`) is unstubbed in both fixtures, so it
 resolves to `INERT` and writes no pref (driven 2026-11-15 on both hosts: the
 label, `aria-pressed="false"` and the treeitem count were unchanged after
 Meta+Shift+F, and `om.chat.sidebarFocus` stayed null). Clear the key before any
@@ -474,7 +474,7 @@ list, **Needs you** and the new-ticket form are implemented.
 (`shared/components/HomeHub.tsx:694`), the channel peek's header and door
 (`ChannelPeekPopover.tsx:94`, `:118`: **99+ new since you last read** and
 **99+ unread · open #<title>**) and the older-messages banner
-(`ChatPane.tsx:3285`, **You're viewing older messages · 99+ new below**). Above
+(`ChatPane.tsx:3279`, **You're viewing older messages · 99+ new below**). Above
 99 the peek's remainder is zero, so its **+N more unread** line becomes
 **More unread · open #<title>** (`:82-83`, `:90`). The topic part of the
 sidebar label (**N unread in topics**) and the **N mentions** part stay raw.
@@ -641,8 +641,8 @@ On `/chat/` the topic list row reads **0 members** while the menu says
 
 Since `6e8fc705`, `8c286fa9` and `12f1ea24` (rooms-client 0.120.0), a server's
 categories have a stored order and an optional alert mark
-(`session.categoriesFor`, `setSpaceCategories`, `lib/session.ts:26195`,
-`:26208`). Categories render in the stored order, with unlisted names after
+(`session.categoriesFor`, `setSpaceCategories`, `lib/session.ts:26188`,
+`:26201`). Categories render in the stored order, with unlisted names after
 and empty pending categories last (`Sidebar.tsx:3374-3391`). Someone with
 manage-server rights can do three things:
 
@@ -744,7 +744,7 @@ the same rows with no catch-up. It was not driven.
 
 When the tape is scrolled away from its bottom, a round **Scroll to latest
 messages** button mounts at the lower right of the conversation
-(`[data-scroll-to-latest]`, `ChatPane.tsx:2443`). It is not in the DOM while
+(`[data-scroll-to-latest]`, `ChatPane.tsx:2442`). It is not in the DOM while
 the tape sits at the bottom.
 
 ```bash
@@ -759,8 +759,8 @@ agent-browser click '[data-scroll-to-latest]'
 ```
 
 Driven 2026-11-20 at `7e3f0cde` on `/rooms/` (frame 17). The same file also
-holds **Jump to last read message** (`ChatPane.tsx:3084`) and **Mark all as
-read** (`:3103`); no fixture seed was found for either, and neither was driven.
+holds **Jump to last read message** (`ChatPane.tsx:3078`) and **Mark all as
+read** (`:3097`); no fixture seed was found for either, and neither was driven.
 
 ### Media and files (added 2026-11-20)
 

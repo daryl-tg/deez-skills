@@ -3,7 +3,7 @@
 The **News** view: stories the operator's news watches have fired, plus filing
 one into a room so it rides the next message. Source:
 `packages/chat-ui/src/components/NewsHomePane.tsx`, mounted by
-`ChatPane.tsx:820-826` when `session.active.kind === "news"`; the composer chip
+`ChatPane.tsx:819-825` when `session.active.kind === "news"`; the composer chip
 is `NewsStagedChip` in `NewsCard.tsx`.
 
 ## Sub-features

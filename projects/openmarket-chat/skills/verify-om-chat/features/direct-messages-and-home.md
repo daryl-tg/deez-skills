@@ -10,6 +10,15 @@ conversation, and the friends surfaces that feed it.
 - The DM list with per-conversation unread counts and presence.
 - One direct or group DM conversation: header, tape, composer, and group
   members panel.
+- A typed `@username` in a DM goes out as its holder's `om://user/<id>` link
+  (`3387846a`, `97833bf3`, `47997903`): a participant's name is theirs, and a
+  name no participant holds resolves among everyone else the session holds. A
+  person picked from the DM's `@` list sends the same link (`c4028edb`,
+  `ed73acae`). The recipe and what stays as typed are in
+  [composer-and-sending.md](composer-and-sending.md) ("A typed username goes
+  out as its holder's link"). Driven 2026-11-21 on both hosts.
+- The edit box in a DM stops at 10,000 characters, with a counter near the
+  cap ([message-editing.md](message-editing.md), "The DM edit cap").
 - The DM header's **Media and files** button (`[data-conversation-media]`,
   after **Nudge**; `7e3f0cde`) opens the shared-items dialog. Its recipe is in
   [conversation-media.md](conversation-media.md). On `?view=dm&dm=ana` the
@@ -144,7 +153,7 @@ The `/rooms/` shell fixture seeds a group DM named **OM chatters**, owned by the
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=dm&dm=OM%20chatters&alerts=quiet')"
-agent-browser find title "Edit group name and picture" click   # header button (ChatPane.tsx:1025); dialog "Edit group"
+agent-browser find title "Edit group name and picture" click   # header button (ChatPane.tsx:1024); dialog "Edit group"
 agent-browser snapshot -i -c                             # well "Set group picture", textbox "Group name", "Save", "Cancel"
 agent-browser upload '[data-group-picture] input[type=file]' <image>   # well -> "Change group picture", "Remove picture" appears
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=dm&dm=OM%20chatters&alerts=quiet&panel=members')"
@@ -244,7 +253,7 @@ Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 17-20, 25).
 the pinned **Message requests** row above the DMs. On
 `shell-fixture.html?view=dm&requests=3&alerts=quiet` the sidebar shows a
 `treeitem` named **3 message requests** (`Sidebar.tsx:4056`); clicking it
-changes nothing (`openMessageRequests`, `lib/session.ts:35951`, is unstubbed,
+changes nothing (`openMessageRequests`, `lib/session.ts:35890`, is unstubbed,
 so the click resolves to `INERT`), and the hash stays `#/dm/ana`. The
 Connections **Requests** tab's **Messages 0** tab (`FriendsPane.tsx:1171`) is
 the other door and renders **No message requests waiting.** without the seed.
@@ -270,7 +279,7 @@ formatter, only the pill and the headline do. No channel or topic seed exceeds
 
 `?view=dm&dmTyping=peer` no longer shows anything: the fixture writes `typing`
 onto `DmState`, but the strip reads `session.ephemeral.typistsFor(...)`
-(`Composer.tsx:1631`), which neither fixture stubs. Driven without a stub, the
+(`Composer.tsx:1636`), which neither fixture stubs. Driven without a stub, the
 DM shows no typing line. Seed `ephemeral` instead:
 
 ```bash
@@ -289,7 +298,7 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 
 With the session-capture shim from [message-actions.md](message-actions.md),
 assign the prompt directly. The shape is `{spaceId, userId, username,
-initialScope}` (`lib/session.ts:5179`):
+initialScope}` (`lib/session.ts:5171`):
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
@@ -386,7 +395,9 @@ and still calls the unstubbed `openNameEditPrompt`, so it was not driven.
 
 ### Verification record
 
-**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=dm&dm=ana`: the header's **Media and files** button (`aria-haspopup="dialog"`) opened the dialog with **Media 25 / Files 6** and the DM file rows; the group DM `OM chatters` shows the button. The Home, Connections and DM routes mounted in the route smoke on both hosts. **Limitations:** the DM door was not driven on `/chat/`; nothing else in this guide was re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 04).
+**Last verified:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193) and `/chat/` (18194), `?view=dm&dm=ana`, people stub and session-capture shim, with the peer given a 24-hex id: `hi @ana` and `ask @nova` (a person outside the DM) each painted a mention chip, went out as `om://user/<id>` and drew `.mention-pill`; `ask @zed` stayed typed (`/rooms/`). On `/rooms/`, `cc @an` listed **MEMBERS** with `ana`, and the pick sent the link; the DM edit box's length cap. **Limitations:** a pick and a typed name read the same on the wire; a group DM, the owner-not-agent rule (`47997903`) and delivery to the mentioned person need a store. No other DM or Home surface was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 05, 06, 24, 32).
+
+**Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=dm&dm=ana`: the header's **Media and files** button (`aria-haspopup="dialog"`) opened the dialog with **Media 25 / Files 6** and the DM file rows; the group DM `OM chatters` shows the button. The Home, Connections and DM routes mounted in the route smoke on both hosts. **Limitations:** the DM door was not driven on `/chat/`; nothing else in this guide was re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 04).
 
 **Previous record:** 2026-11-19 (nightly maintenance). **Product commit:** `12f1ea24` (GitLab origin/main; rooms-client 0.120.0; 12 commits past `c19e2f70`). **Scope:** `/rooms/` (18191) and `/chat/` (18192). The **Create Category** dialog was driven with and without the category stubs: without them it has no checkbox; with them it shows **Alert category**, and a ticked submit adds **category Pager, empty** and the pending entry. A route smoke found that `/chat/` `view=dm&dm=OM%20chatters` reads **Loading messages in OM chatters**, because the cloud fixture has no group-DM seed. The table now says the route is `/rooms/`-only. **Limitations:** the category write is stubbed; DM surfaces outside Create Category were covered only by the route smoke. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261119/r1/` (frames 11, 12).
 

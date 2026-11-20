@@ -155,6 +155,13 @@ that handle's account, and `has:link` no longer counts a user or role link as
 a link. Live verification is pending: the fixture search has no seam for the
 handle-to-account lookup.
 
+Since `ca24a4b2` (source and unit tests only, read 2026-11-21) the link is the
+only match for a person. When the handle names an account, `mentions:@handle`
+matches a message that links that account and no longer one that only types
+`@handle`. `mentions:@everyone`, `mentions:@here` and a handle that names no
+account, such as an agent's, still match the typed word
+(`lib/search-query.ts:400-404`).
+
 ## Gotchas
 
 - Default fixture results are canned. Use `?search=live` to prove query and

@@ -55,9 +55,9 @@ Read the gotchas for where the line now falls.
   Since `6395fe4b` an agent refused only for `no_grant` is no longer dimmed:
   its detail reads "<name> can't post here yet · Enter allows it"
   (`lib/composer-complete.ts:683-685`), and Enter or a click grants the room,
-  rereads the roster and inserts `@name ` (`Composer.tsx:3371-3403`); a refused
+  rereads the roster and inserts `@name ` (`Composer.tsx:3399-3431`); a refused
   grant puts the refusal text in the row's detail. The row needs the
-  `instances.grant` capability (`Composer.tsx:1786`).
+  `instances.grant` capability (`Composer.tsx:1791`).
   Only your own agents are offered: a member agent is kept only when it posts
   from your account (agent handles are bare names, so ownership is the
   `userId`), and another member's agent is left out even for a typed
@@ -76,7 +76,7 @@ Read the gotchas for where the line now falls.
   Driven 2026-11-18 on both hosts: `=1` shows **Agents 1** (`argue`) and `@sco`
   lists nothing; `=offline` dims `argue` (and on `/rooms/` the `om` row,
   **Agents 2**), and Enter or Tab on `@arg` leaves the box reading `@arg`.
-  The message edit box offers the same list (`InlineMessageEditor.tsx:203-216`,
+  The message edit box offers the same list (`InlineMessageEditor.tsx:207-220`,
   `d08eb47d`): with `roleEdit=1&agentPicker=offline` on `/rooms/`, `@arg` in
   **Edit message** shows `argue` dimmed and Tab inserts nothing; with
   `agentPicker=1` Tab inserts `@argue `. The shared roster store
@@ -90,7 +90,7 @@ Read the gotchas for where the line now falls.
   **MEMBERS** with no role rows). `mentionCandidates` now defaults to no limit
   (`lib/composer-complete.ts:576`); a caller that passes a budget still keeps
   part of it for roles (`:650-653`). The composer and the inline editor pass no budget; only the
-  OpenScape chat still passes 20 (`world/WorldChatPane.tsx:210`). On the
+  OpenScape chat still passes 20 (`world/WorldChatPane.tsx:181`). On the
   `/rooms/` shell fixture's `#ops`, the list has 14 options: 5 members (ana,
   dax, kyle, mira, rho) and 9 roles (admin, Devops, everyone, Full Stack, here,
   member, mod, owner, traders). **Devops** came with the `roleEdit` seed's role
@@ -100,7 +100,7 @@ Read the gotchas for where the line now falls.
 - The `@` list is a sectioned picker (`022af9cd`). Its head is a
   `div.composer-autocomplete-tabs[role=group]` named like the listbox, holding
   one `button.composer-autocomplete-tab` per non-empty section: **Members N**,
-  **Roles N**, **Agents N** (`Composer.tsx:362-366`,
+  **Roles N**, **Agents N** (`Composer.tsx:367-371`,
   `ComposerAutocomplete.tsx:49-58`, `:239`). Rows always run members, then
   roles, then agents, with or without a query (`lib/composer-complete.ts:465`,
   `:656`, `:707`), under `div.composer-autocomplete-group[data-group]` eyebrows
@@ -112,7 +112,7 @@ Read the gotchas for where the line now falls.
   re-counts the tabs and drops an empty section's tab.
 - Server-wide `@` search (`82390825`, `e56940c9`). In a server channel on the
   public plane, a typed `@query` also asks the server's member search, app
-  accounts included (`Composer.tsx:2691-2698`; 150 ms after typing stops,
+  accounts included (`Composer.tsx:2715-2722`; 150 ms after typing stops,
   `lib/people.ts:87`). Hits pass the channel and private-topic walls, judged by
   each hit's own `roleIds`, with owners and admins passing both
   (`lib/composer-scope.ts:405-430`). Since `022af9cd` they join the **Members**
@@ -122,7 +122,7 @@ Read the gotchas for where the line now falls.
   search by itself; see the recipe below.
 - A member muted across a server loses the composer there (`591b1e11`). On the
   public plane, in any channel of that server, the whole composer is replaced by
-  `div[role=status][data-testid=space-muted-notice]` (`Composer.tsx:4956-4966`).
+  `div[role=status][data-testid=space-muted-notice]` (`Composer.tsx:4971-4981`).
   It reads "You're muted in this server until 3:40 PM.", "…until Nov 9, 3:40 PM."
   on another day, or "You're muted in this server." when a refusal named no time
   (`lib/space-mutes.ts:29-31`). DMs and group DMs are unaffected.
@@ -159,7 +159,7 @@ Read the gotchas for where the line now falls.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
 - Send disabled while empty; Enter-to-send versus newline. The **Send message**
-  button renders when `isMobile || showSendButton` (`Composer.tsx:7070`). The
+  button renders when `isMobile || showSendButton` (`Composer.tsx:7085`). The
   ordinary room and DM composer is therefore phone-width only, and desktop
   sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:444`) and the
   remote-control pane (`RemoteControlPane.tsx:384`) also show it on desktop,
@@ -188,7 +188,7 @@ Read the gotchas for where the line now falls.
   its unit tests; the recipe below drives a subset of them.
   The mode badge is
   `<span class="composer-vim-mode" data-vim-mode="normal|insert|visual|visual-line">`
-  (`VimModeLine.tsx`, mounted at `Composer.tsx:7156`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
+  (`VimModeLine.tsx`, mounted at `Composer.tsx:7171`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
   a pending operator in `.composer-vim-pending`. Enter sends only in insert
   mode. Escape belongs to Vim, so it no longer cancels a reply. Outside insert
   mode a block cursor `span.vim-block-cursor[aria-hidden]` sits on the caret
@@ -215,7 +215,7 @@ Read the gotchas for where the line now falls.
   used to land after the sent text, and the box kept both. Now the sent prefix
   is dropped and the rest is kept with its leading whitespace trimmed; a box
   rewritten some other way is left alone, and a refused send keeps everything
-  (`Composer.tsx:4296-4307`). The fixture cannot open that window: both
+  (`Composer.tsx:4308-4319`). The fixture cannot open that window: both
   fixtures' `sendToActiveDurably` resolve at once
   (`tools/visual/shell-fixture.tsx:3784`, `apps/cloud/tools/visual/shell-fixture.tsx:2103`),
   so the proof is the unit test `packages/chat-ui/test/composer/dm-send-clears-while-typing.test.tsx`.
@@ -225,23 +225,34 @@ Read the gotchas for where the line now falls.
   lowercase hex digits or `guest_<hex>` (rooms-client 0.119.0). The reader
   draws it as `.mention-pill[role=link][data-handle=<handle>]` reading
   `@<nickname, else display name, else handle>`, titled `@<handle>`
-  (`Markdown.tsx:550`, the `mentionlink` extension at `:2184`). An id no member
+  (`Markdown.tsx:549`, the `mentionlink` extension at `:2159`). An id no member
   row names reads `.mention-pill.no-target` **@unknown member**. The base roles
   `om://role/owner|admin|mod|member` read `.mention-pill.role-mention.no-target`
   **@admin** and so on. A link inside a code span stays literal text. A link to
   the viewer counts as a mention: the row takes `mention-wash`
-  (`MessageRow.tsx:2172`), and the ping, badge, channel peek and `mentions:`
+  (`MessageRow.tsx:2156`), and the ping, badge, channel peek and `mentions:`
   search follow it (source and unit tests). Clicking a named pill opens that
   person's card.
 - **Picks send links** (`ddb1bd65`, `ef005693`, `bc08428c`, `4a2eaf9b`). A
   person picked from the `@` list shows `@<handle> ` in the box and sends
-  `om://user/<id>` (`bindPickedPerson`, `lib/composer-pills.ts:717`; only a
+  `om://user/<id>` (`bindPickedPerson`, `lib/composer-pills.ts:732`; only a
   24-hex or `guest_<hex>` id is linkable, so the fixture's `u-ana` stays a plain
   `@ana`). A picked role shows `@<name> ` and sends `om://role/<id>` through
-  `session.bindMentionLinksFor` (`Composer.tsx:3452-3456`). Parked drafts and
+  `session.bindMentionLinksFor` (`Composer.tsx:3480-3486`). Since `c4028edb`
+  and `ed73acae` a person picked in a DM binds the same link. Parked drafts and
   the message edit box keep the same bindings. Neither shell fixture defines
   `bindMentionLinksFor`, so there a role pick deletes the typed `@Dev` and
   inserts nothing until the shim stubs it (recipe below).
+- **A typed username goes out as its holder's link** (`3387846a`), because
+  since `ca24a4b2` a typed `@handle` names nobody: it draws no pill, washes no
+  row and pings no one. The box chips a name that will convert, and code,
+  slash lines, to-do markers, app invocations and agent names stay as typed.
+  A converted name whose holder is outside the channel meets **Not in this
+  channel**. Section "A typed username goes out as its holder's link".
+- **An inline image is blocked or waits for a click** unless its host is
+  allowlisted, and **a send parked on its uploads shows "Uploading <name> ·
+  N%"** on its row (each in its own section below; driven 2026-11-21 on
+  `/rooms/`).
 - **Pill lines keep their layout** (`85a71071`, `3baeaabc`). A role link on its
   own line renders inside the body's first paragraph, where it was typed
   (the `mentionlink` extension, `Markdown.tsx:543`). A message whose first line
@@ -252,7 +263,7 @@ Read the gotchas for where the line now falls.
   `OM Inline Emoji` face at the head of `--font-message` (`shared/tokens.css:643`).
   A message of 1 to 27 emoji and nothing else gets `.jumbo-emoji` at 48 px
   (`--text-jumbo: 3rem`, `tokens.css:878`; `lib/jumbo-emoji.ts:5`;
-  `MessageRow.tsx:2491`). Graphemes count once, so a flag or a ZWJ family is
+  `MessageRow.tsx:2475`). Graphemes count once, so a flag or a ZWJ family is
   one. A 28th emoji drops the whole message back to inline size.
 
 ## How to get to it (user POV)
@@ -338,7 +349,7 @@ agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text
 
 Related handles that do resolve. In the composer row itself:
 `"Summon your om here"` (on a private om lane the same button is `"Back to the room"`,
-`Composer.tsx:6312-6313`), `"Add attachment or action"`,
+`Composer.tsx:6327-6328`), `"Add attachment or action"`,
 `"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
 On a message or the recovery banner: `"Add reaction"`,
 `"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
@@ -393,12 +404,12 @@ path-based: `/chat/room/ops`).
 
 ### GIF picker (added 2026-10-27)
 
-In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4694-4712`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
+In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4705-4723`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
 
 ### Chart card and cashtag pill (added 2026-10-28)
 
-- **Chart card:** send a message that is only a chart URI, such as `om://chart/BTC?i=15m`. The grammar is `CHART_URI_RE` (`lib/message-preview.ts:19`). The sent row renders a chart card reading **BTC · 15m · LIVE** with **Copy link**.
-- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2496-2500`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3210`), so the peek cannot be proved here.
+- **Chart card:** send a message that is only a chart URI, such as `om://chart/BTC?i=15m`. The grammar is `CHART_URI_RE` (`lib/message-preview.ts:18`). The sent row renders a chart card reading **BTC**, **15m** and **Copy link**. Since `ad70e464` the card says **LIVE** only while candles are on its tape. On the fixtures no candle answer has rows, so the card reads **no chart data right now** in `[data-empty-box]` (420 × 120 px on `/rooms/`), with no `.cc-live` (both hosts, 2026-11-21). To see **LIVE** on `/rooms/`, answer `POST /rpc/v1/market/candles` with `{ok:true,data:{rows:[[ts,open,high,low,close,volume],…]}}` through the `window.fetch` getter/setter stub in [settings-and-appearance.md](settings-and-appearance.md) (Sealed Messages): with 40 rows the card read **BTC | 15m | LIVE** and drew its price axis. `/chat/` asks for no candles without a market token, so **LIVE** is not reachable there. An old daemon still reads "market data needs a newer daemon" (`ChartCard.tsx:209`; source only).
+- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2480-2484`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3210`), so the peek cannot be proved here.
 - **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture parses `?draft=` (`apps/cloud/tools/visual/shell-fixture.tsx:1253-1256`), but its composer still loads empty on a room or a DM (re-measured 2026-10-30), so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
 - **Not seeded:** `UnfurlCard` (no fixture seeds `entry.unfurls`, and a send never adds one) and `WebhookEmbedBlock` (it needs `metadata.embeds` on a webhook sender; the gallery's webhook rows have none, `tools/visual/fixture.tsx:1309-1369`).
 
@@ -415,13 +426,14 @@ dropped their stubs.
 
 What a typed `@name` does now:
 
-- In the composer it paints no role chip. A member's handle still paints
-  `composer-token-mention`, and `@everyone` or `@here` still paint
-  `composer-token-role`.
-- On the tape it goes down the member path (`Markdown.tsx:2069-2124`): a plain
-  `.mention-pill` with `data-handle="traders"`, with no `role-mention`, no
-  `role-colored` and no `--role-color`. `@everyone` reads
-  `.mention-pill.no-target`.
+- In the composer it paints no role chip. `@everyone` or `@here` still paint
+  `composer-token-role`. A person's username paints `composer-token-mention`
+  only when it will go out as that person's link (see "A typed username goes
+  out as its holder's link").
+- On the tape it is plain text (`Markdown.tsx:2053-2095`; since `ca24a4b2` a
+  typed `@name` reaches no person either). There is no `.mention-pill` at all.
+  Only `@everyone` and `@here` (`.mention-pill.no-target`) and an agent the
+  render knows (`.agent-mention`) still draw from typed text.
 - It is never braked as a role. The brake warns for a bare `@everyone` or
   `@here` and for an `om://role` link to a role that cannot be mentioned
   (`lib/mention-brake.ts:16`; source only).
@@ -429,16 +441,21 @@ What a typed `@name` does now:
 What still reaches a role: an `om://role/<id>` link, typed or pasted, and a
 role picked from the `@` list, which binds the chip and sends the link (see
 "Picks that send links"). A role link's chip takes its colour from
-`session.roleByRefId(id).color` (`Composer.tsx:6384-6403`).
+`session.roleByRefId(id).color` (`Composer.tsx:6399-6418`).
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
 # set the box through the native value setter and an input event, then press Enter
-#   "@traders hi"            -> no .composer-token; row: .mention-pill[data-handle=traders], no .role-mention
+#   "@traders hi"            -> no .composer-token; row: plain text, no .mention-pill
 #   "om://role/r-devops hi"  -> chip composer-token-role "@Devops"; row: .mention-pill.role-mention "@Devops"
-#   "@ana hi and @everyone"  -> chips composer-token-mention and composer-token-role;
-#                               row: .mention-pill "@ana" and .mention-pill.no-target "@everyone"
+#   "@ana hi and @everyone"  -> one chip, composer-token-role "@everyone";
+#                               row: "@ana" as plain text and .mention-pill.no-target "@everyone"
 ```
+
+Re-driven 2026-11-21 at `84e88e56` on `/rooms/` with these three sends: the
+wire carried each text as typed. Until `ca24a4b2` the `@traders` and `@ana`
+rows drew a plain `.mention-pill`; that is what the 2026-11-20 record below
+saw.
 
 Driven 2026-11-20 at `7e3f0cde` on `/rooms/` and `/chat/` (on `/chat/` the role
 link is `om://role/01j8x4kq7m2v9p3r6t0w5y8z1a`, **@Full Stack**; frames 12, 15).
@@ -453,17 +470,21 @@ and in the doc editor. `a1af61c7`, `1caf3e7b` and `de98f3b4` settle the edges.
   `lib/composer-complete.ts:170`). The `@`, `#`, `:`, `$`, `[[` and `!` lists
   do not open when the sigil sits in an inline code span, after a fence that is
   still open, or after a backtick run that is still open. The `@`, `#` and `:`
-  lists were driven; `$`, `[[` and `!` are source only.
+  lists were driven on 2026-11-20. The `$` and `[[` lists were driven on
+  2026-11-21 (`/rooms/`): `buy $` opens **MARKETS** with 8 options and
+  `see [[` opens **REFERENCE** with 3; `` `buy $ ``, an open fence before
+  `buy $`, and `` `see [[ `` open nothing; `` `x` then $ `` opens **MARKETS**
+  again. `!` is source only (it needs the Projects stub).
 - **An open run stays open across a closed span inside it** (`de98f3b4`). In
   ``see ``const x = `foo`; @an`` the double backtick never closes, so the `@`
   list stays shut. A backtick inside earlier, closed code opens nothing
   (`a1af61c7`).
-- **No chip is drawn in code** (`lib/composer-pills.ts:251`, `:282`, `:550`):
+- **No chip is drawn in code** (`lib/composer-pills.ts:261`, `:292`, `:565`):
   no mention, mass word, channel, link or picked chip. A picked chip later
   wrapped in code is sent as the words it shows (source and unit tests).
 - **A sent message keeps code literal.** A mention, a role link, and a topic,
   doc, folder or tag link inside code stay code text. Cards and pills are
-  lifted from the message's prose only (`literalAt`, `Markdown.tsx:2865`), so
+  lifted from the message's prose only (`literalAt`, `Markdown.tsx:2840`), so
   a link on a line inside a multi-line code span no longer splits the span.
 - The doc editor's `@`, ticket and `[[` lists skip code the same way
   (`editor/mentions.ts`, `editor/ticket-refs.ts`,
@@ -484,8 +505,9 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 
 Driven 2026-11-20 at `7e3f0cde` on `/rooms/` and `/chat/` (frames 11, 12, 15).
 The edit box agrees: with `roleEdit=1`, appending `` @traders and `@ana` ``
-leaves the three seeded chips and adds none (frame 14). The `$` list opened
-neither in nor out of code in the fixture, so it proves nothing here.
+leaves the three seeded chips and adds none (frame 14). On 2026-11-20 the
+`$` list was probed with a bare `$` after other text and did not open; the
+2026-11-21 strings above do open it.
 
 ### A mention at the end of a sentence (added 2026-11-04)
 
@@ -509,6 +531,15 @@ node starting `.` or `-`. Driven 2026-11-04 at `ce14d4ba` on `/rooms/` and
 `/chat/` (`mention-01`, `mention-02-tape-*`, `chat-05-mention`). The
 notification side (the store's notify worker) is not provable on the fixture.
 
+**Changed by `ca24a4b2` (2026-11-21).** A typed `@ana` on the fixture's own ids
+is now plain text, so the 2026-11-04 result above no longer shows: `thanks
+@ana. and @dax!` drew no chip and no `.mention-pill`. The trimming still
+matters where a name converts: with a 24-hex member `nova`, `@everyone and
+@nova.` chipped both names, sent `@everyone and om://user/<id>.` and drew
+`.mention-pill.no-target` and `.mention-pill[data-handle="nova"]` with the
+full stop after it (`/rooms/`, 2026-11-21). The tape tokenizer itself now
+trims only for `everyone`, `here` and agents (`Markdown.tsx:2067-2076`).
+
 ### Slash commands (added 2026-10-30)
 
 Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
@@ -517,15 +548,15 @@ Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
 `/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
 Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
 renders the guide page **Slash commands**. Running a command is pending: the
-real handler is `ChatSession.handleSlash` (`lib/session.ts:41081`, called at
-`:13588`, `:13806`, `:14133` and `:14199`), and the fixture's send only appends the text, so `/nick`,
+real handler is `ChatSession.handleSlash` (`lib/session.ts:41029`, called at
+`:13577`, `:13795`, `:14122` and `:14188`), and the fixture's send only appends the text, so `/nick`,
 `/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
 authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
 
 ### Paste: a link over a selection, an image into the composer (added 2026-11-01)
 
-Both paths are pure client code behind `Composer.tsx:6615-6705`, so a
+Both paths are pure client code behind `Composer.tsx:6630-6720`, so a
 synthetic `ClipboardEvent` drives them on either host (driven 2026-11-01 on
 `/rooms/` and `/chat/` at `936f5b64`):
 
@@ -559,7 +590,7 @@ or scan runs. OS drops onto the tape, the topic list or the library
 drop, and stay pending.
 
 **A pasted share link binds to a pill** (driven 2026-11-10 at `eae9681d`).
-`hasRecognizedShareLink` (`lib/composer-pills.ts:207`, `lib/share-links.ts:111`)
+`hasRecognizedShareLink` (`lib/composer-pills.ts:217`, `lib/share-links.ts:111`)
 accepts only `https://openmarket.xyz/chat/…` and `https://chat.openmarket.sh/…`
 links to a doc, topic, message or room, with no query or hash. An `om://` text
 paste is not this branch. With no selection:
@@ -578,7 +609,7 @@ cloud fixture does not define `bindComposerUrisFor`, so the bound text is the
 
 ### The older-messages banner past 99 (added 2026-11-02)
 
-`ChatPane.tsx:3285` prints **You're viewing older messages · 99+ new below**
+`ChatPane.tsx:3279` prints **You're viewing older messages · 99+ new below**
 once the count behind the banner passes 99 (`formatUnreadCount`,
 `lib/animated-count-parts.ts:35-42`, since `4cd3434f`). No fixture seed raises
 a room's new-below count that high (`bulk=120` pads the tape but the reader
@@ -667,14 +698,14 @@ with the value `a`. Typing `/` in `#ops` lists 28 commands: /dm, /help, /topic,
 /status, /chart, /me, /shrug, /spoiler, /tableflip, /unflip, /note, /template,
 /todo, /agent, /arm, /brief, /capture, /disarm, /reset and /summarize (driven
 2026-11-15 on both hosts). `/nudge` is hidden in a channel that is not on
-Projects (`Composer.tsx:1554`, `:2933`). The bare fixture's `#ops` is such a
+Projects (`Composer.tsx:1559`, `:2958`). The bare fixture's `#ops` is such a
 channel now that `f6a1c31b` reads an unstubbed Projects mode as off, so the
 29th entry is gone. `/draw` (`lib/slash-commands.ts:199`) is not listed in the
 fixture.
 
 **The legacy to-do grammar is text off Projects.** In a channel that is not on
 a Projects server, `/todo`, `/nudge`, `/assign` and `/unassign` post exactly as
-typed (`CHANNEL_TODO_FORMS`, `lib/session.ts:1910`, used at `:41094`). The one
+typed (`CHANNEL_TODO_FORMS`, `lib/session.ts:1909`, used at `:41042`). The one
 exception is `/todo <text> → me|here`, which still files to an Inbox. Typing `!`
 offers no verb list there either (`lib/composer-complete.ts:1669-1726`): a 1:1
 DM offers only `!nudge`, and a Projects channel offers the ticket verbs. Both
@@ -806,7 +837,9 @@ Restore `o.auth.userId="u1"` before driving anything else.
 ### Picks that send links, and pill lines (added 2026-11-18)
 
 Read the wire, not the row: wrap `sendToActiveDurably` and keep its first
-argument. Offer a 24-hex person through a cached `people.searched` hit (a
+argument. (Since `3387846a` a typed username converts too; see the next
+section. This recipe proves the pick, because `people.searched` offers a
+person who is in no member list.) Offer a 24-hex person through a cached `people.searched` hit (a
 member pushed into `membersFor()` or the roster is not offered), and give the
 fixture the `bindMentionLinksFor` it lacks from the real module. With the
 fixture init and the session-capture shim (README), on `?view=room&alerts=quiet`:
@@ -843,6 +876,114 @@ event, then press Enter: `om://role/admin\n\nrequesting review\n\ncc desk` draws
 the row. `om://topic/cpi-print-aug\n\nfirst\n\nsecond` draws `.message-ref-flow`
 with one `.message-ref-block` whose `.agent-md` children read `BR,P,BR,P,…` and
 no `<p>` inside `.message-ref-inline-text`. Both hosts, 2026-11-18.
+
+### A typed username goes out as its holder's link (added 2026-11-21)
+
+Since `ca24a4b2` a typed `@handle` names nobody: only an `om://user/<id>` link
+does, for the pill, the row wash, the ping and the non-member gate. Since
+`3387846a` the composer closes the gap for the sender. A typed `@username` is
+rewritten to its holder's link on send, when exactly one person where the
+message goes holds that username (`lib/typed-handles.ts:97-146`,
+`lib/mention-users.ts:383-417`).
+
+- **Where it resolves.** In a channel or topic: the server's members plus the
+  channel roster, without agent rows and app accounts. In a DM: its
+  participants first, then everyone else the session holds (`97833bf3`,
+  `47997903`). A name two people hold, or nobody holds, stays as typed.
+- **What the box shows.** A name that will convert paints
+  `composer-token-mention`; any other typed name paints nothing
+  (`lib/composer-pills.ts:535-540`). The match ignores case.
+- **What stays as typed** (`typed-handles.ts:77-93`): text in code, a slash
+  line, a whole `!assign`, `!unassign`, `!todo` or `!edit` marker
+  (`1f4b7273`), an app's name or `@app /command` invocation (`430a7faf`), a
+  name that wakes an agent, `@everyone` and `@here`, and a turn to an agent.
+- **Only the box converts** (`314a2f67`): `toWireText` rewrites the draft
+  (`Composer.tsx:4775`) and the session posts what it is handed.
+- **The non-member gate reads the link** (`lib/mention-audit.ts:44`,
+  `Composer.tsx:4266`). A converted name whose holder is on the server but not
+  in the channel roster opens **Not in this channel** with **Back** and **Send
+  Anyway** (`MentionWarnDialog.tsx:38`). A typed name that did not convert
+  never warns.
+- The sent row draws the link as
+  `<span class="mention-pill" data-handle="nova" role="link" title="@nova">`.
+
+The fixture's own ids (`u-ana`, `u1`) are not link ids, so nothing converts
+there until a 24-hex member exists. With the people stub and the
+session-capture shim (README), on `?view=room&alerts=quiet`, either host:
+
+```bash
+agent-browser eval '(()=>{const o=window.__om,NOVA={userId:"6650a1b2c3d4e5f6a7b8c9d0",username:"nova",handle:"nova",presence:"online",tier:"member"};
+  o.membersFor("ops").push(NOVA);            // the server's members (the same array as spaceMembersFor("s1"))
+  o.rosters.get("ops").members.push(NOVA);   // the channel roster; leave this out to meet the gate
+  window.__wire=[];const f=o.sendToActiveDurably;o.sendToActiveDurably=function(...a){window.__wire.push(a[0]);return f.apply(this,a)};
+  o.version=Number(o.version)+1;o.closeConfirm();return 1})()'
+# set the box through the native value setter and an input event, press Escape (the @ list), then Enter
+#   "ping @nova please"        -> chip composer-token-mention "@nova"; wire "ping om://user/6650a1b2c3d4e5f6a7b8c9d0 please";
+#                                 row: .mention-pill[data-handle=nova][role=link][title="@nova"] "@nova"
+#   "yo @NOVA and @Nova"       -> two chips; both go out as the link
+#   "hey @nova and @ana ok"    -> one chip; "@ana" (u-ana) stays typed and draws no pill
+#   "see `@nova` here"         -> no chip; wire unchanged; no pill
+#   "!todo @nova fix the feed" -> no chip; wire unchanged
+#   "/shrug @nova"             -> no chip; wire unchanged
+#   "@nobody hi"               -> no chip; wire unchanged; plain text
+```
+
+The `o.version` bump is required: the composer rebuilds its reader per session
+version, and `closeConfirm()` alone repaints without it, so the chip never
+appears and the send goes out as typed.
+
+In a DM (`?view=dm&dm=ana&alerts=quiet`), give the peer a link id first:
+`o.dms.get("ana").counterparties[0].userId="6650a1b2c3d4e5f6a7b8c9d1"`, push
+`nova` into `o.membersFor("ops")`, wrap the send and bump the version as above.
+Then `hi @ana see this` sends `hi om://user/…c9d1 see this`, `ask @nova about
+it` sends nova's link (a person outside the DM), and `ask @zed` stays typed.
+Typing `cc @an` lists **MEMBERS** with `ana`; Enter inserts `@ana ` with its
+chip and the send carries the link. A pick and a typed name read the same on
+the wire, so this does not tell the pick binding from the conversion.
+
+Driven 2026-11-21 at `84e88e56`: the room strings on `/rooms/` (all of them)
+and `/chat/` (the member, code and marker strings), the gate on `/rooms/`, and
+the DM on both hosts. Not driven: a username two people hold, an app account,
+an agent's name, a staged story card, the topic opener (`c9c5206d`) and the
+world pane, which has no pill layer and never converts
+(`world/WorldChatPane.tsx:140-162`). The row wash, ping and OS notification
+for a link need a store.
+
+### Blocked and click-to-load inline images (added 2026-11-21)
+
+A Markdown image in a message never loads on its own unless its host is
+allowlisted (`Markdown.tsx:90-96`, `:2432-2442`). Send
+`![cross-origin plain](http://example.com/a.png) and ![secure](https://example.com/b.png) and ![data](javascript:alert(1))`:
+
+- The `http:` image on another origin and the non-http scheme each draw
+  `span.image-embed.blocked[role=img]` reading **Image blocked: <alt>**.
+- The `https:` image draws `.image-embed[role=button]` named **Load image
+  secure from example.com**.
+- The row holds no `<img>`.
+
+Driven 2026-11-21 at `84e88e56` on `/rooms/`. Pressing the load button and an
+allowlisted host were not driven.
+
+### Uploading line on a parked send (added 2026-11-21)
+
+A send that waits on its own uploads shows `div.uploading-send-progress` under
+its row, reading **Uploading <name> · N%**, or **Uploading N files · N%**
+(`MessageRow.tsx:2781-2803`). The row must be yours, still pending (a negative
+`seq`), with no delivery state, while `session.attachmentUploads` holds
+uploads for the room that have not failed. The fixture spells out
+`attachmentUploads: []`, so seed both through the shim:
+
+```bash
+agent-browser eval '(()=>{const o=window.__om,r=o.rooms.get("ops");
+  r.entries=[...r.entries,{seq:-1,clientMsgId:"p1",room:"ops",handle:"kyle",userId:"u1",type:"post",text:"here is the report",ts:Date.now(),isAgent:false}];
+  o.attachmentUploads=[{room:"ops",name:"report.pdf",progress:0.4,status:"uploading"}];
+  o.version=Number(o.version)+1;o.closeConfirm();return 1})()'
+# .uploading-send-progress -> "Uploading report.pdf · 40%"
+```
+
+Assign a new `entries` array: a `push` onto the old one does not repaint the
+tape. Driven 2026-11-21 at `84e88e56` on `/rooms/`. A real upload, the
+several-files wording and the hand-off to the delivery state were not driven.
 
 ### Jumbo and inline emoji (added 2026-11-17)
 
@@ -968,7 +1109,9 @@ echoes kyle's row, and its `.jumbo-emoji` reads 48px.
 
 ### Verification record
 
-**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193) and `/chat/` (18194), people stub and session-capture shim. A typed `@traders` paints no chip and sends a plain `.mention-pill` with no `role-mention` or colour, on both hosts; an `om://role` link still draws the role chip and pill (**@Devops** on `/rooms/`, **@Full Stack** on `/chat/`). The `@`, `#` and `:` lists stay shut in an inline span, an open fence and an open backtick run (the `de98f3b4` string included) and open after a closed span; a sent `` `@ana` `` and a coded role link stay code text. The bare `@` list still has 14 options on `/rooms/` and 13 on `/chat/`. On `/rooms/` the picks recipe was re-run: the box read `hey @nova and @Devops please rerun` and the wire `hey om://user/6650a1b2c3d4e5f6a7b8c9d0 and om://role/r-devops please rerun`; without the binding stub a role pick still leaves `ping `. **Limitations:** the brake on a role link that cannot be mentioned, the `$`, `[[` and `!` lists in code, a picked chip later wrapped in code, the doc editor lists and the ticket comment box are source or unit-tested only; the picks recipe was not re-run on `/chat/`; no other section of this guide was re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frames 11-13, 15).
+**Last verified:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193) and `/chat/` (18194), people stub and session-capture shim. A typed username a 24-hex member holds painted `composer-token-mention`, went out as `om://user/<id>` and drew `.mention-pill[data-handle]` on both hosts, in a room and in a DM (participant and outsider); the case-insensitive match, the code, `!todo`, slash and unknown-name exemptions and the **Not in this channel** gate on `/rooms/`. On the fixture's own ids `@traders`, `@ana` and `@dax` are plain text with no chip and no pill; `@everyone` and an `om://role` link still draw theirs. The chart card read **no chart data right now** on both hosts and **LIVE** on `/rooms/` with stubbed candles. `$` and `[[` lists stay shut in code (`/rooms/`). The blocked and click-to-load image spans and the uploading line (`/rooms/`). The bare `@` list is 14 options and `/` 28 on `/rooms/`. **Limitations:** ambiguous usernames, app accounts, agent names, the staged-card exemption, the topic opener and every store-side effect of a link (wash, ping, notification) are source or unit-tested only; the `!` list in code was not driven; the image load button and a real upload were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 02-06, 09, 19, 20, 22, 24, 27, 28, 33).
+
+**Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193) and `/chat/` (18194), people stub and session-capture shim. A typed `@traders` paints no chip and sends a plain `.mention-pill` with no `role-mention` or colour, on both hosts; an `om://role` link still draws the role chip and pill (**@Devops** on `/rooms/`, **@Full Stack** on `/chat/`). The `@`, `#` and `:` lists stay shut in an inline span, an open fence and an open backtick run (the `de98f3b4` string included) and open after a closed span; a sent `` `@ana` `` and a coded role link stay code text. The bare `@` list still has 14 options on `/rooms/` and 13 on `/chat/`. On `/rooms/` the picks recipe was re-run: the box read `hey @nova and @Devops please rerun` and the wire `hey om://user/6650a1b2c3d4e5f6a7b8c9d0 and om://role/r-devops please rerun`; without the binding stub a role pick still leaves `ping `. **Limitations:** the brake on a role link that cannot be mentioned, the `$`, `[[` and `!` lists in code, a picked chip later wrapped in code, the doc editor lists and the ticket comment box are source or unit-tested only; the picks recipe was not re-run on `/chat/`; no other section of this guide was re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frames 11-13, 15).
 
 **Previous record:** 2026-11-18 (nightly maintenance). **Product commit:** `c19e2f70` (GitLab origin/main; rooms-client 0.119.0; 28 commits past `c18cfa37`). **Scope:** `/rooms/` (18181) and `/chat/` (18182), fixture init (README) and session-capture shim: `agentPicker=1` listed only the viewer's `argue` and nothing for `@sco`; `agentPicker=offline` dimmed `argue` with "offline · your om is off" and Enter or Tab left `@arg`; on `/rooms/` the **Edit message** box (`roleEdit=1`) showed the same dimmed row, and with `agentPicker=1` inserted `@argue `. A picked person sent `om://user/<id>` and a picked role `om://role/<id>` on both hosts, with `bindMentionLinksFor` stubbed; unstubbed, the role pick dropped the role. A role link on its own line stayed in the first paragraph, and a topic-link line kept the blank lines after it, on both hosts. **Limitations:** the owner rows, `@om` online, the allow row, a failed read keeping agents and the install refresh need a listed instance, which no fixture has; a parked draft keeping picks and the edit box sending picks as links were not driven; send-while-typing (`85c25912`) is unit-only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261118/r1/`.
 

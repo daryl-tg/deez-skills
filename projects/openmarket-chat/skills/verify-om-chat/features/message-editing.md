@@ -6,12 +6,13 @@
 - An unchanged save closes the editor without a transport request or new edit timestamp.
 - Changing text and restoring it before saving also closes without an edit.
 - A previously edited message keeps its existing edit metadata on an unchanged save.
-- Escape cancels; Shift+Enter adds a newline. A completion menu consumes these keys first. With Vim mode on (`4f2accbc`), Escape enters NORMAL instead, **Shift+Escape** cancels, and Enter in normal or visual mode is a motion that neither saves nor closes. The hint then reads "shift+escape to cancel • enter to save" with the mode badge `.inline-edit-hint .composer-vim-mode[data-vim-mode]` in front (`InlineMessageEditor.tsx:310`, `:738-739`), and a `.vim-block-cursor` shows outside insert mode.
-- Saving an empty edit does not save: it opens the **Delete Message** confirm ("This removes the message for everyone in the channel and cannot be undone.", **Delete**) through `requestRoomMessageDelete` (`MessageRow.tsx:461-491`, `:2466-2472`; `d3aebbb5`). A **CharCounter** shows near the room cap and an over-cap save is refused (`maxLength`, source only).
+- Escape cancels; Shift+Enter adds a newline. A completion menu consumes these keys first. With Vim mode on (`4f2accbc`), Escape enters NORMAL instead, **Shift+Escape** cancels, and Enter in normal or visual mode is a motion that neither saves nor closes. The hint then reads "shift+escape to cancel • enter to save" with the mode badge `.inline-edit-hint .composer-vim-mode[data-vim-mode]` in front (`InlineMessageEditor.tsx:346`, `:784-785`), and a `.vim-block-cursor` shows outside insert mode.
+- Saving an empty edit does not save: it opens the **Delete Message** confirm ("This removes the message for everyone in the channel and cannot be undone.", **Delete**) through `requestRoomMessageDelete` (`MessageRow.tsx:460-490`, `:2450-2456`; `d3aebbb5`). A **CharCounter** (`span.composer-char-counter`) shows within 200 characters of the cap and an over-cap save is refused (`InlineMessageEditor.tsx:555`, `:793-794`). In a DM the cap is 10,000 characters (`ChatPane.tsx:4311`): driven 2026-11-21, see "The DM edit cap" below. The room cap is source only.
 - Topic labels return to canonical references on save. Empty poll captions stay empty; clearing a nonempty caption remains a real edit.
-- A role mention edits as a snug `@Name` chip (`f8baae2a`). The edit box binds the message's `om://role/<id>` references with the room, so the value reads `@Devops` rather than the URI, and the chip is as wide as its name. A colored role gets `composer-token-role-colored` and `--role-color`; since `6a118e07` the colour is read from the link's role, `session.roleByRefId(id).color` (`InlineMessageEditor.tsx:268-273`, painted through `DraftBackdrop.tsx:40`). A role name typed into the edit box paints no chip, and neither does a mention inside code: with `roleEdit=1`, appending `` @traders and `@ana` `` leaves the three seeded chips (`@Devops`, `@ana`, `@dax`) and adds none (driven 2026-11-20 on `/rooms/`). Saving sends the `om://role/…` URI again, and a role picked from the edit box's `@` menu binds the same way.
+- A role mention edits as a snug `@Name` chip (`f8baae2a`). The edit box binds the message's `om://role/<id>` references with the room, so the value reads `@Devops` rather than the URI, and the chip is as wide as its name. A colored role gets `composer-token-role-colored` and `--role-color`; since `6a118e07` the colour is read from the link's role, `session.roleByRefId(id).color` (`InlineMessageEditor.tsx:304-309`, painted through `DraftBackdrop.tsx:40`). A role name typed into the edit box paints no chip, and neither does a mention inside code: with `roleEdit=1`, appending `` @traders and `@ana` `` leaves the three seeded chips (`@Devops`, `@ana`, `@dax`) and adds none (driven 2026-11-20 on `/rooms/`). Saving sends the `om://role/…` URI again, and a role picked from the edit box's `@` menu binds the same way.
 - Since `ef005693` and `bc08428c` a person picked in the edit box's `@` menu is bound to their id and saves as `om://user/<id>`, as in the composer (source and unit tests; not driven).
-- The edit box's `@` menu offers only your own agents and greys them while your om is off (`d08eb47d`; `InlineMessageEditor.tsx:203-216`). With `?view=room&alerts=quiet&roleEdit=1&agentPicker=offline` on `/rooms/`, type ` @arg` at the end of **Edit message**: one option, `argue`, "offline · your om is off", `aria-disabled="true"`, and Tab inserts nothing. With `agentPicker=1` the same Tab leaves `@argue ` (driven 2026-11-18).
+- Since `3387846a` a typed `@username` saves as its holder's link too, by the composer's rule ([composer-and-sending.md](composer-and-sending.md), "A typed username goes out as its holder's link"). The box paints `composer-token-mention` on a name that will convert. A ticket's text resolves among the server's people, a room message among the room's, a DM message among the DM's. An unchanged save converts nothing and writes the text back as it was (`603275fc`; `InlineMessageEditor.tsx:539-547`).
+- The edit box's `@` menu offers only your own agents and greys them while your om is off (`d08eb47d`; `InlineMessageEditor.tsx:207-220`). With `?view=room&alerts=quiet&roleEdit=1&agentPicker=offline` on `/rooms/`, type ` @arg` at the end of **Edit message**: one option, `argue`, "offline · your om is off", `aria-disabled="true"`, and Tab inserts nothing. With `agentPicker=1` the same Tab leaves `@argue ` (driven 2026-11-18).
 
 ## How to get to it (user POV)
 
@@ -79,6 +80,41 @@ test the `@` pick with another role here: the fixture's role-name stub
 **@traders** shows `@role:r-trader` and the raw URI. That is the stub, not the
 product.
 
+### A typed username in the edit box (added 2026-11-21)
+
+With the people stub and the session-capture shim (README), on
+`?view=room&alerts=quiet&roleEdit=1` (`/rooms/` only):
+
+```bash
+agent-browser eval '(()=>{const o=window.__om,NOVA={userId:"6650a1b2c3d4e5f6a7b8c9d0",username:"nova",handle:"nova",presence:"online",tier:"member"};
+  o.membersFor("ops").push(NOVA);o.rosters.get("ops").members.push(NOVA);
+  window.__edits=[];const f=o.commitEdit;o.commitEdit=function(...a){window.__edits.push(a[0]);return f.apply(this,a)};
+  o.version=Number(o.version)+1;o.closeConfirm();return 1})()'
+# focus the edit box (textarea:not(.composer-field)) and press Enter with nothing changed:
+#   __edits ["**Need from om://role/r-devops**\n- @ana @dax: please review the retention plan"]
+#   the typed @ana and @dax stay as typed
+# reload, seed again, set the box to the same text plus " with @nova", press Escape then Enter:
+#   chips @Devops (composer-token-role) and @nova (composer-token-mention)
+#   __edits ["…retention plan with om://user/6650a1b2c3d4e5f6a7b8c9d0"]
+```
+
+Driven 2026-11-21 at `84e88e56` on `/rooms/`. The session's own second
+conversion (`commitEdit`, `editDm`) is stubbed by the fixture and is
+unit-tested only.
+
+### The DM edit cap (added 2026-11-21)
+
+On `?view=dm&dm=ana&alerts=quiet`, open your own message for editing through
+the shim: `__om.beginDmEdit("ana","m2")`, then a version bump and
+`closeConfirm()`. Set the box through the native value setter:
+
+- 9,900 characters: `.composer-char-counter` reads **100**.
+- 10,050 characters: it reads **-50** and carries `is-over`. Enter does
+  nothing: the box stays open and `commitDmEdit` is not called.
+- 10,000 characters: Enter saves and the box closes.
+
+Driven 2026-11-21 at `84e88e56` on `/rooms/`.
+
 ## Gotchas
 
 - **Meta+A does not select the edit box's text in headless Chromium.** The
@@ -125,7 +161,9 @@ Full server persistence and other clients receiving the edit require the local a
 
 ### Verification record
 
-**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=quiet&roleEdit=1`: the edit box opened with `**Need from @Devops**…` and the three chips (`composer-token-role` **@Devops**, `composer-token-mention` **@ana** and **@dax**); appending `` @traders and `@ana` `` added no chip. **Limitations:** the save was not sent; a coloured role chip needs a role with a colour behind `roleByRefId`, which the fixture's Devops lacks; `/chat/` has no `roleEdit` seed; the rest of this guide was not re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 14).
+**Last verified:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193), people stub and session-capture shim. `roleEdit=1`: an unchanged save handed `commitEdit` the original text with its role link and its typed `@ana @dax`; with a 24-hex member `nova`, an appended `@nova` painted a mention chip and saved as `om://user/<id>`. `view=dm`: the edit box's counter at 9,900 (**100**) and 10,050 characters (**-50**, `is-over`), the refused save past the cap and the save at 10,000. An edit that moved a progress bar is in [progress-blocks.md](progress-blocks.md). **Limitations:** `/chat/` has no `roleEdit` seed and was not driven; the session-side conversion, a DM edit of a typed username, the room cap and a picked person were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 07, 32).
+
+**Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=quiet&roleEdit=1`: the edit box opened with `**Need from @Devops**…` and the three chips (`composer-token-role` **@Devops**, `composer-token-mention` **@ana** and **@dax**); appending `` @traders and `@ana` `` added no chip. **Limitations:** the save was not sent; a coloured role chip needs a role with a colour behind `roleByRefId`, which the fixture's Devops lacks; `/chat/` has no `roleEdit` seed; the rest of this guide was not re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 14).
 
 **Previous record:** 2026-11-18 (nightly maintenance). **Product commit:** `c19e2f70` (GitLab origin/main; rooms-client 0.119.0). **Scope:** `/rooms/` (18181), fixture init (README): the edit box's `@arg` under `roleEdit=1&agentPicker=offline` showed `argue` dimmed and Tab inserted nothing; under `agentPicker=1` Tab inserted `@argue `. **Limitations:** no edit was saved, so a picked person saving as a link is source-only; `/chat/` cannot open the editor; the Vim and empty-edit behaviours were not re-driven (the 2026-11-13 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261118/r1/`.
 
@@ -157,6 +195,6 @@ Full server persistence and other clients receiving the edit require the local a
 
 **Previous record (channel path):** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-104` → **Edit** opened the **Edit message** textbox; a changed value plus **save** closed the editor, and the row read "edited by nightly 1028 (edited)". The first `hover` plus 0.6 s plus `find role button --name Edit --exact` reported no **Edit**, although `.msg-toolbar` held `button[title="Edit"]` and the row had grown to 81 px. A second hover succeeded. **Limitations:** The DM path and `/chat/` were not re-driven; this is local fixture edit state only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 32).
 
-**Previous record (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3681`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3069`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:11750`, `:12129`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
+**Previous record (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3681`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3051`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:11732`, `:12111`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
 
 **Previous record:** verified 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-108` **Edit** showed **Loading message editor**, then the **Edit message** textbox; `save` closed it, and the row read the new text plus `(edited)`. On `/chat/`, **Edit** was a no-op (fixture `beginEdit: noop`). **Limitations:** The DM **More** → **Edit Message** path was not re-driven. Local fixture edit state only; relay persistence and other viewers are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 18-19, 40). Previous record: 2026-10-26 at `5820fbea`.
