@@ -9,12 +9,12 @@ photos and videos as a grid, documents as a list (`7e3f0cde`, #chat 3391).
   actions** menu, between **Summon your om** and **Channel settings**. It reads
   **Media and files**, or **Topic media and files** while a topic is open
   (`packages/chat-ui/src/components/ConversationMediaEntry.tsx:44-52`,
-  `ChatPane.tsx:1321`). The topics list header carries the same row
+  `ChatPane.tsx:1308`). The topics list header carries the same row
   (`TopicListView.tsx:497`). The menu now has 14 items in `#ops`.
 - **The door in a DM or group DM** is a header icon button named **Media and
   files** (`[data-conversation-media]`, `aria-haspopup="dialog"`), after
   **Nudge** and before the search buttons (`ConversationMediaEntry.tsx:65-75`,
-  `ChatPane.tsx:1430`).
+  `ChatPane.tsx:1417`).
 - **On a phone** the row sits in the header's ⋯ sheet, and the dialog takes over
   the screen (`mobilePresentation="takeover"`,
   `ConversationMediaDialog.tsx:125`) with a three-column grid.
@@ -63,7 +63,7 @@ picture to see it large and step through the others with the arrows.
 ## Driving it with control-om-chat
 
 The root shell fixture seeds 31 messages with one image each, and a document on
-every fourth (`tools/visual/shell-fixture.tsx:4558`, `:4634`). The seed needs
+every fourth (`tools/visual/shell-fixture.tsx:4573`, `:4649`). The seed needs
 no query parameter and answers the same for every conversation. Since
 `bc2ffd55` it logs each page it serves on `window.__fixtureAttachmentPages`,
 and `?mediaDelay=<ms>` makes each answer wait, so a proof can count the reads
@@ -147,7 +147,7 @@ retry box.
 
 The page function returns `newest` and `oldest` (added 2026-11-21): the reopen
 merge reads them, as the root seed's pages now carry them
-(`tools/visual/shell-fixture.tsx:4680-4681`). With them, a reopen on `/chat/`
+(`tools/visual/shell-fixture.tsx:4695-4696`). With them, a reopen on `/chat/`
 kept 31 tiles on the first frame, and a counter in the page function read
 `[0,1,0]`.
 
@@ -162,14 +162,32 @@ kept 31 tiles on the first frame, and a counter in the page function read
 - With `?search=live` the fixture swaps in the real search seam, which has no
   store behind it. That route was not driven.
 - What a reopen keeps lives in the page's session object. A reload, or a new
-  `attachmentsPage` that returns different items, is not a reopen. The merge
-  of a changed newest page and the six-conversation limit were not driven: the
-  seed is static.
+  `attachmentsPage` that returns different items, is not a reopen. The
+  six-conversation limit was not driven.
+- **A changed newest page merges, and a failed older page retries from the
+  newest (driven 2026-11-22 on `/rooms/`).** Wrap the fixture's page function
+  through the session-capture shim before the first open
+  (`const orig = __om.search.attachmentsPage`), with `mediaDelay=300` on the
+  route:
+  - Make page 1 throw, open the dialog and press **Load older**: the dialog
+    reads "Couldn't load what was shared: relay timeout" with **Retry**, and
+    the 25 tiles stay. Stop throwing and press **Retry**: the page log
+    (`window.__fixtureAttachmentPages`) ends `[0,1,0]`, the dialog is back at
+    **Media 25 / Files 6** with **Load older**, and a second **Load older**
+    reaches 31.
+  - Close the dialog, make page 0 return one extra item first
+    (`fresh-1.svg`, a new id and a later `ts`, `total` and `messages` one
+    higher) and reopen: **Media 32 / Files 8**, **Open fresh-1.svg** is the
+    first tile, **Open photo-1.svg** is still the last, and the footer reads
+    "All 32 messages with attachments". The log ends `[0,1,0,1,0]`: the
+    reopen re-read only the newest page and kept the older one.
 - The Files rows in a room use a forced download link; in a DM they use the DM
   file card. Neither download was followed.
 
 ### Verification record
 
-**Last verified:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193), `?view=room&mediaDelay=800`: the channel door, 25 tiles and **Media 25 / Files 6** after one read, **Load older** → 31 and 8 after a second, then close and reopen: 31 tiles and "All 31 messages with attachments" on the first frame, no loading text, and `window.__fixtureAttachmentPages` `[0,1,0]`. `/chat/` (18194): the same with a shim-assigned page function that returns `newest` and `oldest`. **Limitations:** the merge of a changed newest page, the disabled **Load older** during a refresh, **Retry** after a failed **Load older**, the six-conversation limit, and the other doors were not driven tonight; the earlier limitations stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 08, 23).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the channel door (**Media 25 / Files 6**, page log `[0]`), the lightbox and **Next image**, **Load older** → 31 and 8, the reopen at 31 with log `[0,1,0]`, the DM door with its 6 file rows, the topic door, the failure text, and the 390 px takeover with three columns. New: **Retry** after a failed **Load older** (log `[0,1,0]`, then 31 on a second load) and the merge of a changed newest page (32 tiles, the new one first, the older page kept). `/chat/` (18187): 25 tiles through a shim-assigned page function. **Limitations:** the 1000 cap, the six-conversation limit, a real download and a video tile were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193), `?view=room&mediaDelay=800`: the channel door, 25 tiles and **Media 25 / Files 6** after one read, **Load older** → 31 and 8 after a second, then close and reopen: 31 tiles and "All 31 messages with attachments" on the first frame, no loading text, and `window.__fixtureAttachmentPages` `[0,1,0]`. `/chat/` (18194): the same with a shim-assigned page function that returns `newest` and `oldest`. **Limitations:** the merge of a changed newest page, the disabled **Load older** during a refresh, **Retry** after a failed **Load older**, the six-conversation limit, and the other doors were not driven tonight; the earlier limitations stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 08, 23).
 
 **Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193): the channel, topic, topics-list, DM and phone doors; 25 tiles and **Media 25 / Files 6**; the lightbox with **Next image** and **Previous image** and Escape; **Load older** → 31 and 8; the Files rows; Escape returning focus; the failure, **Retry** and empty states through the shim. `/chat/` (18194): the menu row, the silent failure, then the dialog with a shim-assigned page function (25 tiles reading "Image unavailable", **Files 8** after **Load older**). **Limitations:** the seed ignores its target, so topic narrowing is not shown; the 1000 cap, a real download, a video tile and `?search=live` were not driven; the DM door was not driven on `/chat/`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frames 01-06, 18-21).

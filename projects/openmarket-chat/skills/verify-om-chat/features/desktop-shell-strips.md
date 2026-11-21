@@ -2,7 +2,7 @@
 
 The desktop app (Electron, `desktop/`) injects `window.omShell` before the
 bundle runs. The shared Shell reads it and shows up to three status strips at
-the top of the app (`packages/chat-ui/src/components/Shell.tsx:3387-3389`).
+the top of the app (`packages/chat-ui/src/components/Shell.tsx:3388-3390`).
 Neither browser host has the bridge, so a person sees these strips only in the
 desktop app.
 
@@ -76,7 +76,7 @@ phase after load.
   launchd registration need the shell itself (`cd desktop && bun run probe` /
   `smoke`; agents never launch a visible window).
 - Defining `window.omShell` also turns on the Shell's other desktop-only paths
-  (`Shell.tsx:1410`, `:2723`: desktop setup and daemon recovery). A minimal stub
+  (`Shell.tsx:1411`, `:2724`: desktop setup and daemon recovery). A minimal stub
   without `getAppSetupStatus` keeps them quiet. Add only the methods you mean to
   drive.
 - The background strip needs all three of `getBackgroundStatus`,
@@ -87,7 +87,9 @@ phase after load.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) with the `window.omShell` init stub and the people stub: **Install update**, **Update OpenMarket** and **Enable background** recorded `update:accept`, `daemon:{"action":"install"}` and `background:enable`. **Limitations:** Electron itself was not launched. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the `window.omShell` init stub: the three strips (`available`, `available`, `app-only`) with their text, and **Install update**, **Update OpenMarket** and **Enable background** calling the stub. **Limitations:** other phases and real Electron were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) with the `window.omShell` init stub and the people stub: **Install update**, **Update OpenMarket** and **Enable background** recorded `update:accept`, `daemon:{"action":"install"}` and `background:enable`. **Limitations:** Electron itself was not launched. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) with the `window.omShell` init stub: **Install update**, **Update OpenMarket** and **Enable background** recorded `update:accept`, `daemon:{"action":"install"}` and `background:enable`. **Limitations:** Electron itself was not launched. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

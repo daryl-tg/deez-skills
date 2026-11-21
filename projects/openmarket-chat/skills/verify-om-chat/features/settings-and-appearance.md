@@ -13,20 +13,23 @@ interaction end to end.
   group (How Agents Work, How the Library Works, How Apps Work, Slash Commands,
   Moderating Servers) and Log Out. Recovered Drafts arrived with `#741` and its
   page id is `draft-recovery`, not `recovered-drafts`. It is **ungated** — no
-  permission, no flag, no "only when you have orphans" check — so nineteen is
-  the count in every state, and a nav that comes back eighteen is a real
+  permission, no flag, no "only when you have orphans" check — so eighteen is
+  the count in every state, and a nav that comes back seventeen is a real
   regression rather than a seeding difference.
 
-  **Nineteen is fixture truth, not app truth.** The Agents group gains an
+  **Eighteen is fixture truth, not app truth.** The Agents group gains an
   **OM Settings** row (id `om`) only when the caller supplies `omPage`.
-  `Shell.tsx:4590` always does, so the **running app shows twenty**;
-  `settings-fixture.tsx` does not, so this lane shows nineteen — measured, not
-  inferred. Count nineteen here and you have confirmed the fixture, not the
-  product. To count twenty without a daemon, open Settings through the shell:
-  `shell-fixture.html?view=settings&settingsPage=appearance` (measured at
-  `f7d7c987`). (It was twenty-one until `#978` retired the matching **Persona**
-  row, "now that Agents is its home" — persona is reached through Agents now,
-  see [om-and-agents.md](om-and-agents.md).)
+  `Shell.tsx:4591` always does, so the **running app shows nineteen**;
+  `settings-fixture.tsx` does not, so this lane shows eighteen. Both were
+  counted on 2026-11-22: 18 buttons in `nav` **Settings navigation** on
+  `settings-fixture.html?host=user&page=account`, and 19 in the dialog opened
+  by `shell-fixture.html?view=settings&settingsPage=appearance`. Count
+  eighteen here and you have confirmed the fixture, not the product. (This
+  paragraph said nineteen and twenty until 2026-11-22: `83b02ee4` retired the
+  **To-dos** page, and the counts were not carried. It was twenty-one until
+  `#978` retired the matching **Persona** row, "now that Agents is its home" —
+  persona is reached through Agents now, see
+  [om-and-agents.md](om-and-agents.md).)
 - Appearance: theme (dark / light / sync with OS), palette (Graphite, Slate,
   Moss, Warm, Brass), accent (Clay, Blue, Iris, Plum, White), and per-context
   message density. Density is three nested `radiogroup`s, not tabs: **Chat
@@ -148,7 +151,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4761`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4776`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -181,8 +184,10 @@ were not driven. Mousedown outside, Escape and a window resize close it.
 `MenuSelect.tsx:82-86`). With a reason the control stays focusable, is not
 `disabled`, carries `aria-disabled="true"` and is described by the reason.
 The Projects ticket in mute is the dense case; see
-[projects.md](projects.md) (`ticketMuted=1`): twelve controls, all described
-by "You're muted in this server until Jan 1, 8:00 AM.", on both hosts.
+[projects.md](projects.md): twelve controls on 2026-11-10 and fourteen on
+2026-11-22 (`/rooms/`), all described by "You're muted in this server until
+Jan 1, 8:00 AM.". Since `d3aebbb5` the mute is seeded through the
+session-capture shim, not `ticketMuted=1`.
 
 The notification settings show the other shape. `UnsavedBar` keeps **Save**
 truly `disabled` and points `aria-describedby` at the reason:
@@ -203,7 +208,7 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2577-2582`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2592-2597`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -672,6 +677,15 @@ routes).
   if that's your device.** with **Approve** and **Cancel**, and on a Mac adds
   "macOS will ask for your password or Touch ID. The prompt can open behind
   this window." (`SealedDevicesSection.tsx:219`, `:240`).
+- **Copy and Approve (driven 2026-11-22 on `/rooms/`).** With a clipboard stub
+  loaded before the secrets stub
+  (`window.__clip=[];Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async t=>{window.__clip.push(t)}}})`),
+  **Copy** put `amber-river-stone-lamp` in `__clip`. About six seconds after
+  **Add a device** the request box appeared; **Approve** added `link/approve`
+  and then `status` to `window.__secretsCalls`, and both the request box and
+  the code left the page. The clipboard-refused copy ("Couldn't copy · select
+  the words above and copy them", `SealedDevicesSection.tsx:136-139`) and the
+  request's **Cancel** were not driven.
 
 Not driven on 2026-11-21: **Copy**, **Approve**, **Cancel** on a waiting link,
 a `link/finish` that answers `linked`, and the code-expired and code-mismatch
@@ -738,7 +752,7 @@ code-expired and code-mismatch notes, and a real daemon.
   `dataset.accent` is always undefined and an assertion on it always fails.
 - Changing the theme mid-run changes every later screenshot. Capture the frames
   that need dark **before** you flip, or reopen with `?theme=` and start clean.
-- **Two Appearance extras exist only in the shell.** `Shell.tsx:4588` passes
+- **Two Appearance extras exist only in the shell.** `Shell.tsx:4589` passes
   `appearanceExtras` only when `session.mode === "home"`, and today that is the
   **"Open World chat"** group with a **"Chat pane font size"** range, 12–24px
   (`WorldChatPreferences.tsx`, `#world-chat-font-size`). `settings-fixture.tsx`
@@ -769,7 +783,9 @@ code-expired and code-mismatch notes, and a real daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193), `shell-fixture.html?view=settings&settingsPage=secrets` with the people stub and the `/secrets/*` fetch stub: the status box on the `ready`, `restore` and `fresh` seeds, with **Mac** and **computer**; **Link This Mac** with its three steps, the two word-count alerts, the `link/join` post and the waiting state; **No Other Device With Your Keys?**; the **This Mac** chip; **Add a device** with its new copy and the request box. `shell-fixture.html?view=settings&settingsPage=om` is in [self-hosted-model-settings.md](self-hosted-model-settings.md). Every settings route in this guide answered the route smoke on both hosts, with the known blanks (`page=privacy` on both, `host=server&page=moderation` on `/chat/`, and `host=server&page=projects` without the Projects stub). **Limitations:** **Copy**, **Approve**, a finished link and a real daemon were not driven; no other settings page was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 15-18).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): theme, palette and accent radios; **Show link previews** writing its key; the chat-background group's empty state; settings search (`vim`, and the no-match copy); the notification volume slider and the unknown time zone note; **Resolve sound**; a role colour swatch; the shortcuts modal; the nav counts (18 on the settings fixture, 19 in the shell) and the **Log Out** confirm. New: Sealed Messages **Copy** and **Approve**, and the muted ticket's reasons through the shim. `/chat/` (18187): the theme radio in the shell's Settings dialog. **Limitations:** Moderation, the avatar and background uploads, push enrollment and the microphone test were not driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193), `shell-fixture.html?view=settings&settingsPage=secrets` with the people stub and the `/secrets/*` fetch stub: the status box on the `ready`, `restore` and `fresh` seeds, with **Mac** and **computer**; **Link This Mac** with its three steps, the two word-count alerts, the `link/join` post and the waiting state; **No Other Device With Your Keys?**; the **This Mac** chip; **Add a device** with its new copy and the request box. `shell-fixture.html?view=settings&settingsPage=om` is in [self-hosted-model-settings.md](self-hosted-model-settings.md). Every settings route in this guide answered the route smoke on both hosts, with the known blanks (`page=privacy` on both, `host=server&page=moderation` on `/chat/`, and `host=server&page=projects` without the Projects stub). **Limitations:** **Copy**, **Approve**, a finished link and a real daemon were not driven; no other settings page was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 15-18).
 
 **Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=settings&settingsPage=appearance`: **Light theme** turns `data-theme` from `dark` to `light`. Every settings route in this guide mounted in the route smoke on both hosts. **Limitations:** a theme switch only; no other page was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
 

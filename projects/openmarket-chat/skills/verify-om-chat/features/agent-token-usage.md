@@ -18,7 +18,7 @@ calls.
 
 ## Driving it with control-om-chat
 
-The standalone fixture mounts the real AgentPane with a completed turn. The markup lives in `AgentPresentation.tsx`, not `AgentPane.tsx`: `formatTokenUsage` (`:251-279`), `.agent-answer-meta` (`:405`) and `.agent-activity-summary-detail` (`:669`). The away remote-control pane renders the same presentation (`packages/chat-ui/test/ui/remote-agent-presentation-parity.test.tsx`), so `remote-home-fixture.html?state=live` is the second place to look. At `f8b68bf7` the default fixture's `.agent-answer-meta` reads `12:00 PM · 1 tool · 2.0s · 12.3k tokens`.
+The standalone fixture mounts the real AgentPane with a completed turn. The markup lives in `AgentPresentation.tsx`, not `AgentPane.tsx`: `formatTokenUsage` (`:264-289`), `.agent-answer-meta` (`:415`) and `.agent-activity-summary-detail` (`:677`). The away remote-control pane renders the same presentation (`packages/chat-ui/test/ui/remote-agent-presentation-parity.test.tsx`), so `remote-home-fixture.html?state=live` is the second place to look. At `f8b68bf7` the default fixture's `.agent-answer-meta` reads `12:00 PM · 1 tool · 2.0s · 12.3k tokens`.
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/agent-usage-fixture.html')"
@@ -46,7 +46,9 @@ agent fixture shows the daemon-off state instead of this transcript.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `agent-usage-fixture.html`: **Expand tool activity** → **Collapse tool activity**. **Limitations:** daemon accounting is not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) `agent-usage-fixture.html`: "1 tool · 2.0s · 12.3k tokens" with the exact title, on the collapsed and expanded rows; `tokens=1250000` (1.3M), `tokens=0` and `tokens=missing`; the `failed` presentation state; no overflow at 375 px in light. **Limitations:** provider metering was not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `agent-usage-fixture.html`: **Expand tool activity** → **Collapse tool activity**. **Limitations:** daemon accounting is not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) `agent-usage-fixture.html`: **Expand tool activity** → **Collapse tool activity**. **Limitations:** daemon accounting is not seedable. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

@@ -32,7 +32,7 @@ fixture cannot reach.
   read 2026-11-21).
 - The unavailable-world refusal when there is no connected daemon: show
   "Open World requires a connected daemon" and leave the canvas unmounted
-  (`WorldView.tsx:160,289-297,709-714`).
+  (`WorldView.tsx:160,289-297,719-724`).
 - Transport connect / retry, and the offline banner when it cannot reach the
   relay.
 - A resizable channel column beside the world (`#948`): a handle
@@ -43,7 +43,7 @@ fixture cannot reach.
   (measured at `f7d7c987`).
 - A **"Open World chat"** group in Settings → Appearance with a **"Chat pane
   font size"** range, 12–24px (`WorldChatPreferences.tsx`), mounted only for a
-  home session (`Shell.tsx:4588`; lazy import at `:249`). Reach it through
+  home session (`Shell.tsx:4589`; lazy import at `:250`). Reach it through
   `shell-fixture.html?view=settings&settingsPage=appearance`, not
   `settings-fixture.html`; see
   [settings-and-appearance.md](settings-and-appearance.md).
@@ -121,9 +121,10 @@ fullscreen"**, and five `.world-look` swatches — **Wayfarer, Ranger,
 Surveyor, Violet, Rust** (`packages/chat-ui/src/world/scene/characterModel.ts`, Wayfarer at `:11`).
 
 **Hide** collapses the chat pane and the control then reads **Open chat**
-(`WorldChatPane.tsx:398`); **Enter fullscreen** reads **Exit fullscreen** only
-once the browser grants fullscreen, which the headless lane did not
-(2026-10-31). Open the harness under the lane's `/rooms/` base, as
+(`WorldChatPane.tsx:398`); **Enter fullscreen** reads **Exit fullscreen** once
+the browser grants fullscreen. The headless lane refused it on 2026-10-31; on
+2026-11-22 the click was granted (the button read **Exit fullscreen** and
+`document.fullscreenElement` was set), so do not assert that the label stays. Open the harness under the lane's `/rooms/` base, as
 `control-om-chat url` does: a bare `/mocks/world-solo/index.html` answers with
 vite's base-URL notice ("did you mean to visit /rooms/mocks/…") and no canvas,
 and a smoke that reads only the HTTP status calls that a mount.
@@ -147,7 +148,7 @@ shows the chat pane doing anything. `tools/openscape-preview/` does: it mounts
 `WorldCanvas`, `WorldSim` and `WorldChatPane` over local fixtures with 32
 occupants, five seeded rows and a scripted delivery ladder. It is a separate
 Vite config whose server block pins **port 8098, the review renderer's port**
-(`tools/openscape-preview/vite.config.ts:37`), so always pass a port:
+(`tools/openscape-preview/vite.config.ts:38`), so always pass a port:
 
 ```bash
 world_port=18139                                   # a free agent slot, preflighted
@@ -202,6 +203,10 @@ Every status line ends in the `<strong>` **Simulated chat**.
   rows do not change, because the harness shares one row list.
 - The pane resizes from `button.world-chat-resize` (**Resize chat**, `title`
   **Drag to resize · Arrow keys adjust size · Home or double-click resets**).
+  The handle is `visibility: hidden` until focus is inside the pane
+  (`.world-conversation:focus-within`, `world.css:686-701`), so focus the
+  composer first; a bare `.focus()` on the handle lands on `BODY` and the
+  arrow keys do nothing (found 2026-11-22).
   Arrow keys move 16 px: two **ArrowUp** presses wrote
   `--world-chat-width: 420px; --world-chat-height: 212px` on the section and
   `om.chat.world.paneSize` `{"width":420,"height":212}`; **Home** cleared both.
@@ -224,15 +229,22 @@ under agent `bbbbbb`.
 on it, and `div.world-emote-wheel[role="dialog"][aria-modal="true"][aria-label="Emotes"]`
 opens with `.world-emote-choice` buttons **Read**, **Write**, **Search**,
 **Greet** and **Sit** and the help line **Release E or click to select · Center
-to cancel**. Click the option's `.world-emote-label` while E is still "held",
-then dispatch `keyup` E on `document` or `window`: the wheel closes,
+to cancel**. Move the real pointer over the option's `.world-emote-label`
+(`agent-browser mouse move <x> <y>`; the choice reads `data-active="true"`)
+while E is still "held", then dispatch `keyup` E on `window`: the wheel closes,
 `__omWorld3D.characters()` shows `solo` with `emote: "read"` and
 `animation.bookVisible`, and the next wheel lists a sixth option, **Stop**.
 Escape closes an open wheel. Typing E into the composer does nothing, by design.
+Two traps from 2026-11-22: in a fresh session a `keydown` sent before any
+pointer move opened no wheel, so run `agent-browser mouse move 900 300` first;
+and `agent-browser click` on a label followed by `keyup` selected nothing
+(the choice's centre is covered by `.world-emote-center`), where the pointer
+move and release did.
 
 **Camera and look.** `button[aria-label="Follow player"]` toggles
 `aria-pressed` (true → false on click); `button[aria-label="Enter fullscreen"]`
-keeps its label in the headless lane. The **Character look** select (values
+became **Exit fullscreen** in the headless lane on 2026-11-22 (it kept its
+label on earlier nights). The **Character look** select (values
 `0`–`4`) writes `characters()[solo].preset`; it is the harness's substitute for
 the real **Your look** `role="group"` in `WorldView.tsx:833-844`.
 
@@ -245,7 +257,7 @@ template for its waits.
 ### Occupancy on the sidebar row (added 2026-11-09)
 
 The Open World sidebar row shows a walker count from `session.worldPresenceFor`
-(`Sidebar.tsx:3996-4027`). Neither shell fixture stubs it, and only `/rooms/`
+(`Sidebar.tsx:3997-4028`). Neither shell fixture stubs it, and only `/rooms/`
 mounts the row (`daemonFeatures` is false on `/chat/`). Seed it with an
 `Object.prototype` stub beside the people stub:
 
@@ -258,7 +270,7 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # -> [data-testid=world-presence-count] with aria-label "3 walking" and text "3"
 ```
 
-The rail tooltip (`Shell.tsx:3268`) was not hovered.
+The rail tooltip (`Shell.tsx:3269`) was not hovered.
 
 ## Gotchas
 
@@ -290,7 +302,7 @@ The rail tooltip (`Shell.tsx:3268`) was not hovered.
   `src/world/WorldView.tsx` and `apps/cloud/src/world/WorldView.tsx` are
   one-line re-export shims, so `#946`'s stat showing a dozen `apps/cloud/src/
   world/*` files changed by one line each is the shims being written, not the
-  feature. Read the 923-line `packages/chat-ui/src/world/WorldView.tsx`.
+  feature. Read the 934-line `packages/chat-ui/src/world/WorldView.tsx`.
 - The sidebar row is a `treeitem` inside its own `tree` named "Open World", not
   a button and not part of the `DESK` tree. `find role button` will not match
   it, and in the shell fixture matching it buys you nothing anyway.
@@ -300,7 +312,9 @@ The rail tooltip (`Shell.tsx:3268`) was not hovered.
 
 ### Verification record
 
-**Last verified:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `tools/openscape-preview/index.html?worldprobe=1` on 18172 (`__omWorld3D.characters()` 32, **Agent activity**) and `mocks/world-solo/index.html?worldprobe=1` on `/rooms/` 18170 (`data-world-ready` true, two canvases), each in a fresh session. **Limitations:** no multiplayer or transport. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 41-42).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) solo harness in a fresh visible session: ready, two canvases, the offline and no-channel text, five looks, the minimap, **Follow player**, **Enter fullscreen** → **Exit fullscreen**, **Hide** / **Open chat**; the sidebar's **3 walking** through the world stub; the chat pane font slider in Appearance. Openscape preview (18188): 32 characters and nameplates, a send with **Confirm locally**, **Earlier messages** (24 rows), **Retry** and **Discard**, 80 channels and a channel switch, the read-only and missing states, the resize handle once focus is in the pane (420 × 212, **Home** clearing it), the emote wheel with a pointer-highlighted **Read** selected on release and **Stop** offered after, the look select, and the activity page's scenario select. **Limitations:** presence between two people, movement and a connected world need a relay. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** `tools/openscape-preview/index.html?worldprobe=1` on 18172 (`__omWorld3D.characters()` 32, **Agent activity**) and `mocks/world-solo/index.html?worldprobe=1` on `/rooms/` 18170 (`data-world-ready` true, two canvases), each in a fresh session. **Limitations:** no multiplayer or transport. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 41-42).
 
 **Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141) `mocks/world-solo/index.html?worldprobe=1`: two canvases, `__omWorld3D` present, "world offline, retrying" and "No #world channel"; the shell sidebar's **3 walking** count with the `worldPresenceFor` stub. **Limitations:** the openscape preview and the rail tooltip were not re-driven; the authenticated world not driven. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 

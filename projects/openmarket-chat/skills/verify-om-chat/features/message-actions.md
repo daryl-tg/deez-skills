@@ -32,7 +32,7 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   attached**, **Video attached** or **File attached**; the first attachment
   picks, a held one draws the paperclip). It shows on the room quote line and
   bubble quote (`ReplyQuote`, `MessageRow.tsx:3971-4135`), the DM quotes
-  (`ChatPane.tsx:3787-3802`) and the composer's **Replying to** strip
+  (`ChatPane.tsx:3774-3789`) and the composer's **Replying to** strip
   (`Composer.tsx:6186-6195`). A text-less poll is quoted as italic
   "Poll: <question>" with an `aria-hidden` poll glyph, a poll with text keeps
   the text and adds `role="img"` **Poll**, and a quote with nothing nameable
@@ -56,7 +56,7 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   hover --name "Agent"`).
   **Copy for Agent (since here)** and **Summarize thread** appear only in
   their states (a later run of messages; a message with replies). **File as
-  source** (`:3587`) appears only when the roster's source-capture scope is
+  source** (`:3382`) appears only when the roster's source-capture scope is
   active.
 - **DM bubble menu**: the same verbs in a shorter list, 13 items on kyle's DM
   message: four quick reactions, **Add Reaction**, **Copy Text**, **Reply**,
@@ -78,7 +78,7 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   (`ScanState.tsx:31`, `MediaGallery.tsx:1262`): `ScanPendingCard` returns
   `null`, so the row keeps its text and shows no placeholder and no Retry.
 - **@role pill → role popover** (`MessageRow.tsx:2490-2504`, `RolePopover.tsx`,
-  `Shell.tsx:4697`): clicking a role mention opens **<Role> role members**
+  `Shell.tsx:4698`): clicking a role mention opens **<Role> role members**
   with "<Role> — <n>" and one row per known holder.
 
 ## How to get to it (user POV)
@@ -129,7 +129,7 @@ The DM path is `?view=dm&dm=ana&alerts=quiet`: hover `#dm-msg-m2`, then click
 
 Open `shell-fixture.html?view=room&alerts=quiet&reply=1`. The composer shows
 the reply strip **Replying to dax** with a **Cancel reply** button
-(`Composer.tsx:6209`; the fixture seeds seq 103, `shell-fixture.tsx:2566`).
+(`Composer.tsx:6209`; the fixture seeds seq 103, `shell-fixture.tsx:2581`).
 Scroll `#msg-ops-104` into view, hover it, and click
 `#msg-ops-104 .msg-toolbar button[title="Reply"]`: the strip retargets to
 **Replying to kyle: @ana the alert fired twice last night …** and the composer
@@ -176,7 +176,7 @@ nothing is searched. The title drops the link and a polite lead-in, so
 "`om://user/<nova> could you rerun the job`" becomes **Rerun the job**.
 
 The toolbar button calls `session.openTodoPromote` (`MessageRow.tsx:3163`),
-and both fixtures spell out `todoPromote: null` (`tools/visual/shell-fixture.tsx:3215`,
+and both fixtures spell out `todoPromote: null` (`tools/visual/shell-fixture.tsx:3230`,
 cloud `:1652`), so the click opens nothing until the shim stubs it. The
 fixture also leaves `isAppAccount` out, so the autofill proxy answers a truthy
 `INERT` and every person reads as an app account until it is stubbed too:
@@ -229,10 +229,14 @@ agent-browser eval '(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));cons
 
 Past `SWIPE_COMMIT_PX` (56) the pull gains resistance (70 → 60.9), and the
 release past the commit calls `session.setReplyTarget`, which the fixture
-implements (`shell-fixture.tsx:3598`). A long press is `pointerdown`, a 700 ms
+implements (`shell-fixture.tsx:3613`). A long press is `pointerdown`, a 700 ms
 wait, `pointerup` on the same row: it opens the row menu as a sheet,
 `div.msg-sheet[role=menu][data-mobile-sheet]` behind `.msg-sheet-backdrop`,
-22 menu items for `msg-ops-104`; Escape closes it.
+21 menu items for `msg-ops-104` (22 until `05df35a7` removed the to-do entry;
+counted 2026-11-22: four reaction tiles, React, Reply, Topic, Forward, Edit
+Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library,
+Pin Message, Mark Unread, the four Agent entries, Delete Message and Copy
+Message ID); Escape closes it.
 
 **Pull to refresh did not fire.** `usePullToRefresh` (`lib/touch.ts:227-290`)
 listens for native `touchstart`/`touchmove` on the `[data-tape-scroller]` and
@@ -257,7 +261,7 @@ agent-browser open about:blank && agent-browser set viewport 1440 700
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
 agent-browser eval '(()=>{const s=document.querySelector("[data-tape-scroller]");const r=document.querySelector("#msg-ops-110");s.scrollTop-=(560-r.getBoundingClientRect().top);return 1})()'
 agent-browser hover "#msg-ops-110"
-agent-browser click "#msg-ops-110 button[aria-label=More]"
+agent-browser click '#msg-ops-110 .msg-toolbar button[title="More"]'   # the button has a title and no aria-label
 agent-browser eval '(()=>{const m=document.querySelector("[role=menu]").getBoundingClientRect();return [m.top,m.bottom,innerHeight]})()'
 ```
 
@@ -476,7 +480,7 @@ Stack role members**.
 - **Every verb is a fixture no-op except the clipboard.** The shell fixture
   stubs `toggleBookmark`, `togglePin`, `markUnreadFrom`, `removeUnfurls`,
   `askAgentAboutMessage`, `summarizeThreadWithAgent` and `captureFromSeq`
-  as `noop` or `asyncNoop` (`shell-fixture.tsx:3639-3723`), and `openForward` never sets
+  as `noop` or `asyncNoop` (`shell-fixture.tsx:3654-3738`), and `openForward` never sets
   `forwardSource`. Prove the offer here; the effects need the daemon-pair lane.
   The copy verbs write to the clipboard, which this lane did not read back.
 - A data attribute set by `eval` can vanish when React re-renders the row.
@@ -484,7 +488,9 @@ Stack role members**.
 
 ## Verification record
 
-**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193): kyle's `#msg-ops-104` **More** lists 18 entries off Projects (React ×4, Add Reaction, Reply, Turn into topic..., Forward, Edit Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library, Pin Message, Mark Unread, Agent, Delete Message, Copy Message ID); another author's `#msg-ops-110` lists 15. **Limitations:** a re-read of the menu only; no item was pressed and `/chat/` was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 22).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the hover toolbar; the 18-entry **More** menu and the four-entry **Agent** flyout; **Forward** through the shim; the 18-entry right-click menu on an own message and 14 on someone else's; focused-row keys (ArrowDown, R, E, Delete, +); the 13-entry DM message menu; the Devops role popover through the shim; the image menu and **Open in Browser**; at 390×844 the long-press sheet (21 entries) and the swipe (45 px, 60.9 px). **Limitations:** the toolbar **Reply** click raced the forward dialog in tonight's run and was not re-read; **R** proved the same strip. Menu effects are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193): kyle's `#msg-ops-104` **More** lists 18 entries off Projects (React ×4, Add Reaction, Reply, Turn into topic..., Forward, Edit Message, Copy Text, Copy Message Link, Bookmark Message, Save to Your Library, Pin Message, Mark Unread, Agent, Delete Message, Copy Message ID); another author's `#msg-ops-110` lists 15. **Limitations:** a re-read of the menu only; no item was pressed and `/chat/` was not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 22).
 
 **Previous record:** 2026-11-18 (nightly maintenance). **Product commit:** `c19e2f70` (GitLab origin/main; rooms-client 0.119.0; 28 commits past `c18cfa37`). **Scope:** `/rooms/` (18181) and `/chat/` (18182), fixture init (README): toolbar **Reply** on `#msg-ops-110` put **Video attached** after the quoted text in the strip and on the sent row's quote line on both hosts; on `/rooms/` `lateImage=1` `#msg-ops-101` gave **Image attached**. On `/rooms/`, with the session-capture and Projects stubs, **Make a ticket** quoted a link-led `#msg-ops-110` as `@nova could you rerun the job, cc @admin`. **Limitations:** the poll quote, "Click to see message", the DM quotes and the file glyph were not driven (no seed); menu counts were not re-driven (the 2026-11-15 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261118/r1/`.
 

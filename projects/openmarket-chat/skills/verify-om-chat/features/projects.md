@@ -153,9 +153,13 @@ tickets, and press **+** (**New ticket in #channel**) to make one.
 ## Driving it with control-om-chat
 
 Neither shell fixture has a `todos` store, so the page needs three init
-scripts: the people stub from [README.md](README.md#stub-the-people-directory-first-required-at-82390825)
-(with `heldIn`, which the filters read), an error catcher if you want stacks,
-and this Projects stub. It answers `session.todos` with a records-mode store
+scripts: the people stub from [README.md](README.md#stub-the-people-directory-first-required-at-82390825),
+an error catcher if you want stacks,
+and this Projects stub. Since `d3aebbb5` the shell fixtures spell out their own
+`people` and `spaceMutes`, which shadow the prototype ones: the filters now
+read an inert, empty `heldIn` (the page loaded with no error on 2026-11-22),
+and the stub's `ticketMuted=1` seed no longer mutes anyone. Seed a member or a
+mute through the session-capture shim instead (recipes below). It answers `session.todos` with a records-mode store
 holding three tickets, a cached ticket controller per ticket (`todos.ticket`),
 the `!` lookup (`todos.lookup`) and ticket references (`todos.refs`). It defines
 `openTodos` and `openTodo`, which mutate the fixture's live `active` object in
@@ -177,7 +181,7 @@ The stub reads these query parameters:
 | `ticketState=loading` | every ticket answers `status:"loading"` (the loading frame) |
 | `upload=hold\|fail` | `todos.upload` never settles or rejects (Uploading / Upload failed tiles) |
 | `projectsMode=records\|off\|pending\|hold` | what `todos.readMode` and `modeFor` answer, for the Server Settings switch |
-| `ticketMuted=1` | mutes the viewer in the server |
+| `ticketMuted=1` | muted the viewer in the server until `d3aebbb5`; now use the shim line in the recipe below |
 | `ticketHome=deleted\|private\|archived` | changes the home chip |
 
 The ticket controller is stateful: `setFields` applies `removeAttachmentKeys` /
@@ -343,8 +347,10 @@ agent-browser open "$(control-om-chat url "$T&ticketFiles=2#/todo/s1/1")"
 #   two file cards, "Attach a file to the ticket", the comment paperclip "Attach a file"
 agent-browser open "$(control-om-chat url "$T&ticketFiles=10#/todo/s1/1")"
 #   ten cards, no "Attach a file to the ticket"; the paperclip stays
-agent-browser open "$(control-om-chat url "$T&ticketFiles=2&ticketMuted=1#/todo/s1/1")"
-#   the mute banner; both attach buttons aria-disabled; Comment readOnly
+agent-browser open "$(control-om-chat url "$T&ticketFiles=2#/todo/s1/1")"
+agent-browser eval '(()=>{const o=window.__om;o.spaceMutes.until=()=>"2099-01-01T00:00:00Z";o.version=Number(o.version)+1;o.closeConfirm();return 1})()'
+#   needs the session-capture shim. The banner reads "You're muted in this server until Jan 1, 8:00 AM. You can read
+#   tickets but can't change them."; 14 controls are aria-disabled with that reason (12 on 2026-11-10); Comment readOnly
 agent-browser open "$(control-om-chat url "$T&ticketHome=archived#/todo/s1/1")"
 #   Home channel "#ops (archived)" (also: deleted, private)
 ```
@@ -422,6 +428,28 @@ Description and comments: open `$T&ticketFiles=1&ticketDesc=1&ticketActivity=1&t
 `$T&ticketState=loading#/todo/s1/1` shows the live region "Loading the
 ticket…". `$T&panel=todos` → **New ticket in #ops** shows TITLE
 `aria-required` with one `aria-hidden` `*`.
+
+### A typed username in a comment (added 2026-11-22)
+
+The comment box paints a mention chip on a typed `@username` that will post as
+its holder's link, and on nothing else (`TodoCommentBox.tsx:144-151`,
+`typedHandleReader` for the server, `lib/typed-handles.ts:97-130`). The
+fixture's own `people` holds nobody, so give it a server member with a 24-hex
+id through the shim:
+
+```bash
+agent-browser open "$(control-om-chat url "$T&ticketActivity=1&_s=5#/todo/s1/1")"
+agent-browser eval '(()=>{const o=window.__om,P={userId:"0123456789abcdef01234567",handle:"zed",username:"zed",displayName:"Zed"};o.people.heldIn=()=>[P];o.people.cachedMembers=()=>[P];o.version=Number(o.version)+1;o.closeConfirm();return 1})()'
+agent-browser fill 'textarea[aria-label=Comment]' 'ping @zed and @nobody'
+agent-browser press Escape     # shut the @ list
+#   one .composer-token-mention chip, on @zed; @nobody stays plain
+```
+
+Driven 2026-11-22 on `/rooms/`. The link itself is not provable here:
+**Comment** hands the stub's `todos.comment` the text as typed
+(`data-fixture-comment` read `ping @zed and @nobody`), because the rewrite to
+`om://user/<id>` happens behind the store call the stub replaces. That half
+stays pending with the description and new-ticket saves.
 
 ### The Server Settings Projects switch (driven 2026-11-13)
 
@@ -501,7 +529,9 @@ Projects stub the page falls to its error boundary, because the bare
 
 ## Verification record
 
-**Last verified:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176), people stub: with the Projects stub `?panel=todos` renders **Tickets in #ops** with **New ticket in #ops**, and a message offers **Make a ticket from this message** on the toolbar and in **More**; without the stub `panel=todos` opens nothing and no promote shows. **Limitations:** no ticket write; the ticket page, files and editors were not re-driven (the 2026-11-13 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 09, 10, 15, 16).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the Projects stub and the shim: the table (3 rows), **Board** with its four columns and the card menu, the eight-button bulk bar, the ticket page; three file tiles, a remove with **Undo**, a description task tick, the ticket chip, the comment's **Edit**, a role pick in the comment box, a pasted upload tile, the two drop zones, ten files hiding the ticket attach button, the archived home chip, the loading frame; the channel panel, its **New ticket** form and a ticket opened in the panel; the Server Settings switch refusing with its pending count. New: the mute banner and reasons through the shim, and the typed-username chip in the comment box. `/chat/` (18187): the page at `/chat/projects/s1` with 3 rows. **Limitations:** every write stops at the stub; the saved link for a typed username is behind it. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176), people stub: with the Projects stub `?panel=todos` renders **Tickets in #ops** with **New ticket in #ops**, and a message offers **Make a ticket from this message** on the toolbar and in **More**; without the stub `panel=todos` opens nothing and no promote shows. **Limitations:** no ticket write; the ticket page, files and editors were not re-driven (the 2026-11-13 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 09, 10, 15, 16).
 
 **Previous record:** 2026-11-13 (nightly maintenance). **Product commit:** `504b08d5` (GitLab origin/main; rooms-client 0.117.0; 32 commits past `eae9681d`). **Scope:** people stub, the extended Projects stub above and the session-capture shim, on `/rooms/` (18170) and `/chat/` (18171). Both hosts: tiles **Open mosaic-1.svg** / **Play clip.mov** / **Preparing file-3.txt**, description ticks (`saveDescription` called), the pill "Ticket !2, In progress, dax", the comment `!` list, a page paste reaching `setFields({addAttachmentKeys})` and, in the final re-drive with the published stubs, × remove with the **Undo** toast and a held **Uploading** tile, the channel-panel ticket **Ticket !1** (Back, Escape) and the Server Settings **Projects** switch (on, pending line, held read). `/rooms/` only: keyboard image open, paste → **Upload failed**, the drag veils, a drop and a paste into the comment, a files-only comment, a comment's **Edit** with tiles and the `!` list, `@` roles, the comment box's Vim, the loading frame, the required TITLE mark, and a sent card opening in the panel (shim `showRightPanel`). **Limitations:** no write reaches a store; paste and drop are synthetic; the description editor's lists, the Settings confirmations and Needs you were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261113/r1/` (frames 01-12, 26-32, 40).
 

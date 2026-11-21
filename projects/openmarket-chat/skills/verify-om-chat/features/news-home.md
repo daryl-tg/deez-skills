@@ -3,7 +3,7 @@
 The **News** view: stories the operator's news watches have fired, plus filing
 one into a room so it rides the next message. Source:
 `packages/chat-ui/src/components/NewsHomePane.tsx`, mounted by
-`ChatPane.tsx:819-825` when `session.active.kind === "news"`; the composer chip
+`ChatPane.tsx:815-821` when `session.active.kind === "news"`; the composer chip
 is `NewsStagedChip` in `NewsCard.tsx`.
 
 ## Sub-features
@@ -20,8 +20,8 @@ is `NewsStagedChip` in `NewsCard.tsx`.
   attached story** (`NewsCard.tsx:153`).
 - **Related story suggestion** in the composer (**Attach**, **Dismiss story
   suggestion**), from `session.news.matchDraft`. Not reachable: see Gotchas.
-- The rail's **News** feature (`Shell.tsx:2535-2546`) and the `news` key
-  binding (`:908`) exist only when `session.news.supported === true`, which
+- The rail's **News** feature (`Shell.tsx:2536-2547`) and the `news` key
+  binding (`:909`) exist only when `session.news.supported === true`, which
   needs a daemon news plane behind the origin.
 
 ## How to get to it (user POV)
@@ -35,7 +35,7 @@ the story waits in the composer and goes out under your next message.
 Neither fixture can reach the view on its own. `#/news` calls
 `session.openNews()`, which neither fixture defines, and the fixture `news`
 store is an inert plain object with `supported: false`
-(`tools/visual/shell-fixture.tsx:2945-2959`). There is no `?view=news`. With the
+(`tools/visual/shell-fixture.tsx:2960-2974`). There is no `?view=news`. With the
 people stub and the session-capture shim from
 [message-actions.md](message-actions.md), replace the `news` store and point
 `active` at the view. Keep the original `active` descriptor so you can return
@@ -97,4 +97,6 @@ agent-browser eval '(()=>{const o=window.__om;Object.defineProperty(o,"active",w
 
 ### Verification record
 
-**Last verified:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub, session-capture shim and the seed above: the News home with two stories, **On the wire**, **Your watches** and **Mark all 2 read**; **File to a room** → the Staged line and **Undo** (`/rooms/`); back in `#ops`, the composer chip with **Remove attached story** on both hosts. **Limitations:** seeded store only, with no daemon news plane; the rail button, `#/news`, the brief, sync rows, the Related story strip and the send with a staged story were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frames 07-10).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with a seeded `news` store through the shim: **News** with the lead story, **On the wire**, **Your watches**, **Mark all 2 read**; **Cards** / **List**; **File to a room** → the staged line with **Undo**; the composer chip and **Remove attached story**. **Limitations:** `/chat/` got the seed only; its chip was not read tonight. The rail door and every daemon-fed part stay pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-16 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; unchanged since the 2026-11-15 pass). **Scope:** `/rooms/` (18177) and `/chat/` (18178), people stub, session-capture shim and the seed above: the News home with two stories, **On the wire**, **Your watches** and **Mark all 2 read**; **File to a room** → the Staged line and **Undo** (`/rooms/`); back in `#ops`, the composer chip with **Remove attached story** on both hosts. **Limitations:** seeded store only, with no daemon news plane; the rail button, `#/news`, the brief, sync rows, the Related story strip and the send with a staged story were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261116/r1/` (frames 07-10).

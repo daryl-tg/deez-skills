@@ -8,7 +8,8 @@ in [settings-and-appearance.md](settings-and-appearance.md).
 
 - **Alert strip** (`packages/chat-ui/src/components/AlertStrip.tsx`): an app-wide
   bar above the content card. It renders `name · actionLine` with a timestamp and
-  the buttons **I'm on it** and **Open**.
+  the buttons **I'm on it** and **Open**, and an icon button named **Dismiss
+  this strip** (read 2026-11-22; not pressed).
 - **No channel-header beacon since `dc6a9a47`** (2026-10-01). `ChatPane.tsx`
   stopped mounting `AlertsBeacon`; the file survives only for the board's
   `BOARD_WIDTH`. A channel with a live alert feed gets an **Alerts** door on
@@ -73,7 +74,7 @@ The virtual **Alerts** group is gone. `om.chat.alertsGroupAuto` and
 `[data-alerts-group]` no longer exist. A channel with a live feed now stays in
 the category it is filed in. It carries its feed as a sub-row under the channel
 (`alertsRowForRoom`, `lib/alerts-group.ts:83`, rendered at
-`packages/chat-ui/src/components/Sidebar.tsx:4684-4692`).
+`packages/chat-ui/src/components/Sidebar.tsx:4685-4693`).
 
 To check the sub-row, open `shell-fixture.html?view=room&alerts=board`. On
 **both** hosts, `#ops` under **category Desk, 5 channels** carries
@@ -85,7 +86,7 @@ only `feeds.length > 0`. Under `alerts=quiet` there is no sub-row.
 
 A category can also be marked as an **alert category** (`alert: true` in the
 space's stored `categories`). It then shows `.category-alerts-mark` and its
-ringing count even while expanded (`Sidebar.tsx:4913-4919`, `:4935-4948`). A
+ringing count even while expanded (`Sidebar.tsx:4914-4920`, `:4936-4949`). A
 plain category shows counts only when collapsed. You mark one from the category
 header menu (**Mark as alert category**), or with the **Alert category** box in
 **Create Category**. The recipe, with the stubs that make it reachable, is in
@@ -153,7 +154,9 @@ was not driven.
 
 ### Verification record
 
-**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=board`: with **Desk** collapsed the header reads **1 ringing**, and `.category-separator-count` computes `white-space: nowrap`, `flex-shrink: 0` and one 13.2 px line. The board and gallery routes mounted in the route smoke on both hosts. **Limitations:** no category name long enough to squeeze the count; the count was not measured on `/chat/`; the strip, board and card buttons were not pressed tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 16).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the strip **store-5xx · check pods** with **I'm on it**, **Open** and **Dismiss this strip**; `alerts=quiet` removing it; the board (Ring store-5xx, Log relay-latency, **New alert...**, **All alerts**); the ringing sidebar row and the category's **1 ringing** on one line; the alert card gallery. Both hosts: the board's feed peek with a seeded series (30 bars, "67% answered · 3 open · 4m to ack"). `/chat/` (18187): the board and the ringing row. **Limitations:** `panel=alerts`, the claim effect and the category alert mark were not driven. `alerts=amber` showed the same strip text. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=board`: with **Desk** collapsed the header reads **1 ringing**, and `.category-separator-count` computes `white-space: nowrap`, `flex-shrink: 0` and one 13.2 px line. The board and gallery routes mounted in the route smoke on both hosts. **Limitations:** no category name long enough to squeeze the count; the count was not measured on `/chat/`; the strip, board and card buttons were not pressed tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 16).
 
 **Previous record:** 2026-11-19 (nightly maintenance). **Product commit:** `12f1ea24` (GitLab origin/main; rooms-client 0.120.0; 12 commits past `c19e2f70`). **Scope:** `/rooms/` (18191) and `/chat/` (18192), with no init script, `view=room&alerts=board`. Both hosts show the `#ops` feed sub-row **store-5xx · check pods** inside **Desk**, with no `[data-alerts-group]`. Collapsed, Desk reads **1 ringing**. With the category stubs and the session-capture shim, **Mark as alert category** on Desk wrote `alert:true` and painted `.category-alerts-mark` on both hosts. **Limitations:** the mark comes from a stubbed `categoriesFor`/`setSpaceCategories`, not a store, and a store-side rename or delete by another viewer was not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261119/r1/` (frames 06, 07, 09).
 

@@ -146,7 +146,7 @@ Driven 2026-10-31 on `/rooms/` (18135); the scope picker also on `/chat/`
 ### Cmd+F opens channel search (added 2026-11-09)
 
 From the page body, `press Meta+f` focuses the combobox **Search #<channel>**
-(`Shell.tsx:766`). Escape closes it.
+(`Shell.tsx:767`). Escape closes it.
 
 Since `9db9ac06` and `a5354f9d` (source and unit tests only, `lib/search-query.ts`,
 `lib/search-seam.ts`; `packages/chat-ui/test/search/query.test.ts`):
@@ -194,7 +194,9 @@ account, such as an agent's, still match the typed word
 
 ### Verification record
 
-**Last verified:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=quiet`: **Search #ops** → **From a specific user** → **@ana ana (ops)** leaves `from:@ana ` in the box. **Limitations:** the run, the results panel and the topic and DM scopes were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 23).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) `search=live`: the six filter suggestions; **From a specific user** → `@ana` → `from:@ana `; a `dedupe` search (`fixtureSearchRequest` `ops:channel:dedupe`); the seeded panel's "1 results"; the scope menu (This channel, This server, Library, Everywhere) and the sort menu (Newest, Oldest, Most relevant); `searchState=error`; the topic scope (`ops:cpi-print-aug:primary`) following a topic switch to `ops:etf-flows-week:primary`; the DM scope label **Search @ana**; Cmd+F focusing the search input. **Limitations:** date filters, `mentions:` and `/chat/` were not driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=quiet`: **Search #ops** → **From a specific user** → **@ana ana (ops)** leaves `from:@ana ` in the box. **Limitations:** the run, the results panel and the topic and DM scopes were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 23).
 
 **Previous record:** 2026-11-09 (scheduled maintenance). **Product commit:** `16da8ecf` (GitLab origin/main; one CI-only commit past `82390825`). `/rooms/` (18141), with the people stub: `panel=search` reads "1 results"; Meta+f focuses **Search #signals**. `/chat/` (18142): the route smoke only. **Limitations:** filter chips by route smoke only. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261109/r1/`.
 

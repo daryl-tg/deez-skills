@@ -187,7 +187,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   **"Agents, needs your om running"**. An armed count does not mask away: the
   desktop label states both, **"Agents, N armed, your om is not running"**,
   and only a connected, armed om reads the bare **"Agents, N armed"**
-  (`Shell.tsx:3119-3134`; mobile segments `Shell.tsx:3662-3707`). So an
+  (`Shell.tsx:3120-3135`; mobile segments `Shell.tsx:3663-3708`). So an
   `--exact` match on the bare name misses several different ways, and matching
   the mobile string on desktop misses too. Away is a whole-app state, a
   different thing from the daemon not running.
@@ -195,19 +195,19 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   On desktop there is a **third** state neither of those covers:
   `#829` made the rail label its destinations during a reconnect, so both
   doors carry a `railUnsettled` spelling — **"Your om, reconnecting"**
-  (`Shell.tsx:3839`) and, crossing armed × away × reconnecting,
+  (`Shell.tsx:3840`) and, crossing armed × away × reconnecting,
   **"Agents, N armed, reconnecting"** / **"Agents, reconnecting"**
-  (`Shell.tsx:3125`, `:3130`). Two states is the old shape; matching on it
+  (`Shell.tsx:3126`, `:3131`). Two states is the old shape; matching on it
   during a flaky connect misses silently.
 
   **Away has a remote-control spelling too.** When the session is away and a
   remote device answers over the relay, the doors read
   **"Your om, connected remotely"** and **"Agents, connected remotely"**, or
   **"…, remote control off"** when a device is reachable but none is selected
-  (`Shell.tsx:1560`; accessible names at `:3132`, `:3674`, `:3699`,
-  `:3801`). The tooltips spell it with a colon instead, "Agents: connected
-  remotely" (`:3083`, `:3783`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4318`). The pane
+  (`Shell.tsx:1561`; accessible names at `:3133`, `:3675`, `:3700`,
+  `:3802`). The tooltips spell it with a colon instead, "Agents: connected
+  remotely" (`:3084`, `:3784`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4333`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -237,8 +237,8 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   persists device-locally while the server keeps the flattened order. Markers
   are `data-rail-group-id`, `data-rail-group-collapsed` (present only while
   collapsed) and `.rail-group-open` on the expanded container
-  (`Shell.tsx:4081-4134` for spaces; the zone-1 feature folders use the same
-  markers at `Shell.tsx:3901-3939`).
+  (`Shell.tsx:4082-4135` for spaces; the zone-1 feature folders use the same
+  markers at `Shell.tsx:3902-3940`).
 
   **It takes two steps to reach, and neither is a query parameter.** The
   fixture seeds one space, so there is nothing to group, and the layout is
@@ -356,7 +356,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
 - **OM Settings, through Settings.** `c40dbc5d` added **OM Settings** and
   **Persona** rows to the Agents group of user settings; `#978` then **retired
   the Persona row** ("now that Agents is its home"), so only **OM Settings**
-  remains (`UserSettings.tsx:255`), supplied by `Shell.tsx:4590`. That is
+  remains (`UserSettings.tsx:255`), supplied by `Shell.tsx:4591`. That is
   why the shell's settings nav is **twenty** entries while the settings
   fixture shows nineteen — the settings fixture does not pass `omPage`. Open
   it through the shell instead:
@@ -459,7 +459,7 @@ The hosted `/chat/` Agents page reads and drives the owner's agents on their own
 
 - **What a user sees on `/chat/agents`.** The desk's agents in the Map and Grid; **Templates** and **New agent** enabled; `your om` reads idle when the desk answers. The brain chips wear the om mark (**OM daemon**) and the official Claude and OpenAI marks (**Claude Code**, **Codex**; faded when not set up).
 - **Desk offline.** "Your desk is offline. Your agents load when om at your desk is running." within about 5 s of the lane stopping; it recovers by itself about 10 s after the desk returns. Not opted in reads "Remote control is off at your desk. Turn it on with om agent remote enable."
-- **Fixture lane (no relay), driven 2026-11-04 on main at `ce14d4ba`.** `/chat/tools/visual/shell-fixture.html?view=agents&alerts=quiet` lands on `/chat/agents` with **Map**, **Grid**, **Templates** and **New agent**, and the page reads "Your desk is offline. Your agents load when om at your desk is running." (`remote-unavailable.ts`, passed as the Agents notice at `AgentCenterSurface.tsx:337`). **Grid** keeps the notice above `your om`. **OM daemon**, **Claude Code** and **Codex** read "can't tell". The other desk states (off, outdated, busy, no answer) need a registered operator or the rig.
+- **Fixture lane (no relay), driven 2026-11-04 on main at `ce14d4ba`.** `/chat/tools/visual/shell-fixture.html?view=agents&alerts=quiet` lands on `/chat/agents` with **Map**, **Grid**, **Templates** and **New agent**, and the page read "Your desk is offline. Your agents load when om at your desk is running." (`remote-unavailable.ts`, passed as the Agents notice at `AgentCenterSurface.tsx:337`). That was true until `3426f0db`: the cloud fixture now registers a scripted desk on this view (`apps/cloud/tools/visual/shell-fixture.tsx:133`, `agents-desk.ts`), so the offline notice no longer shows on this route. Driven 2026-11-22 at `4b6f42b4`: the page lists **your om** with **OM daemon, ready**, **Claude Code, ready** and **Codex, not set up**, and its foot reads "your desk · running". The sidebar's **Away coverage** still reads "Can't tell". The offline notice and the other desk states (off, outdated, busy, no answer) need a stopped lane, a registered operator or the rig.
 - **Driven 2026-11-03 on the branch rig** (a branch receipt; the rig pass was not repeated on main) (`/Users/dboon/Documents/dev-notes/om-agents-cloud-parity/rig/README.md`: relay 18120, store 18121, lane 18123, fake model 18124, cloud vite 4178 with `/chat/api` → store): **Run explain** paused and resumed explain on the desk; **Try it** returned the reply and three checks; **Check routing** ran `roster.instances.eval` ("Routes correctly 67%"); **Allow** granted explain into **ACP Rig / ops** ("explain can read and reply in ACP Rig / ops"); `@explain what is a funding rate` posted in `#general` from `/chat/` got explain's reply threaded under it within 3 s (run `door: mention`). `/rooms` Agents matched origin/main by pixel diff (60 px, status dots). Evidence: `http://127.0.0.1:8098/agents-cloud-parity/u7-r5/` (and `u7-r3`).
 - **Pending live (tests only):** work-run live polling (3 s, at most three runs), run Pause and Steer, vault and catalog writes, Needs-you decisions and **File as source** on `/chat/` (the rig had no work runs, vault, inbox items or room with history for them).
 
@@ -479,7 +479,7 @@ An agent page (`#/agents/a/inst_argue`) has four tabs, **Overview**,
 **Activity**, **Access** and **Settings** (there is no Sessions tab). Since
 `5c8a20a4` its side reads as one property panel: every block is a
 `section.agent-section` with an `h2.agent-section-h` heading, drawn by
-`Section` (`agents/AgentPanels.tsx:236-246`); a selector on the old
+`Section` (`agents/AgentPanels.tsx:227-248`); a selector on the old
 `.agent-box-h` finds nothing. Each tab's panel stays mounted but hidden, so
 read `offsetParent` or the selected tab, not a bare count. For `argue`:
 **Overview** shows the sections **At a glance** and **Details** (the
@@ -514,9 +514,16 @@ Open a fresh session for the drag, or check `document.visibilityState` first.
 The fixture also forces the `reduced-motion` class on `<html>`.
 
 **Update for argue** is the `RosterUpdateNotice` section (`roster/RosterUpdateNotice.tsx:78`)
-and mounts only in the **Needs you** feed (`agents/NeedsYou.tsx:894`), not on
-the Grid card or the agent page; the fixture drops it once **Approve argue
-update** or **Keep argue at 1.0.0** is pressed (`agent-center-fixture.tsx:737`).
+and mounts in the **Needs you** feed (`agents/NeedsYou.tsx:894`), not on the
+argue card or the agent page. The Grid's own **Needs you** summary at the top
+of the page also lists it, as the row "argue wants to update to 1.1.0" with
+**Approve** and **Keep** (accessible names **Approve argue update** and **Keep
+argue at 1.0.0**; seen 2026-11-22). The fixture's
+`decideUpdate` clears the offer (`agent-center-fixture.tsx:733-740`), but
+pressing **Approve argue update** in the feed changed nothing on screen in 10 s
+that night: the section stayed, **Needs you, 9** kept its count, and no
+message, request or console error appeared. Earlier passes recorded the section
+leaving. The cause was not traced; it is in the nightly report.
 **More actions for argue** listed two items tonight, **Check routing** and
 **Review what it learned**; the 2026-10-30 record counted three.
 
@@ -743,7 +750,7 @@ button named "<name>, <owner>'s agent. View full profile" (`:116`,
 `[data-profile-door]`) that opens the agent's profile panel.
 
 `/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1371-1391`; card
-handlers `openProfileCard` and `openMentionCard` at `:3541-3556`). The `/chat/`
+handlers `openProfileCard` and `openMentionCard` at `:3556-3571`). The `/chat/`
 fixture has neither the seed nor the handlers, so the card is `/rooms/` only.
 
 ```bash
@@ -758,7 +765,9 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # click the LAST .agent-mention[data-handle=debugger]: the card reads "debugger AGENT agent", no door
 ```
 
-**Last verified:** 2026-11-17 (nightly maintenance). **Product commit:** `c18cfa37` (GitLab origin/main; rooms-client 0.119.0). **Scope:** `/rooms/` (18171), people stub: `agentTag=1` opened **Agent debugger** reading "ana's agent", whose door opened the **ana · debugger** profile panel; `agentTag=unknown` read just "agent" with no door. **Limitations:** `/chat/` has no seed; the card's look in light theme and on a phone width was not captured. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261117/r1/` (frames 01–03).
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the agent-center Map, **Grid**, **Needs you, 9** → `#/agents/waiting`, the argue agent page, its **Access** tab and **More actions** (Check routing, Review what it learned); the library-edit review door (**Accept merge**, two proposal calls); the shell's Voice and Away pages; the `@agent` tag card; the Your om pane with the health stub. `/chat/` (18187): the Agents page over the fixture's scripted desk. **Limitations:** pressing **Approve argue update** changed nothing on screen tonight (see the section above). **Invite agent**, Fleet health, the agent chat and the remote-home states were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-17 (nightly maintenance). **Product commit:** `c18cfa37` (GitLab origin/main; rooms-client 0.119.0). **Scope:** `/rooms/` (18171), people stub: `agentTag=1` opened **Agent debugger** reading "ana's agent", whose door opened the **ana · debugger** profile panel; `agentTag=unknown` read just "agent" with no door. **Limitations:** `/chat/` has no seed; the card's look in light theme and on a phone width was not captured. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261117/r1/` (frames 01–03).
 
 ## Coding work panel (MR !244, driven 2026-11-11)
 

@@ -144,7 +144,9 @@ conversation** (not a takeover) still needs the same stub plus the rail.
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` at 390×844, with the people stub: `[data-mobile-detail]` mounted with 16 rows. **Limitations:** gesture navigation not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) at 390×844: the five roots through the tab bar (home, chats, spaces, library, om); a DM as a detail with **Back to Chats** and no tab bar; a `draft=keepme` draft kept across leaving and reopening the DM; the doc takeover and **Close document**; the Settings takeover, **Back to settings** (`is-index`) and **Close settings**. At 320×700 with `text=200` the five tab buttons measured 56 px tall. **Limitations:** `keyboard=<px>`, the om session-rail takeover and the 360, 430 and 768 widths were not driven tonight; nothing on `/chat/`. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` at 390×844, with the people stub: `[data-mobile-detail]` mounted with 16 rows. **Limitations:** gesture navigation not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) at 390×844 `view=room`: `[data-mobile-detail]` mounted. **Limitations:** `/chat/` not re-driven at phone width. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 

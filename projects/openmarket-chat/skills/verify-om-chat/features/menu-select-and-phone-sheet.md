@@ -97,7 +97,7 @@ For the long-press backdrop, use a fresh session at 390×844 on
 `shell-fixture.html?view=room&alerts=quiet`. Long-press `msg-ops-104` with
 paced touch `PointerEvent`s (the recipe in
 [message-actions.md](message-actions.md) under Touch) to get
-`.msg-sheet[role=menu][data-mobile-sheet]` with 22 items. Then:
+`.msg-sheet[role=menu][data-mobile-sheet]` with 21 items (22 before `05df35a7`). Then:
 
 ```bash
 agent-browser eval '(()=>{document.querySelector(".msg-sheet-backdrop").dispatchEvent(new MouseEvent("click",{bubbles:true,detail:1}));return 1})()'
@@ -128,7 +128,9 @@ agent-browser mouse move 195 40; agent-browser mouse down; agent-browser mouse u
 
 ### Verification record
 
-**Last verified:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` gallery `fixture.html`: **Assignee** lists Unassigned, mira, **Dana** and scout from a real `PeopleDirectory` (the picker example's seed since `KitchenSink.tsx:402-428`). **Limitations:** the low-flip recipe and phone sheet not re-driven tonight; `MenuSelect` server-search `status` is reachable only through Projects. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
+**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) gallery: the **Labels** multi-pick (**Labels · 2** → **· 3**, the list staying open), the two-label cap with six disabled options and its note, the create row for `zzq`, and the low menu re-seating at 563-864 after a resize; at 390×844 the full-width sheet, a 20 px sideways drag keeping it, a 90 px drag closing it and Enter on the handle closing it; the long-press sheet staying on a lift's click and closing on a real backdrop press. **Limitations:** the off-screen first position of the low menu was not re-measured tonight (my probe had a syntax error); the resize result matches the recorded gap. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+
+**Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` and `/chat/` gallery `fixture.html`: **Assignee** lists Unassigned, mira, **Dana** and scout from a real `PeopleDirectory` (the picker example's seed since `KitchenSink.tsx:402-428`). **Limitations:** the low-flip recipe and phone sheet not re-driven tonight; `MenuSelect` server-search `status` is reachable only through Projects. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
 **Previous record:** 2026-11-08 (nightly maintenance). **Product commit:** `08fe407b` (GitLab origin/main; rooms-client 0.112.0; unchanged since the 2026-11-07 pass). **Scope:** `/rooms/` (18183) and `/chat/` (18184) `fixture.html`: a low **Labels** multi-pick switches to above but stays seated at `top 850` until a resize (product gap); at 390×844 a 90 px handle drag dismisses the sheet, 50 px keeps it, and Enter on **Close Labels** closes it; on `shell-fixture.html` the long-press sheet ignores a lift-style backdrop click and closes on a real press. **Limitations:** auto-open, ranking and real touch hardware. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261108/r1/`.
 
