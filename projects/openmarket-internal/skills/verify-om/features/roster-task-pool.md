@@ -1,5 +1,7 @@
 # The roster task door and run pool
 
+*Re-driven 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts` with a scratch fake model on 18191 for the daemon. Step 1 only: `POST /rpc/v1/roster/tasks` for `explain` answered `{taskId, runId}`. A fake reply of three words came back `failed` with `error.code` `verify_failed`, `no-bare-ack failed: the reply is only an acknowledgement or at most three words`, and `usage.tokens` 264; a one-sentence reply read `completed` with `usage.tokens` 132. `?wait=26000` is `malformed_body` `wait must be 0 to 25000 ms.` `om agent ps` listed both runs. Not re-driven: the pool, bursts, dedup, cancel, work mentions. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/` (`cli/60-*`).*
+
 *Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts` with a fake model on 18191 for the daemon (no rig, no hold). Step 1 only: `POST /rpc/v1/roster/tasks` for `explain` answered `{taskId, runId}`, `GET …/tasks/<id>?wait=25000` read `completed` with the fake's text as `result.summary` and `usage.tokens` 280; `?wait=26000` is `malformed_body` `wait must be 0 to 25000 ms.` Not re-driven: the pool, bursts, dedup, cancel, work mentions. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/92-*`).*
 
 *Re-driven 2026-11-14 (nightly), tree `05300a3142` (origin/main, v0.495.0+internal), bare lane on 18187 (dummy `OM_API_KEY`, dead service URLs) with a fake model on 18186 that reports `usage`. `POST /rpc/v1/roster/tasks {id:"vomn1114-t1", agent:"explain", ask, requestedBy}` returned `{taskId, runId}`, and `?wait=25000` read `completed` with the fake reply as `summary` and `usage {tokens:15, costUsd:0}`. A body with `prompt` instead of `ask` was 400 `malformed_body` `Invalid field: ask`. The engine-agent refusal at this door (#2399) is source only: it needs an installed engine agent. Pool, cap, budget, dedup and cancel were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261114/r1/` (`cli/roster-task.txt`).*
@@ -57,6 +59,7 @@ Steps:
 
 ## Gotchas
 
+- **A fake model that answers in three words or fewer fails the task.** The task reply check `no-bare-ack` turns such a reply into `state: failed`, `error.code: verify_failed`, with the reply still in `summary`. Make the fake answer a full sentence before reading a `failed` as a regression (seen 2026-11-22).
 - A run starts and ends on a driver tick. About 1.8 s before start and 1 s before completion are waiting, plus about 0.8 s on the 1 s outbox poll. `OM_ROSTER_DRIVER_MS=500` shows it.
 - A task with `place` set to a room does not tell the agent which room it is in unless the room has a place doc, so agents search `#general` and often miss the thread.
 - Task runs skip the agent's own `verify` rules; an empty reply reads `completed`. Task replies are not posted to the room.

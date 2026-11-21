@@ -1,5 +1,7 @@
 # MCP servers the owner connects
 
+*Re-driven 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. The 2026-11-21 hang is reproduced under one condition: `connect list` prints its answer and then waits for stdin to close. With stdin at `/dev/null` it exited in 1 s (text and JSON); with stdin an open socket it was still running after 9 min 43 s; behind `(sleep 25) |` it returned at 25 s. Nothing else re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/` (`cli/34-connect-*`).*
+
 *Re-checked 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`: `connect list` reads ``No connections. Add one with om connect add <name> --url <address>`` and `--format json` `[]`. One of four calls printed that line and then did not exit for eight minutes (stopped by hand); three later calls exited in a second (README gaps). Nothing else re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/81-*`).*
 
 *Re-driven on main 2026-11-13 (nightly), tree `298c469dd7`, bare lane on 18187 with the HTTP fixture (`bun packages/cli/test/_connector-fixture-server.ts --http 18189 --call-log <file>`). In tmux, `om connect add fx --url http://127.0.0.1:18189/mcp` listed the seven fixture tools, asked `Ask before the agent calls a tool?` (default `changes`) and saved `fx, 7 tools, asks changes`; `om connect list` read `fx  http  changes  7 tools  ready`; `om connect set fx --asks never` from the run's own shell exited 2 (`refusing to approve from an auto-approve harness`). MCP stdio lists no `connector_*` tool. Not re-driven: a chat call, the card, the pin, sign-in, stdio servers. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/`.*
@@ -49,6 +51,7 @@ The owner connects an MCP server at the terminal with `om connect add`. The agen
 
 ## Gotchas
 
+- **`om connect list` does not exit while stdin stays open** (seen 2026-11-21, condition found 2026-11-22). It prints the list, then waits for stdin to reach end of file. In a terminal that is invisible; from a script, a pipe or an agent harness the call hangs. Run it as `control-om om -- connect list </dev/null`. Reported as a product gap in README.md.
 - A real provider's browser sign-in has not been driven. It needs an account.
 - An unattended watch calling a connector is unit-tested only.
 - Windows and Linux for the stdio path have not been driven.

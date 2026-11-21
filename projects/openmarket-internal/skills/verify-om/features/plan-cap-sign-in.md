@@ -1,5 +1,7 @@
 # A plan limit after signing in to another account
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal). A `Gotchas` section is added from the recipe's own preconditions, to meet the map's contract. Source spot-checked clean (`provider_cap_cleared`, `plan-usage.json`, `executeWizardChoice`). Nothing driven: it needs a provider sign-in and the `om chat` TUI.*
+
 *Verified: 2026-11-13, branch `daryl/plan-cap-follows-sign-in` commit `8011668d43` (on origin/main `2a163ffb81`), source `om chat` in tmux on a scratch home with no daemon. Gallery `http://127.0.0.1:8098/plan-cap-sign-in/r1/` (3 screenshots). Merged to main as `d6354e12f6` (#2479) on 2026-11-13.*
 
 A provider's plan record lives in `<home>/plan-usage.json`. A cap read off the usage page carries no account, so before the fix it held every account on that provider. A sign-in through `/setup` or `om init` (`executeWizardChoice`) now drops the provider's record, and the `om chat` footer re-reads the record whenever the file changes.
@@ -32,3 +34,9 @@ A provider's plan record lives in `<home>/plan-usage.json`. A cap read off the u
 - `plan-usage.json`: the provider's `cappedUntilMs` is null and `snapshot` is null.
 - The agent log has `provider_cap_cleared` with `reason: sign_in`.
 - Pending: a real two-account Claude subscription switch on a live home, and the daemon reopening `usage_exhausted` lanes on the `llm-lanes` poke with a provider.
+
+## Gotchas
+
+- Nothing here is reachable on a guest lane: the recipe needs a seeded provider sign-in, a hand-written `plan-usage.json` and the `om chat` TUI in a terminal session.
+- Write `nextRecoveryReadAtMs` well ahead. A recovery read that lands during the check rewrites the record and hides the result.
+- The worktree isolation guard refuses a command that names the main checkout directly, so a before/after pair runs main's source through a symlink.

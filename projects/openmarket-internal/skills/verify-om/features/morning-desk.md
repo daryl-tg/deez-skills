@@ -1,5 +1,7 @@
 # Morning desk: a default-on brief of what mattered overnight
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `watch brief --format json` answered a 24-hour `window` and a `lead` row for the probe watch's fire. Not re-driven: seeding, the brief in chat, `/desk`, coverage levels, a channel. (`cli/40-watch-brief.out`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Re-checked 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`: `watch brief --coverage high --format json` returned a `window`, `lead` rows for the night's fires and `coverage`; `--coverage bogus` exits 2 naming `low`, `normal` and `high`. Nothing else re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/85-*`).*
 
 *Re-checked 2026-11-13 (nightly), tree `298c469dd7`: `om watch brief --coverage high --format json` on a guest lane returned `coverage: {level: "high", words: 380}`, and `--coverage bogus` exited 2 naming `low`, `normal` and `high`. The `read` line said at most 3 lead and 5 more items; since #2468 the counts follow the level (`runner/watching/desk-brief.ts`). Nothing else re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/` (`cli/05-guest-batch2.txt`).*
@@ -66,7 +68,7 @@ Recipe (scripts in `verify-r3/rig/` and `verify-r4/rig/`):
 9. Coverage: seed at least 32 nameable watches (48 with 12 link-sharing pairs exercises the fold; `om event push --url <same link>` on two watches makes a pair). `/desk coverage high` in the TUI, then read the tier counts in the `desk_brief` result the fake model logged. The fake model must build its reply from that result, or the message will not reflect the level.
 10. `render-all.sh`, then `ARTIFACTS=<publish dir> control-om evidence publish <run-id> <revision>`.
 
-## What to expect
+### What to expect
 
 - Slot to `sendMessage` took 46 to 74 ms over nine two-minute slots with an instant fake model. That measures the scheduler and delivery, not a model.
 - A daily slot is staggered by up to five minutes per home (`packages/cli/src/runner/timers/stagger.ts`). A brief due at 08:00 was sent 139.7 s and 257 s later on two homes.

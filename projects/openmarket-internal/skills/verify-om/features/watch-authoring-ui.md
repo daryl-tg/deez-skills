@@ -1,5 +1,7 @@
 # Watch authoring and management in the dashboard
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `/alerts?create=1` opened the `Create a watch` dialog with eight kinds: Website, RSS or Atom feed, X account, Search, AI research, Market data, Another watch, Schedule only. Nothing was created. Not re-driven: every form, the editor, Fetch now. (Frame 03; `cli/52-*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Re-driven 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0), guest lane on 18181, booted with no guest 429, 1440x900. **Create watch** opened `Create a watch` with its eight kinds (Website, RSS or Atom feed, X account, Search, AI research, Market data, Another watch, Schedule only). Not re-driven: any kind past the first step. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/`.*
 
 *Re-driven 2026-11-10 (nightly), tree `c9bc93a355` (origin/main, v0.493.1), guest lane on 18143, booted with no guest 429. `Create watch` opens `Create a watch` with its eight kinds (Website, RSS or Atom feed, X account, Search, AI research, Market data, Another watch, Schedule only). No watch was created from the dialog. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261110/r1/` (`04-create-watch.png`).*

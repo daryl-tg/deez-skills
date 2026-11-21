@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Re-driven 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `paper create nightly-1122` without `--yes` exits 2 `confirmation_required`; with `--yes` it answered `{account: {id: pa_…, cash: 1000}, desk: "off"}`; `paper ls`, `paper show` (rules and fees) and `paper digest --format text` (`Cash: $1,000.00`, `Open: 0 lots`). Not re-driven: a hand lot, signals, fees on a fill, settlement, `paper.decision`, `paper.arm_from_chat`. (`cli/82-*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `paper create vom-paper --cash 5000 -y` (`desk: off`), `paper ls`, `paper show` (`Fees: polymarket 0 bps, hyperliquid 4.5 bps, market data 5 bps`), `paper set --fee nope=abc` `paper_fee_invalid`, and one hand lot: `paper open vom-paper --yes --signal '{"market":{"venue":"hyperliquid","coin":"BTC"},"side":"long","limit_price":200000,"exit":{"max_hold_secs":3600}}'` answered `queued: true`, `desk: on`; `paper log` then read `opened  Hyperliquid BTC  paper-desk-<uuid>/book  @ <mid>` and `paper show` one open lot of $25.00 with cash $4,974.99. Refusals seen on the way: no `--signal` is `required option '--signal <json>' not specified`; a signal with no `market`, `limit_price` or `exit` is `invalid_options`; an unknown exit key names the seven it takes (`at`, `max_hold_secs`, `on_resolution`, `tp_price`, `sl_price`, `tp_pct`, `sl_pct`). Not re-driven: a book step on a watch, settlement, `paper.arm_from_chat`, the digest. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/a0-*`).*
 
 *Re-driven 2026-11-20 (nightly), tree `ba18e48ef3` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, the guest sign-in minted at boot. `paper create vom-paper` without `--yes` `confirmation_required`; with `--yes --fee hyperliquid=3` (`cash 1000`, `desk off`); `paper ls`; `paper show` `fees {polymarket:0, hyperliquid:3, market_data:5}`; `paper set --fee nope=1` `paper_fee_invalid`; `--fee hyperliquid=4.5` saved; `paper log --outcome adjusted` empty; `config set paper.arm_from_chat on|off`. The desk also showed as `quiet  paper desk: vom-paper` in the om chat catch-up. Not re-driven: lots, `paper.decision`, the arm review. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261120/r1/` (`cli/55-paper.txt`).*
@@ -113,7 +115,7 @@ credential, no venue.
 - **Proof.** Keep the create and `ls` JSON and the Paper-tab snapshot. The
   account id ties them together.
 
-## Booking through a book step
+### Booking through a book step
 
 - **Price with Hyperliquid.** A guest lane prices a `hyperliquid` perp from
   the public mid, so `{"venue":"hyperliquid","coin":"ETH"}` with

@@ -1,5 +1,7 @@
 # Agent files, scopes and trust
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `agent list --lock --format json` answered the lock path (`…/library/agents.lock.json`) and the installed agents with their versions and digests. Not re-driven: `init`, `try`, `eval`, `install --preflight`, scopes, trust, `agent_tune`. (`cli/40-agent-lock.out`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Re-driven 2026-11-09 (scheduled maintenance), tree `0d3d29cd27` (origin/main, v0.493.0), bare lane on 18145 (dummy `OM_API_KEY`, dead service URLs) with a scripted fake model on 18144. `agent list --lock --format json` (plugin rows with digests). `init`, `try` and `install` were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-maint-20261109/r1/`.*
 
 *Re-driven 2026-11-09 (nightly), tree `5bfa0ccf6` (origin/main, v0.492.0), guest lane on 18143, booted with no guest 429. on a guest lane plus a scripted fake model: `agent init vomuser`, `agent list --lock`, `agent try` (`no-bare-ack` pass). Not re-driven: tamper restore, scopes, trust, install. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261109/r1/` (`cli/95-97`).*

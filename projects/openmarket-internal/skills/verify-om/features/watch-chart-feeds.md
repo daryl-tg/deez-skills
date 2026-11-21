@@ -1,5 +1,7 @@
 # Watch charts on their watch's feed
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal). Heading only: `Driving it` is now `Driving it with control-om`, the map's contract. Source strings spot-checked clean (`feed_push_outbox.auto_feeds`, `keeps its snapshot: feed_quota`). Nothing driven: it needs a signed-in relay account at its feed limit.*
+
 *Verified: 2026-11-20, merged main `2d01b6b5d4`, relay `9199a77`, collab `18845f6`, on local rigs with the made-up account `@rig`. Two slices touched this surface while proving other features. Driven: a new watch's chart series pushed from chat stayed a snapshot, the lane made the watch's relay feed within a minute, and a second push stored the `FEED` record on `@rig/watch.<slug>` in the rig's collab. An account was filled to the real relay's free limit of 25 feeds with `om feed append`, and `om feed delete` removed a chart series' feed. Not driven: `realign`, `legacy-title`, and the `slot-reclaim` sweep, which the fill run did not look for. Evidence `~/Documents/dev-notes/om-2026-11-20-e2e-verify/run-artifacts/s2/phaseB/c12-*.txt` and `run-artifacts/s3/evidence/c12-feed-delete.txt`, `c13-feed-quota.txt`. Galleries `http://127.0.0.1:8098/om-1120-e2e/s2/` and `http://127.0.0.1:8098/om-1120-e2e/s3/`.*
 
 *Verified: 2026-11-17, live on a signed-in daemon (`@dboon333`, free-tier relay scope of 25 feeds) built from PR #2573's first commit (`8c3e1eb75d`). Merged 2026-11-18 as `b935174603`. The realign and the title rewrite were driven live. The quota-triggered slot reclaim in the merged code was not driven live, because the home was already under its limit; its deletion set was proved by the first commit's live run and by replaying the merged code on a copy of the home database. Evidence: `http://127.0.0.1:8098/om-chart-series-adapt/r1/`.*
@@ -16,7 +18,7 @@ A charted watch's series loads from the watch's relay feed (#2475), titled by wh
 
 Nothing to run. Charts made before #2475 move at their watch's next reading. A blank chart behind `keeps its snapshot: feed_quota` in `runner.log` converts once a sweep frees a slot.
 
-## Driving it
+## Driving it with control-om
 
 ### Read the state
 

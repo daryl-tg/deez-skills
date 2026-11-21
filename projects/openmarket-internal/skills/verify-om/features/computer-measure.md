@@ -1,5 +1,7 @@
 # Measuring the daemon's browser
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `computer stats` printed `No browser step in the last 24h.` Not re-driven: the stress harness, the benchmark, `compare`, the eval area. (`cli/40-computer-stats.out`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Re-driven on main 2026-11-13 (nightly), tree `298c469dd7`: `computer-stress.ts --tasks 12 --windows 3 --workers 3 --port 18188` passed all seven rules with exit 0 (12 tasks done, 9 waited, waits p50 7061 ms, max 11099 ms, `Errors: none`), and `check` on the saved records gave the same seven passes. `om computer stats` on an unused lane reads `No browser step in the last 24h.` Not re-driven: the benchmark, `compare`, the eval area. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261113/r1/` (`cli/12-computer-stress.txt`).*
 
 *On main since 2026-11-12: PR #2466 merged as `e93fe5abac`. The loopback helper is now `packages/cli/src/shared/computer-loopback.ts`. Not yet re-driven on main. Tier 3 has real-model numbers only from before the asks named the browser.*

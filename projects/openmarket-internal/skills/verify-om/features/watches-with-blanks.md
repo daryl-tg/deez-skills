@@ -1,5 +1,7 @@
 # Watches with blanks (install a copy, change it, open blanks, repair)
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `om want --help` prints the root help with exit 0: `want` is still not a command on main, and source holds no `--refill-source`, `--keep-source` or `--follow-source`. Nothing else driven. (`cli/40-want.out`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Paid-validated 2026-11-20 on `eb714b64b4` (Opus 5.5: harness 14/15, om tiers no regression vs main, real-model two-account e2e 8/8; `http://127.0.0.1:8098/generic-watches-20261105/r8/`).*
 
 *Verified 2026-11-19 on local/generic-watches-onmain `07c7565854` (two-account lanes 18140/18142, registry 18133): recipes 18 to 21; evidence `http://127.0.0.1:8098/generic-watches-20261105/r7/` (approved). Still unmerged.*

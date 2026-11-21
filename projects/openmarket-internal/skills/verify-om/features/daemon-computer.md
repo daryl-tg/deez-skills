@@ -1,5 +1,7 @@
 # The daemon's own browser
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `computer status --format json` (`computer: off`, `asks: never`, the driver and Chrome found), `computer sources` (`No source has needed om's browser yet.`), and the dashboard Computer page (`Windows`, a disabled `Take over`). Not re-driven: `computer on`, the tools, windows, the queue, history, a blocked source read. (`cli/34-computer.out`, `cli/40-computer-sources.out`, frame 02.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Re-checked 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`: `computer status` (`Computer: off`, the driver and Chrome rows, `Windows: 0 of 4 in use`), `computer stats` `No browser step in the last 24h.`, the dashboard Computer page, and a held feed watch's row offering `om's browser can read it` with `FIX om computer on`. The switch and every browser tool were not re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/86`, `cli/h3`, frame 07).*
 
 *Re-driven 2026-11-18 (nightly), tree `db4ba5c6e2` (origin/main, v0.496.0+internal), guest lane on 18188 with `OM_COMPUTER_ALLOW_LOOPBACK=18112`, computer turned on from a private tmux (the daemon installed the headless shell 157.0.8103.78 in 9 s). First live proof of #2563's named check: a loopback feed answering `403` with `cf-mitigated: challenge` and the title `Just a moment...` was escalated to the browser at 19:29:59Z, waited out for about 15 s, and held at 19:30:14Z with the lane log `[browser-read] 127.0.0.1: 127.0.0.1 asks for a human check (Cloudflare wait page); held from the browser`. `computer sources` read `http://127.0.0.1:18112  held`, `Last: 03:30 through the browser, human check`, `Held: http://127.0.0.1:18112/rss until 04:00 (human check, Cloudflare wait page)`; `watch show` `FAULT feed 127.0.0.1: stub feed: needs a human check since Nov 18 03:30 · 127.0.0.1 asks for a human check (Cloudflare wait page)` / `FIX om computer pass http://127.0.0.1:18112/rss`. Without the loopback switch the same read fails `om's browser could not read it (private address)`. The dashboard Computer page still shows no source row. Not driven: agent windows (names, `read_only`, `allowed_sites`, `computer_bot_check`; they need a model turn), a self-clearing check that clears, the per-site caps (#2531), `page_read` through the browser. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261118/r1/` (`cli/computer-bot-check.txt`, `02-dash-computer.png`).*
@@ -69,17 +71,7 @@
 - Two firings of one watch show as two runs in history.
 - A form on a public page that posts to a loopback listener sends nothing.
 
-## Gotchas
-
-- Typing through the dashboard's live view reaches the owned window and not a clean one. Clicks reach both.
-- A run started by a second room member cannot be staged on a bare lane. The refusal is unit-tested.
-- A real login with a second factor, a visible window from a launchd-started daemon, and the live view on an auth-enforcing bind have not been driven.
-- Linux, Windows, a machine with no Chrome, and driver versions above 0.33.2 have not been driven.
-- No live eval area covers how a real model chooses these tools.
-- A click is not floored: on a signed-in site with a saved card, `Buy` rides only the skill's rule. The payment-field floor stops typing, not `select` or the browser's autofill.
-- Since 2026-11-12 the PR is one level of a stack: main, #2465 database fix, #2442, #2466, #2448, #2451, #2453. Rebasing any level can merge its changelog entry into a released section; check it sits under `[Unreleased]`.
-
-## Live pass on the real daemon (2026-11-13, Grok 4.3)
+### Live pass on the real daemon (2026-11-13, Grok 4.3)
 
 Proven live:
 
@@ -100,14 +92,14 @@ Known defects, not fixed (recorded before #2563, whose keeper sweep may retire t
 
 Pending proof: the card-field floor on a public checkout page, `om computer off` mid-run, the dashboard live view.
 
-## Blocked sources read through the browser (#2481, on main since 2026-11-13)
+### Blocked sources read through the browser (#2481, on main since 2026-11-13)
 
 What it is: a feed or page source whose host challenges or refuses the plain fetch reads its own address through om's browser, before Firecrawl, with no model call. Since #2501 there is no separate setting: `computer.sources` is gone (`om config get computer.sources` exits 2 `unsupported config key`), and `om computer on|off` covers source reads and agent use together. Since #2501 and #2524 the site's route is remembered: polls go straight to the browser, the plain fetch is tried again after 5 minutes, then 10, 20, 40 and every 60, and one direct success sends the source back to the plain fetch. The route is a database row and survives a restart. Source reads run in om's own `sources-1`/`sources-2` browsers, two at a time at most, take no agent window and leave `om computer history` empty. Since #2563 a read gets 15 s, or 25 s when it meets a check; a self-clearing check (Cloudflare's wait page: a `403`/`503` with `cf-mitigated: challenge`, or a `Just a moment...` title with no widget) is waited out for 15 s, and an interactive one (a checkbox, PerimeterX, DataDome, Akamai, Imperva, AWS WAF, reCAPTCHA, hCaptcha, an access-denied or verification page) is held at once. Vendor words live in `shared/bot-check-words.ts`. Since #2531 (source only): a 429 holds the whole site from the browser for `Retry-After` (at most 6 h), else 30 min doubling to 6 h; a site gets 60 browser reads an hour, past which the read fails `source_site_budget`; one site may take at most 8 of the 32 waiting reads; at 800 MB across both source browsers the second closes after its read; and `page_read` retries a refused page once through the browser (`read_through: browser`, never Firecrawl).
 
 - `om computer sources` lists each routed origin: `<origin>  browser|direct`, `Last: HH:MM through the browser|direct, ok`, `Today: N through the browser, M direct`, `Next direct try: HH:MM` while it routes to the browser, `Held: <address> until HH:MM (human check, <check words>)` (driven 2026-11-18: `(human check, Cloudflare wait page)`, a 30-minute hold) or `(refused)`, and since #2531 `Held: rate limited until HH:MM` and `Browser budget used: 60 this hour` (source only). With none: `No source has needed om's browser yet.`
 - `om computer pass <address>` opens the address in your window to pass a human check by hand (source only).
 
-### Blocked-source route on a lane (added 2026-11-17)
+#### Blocked-source route on a lane (added 2026-11-17)
 
 Proved with a loopback stub whose challenge spares the browser, so the plain fetch is refused and the browser read is served:
 
@@ -139,3 +131,13 @@ Proven live 2026-11-13: Ars Technica, VentureBeat and Product Hunt feeds served;
 Lane notes: see the lane recipe above. A computer switched on in a lane makes its daemon download the headless shell into the lane home; delete the lane home afterwards.
 
 Pending proof: a page source (not a feed) through the browser, and the hand pass (`om computer open`, pass the check, `om computer release`) letting a held source read again.
+
+## Gotchas
+
+- Typing through the dashboard's live view reaches the owned window and not a clean one. Clicks reach both.
+- A run started by a second room member cannot be staged on a bare lane. The refusal is unit-tested.
+- A real login with a second factor, a visible window from a launchd-started daemon, and the live view on an auth-enforcing bind have not been driven.
+- Linux, Windows, a machine with no Chrome, and driver versions above 0.33.2 have not been driven.
+- No live eval area covers how a real model chooses these tools.
+- A click is not floored: on a signed-in site with a saved card, `Buy` rides only the skill's rule. The payment-field floor stops typing, not `select` or the browser's autofill.
+- Since 2026-11-12 the PR is one level of a stack: main, #2465 database fix, #2442, #2466, #2448, #2451, #2453. Rebasing any level can merge its changelog entry into a released section; check it sits under `[Unreleased]`.

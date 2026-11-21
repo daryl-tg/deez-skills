@@ -1,5 +1,7 @@
 # Feed heartbeat and chart reconnect
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `/healthz` `loops` listed `feed-heartbeat` and `feed-quiet`, both `inactive`, `not signed in`, `stallAfterMs` 900000, with one enabled inbound watch and after all three watches were paused. The no-watch reason string is corrected from source. Not re-driven: the heartbeat against a relay, the chart reconnect. (`cli/40-*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Verified: 2026-11-11 (nightly), tree `0ad4768f66` (origin/main, v0.494.0); #2446 merged as `1570839e71`. The heartbeat half was re-driven on main: a lane on 18185 with a seeded username home against a stub relay on 18186. The lane read `inactive`, `no enabled inbound watch` at boot; one push logged head, declare and rows for `nightlyuser/watch.hb-probe-20261111`; `POST …/heartbeat` arrived at boot + 5 min and the lane read `ok`; after `watch pause` the next pass sent nothing and the lane read `inactive` again. A guest lane with an enabled inbound watch reads `inactive`, `not signed in`. Not re-driven on main: the chart reconnect half. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261111/r1/` (`cli/heartbeat-watch-show.txt`).*
 
 *Driven 2026-11-10 on PR #2446's branch (`2f40f65774`), one lane on 18160 against two local stubs: a relay on 18161 and a chart gateway on 18171. All stopped.*
@@ -8,7 +10,7 @@ Two daemon behaviours with no visible surface of their own, proven through stubs
 
 ## Sub-features
 
-- `feed-heartbeat`: the daemon sends each enabled inbound watch's relay feed a heartbeat every 5 minutes, so its chart panes stop reading offline between pushes. A paused watch gets none. `/healthz` lists the lane as `feed-heartbeat`, with `inactive` and a reason when it has nothing to do (`no enabled inbound watch`, `not signed in`, `no account username`).
+- `feed-heartbeat`: the daemon sends the relay feed of each enabled watch that holds one (an inbound watch, or a watch a chart holds a series of) a heartbeat every 5 minutes, so its chart panes stop reading offline between pushes. A paused watch gets none. `/healthz` lists the lane as `feed-heartbeat`, with `inactive` and a reason when it has nothing to do (`no enabled watch with a feed`, `not signed in`, `no account username`; the first read `no enabled inbound watch` until the loop widened, `packages/cli/src/runner/feeds/heartbeat.ts:30-32`).
 - `chart-reconnect`: a chart connection the gateway closed after the daemon joined (1008, or a same-user replacement) is parked, retried every 10 to 11 minutes, and resumed. `runner.log` names each close, park and resume, and `om chart status --format json` carries `parked` while a chart waits.
 - `bars-pane`: an inbound watch's histogram series converts to a saved bars feed pane, as a line does. Not driven.
 
@@ -32,7 +34,7 @@ Nothing to open. Push rows into an inbound watch from a signed-in daemon and lea
 
 1. Start a stub relay that answers `GET …/head`, `PUT` (declare), `POST …/rows` and `POST …/heartbeat` under `/api/v2/feeds/<scope>/<name>` and logs each request.
 2. `control-om up --port <p> --env OM_LEDGER_ORIGIN=http://127.0.0.1:<stub>` plus the dead URLs.
-3. `/healthz` `loops` holds `feed-heartbeat`, `inactive`, `no enabled inbound watch`. On a guest lane the reason turns to `not signed in` at the first pass after an inbound watch exists.
+3. `/healthz` `loops` holds `feed-heartbeat`, `inactive`, `no enabled watch with a feed` (source, 2026-11-22; it read `no enabled inbound watch` when driven on 2026-11-11). A guest lane reads `not signed in`: on 2026-11-22 it read that with an enabled inbound watch and again after every watch was paused, with `lastBeatAt` still at boot.
 4. `watch create probe --inbound`, `watch edit probe --classifier-mode accept_all`, `event push probe --text reading --values '{"aqi": 40}'`. The stub logs head, declare and rows for `<user>/watch.probe` within seconds.
 5. The lane passes at boot and every 300 s. Seen: `POST …/watch.probe/heartbeat` at boot+5 min and boot+10 min, loop `ok`.
 6. `watch pause probe`. The next pass sends nothing and the loop reads `inactive` again.

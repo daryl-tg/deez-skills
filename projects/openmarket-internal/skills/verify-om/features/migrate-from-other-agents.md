@@ -1,5 +1,7 @@
 # Import another agent's setup
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `migrate hermes --source <the repo's hermes fixture> --dry-run --format text` printed `Plan: nothing written yet`, the source and target, and `create` rows, and wrote nothing. Not re-driven: `--yes`, openclaw, grok-bot, a second run's skips. (`cli/85-migrate.out`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Re-checked 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`: `migrate hermes --dry-run` exits 2 `migrate_source_missing` `No Hermes setup at <home>/.hermes.` with the `--source <path>` hint. Nothing else re-driven. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/82`).*
 
 *Re-driven 2026-11-16 (nightly), tree `53885683de` (origin/main, v0.495.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` (PR #24's wrapper), booted with no guest 429. The fixture copies: Hermes plan, the refusal without `--yes`, apply (memories, `instructions.md`, `migrate/hermes/event-routines.md`), the `exists` re-run; OpenClaw's plan (`conflict memory About the user`); Grok Bot with `--yes` (`imported (6 items)` after the Hermes import, then `already here; nothing new`); `migrate_source_missing` and an unknown source. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261116/r1/`.*

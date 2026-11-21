@@ -1,5 +1,7 @@
 # The approval ledger from the CLI
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `approvals list --format json` answered `[]` on a lane with no pending row. Nothing else re-driven. (`cli/33-approvals.out`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. Read-only: `approvals list` `No pending approvals.`, `--kind bogus` exit 2 naming `chain | mcp | grant | draft | proposal | repo`, `approvals show nope` and `approve nope` exit 2 `nope is not an approval id`. Not re-driven: a real row, the stream frames, the money and chain paths. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/74-*`).*
 
 *Re-driven 2026-11-15 (nightly), tree `5a4cb146d4` (origin/main, v0.495.0+internal), guest lane on 18185 started through `bootstrap.internal.ts`, booted with no guest 429. Read-only: `approvals list` `No pending approvals.`, `approvals ls --format json` `[]`, `--kind bogus` exit 2 now naming six kinds (`repo` is new since #2450), `--kind repo --format json` `[]`, `approvals show nope`, `approve nope` and `deny apr_doesnotexist` each exit 2, `GET /rpc/v1/approvals/inbox` with six `byKind` zeros and `GET /rpc/v1/approvals` `{"approvals":[]}`. Not re-driven: seeded rows, `deny` on a real row, the stream frames. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261115/r1/` (`cli/06-approvals.txt`).*

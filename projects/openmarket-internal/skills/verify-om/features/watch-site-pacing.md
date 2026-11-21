@@ -1,5 +1,7 @@
 # Watch site pacing (`om watch pacing`)
 
+*Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `watch pacing --format json` answered `{"sites": []}` on a lane that met no 429. Not re-driven: a learned pace, its store, a restart. (`cli/32-watch-pacing.out`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
+
 *Verified: 2026-11-18 (nightly), tree `db4ba5c6e2` (origin/main, v0.496.0+internal), guest lane on 18188 started through `bootstrap.internal.ts` with `OM_FEED_ALLOW_LOOPBACK=1` and `OM_FEED_POLL_INTERVAL_MS=60000`, a scratch loopback feed stub on 18111 that answers `429` with `Retry-After: 1` while its `mode` file reads `429`. First live proof of #2539 and #2554. Driven: the empty listing, one 429 episode, the runner log's halving lines, the stored `origin_pace` row, the CLI read lagging the daemon by the write window, and the learned pace surviving a lane restart. Not driven: the climb back to 60 a minute, the 7-day drop, the `article_reads` and `link_decoder` scopes (Google News only), the paced status rows on `watch show`, several feeds sharing one site. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261118/r1/` (`cli/watch-pacing.txt`).*
 
 om learns how fast each site lets its watches read it and spreads every feed on that site across the learned rate. A person sees which sites are throttling their watches and how often each feed on them is read.

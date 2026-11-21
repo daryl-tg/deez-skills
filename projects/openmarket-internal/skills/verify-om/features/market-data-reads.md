@@ -1,5 +1,7 @@
 # Market data reads
 
+*Re-driven 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, the guest sign-in minted at boot. `coins`, `exchanges`, `enum`, `metric list` (65 metrics), `block-sizes` (310 sizes), `resolve BTC` (bound to Hyperliquid `BTC perp`, `match: exact`), `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h`; `tenors` still answers 500 `server_error`. New `venue-reads` sub-feature, first live proof: `hyperliquid dexes` lists ten HIP-3 dexes with no pairing; `hyperliquid balance` and `polymarket-account balance` exit 4 `venue_not_paired`; `polymarket platform-summary` and `polymarket leaderboard` exit 2 `tier_forbidden` for a guest; `normalized-symbols` with no `--type` exits 2 `invalid_options`; `option-chain DERIBIT BTC` and `instruments BINANCE_FUTURES BTCUSDT` exit 2 `invalid_query` off the v3 transport. Not re-driven: `markets`, `symbols`, `usage`, `metric get|series|screen`, the v3 transport, expiry filters. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/` (`cli/31-*`, `cli/84-points.out`, `cli/91-*`).*
+
 *Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, the guest sign-in minted at boot. `coins`, `exchanges`, `markets --symbol-filter BTC --page-size 2`, `usage` (600 a window, 300,000 a day), `block-sizes`, `metric list`, `points … --interval HOUR --lookback 3h`; a 9-day `points` read is `tier_forbidden` (`time range exceeded`); `tenors` still answers 500 `server_error`. Not re-driven: the v3 transport, expiry filters, Polymarket reads. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/10-md-*`).*
 
 *Re-driven 2026-11-20 (nightly), tree `ba18e48ef3` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, the guest sign-in minted at boot. `coins`, `exchanges`, `markets --symbol-filter BTC --page-size 2`, `usage` (600 a window, 300,000 a day), `block-sizes`, `metric list` and `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE_FUTURES --raw-symbol BTCUSDT --interval HOUR --lookback 3h` returned live data. First live proof of the guest history depth #2600 states (7 days): `--interval DAY --lookback 6d` answers and `--lookback 9d` is `tier_forbidden` `403 Forbidden: time range exceeded`. `--type OHLCV` is still `is not a valid value`, `tenors` still 500, and `instruments` without `OM_DATA_TRANSPORT=v3` is `invalid_query`. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261120/r1/` (`cli/51-market-data.txt`, `cli/54-guest-history-depth.txt`).*
@@ -58,6 +60,13 @@ lane's machine-minted key is enough for them.
   `metric screen` evaluates a metric across a symbol set.
 - `data-resolve` turns a phrase into order-ready venue/symbol fields;
   chart symbol lookup is a separate directory read.
+- `venue-reads` (added 2026-11-22): what the venue verbs answer before any venue is paired.
+  - `hyperliquid dexes --format json` is public: `{dexes: [{name, index, fullName, deployer}]}`, ten HIP-3 dexes on 2026-11-22 (`xyz` first).
+  - An account read exits 4 with `venue_not_paired` (driven: `hyperliquid balance` and `polymarket-account balance`; the other account reads are not driven): `Hyperliquid is not paired. Connect it: /setup in om chat, or `om setup hyperliquid` in a terminal. ...` (the same sentence names Polymarket).
+  - `polymarket platform-summary` and `polymarket leaderboard` exit 2 `tier_forbidden` (`403 Forbidden: type not permitted`) on a guest plan; the other analytics reads are not driven.
+  - `option-chain <exchange> <underlying>` and `instruments <exchange> [symbols...]` exit 2 `invalid_query` when the data transport is not v3; the hint names `om config set data.transport v3`.
+  - `normalized-symbols` needs at least one `--type <data-type>`: without it, exit 2 `invalid_options`, `types: requires at least one type`.
+  - A paired venue's reads, every order verb and `hyperliquid leverage|transfer|margin` are not driven: they need a venue account, and the lane has none.
 
 ## How to get to it (user POV)
 
