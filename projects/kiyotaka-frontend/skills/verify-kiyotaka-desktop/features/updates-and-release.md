@@ -24,6 +24,7 @@ version on tree `92f4a841ef` (`origin/main`, 2026-11-21) is 0.1.11 (`bbeb2ee20e`
 read `{ "mode": "off" }`, and `beta/beta-mac.yml` and `beta/beta.yml` answered 404; the feed does not say whether that
 Windows installer is signed. On 2026-11-21 `release-tag.mjs --main` still read the feed as naming 0.1.11
 (`DESKTOP_ALREADY_RELEASED=1`); the feed files themselves were not re-read. The update round trip was last driven
+2026-11-24 on tree `5a11c4970d` (`origin/main`; `desktop/` 0.1.11), on its own after `notify` (100 s with both packs, locked console, feed on `18150`): 15 of 15, `launchCheckReadBetaFeed` green this time. The same night the package suite ran 40 files and 477 tests in 2.3 s (the new one in `checkout-return.test.ts`), the `publish-r2.sh` dry run printed 13 upload lines and exit 0 under `/bin/bash`, and `release-tag.mjs --main` gave the same five reads as 2026-11-20. Before that, driven
 2026-11-21 on tree `92f4a841ef` (`origin/main`; `desktop/` 0.1.11), on its own after `notify` (102 s with both packs, on
 the locked console, feed on `18150`): 14 of 15, `launchCheckReadBetaFeed` red with `launchRequests` `GET /policy.json`
 before `GET /beta-mac.yml`, to the same Squirrel.Mac refusal (`desktop: update not staged 0.1.0-beta.2`). The restart

@@ -13,7 +13,7 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-21 on product tree `92f4a841ef`
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-24 on product tree `5a11c4970d` (`origin/main`; `desktop/` 0.1.11; `crash.mjs` unchanged): 34 of 34 in 44 s on the first run, on the locked console. Before that, driven 2026-11-21 on product tree `92f4a841ef`
 (`origin/main`; `desktop/` 0.1.11; `crash.mjs` unchanged, and `a2c0975b7b` moved the shell's `quitting` mark to module
 level for the [leave guard](./leave-guard.md) without changing when a death counts) by the `crash` scenario, run on its
 own under a 300 s watchdog with the console session locked, at a load average of 6 to 13 on 10 cores: 34 of 34 in 44 s
@@ -117,7 +117,8 @@ Preconditions:
 - The frames show the stub chart's title ("Stub chart") or its `127.0.0.1:<port>/chart/` URL, never the real chart.
   A recovery over the real chart has no driver: the lane cannot crash the production page on demand without its stub.
 - The scenario asserts the report reached a page and was acked, using the stub's own `fetch` to its server. The real
-  page's `startDesktopReports` beacon (`sendOwnBudgetBeacon` to `/i/v0/e/`) and its PostHog fields (`$os`, `docRid`,
+  page's `startDesktopReports` beacon (`sendOwnBudgetBeacon` to the app's one event path, `ANALYTICS_CAPTURE_PATH` `/e/` in
+  `src/environment/analytics-capture-path.ts`, since `d4bd244850`; `/i/v0/e/` before, which EasyPrivacy now blocks) and its PostHog fields (`$os`, `docRid`,
   `tabId`) are covered by `tests/utility/desktop/desktop-analytics.reports.spec.ts` only.
 - Crashpad's upload to the real Sentry project is rate-limited to one an hour and only from a release or internal
   build; the lane's dump goes to its own stub endpoint.

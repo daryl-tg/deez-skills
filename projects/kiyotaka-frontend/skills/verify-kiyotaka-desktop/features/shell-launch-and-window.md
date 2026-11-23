@@ -12,7 +12,7 @@ maximized its work area, and they lay out again on a resize, on entering or leav
 unmaximize, and on every display change (`desktop/src/main/view-area.ts`); some Linux desktops (Mint Cinnamon) report a
 content size past the screen, which cut the page's right edge and footer in full screen through 0.1.9. Since
 `a2c0975b7b` a close, a quit, a reload and an update's restart ask first while the page holds a trading session; see
-[leave guard](./leave-guard.md). Last driven 2026-11-21 on product tree `92f4a841ef` (`origin/main`; `desktop/` 0.1.11;
+[leave guard](./leave-guard.md). Last driven 2026-11-24 on product tree `5a11c4970d` (`origin/main`; `desktop/` 0.1.11; `index.ts`, `window-state.ts` and `launch.mjs` unchanged), on the locked console: `window` 9 of 12 in 103 s, its first launch on production a candle frame titled `61,350.01 ▼ BTC-USD` with no guest signup prompt yet, the second instance focused, and the three relaunch checks red on the lock as before; `capture` was not attempted. Before that, driven 2026-11-21 on product tree `92f4a841ef` (`origin/main`; `desktop/` 0.1.11;
 `a2c0975b7b` added the leave guard's close handler to `index.ts`, which asks nothing of a guest chart), with the
 console session locked at a load average of 5 to 14 on 10 cores: `window` on production, run on its own, passed 9 of 12
 in 105 s (the first launch drew `58,244.0 ▲ BTC-USD` with candles and VWAP in `unit-01-chart.png`; the second instance

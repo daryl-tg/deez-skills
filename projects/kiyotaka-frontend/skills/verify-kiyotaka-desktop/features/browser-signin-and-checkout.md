@@ -13,8 +13,17 @@ are never offered inside the shell. In an ordinary browser, super search offers 
 `cf9dbea566`) the same return page also ends a NinjaTrader link that a packaged app started in the browser: it reads
 "Signed in to NinjaTrader. Open OpenMarket to finish linking" for a link to finish, or "NinjaTrader wasn't linked" with
 the reason for one refused, and hands the app its `openmarket://return?id=ninjatrader.<attempt>` record either way.
-Since `2bf8b7cd57` a market-data bag's checkout return (`product=md-bag`) must carry its `bag` id to read as paid. On
-2026-11-21, on tree `92f4a841ef` (`origin/main`; `return.page.vue`, `return-target.util.ts` and
+Since `2bf8b7cd57` a market-data bag's checkout return (`product=md-bag`) must carry its `bag` id to read as paid, and
+since `07dd64063f` the shell keeps that id on the payment-status address it opens. On 2026-11-24, on tree `5a11c4970d`
+(`origin/main`; `desktop/src/main/checkout-return.ts` changed by `07dd64063f`; the four desktop pages, the sign-in
+card, the download gate, `featureCommands.ts` and the NinjaTrader gate unchanged), Chromium on the testnet dev lane
+(`doctor` exit 0, 250 bars) read every page state listed for 2026-11-21 below, with the same words, in one Playwright
+pass; the console was locked. A scratch drive of the packaged dev build on the same lane then proved the shell's fix:
+the paid market-data bag's link landed on
+`/chart/payment-status?product=md-bag&session_id=cs_test_1&bag=0b1c2d3e-aaaa-bbbb-cccc-1234567890ab`, where a guest's
+page read "We could not find this order" for the made-up bag, not "Payment cancelled"; a bag id outside its pattern
+(`bag=bad%20id`) logged `desktop: dropped openmarket://checkout` and left the window where it was; cancelled, portal,
+an unknown kind and a plain paid return read as on 2026-11-21. On 2026-11-21, on tree `92f4a841ef` (`origin/main`; `return.page.vue`, `return-target.util.ts` and
 `checkout-return.util.ts` changed as above; the checkout-return, signin and sign pages, the sign-in card, the download
 gate and `featureCommands.ts` unchanged), Chromium on the testnet dev lane (`doctor` exit 0, 250 bars) read, in one
 Playwright pass: the return page for a sign-in and for an invalid link; the NinjaTrader return's linked state and each
@@ -176,19 +185,20 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   the query, and shows `desktop-checkout-return-invalid` with `desktop-checkout-return-chart` for anything else. Since
   `2bf8b7cd57` a market-data bag (`product=md-bag`) is paid only with its id, `&bag=<id>` of up to 64 letters, digits
   and hyphens: with it the page reads "Payment received"; without it the page reads invalid; with no `session_id` it reads "Checkout cancelled" (live 2026-11-21 on
-  `92f4a841ef`). The link the page then opens carries `bag` (`checkoutReturnLink`, source-read); the shell's own parser
-  (`desktop/src/main/checkout-return.ts`) did not change and drops it (live, see `checkout-shell`).
+  `92f4a841ef` and 2026-11-24 on `5a11c4970d`). The link the page then opens carries `bag` (`checkoutReturnLink`,
+  source-read), and since `07dd64063f` the shell keeps it (live, see `checkout-shell`).
 - `checkout-shell` the shell's `openmarket://checkout` handling: it logs `desktop: checkout <kind>`, brings the window
-  forward (source-read; the drive did not read focus), and for a paid return loads `payment-status?product=<p>&session_id=<id>` in the window; cancelled and
-  portal leave the page as it was, and anything its parser refuses logs `desktop: dropped openmarket://checkout`. Live
-  2026-11-21 on `92f4a841ef` through a scratch drive of the packaged dev build (see Driving): all four, with the window
-  moving from `/chart/` to `/chart/payment-status?product=plus&session_id=cs_test_1`. A cold start's held landing, a
-  real Stripe session and the page's own poll are still undriven. **Product gap, live the same night:** a paid
-  market-data bag's link (`kind=paid&product=md-bag&session_id=...&bag=<id>`) lands on
-  `payment-status?product=md-bag&session_id=...` with no `bag`, because `checkoutLanding` builds the address from
-  `product` and `session_id` only; the page then reads "Payment cancelled" / "Nothing was charged. Open the plans page
-  to start again." (`market-data-bag-return`, `src/pages/PaymentStatus.vue`, `MarketDataBagReturn.vue`: an empty bag id
-  is its cancelled state). Report it; do not read it as the lane's.
+  forward (source-read; the drive did not read focus), and for a paid return loads
+  `payment-status?product=<p>&session_id=<id>` in the window, with `&bag=<id>` when the return carried one; cancelled
+  and portal leave the page as it was, and anything its parser refuses logs `desktop: dropped openmarket://checkout`,
+  a repeated key or a `bag` outside 1 to 64 letters, digits and hyphens among them. Live 2026-11-24 on `5a11c4970d`
+  through a scratch drive of the packaged dev build (see Driving): all four kinds, the window moving from `/chart/` to
+  `/chart/payment-status?product=plus&session_id=cs_test_1`, a paid market-data bag landing on
+  `payment-status?product=md-bag&session_id=cs_test_1&bag=0b1c2d3e-aaaa-bbbb-cccc-1234567890ab` (a guest's page reads
+  "We could not find this order" for the made-up bag; `market-data-bag-return`, `src/pages/PaymentStatus.vue`), and
+  `bag=bad%20id` dropped. On 2026-11-21 on `92f4a841ef`, before `07dd64063f`, the bag's link lost its id and the page
+  read "Payment cancelled". A cold start's held landing, a real Stripe session and the page's own poll are still
+  undriven.
 - `download-door` super search's `super-search-result-featureCommands:desktop-app-btn` "Download the OpenMarket desktop
   app" in a browser. The profile-menu row is signed-in only (a guest's profile button opens sign-in). Hidden in the shell, live on
   2026-11-09 (`27fb2d4621`, scratch Playwright drive of the unpackaged shell on the dev lane): super search for "desktop app" read "No results found" with no `desktop-app` row, and the
@@ -238,9 +248,11 @@ Preconditions:
   does. Read the shell's `desktop: checkout <kind>` or `desktop: dropped openmarket://checkout` line, then
   `globalThis.openmarketShell.page().getURL()` from `app.evaluate`. Links: `openmarket://checkout?kind=cancelled&product=plus`,
   `?kind=portal`, `?kind=bogus`, `?kind=paid&product=plus&session_id=cs_test_1`, and the bag,
-  `?kind=paid&product=md-bag&session_id=cs_test_1&bag=0b1c2d3e-aaaa-bbbb-cccc-1234567890ab`. A guest's payment-status
-  page read "Confirming your payment" for the made-up session; nothing is charged. Report
-  it as a scratch drive.
+  `?kind=paid&product=md-bag&session_id=cs_test_1&bag=0b1c2d3e-aaaa-bbbb-cccc-1234567890ab`, and a refused bag,
+  `?kind=paid&product=md-bag&session_id=cs_test_1&bag=bad%20id`. A guest's payment-status page read "Confirming your
+  payment" for the made-up plus session and "We could not find this order" for the made-up bag; nothing is charged.
+  Read the URL six seconds after each link: a dropped link leaves the previous one's address. Report it as a scratch
+  drive.
 - **No passkey in the shell.** `control-kiyotaka-desktop capture <dir>/shell-login-prod.png --prod --path '?login=1'`
   shows no Passkey pill; the same dialog in Chromium (`browser ... click '[data-testid="profile-guest-mode-btn"]'`)
   shows one.
@@ -312,10 +324,9 @@ Preconditions:
   not the page: on 2026-11-01 the invalid return page and the expired sign request both read empty that way on the
   first pass, and read correctly after two polls when `tab t1` ran before every poll. Re-front before each read, not only
   before the screenshot.
-- A paid market-data bag bought from the desktop app is shown as cancelled (2026-11-21, `92f4a841ef`): the page side
-  (`2bf8b7cd57`) sends `bag` on the `openmarket://checkout` link, and the shell's `checkoutLanding`
-  (`desktop/src/main/checkout-return.ts`, unchanged since 0.1.7) leaves it off the payment-status address. Until the
-  shell carries it, expect "Payment cancelled" on that landing and report the gap; in a browser the same return keeps
-  its `bag` and polls the order.
+- A shell older than `07dd64063f` shows a paid market-data bag as cancelled: its `checkoutLanding` leaves `bag` off the
+  payment-status address, and an empty bag id is the page's cancelled state (live 2026-11-21 on `92f4a841ef`; fixed
+  and live 2026-11-24 on `5a11c4970d`). A released 0.1.11 build predates the fix, so read the build before reading
+  "Payment cancelled" after a bag's paid return as a regression.
 - No lane signs in through the browser end to end. `open 'openmarket://oauth/callback?...'` with no pending sign-in only
   logs `desktop: sign-in return dropped, none-pending`.

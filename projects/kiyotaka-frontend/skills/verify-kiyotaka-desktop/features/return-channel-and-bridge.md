@@ -15,7 +15,7 @@ window shows a chart page. The bridge's members are `version`, `onReturn`, `upda
 return record has a second reader on the page: a NinjaTrader link started in the app comes back as
 `openmarket://return?id=ninjatrader.<attempt>&payload=<base64url>`, and the page that waits on that attempt redeems it
 (see [sign-in](./browser-signin-and-checkout.md) `ninjatrader-link-shell`; the shell's parser and the record's shape
-did not change). Last driven 2026-11-21 by the `returns` scenario on tree `92f4a841ef` (`origin/main`; `desktop/`
+did not change). Last driven 2026-11-24 by the `returns` scenario on tree `5a11c4970d` (`origin/main`; `desktop/` 0.1.11), on a testnet dev lane warmed to `61,329.77 ▲ BTC-USD` with 250 bars and the console locked: 20 of 21 in 70 s, `bridge.keys` the same seven members, `bridgeTwoMembers` the one red. Before that, driven 2026-11-21 by the `returns` scenario on tree `92f4a841ef` (`origin/main`; `desktop/`
 0.1.11), on a testnet dev lane warmed in Chromium to `58,204.20 ▼ BTC-USD` with 250 bars, with the console session
 locked: 20 of 21 in 70 s with its pack, `bridgeTwoMembers` the one red, `bridge.keys` now seven members (`analytics`,
 `browserSignIn`, `holdsSession`, `onReturn`, `reports`, `updates`, `version`), and `unit-03-return.png` showing the

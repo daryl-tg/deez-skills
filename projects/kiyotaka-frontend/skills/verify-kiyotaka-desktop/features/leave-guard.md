@@ -11,7 +11,7 @@ Every other close and quit goes at once with no question, as before the guard. T
 bridge's `holdsSession` member (`a2c0975b7b`, after `cf9dbea566`); the shell forgets it when a new document commits or
 the page's process dies. Sources: `desktop/src/main/leave-guard.ts`, `desktop/src/main/index.ts`,
 `desktop/src/preload/index.ts`, and on the page `src/store/futures-session.ts` (`tellShellHolding`, `holdsRows`); the
-contract is `docs/features/desktop/desktop-shell.md#leaving-a-page-that-asks-to-stay`. First driven 2026-11-21 on
+contract is `docs/features/desktop/desktop-shell.md#leaving-a-page-that-asks-to-stay`. Last driven 2026-11-24 on product tree `5a11c4970d` (`origin/main`; `desktop/` 0.1.11; `leave.mjs` and `leave-guard.ts` unchanged): `leave` 19 of 19 in 9 s on a stub chart, on the locked console; the scratch drive over the real chart was not repeated. First driven 2026-11-21 on
 product tree `92f4a841ef` (`origin/main`; `desktop/` 0.1.11), with the console session locked at a load average of 5
 to 14 on 10 cores: the `leave` scenario, run on its own, passed 19 of 19 in 10 s on its first run, on a stub chart.
 The same night a scratch drive of the unpackaged shell on the dev lane's real chart (`58,238.74 ▼ BTC-USD`) passed 11
