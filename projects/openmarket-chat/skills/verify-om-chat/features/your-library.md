@@ -47,7 +47,7 @@ present in this lane; Archive is the newest. **`?lens=agents` renders on both
 hosts since `e7c375ce`.** It crashed on `/rooms/` through 2026-11-03 ("Your
 Library could not load", `TypeError … reading 'tone'` in `LibraryPersonaCard`):
 the shell fixture never stubs `session.libraryDaemon`, so the autofill proxy
-answers `INERT` (`shell-fixture.tsx:2716-2721`), `LibraryView.tsx:6967` takes the
+answers `INERT` (`shell-fixture.tsx:2733-2738`), `LibraryView.tsx:6967` takes the
 `ready` branch, and `personaStatusPresentation` matched no state. It now has a
 `default` branch, "Unknown status" (`LibraryView.tsx:6164-6196`), and the
 production client no longer rejects unlisted states (`src/lib/om-daemon.ts:1393`
@@ -84,7 +84,7 @@ agent-browser open "$(control-om-chat url \
   'tools/visual/shell-fixture.html?view=room&alerts=quiet&panel=library&scope=server')"
 ```
 
-`?scope=server` selects the server tab at boot (`shell-fixture.tsx:234`). A
+`?scope=server` selects the server tab at boot (`shell-fixture.tsx:240`). A
 five-observation proof, each step verified live on lane 18116:
 
 ```bash
@@ -115,15 +115,15 @@ across the collapse. A proof that asserts on the route will see nothing happen
 and call it broken; assert on `data-library-presentation`.
 
 Other seeding routes confirmed present in the fixture: `?docs=500` (a
-1337-doc corpus, `shell-fixture.tsx:289`), `?list=flat` (**not sticky** — it
+1337-doc corpus, `shell-fixture.tsx:295`), `?list=flat` (**not sticky** — it
 writes `localStorage["om.chat.libraryList"]` and the `else` branch at
-`:138-139` removes it, so the next load without the parameter clears it;
+`:144-145` removes it, so the next load without the parameter clears it;
 measured live: `flat`, then `null`), `?note=long|wrapped`, and
-`?libraryState=error` (`:4397`, applied only while the active view is library).
+`?libraryState=error` (`:4430`, applied only while the active view is library).
 
 ### Import folder and the library to-dos lens (added 2026-10-27)
 
-- **Import folder:** `shell-fixture.html?view=home&alerts=quiet&homeImport=open` opens dialog **Import folder into Your Library** on `/rooms/`. On `/chat/` the same URL showed no dialog. `import=<phase>` (`shell-fixture.tsx:4349`) seeds later phases, which were not driven.
+- **Import folder:** `shell-fixture.html?view=home&alerts=quiet&homeImport=open` opens dialog **Import folder into Your Library** on `/rooms/`. On `/chat/` the same URL showed no dialog. `import=<phase>` (`shell-fixture.tsx:4382`) seeds later phases, which were not driven.
 - **No conversation To-dos panel.** `05df35a7` removed it, its cached skeleton, the promote popover and the create dialog. The shell's `?panel=todos` mounts the lazy surface `Tickets` (`lazy-surfaces.tsx:233-236`) only on a Projects server (`RightPanels.tsx:446-447`). On a bare fixture it opens nothing: no aside, and no "could not load" text. With the Projects stub it is the **Tickets in #ops** panel. Both were driven 2026-11-15 on both hosts. The gallery's `fixture.html?surface=conversation-qol` now shows only the `#product-feedback` conversation, with no to-dos tab and no **Add a to-do** (driven 2026-11-15, both hosts).
 
 - **Library to-dos lens per host:** `?view=library&lens=todos` routes to `#/library/todos` on `/rooms/`, where the **Todos** heading reads **2 open** and lists "Review the launch checklist" and "Share the customer notes" (driven 2026-11-15). Since `f6a1c31b` the count is the open tasks the lens lists. On `/chat/` it routes to `/chat/library/todos` and shows the cloud fixture's own seed instead: a **Todos** heading with **1 open** beside it and "Share the customer notes". The two read as "Todos · 1 open" on screen but are separate text nodes, so `innerText.includes("Todos · 1 open")` is false; assert "1 open" and "Share the customer notes" (re-measured 2026-11-02 on `/chat/`). Both seeds are fine; assert the right one for each host.
@@ -140,13 +140,13 @@ press the ContextMenu key (`LibraryPanel.tsx:699`, `:1197`). Either one opens
 Edit, History, Share..., Copy link, Export as Markdown..., Copy path, Move /
 rename, Make read-only, Archive and Delete. Escape closes it. The full page's
 **More note actions** button and doc links in messages open the same menu
-(`LibraryView.tsx:5518`, `MessageText.tsx:1738`).
+(`LibraryView.tsx:5518`, `MessageText.tsx:1779`).
 
 The verbs are not proved: `setDocReadOnly` and `setDocRestriction` are
 unstubbed. The `/chat/` fixture stubs `openDocMenu` as a no-op
 (`apps/cloud/tools/visual/shell-fixture.tsx:2400`), so no menu opens there.
 The **Set topic index...** picker (`DocIndexPicker.tsx`) has no fixture route
-(`docIndexPicker: null`, `shell-fixture.tsx:4334`).
+(`docIndexPicker: null`, `shell-fixture.tsx:4367`).
 
 Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance; menu on `/rooms/`, absence on `/chat/`). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`doc-menu-*`).
 
@@ -171,7 +171,7 @@ Driven 2026-11-08: the row on `/rooms/`, its absence on `/chat/`.
 The full page's **Today's note ⌘D** button (`[data-library-action="daily-note"]`
 with `data-daily-note-day` set to the local day, `LibraryView.tsx:3226-3234`;
 the add menu lists it as **Daily note**, `:3762`, `:4133`; the `d` key at
-`:1771`) calls `session.openDailyNote()` (`:1602`; `lib/session.ts:36794`),
+`:1771`) calls `session.openDailyNote()` (`:1602`; `lib/session.ts:36806`),
 which the fixture never stubs. On `?view=library&alerts=quiet` the button is
 there with `data-daily-note-day="2026-11-01"`, and clicking it opens nothing:
 no doc pane, no `.library-daily-note` section (`LibraryView.tsx:6541`), no toast, hash still
@@ -208,7 +208,7 @@ Drawing and saving are not proved.
 
 Three fixture seeds render doc-pane states that no other guide covers. Each needs
 `doc=server`: `docState` and `docMode` do nothing without it
-(`shell-fixture.tsx:404-470`), and `doc=journal` cannot reconcile because the
+(`shell-fixture.tsx:414-480`), and `doc=journal` cannot reconcile because the
 conflict model is built against the server doc.
 
 | Route (`shell-fixture.html?view=room&alerts=quiet&doc=server&…`) | What renders |
@@ -222,7 +222,7 @@ conflict model is built against the server doc.
 driven. No fixture seed opens an agent's doc **proposal** in the doc pane
 (`DocProposalInlineReview.tsx:248`, "Review <author>'s proposal for <path>"),
 so the inline review remains live verification pending. The Agents lens does
-seed two proposals (`shell-fixture.tsx:4014-4044`): on
+seed two proposals (`shell-fixture.tsx:4040-4070`): on
 `?view=library&lens=agents` the lens tab's badge reads **2** (driven
 2026-11-22 on `/rooms/`). The Needs-you review door for a library edit is in
 [om-and-agents.md](om-and-agents.md).
@@ -230,8 +230,8 @@ seed two proposals (`shell-fixture.tsx:4014-4044`): on
 ### Live-data blocks and math in a doc (added 2026-11-22)
 
 A fenced ` ```om ` block in a doc is a live query. The reader asks the daemon
-for it (`session.libraryDaemon.renderLiveBlock`, passed in at `DocPane.tsx:1826`)
-and draws one of three things (`DocLiveBlock`, `Markdown.tsx:4178-4270`):
+for it (`session.libraryDaemon.renderLiveBlock`, passed in at `DocPane.tsx:1842`)
+and draws one of three things (`DocLiveBlock`, `Markdown.tsx:4196-4288`):
 
 - **Loading live data...** while it waits.
 - A note, "Live data is unavailable. The authored query is shown instead.",
@@ -242,10 +242,10 @@ and draws one of three things (`DocLiveBlock`, `Markdown.tsx:4178-4270`):
   shows. A ready card re-asks every 60 s while the tab is visible.
 
 A doc runs at most eight live blocks (`LIBRARY_LIVE_BLOCK_LIMIT`,
-`Markdown.tsx:110`); the rest stay authored under a `.doc-live-cap` line.
+`Markdown.tsx:111`); the rest stay authored under a `.doc-live-cap` line.
 
 Math: `$x^2$` inline and a `$$ … $$` block draw through KaTeX, loaded on first
-use (`Markdown.tsx:1317`, `:3770`). TeX that fails to parse stays as typed.
+use (`Markdown.tsx:1318`, `:3788`). TeX that fails to parse stays as typed.
 
 The root fixture leaves `libraryDaemon` out, so the session-capture shim can
 assign it, and `docPane.doc.content` can be rewritten in place:
@@ -272,6 +272,36 @@ block cap and the 60 s refresh were not driven. `/chat/` was not driven (the
 cloud fixture sets `libraryDaemon: null`,
 `apps/cloud/tools/visual/shell-fixture.tsx:2448`).
 
+### Tasks and tables in the doc reader (added 2026-11-24)
+
+- **Ticks.** Since `b3544ca4` a task in a doc you can edit ticks in view mode
+  (`DocPane.tsx:923-936`). The marker is `span.task-list-marker[role=checkbox]`
+  named by the task's text, and a click, Enter or Space calls
+  `session.toggleTaskInDoc(doc, line)`, which paints at once, saves on the
+  head revision with one conflict retry and rolls back with a toast on any
+  other refusal. In edit mode, in history, in an attachment preview and in a
+  read-only doc the markers stay read-only `role=img`.
+- **Tables.** Since `7f67a48f` a table cell keeps its words whole:
+  `overflow-wrap: break-word`, not `anywhere`, in message and doc tables and
+  in the doc editor's table (`styles.css`, `shared/doc-editor.css`). A table
+  wider than its pane scrolls in its own box rather than squeezing columns.
+
+On `/rooms/` (no `/chat/` seed):
+
+```text
+?view=room&doc=server&table=tasks            -> 3 checkboxes (Freeze the branch:false, Draft the notes:true,
+                                                Ping the desk:false); click Freeze -> true
+  &docAccess=readonly                        -> no Edit; 3 role=img markers
+  &docMode=edit                              -> CodeMirror, no checkbox
+?view=room&doc=server&table=events           -> 2 .agent-md tables; td overflow-wrap break-word, word-break normal;
+                                                no word split across lines at 1440 or at 390x844; no page scroll
+  &docMode=edit                              -> .doc-editor-table td: break-word / normal
+```
+
+Driven 2026-11-24 at `9c697d6e` on `/rooms/`. Wait about 6 s after opening
+the `table=tasks` doc before reading the markers; at 3 s they had not mounted.
+A tick conflict and a refused save were not driven.
+
 ## Doc editor Vim mode
 
 With Settings → Keyboard Shortcuts → **Vim mode** on
@@ -280,7 +310,7 @@ editor runs `@replit/codemirror-vim` (`editor/vim.ts`). Its root carries
 `data-vim="on"` and a bottom `.cm-vim-panel` reads `--NORMAL--` or
 `--INSERT--`. Escape changes Vim's mode only; it no longer leaves editing.
 `:w` is the surface's Cmd/Ctrl+S (publish in DocPane, quiet flush in Library) and
-`:q` is **Done** (`DocPane.tsx:2173-2180`). Toggling the setting reconfigures
+`:q` is **Done** (`DocPane.tsx:2191-2198`). Toggling the setting reconfigures
 open editors live. `?view=room&alerts=quiet&doc=journal` opens straight into
 edit mode (**Edit Journal/2026/2026-08-07.md**):
 
@@ -298,10 +328,10 @@ agent-browser eval "$D"                                   # mode "view", editor 
 Send ex commands one key at a time with `press`. `agent-browser keyboard type
 ":w"` inserts the literal text into the document, because it bypasses the Vim
 keymap, even in normal mode. `:w` cannot be proved here. The fixture's
-`session.docs` stub (`shell-fixture.tsx:4115-4191`) has no `publish` method, so
+`session.docs` stub (`shell-fixture.tsx:4141-4217`) has no `publish` method, so
 `:w`, like the **Publish** button, calls a method that does not exist. Driven,
 Publish stayed enabled and `fixtureDocDirty` stayed `true`. (The
-"Fixture publish is not configured" stub at `:4464` belongs to the checkpoint
+"Fixture publish is not configured" stub at `:4497` belongs to the checkpoint
 restore store, not to this pane.)
 
 ## Doc reader select-all
@@ -355,7 +385,7 @@ that already dismissed it never shows it.
 
 ### Note metadata (added 2026-11-09)
 
-`DocMetadataEditor.tsx:292-309`, mounted at `DocPane.tsx:2224` in edit mode when
+`DocMetadataEditor.tsx:292-309`, mounted at `DocPane.tsx:2242` in edit mode when
 the viewer can write, renders a `section` named **Note metadata** with the title
 **Metadata**, "Optional fields for filtering and search.", **Remove metadata**
 (the YAML frontmatter block, `[data-remove-all-doc-metadata]`), **Add field** and
@@ -401,7 +431,9 @@ with its **Edit** control. Driven 2026-11-09 on both hosts; no write was submitt
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the location explainer and its dismissal; the scope tabs; the filter count and **Clear search**; full page and back; the 12-item doc menu; the to-dos, archive and agents lenses (badge 2); **Today's note** (inert); the import dialog; the doc pane's **Edit**, **Version history**, tags and select-all; `docState=reconcile` → **Later**; `docState=history`; `docAccess=readonly`; **Note metadata**; **Spellcheck**; Vim in the doc editor. New: live-data blocks (the note, a refusal, the card) and math. `/chat/` (18187): the to-dos and agents lenses. **Limitations:** doc verbs, the archive content, the daily note and canvas docs were not driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** `/rooms/` (18186): doc reader ticks on `doc=server&table=tasks`, read-only markers with `docAccess=readonly`, none in `docMode=edit`; table cells keeping words whole on `table=events` at 1440 and 390×844 and in the editor table; the core-path re-drive. **Limitations:** a tick conflict and a refused tick save were not driven; `/chat/` has no `table=` seed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the location explainer and its dismissal; the scope tabs; the filter count and **Clear search**; full page and back; the 12-item doc menu; the to-dos, archive and agents lenses (badge 2); **Today's note** (inert); the import dialog; the doc pane's **Edit**, **Version history**, tags and select-all; `docState=reconcile` → **Later**; `docState=history`; `docAccess=readonly`; **Note metadata**; **Spellcheck**; Vim in the doc editor. New: live-data blocks (the note, a refusal, the card) and math. `/chat/` (18187): the to-dos and agents lenses. **Limitations:** doc verbs, the archive content, the daily note and canvas docs were not driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=quiet&panel=library`: the panel mounts with `data-library-presentation="side"` and the **Channel 0 / Server 3** scopes. The library routes mounted in the route smoke on both hosts. **Limitations:** a mount check only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
 

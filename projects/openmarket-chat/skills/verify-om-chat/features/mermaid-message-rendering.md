@@ -31,7 +31,7 @@ agent-browser snapshot -i -c
 
 The DM route is `tools/visual/shell-fixture.html?view=dm&dm=ana&alerts=quiet&mermaid=1`. On both routes, drive the button named `Open Mermaid diagram as PNG`, then check for the named preview region.
 
-Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1037`) shifts when seeds change:
+Linked-message card: on the room route, send a standalone share link to the seeded Mermaid post. At `afabb11c` it is still seq 116, but re-measure, because the fixture's `post()` counter (`shell-fixture.tsx:1047`) shifts when seeds change:
 
 ```bash
 agent-browser find role textbox fill --name 'Message #ops · $ for markets · /chart to post one' 'https://openmarket.xyz/chat/room/ops/msg/116'
@@ -62,7 +62,9 @@ For library documents, use `tools/visual/shell-fixture.html?view=room&doc=server
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186), each in its own session: the inline diagram on `msg-ops-116` inside its viewBox; **Open Mermaid diagram as PNG**, Escape, and Enter on the focused host; a message link drawing the linked card with the diagram, and a link to that card not nesting; the DM diagram and its preview; three diagrams in the `mermaid=labels` doc. `/chat/` (18187): the linked card with the author and no diagram (no seed). **Limitations:** an invalid fence was sent and the row kept its code, but the row also held other icons, so the "no diagram" half was not isolated. Edit Mermaid Source and export were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186), each in its own session: the inline diagram on `msg-ops-116` inside its viewBox; **Open Mermaid diagram as PNG**, Escape, and Enter on the focused host; a message link drawing the linked card with the diagram, and a link to that card not nesting; the DM diagram and its preview; three diagrams in the `mermaid=labels` doc. `/chat/` (18187): the linked card with the author and no diagram (no seed). **Limitations:** an invalid fence was sent and the row kept its code, but the row also held other icons, so the "no diagram" half was not isolated. Edit Mermaid Source and export were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=quiet&mermaid=1`: one `.doc-mermaid` with one `svg` after scrolling it into view. **Limitations:** a mount check only; the forward card and the DM route were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
 

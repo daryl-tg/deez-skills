@@ -151,7 +151,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4776`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4809`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -208,7 +208,7 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2592-2597`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2609-2614`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -709,7 +709,7 @@ code-expired and code-mismatch notes, and a real daemon.
 - **Notifications crashes the shell fixture's whole User settings surface.**
   `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:607`),
   and neither fixture's plain-object `alertsStub` has it
-  (`shell-fixture.tsx:1463`, `apps/cloud/tools/visual/shell-fixture.tsx:540`).
+  (`shell-fixture.tsx:1480`, `apps/cloud/tools/visual/shell-fixture.tsx:540`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
   settings could not load** / **Try again**. Any further page click finds no
   button, and **Try again** returns to My Account. Reload before driving the
@@ -783,7 +783,9 @@ code-expired and code-mismatch notes, and a real daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): theme, palette and accent radios; **Show link previews** writing its key; the chat-background group's empty state; settings search (`vim`, and the no-match copy); the notification volume slider and the unknown time zone note; **Resolve sound**; a role colour swatch; the shortcuts modal; the nav counts (18 on the settings fixture, 19 in the shell) and the **Log Out** confirm. New: Sealed Messages **Copy** and **Approve**, and the muted ticket's reasons through the shim. `/chat/` (18187): the theme radio in the shell's Settings dialog. **Limitations:** Moderation, the avatar and background uploads, push enrollment and the microphone test were not driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** the quiet-hours **Save** state with an unknown time zone was not re-proved: the step found no **Save** button, while "Unknown time zone" showed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): theme, palette and accent radios; **Show link previews** writing its key; the chat-background group's empty state; settings search (`vim`, and the no-match copy); the notification volume slider and the unknown time zone note; **Resolve sound**; a role colour swatch; the shortcuts modal; the nav counts (18 on the settings fixture, 19 in the shell) and the **Log Out** confirm. New: Sealed Messages **Copy** and **Approve**, and the muted ticket's reasons through the shim. `/chat/` (18187): the theme radio in the shell's Settings dialog. **Limitations:** Moderation, the avatar and background uploads, push enrollment and the microphone test were not driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193), `shell-fixture.html?view=settings&settingsPage=secrets` with the people stub and the `/secrets/*` fetch stub: the status box on the `ready`, `restore` and `fresh` seeds, with **Mac** and **computer**; **Link This Mac** with its three steps, the two word-count alerts, the `link/join` post and the waiting state; **No Other Device With Your Keys?**; the **This Mac** chip; **Add a device** with its new copy and the request box. `shell-fixture.html?view=settings&settingsPage=om` is in [self-hosted-model-settings.md](self-hosted-model-settings.md). Every settings route in this guide answered the route smoke on both hosts, with the known blanks (`page=privacy` on both, `host=server&page=moderation` on `/chat/`, and `host=server&page=projects` without the Projects stub). **Limitations:** **Copy**, **Approve**, a finished link and a real daemon were not driven; no other settings page was driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 15-18).
 

@@ -58,8 +58,8 @@ agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=ale
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=room` | Strip firing: `.alert-strip` text `store-5xx · check pods` |
-| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1468-1476`) |
-| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1480-1481`) |
+| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1485-1493`) |
+| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1497-1498`) |
 | `shell-fixture.html?view=room&alerts=quiet` | No strip: use this for every non-alert proof |
 | `fixture.html?surface=alert-card` | The alert card with its four actions |
 
@@ -97,7 +97,7 @@ and **1 ringing** while expanded. Driven 2026-11-19.
 
 ### The board's feed peek (added 2026-11-16)
 
-Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1503`,
+Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1520`,
 `apps/cloud/tools/visual/shell-fixture.tsx:568`), so the bare board shows the
 chart-less peek. `alertsStub` is a plain object, so the session-capture shim
 from [message-actions.md](message-actions.md) can replace the method:
@@ -141,7 +141,7 @@ was not driven.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
   channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:448-458`
   and opened in the product by `session.openAlertsTab`). The fixture's
-  plain-object `alertsStub` (`shell-fixture.tsx:1463`) lacks members the
+  plain-object `alertsStub` (`shell-fixture.tsx:1480`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,
   `setSelectedFeed`, `tapeFeedFilter` and `setTapeFeedFilter`. Which one throws
   first was not isolated. No error boundary wraps the panel, so `#root`
@@ -154,7 +154,9 @@ was not driven.
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the strip **store-5xx · check pods** with **I'm on it**, **Open** and **Dismiss this strip**; `alerts=quiet` removing it; the board (Ring store-5xx, Log relay-latency, **New alert...**, **All alerts**); the ringing sidebar row and the category's **1 ringing** on one line; the alert card gallery. Both hosts: the board's feed peek with a seeded series (30 bars, "67% answered · 3 open · 4m to ack"). `/chat/` (18187): the board and the ringing row. **Limitations:** `panel=alerts`, the claim effect and the category alert mark were not driven. `alerts=amber` showed the same strip text. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the strip **store-5xx · check pods** with **I'm on it**, **Open** and **Dismiss this strip**; `alerts=quiet` removing it; the board (Ring store-5xx, Log relay-latency, **New alert...**, **All alerts**); the ringing sidebar row and the category's **1 ringing** on one line; the alert card gallery. Both hosts: the board's feed peek with a seeded series (30 bars, "67% answered · 3 open · 4m to ack"). `/chat/` (18187): the board and the ringing row. **Limitations:** `panel=alerts`, the claim effect and the category alert mark were not driven. `alerts=amber` showed the same strip text. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193), `?view=room&alerts=board`: with **Desk** collapsed the header reads **1 ringing**, and `.category-separator-count` computes `white-space: nowrap`, `flex-shrink: 0` and one 13.2 px line. The board and gallery routes mounted in the route smoke on both hosts. **Limitations:** no category name long enough to squeeze the count; the count was not measured on `/chat/`; the strip, board and card buttons were not pressed tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/` (frame 16).
 

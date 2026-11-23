@@ -32,7 +32,9 @@ Seed distinct conversations, keep one selected, and append an assistant reply to
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the health stub, `omSessions=daemon`: "Conversations are out of reach" and no unread dot, which is all the fixture lane can show. **Limitations:** every unread behaviour needs an isolated daemon; none was driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the health stub, `omSessions=daemon`: "Conversations are out of reach" and no unread dot, which is all the fixture lane can show. **Limitations:** every unread behaviour needs an isolated daemon; none was driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `?view=agent&omSessions=daemon` with the stubs: "out of reach". **Limitations:** unread rows need a daemon origin. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 

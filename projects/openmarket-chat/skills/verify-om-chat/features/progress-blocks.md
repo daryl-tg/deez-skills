@@ -13,7 +13,7 @@ it.
   regard to case, notes of at most 500 characters, `total` above zero and
   `done` not above `total` (`progress-block.ts:22-24`, `:52`). One bad line
   leaves the whole fence as an ordinary code block. A message draws at most
-  four blocks (`Markdown.tsx:113`, `:3684-3706`).
+  four blocks (`Markdown.tsx:114`, `:3702-3724`).
 - **What is drawn** (`components/ProgressBlock.tsx:36`, `:111-116`). A
   `.md-progress` group named **Progress**. Each row has its name, a
   `role="progressbar"` track named by the row with `aria-valuenow` as the
@@ -31,9 +31,9 @@ it.
   running. Only the footer says so: the row keeps `data-state="running"`, its
   0% bar and its counts. The footer also reads "Updated just now",
   "N min ago", "N h ago" or "N d ago" from the message's edit time, or its post
-  time (`progress-block.ts:119-126`, `MessageRow.tsx:312-313`).
-- **Only message rows draw bars** (`MessageRow.tsx:2637`, `:2680`). Documents
-  keep the code block (`Markdown.tsx:3684`). Per the repo's
+  time (`progress-block.ts:119-126`, `MessageRow.tsx:313-314`).
+- **Only message rows draw bars** (`MessageRow.tsx:2647`, `:2690`). Documents
+  keep the code block (`Markdown.tsx:3702`). Per the repo's
   `docs/feature-map/progress-block.md`, the pins panel, reply previews, the
   forward dialog and the composer also keep it (source only).
 - The authored `pre` stays in the DOM with `hidden`, and the bars mount in a
@@ -100,7 +100,7 @@ Driven 2026-11-21 at `84e88e56` on `/rooms/`, each as one send built in the
 ### On `/chat/`
 
 The cloud fixture does not import `shared/message-markdown.css` (the root
-fixture does, `tools/visual/shell-fixture.tsx:103`; both apps do,
+fixture does, `tools/visual/shell-fixture.tsx:109`; both apps do,
 `src/main.tsx:37` and `apps/cloud/src/main.tsx:40`). Without it the block
 mounts with the right roles and text but no bars: every track is 0 px wide and
 the row reads "Upload50%3 / 6Sending files". Load the sheet through vite
@@ -120,7 +120,7 @@ Then the same send measures 230, 459 and 184 px.
 - Read `aria-valuetext` and `data-state`, not the fill's inline style: the
   width comes from the `--md-progress-value` custom property.
 - An edit that moves a bar animates from the old value
-  (`Markdown.tsx:3694-3699`). The update was driven on 2026-11-21; the
+  (`Markdown.tsx:3712-3717`). The update was driven on 2026-11-21; the
   animation was not seen. The fill's computed transition was `width 1e-05s`
   in the headless browser, and the bar was at its new width 150 ms after the
   save.
@@ -129,7 +129,9 @@ Then the same send measures 230, 459 and 184 px.
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): three bars with their states and footer; the **not started**, paused and stalled rows; **Show more** → **Show less**; a bad count staying code; the four-block cap; an edit moving a bar to 70% with "Updated just now". `/chat/` (18187): two bars with widths once `shared/message-markdown.css` is imported. **Limitations:** the 20-row cap was not re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): three bars with their states and footer; the **not started**, paused and stalled rows; **Show more** → **Show less**; a bad count staying code; the four-block cap; an edit moving a bar to 70% with "Updated just now". `/chat/` (18187): two bars with widths once `shared/message-markdown.css` is imported. **Limitations:** the 20-row cap was not re-driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193): the **not started** footer group for a row at zero, **Show more** / **Show less**, the four-block cap, the 20-row cap and its 21-row fallback, and an edit moving a bar from 30% to 70% with "Updated just now". `/chat/` (18194): the **not started** footer, after importing `message-markdown.css`. **Limitations:** the bar's animation was not observed; the minute and hour footer forms and every surface that keeps the code block (pins, reply preview, forward, documents) are source or unit-tested only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 01, 21, 29-31).
 

@@ -63,7 +63,7 @@ picture to see it large and step through the others with the arrows.
 ## Driving it with control-om-chat
 
 The root shell fixture seeds 31 messages with one image each, and a document on
-every fourth (`tools/visual/shell-fixture.tsx:4573`, `:4649`). The seed needs
+every fourth (`tools/visual/shell-fixture.tsx:4606`, `:4682`). The seed needs
 no query parameter and answers the same for every conversation. Since
 `bc2ffd55` it logs each page it serves on `window.__fixtureAttachmentPages`,
 and `?mediaDelay=<ms>` makes each answer wait, so a proof can count the reads
@@ -147,7 +147,7 @@ retry box.
 
 The page function returns `newest` and `oldest` (added 2026-11-21): the reopen
 merge reads them, as the root seed's pages now carry them
-(`tools/visual/shell-fixture.tsx:4695-4696`). With them, a reopen on `/chat/`
+(`tools/visual/shell-fixture.tsx:4728-4729`). With them, a reopen on `/chat/`
 kept 31 tiles on the first frame, and a counter in the page function read
 `[0,1,0]`.
 
@@ -186,7 +186,9 @@ kept 31 tiles on the first frame, and a counter in the page function read
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the channel door (**Media 25 / Files 6**, page log `[0]`), the lightbox and **Next image**, **Load older** → 31 and 8, the reopen at 31 with log `[0,1,0]`, the DM door with its 6 file rows, the topic door, the failure text, and the 390 px takeover with three columns. New: **Retry** after a failed **Load older** (log `[0,1,0]`, then 31 on a second load) and the merge of a changed newest page (32 tiles, the new one first, the older page kept). `/chat/` (18187): 25 tiles through a shim-assigned page function. **Limitations:** the 1000 cap, the six-conversation limit, a real download and a video tile were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the channel door (**Media 25 / Files 6**, page log `[0]`), the lightbox and **Next image**, **Load older** → 31 and 8, the reopen at 31 with log `[0,1,0]`, the DM door with its 6 file rows, the topic door, the failure text, and the 390 px takeover with three columns. New: **Retry** after a failed **Load older** (log `[0,1,0]`, then 31 on a second load) and the merge of a changed newest page (32 tiles, the new one first, the older page kept). `/chat/` (18187): 25 tiles through a shim-assigned page function. **Limitations:** the 1000 cap, the six-conversation limit, a real download and a video tile were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-21 (nightly maintenance). **Product commit:** `84e88e56` (GitLab origin/main; rooms-client 0.124.0; 33 commits past `7e3f0cde`). **Scope:** `/rooms/` (18193), `?view=room&mediaDelay=800`: the channel door, 25 tiles and **Media 25 / Files 6** after one read, **Load older** → 31 and 8 after a second, then close and reopen: 31 tiles and "All 31 messages with attachments" on the first frame, no loading text, and `window.__fixtureAttachmentPages` `[0,1,0]`. `/chat/` (18194): the same with a shim-assigned page function that returns `newest` and `oldest`. **Limitations:** the merge of a changed newest page, the disabled **Load older** during a refresh, **Retry** after a failed **Load older**, the six-conversation limit, and the other doors were not driven tonight; the earlier limitations stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261121/r1/` (frames 08, 23).
 

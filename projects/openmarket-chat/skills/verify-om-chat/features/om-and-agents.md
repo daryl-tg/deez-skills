@@ -207,7 +207,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   (`Shell.tsx:1561`; accessible names at `:3133`, `:3675`, `:3700`,
   `:3802`). The tooltips spell it with a colon instead, "Agents: connected
   remotely" (`:3084`, `:3784`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4333`). The pane
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4366`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -257,7 +257,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   ```
 
   The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
-  **`u1`** (`shell-fixture.tsx:1049` maps the `kyle` handle to `u1`; every
+  **`u1`** (`shell-fixture.tsx:1059` maps the `kyle` handle to `u1`; every
   other handle becomes `u-<handle>`). Write it under the wrong id and nothing
   happens, silently. Proven end to end on lane 18118: after the reload one
   `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
@@ -371,7 +371,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   watch RPC), the shared tool-activity presentation, and a composer with an
   **"Add context"** button that opens `OmComposerContextPopover` for picking
   a doc, channel or topic reference. That button renders only on a private om
-  composer with no lane toggle and no target (`Composer.tsx:6108-6109`),
+  composer with no lane toggle and no target (`Composer.tsx:6107-6108`),
   so the shell fixture's not-running om never shows it.
 
   Relay-history tool rows now prefer non-empty `personText` (the result phrased
@@ -631,7 +631,7 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
   not just the old query.** (On `/chat/` the same Voice click reaches the hosted
   page and reads the desk-offline copy; see
   [persona-setup-and-editing.md](persona-setup-and-editing.md).) The fixture decides whether to mock persona
-  **once, at page load** (`shell-fixture.tsx:203-215`): it mocks when the query
+  **once, at page load** (`shell-fixture.tsx:209-221`): it mocks when the query
   is `view=agent&panel=voice|away|activity` *or* the hash is already
   `#/agents/voice|away|activity`. Anything that only *arrives* at those hashes
   after load finds the real, un-mocked client and reads *"Your voice could not
@@ -739,7 +739,7 @@ Proven on both hosts at chat `14509e60` with lane daemon `4f4db0510`. Rig owner 
 
 Clicking an `@agent` tag (`.agent-mention[data-handle]`, `role="link"`, named
 "@debugger, agent") opens a compact card, not the full profile
-(`MessageRow.tsx:2512-2522`, `lib/agents/agent-tag-card.ts`). The card is a
+(`MessageRow.tsx:2513-2523`, `lib/agents/agent-tag-card.ts`). The card is a
 dialog named **Agent <name>** (`AgentTagPopover.tsx:31`). It shows the name
 and an **AGENT** chip over "<owner>'s agent", with the owner's face. The owner
 comes from the room's agent directory: the account an agent posts as
@@ -749,8 +749,8 @@ for example when two owners each run a `debugger`, the line reads just
 button named "<name>, <owner>'s agent. View full profile" (`:116`,
 `[data-profile-door]`) that opens the agent's profile panel.
 
-`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1371-1391`; card
-handlers `openProfileCard` and `openMentionCard` at `:3556-3571`). The `/chat/`
+`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1388-1408`; card
+handlers `openProfileCard` and `openMentionCard` at `:3573-3588`). The `/chat/`
 fixture has neither the seed nor the handlers, so the card is `/rooms/` only.
 
 ```bash
@@ -765,7 +765,9 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # click the LAST .agent-mention[data-handle=debugger]: the card reads "debugger AGENT agent", no door
 ```
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the agent-center Map, **Grid**, **Needs you, 9** → `#/agents/waiting`, the argue agent page, its **Access** tab and **More actions** (Check routing, Review what it learned); the library-edit review door (**Accept merge**, two proposal calls); the shell's Voice and Away pages; the `@agent` tag card; the Your om pane with the health stub. `/chat/` (18187): the Agents page over the fixture's scripted desk. **Limitations:** pressing **Approve argue update** changed nothing on screen tonight (see the section above). **Invite agent**, Fleet health, the agent chat and the remote-home states were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** **Approve argue update** still changes nothing on screen (carried from 2026-11-22). On `/chat/` the Agents page shows no desk-offline notice, as the guide says since 2026-11-22. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the agent-center Map, **Grid**, **Needs you, 9** → `#/agents/waiting`, the argue agent page, its **Access** tab and **More actions** (Check routing, Review what it learned); the library-edit review door (**Accept merge**, two proposal calls); the shell's Voice and Away pages; the `@agent` tag card; the Your om pane with the health stub. `/chat/` (18187): the Agents page over the fixture's scripted desk. **Limitations:** pressing **Approve argue update** changed nothing on screen tonight (see the section above). **Invite agent**, Fleet health, the agent chat and the remote-home states were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-17 (nightly maintenance). **Product commit:** `c18cfa37` (GitLab origin/main; rooms-client 0.119.0). **Scope:** `/rooms/` (18171), people stub: `agentTag=1` opened **Agent debugger** reading "ana's agent", whose door opened the **ana · debugger** profile panel; `agentTag=unknown` read just "agent" with no door. **Limitations:** `/chat/` has no seed; the card's look in light theme and on a phone width was not captured. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261117/r1/` (frames 01–03).
 

@@ -62,7 +62,7 @@ with topic triage. Do not target the operator daemon.
 ## Gotchas
 
 - `quiet=on` seeds the quiet followed topics the sheet lists and the bottom-rail
-  button **Quiet topics 20** (`shell-fixture.tsx:2312-2326`; `showQuiet=1` also
+  button **Quiet topics 20** (`shell-fixture.tsx:2329-2343`; `showQuiet=1` also
   seeds the shown state). Pressing the button flips `aria-pressed` and shows the
   hidden rows (the sidebar's level-2 treeitems went 15 → 35 on 2026-11-22 and 2026-11-02; 14 → 30 on 2026-10-31);
   read the attribute after the re-render, not in the click's own tick.
@@ -70,7 +70,7 @@ with topic triage. Do not target the operator daemon.
   writes the synced pref `om.chat.sidebarQuietTopics` (`"1"` while shown, key
   absent while hidden; `lib/prefs.ts`, `lib/quiet-topics.ts`). The shell
   fixture swaps `session.quietTopics` for a plain object that never reads or
-  writes the pref (`shell-fixture.tsx:2318-2325`), so a reload there cannot
+  writes the pref (`shell-fixture.tsx:2335-2342`), so a reload there cannot
   prove it. Use a real session: press **Quiet topics N**
   (`[data-quiet-topics-row]`, `aria-pressed`), read the key, reload. Source
   discovery 2026-10-30; live verification pending.
@@ -86,7 +86,9 @@ with topic triage. Do not target the operator daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) `quiet=on`: **Quiet topics 20** `aria-pressed` false → true with level-2 rows 15 → 35; server menu → **Clean up topics** in its error fallback with **Retry** and **Not sorted 30**; **Select all in Not sorted** → **Resolve 30 topics** → `data-fixture-topic-sweep=30` and the sheet closed. `/chat/` (18187): the server menu lists 15 items and no **Clean up topics**. **Limitations:** the triage groups, the progress line and the running job need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) `quiet=on`: **Quiet topics 20** `aria-pressed` false → true with level-2 rows 15 → 35; server menu → **Clean up topics** in its error fallback with **Retry** and **Not sorted 30**; **Select all in Not sorted** → **Resolve 30 topics** → `data-fixture-topic-sweep=30` and the sheet closed. `/chat/` (18187): the server menu lists 15 items and no **Clean up topics**. **Limitations:** the triage groups, the progress line and the running job need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-20 (nightly maintenance). **Product commit:** `7e3f0cde` (GitLab origin/main; rooms-client 0.122.0; 16 commits past `12f1ea24`). **Scope:** `/rooms/` (18193): the server menu's **Clean up topics** opens the dialog **Clean up topics** with "Could not reach om to sort these topics. Pick by hand below, or retry.", **Retry** and **Not sorted 15**. **Limitations:** the selection and the sweep were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261120/r1/`.
 

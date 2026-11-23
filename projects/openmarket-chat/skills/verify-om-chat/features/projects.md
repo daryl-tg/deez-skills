@@ -64,10 +64,14 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   description** opens a CodeMirror editor where `!` lists the server's tickets
   and `@` its people and roles (`6c903a66`, `35cff699`), with the Vim status
   line at its foot (`a5dc8187`). The same renderer draws every Markdown task in chat
-  messages, docs and agent cards, but there a marker is a read-only
-  `span.task-list-marker[role=img]` named **Checked task** or **Unchecked
-  task** (on `/rooms/`, `shell-fixture.html?view=room&alerts=quiet&tape=lists`
-  shows one of each; `/chat/` has no `tape=lists` seed).
+  messages, docs and agent cards. Since `b3544ca4` a task ticks wherever you
+  can edit the text: your own saved message, and a doc you can edit, in view
+  mode (see [your-library.md](your-library.md) and
+  [message-actions.md](message-actions.md)). Everywhere else the marker is a
+  read-only `span.task-list-marker[role=img]` named **Checked task** or
+  **Unchecked task**, with no `tabindex` (`Markdown.tsx:2358-2371`; on
+  `/rooms/`, `shell-fixture.html?view=room&alerts=quiet&tape=lists` posts one
+  of each as `dax`; `/chat/` has no `tape=lists` seed).
 - **Comment box** (`TodoCommentBox.tsx`). The textbox **Comment** (placeholder
   "Add a comment"), the icon-only paperclip **Attach a file**, **Mention
   someone**, and **Comment** (disabled while empty). The paperclip caps the
@@ -85,7 +89,13 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   `3387846a` and `c9c5206d` a typed `@username` that one person on the server
   holds is saved as that link too: in a comment, in a description edit and in
   a new ticket's description (`lib/todos/ticket.ts:277`, `:304`, `:323`,
-  `lib/todos/store.ts:488`). A title stays as typed, and a comment or
+  `lib/todos/store.ts:488`, through `linkTypedMentions`). Since `5cbe2a54` a
+  typed name of one of the server's named roles is saved as the role's link
+  the same way; tickets offer no base roles, so `@mod` stays typed
+  (`lib/typed-mentions.ts:191-200`). Since `338f0046` a role row's member
+  count in the ticket's `@` list follows a role assignment
+  (`components/projects/ticket-roles.ts`; unit-tested in
+  `packages/chat-ui/test/todo/ticket.test.tsx`, not driven). A title stays as typed, and a comment or
   description saved unchanged converts nothing (`603275fc`). Source and unit
   tests only (read 2026-11-21): the fixture's `people.heldIn` is empty, so no
   name resolves there. With Vim mode on, the box runs the
@@ -128,9 +138,14 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   **Assignee** (Unassigned), **Home channel** (#ops), **Cancel** and
   **Create**. **Create** stays disabled until the title has text. TITLE is
   `aria-required` with an `aria-hidden` `*`; **Home channel** carries one too
-  unless the home is fixed, as it is in the panel (`c99f628c`).
+  unless the home is fixed, as it is in the panel (`c99f628c`). **Cancel**
+  after typing opens the alertdialog **Discard this ticket?** ("What you typed
+  here is not kept.") with **Keep editing**, which holds focus, and **Discard**
+  (`ac66e963`, `TodoCreateForm.tsx:458`). **Keep editing** returns to the form
+  with the title kept; **Discard** closes it and shows the list (driven
+  2026-11-24, `/rooms/`, `panel=todos`).
 - **Message menu entry.** In records mode a message's **More** menu lists
-  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1660-1672`),
+  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1661-1673`),
   and the hover toolbar shows the same button (`[data-add-todo]`). Off Projects
   there is no promote at all; see [message-actions.md](message-actions.md).
 - **Projects switch** (`ProjectsSettings.tsx:70-190`; `b29feb5a`, `8d2014cc`).
@@ -429,11 +444,16 @@ Description and comments: open `$T&ticketFiles=1&ticketDesc=1&ticketActivity=1&t
 ticket…". `$T&panel=todos` → **New ticket in #ops** shows TITLE
 `aria-required` with one `aria-hidden` `*`.
 
-### A typed username in a comment (added 2026-11-22)
+### A typed username or role name in a comment (added 2026-11-22, changed 2026-11-24)
 
 The comment box paints a mention chip on a typed `@username` that will post as
-its holder's link, and on nothing else (`TodoCommentBox.tsx:144-151`,
-`typedHandleReader` for the server, `lib/typed-handles.ts:97-130`). The
+its holder's link (`TodoCommentBox.tsx:148-151`, `typedMentionReader` for the
+server, `lib/typed-mentions.ts:153-220`). Since `5cbe2a54` it also paints a
+`composer-token-role` chip on a typed name of one of the server's named roles.
+With the three init scripts on `$T&ticketActivity=1#/todo/s1/1`, the text
+`ping @Devops and @traders and @mod now` chips `@Devops` and `@traders` and
+leaves `@mod` plain: a ticket offers no base roles (driven 2026-11-24,
+`/rooms/`). For a username: The
 fixture's own `people` holds nobody, so give it a server member with a 24-hex
 id through the shim:
 
@@ -529,7 +549,9 @@ Projects stub the page falls to its error boundary, because the bare
 
 ## Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the Projects stub and the shim: the table (3 rows), **Board** with its four columns and the card menu, the eight-button bulk bar, the ticket page; three file tiles, a remove with **Undo**, a description task tick, the ticket chip, the comment's **Edit**, a role pick in the comment box, a pasted upload tile, the two drop zones, ten files hiding the ticket attach button, the archived home chip, the loading frame; the channel panel, its **New ticket** form and a ticket opened in the panel; the Server Settings switch refusing with its pending count. New: the mute banner and reasons through the shim, and the typed-username chip in the comment box. `/chat/` (18187): the page at `/chat/projects/s1` with 3 rows. **Limitations:** every write stops at the stub; the saved link for a typed username is behind it. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** `/rooms/` (18186) with the Projects stub and the shim: the ticket comment box chipping `@Devops` and `@traders` and not `@mod`; **Cancel** on a typed new ticket → **Discard this ticket?**, **Keep editing**, **Discard**; the pasted upload tile; the core-path re-drive. **Limitations:** the saved links behind the stubbed `todos.comment`, and the ticket role recount after an assignment, were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the Projects stub and the shim: the table (3 rows), **Board** with its four columns and the card menu, the eight-button bulk bar, the ticket page; three file tiles, a remove with **Undo**, a description task tick, the ticket chip, the comment's **Edit**, a role pick in the comment box, a pasted upload tile, the two drop zones, ten files hiding the ticket attach button, the archived home chip, the loading frame; the channel panel, its **New ticket** form and a ticket opened in the panel; the Server Settings switch refusing with its pending count. New: the mute banner and reasons through the shim, and the typed-username chip in the comment box. `/chat/` (18187): the page at `/chat/projects/s1` with 3 rows. **Limitations:** every write stops at the stub; the saved link for a typed username is behind it. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-15 (nightly maintenance). **Product commit:** `96644a29` (GitLab origin/main; rooms-client 0.118.0; 8 commits past `62fcc01a`). **Scope:** `/rooms/` (18175) and `/chat/` (18176), people stub: with the Projects stub `?panel=todos` renders **Tickets in #ops** with **New ticket in #ops**, and a message offers **Make a ticket from this message** on the toolbar and in **More**; without the stub `panel=todos` opens nothing and no promote shows. **Limitations:** no ticket write; the ticket page, files and editors were not re-driven (the 2026-11-13 record stands). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261115/r1/` (frames 09, 10, 15, 16).
 

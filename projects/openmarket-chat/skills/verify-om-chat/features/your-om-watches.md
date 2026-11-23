@@ -36,7 +36,9 @@ Drive accessible names: `Watches` (a `div.om-session-nav-row[role="button"]` in 
 
 ### Verification record
 
-**Last verified:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the health stub: **Watches** → the surface with **Recent fires** and no rows, "Watches are out of reach", **Refresh**; at 390×844 the same through **Open om conversations**, with no horizontal overflow. **Limitations:** watch rows, details and pause need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
+**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+
+**Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the health stub: **Watches** → the surface with **Recent fires** and no rows, "Watches are out of reach", **Refresh**; at 390×844 the same through **Open om conversations**, with no horizontal overflow. **Limitations:** watch rows, details and pause need a daemon. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
 **Previous record:** 2026-11-09 (nightly maintenance). **Product commit:** `82390825` (GitLab origin/main; rooms-client 0.114.0; 49 commits past `08fe407b`). **Scope:** `/rooms/` (18183) `?view=agent&omSessions=drafts` with the stubs: the **Watches** door is listed. **Limitations:** watch rows need a daemon; the door was not opened tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261109/r1/`.
 
