@@ -61,6 +61,7 @@ Run `OM_PLAIN_CHAT=1 control-om om -- chat` in a tmux pane.
   - Seen: om hands the model `{"done":true,"name":"nasa","site":"https://api.nasa.gov","stored":true,"kept":true}`. The model answered "I saved your new key as nasa". A fresh conversation answered "The key named nasa is saved". 2 of 2. The vault ciphertext was unchanged.
   - Expected: `Kept nasa for https://api.nasa.gov`, or words that mean it.
   - Cause: `siteKeyHandoffResult` (`packages/cli/src/agent/channels/cli-tui-core.ts:4835-4853`) answers `done: true, stored: true` with a bare `kept: true` (line 4851). The `site_key_add` description and output schema (`packages/cli/src/actions/system/site-key-add.ts:37-46`, `:102-112`) describe only the `done: false` handoff.
+  - Fix: PR #2664 (open, 2026-11-23). A kept result answers `kept: true` and `Kept <name> for <site>. The key on file is unchanged; no new key was saved.`, with no `stored` flag; the TUI tool line prints the same. `Kept …` alone next to `stored: true` was misread 1 of 2 times. Final code on `claude-opus-5-5`: 2 of 2 replies said no new key was saved. Evidence `~/Documents/dev-notes/om-2026-11-20-e2e-verify/fix-site-key-kept-words/`.
   - The TUI shares the function (`cli-tui-core.ts:15136`). Not driven there.
   - Evidence `phaseB/c14-t4-screen.txt`, `c14-t4-tool-trail.txt`, `c14-t5-tool-trail.txt`, `c14-cli-kept.txt`.
 - **Known, not verified-good: a chart pushed from chat stays a snapshot until the watch's next reading.**
