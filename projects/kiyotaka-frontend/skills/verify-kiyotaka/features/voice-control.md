@@ -12,6 +12,8 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-24 on tree `8cd7ad448e` (`origin/main`, 269 commits past `92f4a841ef`), lane `18106`, a guest JWT: still unreachable.** A Super Search `voice` query listed no row; `window.__voiceControl` and the mic were not re-read that night.
+
 **Re-driven 2026-11-21 on tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`), lane `18104`, a guest JWT with the backend answering: still unreachable.** `window.__voiceControl` was `undefined` and
 `voice-control-mic-btn` absent; the only testid holding `mic` was the
 search's `search-v2-category-economics-btn`.

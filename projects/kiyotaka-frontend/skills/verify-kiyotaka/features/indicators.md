@@ -4,7 +4,16 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-21 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-24 against
+product tree `8cd7ad448e` (`origin/main`, 269 commits past `92f4a841ef`),
+lane `18106`, a guest JWT: the Indicators dialog's store landing (the
+Official shelf's `indicator-store-see-all-official-btn` read `See all
+181`), VWAP mounting at boot (`Indicators 1/3` on the warm reload), and the
+new candles-hidden chip from the main row's eye with its `Show` (see
+`ind-candles-hidden`). Source only that night: the legend fold now folds
+the price pane's rows only (`4113a74816`), and a stalled script Indicator's
+debug row names what its run waits on (`07d6569e88`). Before that, last
+DRIVEN on 2026-11-21 against
 product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`), lane `18104`, a guest JWT with the backend answering
 (the catalog served: the Official shelf read `See all 245`): a crypto spot
 pair's refusal of Open Interest, Open Interest Profile and Net Longs &
@@ -201,6 +210,10 @@ indicators were not driven.
 - `ind-dialog` the Indicators dialog opens and searches.
 - `ind-add` an indicator mounts as an overlay.
 - `ind-legend` the legend's settings / visibility / close controls work.
+  Since `4113a74816` the legend fold folds the price pane's rows only; a
+  sub-pane's legend rows stay visible (source).
+- `ind-candles-hidden` hiding the candles with the main row's eye puts a
+  `Candles hidden` chip on the price pane, with `Show` and a dismiss.
 - `ind-legend-row` a legend row shows its buttons only while the pointer is
   on it (or on a lone pane), and keeps them while its `More` menu is open;
   guide, copy, code, fold, pin and add-alert moved into `More`
@@ -455,6 +468,21 @@ Preconditions:
   (`onchart` / `offchart`), not an indicator key, so a bare `?? m.type` prints
   placeholders that read like overlays.
   The new key is in the array — that is the assertion, not the legend text.
+- **`ind-candles-hidden` (`c268d045f3`, `b94800d715`; driven 2026-11-24 on
+  `8cd7ad448e`, COINBASE BTC-USD 1h, a guest JWT).** Move the pointer onto
+  the price row (the OHLC line, `mouse move 200 144` at 1440x900) until the
+  first `.titan-charts-legend-eye-btn` computes `visibility: visible`, then
+  click it by its own coordinates (the Main row's
+  `.titan-charts-legend-title-text` measured 0 by 0, so a hover on it does
+  nothing). The chip `[data-testid=candles-hidden-cue]` (`role=group`,
+  `data-wording` `candle`) appeared at the top of the price pane reading
+  `Candles hidden` with `candles-hidden-cue-show` (`Show`) and
+  `candles-hidden-cue-dismiss` (`aria-label` `Dismiss`), and
+  `$pinia._s.get('chart').mergedAllCharts[0].metadata.isMainHidden` read
+  `true`. `find testid candles-hidden-cue-show click` drew the candles
+  again, removed the chip and set `isMainHidden` `false`. Source only: other
+  chart types read `Bars hidden`, `Line hidden` or `Price hidden`, and a
+  dismissed chip stays away until the candles are shown and hidden again.
 - **`ind-legend-row` (`e19acd9a19`, `48ca667bbe`, `3bdbb07b7b`; driven
   2026-11-20 on `7c937b0a1f`, COINBASE BTC-USD 1h with VWAP).** Each row's
   buttons live in `.titan-charts-legend-control-pane`. At rest all three

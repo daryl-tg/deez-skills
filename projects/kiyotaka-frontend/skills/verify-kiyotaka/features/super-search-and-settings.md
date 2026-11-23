@@ -7,7 +7,19 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
-2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
+2026-11-24 against product tree `8cd7ad448e` (`origin/main`, 269 commits
+past `92f4a841ef`), lane `18106`, a guest JWT with the backend answering:
+the plans page's live-data section with its new US options card, its place
+above `Compare features` and the US stocks billing switch, and a guest's
+US-options `Add` raising `Purchases` (see `plans-page`); the new
+`OPRA real-time options data` row for a guest (see `ss-opra-data`); no
+`Draw a trade` and no voice row; an OSI code listing no contract row (see
+`ss-long-code`); Release Notes, still 82 versions (see `set-notes`); and
+the walls `watchlist`, `script-editor`, `news`, `multi-chart`, `billing`
+and the TPO chart type's `Time Price Opportunity`. Not driven: the cart
+with a plan in it and the live-data ask after Get Plus (signed-in), and the
+sign-up marketing box (needs a fresh email and a code). Before that, last
+DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
 lane `18104`, a guest JWT with the backend answering: digits
 typing an interval into the palette (see `ss-typed-interval`); the rows
 `plans` (`See OpenMarket plans`, which opens `/chart/plans` in a new tab),
@@ -241,13 +253,18 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
   server's.
 - `ss-long-code` a market code longer than 12 characters (an OSI option code,
   `1000000MOGUSDT`, `FRED:CPIAUCSL`) still offers `Open symbol search`, and
-  an OSI code lists its contract where `opra` is on.
+  an OSI code lists its contract where `opra` is on (a guest included since
+  `6b3e077975`).
+- `ss-opra-data` an `options` or `opra` query lists `OPRA real-time options
+  data` wherever `opra` is on, a guest included; it opens the US options
+  purchase, which a guest meets as the `Purchases` wall.
 - `set-highlights` the chart's `Highlights` switch calms volume bars and bar
   indicators unless a bar stands far above its usual size; the palette row and
   the Display page row toggle it.
 - `plans-page` `/chart/plans` (moved from `/chart/plus`, which redirects,
-  `7e88ad6552`) shows the plans, the compare list, the live exchange data
-  add-ons with their bag and the questions to a guest; the top plan is
+  `7e88ad6552`) shows the plans, the live exchange data add-ons (CME
+  futures, US stocks with a monthly or yearly switch, US options) with
+  their bag, then the compare list and the questions to a guest; the top plan is
   named Max in customer copy (`0ebf5de381`). A member moved from annual Plus to Ultimate also
   gets a `4.57.0` notice at boot and an `Add a year` control here
   (`ebbd08ef1d`; signed-in members only, source).
@@ -432,6 +449,11 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   switch and Remove rows do not.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
   `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  **Driven 2026-11-24 on `8cd7ad448e` (a guest JWT)** from the palette row
+  `super-search-result-settings:tab:notes-btn`: 82 rows led by `4.53.0
+  Latest Spotlight The US tape. November 5, 2026`, then `4.49.0`, `4.48.0`
+  and `4.45.0`, down to `1.1.0`; the nav read Keyboard Shortcuts,
+  Performance, Preferences and Release Notes.
   **Driven 2026-11-21 on `92f4a841ef` (a guest JWT):** 82
   `release-notes-version-<ver>-btn` rows, `4.53.0` (`Latest`, `Spotlight`,
   `The US tape.`, `November 5, 2026`) first, then `4.49.0`, `4.48.0` and
@@ -660,8 +682,22 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   12 characters was dropped. `queryShape.ts` now reads the shape
   (`symbolQueryShape`, `symbolLookupText`), and `No results found` waits while
   an OSI lookup is pending. The contract row (`symbols:contract:OPRA|…`, a
-  title like `AAPL 20 Nov 2026 360 Call`) needs the `opra` flag, which a
-  guest reads off (source).
+  title like `AAPL 20 Nov 2026 360 Call`) needs the `opra` flag. **A guest
+  reads it on since `6b3e077975`** (`GUEST_DEFAULT_FLAGS`; `isOn('opra')`
+  read `true` on 2026-11-24 on `8cd7ad448e`), yet that night
+  `AAPL261218C00300000`, `AAPL261218C00250000` and `SPY261218C00600000`
+  each listed only the `open-search-btn` row after 5 to 12 s, most likely
+  because the OPRA plane is unrouted on this seat, as the stocks and CME
+  planes are. The sample code above expired on 2026-11-20: use a live
+  expiry and a strike the chain lists.
+- **`ss-opra-data` (driven 2026-11-24 on `8cd7ad448e`, a guest JWT).** Fill
+  `options`: the list leads with
+  `super-search-result-featureCommands:opra-realtime-data-btn` (`OPRA
+  real-time options data`, under `SHORTCUTS`), then the Trinity layout rows
+  and the options wrun registry rows. The row shows wherever `opra` reads
+  on, which now includes a guest (its aliases include `opra`, `options
+  data` and `us options data`). Clicking it raised the sign-in card headed
+  `Purchases` (`toggleOpraPurchaseFlow`; the flow itself is signed-in).
 - **`set-highlights` (driven 2026-11-16 on `6bfc742bc8`; `8f44e9c9cc`).**
   Fill `highlights`: `super-search-result-settings:toggle:bar-highlights-btn`
   leads (`Highlights ON`); a click turned it to `Highlights OFF` and a second
@@ -694,7 +730,7 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   billed on their own. They work with any plan. Crypto is live on every
   plan.`) with `console-subscription-cme-addon-card` (`$7/mo`, `Without
   it: 10 min delayed`, tiers `-cme-addon-tier-{l1,depth}`,
-  `-cme-addon-cta-btn` `Add live data`) and
+  `-cme-addon-cta-btn` `Add live data`; `Add` on 2026-11-24) and
   `console-subscription-stocks-addon-card` (`-stocks-addon-cta-btn`
   `Add`), the bag `market-data-bag-bar` (`market-data-bag-count` `0
   add-ons`, `-sum` `$0/mo`, `market-data-bag-continue` `Continue`), `Have
@@ -717,6 +753,28 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   sheet and checkout (`market-data-bag-sheet`, signed-in), the Black
   Friday page and doors (`21e174ae02`, `black-friday-2026`, dark), and
   the moved member's flipping card (`2a9b9d4e9c`).
+  **Re-driven 2026-11-24 on `8cd7ad448e` (a guest JWT).** The section
+  `console-subscription-exchange-data` (`Live exchange data`, the same
+  subtitle) now comes BEFORE `console-subscription-compare` in the page
+  (`bf28d48d70`), and it holds three cards: CME futures (`$7/mo`, `Top of
+  book` and `Full depth`, button `Add`), US stocks and, new for a guest,
+  US options (`console-subscription-opra-addon-card`, `Live trades and
+  quotes on every listed US option.`, `$4.95/mo`, `Without it: 15 min
+  delayed`, `console-subscription-opra-addon-cta-btn` `Add`). The US
+  stocks card gained a `Billing` switch,
+  `console-subscription-stocks-addon-cycle-1m` and `-cycle-1y`
+  (`aria-checked`); `Yearly` kept `console-subscription-stocks-addon-price`
+  at `$19/mo` and showed `-stocks-addon-billed` `Billed $228 a year.` (no
+  `-offer` line without a server sale). A guest's press on
+  `console-subscription-opra-addon-cta-btn` raised `Purchases` and the bag
+  stayed at `0 add-ons`. The Plus card, the billing pills, the five
+  questions and the absence of `Max`, `Ultimate` and `black-friday` nodes
+  were unchanged. Source only: with a plan in the cart the bar adds
+  `market-data-bag-bar-plan` and the sheet is titled `Cart`
+  (`72628180ca`); payment comes first and the exchange forms follow the
+  paid return (`784eeb5207`); Get Plus and Get Max ask about live data
+  (`PlanAddonAskDialog.vue`, `9380ec3b8c`); and a buy link signs the
+  visitor in first and keeps the link through the reload (`f1905618f7`).
 - **`plans-page` as driven before the move (2026-11-16 on `6bfc742bc8`; re-driven 2026-11-19 on
   `413f86e5af`: `console-subscription-faq-q-10-btn` `My broker is connected.
   What goes live?` expanded to its plain last sentence, `The heatmap, the DOM,

@@ -5,6 +5,25 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-24 against product tree `8cd7ad448e` (`origin/main`, 269
+commits past `92f4a841ef`), lane `18106`, a guest JWT: the Panels menu's 17
+rows (`replay`, `heatmap`, `watchlist`, `scanner`, `etfScreener`, `news`,
+`chat`, `orderbook`, `tape`, `footprint`, `alerts`, `objects`, `journal`,
+`editor`, `marketStatsPanel`, `volumeStats`, `liquidityStats`), the
+Orderbook from `tb-panels-row-orderbook` on COINBASE BTC-USD (`Book`,
+`Delta`, `DOM`, a live ladder with its imbalance line), the walls from the
+`watchlist` (`Watchlist`), `editor` (`Indicator Editor`) and `news` (`Stay
+Ahead of the Market`) rows, and no `tb-options-btn` (Options stays
+signed-in although `opra` now reads on for a guest). Source only that
+night: trading inside a bar replay is on for every signed-in account with
+paper trading (`f0bbaf3ecb`; the `replay-trading` flag is gone; handles
+`replay-dock`, `replay-account-summary`, `replay-account-positions`,
+`replay-account-orders`, `replay-session-pnl`, `replay-bar-trade`), the
+cTrader relay sessions, symbol tab, Trade history tab, hub card and
+account page (still dark, `fx-ctrader`), a futures order line drawn at
+the press, one Rithmic login per browser (`futures-rithmic-shared`, off),
+NinjaTrader kept through a short drop (`futures-ninjatrader-resume`, on)
+and the confirm button's 150 ms arming beat in every lane. Before that, last
 DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
 lane `18104`, a guest JWT with the backend answering: the Orderbook on BINANCE.F
 ETHUSDT (`panel-header-title` `Orderbook`, `orderbook-canvas`,

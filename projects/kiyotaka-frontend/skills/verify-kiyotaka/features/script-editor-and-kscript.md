@@ -8,7 +8,13 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-21 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-24 against
+`8cd7ad448e` (`origin/main`, 269 commits past `92f4a841ef`), lane `18106`, a
+guest JWT: the Panels menu's `tb-panels-row-editor` raised the `Indicator
+Editor` wall; the read-only drawer through Super Search was not re-opened.
+Source only: a wrun run failure now names its kind and its interval chips
+(`3802ae7428`), and a wrun run on an RTH chart reads the extended session per
+input (`1e8d45d3f7`). Re-driven 2026-11-21 against
 `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`), lane `18104`, a guest JWT with the backend answering:
 `tb-editor-toggle-btn` raised the `Indicator Editor` wall
 (`guestLoginFeatureId` `script-editor`); the read-only drawer was not

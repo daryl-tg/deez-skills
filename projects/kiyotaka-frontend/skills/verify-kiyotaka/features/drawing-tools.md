@@ -4,7 +4,17 @@ The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
 lock, settings and delete. A tool search (the `;` key or the magnifier at the
-top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-21 on
+top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-24 on
+`8cd7ad448e` (`origin/main`, 269 commits past `92f4a841ef`), lane `18106`,
+a guest JWT: a Long Position's new `Result label` switch turned off and on,
+with the entry line's `No entry  R/R 1.00` leaving and returning on the
+deselected drawing, and the card's rows in their new order (see
+`dt-position-bar`). Not driven that night: the carry of the switch to the
+next position and into templates, ticks on a futures pane, and the
+2026-11-24 drawing fixes (tool search ranking a mistyped short name, level
+values open by default, a paste keeping its prices, the candle layer in
+templates, the Pips stat, anchored VWAP on every interval: source only).
+Before that, last DRIVEN 2026-11-21 on
 `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`), lane `18104`, a guest JWT with the backend answering: a
 Fibonacci Retracement's `Color each level` switched off restoring the
 single ink (see `dt-levels-ink`), a point's time typed as digits with no
@@ -174,7 +184,8 @@ the cancelled creation, the right-click menu and the magnet.
   a reload: the chart engine starts on the remembered cursor (`f17e7dd90c`).
 - `dt-position-bar` a selected Long or Short Position gets a one-pill bar:
   Risk, Settings, More and Remove, with Lock and Templates inside More; a
-  signed-in trader also gets an order button and an alert.
+  signed-in trader also gets an order button and an alert. Its card's
+  `Result label` switch shows or hides the result on the entry line.
 - `dt-picker-settle` a picker tool (Emoji, Icon, Image) closed with nothing
   picked is put down, and the toolbar returns to the cursor.
 - `dt-magnifier-chip` on a phone, a `Magnifier` switch sits beside the `Draw
@@ -594,6 +605,26 @@ the top overlay cleared.
   kept `settings.risk` at `25` until `Enter`, which stored `2.5` (pill
   `Risk 2.5%`). The card's rows are `tool-sizing-{qty,risk,entry,target,
   target-pct,stop,stop-pct,rr}` and the fold `tool-sizing-more`.
+  **One line per row and the Result label (`cc33f124e1`, `a62e66e0e4`,
+  `908ee0ff6c`, engine `1329.90`; driven 2026-11-24 on `8cd7ad448e`,
+  COINBASE BTC-USD 1h).** A Long Position clicked once at `700 380` and
+  opened with `tqb-settings-btn` listed `tool-sizing-qty`, `-risk`,
+  `-entry`, `-target-pct`, `-target`, `-stop-pct`, `-stop`, `-rr` and
+  `tool-sizing-more`, in that order: each percent row now sits before its
+  price. `tool-sizing-more` opened `tool-position-stats-section` with
+  `Colors follow the chart` (on), `Opacity`, `Result label` (on), `Always
+  show labels` (off) and the `Labels` chips (`Target`, `Stop`, `Points`,
+  `Qty`, `Risk / reward`). The switch is
+  `tool-position-result-label-toggle`, a `role=switch` button read by
+  `aria-checked`; click it and `tool-sizing-more` by testid. Off, the deselected drawing drew no label on its entry line;
+  on again, it read `No entry  R/R 1.00`. The profit and loss chip is gone:
+  the amount rides the result label, so the switch hides it too (source).
+  The tab drifted hidden while the card was open, and clicks on the card
+  (by name and by testid) failed as `covered by
+  <canvas.titan-charts-main-grid>` until the tab was re-fronted. Not driven: the switch and
+  `Always show labels` carried to the next position and into templates and
+  `Use for new ones` (`908ee0ff6c`), and exits typed in ticks on a futures
+  pane (`cc33f124e1`, needs the CME plane).
 - **`dt-picker-settle` (driven 2026-11-19 on `413f86e5af`; `91f480aa42`).**
   `find testid "toolbar-item-emoji:tool-icon-btn" click` opened the glyph
   picker (`glyph-picker-cell-*` cells) and lit the button

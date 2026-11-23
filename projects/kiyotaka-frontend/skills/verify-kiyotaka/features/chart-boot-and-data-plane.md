@@ -3,6 +3,24 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
+entry was last DRIVEN on 2026-11-24 against product tree `8cd7ad448e`
+(`origin/main`, 269 commits past `92f4a841ef`), lane `18106`, a guest JWT
+with the backend answering (`doctor` passed twice in two on the tracked
+wrapper). **The cold first boot was slow:** the candle predicate stayed
+`0` for the whole two-minute budget, then read 250 bars on COINBASE
+BTC-USD 1h with `Indicators 0/3` (VWAP not yet mounted), `Guest Mode`, the
+Lite charts notice and `[refresh-token] all retries exhausted` (`timeout of
+15000ms exceeded`) in the console. A warm reload drew 251 bars at 11 s and
+VWAP at 15 s (`Indicators 1/3`, `__BOOT_ERRORS__` empty). So on a fresh
+lane poll for longer than two minutes, or reload once before calling a boot
+broken. The guest signup modal was recorded as shown during that cold boot
+(the `guest-prompt` store's `modalShownThisSession` `true`, `modalSeenAtMs`
+set) and did not rise on the reload: it shows once per device and day,
+and a reload the same day gets the bar instead. A `Draw by holding`
+tutorial sheet (`.dialog-style.dialog-overlay.backdrop-dim`) covered the
+ticker bar after the reload until `Escape`. Not driven: the glides, a wake
+heal, the perp ticker, and the 2026-11-24 live-feed and gateway-v3 changes
+(no user surface; guests stay on v2). Before that, this
 entry was last DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
 lane `18104`, a guest JWT with the backend answering (`doctor` passed twice in two on the
 tracked wrapper). Boot drew 250 bars on COINBASE BTC-USD 1h with VWAP

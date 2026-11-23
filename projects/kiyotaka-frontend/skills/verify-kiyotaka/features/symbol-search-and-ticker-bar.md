@@ -4,7 +4,15 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
-was last DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
+was last DRIVEN on 2026-11-24 against product tree `8cd7ad448e` (`origin/main`,
+269 commits past `92f4a841ef`), lane `18106`, a guest JWT: `tb-symbol-info-btn`
+opened the V2 dialog (`v2` 20, `legacy` 0, no `search-v2-view-us-options-btn`)
+and an `ETHUSDT` fill listed rows; the chart type menu listed its 15 options
+and a guest's `tpo` pick raised the `Time Price Opportunity` wall (see Chart
+type); the layout picker's `tb-layout-entry-2V-btn` raised the multi-chart
+wall. Source only: `2M` and `4M` sizes, custom sizes on index and formula
+charts, and server-read US stock sizes under a day (see the custom size
+notes). Before that, last DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
 lane `18104`, a guest JWT with the backend answering: the V2 dialog read `v2` 20,
 `legacy` 0; a bare `T` over the plot opened it with `T` typed; switches to
 BINANCE.F BTCUSDT, COINBASE BTC-USD, BINANCE.F ETHUSDT, HYPERLIQUID.F BTC
@@ -215,7 +223,7 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
 
 - `sym-search` the symbol dialog opens, searches, and switches symbol.
 - `sym-rail` the left rail: the kinds All, Stocks, Futures, Options (signed-in
-  with OPRA only), Predictions, and an Exchanges section that narrows the
+  only; `opra` itself reads on for a guest since `6b3e077975`), Predictions, and an Exchanges section that narrows the
   dialog to one exchange family.
 - `tb-full-chart` the pane's Full chart button hides the bars around the chart;
   its Exit control sits below the hover toolbar and `Escape` also leaves.
@@ -555,7 +563,15 @@ Preconditions:
   (`2d` to `20d` less `3d`, `7d` and `14d`, and `2w` to `20w`), folded
   from the market's own daily and weekly candles, and the candle countdown
   is held off on them (source, `docs/features/chart/custom-intervals.md`;
-  needs the CME or stocks plane and Plus). Since `ed79f240c9` and
+  needs the CME or stocks plane and Plus). Since `7721017841` `2M` and `4M`
+  are sizes too (typed into the Custom moment; the dial has no month rung
+  and the moment shows no chosen unit for a month). Since `e02bbb3468` and
+  `06d827e300` custom sizes reach index charts and formula charts of listed
+  crypto venues, since `17c10f5af0` US stock sizes under a day are read
+  from the server, and since `4d40ed4705` and `7a670b0397` the size menu
+  judges a server-run script by the server's own cap and stops naming one
+  the server runs at that size (all source, 2026-11-24; a guest still meets
+  the plan sentence). Since `ed79f240c9` and
   `3d85243e66` script feeds, a script's buy and sell volume, futures open
   interest and the Big Trades tape are served at custom sizes, and the
   interval menu names a script whose ask is refused (source).
@@ -609,7 +625,18 @@ Preconditions:
   `tb-chart-type-option-<value>-btn` — `candle`, `hollowCandle`, `heikinAshi`,
   `ohlcBar`, `volumeCandle`, `columns`, `highLow`, `spline`, `markerLine`,
   `stepLine`, `hlcArea`, `area`, `baseline`, `footprint`, `tpo` (fifteen, well
-  past the eight the a11y names suggest). Use the stable option testid rather than
+  past the eight the a11y names suggest). **The two Pro types wall a guest
+  (driven 2026-11-24 on `8cd7ad448e`).** A guest's click on
+  `tb-chart-type-option-tpo-btn` raised the sign-in card headed `Time Price
+  Opportunity` and mounted nothing (`chartTypePick.ts` calls
+  `handleGuestAccess` with `TIME_PRICE_OPPORTUNITY` for `tpo` and
+  `VOLUME_FOOTPRINT` for `footprint`); `Escape` clears it. For a signed-in
+  account `tpo` is now the TPO chart, on with no flag since `2184793e3a`:
+  square TPO blocks on a profile axis, marked `settings.__tpoChart` on its
+  `TIME_PRICE_OPPORTUNITY` row, with the bottom axis counting profiles
+  (source; a bounded-history lite pane greys the row). If the click is
+  `covered by <div.dialog-style.dialog-overlay>`, the `Draw by holding`
+  tutorial sheet is up: `Escape` closes it. Use the stable option testid rather than
   text matching; the entries are generic nodes and a text click can race the
   popover closing. Pair the hover with the option testid.
 
@@ -1206,7 +1233,8 @@ Preconditions:
   `button` finds nothing. Proof: the visible `[role=tab][aria-selected=true]` and
   the rows (an `ETH` query narrowed to ETHA, ETHU, ETHE and the other ETH ETFs). V2 also carries a views
   rail, `search-v2-view-{all,us-stocks,cme,us-options,predictions}-btn`, which a
-  guest can drive (`us-options` is signed-in with OPRA only). The `Hyperliquid`
+  guest can drive (`us-options` is signed-in only: on 2026-11-24 a guest, with
+  `opra` on, still had no `search-v2-view-us-options-btn`). The `Hyperliquid`
   and `Tokenized stocks` rows are gone since `32dd0c6354`.
 
   If you do land on legacy, its ids are not its labels: the `Macro` pill is
@@ -1233,8 +1261,9 @@ Preconditions:
   dialog `asset-list-stock-options-<assetId>-btn`, and the venue panel
   `venue-panel-options-head` and `venue-panel-options-row`; a click routes to
   the `OptionsChain` page (`authorized: true`). `useOptionChainEnabled` is
-  `isSignedInSession()` and the rows also need the `opra` flag, so a guest
-  lane never renders them: assert a count of `0` there rather than looking
+  `isSignedInSession()` and the rows also need the `opra` flag (which a guest
+  reads on since `6b3e077975`), so the sign-in alone keeps a guest lane from
+  rendering them: assert a count of `0` there rather than looking
   for a wall.
 - **The ticker's 24h change now reads the gateway reference (source,
   `53d871d60a`; driven 2026-11-03).** `useMarketStatsData` takes the market
