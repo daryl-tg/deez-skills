@@ -1,5 +1,7 @@
 # The capability layer over MCP (stdio)
 
+*Re-driven 2026-11-24 (nightly), tree `26d502c689` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, one Bun driver, no non-JSON line on stdout on any face. The full face lists **497** tools (496 before): `watch_source_resolve` is new (f838c0d73b, [source-resolution.md](source-resolution.md)) and `web_research` is not on it. The lean face lists **8**. `--catalog research` now serves over stdio: **26** tools, and `catalog_operator_only` with `--face lean` or `--session` ([mcp-research-endpoint.md](mcp-research-endpoint.md)). Not re-driven: `watch_list` and `order_place` calls on the full face, the badge, arms, `capital_not_armed` from a plain terminal. (`cli/20` to `cli/23`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261124/r1/`*
+
 *Re-driven 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. The full face: server `openmarket` 0.496.0, **496** tools (unchanged), `watch_list` read the lane's one watch, `order_place` with valid arguments answered `capital_yolo_harness` (the driver ran under an auto-approve harness). The lean face: **8** tools (`find`, `describe`, `read`, `change`, `watch_list`, `watching_overview`, `watch_show`, `memory_search`) and instructions of 322 characters. No banner line on stdout. Not re-driven: the badge, arms, `capital_not_armed` from a plain terminal. (`cli/20-*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
 
 *Re-driven 2026-11-21 (nightly), tree `3c4839c59d` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, one Python driver, no non-JSON line on stdout. The full face lists **496** tools (492 on 2026-11-20): `feed_append`, `feed_show`, `feed_list` and `reading_push` are new; `site_key_add` and `site_key_list` are not served (`Tool site_key_list not found`). The lean face lists **8** with 322 characters of instructions; its `find {"query":"feed"}` leads with `feed_append` and `feed_show`. Calls: `watch_list` (rows), `feed_list` `{"relay":"signed_out","feeds":[]}`, `reading_push {}` and `order_place` with a wrong shape (`invalid_arguments`). `om mcp serve --stdio --catalog research` exits 2 `catalog_http_only`; the HTTP research catalog is in [mcp-research-endpoint.md](mcp-research-endpoint.md). Seen: `om mcp serve --help` still says the lean face lists four tools. Not re-driven: the capital gate with a valid order, badges, the fire bridge. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261121/r1/` (`cli/20` to `cli/22`).*
@@ -76,6 +78,12 @@ mid-call never places an order on its own.
   The gate's order: an off-box session, then `capital_yolo_harness` (an
   auto-approve ancestor), then `capital_no_session` (no server process an arm
   can name: every loopback `--http` session), then `capital_not_armed`.
+- `mcp-research-catalog` (#2675, added 2026-11-24): `om mcp serve --stdio --catalog research`
+  serves the research catalog's 26 tools over stdio, with no fire bridge. It
+  refuses `--face lean` and `--session` with `catalog_operator_only`, exit 2.
+  [mcp-research-endpoint.md](mcp-research-endpoint.md) holds its tools, pins and
+  the inbox gate. `--catalog full` (the default) and `--catalog operator` are
+  the other values.
 - `mcp-lean-face` (#2502, added 2026-11-17; #2562 adds the direct reads,
   live 2026-11-19): `om mcp serve --stdio --face lean` lists 8 tools instead of
   the whole catalog: the four doors below plus `watch_list`,

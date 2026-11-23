@@ -1,5 +1,7 @@
 # Site keys: a watch reads a site with your key
 
+*Re-checked 2026-11-24 (nightly), tree `26d502c689` (origin/main), source only. #2664 fixes chat's kept-key report (below). Not driven: no key was saved or kept tonight.*
+
 *Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `setup key x --site http://example.com` exits 2 with `om: A site key is sent only over https; give the site as https://host.` before any prompt. The `no-escalation` line is corrected from source: only a keyed 401 or 403 answers `page_site_key_refused`. Not re-driven: the hidden prompt, the six ways of sending, a keyed read. (`cli/40-setup-key-http.*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
 
 *Verified: 2026-11-20, merged main `2d01b6b5d4` (#2610, landed as `07c285b9e3`). Keyless lane on 18131 through `control-om`, every OpenMarket origin dead, a scripted model stand-in on 18136. Driven, 9 of 9 claims: the hidden prompt in a tmux pty and the chat box, six ways of sending a key read back from `httpbin.org`, redirects through `postman-echo.com`, a byte scan of the lane for 16 made-up values, export, share, package and MCP refusals, a way change and a site move, and the plain REPL's paste guard. Third-party reads only: `httpbin.org` and `postman-echo.com` with made-up keys. Not driven: a lane with Firecrawl set up (claim 6 rests on a probe of the merged code with a positive control), the TUI's key box, `/setup`. One defect on the chat decline path is recorded under [chart-number-from-address.md](chart-number-from-address.md). Evidence root `~/Documents/dev-notes/om-2026-11-20-e2e-verify/run-artifacts/s2/` (`phaseA/`, `harness/`). Gallery `http://127.0.0.1:8098/om-1120-e2e/s2/`.*
@@ -28,6 +30,7 @@ A person stores a key for one site under a name. A page watch that names the key
 - `paste-guard`: in the plain REPL a key-looking line, or a `!` line holding a Bearer token, is held with `This looks like a key. Save it as a site key? [s]ave, send [a]nyway, [c]ancel:`.
   - Cancel prints `Not sent.` and sends nothing to the model.
   - Save asks `Key name` and `Site (https://host):` and prints `Saved <name> for <origin>`.
+  - Keeping the key on file at a replace prompt in chat now reports `Kept <name> for <site>. The key on file is unchanged; no new key was saved.` (the result carries `kept: true` and `said`, no `stored`); before #2664 it was reported as a save (source, 2026-11-24).
   - A held `!` command does not run.
 - `chat-tools`: `site_key_add` and `site_key_list` are core chat tools. `site_key_add` opens the hidden box in chat.
 
