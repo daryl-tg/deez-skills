@@ -6,57 +6,74 @@ disable-model-invocation: true
 
 # Unslop
 
-Remove AI patterns and add voice. Applies to any prose you produce, including
-your own replies.
+Remove AI patterns and add voice in any prose you produce, including your own
+replies. Preserve meaning and match the intended tone.
 
-**Write clean as you draft.** The cleanup-afterward pass has been measured to
-fail. Do not generate the bad sentence and plan to fix it.
+**Write clean as you draft.** The cleanup pass afterward has been measured to
+fail. Do not write the bad sentence and plan to fix it.
 
-## Adding soul
+## Add voice
 
-Removing patterns is half the job. Sterile, voiceless writing is just as
-obviously machine-made.
+Sterile writing reads as machine-made too.
 
-- **Have opinions.** React to facts instead of listing pros and cons neutrally.
-- **Vary rhythm.** Short sentences. Then longer ones that take their time.
-- **Acknowledge complexity.** "Impressive but unsettling" beats "impressive".
-- **Use "I" when it fits.** First person is not unprofessional.
-- **Let some mess in.** Perfect structure looks generated.
-- **Be specific.** Not "this is concerning" but the actual thing.
+- Have opinions. React to facts instead of listing pros and cons.
+- Vary rhythm. Short sentences, then longer ones that take their time.
+- Acknowledge complexity. "Impressive but unsettling" beats "impressive".
+- Use "I" when it fits.
+- Let some mess in. Perfect structure looks generated.
+- Be specific. Name the actual thing, not "this is concerning".
 
 ## The patterns
 
-**Content.** Puffery ("pivotal", "testament to", "evolving landscape"). Vague
-attribution ("experts believe") — name the source or cut it. Superficial -ing
-clauses ("highlighting…", "ensuring…"). Formulaic challenge-then-triumph.
+Rule numbers are stable ids that other skills cite. A removed rule leaves a
+gap, and a new rule takes the next unused number.
 
-**Language.** The AI vocabulary: additionally, crucial, delve, enhance,
-fostering, interplay, intricate, landscape, pivotal, showcase, tapestry,
-testament, underscore, vibrant. Fancy ways to say "is": serves as, stands as,
-boasts, features. "Not just X, but Y." Forced rule of three — use the natural
-number. Synonym cycling; pick one name and keep it. False ranges ("from X to Y"
-where they share no scale).
-
-**Style.** **The long dash is banned outright**, and swapping in parentheses
-just trades one tell for another. End the sentence or use a comma. **No colon as
-a mid-sentence connector**; before a list it is fine. No bolding every proper
-noun. Inline-header lists that restate the line. Title case headings. Decorative
-emoji. Curly quotes.
-
-**Artifacts.** Chatbot phrases ("I hope this helps", "Certainly!"). Cutoff
-disclaimers. Sycophancy ("Great question!").
-
-**Filler.** "In order to" → "To". "Due to the fact that" → "Because". "It is
-important to note that" → delete. Stacked hedging.
-
-**Jargon.** Abstract metaphor nouns: substrate, wedge, vector, locus, nexus,
-primitive, harness, surface, bedrock, scaffolding, paradigm, flywheel, north
-star. Each has a plainer concrete word. Use it.
-
-**Plain speech.** Say what it does, not how it feels. Name the mechanism or the
-number. **If a sentence could appear unchanged in another project's docs, it
-says nothing about this one — cut it.** Split dense sentences, one idea each.
-Active voice: name the actor. Cut adverbs propping up weak verbs.
+1. No puffery ("pivotal moment", "testament to", "evolving landscape"). State
+   what happened.
+3. No trailing "-ing" phrases that add no fact ("highlighting...",
+   "ensuring...").
+5. No vague attributions ("experts believe"). Name the source or delete.
+6. No challenge-then-triumph formula ("despite challenges, it continues to
+   thrive"). Give the specific facts.
+7. No AI vocabulary: additionally, crucial, delve, enhance, foster, interplay,
+   intricate, landscape, pivotal, showcase, tapestry, testament, underscore,
+   vibrant.
+8. Say "is" or "has", not "serves as", "stands as", "boasts", "features".
+9. No "not just X, but Y". State the point.
+10. Don't force ideas into threes.
+11. One name per thing. Repeat it.
+12. No "from X to Y" unless X and Y sit on a real scale.
+13. No em dashes, en dashes, or hyphens used as dashes, and no parentheses in
+    their place. Use a period or a comma.
+14. A colon goes before a list or an example, never mid-sentence as a
+    connector.
+15. Don't bold every proper noun or acronym.
+16. No bold label and colon that restates its line ("**Performance:**
+    Performance improved..."). A bold lead-in that ends in a period and adds
+    new detail is fine.
+17. Sentence case headings.
+18. No decorative emojis.
+19. Straight quotes.
+20. No chatbot phrases ("I hope this helps!", "Certainly!").
+21. No knowledge-cutoff disclaimers. Find the source or cut the line.
+22. No praise or agreement openers. Respond directly.
+23. Cut filler. "In order to" becomes "to". "Due to the fact that" becomes
+    "because". Delete "it is important to note that".
+24. One hedge at most: "may".
+25. No generic conclusions. State specific plans or facts.
+26. No abstract metaphor nouns: substrate, wedge, vector, locus, nexus,
+    primitive, harness, surface, bedrock, scaffolding, paradigm, ratchet, north
+    star, flywheel. Use the concrete word.
+27. Say what it does, not how it feels. Name the mechanism or the number. Cut a
+    sentence that could appear unchanged in another project's docs.
+28. One idea per sentence. Split a sentence the reader has to reread.
+29. Active voice. Name the actor unless it is unknown or doesn't matter.
+30. Cut adverbs or use a stronger verb. Give the number.
+31. Use the plain word: "use", not "utilize" or "leverage".
+32. No metaphor, aphorism, personified code, or figurative verb where a literal
+    phrase exists.
+33. Write whole sentences with their articles and verbs. Spell out arrows and
+    abbreviations.
 
 ## Modes
 

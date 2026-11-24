@@ -19,7 +19,10 @@ Rebuild what you knew about a topic, from the record rather than from memory.
 - **The repository.** Branches matching the topic, their diffs against
   `origin/main`, open review requests, and whether anything is still running on
   an owned port.
-- **The shared record.** Announcements and discussion in the rooms.
+- **The shared record.** The rooms, the issue tracker, and error tracking.
+  Sweep it whenever the topic names a feature, file, or bug, one subagent per
+  source, in parallel with the session mining. A null result is a finding.
+  Skip an unreachable source and say so.
 
 ## Rules
 
@@ -31,6 +34,6 @@ Rebuild what you knew about a topic, from the record rather than from memory.
 - **Separate settled from open.** The value is knowing which decisions are
   closed, so they are not relitigated.
 
-**Reply:** a current-state brief — what the goal was, what is done and proven,
+**Reply:** a current-state brief. What the goal was, what is done and proven,
 what is in flight and where, what is decided, what is open, and the paths worth
 reading first.

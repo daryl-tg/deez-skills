@@ -3,11 +3,12 @@
 **You own the answer. Plan, route, write.** Read-only. Produces a cited
 explanation or a recommendation, never a code change.
 
-1. Route to the **explore** role over the affected subsystem. For motivation
-   questions ("why is it this way?") also route to the **why** skill. Run them
-   in parallel.
-2. Todo checkpoint stays one line: `throughput: n/a, read-only investigation`.
-3. Produce the shaped output: Overview, Key Concepts, How It Works, Where Things
+1. Route to the **explore** role over the code the question is about. For a
+   motivation question ("why is it this way?"), run the **why** skill in
+   parallel.
+2. The todo checkpoint stays one line,
+   `throughput: n/a, read-only investigation`.
+3. Produce the shaped output, Overview, Key Concepts, How It Works, Where Things
    Live, Gotchas. For a decision between alternatives, a recommendation with a
    tradeoffs table instead.
 4. Apply the **unslop** skill to the reply.

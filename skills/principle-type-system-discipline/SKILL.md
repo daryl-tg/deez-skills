@@ -6,37 +6,32 @@ disable-model-invocation: true
 
 # Type system discipline
 
-The type checker is a proof assistant. Use it to eliminate impossible states and
-unhandled variants at compile time. A case the types let you ignore becomes a
-runtime failure the compiler could have stopped.
+Make the compiler reject impossible states, mismatched primitives, and unhandled
+variants. A case the types let you ignore becomes a runtime failure.
 
-- **Make illegal states unrepresentable.** Model variants as sum types, not a bag
-  of optional fields where contradictory combinations compile.
-  `{ completed: boolean; completedAt?: Date }` admits `completed: true` with no
-  date, which is meaningless. Derive the boolean, or model the variants.
-- **Types are constructions, not restrictions.** Build the type up from the
-  values you want rather than carving them out of a looser type with checks. A
-  non-empty list is a head plus a rest. A valid range is a start plus a
-  duration, not two timestamps you must keep ordered.
-- **Brand semantic primitives.** `UserId` and `OrderId` are both strings and must
-  not be interchangeable. A brand comes from a verifying type guard (`input is AgentId`),
-  never `as`.
-- **External data is untyped until parsed.** Payloads, JSON, CLI args, config,
-  env vars, database rows. A parse function at every boundary — see
-  **principle-boundary-discipline**. Annotate a schema with the type it proves
-  (`const userSchema: z.ZodType<User>`) so the compiler rejects a validator that
-  proves less than the type.
+- **Make illegal states unrepresentable.** Model variants as sum types, not a
+  bag of optional fields. `{ completed: boolean; completedAt?: Date }` compiles
+  `completed: true` with no date. Derive the boolean or model the variants.
+- **Build types up, never carve them out.** A non-empty list is a head plus a
+  rest. A valid range is a start plus a duration, not two timestamps you must
+  keep ordered.
+- **Brand semantic primitives.** If two arguments share a primitive but mean
+  different things, give each its own type. Validate once at creation through a
+  verifying type guard (`input is AgentId`), never `as`.
+- **External data is untyped until parsed.** JSON, RPC payloads, CLI args,
+  config, environment variables, and database rows go through a parse function
+  at the boundary, per **principle-boundary-discipline**. Annotate a schema with
+  the type it proves (`const userSchema: z.ZodType<User>`) so the compiler
+  rejects a validator that proves less.
 - **Do not lie to the compiler.** A cast it cannot verify is a runtime crash
-  waiting. Prove the fact or accept that the cast is a hazard.
-- **Exhaustive matching is the compiler's job.** Adding a variant must fail the
-  build everywhere it is unhandled.
-- **Derive from authoritative schemas.** Where a protobuf, OpenAPI spec, or
-  migration defines a shape, derive from it. Manual duplication drifts.
+  waiting. Prove the fact or treat the cast as a hazard.
+- **Exhaust variants.** Adding a variant must fail the build everywhere it is
+  unhandled.
+- **Derive types from authoritative schemas.** When a protobuf, OpenAPI spec, or
+  migration owns a shape, derive from it instead of hand-rolling a parallel type.
 - **Strengthen a type only where partiality appears.** A "should never happen"
   throw marks a type that is too weak. Push that check into the type, then stop.
-  Extra precision costs reuse and buys no safety.
 
-**The tests:** if you can write a comment explaining when a field combination is
-valid, the type is too loose. If two arguments share a primitive and mean
-different things, brand them. If a new variant would not break the build, the
+The test. If you can write a comment explaining when a field combination is
+valid, the type is too loose. If a new variant would not break the build, the
 match is not exhaustive.

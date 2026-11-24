@@ -3,32 +3,28 @@
 **You own the plan and the pass that builds it.** The plan is a checklist the
 build runs box by box and the operator audits from the evidence. Use it for a
 feature too large to build without a written plan. One plan covers the whole
-feature, and the same run builds all of it through subagents. It never
-splits into phases, per **principle-sequence-verifiable-units**.
+feature, and the same run builds all of it through subagents, never in phases,
+per **principle-sequence-verifiable-units**.
 
 1. **Skip the plan when the change is one or two files with an obvious
-   approach.** Say so and stop. A plan for a one-file change is ceremony that
-   buys nothing.
-2. **Settle the open questions before writing.** A question about layout,
-   timing, behavior, or whether an API works goes to `playbooks/prototype.md`.
-   Keep the scratch path and the screenshots for Appendix A. Ask the operator
-   only about a product or preference call no run can settle, and give options
-   when you do, per **principle-never-block-on-reversible-work**. Several open
-   calls go in rounds, per `playbooks/grill-me.md`.
+   approach.** Say so and stop.
+2. **Settle the open questions by prototype before writing**, per
+   `playbooks/prototype.md`, and keep the scratch path and the screenshots for
+   Appendix A. Ask the operator only about a product or preference call no run
+   can settle, with options, per **principle-never-block-on-reversible-work**.
+   Several open calls go in rounds, per `playbooks/grill-me.md`.
 3. **Explore in delegates.** The **explore** role over each affected subsystem
-   returns file pointers, conventions, test commands, and entry points. No
+   returns file pointers, conventions, test commands, and entry points, never
    inlined dumps, per **principle-guard-the-context-window**.
 4. **Write the plan into the task's dev-notes folder** by absolute path, as
    `YYYY-MM-DD-<topic>-plan.md`, per
-   **principle-planning-docs-live-outside-the-repo**. Never into the repo. Copy
-   the skeleton below and fill every placeholder. One section per unit. Every
-   unit is built in the same run and ships in one review, per
-   **principle-sequence-verifiable-units**. Never write a phase 2 or a deferred
+   **principle-planning-docs-live-outside-the-repo**. Copy the skeleton below
+   and fill every placeholder, one section per unit. Every unit is built in the
+   same run and ships in one review. Never write a phase 2 or a deferred
    follow-up. Scope that is in the feature is in the plan.
-5. **Write it to the docs standard.** Draft under **writing-docs**, then
-   run **unslop** over it. The body is a how-to.
-   Explanation and reference live in the appendices. Every heading states the
-   task or the finding. No long dashes. No mid-sentence colons.
+5. **Write it to the docs standard.** Draft under **writing-docs**, then run
+   **unslop** over it. The body is a how-to, and explanation and reference live
+   in the appendices. Every heading states the task or the finding.
 6. **Run the shape check** and fix every line it prints.
    `~/github/deez-skills/bin/check-plan <plan path>` holds the skeleton, the
    verification rule in every verify block, and the punctuation. It is the
@@ -37,18 +33,18 @@ splits into phases, per **principle-sequence-verifiable-units**.
    box is checkable by evidence rather than by opinion. Read for that yourself.
 7. **Post the plan path and keep going.** Do not ask which execution path.
    Build every unit in one pass through `playbooks/agentic-loop.md`, with Claude
-   subagents as the executors. Do not stop between units, and do not hand back
-   a partial build.
+   subagents as the executors. Never stop between units or hand back a partial
+   build.
 
 **Verification.** Tests alone are not sufficient. A unit is verified when its
 unit box and its real-surface box are both checked, per
-**principle-prove-on-the-real-surface**. The real-surface box names the scenario,
-how it is driven through the repo's `verify-<app>` skill, the screenshot it
+**principle-prove-on-the-real-surface**. The real-surface box names the
+scenario, how the repo's `verify-<app>` skill drives it, the screenshot it
 saves, and the predicate that passes. A unit that changes an interaction is
-review-gated on the operator seeing it in the one evidence revision published
-for the whole candidate, per **principle-visual-approval-gates-delivery**. The
-gate is not a stop between units. A unit that changes no interaction
-writes `Review gate. None.` and no boxes under it.
+review-gated on the operator seeing it in the candidate's one published
+evidence revision, per **principle-visual-approval-gates-delivery**. The gate
+is not a stop between units. A unit that changes no interaction writes
+`Review gate. None.` and no boxes under it.
 
 ````markdown
 # <Program> plan

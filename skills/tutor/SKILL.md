@@ -17,6 +17,8 @@ a codebase subsystem. When the intent is unclear, ask one short question. "Want
 a quick answer, or should I actually teach you this properly?" An unwanted quiz
 costs the person more than one word of confirmation.
 
+When the gap is the topic's vocabulary, offer **reframe** first.
+
 The person must be present. Never run this under a full-autonomy grant.
 
 ## Session start

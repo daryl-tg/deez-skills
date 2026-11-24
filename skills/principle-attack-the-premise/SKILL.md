@@ -9,30 +9,17 @@ disable-model-invocation: true
 When two or more fixes that share one premise have failed the same gate,
 suspect the premise, not the fixes.
 
-**Why:** each failure under a shared premise is evidence about the premise. A
-third fix that assumes it is the most expensive way to collect a fourth piece of
-the same evidence.
-
-- **Find an observation that would come out differently if the premise were
-  false, and make it.** Write the premise down first: the one sentence every
-  failed fix assumed. Without it you cannot tell whether the next fix assumes it
-  too. Make the observation a rerunnable script, per **principle-build-the-lever**.
+- **Write the premise down.** It is the one sentence every failed fix assumed.
+- **Test it before the next fix.** Find an observation that would come out
+  differently if the premise were false, and make it. Look at how the failures
+  are distributed, not only at how large they are. Make the check rerunnable,
+  per **principle-build-the-lever**.
+- **If the evidence contradicts the premise**, look for what the failures share
+  that it did not predict. Keep the observation as evidence.
 - **Remove the condition instead of compensating for it**, per
-  **principle-laziness-protocol**. A return path, a shared pool, a batched
-  handoff, or a periodic rebalance all leave the condition in place and add work
-  on every run.
-- **Worked example: a census per actor.** Count the imbalance per actor. If the
-  same few hold most of it on every run, something assigns them that role. Find
-  what assigns it, per **principle-fix-root-causes**, then rotate, randomize, or
-  move the role.
+  **principle-laziness-protocol**. If the same few actors land on the losing
+  side every run, find what assigns them that role, per
+  **principle-fix-root-causes**, and change it. A return path, a shared pool, or
+  a periodic rebalance leaves the condition in place and adds work on every run.
 
-**Stop:**
-
-- Do not start the next fix before the premise is written and the observation
-  is made.
-- If the observation comes out the same either way, the premise is not the
-  cause. Look elsewhere and keep the observation as evidence.
-
-Distinct from **principle-redesign-from-first-principles**, which rebuilds a
-design around a new requirement. This one questions a fact the current design
-already assumes.
+Do not start the next fix before the premise is written down and tested.

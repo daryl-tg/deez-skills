@@ -6,33 +6,23 @@ disable-model-invocation: true
 
 # Fix root causes
 
-Do not paper over symptoms. Trace every problem to its root cause and fix it
-there.
+Fix the fault, not the place where it surfaced. The root cause is the first
+place the system did something it should not do, or failed to handle a state it
+should handle.
 
-**Why:** symptom fixes accumulate. Each workaround makes the system harder to
-reason about, and the real bug remains. Root-cause fixes are slower up front and
-reduce total debugging time.
-
-- **Reproduce first.** If you cannot reproduce it, you cannot verify the fix.
-- **Ask why until you hit the cause.** The first plausible explanation is rarely
-  the last one.
-- **Test the guard for legitimacy.** A guard is a fix only when the state it
-  handles is legitimate. If the system may be in that state, the code that broke
-  on it is the root cause, and handling the state there is the fix. Otherwise
-  the guard hides the bug, like a retry, a swallowed error, or a clamped value.
-- **If a workaround needs a paragraph to justify it, the code is wrong.** Fix
-  the code, not the comment.
-- **Check for the pattern, not the instance.** Grep for the same shape and fix
-  all of them.
-- **When stuck, instrument.** Add logging and read what the code actually does.
-  Do not guess. If the deciding fact took a deep dig to find, propose the
-  cheap, always-on signal (a log line, metric, or doctor check) that would have
-  shown it at first look.
-
-**Restart bugs: suspect state before code.** Code does not change between runs;
-state does. When something fails after a restart, suspect stale persistent
-state first — config, caches, lock files, serialized state. If clearing a state
-file restores behavior, state validation is the fix.
-
-Pairs with **principle-prove-on-the-real-surface**: the repro is what proves the
-fix, so it has to exist before the fix does.
+- Reproduce first. The repro is what proves the fix, per
+  **principle-prove-on-the-real-surface**, so it exists before the fix does.
+- Ask "why" until the answer is a wrong decision in the code. When stuck,
+  instrument and read the actual state. Do not guess.
+- Ask whether the state that triggered the symptom is legitimate. If it is,
+  handle it where the code broke. If it should never exist, a check there hides
+  the bug, so find what produced it. Guards, retries, swallowed errors, clamped
+  values, and discarded state are the usual ways to hide a bug.
+- After a restart, suspect persisted state before code (config, caches, lock
+  files, serialized state). If clearing a state file restores behavior, state
+  validation is the fix.
+- Fix the pattern, not the instance. Find every place with the same fault.
+- If a workaround needs a paragraph to justify it, fix the code, not the
+  comment.
+- If the deciding fact took a deep dig, propose the cheap, always-on signal (a
+  log line, a metric, a doctor check) that would have shown it at first look.

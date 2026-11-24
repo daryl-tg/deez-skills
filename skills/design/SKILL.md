@@ -6,62 +6,44 @@ disable-model-invocation: true
 
 # Design
 
-Merges the classification and approval gate of brainstorming, the technical
-artifact of architect, and the decomposition of writing-plans.
-
 ## 0. Classify, and say which
 
-- **Spike** — a feasibility question whose output is an answer, not code you
+- **Spike.** A feasibility question whose output is an answer, not code you
   keep. Present the question and the probe in two sentences, get a nod, find out
   cheaply, report a recommendation. Anything built is labelled throwaway.
-- **Bounded** — a well-scoped change to a flow that already exists in this repo.
+- **Bounded.** A well-scoped change to a flow that already exists in this repo.
   Ask the questions that matter in one round, per `playbooks/grill-me.md`,
   present a short design in chat, stop.
-- **Architectural** — new subsystems, or changes that restructure how components
+- **Architectural.** New subsystems, or changes that restructure how components
   fit. Full process below.
 
-Bounded measures the repo, not your familiarity. If there is no existing flow to
-change, it is architectural. When torn, take the heavier path. Hidden complexity
-upgrades the path mid-task; nothing downgrades.
+Bounded measures the repo, not your familiarity. With no existing flow to
+change, it is architectural. When torn, take the heavier path. Hidden
+complexity upgrades the path mid-task, and nothing downgrades.
 
 ## A. Ground *(architectural)*
 
-Build a real model of every system the new code touches. Route to the **explore**
-role. When the design redefines ownership or layering, also run **why**, so the
-existing rationale is a constraint rather than a guess. Naming a file is not
-grounding.
+Trace every system the change touches, through the **explore** role. When the
+design redefines ownership or layering, also run **why**, so the existing
+rationale is a constraint rather than a guess. Naming a file is not grounding.
 
 ## B. Sketch *(architectural, bounded)*
 
-**Write the caller's usage first**, then derive the types, signatures, and module
-map from it. Bodies stay `not implemented`.
+**Write the caller's usage first**, then derive the types, signatures, and
+module map from it. Bodies stay `not implemented`.
 
-**Design it twice.** Produce at least two *structurally distinct* candidates
-before choosing. A second flavour of the first shape does not count. When the
-fork is genuinely open, run one **executor** per candidate in its own worktree
-and judge them in one pass by one judge. Take the judge rules from
-`playbooks/eval.md`, not its whole protocol.
+**Sketch two structurally distinct shapes** before choosing. A second flavour of
+the first does not count. Pick the one where each piece of state has one owner,
+each task has one way to do it, internals cannot be imported from outside, no
+list is kept in sync by hand, and callers need to know least. The next
+contributor is an agent that copies the nearest example, so prefer the design
+where a change that looks right from one file is right for the whole repo.
 
-Assume the next contributor is an agent that sees only the files it opened,
-copies the nearest example, and takes the shortest path that compiles. Prefer
-the design where a change that looks right from one file is right for the whole
-repo.
+When the fork is open or contested, run one **executor** per candidate in its
+own worktree and judge them in one pass by one judge, with the judge rules from
+`playbooks/eval.md`.
 
-Screen every candidate before comparing: shallow modules, information leakage,
-temporal decomposition, pass-through layers, and the four that agents trip on:
-
-- **Split ownership.** Two modules write the same state. Give it one owner.
-- **Two ways to do one task.** The agent copies whichever it finds first. Keep
-  one and delete the rest in the same change.
-- **Importable internals.** The shortest path that compiles becomes the
-  interface. Make an outside import fail the build.
-- **Hand-synced list.** Adding an item means editing every list. Derive them
-  from one, or fail the build when they disagree.
-
-Then compare on **interface depth** — prefer the design hiding more complexity
-behind a smaller surface.
-
-## C. Agree — **mandatory**
+## C. Agree, **mandatory**
 
 Present the design and **stop**. This gate is not opt-in and is not skipped
 because the design looks obvious. Presenting and starting in the same breath is
@@ -77,8 +59,8 @@ planning.
 ## D. Plan *(architectural)*
 
 Decompose into units that each end in a check, ordered so the sequence proves
-itself. Every step names its files and its verification. No placeholders: a step
-saying "add error handling" is a plan failure.
+itself. Every step names its files and its verification. No placeholders. A
+step saying "add error handling" is a plan failure.
 
 ## E. Implement against the sketch
 
@@ -87,18 +69,15 @@ a function needs a parameter the sketch did not anticipate, say whether the
 sketch was wrong, the requirement was missed, or the implementation is
 overreaching.
 
-## F. Scrap when the architecture is wrong
+## F. Redesign when workarounds repeat
 
 If implementation keeps producing friction the sketch cannot absorb, throw the
-sketch out. The signal is a **repeated pattern**, not one hard case:
+sketch out. The signal is a **repeated pattern**, not one hard case. It shows as
+the same workaround in unrelated places, special-case branches for unrelated
+edge cases, type escape hatches, a lock where the sketch said nothing was
+shared, or callers needing the abstraction's internals.
 
-- The same shape of workaround in unrelated places.
-- Several unrelated edge cases all needing special-case branches.
-- Types needing escape hatches to compile.
-- A lock needed where the sketch said nothing was shared.
-- Callers having to know the abstraction's internals.
-
-When you scrap: re-ground on what was built, redesign as if the new constraints
-were day-one assumptions, subtract before adding, and return to B.
+Re-ground on what was built, redesign as if the new constraints were day-one
+assumptions, subtract before adding, and return to B.
 
 **Reply:** the design, the alternatives and why this one, the open decisions.

@@ -49,7 +49,7 @@ Before writing the prompt, answer four questions in a few lines outside the code
 3. Which specific methods and tools would they use?
 4. What, other than you or the user, would show the result is right?
 
-Then write the prompt so it asks for exactly that. Leave choices that are the user's to make open, as `[FILL: ...]` placeholders or as named options, instead of deciding them. Steps 0, 4, 5, and 6 of the per-message workflow still apply.
+Then write the prompt so it asks for exactly that. Have it ask the agent to prototype any choice an experiment can settle and recommend an option from what it observed. Leave product and preference choices that no experiment can settle to the user, as `[FILL: ...]` placeholders or as named options. Steps 0, 4, 5, and 6 of the per-message workflow still apply.
 
 ## Output Format
 

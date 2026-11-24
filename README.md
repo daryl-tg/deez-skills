@@ -176,6 +176,7 @@ when you want one directly.
 | [`om-super-reaction`](./skills/om-super-reaction/SKILL.md) | Design, build, and quality-gate one super reaction effect for OM Chat's premium reaction system, from constraint tuple… |
 | [`recall`](./skills/recall/SKILL.md) | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use w… |
 | [`reflect`](./skills/reflect/SKILL.md) | Mine a finished session for durable lessons and route each to a concrete skill edit, gated on approval. Use when the o… |
+| [`reframe`](./skills/reframe/SKILL.md) | Teach the expert words for what the operator is building, borrow words from neighboring fields that solved the same pr… |
 | [`review`](./skills/review/SKILL.md) | Review a diff from the code, with findings sorted into act-on, consider, noted, and dismissed. Use for reviewing a bra… |
 | [`show-me-your-work`](./skills/show-me-your-work/SKILL.md) | Keep an auditable decision trail as a committed TSV during long or unattended runs. Use when the operator will review … |
 | [`teach`](./skills/teach/SKILL.md) | Explain a change or subsystem plainly so a person actually understands it. Runs explore and why, weaves one account, b… |
@@ -497,6 +498,8 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `product-video` |  | claude, codex | Turn a product journey or feature into a continuous UI motion film with faithful product states, a human cursor, musical timing and deterministic rendering. Us… |
 | `prompt-ready` |  | claude | Use when the user wants to turn raw, natural-language requests into clean, self-contained, copy-paste-ready prompts for a different Claude/LLM session. Persist… |
 | `recall` |  | claude, codex | Rebuild your context on a topic from prior sessions and the shared record, handed back as a current-state brief. Use when resuming work after a gap, or for 'wh… |
+| `reframe` |  | claude, codex | Teach the expert words for what the operator is building, borrow words from neighboring fields that solved the same problem, then rewrite their description wit… |
+| `reframe` |  | claude | Learn the expert words for what you are building, then get your description rewritten with them. |
 | `reviewer` |  | claude, codex | Code, diff, PR, or MR review; dead-code checks, behavior drift, or REVIEW.txt notes. |
 | `show-me` |  | claude, codex | Explain the current topic visually, picking the smallest view that makes the point: pseudocode, a call tree, a component or file tree, a Mermaid diagram, a sha… |
 | `show-me-your-work` |  | claude, codex | Keep an auditable decision trail as a committed TSV during long or unattended runs. Use when the operator will review after stepping away, or when the reasonin… |

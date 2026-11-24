@@ -10,32 +10,29 @@ mode: true
 ## Session continuity
 
 Explicit `$clanker-mode`, `/clanker-mode`, or "use clanker mode" activates this
-mode for the current session until the user opts out or clears the conversation.
-Follow-ups continue the current task; new tasks select a new playbook. A casual
-question or a completed task does not deactivate it. Never infer activation from
-merely discussing the skill.
+mode for the session until the user opts out or clears the conversation.
+Follow-ups continue the current task. A new task selects a new playbook. A
+casual question or a finished task does not deactivate it. Never infer
+activation from merely discussing the skill.
 
-The hub's session hooks save activation outside the transcript and supply a short
-reminder on user turns, after compaction or resume, and every 20 tool calls. They
-do not grant permissions or enforce the playbook. Install them with
-`bin/deez clanker-hooks --apply` at the hub root; Codex also requires review and
-trust in `/hooks`. Without running hooks, this is a prose convention, not
-automatic persistence. See [session persistence](references/session-persistence.md).
+The hub's session hooks save activation outside the transcript and remind on
+user turns, after compaction or resume, and every 20 tool calls. They grant no
+permission and enforce no playbook. Install them with
+`bin/deez clanker-hooks --apply` at the hub root. Without running hooks this is
+a prose convention. [Session persistence](references/session-persistence.md)
+owns setup, scope and limits.
 
-On task selection, create `resume.md` in the task's external dev-notes folder and
-register its absolute path and the selected playbook through
-`bin/deez clanker-checkpoint`. The hook supplies the runtime and session ID.
-Keep the goal, user constraints, checklist steps and status, evidence paths,
-pending approvals, worktree and next action in that note. Update it after each
-meaningful phase, before handing off and before a planned compaction. The
-checkpoint records progress; it cannot authorize an action. A checkpoint is
-not a phase boundary. Keep going after it.
+On task selection, write `resume.md` in the task's dev-notes folder and register
+its absolute path and the playbook with `bin/deez clanker-checkpoint`. The note
+holds what session persistence lists, from the goal to the next action. Update
+it after each meaningful step, before a handoff and before a planned compaction.
+A checkpoint records progress and authorizes nothing. It is not a phase
+boundary. Keep going after it.
 
-After compaction or resume, reread this skill, the selected playbook and the
-registered note before continuing. Restore the existing checklist and verify
-current state where needed. Continue at the first unproven step; do not restart
-finished work, drop gates, stop delegates or commit WIP merely for compaction.
-Explicit pause requests use `playbooks/pause-safely.md`.
+After compaction or resume, reread this skill, the playbook and the note.
+Restore the checklist, verify current state where needed, and continue at the
+first unproven step. Never restart finished work, drop gates, stop delegates or
+commit WIP for compaction. An explicit pause uses `playbooks/pause-safely.md`.
 
 ## Non-negotiables
 
@@ -44,25 +41,27 @@ Principles index below in full.** Name each principle that shaped a decision and
 the choice it changed. A citation with no decision behind it means the leaf went
 unread.
 
-- A non-trivial task → open the reply with a one-line playback, in your own
-  words, of the operator's goal, the problem they are solving, and, when the task
-  ships a change, the smallest change you expect to meet it. Then the todo
-  list. If the evidence rules out the change the operator asked for, show it
-  and stop. Restate the goal in every subagent brief, in each review's `## Why`,
-  and at the top of the final report. It is a statement, not a question. A wrong playback costs one line to correct. A wrong build costs the
-  run.
+- A non-trivial task → open with a one-line playback of the operator's goal, the
+  problem, and, when it ships a change, the smallest change that meets it. Then
+  the todo list. It is a statement, not a question. If the evidence rules out
+  the change asked for, show it and stop. Restate the goal in every delegate
+  brief, each review's `## Why`, and the top of the final report.
+- Starting any agent → the first line of its brief is
+  `Read ~/.claude/skills/clanker-mode/worker.md before anything else.` The
+  operator's rules live in skills that load only from a slash command, so they
+  reach a delegate no other way.
 - Any code change → **principle-failing-test-first**, at the fastest level that
-  expresses the behavior. Any test you write, change, or decide to keep →
-  **principle-test-behavior-not-implementation**. A check that would pass with
-  every import returning `undefined` is not a check. Any code you write or edit
-  → **principle-code-speaks-for-itself**: no comment explains the code or your
-  work on it.
-- Any typecheck, test run, lint, or build → **principle-scope-checks-to-the-change**.
-  Whole-repo gates run only when the operator asks.
-- Any claim that something works → **principle-prove-on-the-real-surface**.
+  expresses the behavior. A test you write, change, or keep →
+  **principle-test-behavior-not-implementation**. A check that passes with
+  every import returning `undefined` is not a check. Code you write or edit →
+  **principle-code-speaks-for-itself**.
+- Any typecheck, test run, lint, or build →
+  **principle-scope-checks-to-the-change**. Whole-repo gates run only when the
+  operator asks.
+- A claim that something works → **principle-prove-on-the-real-surface**.
   Inconclusive is not a pass.
-- About to measure, or to report or act on a measured number, a speedup, regression, or eval
-  result → **principle-explain-the-number**, and **benchmark-checklist** for a
+- Measuring, or reporting or acting on a measured number →
+  **principle-explain-the-number**, and **benchmark-checklist** for a
   performance number.
 - Before promoting, reviewing, or announcing →
   **principle-visual-approval-gates-delivery**.
@@ -70,59 +69,48 @@ unread.
 - Any spec, plan, or handoff → **principle-planning-docs-live-outside-the-repo**.
 - **Any React or Next.js code** → **vercel-react-best-practices**, grounded by
   **principle-model-the-domain** for the data shape and
-  **principle-minimize-reader-load** for component boundaries. Its 70 rules are
-  ordered by impact: waterfalls and bundle size first, re-render tuning much
-  later. Do not start at memoisation.
+  **principle-minimize-reader-load** for component boundaries. Its rules run by
+  impact, so start at waterfalls and bundle size, never at memoisation.
 - **Product motion films, feature demos, UI launch films and product reels** →
   **product-video**, through `playbooks/product-video.md`. Read the project's
-  verification map first, then propose real states and a beat grid for approval.
-  Use one continuous shell, a human cursor, purposeful zooms and transitions,
-  and deterministic `seek(t)` rendering. Launches capture the feature's core
-  value and visual proof; walkthroughs teach its steps. Determine runtime from
-  the feature's communication needs and explain it in the storyboard.
-  Carry approved preferences across films through the skill's preset records.
-  Its `references/review.md` defines the video cadence: verify creation, skip
-  verification on feedback previews, ask readiness, then verify before final delivery.
+  verification map first. The playbook and the skill own the storyboard gate,
+  the motion rules, the runtime, the preset records and the review cadence.
 - **Motion in shipped components and interaction feel** → **animate** on web,
-  **animate-expo** on Expo. The craft bar behind both is **emil-design-eng**, and **apple-design**
-  for gesture and material work. Auditing a codebase's motion is
-  **improve-animations**, and **find-animation-opportunities** for what should
-  move and does not. Both return a roadmap, which is
-  `playbooks/feature-plan.md` work rather than something to start applying.
-  Naming an effect you cannot name is **animation-vocabulary**.
-- **review-animations** is the one you cannot load. It is operator-invoked, so
-  ask for `/review-animations` on the diff. Never claim a motion review you did
-  not run.
+  **animate-expo** on Expo, held to **emil-design-eng**, and **apple-design**
+  for gesture and material work. Auditing motion is **improve-animations**, and
+  **find-animation-opportunities** for what should move and does not. Both
+  return a roadmap, which is `playbooks/feature-plan.md` work, not something to
+  start applying. Naming an effect you cannot name is **animation-vocabulary**.
+- **review-animations** is operator-invoked, so ask for `/review-animations` on
+  the diff. Never claim a motion review you did not run.
 - The operator wants to understand something → **teach** for one plain account
-  at their pace, and **show-me** for the picture. When they ask to be quizzed,
-  drilled, or taken to mastery → **tutor**. A one-off question just gets
-  answered.
-- Any prose surface, including your own reply → the **unslop** skill. For text
-  going out in the operator's name, **humanize** after it.
-- About to ask the operator → classify the fork first, per
+  at their pace, **show-me** for the picture, **tutor** when they ask to be
+  quizzed or drilled to mastery. When the gap is the words for what they are
+  building → **reframe**, which the operator runs as `/reframe`. A one-off
+  question just gets answered.
+- Any prose surface, your reply included → **unslop**. Text going out in the
+  operator's name → **humanize** after it.
+- About to ask the operator → classify the fork per
   **principle-never-block-on-reversible-work**. A fact you could observe by
-  running something is not a question: run it, through `playbooks/prototype.md`.
-  A read-only question answers from the evidence, through
-  `playbooks/investigation.md`. Under a full-autonomy
-  grant (`playbooks/autonomous-run.md`, `playbooks/agentic-loop.md`), decide a
-  call the grant covers, act, and report it with the alternative in plain words,
-  never a shorthand token for the operator to type back. Genuine product and
-  preference calls still get asked. Two or more open at once go in one round,
-  through `playbooks/grill-me.md`.
-- A feature or any multi-step change → **one pass, no phases.** Plan the whole
-  scope and build it in the same run, with one owner holding the whole context.
-  Never split it into phase 1 and phase 2. Never ship part of it and defer the
-  rest as a follow-up. Never stop between units to hand back. Each handoff
-  between phases drops context, and the build drifts from the plan. Split only
-  when the work cannot ship as one review, and name the reason, which is an
-  ordered landing across repositories or a production rollout that must go out
-  in stages. Inside the pass, each unit still ends in a check, per
-  **principle-sequence-verifiable-units**.
-- Frozen spec or plan → **build it through Claude subagents, without asking.**
-  Run it through `playbooks/agentic-loop.md`. There is no execution-path
-  question. The lead stays inline only for tiny edits, session-only tools, or
-  when the operator asks for inline.
-- Broken skill mid-task → fix it in its own change. Do not block, do not
+  running something is an experiment, through `playbooks/prototype.md`. A
+  read-only question answers from the evidence, through
+  `playbooks/investigation.md`. Under a full-autonomy grant
+  (`playbooks/autonomous-run.md`, `playbooks/agentic-loop.md`), decide what the
+  grant covers, act, and report it with the alternative in plain words, never a
+  shorthand token to type back. Product and preference calls still get asked,
+  two or more in one round through `playbooks/grill-me.md`.
+- A feature or any multi-step change → **one pass, no phases.** One owner holds
+  the whole context, plans the whole scope and builds it in the same run. Never
+  a phase 1 and a phase 2, never a deferred follow-up, never a stop between
+  units to hand back, because each handoff drops context and the build drifts.
+  Split only when the work cannot ship as one review, and name the reason, an
+  ordered landing across repositories or a staged production rollout. Each unit
+  still ends in a check, per **principle-sequence-verifiable-units**.
+- Frozen spec or plan → **build it through Claude subagents, without asking**,
+  through `playbooks/agentic-loop.md`. There is no execution-path question. The
+  lead stays inline only for tiny edits, session-only tools, or when the
+  operator asks for inline.
+- Broken skill mid-task → fix it in its own change. Do not block, and do not
   silently work around it.
 
 ## Principles
@@ -177,31 +165,28 @@ through the MR. Neither ever merges locally.
 ## Project verification maps
 
 Read [the project verification contract](../../docs/project-verification.md)
-before choosing a verification skill. Its canonical home is
-`~/github/deez-skills/projects/<repository>/skills/verify-<app>/`; repository
-ownership comes from the registry or origin remote, never a worktree name.
-Create that directory through **create-verification-skill** when the project
-has no verification skill. **maintain-verification-skill** updates the same map.
+before choosing a verification skill. It owns where the map lives and how its
+repository is resolved. A project with no verification skill gets one through
+**create-verification-skill**. **maintain-verification-skill** updates the same
+map.
 
 During exploration, reconcile the touched user outcomes with the README's
-source-supported surface inventory. Record unmapped discoveries and prerequisites
-even if live verification is blocked, clearly marked pending. A feature already
-named in a guide still needs its new paths or sub-features captured.
+source-supported surface inventory. Record unmapped discoveries and
+prerequisites even when live verification is blocked, marked pending. A feature
+already in a guide still needs its new paths captured.
 
-After live verification, add missing entries, update existing recipes and
-provenance, and keep the inventory and `features/README.md` current. Make map
-persistence a visible checklist step with the changed paths and publication
-receipt, or an explicit no-change/pending reason. Before handing off,
-automatically commit and push only the changed map Markdown through
-`bin/deez sync-feature-maps`, per that contract. This map-only authorization
-does not authorize a product push or publication of skill/config changes.
+After live verification, add missing entries, update recipes, provenance, the
+inventory and `features/README.md`. Map persistence is a visible checklist step
+with the changed paths and the publication receipt, or a no-change or pending
+reason. Before handing off, commit and push only the changed map Markdown
+through `bin/deez sync-feature-maps`. That authorizes no product push and no
+publication of skill or config changes.
 
 ## Delegation
 
 **The operator runs Claude Code only.** Every delegate is a Claude subagent.
-The Codex column below is dormant install support, kept so the hub can serve
-Codex again if the operator resubscribes. It is not a routing target: never
-hand a task to Codex, and never offer it as an option.
+The Codex column below is dormant install support for a resubscribe, never a
+routing target. Never hand a task to Codex, and never offer it.
 
 Playbook steps name a **role**. Never a model, never a runtime.
 
@@ -215,34 +200,35 @@ Playbook steps name a **role**. Never a model, never a runtime.
 
 The Claude column is authoritative. The hub versions the Claude halves in
 `agents/` and links them into `~/.claude/agents/`. The dormant Codex halves are
-oh-my-codex agents under `~/.codex/agents/`, owned by that package and recorded
-in `vendor.toml` rather than copied.
+oh-my-codex agents under `~/.codex/agents/`, recorded in `vendor.toml` rather
+than copied.
 
-**Non-delegable:** design, review, verification, and every
-git mutation. Those stay with the lead — you — regardless of what the roles
-table offers. `[routing]` in `registry.toml` records that, and the registry
-rejects any other value for them.
+**Non-delegable.** Design, review, verification, and every git mutation stay
+with the lead, you, whatever the roles table offers. `[routing]` in
+`registry.toml` records that, and the registry rejects any other value for them.
+
+**Every brief opens with the worker line**, then the goal and the task. A
+delegate inherits none of your context, so the brief cites the playbook by
+absolute path and the principles by name.
 
 **Own every delegate's work.** Review the diff yourself and write your own
-summary. Inspect the artifact, never the self-report. A delegate does not
-inherit your context, so every handoff cites the playbook by absolute path and
-the principles by name.
+summary. Inspect the artifact, never the self-report.
 
-**Match effort to the job.** Ask a delegate for more reasoning effort on the
-hardest or subtlest work, and less on routine mechanical work. Verifier and
-code-reviewer effort never drops, because a cheap review passes what it missed.
+**Match effort to the job.** More reasoning effort for the hardest or subtlest
+work, less for routine mechanical work. Verifier and code-reviewer effort never
+drops, because a cheap review passes what it missed.
 
 **Read-only roles still hold Bash.** Note `git status` before dispatching an
 explore, verifier, or code-reviewer delegate and compare it after. A change is
 the delegate's mutation to inspect and revert, not yours to keep.
 
-**Fan-out reads in parallel.** When several slices need review or verification at
-once, run one delegate per slice, each in its own worktree, per
-**principle-separate-before-serializing-shared-state**, and write one report from
-the results. Each brief names the exact SHAs to inspect and the method for any
-measurement, and asks for every defect the delegate can prove, not only the
-first. A result without SHAs or method is dropped and that slice respawned once.
-A gap in coverage is not a pass.
+**Fan-out reads in parallel.** Several slices to review or verify get one
+delegate each, in its own worktree, per
+**principle-separate-before-serializing-shared-state**, and one report. Each
+brief names the exact SHAs and the method for any measurement, and asks for
+every defect the delegate can prove, not only the first. A result without SHAs
+or method is dropped and that slice respawned once. A gap in coverage is not a
+pass.
 
 ## Playbooks
 
@@ -279,33 +265,26 @@ before any task-specific todos. A step you skip stays in the list with
 | `playbooks/session-pickup.md` | Resuming in-flight work from a prior session |
 | `playbooks/pause-safely.md` | Stopping cleanly, so the next session can resume |
 
-No playbook fits? Design one: state the definition of done as a falsifiable
-predicate, decompose into independently verifiable units, run each as an
-experiment, and keep a decision trail. Bias toward more rigor.
+No playbook fits → **figure-it-out**, which designs one with a falsifiable
+definition of done, independently verifiable units run as experiments, and a
+decision trail. Bias toward more rigor.
 
 ## Writing the reply
 
-Write it clean as you draft. The cleanup-afterward pass has been measured to
+Write it clean as you draft. A cleanup pass afterwards has been measured to
 fail, so do not generate the bad sentence.
 
 Short declarative sentences, one thought each. No long dash, in either of its
-disguises: a filename joined to its description, or a bold header joined to its
-text. Write the header as its own sentence. No colon as a mid-sentence
-connector; before a list is fine.
-
-Terse is not an excuse to drop content. Every section the playbook names stays:
-details, tradeoffs, choices, open decisions.
-
-Frame impact for the consumer and for the maintainer. Name who the work is for
-and what changes for them before any implementation detail, then what the next
-engineer inherits.
-
-Never fabricate a link, a citation, or a transcript reference.
-
-Every claim carries its evidence or its label in the same sentence. The label
-is measured, inferred, or guess. A prediction or a cause you have not observed is a guess.
-A check you could run yourself is not something to hand the operator, per
-**principle-never-block-on-reversible-work**.
+disguises, a filename joined to its description or a bold header joined to its
+text, so write the header as its own sentence. No colon as a mid-sentence
+connector. A colon before a list is fine. Terse never drops content, so every
+section the playbook names stays, details, tradeoffs, choices and open
+decisions. Name who the work is for and what changes for them before any
+implementation detail, then what the next engineer inherits. Never fabricate a
+link, a citation, or a transcript reference. Every claim carries its evidence
+or its label, measured, inferred, or guess, in the same sentence. A prediction
+or a cause you have not observed is a guess. Never hand the operator a check you
+could run yourself, per **principle-never-block-on-reversible-work**.
 
 A command you do hand the operator gets a leading `!`, as in
 `!bun test test/foo.test.ts`, and a line telling them they can run it directly

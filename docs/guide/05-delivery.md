@@ -5,11 +5,19 @@ One sequence, every repository, no exceptions.
 1. **Work in the feature worktree** on `daryl/<kebab-words>`. Commit freely.
 2. **Rebase onto current `origin/main`** when implementation is complete.
    Resolve conflicts in the worktree.
-3. **Promote**: check the branch out in the main worktree.
+3. **Promote.** Check the branch out in the main worktree.
 4. **Push the feature branch only.** Never main.
-5. **Open the PR or MR.**
+5. **Open the PR or MR** ready for review, never as a draft. The body is a
+   one-minute briefing with fixed headings, and it carries no Claude
+   attribution.
 6. **Land through it, squashed.** Never a local merge.
 7. **Clean up** the worktree.
+
+The full steps, including the forge check and the commit-message checker, are
+[the opening-a-review playbook](../../skills/clanker-mode/playbooks/opening-a-review.md).
+Driving an open review to green is a separate request, and it never rebases or
+force-pushes. A conflict or a stale base comes back to you with the branch that
+needs the rebase.
 
 ## Step 3 is not ceremony
 
@@ -17,7 +25,7 @@ The main worktree drives the local dev stack. Promotion is how a finished
 feature becomes something you can actually use on the machine in front of you.
 Skip it and you have removed the manual-test surface entirely.
 
-Promotion is **not a merge**. Nothing lands on main; the primary worktree simply
+Promotion is **not a merge**. Nothing lands on main. The primary worktree simply
 has the branch checked out.
 
 ## Step 6 and why not locally
@@ -26,10 +34,10 @@ The review request is the record. Squash puts exactly one commit on main.
 Nothing reaches main that review did not see, and no local operation can put it
 there.
 
-This applies to **every** family. The mobile workflow previously landed by local
-fast-forward; it now squash-merges through the MR. The linear-history guarantee
-is unchanged — squash produces one commit — but the proof changes from
-"fast-forward succeeded locally" to "main's head is the squashed commit".
+This applies to **every** family. The mobile workflow used to land by local
+fast-forward. It now squash-merges through the MR. Squash still produces one
+commit, so history stays linear, but the proof changes from "fast-forward
+succeeded locally" to "main's head is the squashed commit".
 
 `bin/doctor` fails any skill whose body instructs a local merge. It knows the
 difference between instructing one and forbidding one.
@@ -37,12 +45,11 @@ difference between instructing one and forbidding one.
 ## Commit freely, squash at the end
 
 Incremental commits during implementation are wanted. Do **not** consolidate
-locally: no interactive squash, no amend-until-there-is-one. The PR squash
+locally. No interactive squash, no amend-until-there-is-one. The PR squash
 produces the single commit, and the branch keeps the honest history a reviewer
 can step through.
 
-One consequence worth internalising: **the PR title and body become main's
-commit message.** Write them for someone reading `git log` a year out.
+**The PR title and body become main's commit message.** Write them for someone reading `git log` a year out.
 
 ## Approval comes first
 

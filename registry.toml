@@ -262,7 +262,7 @@ runtimes = ["claude", "codex"]
 
 # --- Commands ---------------------------------------------------------------
 # Claude slash commands. Codex has no command kind, so these are Claude-only by
-# construction. Three of them are thin wrappers over a gated skill: a skill with
+# construction. Four of them are thin wrappers over a gated skill: a skill with
 # `disable-model-invocation: true` is unreachable through the Skill tool, so
 # `/name` needs a command that tells the session to read the skill file.
 
@@ -302,6 +302,10 @@ runtimes = ["claude"]
 category = "om-chat"
 runtimes = ["claude"]
 
+[commands.reframe]
+category = "workflow"
+runtimes = ["claude"]
+
 # --- Router -----------------------------------------------------------------
 # One router, on both runtimes. Codex ignores disable-model-invocation, so a
 # mode skill there would fire on description matches; agents/openai.yaml carries
@@ -330,6 +334,11 @@ category = "writing"
 runtimes = ["claude", "codex"]
 
 [skills.teach]
+layer    = "workflow"
+category = "workflow"
+runtimes = ["claude", "codex"]
+
+[skills.reframe]
 layer    = "workflow"
 category = "workflow"
 runtimes = ["claude", "codex"]

@@ -6,31 +6,27 @@ disable-model-invocation: true
 
 # Prove on the real surface
 
-Verification happens in the running product, on the surface the change touches.
-A green test suite says the code does what the test says. It does not say the
-feature works.
+Verify every output by checking the real thing in the running product, on the
+surface the change touches. Proxies such as file timestamps, a passing build,
+cached output, a delegate's summary, or "it compiles" do not count. A green suite
+says the code does what the test says, not that the feature works.
 
-**Why:** unverified work has unknown correctness. Indirect verification — file
-timestamps, a passing build, a delegate's summary — feels cheaper than looking,
-and acting on a wrong inference costs far more than checking.
-
-**The rule.** Match the proof to the change. A UI change is proven by driving
-the UI. A CLI change is proven by running the command and reading the exit code.
-A migration is proven by replaying real input. A change to code shared by
-several application hosts is proven on each host's own surface, per
+Match the proof to the change. Drive the UI for a UI change. Run the command and
+read the exit code for a CLI change. Replay real input for a migration. Prove a
+change to code shared by several hosts on each host's own surface, per
 **principle-prove-every-host**.
 
-**Three verdicts, and only one passes.** VERIFIED, NOT VERIFIED, INCONCLUSIVE.
-Inconclusive is not a pass. Wrong-surface is not a pass. Say so rather than
+There are three verdicts, VERIFIED, NOT VERIFIED, and INCONCLUSIVE, and only the
+first passes. Inconclusive and wrong-surface are not passes. Say so rather than
 rounding up.
 
-**Trust artifacts, not self-reports.** When verifying delegated work, inspect
-the diff, the file, the runtime behavior. Agents report what they intended, not
-always what happened.
+For delegated work, inspect the diff, the file, and the runtime behavior. Agents
+report what they intended, not always what happened. When a check fails or
+passes too easily, suspect the observation before the system. A blank
+screenshot satisfies a lazy gate.
 
-**When something passes too easily, suspect the observation before the system.**
-A blank screenshot satisfies a lazy gate.
-
-The scripted lane is `control-<app>` and runs constantly during implementation.
-The agentic lane runs once at the end and produces the evidence pair. Both are
-required; neither substitutes for the other.
+Script the check. The scripted lane is `control-<app>` and reruns constantly
+during implementation. The agentic lane runs once at the end and produces the
+evidence pair. Both are required, and neither substitutes for the other. Keep
+the output where the human can see it, and commit the trail only when it must
+be auditable later, per **show-me-your-work**.

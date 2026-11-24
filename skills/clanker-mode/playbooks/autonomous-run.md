@@ -7,31 +7,32 @@ instead. This is one predicate, driven.
 
 1. **State the predicate before the first iteration.** Tests green, the repro
    fixed, the diff at zero, the metric past its target. Checkable by a command,
-   not by opinion. A vague goal stalls. A predicate lets you stop.
-2. **Pick the wake mechanism.** An event worth watching, a run finishing, a ref
-   advancing, gets watched with a long fallback heartbeat behind it. Nothing to
-   watch gets a fixed interval sized to when the answer could have changed. Use
-   `/loop` in dynamic mode. A wake reports only a change no earlier wake
-   reported: a commit, a verdict, the predicate moving, a blocker added or
-   cleared, a call only the operator can make. Name those and nothing else, never
-   a repeated table or an unchanged blocker. Shape that report, and the catch-up
-   when the operator returns, as **ketchup**: decisions first, every waiting call
-   decidable from the reply alone. A wake that found nothing new ends with no
-   reply text. Step 5's row is written either way.
+   not by opinion.
+2. **Pick the wake mechanism.** An event worth watching, a run finishing or a
+   ref advancing, gets watched with a long fallback heartbeat behind it. Nothing
+   to watch gets a fixed interval sized to when the answer could have changed.
+   Use `/loop` in dynamic mode. A wake reports only a change no earlier wake
+   reported, a commit, a verdict, the predicate moving, a blocker added or
+   cleared, or a call only the operator can make. Never a repeated table or an
+   unchanged blocker. Shape that report, and the catch-up when the operator
+   returns, as **ketchup**, decisions first, every waiting call decidable from
+   the reply alone. A wake that found nothing new ends with no reply text. Step
+   5's row is written either way.
 3. **One change per iteration**, the smallest the evidence justifies. Verify it
    against the predicate, keep it if it advanced, discard it if it did not, per
    **principle-sequence-verifiable-units**. Anything that "might help" gets
    reverted, never left to ride.
-4. **Mid-run discoveries that support the goal are yours.** Broken skills, flaky checks, related bugs,
-   tooling failures, drift. Fix them yourself and keep the predicate as the main
-   drive, per **principle-never-block-on-reversible-work**. Out-of-band fixes go
-   in their own commit. Surface only an irreversible action, a genuine
-   preference call no experiment settles, or a real dead end.
+4. **Mid-run discoveries that support the goal are yours.** Broken skills, flaky
+   checks, related bugs, tooling failures, drift. Fix them and keep the
+   predicate as the main drive, per **principle-never-block-on-reversible-work**.
+   Out-of-band fixes go in their own commit. Surface only an irreversible
+   action, a genuine preference call no experiment settles, or a real dead end.
 5. **Checkpoint every iteration** with a **show-me-your-work** row for what
    changed and whether the predicate moved. A run with no trail cannot be
-   audited or resumed. Before context compacts, run `playbooks/pause-safely.md`.
+   audited or resumed. Before a planned compaction, update the resume note.
+   Compaction is a continuation, not a pause.
 6. **Deliver nothing mid-run.** No push, no review request, no announcement.
-   Those need the operator, and the point of the run is that they are asleep.
+   Those need the operator, who is asleep.
 7. **Stop when the predicate is met.** A plateau is not a stop. Pivot the
    approach and push past it. Surface a real dead end rather than spinning, and
    never relax the predicate to declare victory.

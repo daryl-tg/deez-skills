@@ -47,7 +47,7 @@ has more than one job.
 
 If a rule exists as a principle, reference it. Restating it is exactly how two
 copies drift apart, and `bin/doctor` cannot catch a rule that has quietly
-diverged in wording — only one that is cited and missing.
+diverged in wording, only one that is cited and missing.
 
 ## Merge rather than skip
 
@@ -59,11 +59,11 @@ owned the technical artifact and the scrap phase. `test-first` exists because
 one side owned the Iron Law and the other owned what to do when a unit test is
 impractical. Skipping either would have thrown away the better half.
 
-Two things to watch for when merging: a **direct contradiction** needs
-adjudicating rather than blending — when architect said "no human checkpoint"
-and the standing rule says the planning gate is mandatory, the standing rule
-wins and the exception is written down. And a **near-duplicate is not a
-duplicate**: `unslop` and `humanize` stayed separate because one is universal
+Watch for two things when merging. A **direct contradiction** needs
+adjudicating rather than blending. When architect said "no human checkpoint"
+and the standing rule said the planning gate is mandatory, the standing rule
+won and the exception was written down. And a **near-duplicate is not a
+duplicate**. `unslop` and `humanize` stayed separate because one is universal
 and one is personal, and merging them would tie a general cleanup pass to one
 person's register.
 
@@ -83,10 +83,10 @@ Check what references a skill before removing it. Two things referenced
 reflect
 ```
 
-Three reviewers with different lenses read the transcript, findings sort into
-Accepted / Rejected / Backlog, and **nothing is applied without approval**. A
-finding is accepted only if it would change a future decision, and only if it is
-a pattern rather than a one-off.
+It reads the transcript, keeps only findings that would change a future
+agent's work, and sorts them into Accepted, Rejected and Backlog. **Nothing is
+applied without approval.** A finding is accepted only if it is a pattern
+rather than a one-off.
 
 Anything better served by a check than by more instruction text goes to Backlog
 as a build request. More prose is the weakest way to enforce anything.

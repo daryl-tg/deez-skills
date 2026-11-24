@@ -6,8 +6,8 @@ source location. Hand it back to `playbooks/bug-fix.md` or
 
 Two entry points, one job.
 
-- **Live.** "Why is X leaking, spinning, or stuttering." You capture the signal
-  yourself. Instrument the running process. Do not theorize from source.
+- **Live.** "Why is X leaking, spinning, or stuttering." Capture the signal
+  yourself by instrumenting the running process. Do not theorize from source.
 - **Dropped artifact.** A `.cpuprofile`, a `Trace-*.json.gz`, a `Spindump.txt`,
   or a `.heapsnapshot` handed to you with "why is this slow". The capture is a
   fixed dataset. Read it. Do not re-run it.
@@ -15,8 +15,7 @@ Two entry points, one job.
 1. **Get the artifact.** Live, capture it on the matching surface through the
    repo's `verify-<app>` skill. A CPU profile for a spinning process, a heap
    snapshot for a leak, a trace for a visual glitch. Dropped, identify the format
-   and open it with the tool that reads it. Either way it is a real artifact, not
-   a guess.
+   and open it with the tool that reads it.
 2. **Reach a queryable shape before you read.** Dump the trace or snapshot into
    sqlite, one row per sample, frame, or node, then query it. Parsing large
    artifacts is delegate work, per **principle-guard-the-context-window**. Only

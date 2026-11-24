@@ -6,31 +6,16 @@ disable-model-invocation: true
 
 # Minimise reader load
 
-Maintainability is the work a reader must do. Track two axes:
+Reader load is the work a reader must do to understand code. It has two
+independent axes, the layers to trace between the question and the answer and
+the hidden or mutable state to hold in their head. Guard both. Working memory is
+finite for readers too, per **principle-guard-the-context-window**.
 
-1. **Layers to trace.** How many indirections sit between the question and the
-   answer.
-2. **State to hold.** How much hidden or mutable context the reader must keep in
-   their head.
+- Collapse layers that only forward. Inline wrappers with one caller, adapters
+  with no second implementation, and pass-through methods.
+- Shrink state scope. Returns over mutations, locals over fields, fields over
+  module state, module state over globals. Derive instead of sync.
+- Name an invariant once at the boundary, not in every consumer.
 
-They are independent. A flat file with fifty globals is as hard as a six-layer
-adapter stack. Guard both. This is the human analogue of
-**principle-guard-the-context-window**: working memory is finite for readers too.
-
-- **Collapse layers that do not earn their keep.** Wrappers with one caller,
-  adapters with no second implementation, indirection for a future that never
-  came. Inline them.
-- **Make adjacent layers change the abstraction.** A layer repeating the same
-  methods and arguments adds load without compression.
-- **Demand interface compression.** A broad interface hiding little complexity
-  makes readers learn both the surface and the implementation.
-- **Shrink state scope.** Pure functions over mutations, locals over fields,
-  fields over module state, module state over globals. Derive instead of sync.
-- **Name the invariant at the boundary**, not in every consumer, so the reader
-  learns it once.
-
-Before adding a layer or a piece of state, ask whether it reduces reader load
-somewhere else by at least as much.
-
-**The test:** can a new reader answer "where does X come from?" and "what can
-change X?" in under thirty seconds? If not, cut layers or cut state.
+The test. Can a new reader answer "where does X come from?" and "what can change
+X?" in under thirty seconds? If not, cut layers or cut state.

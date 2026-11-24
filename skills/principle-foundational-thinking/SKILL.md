@@ -6,29 +6,18 @@ disable-model-invocation: true
 
 # Foundational thinking
 
-Structural decisions protect option value. Code-level decisions protect
-simplicity. Over-engineering is usually a premature decision that closes a door;
-the right foundational data structure keeps doors open.
+Get the data shape right before writing logic. Define core types early, trace
+every access pattern, and choose structures that match the dominant paths. A
+data-structure change late is a rewrite. Early, it is often a one-line diff.
+DRY the structure, not every line. Three similar statements still beat a
+premature abstraction.
 
-**Data structures first.** Get the shape right before writing logic. Define the
-core types early, trace every access pattern, and choose structures matching the
-dominant paths. A data-structure change late is a rewrite. Early, it is often a
-one-line diff.
+Before sharing state between actors, ask what happens if another actor modifies
+it concurrently. If the answer is not "nothing", isolate, per
+**principle-separate-before-serializing-shared-state**.
 
-At code level, DRY the structure, not every line. Three similar statements still
-beat a premature abstraction. Prefer explicit over clever.
-
-**Concurrency corollary.** Before sharing state between actors, ask what happens
-if another modifies it concurrently. If the answer is not "nothing", isolate —
-see **principle-separate-before-serializing-shared-state**.
-
-**Scaffold first.** If something helps every later phase, do it first. Ask
-whether every subsequent phase benefits from this existing. CI, linting, test
-infrastructure, and shared types are scaffold. Setup before features, tests
-before fixes.
-
-Each increment should land a coherent abstraction or deepen one that exists. Do
-not spread a new capability across callers as special-case coordination.
-
-Subtraction comes before scaffolding: remove dead weight first, then lay
-foundations.
+Scaffold first. Remove dead code, then build whatever helps every later unit
+(CI, linting, test infrastructure, shared types). Setup before features, tests
+before fixes. Each increment lands a coherent abstraction or deepens one that
+exists, never a capability spread across callers as special-case coordination.
+Keep commits small and single-purpose.

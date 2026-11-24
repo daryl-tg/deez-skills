@@ -37,10 +37,8 @@ time	phase	decision	reason	evidence	result
   wrong one.
 - **Log the reversals too.** A hypothesis that failed and what it cost is the
   most useful row in the file.
-- **Commit it** when the run is large enough that the reasoning has to be
-  auditable later, such as a migration or an overnight run. Keep it local
-  otherwise. Never commit it into a product repo as a planning doc, per
-  **principle-planning-docs-live-outside-the-repo** — it goes to the task's
-  dev-notes folder unless it is genuinely part of the change.
+- **Commit it only when it is part of the change**, such as a migration whose
+  reasoning has to stay auditable. Otherwise it lives in the task's dev-notes
+  folder, per **principle-planning-docs-live-outside-the-repo**.
 
 **Reply:** the trail's path, the decisions that mattered, and the open rows.

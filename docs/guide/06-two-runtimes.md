@@ -1,6 +1,6 @@
 # 6. Two runtimes
 
-pstack does not have this problem: Cursor is one app that spawns mixed-model
+pstack does not have this problem. Cursor is one app that spawns mixed-model
 subagents. Here the hub installs to two apps that cannot see each other's
 sessions, though only Claude Code is in use today.
 
@@ -50,14 +50,16 @@ One line in `registry.toml`:
 default_lane = "claude"
 ```
 
-The four beneath it — planning, review, verification, git mutations — are not
+The four beneath it, planning, review, verification and git mutations, are not
 preferences. They stay with the lead whatever `default_lane` says, and the
 registry rejects any other value.
 
 ## The rule every handoff obeys
 
-**A delegate does not inherit your context**, and the risk grows with codebase size.
-So every dispatch is self-contained: cite the playbook by absolute path, the
+**A delegate does not inherit your context**, and the risk grows with codebase
+size. So every dispatch is self-contained. Its first line points the delegate at
+[`worker.md`](../../skills/clanker-mode/worker.md), the operator's rules for
+every agent in the run. Then it cites the playbook by absolute path and the
 principles by name. Never assume the delegate knows what you know.
 
 Next: [Making it yours](./07-making-it-yours.md).

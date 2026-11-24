@@ -19,8 +19,8 @@ sections only for genuinely new patterns.
 
 ## 1. Mine the history
 
-Read prior sessions across **both** runtimes — `~/.claude/projects/<slug>/` and
-`~/.codex/sessions` — since the operator's work crosses them and a Claude-only
+Read prior sessions across **both** runtimes, `~/.claude/projects/<slug>/` and
+`~/.codex/sessions`, since the operator's work crosses them and a Claude-only
 sample misrepresents how they delegate.
 
 Fan out across slices of time, one **explore** subagent per slice, each
@@ -37,8 +37,8 @@ noise twice over.
 
 Ask the operator with concrete options rather than open prompts, through the
 runtime's structured question tool where it has one and plain text where it does
-not. Two structured rounds and one free-form question is enough. Intent that has not come
-up yet will not be in the transcripts.
+not. Two structured rounds and one free-form question is enough. Intent that
+has not come up yet will not be in the transcripts.
 
 ## 3. Draft
 
@@ -53,8 +53,8 @@ Sparse is fine. Only add a section where there is a specific non-default rule.
 ## 4. The voice profile
 
 A mode skill that claims to match the operator's voice needs **their** samples.
-Collect real writing from the record — messages, review comments, doc prose —
-per register. **When a profile and a raw sample disagree, the sample wins.**
+Collect real writing from the record, such as messages, review comments and doc
+prose, per register. **When a profile and a raw sample disagree, the sample wins.**
 
 **Never ship a voice profile belonging to someone else.** An inherited profile
 produces confident output in the wrong register, which is worse than none. If
@@ -62,8 +62,8 @@ you cannot build a real one yet, say so and leave the layer out.
 
 ## 5. Land it
 
-Show the draft, take feedback, expect iterations. Cut ruthlessly: a mode skill
-is not a manual. Then `playbooks/opening-a-review.md`.
+Show the draft, take feedback, expect iterations. Cut ruthlessly, because a mode
+skill is not a manual. Then `playbooks/opening-a-review.md`.
 
 **Reply:** the skill, the patterns it captures with their evidence, and what you
 deliberately left out.

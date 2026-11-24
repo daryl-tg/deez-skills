@@ -21,10 +21,11 @@ A change is only as small as its reach. This finds what else it touches, and
 4. **Prove the safety claims.** For each "this one is fine", say how you know,
    and make it runnable: a test that fails without the change, a script that
    greps the real data, an exercised path. **A claim proven by reasoning is
-   unproven.** This is where the principle **principle-build-the-lever** applies — the
-   proof should be a thing a reviewer reruns.
+   unproven.** The proof is a thing a reviewer reruns, per
+   **principle-build-the-lever**.
 5. **Name what you could not prove.** An honest unproven item is worth more than
-   a confident wrong one.
+   a confident wrong one. Cite a real `file:line`, count a search that finds
+   nothing as an answer, and never make up a caller or an API.
 
 **Reply:** the reach, ranked; the proof for each safe claim; the unproven
 remainder stated plainly.

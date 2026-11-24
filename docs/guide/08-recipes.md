@@ -18,14 +18,23 @@ teach me <subsystem>              built up one diagram at a time
 tutor me on <topic>               diagnostic, skill map, drilled to mastery
 recall <topic>                    rebuild context after a gap
 blast-radius                      what else this change could break
+/reframe <description>            the expert words for what you are building
 ```
 
-`why` answers motivation; the explore role answers mechanism; `teach` weaves
-both into one account at your pace. `tutor` turns the same material into
-questions and tracks what you can actually do without help.
+`why` answers motivation, from the commits and review discussion behind the
+code. The explore role answers mechanism. `teach` weaves both into one account
+at your pace. `tutor` turns the same material into questions and tracks what
+you can actually do without help. `reframe` teaches the vocabulary itself, then
+rewrites your description with it.
 
 ## Wording the prompt
 
+- Cannot name what you are after? Run `/reframe` on your description and files
+  first, then send its rewrite.
+- Unsure the prompt is aimed right? `/prompt-ready sharpen` rewrites it deeper,
+  not bigger. The rewrite asks the agent to prototype any choice an experiment
+  can settle and recommend from what it saw, and it leaves product and
+  preference calls to you.
 - Leave out your theory of the cause until the agent has restated the problem.
   A theory in the first message becomes the answer.
 - Do not hand-list steps or skills. Name a playbook or principle only to
@@ -52,8 +61,8 @@ control-omchat browser screenshot     --path artifacts/x/y.png
 control-omchat evidence publish <run-id> <revision>
 ```
 
-New repo with no verification story: `create-verification-skill`. Existing map
-that has drifted: `maintain-verification-skill`.
+A new repo with no verification story gets `create-verification-skill`. An
+existing map that has drifted gets `maintain-verification-skill`.
 
 ## Hub maintenance
 
@@ -75,7 +84,7 @@ invisible to review.
 **Assuming a skill is loaded.** Claude Code reads its skill directories at
 session start. Restart after installing.
 
-**Handing over an `18097`–`18197` URL.** Not tunnelled. It looks like a working
+**Handing over an `18097`-`18197` URL.** Not tunnelled. It looks like a working
 link and is not.
 
 **Opening the device lane to check progress.** One shot, at the end. A booted

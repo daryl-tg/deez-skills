@@ -1,13 +1,11 @@
 ### Eval
 
 **You own the experiment design.** Frame, blind, run, synthesize. For testing
-whether a change to how an agent works actually helps before promoting it. A
-skill variant, a rewritten playbook, a prompt change.
+whether a change to how an agent works actually helps before promoting it, such
+as a skill variant, a rewritten playbook, or a prompt change.
 
-**The failure mode is the observer effect.** A candidate that knows it is being
-measured behaves differently, so candidates run blind.
-
-**Blinding is non-negotiable.**
+**Blinding is non-negotiable**, because a candidate that knows it is being
+measured behaves differently.
 
 - No `eval`, `test`, `judge`, `rubric`, `score`, `compare`, `benchmark`,
   `candidate`, or `arena` in any path, file, or prompt the candidate sees.
@@ -29,17 +27,18 @@ measured behaves differently, so candidates run blind.
 3. **Author one organic prompt** and give the same one to every candidate.
 4. **Run the candidates in parallel** through the **executor** role, one per
    directory. Vary the model across candidates when the variant is meant to hold
-   across models.
+   across models. A delegate that only dispatches, polls, or packs results runs
+   at low effort.
 5. **Run one judge** against the rubric, separate from every candidate, through
    the **code-reviewer** role. One judge scores every output in a single pass on
-   one scale. Two judge runs with different prompts do not compare, because the
-   calibration drifts. Where one judge is not enough, **llm-council** is the
-   panel version, and its verdict still lands on your desk, not in the record.
+   one scale, because two judge runs with different prompts calibrate
+   differently. Where one judge is not enough, **llm-council** is the panel
+   version, and its verdict still lands on your desk, not in the record.
 6. **Grade the chain from the artifact, not the self-report.** What the code
-   looks like, which files the run actually opened where the runtime records it.
-   Citing a principle is not reading it, and reading it is not applying it.
-   Explain the result per **principle-explain-the-number**: did every run do
-   the task, and does the gap hold across trials and models.
+   looks like, and which files the run actually opened where the runtime records
+   it. Citing a principle is not reading it, and reading it is not applying it.
+   Explain the result per **principle-explain-the-number**. Did every run do the
+   task, and does the gap hold across trials and models.
 7. **Read every candidate output yourself,** end to end, then compare with the
    judge. Disagreement means the rubric is ambiguous or the judge is biased. Say
    which, and fix the rubric before believing the result.

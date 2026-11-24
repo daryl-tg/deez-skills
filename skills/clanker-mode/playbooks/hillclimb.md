@@ -1,37 +1,37 @@
 ### Hillclimb
 
-**You own the metric and the experiment's integrity.** Supervise and review.
-Delegate the attempts. For sustained improvement of one measurable thing against
+**You own the metric and the experiment's integrity.** Supervise, review, and
+delegate the attempts. For sustained improvement of one measurable thing against
 a target. A single fix is `playbooks/perf-issue.md`. This is the loop.
 
 One change, one measurement, keep or revert. Never stack untested changes, and
-never claim a win from reading code. The data decides, per
+never claim a win from reading code, per
 **principle-prove-on-the-real-surface**.
 
 1. **Ground the workload before choosing the ruler.** Run the **explore** role
    over the target and **teach** for the mental model. Name the dimensions that
    can move the result, data size, history, state, concurrency, and pick a case
-   that reproduces the operator's complaint. Nothing reproduces it means fix the
+   that reproduces the operator's complaint. If nothing reproduces it, fix the
    repro first. Then fix one metric, the direction that counts as better, and a
    stop predicate that pairs a target with a floor on attempts, so a lucky first
    win cannot end the run.
 2. **Build the harness, prove it discriminates, then freeze it**, per
-   **principle-build-the-lever**. One repeatable command emits the metric,
-   sampled past the noise, a median of several runs and not a single one.
-   Vet it with **benchmark-checklist** before it is frozen, and have it print
-   error and work counts beside the metric so every keep-or-revert checks them.
-   Changing it later invalidates every earlier number. Record the baseline and a
-   green regression gate before any change.
-3. **Open the decision log** with **show-me-your-work**. One row per attempt.
-   Id, hypothesis, change, before, after, delta, gate, verdict, note. Read it
-   before each attempt so the search accumulates instead of circling. Keep it
-   outside the tree so it survives every revert.
+   **principle-build-the-lever**. One repeatable command emits the metric as a
+   median of several runs, sampled past the noise. Vet it with
+   **benchmark-checklist** before freezing, and have it print error and work
+   counts beside the metric so every keep-or-revert checks them. Changing it
+   later invalidates every earlier number. Record the baseline and a green
+   regression gate before any change.
+3. **Open the decision log** with **show-me-your-work**, outside the tree so it
+   survives every revert. One row per attempt with id, hypothesis, change,
+   before, after, delta, gate, verdict, note. Read it before each attempt so the
+   search accumulates instead of circling.
 4. **Each hypothesis names a mechanism**, grounded in step 1. "Defer X off the
    boot path because it blocks first paint", never "try memoising something".
 5. **Loop, one hypothesis at a time.** Delegate the change to the **executor**
    role with a tight scope and review the diff, per
    **principle-guard-the-context-window**. Independent hypotheses fan out, each
-   in its own worktree so they cannot collide, per
+   in its own worktree, per
    **principle-separate-before-serializing-shared-state**. Measure before and
    after on the frozen harness and run the gate. Accept only when the metric
    clears the noise and the gate stays green. Otherwise revert in full. One

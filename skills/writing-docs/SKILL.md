@@ -6,7 +6,8 @@ disable-model-invocation: true
 
 # Writing docs
 
-One entry point, two engines. Step 1 decides which.
+Write so a tired engineer understands on the first read. Step 1 picks the
+engine.
 
 ## 1. Audience and mode
 
@@ -14,8 +15,8 @@ One entry point, two engines. Step 1 decides which.
 definitions, handoff prompts) or human-facing (docs, RFCs, readmes, PR bodies,
 commit messages).
 
-**Mode**, per Diátaxis. Pick one and commit to it; most bad documents are two
-modes fighting.
+**Mode**, per Diátaxis. One document, one mode. Split and link instead of
+mixing them.
 
 | Mode | Answers | Fails when |
 |---|---|---|
@@ -24,39 +25,37 @@ modes fighting.
 | Reference | "What are the exact parameters" | It has opinions |
 | Explanation | "Why is it like this" | It turns into a how-to |
 
-## 2a. Agent-facing → **writing-simplified-technical-english**
+## 2a. Agent-facing docs use **writing-simplified-technical-english**
 
-That skill is the engine. Its rule holds absolutely: **the rewrite keeps every
-requirement and changes only the words and the layout.** A shorter document that
-dropped or weakened an obligation is a failure, not an improvement.
+**The rewrite keeps every requirement and changes only the words and the
+layout.** A shorter document that dropped or weakened an obligation is a
+failure.
 
 Extract and restore unchanged: code fences, commands, paths, identifiers,
 frontmatter `name`, tool and skill names, quoted strings, numbers and
-thresholds.
+thresholds. Shape the instructions with **writing-instructions**.
 
-For instruction shape, **writing-instructions**: state the principle, not all its
-instances; examples only where they define a boundary the reader would not infer.
+## 2b. Human-facing docs use developer style
 
-## 2b. Human-facing → developer style
+- One idea per sentence. Split the sentence the reader has to reread.
+- Say who does what. Passive only when the actor is unknown or beside the
+  point.
+- Talk to the reader as "you". Write instructions as commands, condition first.
+- Name the mechanism or the number, not how it feels.
+- Write the real symbol, file, flag, or command name, not a synonym for it.
+- Global English. No idioms, cultural references, or humour that depends on a
+  shared frame.
+- Front-load. Put the outcome first.
 
-- **One idea per sentence.** Split when the reader has to backtrack.
-- **Active voice, named actor.** "The loader parses the file", not "the file is
-  parsed".
-- **Second person for instructions.** "Run the migration", not "the migration
-  should be run".
-- **Say what it does, not how it feels.** Name the mechanism or the number.
-- **Global English.** No idioms, no cultural references, no humour that depends
-  on a shared frame.
-- **Front-load.** The reader stops early; put the outcome first.
-
-Then run **unslop**. For anything going out in the operator's name, **humanize**
-after that.
+Then run **unslop**. For anything going out in the operator's name, run
+**humanize** after that.
 
 ## Commit messages and PR bodies
 
 The PR title and body **become main's commit message** under squash-merge, per
 **principle-one-commit-lands**. Write them for someone reading `git log` a year
-out: what changed, why, and what it means for the next person. Not a changelog
-of the branch.
+out. Say what changed, why, and what it means for the next person, not a
+changelog of the branch. Link logs, SHA lists, and metric tables instead of
+pasting them. The body's headings live in `playbooks/opening-a-review.md`.
 
 **Reply:** the document, plus the audience and mode you chose and why.

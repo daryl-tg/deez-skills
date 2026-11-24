@@ -6,44 +6,41 @@ disable-model-invocation: true
 
 # Test behavior, not implementation
 
-A test calls the code the way its users do and asserts the result they observe
-against a literal expected value. A test that asserts which calls the code made,
-or restates a constant the code already contains, does neither.
+A test calls the code the way its users do and asserts what they can observe
+through its interface (return values, errors, state they can read back, effects
+on outside systems) against a literal expected value. Private helpers, internal
+call order, and intermediate data are implementation.
 
-**The check.** Before keeping a test, ask whether it would still pass if every
-function it imports returned `undefined`. If yes, it observes no behavior and
-cannot fail for a defect. Rewrite the assertion or delete the test.
+**The check.** Would the test still pass if every function it imports returned
+`undefined`? If yes, it observes no behavior and cannot fail for a defect.
+Rewrite the assertion or delete the test.
 
-**Why:** a test that cannot fail for a defect still costs CI time and review
-attention. A constant pin is worse than useless, because it also fails when
-someone legitimately edits the constant, so it exists only to prevent that edit.
+Judge each test against two imagined edits.
 
-**Two imagined edits.** Break the behavior: if the test still passes, it proves
-nothing. Change the internals without changing behavior: if the test fails, it
-is pinned to the implementation. Both are the same defect.
+- **Break the behavior** (a wrong value, a skipped or doubled effect). If the
+  test still passes, it proves nothing. The usual causes are a loose assertion,
+  an expected value computed by the code under test, as in
+  `expect(f(a)).toBe(f(a))`, and an assertion on data the test built itself.
+- **Change the internals** and keep every observable result. If the test fails,
+  it is pinned to the implementation. A constant pin such as
+  `expect(LIMITS.maxTools).toBe(8)` fails on a legitimate edit and catches no
+  bug.
 
-**The contract decides, not the shape of the assertion.** A no-call assertion is
-valid when no-call is the promise: checking out an empty cart must not charge the
-card. The same assertion is empty when the code simply never ran, so also run
-the non-empty case in the same test. Self-referential expectations are always wrong:
-`expect(f(a)).toBe(f(a))`, `expect(parsed.url).toBe(buildUrl(...))`. A constant
-pin fails on a legitimate edit: `expect(LIMITS.maxTools).toBe(8)`.
-
-**The fix.** Call the subject inside the test body with one concrete input and
-assert the literal output or the observable effect:
+Keep a test that catches the first edit and survives the second. Rewrite or
+delete the rest. Call the subject with one concrete input and derive the
+expected value from the requirement, as in
 `expect(slugify("Hello, World!")).toBe("hello-world")`. For a constant, test the
-mechanism that reads it. For a mock, assert the payload it received or the state
-after the call. Where no such assertion exists, delete the test.
+mechanism that reads it. What a mocked external service receives is behavior. A
+call to an internal helper is not. Pair "this never happens" with a case where
+it does, so the test shows it can see the effect. Assert the error type callers
+branch on, not the message.
 
-**Keep** a test that asserts a relation across a table's rows, such as a key
-present in two tables or a parent that exists, and a compile-time check in a
-type-level test file.
+Also keep a test that asserts a relation across tables, such as a key present in
+both, and a compile-time check in a type-level test file.
 
-Pairs with **principle-failing-test-first**, which decides *when* the check gets
-written. This one decides whether what you wrote is a check at all. A test that
-never failed for the right reason usually fails this rule too.
+**principle-failing-test-first** decides when the check gets written. This one
+decides whether it is a check at all.
 
-Naming follows the repository, never `*.spec.*`: `test/<name>.test.ts(x)` in
+Naming follows the repository, never `*.spec.*`. Use `test/<name>.test.ts(x)` in
 `openmarket-chat` (root `test/` for canonical UI, `apps/cloud/test/` for
-host-local), the app's jest convention in
-`openmarket-chat-app`.
+host-local) and the app's jest convention in `openmarket-chat-app`.

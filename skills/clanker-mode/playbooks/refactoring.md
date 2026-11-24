@@ -3,14 +3,14 @@
 **Behavior-preserving by definition.** If behavior changes, this is a Feature.
 
 1. **Characterize first.** Before touching structure, capture the current
-   behavior in a check that passes now. Without it there is no way to tell
-   preservation from breakage.
+   behavior in a check that passes now. Without it, preservation and breakage
+   look the same.
 2. **Subtract before adding.** Remove dead paths, one-caller wrappers, and
-   duplicated decisions first, then reshape the simpler base.
-   For React work, apply **vercel-react-best-practices**. Product motion films
-   follow `playbooks/product-video.md`; for component motion,
-   **animate** or **animate-expo**. Both are vendored and self-updating,
-   so read them rather than recalling them.
+   duplicated decisions first, then reshape the simpler base. React work applies
+   **vercel-react-best-practices**. Product motion films follow
+   `playbooks/product-video.md`. Component motion is **animate** or
+   **animate-expo**. Both are vendored and self-updating, so read them rather
+   than recalling them.
 3. Work in units that each end green, per **principle-todo-discipline**. Never
    batch the edits and verify once at the end.
 4. When a lever can do the edits, build it rather than hand-applying, per
