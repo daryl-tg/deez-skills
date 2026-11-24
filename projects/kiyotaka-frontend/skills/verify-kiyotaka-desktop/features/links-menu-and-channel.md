@@ -13,7 +13,7 @@ There is no Developer menu and no Switch Channel in any build since 0.1.0-beta.6
 edit menu, downloads save to Downloads without a prompt, and only chart pages hold permissions (clipboard-read and the
 microphone are asked once and remembered). Live verification pending since this file's last green run: the `links`
 scenario was last green 2026-10-12 on `6e93464b59`. It has failed at its first click, before any check, on every run
-from 2026-10-27 to 2026-11-24 (again 2026-11-24 on `5a11c4970d`, 63 s, at `launch.mjs:237`, the guest signup prompt's `backdrop-dim` overlay intercepting the watermark click; the scratch mirror was not re-run that night), under high and low machine load and on a locked and an unlocked console; the last was
+from 2026-10-27 to 2026-11-25 (again 2026-11-25 on `ec531568de`, 168 s with `window` in one run, at `launch.mjs:237`, the same `dialog-style dialog-overlay backdrop-dim` interception of the watermark click; the scratch mirror was not re-run; and 2026-11-24 on `5a11c4970d`, 63 s, at `launch.mjs:237`, the guest signup prompt's `backdrop-dim` overlay intercepting the watermark click; the scratch mirror was not re-run that night), under high and low machine load and on a locked and an unlocked console; the last was
 2026-11-21 on tree `92f4a841ef` (`origin/main`; `launch.mjs` gained only the `leave` scenario, three lines above the
 click, and `GuestSignupPromptDialog.vue` is unchanged), run on its own (65 s on the locked console), with the same
 `dialog-style dialog-overlay backdrop-dim` interception, now at `launch.mjs:237`. The same night the scratch drive that

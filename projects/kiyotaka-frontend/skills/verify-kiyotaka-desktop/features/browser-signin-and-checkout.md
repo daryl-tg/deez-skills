@@ -14,7 +14,17 @@ are never offered inside the shell. In an ordinary browser, super search offers 
 "Signed in to NinjaTrader. Open OpenMarket to finish linking" for a link to finish, or "NinjaTrader wasn't linked" with
 the reason for one refused, and hands the app its `openmarket://return?id=ninjatrader.<attempt>` record either way.
 Since `2bf8b7cd57` a market-data bag's checkout return (`product=md-bag`) must carry its `bag` id to read as paid, and
-since `07dd64063f` the shell keeps that id on the payment-status address it opens. On 2026-11-24, on tree `5a11c4970d`
+since `07dd64063f` the shell keeps that id on the payment-status address it opens. Since `0d46716e6d` the page that
+address loads draws a market-data bag's return on the page ground in one column, with no card
+(`payment-status-page--bag`); the plain Stripe states keep theirs. On 2026-11-25, on tree `ec531568de` (`origin/main`;
+`desktop/`, the four desktop pages and `src/utility/desktop/` unchanged; `PaymentStatus.vue` changed by `0d46716e6d`,
+`NinjaTraderConnectDialog.vue` by `2994fc9844`, `useTurnstile.ts` by `8dc63c5c5d`), Chromium on the dev lane (`doctor`
+exit 0, a priced BTC title) read, one fresh page each: the four checkout-return states, a paid bag with its id
+("Payment received") and without one (invalid), the NinjaTrader return's linked state and its `cancelled` line, a bad
+attempt id and a non-app target both reading "This sign-in link isn't valid. Start again from the app.", and
+`payment-status?product=md-bag&session_id=cs_test_1&bag=<id>` as a guest: "We could not find this order" with "Open my
+chart" and "See my plan", on the page ground with no card (`chromium-pages/payment-status-bag.png`). The console was
+locked, and the shell's own checkout drive was not repeated. On 2026-11-24, on tree `5a11c4970d`
 (`origin/main`; `desktop/src/main/checkout-return.ts` changed by `07dd64063f`; the four desktop pages, the sign-in
 card, the download gate, `featureCommands.ts` and the NinjaTrader gate unchanged), Chromium on the testnet dev lane
 (`doctor` exit 0, 250 bars) read every page state listed for 2026-11-21 below, with the same words, in one Playwright
@@ -149,7 +159,11 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   attempt id that is not 32 lower-case hex, or a return record whose id does not start `ninjatrader.`, shows
   `desktop-return-invalid`. All live 2026-11-21 on `92f4a841ef` in Chromium on the dev lane.
 - `ninjatrader-link-shell` in a shell whose bridge reports `browserSignIn` (packaged, not an AppImage), Connect in the
-  NinjaTrader connect dialog opens NinjaTrader's sign-in in the system browser and the dialog waits
+  NinjaTrader connect dialog opens NinjaTrader's sign-in in the system browser and the dialog waits. Since
+  `2994fc9844` the dialog is a stepped card (`data-step`): on a first connect (`readConnectSeen('ninjatrader')` false)
+  it opens on a picture step (`BrokerConnectPicture`), then the page step carries the facts
+  (`ninjatrader-connect-disclosure`, `ninjatrader-connect-risk-line`) and Connect (`ninjatrader-connect-submit`), with
+  `ninjatrader-connect-back` back to the picture once it was turned; the wait follows
   (`ninjatrader-connect-browser`: "NinjaTrader's sign-in is open in your browser. Finish there, then press Open
   OpenMarket within 2 minutes.", with `ninjatrader-connect-browser-cancel`); the page takes its own
   `ninjatrader.<attempt>` record from `onReturn` and redeems it. The wait ends after ten minutes; a handoff older than
@@ -166,7 +180,7 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   an unticked Cloudflare checkbox keeps the button off with "Complete the security check above to continue." A code
   step whose send has no token (a resend, or an address check that failed or ran out of time) runs its own check,
   `login-signup-code-turnstile`, and holds the send while Cloudflare's checkbox shows. "Email me a code" waits at most
-  5 s for a token (`TURNSTILE_WAIT_MS`, `src/composables/useTurnstile.ts:113`; `abcb149af8` made it 10 s and
+  5 s for a token (`TURNSTILE_WAIT_MS`, `src/composables/useTurnstile.ts:114`; `abcb149af8` made it 10 s and
   `1b5ad78f88` put it back), showing only the button's loading state, while Cloudflare retries an error every 2 s
   (`retry: 'auto'`). Since `4fe6fb323e` (after `27fb2d4621`) a code auth-service refuses for its bot check
   (`LOGIN_CODE_HUMAN_CHECK_REQUIRED`, `src/components/dialogs/LoginCodePanel.vue:498`, `leaveForHumanCheck`) shows the error toast "We
@@ -196,7 +210,9 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   `/chart/payment-status?product=plus&session_id=cs_test_1`, a paid market-data bag landing on
   `payment-status?product=md-bag&session_id=cs_test_1&bag=0b1c2d3e-aaaa-bbbb-cccc-1234567890ab` (a guest's page reads
   "We could not find this order" for the made-up bag; `market-data-bag-return`, `src/pages/PaymentStatus.vue`), and
-  `bag=bad%20id` dropped. On 2026-11-21 on `92f4a841ef`, before `07dd64063f`, the bag's link lost its id and the page
+  `bag=bad%20id` dropped. Since `0d46716e6d` that bag page has no card: `market-data-bag-return-title`, `-desc`,
+  `-chart` ("Open my chart") and `-plans` ("See my plan") sit on the page ground (live in Chromium 2026-11-25 on
+  `ec531568de`; the shell loads the same page). On 2026-11-21 on `92f4a841ef`, before `07dd64063f`, the bag's link lost its id and the page
   read "Payment cancelled". A cold start's held landing, a real Stripe session and the page's own poll are still
   undriven.
 - `download-door` super search's `super-search-result-featureCommands:desktop-app-btn` "Download the OpenMarket desktop

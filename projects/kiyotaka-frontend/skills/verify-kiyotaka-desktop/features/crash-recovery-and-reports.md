@@ -13,7 +13,7 @@ subscribes through `openmarketDesktop.reports`, until the page acks it once its 
 one handed to 10 subscribing loads with no ack is dropped. Crashpad uploads a minidump for each crash to Sentry from a
 release or internal build. Sources: `desktop/src/main/process-gone.ts`, `crash-reporter.ts`, `index.ts`,
 `titlebar.ts`, `desktop/src/preload/index.ts`, and on the page `src/utility/desktop/desktop-analytics.util.ts`; the
-contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-24 on product tree `5a11c4970d` (`origin/main`; `desktop/` 0.1.11; `crash.mjs` unchanged): 34 of 34 in 44 s on the first run, on the locked console. Before that, driven 2026-11-21 on product tree `92f4a841ef`
+contract is `docs/features/desktop/desktop-shell.md#crash-reports`. Last driven 2026-11-25 on product tree `ec531568de` (`origin/main`; `desktop/` 0.1.11 and `desktop/tools/verify/` unchanged since `5a11c4970d`): 34 of 34 in 43 s on the first run, on the locked console. Before that, driven 2026-11-24 on product tree `5a11c4970d` (`origin/main`; `desktop/` 0.1.11; `crash.mjs` unchanged): 34 of 34 in 44 s on the first run, on the locked console. Before that, driven 2026-11-21 on product tree `92f4a841ef`
 (`origin/main`; `desktop/` 0.1.11; `crash.mjs` unchanged, and `a2c0975b7b` moved the shell's `quitting` mark to module
 level for the [leave guard](./leave-guard.md) without changing when a death counts) by the `crash` scenario, run on its
 own under a 300 s watchdog with the console session locked, at a load average of 6 to 13 on 10 cores: 34 of 34 in 44 s
