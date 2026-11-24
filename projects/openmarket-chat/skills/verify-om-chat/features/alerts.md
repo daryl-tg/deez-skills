@@ -58,8 +58,8 @@ agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=ale
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=room` | Strip firing: `.alert-strip` text `store-5xx · check pods` |
-| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1485-1493`) |
-| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1497-1498`) |
+| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1493-1501`) |
+| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1505-1506`) |
 | `shell-fixture.html?view=room&alerts=quiet` | No strip: use this for every non-alert proof |
 | `fixture.html?surface=alert-card` | The alert card with its four actions |
 
@@ -74,7 +74,7 @@ The virtual **Alerts** group is gone. `om.chat.alertsGroupAuto` and
 `[data-alerts-group]` no longer exist. A channel with a live feed now stays in
 the category it is filed in. It carries its feed as a sub-row under the channel
 (`alertsRowForRoom`, `lib/alerts-group.ts:83`, rendered at
-`packages/chat-ui/src/components/Sidebar.tsx:4685-4693`).
+`packages/chat-ui/src/components/Sidebar.tsx:4697-4705`).
 
 To check the sub-row, open `shell-fixture.html?view=room&alerts=board`. On
 **both** hosts, `#ops` under **category Desk, 5 channels** carries
@@ -86,7 +86,7 @@ only `feeds.length > 0`. Under `alerts=quiet` there is no sub-row.
 
 A category can also be marked as an **alert category** (`alert: true` in the
 space's stored `categories`). It then shows `.category-alerts-mark` and its
-ringing count even while expanded (`Sidebar.tsx:4914-4920`, `:4936-4949`). A
+ringing count even while expanded (`Sidebar.tsx:4931-4937`, `:4953-4966`). A
 plain category shows counts only when collapsed. You mark one from the category
 header menu (**Mark as alert category**), or with the **Alert category** box in
 **Create Category**. The recipe, with the stubs that make it reachable, is in
@@ -97,7 +97,7 @@ and **1 ringing** while expanded. Driven 2026-11-19.
 
 ### The board's feed peek (added 2026-11-16)
 
-Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1520`,
+Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1528`,
 `apps/cloud/tools/visual/shell-fixture.tsx:568`), so the bare board shows the
 chart-less peek. `alertsStub` is a plain object, so the session-capture shim
 from [message-actions.md](message-actions.md) can replace the method:
@@ -141,7 +141,7 @@ was not driven.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
   channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:448-458`
   and opened in the product by `session.openAlertsTab`). The fixture's
-  plain-object `alertsStub` (`shell-fixture.tsx:1480`) lacks members the
+  plain-object `alertsStub` (`shell-fixture.tsx:1488`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,
   `setSelectedFeed`, `tapeFeedFilter` and `setTapeFeedFilter`. Which one throws
   first was not isolated. No error boundary wraps the panel, so `#root`
@@ -154,7 +154,9 @@ was not driven.
 
 ### Verification record
 
-**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the strip's third control is an icon-only **Dismiss this strip**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+
+**Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
 **Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the strip **store-5xx · check pods** with **I'm on it**, **Open** and **Dismiss this strip**; `alerts=quiet` removing it; the board (Ring store-5xx, Log relay-latency, **New alert...**, **All alerts**); the ringing sidebar row and the category's **1 ringing** on one line; the alert card gallery. Both hosts: the board's feed peek with a seeded series (30 bars, "67% answered · 3 open · 4m to ack"). `/chat/` (18187): the board and the ringing row. **Limitations:** `panel=alerts`, the claim effect and the category alert mark were not driven. `alerts=amber` showed the same strip text. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 

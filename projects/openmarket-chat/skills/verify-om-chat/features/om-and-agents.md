@@ -207,7 +207,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   (`Shell.tsx:1561`; accessible names at `:3133`, `:3675`, `:3700`,
   `:3802`). The tooltips spell it with a colon instead, "Agents: connected
   remotely" (`:3084`, `:3784`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4366`). The pane
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4445`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -257,7 +257,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   ```
 
   The key is `om.chat.railLayout.device.<userId>` and the fixture's Kyle is
-  **`u1`** (`shell-fixture.tsx:1059` maps the `kyle` handle to `u1`; every
+  **`u1`** (`shell-fixture.tsx:1067` maps the `kyle` handle to `u1`; every
   other handle becomes `u-<handle>`). Write it under the wrong id and nothing
   happens, silently. Proven end to end on lane 18118: after the reload one
   `[data-rail-group-id="g1"]` renders collapsed and labelled *"Work"*, and
@@ -449,7 +449,7 @@ Roster page; nothing under `components/` renders that string at `47cb13bf`.
 
 ### Invite an agent to a channel (added 2026-10-28)
 
-In a channel, open **More channel actions** (the header `…`). Its menu has 14 items on the default fixture: Join voice, Brief, Invite people, **Invite agent**, Your agents..., New topic..., Summon your om, Media and files, Channel settings, Mark as read, Notification settings, Mute channel, Convert to alerts..., Copy channel link (re-read 2026-11-20 at `7e3f0cde` on both hosts: **Hide to-dos** is gone off Projects, and **Media and files** is new). **Invite agent** (`ChannelHeaderMenus.tsx:114`; absent in away mode) opens a dialog named **✦ Invite your agent to #ops**. With no badge wired, it reads "No agent badge is wired yet. Run the command below: it wires your Claude Code, asks for read access to this channel, and the consent card appears right here.", then shows `om claude "#ops"` with **Copy**, **Open Front Desk** and **How agents work**. No daemon is needed for this state.
+In a channel, open **More channel actions** (the header `…`). Its menu has 14 items on the default fixture: Join voice, Brief, Invite people, **Invite agent**, Your agents..., New topic..., Summon your om, Media and files, Channel settings, Mark as read, Notification settings, Mute channel, Convert to alerts..., Copy channel link (re-read 2026-11-20 at `7e3f0cde` on both hosts: **Hide to-dos** is gone off Projects, and **Media and files** is new). **Invite agent** (`ChannelHeaderMenus.tsx:121`; absent in away mode) opens a dialog named **✦ Invite your agent to #ops**. With no badge wired, it reads "No agent badge is wired yet. Run the command below: it wires your Claude Code, asks for read access to this channel, and the consent card appears right here.", then shows `om claude "#ops"` with **Copy**, **Open Front Desk** and **How agents work**. No daemon is needed for this state.
 
 `find role menuitem click --name "Invite agent"` missed the item once while the menu was still opening. Take a snapshot and click the item by its ref instead. Driven on `/rooms/` and `/chat/` 2026-10-28 at `2dd7aad1` (frames 13, 42). The wired-badge state, the consent card and the **Channel agents** panel need a daemon with a wired badge.
 
@@ -459,7 +459,7 @@ The hosted `/chat/` Agents page reads and drives the owner's agents on their own
 
 - **What a user sees on `/chat/agents`.** The desk's agents in the Map and Grid; **Templates** and **New agent** enabled; `your om` reads idle when the desk answers. The brain chips wear the om mark (**OM daemon**) and the official Claude and OpenAI marks (**Claude Code**, **Codex**; faded when not set up).
 - **Desk offline.** "Your desk is offline. Your agents load when om at your desk is running." within about 5 s of the lane stopping; it recovers by itself about 10 s after the desk returns. Not opted in reads "Remote control is off at your desk. Turn it on with om agent remote enable."
-- **Fixture lane (no relay), driven 2026-11-04 on main at `ce14d4ba`.** `/chat/tools/visual/shell-fixture.html?view=agents&alerts=quiet` lands on `/chat/agents` with **Map**, **Grid**, **Templates** and **New agent**, and the page read "Your desk is offline. Your agents load when om at your desk is running." (`remote-unavailable.ts`, passed as the Agents notice at `AgentCenterSurface.tsx:337`). That was true until `3426f0db`: the cloud fixture now registers a scripted desk on this view (`apps/cloud/tools/visual/shell-fixture.tsx:133`, `agents-desk.ts`), so the offline notice no longer shows on this route. Driven 2026-11-22 at `4b6f42b4`: the page lists **your om** with **OM daemon, ready**, **Claude Code, ready** and **Codex, not set up**, and its foot reads "your desk · running". The sidebar's **Away coverage** still reads "Can't tell". The offline notice and the other desk states (off, outdated, busy, no answer) need a stopped lane, a registered operator or the rig.
+- **Fixture lane (no relay), driven 2026-11-04 on main at `ce14d4ba`.** `/chat/tools/visual/shell-fixture.html?view=agents&alerts=quiet` lands on `/chat/agents` with **Map**, **Grid**, **Templates** and **New agent**, and the page read "Your desk is offline. Your agents load when om at your desk is running." (`remote-unavailable.ts`, passed as the Agents notice at `AgentCenterSurface.tsx:374`). That was true until `3426f0db`: the cloud fixture now registers a scripted desk on this view (`apps/cloud/tools/visual/shell-fixture.tsx:133`, `agents-desk.ts`), so the offline notice no longer shows on this route. Driven 2026-11-22 at `4b6f42b4`: the page lists **your om** with **OM daemon, ready**, **Claude Code, ready** and **Codex, not set up**, and its foot reads "your desk · running". The sidebar's **Away coverage** still reads "Can't tell". The offline notice and the other desk states (off, outdated, busy, no answer) need a stopped lane, a registered operator or the rig.
 - **Driven 2026-11-03 on the branch rig** (a branch receipt; the rig pass was not repeated on main) (`/Users/dboon/Documents/dev-notes/om-agents-cloud-parity/rig/README.md`: relay 18120, store 18121, lane 18123, fake model 18124, cloud vite 4178 with `/chat/api` → store): **Run explain** paused and resumed explain on the desk; **Try it** returned the reply and three checks; **Check routing** ran `roster.instances.eval` ("Routes correctly 67%"); **Allow** granted explain into **ACP Rig / ops** ("explain can read and reply in ACP Rig / ops"); `@explain what is a funding rate` posted in `#general` from `/chat/` got explain's reply threaded under it within 3 s (run `door: mention`). `/rooms` Agents matched origin/main by pixel diff (60 px, status dots). Evidence: `http://127.0.0.1:8098/agents-cloud-parity/u7-r5/` (and `u7-r3`).
 - **Pending live (tests only):** work-run live polling (3 s, at most three runs), run Pause and Steer, vault and catalog writes, Needs-you decisions and **File as source** on `/chat/` (the rig had no work runs, vault, inbox items or room with history for them).
 
@@ -609,6 +609,44 @@ behavior). The row stays after **Accept
 merge** because the fixture's proposal list is static. Not driven: **Keep
 current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
 
+### A busy daemon no longer blocks the page (added 2026-11-25)
+
+Since `28629ae6` every `/rooms/` daemon call goes through one door,
+`@openmarket/chat-host/lib/daemon-fetch` (`src/lib/daemon-fetch.ts`). Finite
+reads, meaning GET/HEAD plus the POSTs the daemon classes as reads
+(`DAEMON_READ_POSTS`, `:88`), are laned: at most 2 in flight across every tab
+(Web Locks `om-daemon-read-<slot>`, `DAEMON_READ_LANE`, `:58`), first in first
+out, with a 20 s deadline that counts queue time (`:54`). Writes and `long`
+calls skip the lane. A user sees no new text: the page, the relay and static
+files simply stop queueing behind a stalled daemon. `/healthz` reads time out
+at 15 s (`packages/chat-ui/src/lib/om-health.ts:62`). `/chat/` resolves the
+door to a plain `fetch` (`apps/cloud/src/lib/daemon-fetch.ts`), so it has no
+lane and no deadline.
+
+Driven on `/rooms/` (18186) `agent-center-fixture.html` at `557ee9ed`. The
+fixture assigns `window.fetch` itself, so an init script that defines
+`window.fetch` as a getter/setter wraps the fixture's routes from the outside,
+holds every `/rpc/v1/`, `/api/library/` and `/healthz` request for N ms, and
+logs start, end, abort and the in-flight count (`agent-browser --init-script
+<file> open about:blank`, then open the fixture):
+
+- With a 3 s hold the door's reads went out strictly in pairs:
+  `agent-credentials/list` + `agent-grants/list`, then `agent-tokens/list` +
+  `agent-grants/requests`, then `integrations/status` + `agent-remote/status`,
+  then `/healthz` + `/api/library/proposals`, about 3.1 s apart. The page
+  rendered its rail and lists while they queued. The in-flight peak read 4 only
+  because the fixture's own roster IO (`GET /rpc/v1/roster/brains`, `.../projects`,
+  `tools/visual/agent-center-fixture.tsx:663`) does not use the door.
+- With a 25 s hold, `agent-credentials/list` and `agent-grants/list` aborted at
+  20,093 ms, and the page still showed **Agents**, the persona column, **OM
+  daemon, ready** and the agent rows.
+
+Still `live verification pending`: the shared boot reads (`SettledShare`,
+`lib/settled-share.ts`), which need a real roster transport; the news boot
+retry after 30 s (`lib/news.ts`, use `grep -a`), because the shell fixture's
+news store is inert; the import stepper's 20 s GET deadline; and a truly busy
+daemon, which needs the daemon-served rig.
+
 ## Gotchas
 
 - **No query parameter bypasses the running-om gate; a route stub does.** `?view=agent` renders the empty
@@ -631,7 +669,7 @@ current note (reject)**, **Later**, a conflict pick, and the Grid strip's door.
   not just the old query.** (On `/chat/` the same Voice click reaches the hosted
   page and reads the desk-offline copy; see
   [persona-setup-and-editing.md](persona-setup-and-editing.md).) The fixture decides whether to mock persona
-  **once, at page load** (`shell-fixture.tsx:209-221`): it mocks when the query
+  **once, at page load** (`shell-fixture.tsx:217-229`): it mocks when the query
   is `view=agent&panel=voice|away|activity` *or* the hash is already
   `#/agents/voice|away|activity`. Anything that only *arrives* at those hashes
   after load finds the real, un-mocked client and reads *"Your voice could not
@@ -749,8 +787,8 @@ for example when two owners each run a `debugger`, the line reads just
 button named "<name>, <owner>'s agent. View full profile" (`:116`,
 `[data-profile-door]`) that opens the agent's profile panel.
 
-`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1388-1408`; card
-handlers `openProfileCard` and `openMentionCard` at `:3573-3588`). The `/chat/`
+`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1396-1416`; card
+handlers `openProfileCard` and `openMentionCard` at `:3610-3625`). The `/chat/`
 fixture has neither the seed nor the handlers, so the card is `/rooms/` only.
 
 ```bash
@@ -765,7 +803,9 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # click the LAST .agent-mention[data-handle=debugger]: the card reads "debugger AGENT agent", no door
 ```
 
-**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** **Approve argue update** still changes nothing on screen (carried from 2026-11-22). On `/chat/` the Agents page shows no desk-offline notice, as the guide says since 2026-11-22. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** new tonight on `/rooms/` (18186): the daemon door's two-read lane and its 20 s deadline on `agent-center-fixture` under a held `fetch` (see "A busy daemon no longer blocks the page"); the rest of the guide by the kept step runner. **Limitations:** shared reads, the news retry and a real busy daemon are pending; `/chat/` has no door. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+
+**Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** **Approve argue update** still changes nothing on screen (carried from 2026-11-22). On `/chat/` the Agents page shows no desk-offline notice, as the guide says since 2026-11-22. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
 **Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the agent-center Map, **Grid**, **Needs you, 9** → `#/agents/waiting`, the argue agent page, its **Access** tab and **More actions** (Check routing, Review what it learned); the library-edit review door (**Accept merge**, two proposal calls); the shell's Voice and Away pages; the `@agent` tag card; the Your om pane with the health stub. `/chat/` (18187): the Agents page over the fixture's scripted desk. **Limitations:** pressing **Approve argue update** changed nothing on screen tonight (see the section above). **Invite agent**, Fleet health, the agent chat and the remote-home states were not re-driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 

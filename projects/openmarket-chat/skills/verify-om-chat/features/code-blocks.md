@@ -5,7 +5,7 @@
 - A fenced block in a message renders as `pre.code-wrap` inside the message's
   `.agent-md.agent-md-chat`, with a `.code-header` band (the language control,
   e.g. **Plain text**) and a copy control: `span.code-copy` with `role="button"`
-  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2454`).
+  and `aria-label="Copy"` (`packages/chat-ui/src/components/Markdown.tsx:2455`).
 - A fence tagged `progress` draws as bars, not as a code block, when every
   line parses (`feb9be62`): see [progress-blocks.md](progress-blocks.md).
 - Since `2350a0fd`, chat messages wrap long lines instead of scrolling them:
@@ -28,7 +28,7 @@ however long the line is.
 
 The default `#ops` tape seeds one block: dax's
 `om alert list --room ops --since 24h` (`msg-ops-106`;
-`tools/visual/shell-fixture.tsx:1128`, and
+`tools/visual/shell-fixture.tsx:1136`, and
 `apps/cloud/tools/visual/shell-fixture.tsx:351` on `/chat/`). To prove wrapping,
 send a long unbroken line from the composer, because no seed has one.
 
@@ -67,7 +67,9 @@ Expect `pre-wrap`, `fits: true` and `copyInside: true` at 1440×900 and at
 
 ### Verification record
 
-**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+
+**Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
 **Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the seeded block on `msg-ops-106` (`pre.code-wrap`, the **Copy** `span[role=button]`, the language control); **Copy** adding `copied`; with the stylesheet injected, a sent 300-character line wrapping with **Copy** inside the block at 1440 and at 390; a bad `progress` fence staying code. `/chat/` (18187): `pre-wrap` on the seeded block with its stylesheet injected. **Limitations:** the clipboard was not read back. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 

@@ -69,7 +69,7 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   mode (see [your-library.md](your-library.md) and
   [message-actions.md](message-actions.md)). Everywhere else the marker is a
   read-only `span.task-list-marker[role=img]` named **Checked task** or
-  **Unchecked task**, with no `tabindex` (`Markdown.tsx:2358-2371`; on
+  **Unchecked task**, with no `tabindex` (`Markdown.tsx:2359-2372`; on
   `/rooms/`, `shell-fixture.html?view=room&alerts=quiet&tape=lists` posts one
   of each as `dax`; `/chat/` has no `tape=lists` seed).
 - **Comment box** (`TodoCommentBox.tsx`). The textbox **Comment** (placeholder
@@ -549,7 +549,9 @@ Projects stub the page falls to its error boundary, because the bare
 
 ## Verification record
 
-**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** `/rooms/` (18186) with the Projects stub and the shim: the ticket comment box chipping `@Devops` and `@traders` and not `@mod`; **Cancel** on a typed new ticket → **Discard this ticket?**, **Keep editing**, **Discard**; the pasted upload tile; the core-path re-drive. **Limitations:** the saved links behind the stubbed `todos.comment`, and the ticket role recount after an assignment, were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the ticket-open step was covered by a dialog backdrop and `ticketMuted=1` is a dead seed (carried); the ticket page was not re-opened tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+
+**Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** `/rooms/` (18186) with the Projects stub and the shim: the ticket comment box chipping `@Devops` and `@traders` and not `@mod`; **Cancel** on a typed new ticket → **Discard this ticket?**, **Keep editing**, **Discard**; the pasted upload tile; the core-path re-drive. **Limitations:** the saved links behind the stubbed `todos.comment`, and the ticket role recount after an assignment, were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
 **Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) with the Projects stub and the shim: the table (3 rows), **Board** with its four columns and the card menu, the eight-button bulk bar, the ticket page; three file tiles, a remove with **Undo**, a description task tick, the ticket chip, the comment's **Edit**, a role pick in the comment box, a pasted upload tile, the two drop zones, ten files hiding the ticket attach button, the archived home chip, the loading frame; the channel panel, its **New ticket** form and a ticket opened in the panel; the Server Settings switch refusing with its pending count. New: the mute banner and reasons through the shim, and the typed-username chip in the comment box. `/chat/` (18187): the page at `/chat/projects/s1` with 3 rows. **Limitations:** every write stops at the stub; the saved link for a typed username is behind it. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 

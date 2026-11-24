@@ -32,7 +32,7 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   attached**, **Video attached** or **File attached**; the first attachment
   picks, a held one draws the paperclip). It shows on the room quote line and
   bubble quote (`ReplyQuote`, `MessageRow.tsx:3981-4145`), the DM quotes
-  (`ChatPane.tsx:3775-3790`) and the composer's **Replying to** strip
+  (`ChatPane.tsx:3776-3791`) and the composer's **Replying to** strip
   (`Composer.tsx:6185-6194`). A text-less poll is quoted as italic
   "Poll: <question>" with an `aria-hidden` poll glyph, a poll with text keeps
   the text and adds `role="img"` **Poll**, and a quote with nothing nameable
@@ -49,7 +49,7 @@ covered in the README inventory and [polls-and-reactions.md](polls-and-reactions
   for agent** (⌥M), **Ask about this...** and **Capture to doc from here**.
   **Copy for Agent** and **Copy for Agent (since here)** need the host's
   `daemonFeatures` (`MessageRow.tsx:2089`, `:2097`; `d3aebbb5`): true on
-  `/rooms/` (`src/lib/session-host.ts:2`), false on `/chat/`
+  `/rooms/` (`src/lib/session-host.ts:3`), false on `/chat/`
   (`apps/cloud/src/lib/session-host.ts:3`). So on `/chat/` the flyout reads
   **Mark for agent**, **Ask about this...** and **Capture to doc from here**
   only (both hosts driven 2026-11-13: open **More**, then `find role menuitem
@@ -129,7 +129,7 @@ The DM path is `?view=dm&dm=ana&alerts=quiet`: hover `#dm-msg-m2`, then click
 
 Open `shell-fixture.html?view=room&alerts=quiet&reply=1`. The composer shows
 the reply strip **Replying to dax** with a **Cancel reply** button
-(`Composer.tsx:6208`; the fixture seeds seq 103, `shell-fixture.tsx:2598`).
+(`Composer.tsx:6208`; the fixture seeds seq 103, `shell-fixture.tsx:2635`).
 Scroll `#msg-ops-104` into view, hover it, and click
 `#msg-ops-104 .msg-toolbar button[title="Reply"]`: the strip retargets to
 **Replying to kyle: @ana the alert fired twice last night …** and the composer
@@ -176,8 +176,8 @@ nothing is searched. The title drops the link and a polite lead-in, so
 "`om://user/<nova> could you rerun the job`" becomes **Rerun the job**.
 
 The toolbar button calls `session.openTodoPromote` (`MessageRow.tsx:3173`),
-and both fixtures spell out `todoPromote: null` (`tools/visual/shell-fixture.tsx:3247`,
-cloud `:1669`), so the click opens nothing until the shim stubs it. The
+and both fixtures spell out `todoPromote: null` (`tools/visual/shell-fixture.tsx:3284`,
+cloud `:1652`), so the click opens nothing until the shim stubs it. The
 fixture also leaves `isAppAccount` out, so the autofill proxy answers a truthy
 `INERT` and every person reads as an app account until it is stubbed too:
 
@@ -229,7 +229,7 @@ agent-browser eval '(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));cons
 
 Past `SWIPE_COMMIT_PX` (56) the pull gains resistance (70 → 60.9), and the
 release past the commit calls `session.setReplyTarget`, which the fixture
-implements (`shell-fixture.tsx:3630`). A long press is `pointerdown`, a 700 ms
+implements (`shell-fixture.tsx:3667`). A long press is `pointerdown`, a 700 ms
 wait, `pointerup` on the same row: it opens the row menu as a sheet,
 `div.msg-sheet[role=menu][data-mobile-sheet]` behind `.msg-sheet-backdrop`,
 21 menu items for `msg-ops-104` (22 until `05df35a7` removed the to-do entry;
@@ -287,8 +287,8 @@ read every `[role=menu]`, not the first.
 
 Since `30129c57`, Enter, Space or ArrowRight on a submenu row is meant to open
 its flyout with focus on the first enabled row, and ArrowLeft or Escape inside
-the flyout to close it back onto the row (`ContextMenu.tsx:262-269`,
-`:93-98`). Open **More** on `msg-ops-104`, press ArrowDown until
+the flyout to close it back onto the row (`ContextMenu.tsx:437-452`,
+`:168-173`). Open **More** on `msg-ops-104`, press ArrowDown until
 `document.activeElement` is **Agent** (`data-submenu-index="11"`), then press
 Enter. Driven 2026-11-07 on both hosts: the flyout mounts (`aria-expanded="true"`,
 4 entries) but focus stays on **Agent**, so a further ArrowDown moves within
@@ -301,7 +301,7 @@ by an `eval` before the key press. ArrowRight mounts the flyout about 18 ms
 later, and the flyout's effect does call `focus()` on **Copy for Agent**, but
 at that moment the flyout's computed `visibility` is still `hidden`. Chromium
 refuses to focus a hidden element, so no `focusin` fires. Which rule still
-hides it was not traced: `ContextMenu.tsx:119` hides the flyout until it is
+hides it was not traced: `ContextMenu.tsx:195` hides the flyout until it is
 measured, and the effect waits on that same `pos.measured`. A manual `focus()` on the same
 row a moment later lands. `test/context-menu-submenu.test.ts:110-116` asserts
 the focus under happy-dom, which does not enforce `visibility`, so it passes.
@@ -468,9 +468,9 @@ Stack role members**.
 Since `b3544ca4` a Markdown task in a message ticks wherever the row offers
 **Edit**: your own message, saved (not pending), not deleted, with its rendered
 text equal to the stored text (`MessageRow.tsx:2634-2646`; DM rows through
-`ChatPane.tsx:3302`). The marker is then `span.task-list-marker[role=checkbox]`
+`ChatPane.tsx:3303`). The marker is then `span.task-list-marker[role=checkbox]`
 with `aria-checked`, `tabindex="0"`, `data-task-line` and the task's text as
-its name (`Markdown.tsx:2358-2371`). A click, Enter or Space flips exactly
+its name (`Markdown.tsx:2359-2372`). A click, Enter or Space flips exactly
 that line (`components/message-ticks.tsx:30-60`; a line inside a fence never
 flips) and saves it as an edit: `session.commitEdit(next, {room, seq})` for a
 room message, `session.editDm(username, id, next, true)` for a DM, so the row
@@ -515,7 +515,7 @@ checklist seed. Unit tests: `packages/chat-ui/test/message/checklist-ticks.test.
 - **Every verb is a fixture no-op except the clipboard.** The shell fixture
   stubs `toggleBookmark`, `togglePin`, `markUnreadFrom`, `removeUnfurls`,
   `askAgentAboutMessage`, `summarizeThreadWithAgent` and `captureFromSeq`
-  as `noop` or `asyncNoop` (`shell-fixture.tsx:3671-3764`), and `openForward` never sets
+  as `noop` or `asyncNoop` (`shell-fixture.tsx:3708-3801`), and `openForward` never sets
   `forwardSource`. Prove the offer here; the effects need the daemon-pair lane.
   The copy verbs write to the clipboard, which this lane did not read back.
 - A data attribute set by `eval` can vanish when React re-renders the row.
@@ -523,7 +523,9 @@ checklist seed. Unit tests: `packages/chat-ui/test/message/checklist-ticks.test.
 
 ## Verification record
 
-**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** `/rooms/` (18186): own-message checklist ticks on `tape=checklist` (click and Enter keep focus; Space moves it to the composer), ana's read-only markers, the role card through the shim ("Devops — 2", ana, dax), **Reply** and **Cancel reply**, the core-path re-drive incl. the long-press sheet and swipe. **Limitations:** the DM tick, a refused tick and `/chat/` ticks (no seed) were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the reply strip readback after **Reply** returned nothing in the step (the toolbar sat under the recent-emoji strip); 18-entry **More** menu, Delete confirm and the touch sheet (21 items) re-proved. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+
+**Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** `/rooms/` (18186): own-message checklist ticks on `tape=checklist` (click and Enter keep focus; Space moves it to the composer), ana's read-only markers, the role card through the shim ("Devops — 2", ana, dax), **Reply** and **Cancel reply**, the core-path re-drive incl. the long-press sheet and swipe. **Limitations:** the DM tick, a refused tick and `/chat/` ticks (no seed) were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
 **Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the hover toolbar; the 18-entry **More** menu and the four-entry **Agent** flyout; **Forward** through the shim; the 18-entry right-click menu on an own message and 14 on someone else's; focused-row keys (ArrowDown, R, E, Delete, +); the 13-entry DM message menu; the Devops role popover through the shim; the image menu and **Open in Browser**; at 390×844 the long-press sheet (21 entries) and the swipe (45 px, 60.9 px). **Limitations:** the toolbar **Reply** click raced the forward dialog in tonight's run and was not re-read; **R** proved the same strip. Menu effects are fixture no-ops. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 

@@ -31,12 +31,27 @@ who reacted.
   failed load shows `[role=alert][data-lazy-surface-error]` "`<name>` could not
   load." with **Try again** (`LazySurface.tsx:512-530`).
 - **Emoji picker**: **Add a reaction** opens a dialog named **Choose an emoji**,
-  with a `Search emoji (:fire:)` field and, once the table loads, 1,870 emoji
-  buttons (rooms-client `0.104.0`, `7e57ee84`). Since `de32f43d` the marks are
-  searchable (`lib/emoji-search.ts:33-35`): `?` lists ❓ ❔ ⁉️ and the
+  with a `Search emoji (:fire:)` field and, once the table loads, 1,896 emoji
+  buttons since the 26 letter tiles (`2b6cbbb7`; 1,870 before, rooms-client
+  `0.104.0`, `7e57ee84`). Since `de32f43d` the marks are
+  searchable (`lib/emoji-search.ts:39-41`): `?` lists ❓ ❔ ⁉️ and the
   questioning faces (🤔 🤨 😕 🧐, the shrugs; 15 hits), and `!` lists ❗ ❕ ⁉️
   ‼️. Before it, `?` read `No emoji match "?"`. The composer's own picker
-  (**Choose emoji or GIF (⌘E)**) shares the same search.
+  (**Choose emoji or GIF (⌘E)**) shares the same search. (Marks:
+  `lib/emoji-search.ts:41-46`.)
+- **Letter tiles 🇦–🇿** (`2b6cbbb7`, `879a7e5c`, `afd1b543`). The 26 regional
+  indicators sit at the end of Symbols (`LETTER_TILES`,
+  `lib/emoji-search.ts:64-78`), keyworded `regional_indicator_x`, `x`,
+  `letter x` and `letter_x`. Searching a letter puts its tile first
+  (`searchEmoji`, `:93-113`): `l` leads with **:regional_indicator_l:**,
+  `letter` lists all 26 (30 cells), `regional_indicator_q` leads with Q. Every
+  surface draws the tile itself rather than trusting the system font: a
+  `span.letter-tile[data-letter=L][role=img]` named **regional indicator L**,
+  blue (`rgb(59, 136, 195)`, `--letter-tile-bg`), with the real 🇱 kept as its
+  text so copy still yields the character (`lib/letter-tile.ts:39-51`,
+  `styles.css:9614-9639`). It renders in the picker cell, the reaction chip
+  (`.chip-glyph`), the reactors header, the `:` autocomplete row and message
+  text (see [composer-and-sending.md](composer-and-sending.md)).
 - **Reaction scenes** (`afabb11c`). When a visible chip's count rises, a scene
   plays over the viewport. Hand-built emoji (hearts, 🎉, 🔥, ⚡, 👀, the GOAT,
   the signature and shipped ones) keep their own scenes. Every other emoji now
@@ -168,7 +183,7 @@ session.
   2026-10-26; see [message-editing.md](message-editing.md)).
 - **The emoji picker loads its table lazily, and a full snapshot of it can
   hang.** On a cold vite lane, **Choose an emoji** reads "Loading emoji" for
-  4–10 s, then mounts 1,870 buttons. A `snapshot -c` taken while it is open ran
+  4–10 s, then mounts 1,896 buttons. A `snapshot -c` taken while it is open ran
   past 75 s and had to be killed. Assert with a targeted eval instead, e.g.
   `document.querySelector('[aria-label="Choose an emoji"]').querySelectorAll('button').length`.
 - **Every `fixture.html` gallery forces reduced motion.** `fixture.tsx:50` adds
@@ -189,9 +204,31 @@ session.
   the INERT proxy, so a Reactions dialog there would show every emoji as
   unavailable.
 
+### A letter tile as a reaction (added 2026-11-25)
+
+Driven on `/rooms/` (18186) at `557ee9ed`. The DM view is the one place a
+fixture reaction really toggles (`reactDm`), so a chip appears:
+
+```bash
+# shell-fixture.html?view=dm&dm=ana&alerts=quiet
+agent-browser hover '#dm-msg-m2'
+agent-browser click '#dm-msg-m2 button[title="Add reaction"]'
+agent-browser fill 'input[aria-label="Search emoji"]' l
+agent-browser click '[aria-label="Choose an emoji"] .emoji-cell'
+#   html[data-fixture-dm-reaction] = "ana:m2:🇱"; .chip-glyph holds a .letter-tile "L" (15 px)
+```
+
+In a channel the fixture's `toggleReaction` only writes
+`html[data-fixture-reaction]`, so no chip is drawn there. The composer picker
+(**Choose emoji or GIF**) shows the same tiles on both hosts: `l` →
+**:regional_indicator_l:** first, a 23 px tile; `letter` → 30 cells, 26 of
+them tiles; `regional_indicator_q` → Q first.
+
 ### Verification record
 
-**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** new tonight: the letter tiles in the composer picker on `/rooms/` (18186) and `/chat/` (18187) (`l`, `letter`, `regional_indicator_q`), and a 🇱 reaction chip drawn as a tile in a `/rooms/` DM; the rest of the guide by the kept step runner. **Limitations:** a channel reaction chip is not drawn by the fixture; the tile's cap-height centring (`afd1b543`) was not measured; the reactors header tile was not opened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+
+**Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
 **Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186): the closed-poll results (57%, 29%, 14%, 0%); the roster cache (**roster loads: 1** across two opens); the poll composer and a local vote (8 · 80% → 9 · 82%); the three reaction chips; **See who reacted** → **Reactions**; the emoji picker (1870 buttons); the overflow chip; two fall scenes timed at about 1.18 s in a fresh visible session. **Limitations:** **Close poll**, the ❓ scene and emoji search were not driven tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 

@@ -32,7 +32,7 @@ pickers in Projects are built on the multi-pick modes.
   [message-actions.md](message-actions.md).
 - The message menu's phone sheet ignores the click a long-press lift lands on
   its backdrop; only a press that began on the backdrop, or a click no pointer
-  made, closes it (`ContextMenu.tsx:364-377`). Driven 2026-11-08 on both
+  made, closes it (`ContextMenu.tsx:532-545`). Driven 2026-11-08 on both
   hosts.
 
 ## How to get to it (user POV)
@@ -128,7 +128,9 @@ agent-browser mouse move 195 40; agent-browser mouse down; agent-browser mouse u
 
 ### Verification record
 
-**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. The long-press sheet closes on a real backdrop press and stays open for a lift's click. **Limitations:** the low multi-pick menu's off-screen box was not re-measured (the probe failed); its box after a resize, 563–864, was. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the backdrop press in the long-press step is synthetic and no longer closes the sheet (real press needed, as the guide says). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+
+**Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. The long-press sheet closes on a real backdrop press and stays open for a lift's click. **Limitations:** the low multi-pick menu's off-screen box was not re-measured (the probe failed); its box after a resize, 563–864, was. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
 **Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) gallery: the **Labels** multi-pick (**Labels · 2** → **· 3**, the list staying open), the two-label cap with six disabled options and its note, the create row for `zzq`, and the low menu re-seating at 563-864 after a resize; at 390×844 the full-width sheet, a 20 px sideways drag keeping it, a 90 px drag closing it and Enter on the handle closing it; the long-press sheet staying on a lift's click and closing on a real backdrop press. **Limitations:** the off-screen first position of the low menu was not re-measured tonight (my probe had a syntax error); the resize result matches the recorded gap. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 

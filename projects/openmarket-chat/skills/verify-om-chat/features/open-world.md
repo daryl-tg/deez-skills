@@ -257,7 +257,7 @@ template for its waits.
 ### Occupancy on the sidebar row (added 2026-11-09)
 
 The Open World sidebar row shows a walker count from `session.worldPresenceFor`
-(`Sidebar.tsx:3997-4028`). Neither shell fixture stubs it, and only `/rooms/`
+(`Sidebar.tsx:4009-4040`). Neither shell fixture stubs it, and only `/rooms/`
 mounts the row (`daemonFeatures` is false on `/chat/`). Seed it with an
 `Object.prototype` stub beside the people stub:
 
@@ -312,7 +312,9 @@ The rail tooltip (`Shell.tsx:3269`) was not hovered.
 
 ### Verification record
 
-**Last verified:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. Headless fullscreen and the resize handle behaved as the guide says. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
+**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the openscape lane was first started from the wrong directory (activity harness unreachable); restarted with `--config` and both openscape blocks re-run alone; the chat-pane resize handle and the emote wheel need focus and a real mouse move (step faults). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+
+**Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. Headless fullscreen and the resize handle behaved as the guide says. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
 **Previous record:** 2026-11-22 (nightly maintenance). **Product commit:** `4b6f42b4` (GitLab origin/main; rooms-client 0.124.0; one commit past `84e88e56`). **Scope:** `/rooms/` (18186) solo harness in a fresh visible session: ready, two canvases, the offline and no-channel text, five looks, the minimap, **Follow player**, **Enter fullscreen** → **Exit fullscreen**, **Hide** / **Open chat**; the sidebar's **3 walking** through the world stub; the chat pane font slider in Appearance. Openscape preview (18188): 32 characters and nameplates, a send with **Confirm locally**, **Earlier messages** (24 rows), **Retry** and **Discard**, 80 channels and a channel switch, the read-only and missing states, the resize handle once focus is in the pane (420 × 212, **Home** clearing it), the emote wheel with a pointer-highlighted **Read** selected on release and **Stop** offered after, the look select, and the activity page's scenario select. **Limitations:** presence between two people, movement and a connected world need a relay. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261122/r1/`.
 
