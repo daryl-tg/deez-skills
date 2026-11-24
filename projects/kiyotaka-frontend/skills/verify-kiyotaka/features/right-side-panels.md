@@ -5,7 +5,18 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
-DRIVEN on 2026-11-24 against product tree `8cd7ad448e` (`origin/main`, 269
+DRIVEN on 2026-11-25 against product tree `ec531568de` (`origin/main`, 142
+commits past `8cd7ad448e`), lane `18107`, a guest JWT: the Orderbook's
+Grouping list on COINBASE BTC-USD (`5` to `1000`) and on BINANCE.F
+DOGEUSDT (`0.00001` to `0.002`, decimals, no exponent; see
+`rp-orderbook`), BINANCE PEPEUSDT spot reading `Order book is unavailable
+for this symbol`, and an Objects folder on INDEX DXY made from a selected
+row, renamed, collapsed and still folded after the panel closed and
+reopened (see `rp-objects`). While a right panel is open the ticker bar's
+panel toggles fold into `Panels`, so `tb-orderbook-toggle-btn` is absent:
+close the panel with its `Close panel` button or use `Panels`. Not driven:
+dragging a multi-selection onto a folder, the fold across a reload, and the
+ticket's price pick. Before that, last DRIVEN on 2026-11-24 against product tree `8cd7ad448e` (`origin/main`, 269
 commits past `92f4a841ef`), lane `18106`, a guest JWT: the Panels menu's 17
 rows (`replay`, `heatmap`, `watchlist`, `scanner`, `etfScreener`, `news`,
 `chat`, `orderbook`, `tape`, `footprint`, `alerts`, `objects`, `journal`,
@@ -236,7 +247,9 @@ panels, which a guest is not offered.
 
 - `rp-orderbook` the Orderbook panel opens with Book, Delta and DOM tabs.
 - `rp-alerts` the Alerts panel opens, and its create menu walls a guest.
-- `rp-objects` the Objects panel opens for a guest.
+- `rp-objects` the Objects panel opens for a guest; a guest can put drawings
+  in a folder, and a collapsed folder stays folded across a panel close, a
+  tab switch and a reload.
 - `rp-etf` the ETF screener opens with its column sets.
 - `rp-heatmap` the heatmap seat opens an on and off switch.
 - `rp-options` the Options button opens the Options panel (signed-in).
@@ -326,7 +339,16 @@ an open panel.
   `lastUsedId` on `a4488341f6`; its `items` getter, which earlier passes read,
   was not re-read.
 - **`rp-orderbook`.** `tb-orderbook-toggle-btn` opened `Orderbook` with
-  `Book / Delta / DOM` and no wall. **Driven 2026-11-16 on `6bfc742bc8`:**
+  `Book / Delta / DOM` and no wall. **Grouping prints decimals (driven
+  2026-11-25 on `ec531568de`; `5554688b43`).** `ob-sidebar-toggle-settings-btn`
+  opens `Order book settings`; its Grouping control is an unnamed
+  `combobox` (take its ref from the snapshot under that region). On
+  BINANCE.F DOGEUSDT the list read `0.00001`, `0.00002`, `0.00005`,
+  `0.0001`, `0.0002`, `0.0005`, `0.001`, `0.002`; on COINBASE BTC-USD `5`,
+  `10`, `25`, `50`, `100`, `250`, `500`, `1000`. A step below a millionth
+  keeps the exponent form (`1e-7`, source). BINANCE PEPEUSDT spot read
+  `Order book is unavailable for this symbol` and kept the BTC list, so pick
+  a perp with a live book. **Driven 2026-11-16 on `6bfc742bc8`:**
   on COINBASE BTC-USD `orderbook-canvas` mounted within 3 s of the open on a
   freshly loaded, visible tab, and `segmented-delta-btn` drew live rows under
   `PRICE ADDED SUBTRACTED` with the mid price between them and no wall (the
@@ -478,7 +500,21 @@ an open panel.
   and no more menu. Price only now names this layer among what it pauses
   (`b7ffd40d4b`).
 - **`rp-objects`.** `tb-panels-row-objects` opened `Objects`
-  (`Nothing on this chart yet`) with no wall.
+  (`Nothing on this chart yet`) with no wall. **Folders (driven 2026-11-25
+  on `ec531568de`, INDEX DXY 1h; `4cc722ac07`, `da7e64929c`).** With two
+  trend lines drawn, the panel listed `Sources` and `Drawings` with a
+  `Trend Line` row each (rows have no testid; click them by snapshot ref).
+  A clicked row raised the bulk bar (count `1`) and
+  `objects-bulk-create-folder-btn` (`New folder`) made a folder holding it,
+  with a `Folder name` textbox (`Folder`) and `Remove folder`. Fill the
+  textbox (`find role textbox fill "F" --name "Folder name"`, `Enter`) and
+  click the folder's chevron to collapse it. `Close panel`, then `Panels` →
+  `tb-panels-row-objects`, reopened it with `F` still folded, and
+  `localStorage['kiyotaka.objects-panel.folders.v1']` read
+  `{"guest-workspace|INDICES_OTC|DXY":{"folders":["F"],...}}` (folded names
+  per workspace and market). Shift-click on a second row did not extend the
+  selection, so dropping a multi-selection onto a folder (all selected move,
+  one undo step) is not driven.
 - **`rp-etf`.** `tb-panels-row-etfScreener` opened `etf-screener-panel` with
   `etf-screener-screen-btn` (`Largest ETFs`), `-filters-btn`, `-columns-btn`,
   `etf-screener-tab-{overview,performance,flows,dividends,holdings,risk,technicals}-btn`,

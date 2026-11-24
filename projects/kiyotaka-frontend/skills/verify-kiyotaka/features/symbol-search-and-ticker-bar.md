@@ -4,6 +4,19 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
+was last DRIVEN on 2026-11-25 against product tree `ec531568de` (`origin/main`,
+142 commits past `8cd7ad448e`), lane `18107`, a guest JWT: the V2 dialog
+(`v2` 20, `legacy` 0) took `PEPE` (assets left, `32 venues` right; picked
+`venue-row-BINANCE|PEPEUSDT-btn`), `DOGE` (picked
+`venue-row-BINANCE_FUTURES|DOGEUSDT-btn`, 265 bars) and `dxy` (INDEX DXY,
+252 bars). **The `asset-row-*` handle changed:** its suffix is the server's
+group id, so `dxy` led with `asset-row-grp_c31dc40108a52533…-btn` (text
+`DXY USD Index Indices 103.805`), not `asset-row-USD Index|7-btn`; the
+testid template (`asset-row-${asset.id}-btn`) did not change, the id did.
+Match an asset row by its text, and treat every `asset-row-<name>|<n>-btn`
+below as history. The interval dial's stars (see `tb-interval-stars`) and
+the seat (`tb-symbol-seat`, now 180 by 36) were measured. Not driven: a
+signed-in star toggle. Before that, this entry
 was last DRIVEN on 2026-11-24 against product tree `8cd7ad448e` (`origin/main`,
 269 commits past `92f4a841ef`), lane `18106`, a guest JWT: `tb-symbol-info-btn`
 opened the V2 dialog (`v2` 20, `legacy` 0, no `search-v2-view-us-options-btn`)
@@ -248,6 +261,9 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   the browser (`f0e506ecaf`).
 - `tb-symbol-seat` the symbol button keeps one width for every market, so
   the interval buttons do not slide on a symbol change (`9c5a2b92b4`).
+- `tb-interval-stars` in the interval dial, the favourite intervals show a
+  star at rest and the others show one on hover; a star click adds or
+  removes a quick button (a guest gets the `Favorites` wall) (`3c29470121`).
 - `tb-type-symbol` a bare `T` over the chart opens the symbol dialog with
   `T` typed; the trade rail's key moved to `Alt+Shift+T` (`ef98d427d4`).
 - `tb-plot` the chart-type picker changes plot type.
@@ -553,6 +569,18 @@ Preconditions:
   `tb-interval-mobile-section-*`). `tb-interval-option-4h-btn` closed the
   dial, gave `4h` (389 bars) and added `4h` to the quick buttons beside `1m`
   and `1h`.
+  **Stars at rest (`3c29470121`; driven 2026-11-25 on `ec531568de`).** The
+  star (`tb-interval-favorite-<interval>-btn`, no `aria-label`, `aria-pressed`
+  says starred) of a favourite shows at rest; the rest are hidden until the
+  cell is hovered. A guest's dial read
+  `[...document.querySelectorAll('[data-testid^=tb-interval-favorite-]')].map(b=>[b.dataset.testid,b.getAttribute('aria-pressed'),getComputedStyle(b).opacity])`
+  as `1m` and `1h` pressed at opacity `1` and the other fourteen at `0`. A
+  click on `tb-interval-favorite-4h-btn` raised the sign-in card headed
+  `Favorites` (`guestLoginFeatureId` `favorites`) and left `4h` unstarred:
+  a guest's star is a wall, not a toggle. The same commit made the cells
+  taller (`tb-interval-option-1h-btn` measured 44.6 px), the rail 53 px wide
+  with a 36 by 28 `toolbar-hide-btn`, and a one-chart pane drew no box
+  (`.tc-container::before` border `0px`).
   **A custom size sits in the dial's foot behind a dark flag (source).** With
   `typed-interval-widths` on, the foot carries `tb-interval-custom-btn`, which
   opens `TBIntervalCustomMoment` (`tb-interval-custom-input`, `-say`, `-act`,
@@ -924,7 +952,11 @@ Preconditions:
   with a digit does nothing. `browser press Shift+1` opened the palette,
   but the synthetic key carries `1` where a keyboard sends `!`, so the
   harness cannot show it. Not driven tonight: `Alt` with a digit.
-- **`tb-symbol-seat` (`9c5a2b92b4`; driven 2026-11-21).**
+- **`tb-symbol-seat` (`9c5a2b92b4`; driven 2026-11-21; re-measured
+  2026-11-25 on `ec531568de`).** Since `3c29470121` dropped the button's
+  1 px border, `tb-symbol-info-btn` and its `.tb-symbol` seat both measure
+  180 by 36 (COINBASE BTC-USD); the readings below were 178 wide with the
+  border.
   `document.querySelector('[data-testid=tb-symbol-info-btn]').getBoundingClientRect().width`
   read `178` on COINBASE BTC-USD, BINANCE.F BTCUSDT, BINANCE.F ETHUSDT,
   HYPERLIQUID.F BTC and `EQUITIES · TRADES AAPL` (the seat is 180 px in

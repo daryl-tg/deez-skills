@@ -4,7 +4,19 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-24 against
+leave the chart at restore). This entry was last DRIVEN on 2026-11-25 against
+product tree `ec531568de` (`origin/main`, 142 commits past `8cd7ad448e`),
+lane `18107`, a guest JWT: **a bare `/` on the chart opened the Indicators
+window with no sign-in card** (`b768f620ad`; `indicator-panel-v2`, then the
+store landing with `See all 245`, `guestLoginFeatureId` `null`); `See all`
+drew 25 rows in a 19761 px `indicator-list-scroll` box (the list is
+virtualized, so a row count is never the total); the Paid tab's first ten
+`indicator-name-*` rows were unchanged after a scroll to the end
+(`b384724346`); VWAP mounted at boot. The `Draw by holding` sheet ate the
+first `/` until `Escape`. Not driven: a list asking its next page only after
+a scroll (`e607b41f8f`), a volume-reading script on a market with no volume
+(`0cfe7c8874`), and the FRVP box's restore (`e071430e15`). Before that, this
+entry was last DRIVEN on 2026-11-24 against
 product tree `8cd7ad448e` (`origin/main`, 269 commits past `92f4a841ef`),
 lane `18106`, a guest JWT: the Indicators dialog's store landing (the
 Official shelf's `indicator-store-see-all-official-btn` read `See all
@@ -207,7 +219,7 @@ indicators were not driven.
 
 ## Sub-features
 
-- `ind-dialog` the Indicators dialog opens and searches.
+- `ind-dialog` the Indicators dialog opens (the ticker-bar button or a bare `/`) and searches.
 - `ind-add` an indicator mounts as an overlay.
 - `ind-legend` the legend's settings / visibility / close controls work.
   Since `4113a74816` the legend fold folds the price pane's rows only; a
@@ -1016,10 +1028,12 @@ Preconditions:
 - Do not assert an overlay mounted by reading the legend — the legend is engine
   DOM that appears a frame later. Read `metadata`.
 - **Every DIALOG add path is guest-walled, so `ind-add` via the UI is not a guest
-  proof.** `useIndicatorCatalog.addIndicator` opens with
-  `if (handleGuestAccess(FeatureId.INDICATORS)) return;`, so a guest row click
-  raises the sign-in wall instead of mounting; the `/` hotkey is walled too, while
-  the ticker-bar button that OPENS the dialog is not. On the guest lane the engine
+  proof.** The V2 dialog's add lanes refuse a guest through `refuseGuestAdd`
+  (`src/composables/chart/useIndicatorCatalogV2.ts`), so a guest row's Add or
+  star raises the `Technical Indicators` wall instead of mounting. Opening
+  the dialog is not walled: the ticker-bar button and, since `b768f620ad`,
+  the bare `/` key both open it for a guest (driven 2026-11-25; before it the
+  `/` key raised the wall). On the guest lane the engine
   add (`chartStore.addIndicator`) is the only way to mount an overlay — and it is
   the one that bypasses the cap, so guest proves the cap's DISPLAY only.
 - Persisted overlay visibility is user intent only. Never assert on

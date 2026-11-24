@@ -3,7 +3,21 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
-entry was last DRIVEN on 2026-11-24 against product tree `8cd7ad448e`
+entry was last DRIVEN on 2026-11-25 against product tree `ec531568de`
+(`origin/main`, 142 commits past `8cd7ad448e`), lane `18107`, a guest JWT
+with the backend answering (`doctor` passed twice in two on the tracked
+wrapper). Boot drew 250 bars on COINBASE BTC-USD 1h 15 s after `open`, with
+VWAP, `Guest Mode`, the signup modal and the Lite charts notice. **A guest
+now rides `/v3`:** a CDP capture of a reload's socket opens read the
+gateway's `/v3/` dial at 2.5 s and a `/v2/` socket at 3.6 s (see Gotchas).
+Also driven: the guest limit card through its dev preview (see
+`boot-guest-limit`) and INDEX DXY's price axis at two decimals at every zoom
+(see `boot-axis-decimals`). The first BINANCE.F pick made vite re-optimize
+a dependency and reload the page (see the README's Baseline
+preconditions). Not driven: slow pace at rest (a fast headless lane never
+enters it), the index day candles moving live, Solana pool candles on
+`/v3`, and the engine's squeeze and flat-line fixes (`1329.98`, `1329.99`).
+Before that, this entry was last DRIVEN on 2026-11-24 against product tree `8cd7ad448e`
 (`origin/main`, 269 commits past `92f4a841ef`), lane `18106`, a guest JWT
 with the backend answering (`doctor` passed twice in two on the tracked
 wrapper). **The cold first boot was slow:** the candle predicate stayed
@@ -20,7 +34,7 @@ and a reload the same day gets the bar instead. A `Draw by holding`
 tutorial sheet (`.dialog-style.dialog-overlay.backdrop-dim`) covered the
 ticker bar after the reload until `Escape`. Not driven: the glides, a wake
 heal, the perp ticker, and the 2026-11-24 live-feed and gateway-v3 changes
-(no user surface; guests stay on v2). Before that, this
+(no user surface then; guests stayed on v2 until `9d2bbbeaa0`). Before that, this
 entry was last DRIVEN on 2026-11-21 against product tree `92f4a841ef` (`origin/main`, 103 commits past `7c937b0a1f`),
 lane `18104`, a guest JWT with the backend answering (`doctor` passed twice in two on the
 tracked wrapper). Boot drew 250 bars on COINBASE BTC-USD 1h with VWAP
@@ -248,6 +262,13 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   (`0cb582eb9f`, `02de83a38a`).
 - `wake-heal` after a hidden or sleeping stretch, the wake backfills every blank
   slot the outage left, including slots before lone bars a trickling feed drew.
+- `boot-guest-limit` a network that started too many guest sessions in the
+  last hour first gets a quiet human check, then a `One quick check` card
+  with a Turnstile box, then a `Guest limit` card that counts down and loads
+  the chart by itself, with `Sign in` to skip the wait.
+- `boot-axis-decimals` a quoted market (a US stock, a forex pair, a metal, a
+  commodity, an index, an option) prints its own convention's decimals on
+  the price axis at every zoom; crypto keeps the zoom's step.
 
 ## How to get to it (user POV)
 
@@ -554,6 +575,42 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   (`dev-notes/desktop-chart-sleep-wake-gap/lone-bar-repro.mjs`, and
   `desktop-repro.mjs` for the shell, which must pick the window whose URL holds
   `/chart/`: the title bar's `data:` view loads first).
+
+- **`boot-guest-limit`: the guest limit card (driven 2026-11-25 on
+  `ec531568de`, the dev preview only; `8dc63c5c5d`).** The real trigger is
+  a refused guest refresh (`src/services/refresh-token.service.ts`), which an
+  agent cannot raise, so a dev lane opens the card with a query: `browser
+  open "$(./control-kiyotaka url)?guest-limit=check"` (or `=wait`). The
+  preview waits 23 minutes and never retries. Read the stage at once, before
+  the candle predicate: the check stage gives up after 20 s
+  (`4 × TURNSTILE_WAIT_MS`) with no token and falls back to the wait stage.
+  `eval "document.querySelector('[data-testid=guest-limit-dialog]
+  [data-stage]')?.dataset.stage"` read `check` 2 s after `open`, with the
+  title `One quick check`, `Many guest sessions started on this network in
+  the last hour. Confirm you are a person to continue.`,
+  `guest-limit-turnstile` (empty headless: no widget drew) and
+  `guest-limit-or-sign-in` (`or Sign in`). The wait stage reads `Guest
+  limit`, `Too many new guests on this network`, `Many guest sessions
+  started here in the last hour. Sign in to keep going, or wait and the
+  chart loads by itself.`, `guest-limit-sign-in`, `guest-limit-countdown`
+  (`Trying again in 23 min`), `guest-limit-support-btn` (`Contact Support`)
+  and `Join Discord`. `data-stage` sits on an inner `div`, not on the
+  `guest-limit-dialog` node. Close it with `dialog-close-btn`. The quiet
+  check before the card (`src/utility/auth/guest-check.util.ts`) draws
+  nothing.
+- **`boot-axis-decimals`: a quoted market's axis (driven 2026-11-25 on
+  `ec531568de`, INDEX DXY 1h; `ec531568de`).** Open DXY from the V2 dialog
+  (type `dxy`, click the row whose text starts `DXY USD Index`), wait for
+  candles, and shoot the axis; then drag the price axis (`mouse down` at
+  `1395 800`, moves up to `1395 100`, `mouse up`, repeated) to zoom in, and
+  the other way to zoom out. All three frames read two decimals: `104.80` …
+  `101.60` at rest, `112.00` … `94.00` zoomed out, `103.15` and `103.14`
+  zoomed deep in, while the ticker bar read `103.802`. The rule
+  (`pane-market-decimals.util.ts`) reads the last close of
+  `tc[0].metadata[0].rawData`: an index 2, a US stock 2 from $1 and 4 below,
+  GBP/JPY 3, EUR/USD 5, gold 2, silver 3 (source; only the index driven).
+  Formula panes, Treasury yields and a Value Precision other than `Default`
+  keep their own rules. `Reset chart` puts the scale back.
 
 ## Gotchas
 
@@ -1004,11 +1061,19 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   `dial-failed`, `did-not-open` or `cool-down`; `v3-read-bounced` on a re-send),
   and a lane that never reopens fails after 50 s with `data plane unavailable
   (gate acquire timeout on <lane>)`. Whether a guest rides v3 depends on
-  `gatewayProtocolFor`. A guest never rides v3 on this tree:
-  `GUEST_DEFAULT_FLAGS` bakes `gateway-v3` to `false` (`b5d0fe6b0f`, after
-  `726acfee48` had turned it on for a day), and a live guest read
-  `isOn('gateway-v3')` `false` on 2026-11-05. Read a `—` in the live edge as
-  v2 silence, or as a hidden tab (on 2026-11-05 the ticker's price slot read
+  `gatewayProtocolFor`. **A guest rides v3 from its first dial since
+  `9d2bbbeaa0` and `0fdc88b40f`:** `GUEST_DEFAULT_FLAGS` maps `gateway-v3`
+  to `GUEST_GATEWAY_V3_DEFAULT` (`true`, `src/utility/boot/gateway-v3.util.ts`),
+  a boot with no saved signed-in session dials by that constant and never by
+  the `kiyo:gateway-v3` mirror, and only a `kiyo.flag-overrides` entry beats
+  it; no kill switch reaches a guest, so the way back to v2 is a release.
+  Driven 2026-11-25 on `ec531568de`: `isOn('gateway-v3')` `true`, and a CDP
+  capture of a reload's `Network.webSocketCreated` events (auto-attached to
+  the workers) read `wss://tsdb-gateway…/v3/?dial=…` at 2.5 s, then
+  `wss://tsdb-gateway…/v2/?dial=…` at 3.6 s, so a v2 socket still opens
+  beside it. (From `b5d0fe6b0f` to `9d2bbbeaa0` a guest stayed on v2; a live
+  guest read `isOn('gateway-v3')` `false` on 2026-11-05.) Read a `—` in the live edge as
+  a silent lane, or as a hidden tab (on 2026-11-05 the ticker's price slot read
   `—` while the tab was hidden and the price as soon as it was re-fronted).
 - **The candle cache was reset once (source, `a3f815101e`).** The OHLCV cache
   database moved to version 5, so the first load of a browser profile on this

@@ -7,6 +7,13 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-25 against product tree `ec531568de` (`origin/main`, 142 commits
+past `8cd7ad448e`), lane `18107`, a guest JWT: Super Search's `release
+notes` row opened Release Notes with 83 versions led by `4.59.0 Latest`
+(see `set-notes`), and the guest's `/chart/plans` drew no Black Friday sale
+(see `plans-page`). Not driven: the palette's typed store search for
+indicators (`wrunRegistry`, from two characters) and every signed-in row.
+Before that, last DRIVEN on
 2026-11-24 against product tree `8cd7ad448e` (`origin/main`, 269 commits
 past `92f4a841ef`), lane `18106`, a guest JWT with the backend answering:
 the plans page's live-data section with its new US options card, its place
@@ -449,6 +456,16 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   switch and Remove rows do not.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
   `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  **Driven 2026-11-25 on `ec531568de` (a guest JWT)** from Super Search
+  (`release notes`, `Enter`): 83 rows led by `4.59.0 Latest` (`TPO chart,
+  trading in replay and more.`, November 24, 2026, no spotlight badge),
+  then `4.53.0 Spotlight` (`The US tape.`), `4.49.0`, `4.48.0`; no
+  `4.60.0` row. `4.60.0` is the cTrader launch with the `ctrader`
+  audience (`fx-ctrader` on a computer), and the list hands `Latest` to
+  the newest entry the viewer can see (`releasesForViewer`), so a guest's
+  `Latest` is `4.59.0`. The `4.53.0` spotlight replay now starts from the
+  second row. A testid holding dots breaks a CSS attribute selector
+  without quotes: select by prefix and read `dataset.testid`.
   **Driven 2026-11-24 on `8cd7ad448e` (a guest JWT)** from the palette row
   `super-search-result-settings:tab:notes-btn`: 82 rows led by `4.53.0
   Latest Spotlight The US tape. November 5, 2026`, then `4.49.0`, `4.48.0`
@@ -742,7 +759,16 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `console-subscription-stocks-addon-cta-btn` raised the sign-in card
   headed `Purchases` (`guestLoginFeatureId` `billing`) and the bag stayed
   at `0 add-ons`. The words `Max` and `Ultimate` appeared nowhere on a
-  guest's page and no `black-friday-*` or sale node was present. Gone
+  guest's page and no `black-friday-*` or sale node was present. **On
+  2026-11-25 (`ec531568de`, a guest JWT) the page still read `Elite
+  charting` and `Yearly` `Save 17%` with `$29/mo` over a struck `$35`, and
+  no `console-subscription-bf-hero`, `[role=timer]` or `-bf-tag` node,
+  although since `d8ace37f9d` the sale draws from the viewer's own quoted
+  offers with no flag (`PlansHeroSale.vue`): the server quoted a guest no
+  Black Friday campaign. A viewer it is quoted to sees the `h1` `Black
+  Friday`, `Up to {N}% off.`, `Ends November 30.`, a `Time left` timer
+  (Days, Hours, Minutes, Seconds), per-plan `-bf-tag` and `-bf-was`, and
+  `Save up to {percent}%` (source).** Gone
   from the 2026-11-19 page: `console-subscription-free-bar`,
   `console-subscription-faq-live-link`, the eleven-question list and its
   broker answer (`q-10`). Super Search's `plans` leads with

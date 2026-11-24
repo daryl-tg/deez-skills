@@ -4,9 +4,21 @@ The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
 lock, settings and delete. A tool search (the `;` key or the magnifier at the
-top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-24 on
+top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-25 on
+`ec531568de` (`origin/main`, 142 commits past `8cd7ad448e`), lane `18107`,
+a guest JWT: **the `Result label` switch is gone** (`2547783a67`, engine
+`1329.94`). A Long Position's card, `tool-sizing-more` open, listed
+`Colors follow the chart`, `Opacity`, `Always show labels` (off) and the
+`Labels` chips, with no `tool-position-result-label-toggle`; the deselected
+drawing drew its zones with no result pill and no TP or SL tag, and a hover
+brought back `SL hit -250.00 R/R 1.00 Qty 0.1214` and both tags (see
+`dt-position-bar`). Two trend lines were drawn on INDEX DXY for the Objects
+folder (see [panels](./right-side-panels.md) `rp-objects`). Not driven:
+`Always show labels` on keeping the pill at rest, and a held line keeping
+its drag through an app mark's redraw (`7119706024`). Before that, last
+DRIVEN 2026-11-24 on
 `8cd7ad448e` (`origin/main`, 269 commits past `92f4a841ef`), lane `18106`,
-a guest JWT: a Long Position's new `Result label` switch turned off and on,
+a guest JWT: a Long Position's then-new `Result label` switch turned off and on,
 with the entry line's `No entry  R/R 1.00` leaving and returning on the
 deselected drawing, and the card's rows in their new order (see
 `dt-position-bar`). Not driven that night: the carry of the switch to the
@@ -184,8 +196,10 @@ the cancelled creation, the right-click menu and the magnet.
   a reload: the chart engine starts on the remembered cursor (`f17e7dd90c`).
 - `dt-position-bar` a selected Long or Short Position gets a one-pill bar:
   Risk, Settings, More and Remove, with Lock and Templates inside More; a
-  signed-in trader also gets an order button and an alert. Its card's
-  `Result label` switch shows or hides the result on the entry line.
+  signed-in trader also gets an order button and an alert. The result pill
+  on the entry line and the TP and SL labels show only while the drawing is
+  hovered or selected; the card's `Always show labels` keeps all three at
+  rest.
 - `dt-picker-settle` a picker tool (Emoji, Icon, Image) closed with nothing
   picked is put down, and the toolbar returns to the cursor.
 - `dt-magnifier-chip` on a phone, a `Magnifier` switch sits beside the `Draw
@@ -605,6 +619,19 @@ the top overlay cleared.
   kept `settings.risk` at `25` until `Enter`, which stored `2.5` (pill
   `Risk 2.5%`). The card's rows are `tool-sizing-{qty,risk,entry,target,
   target-pct,stop,stop-pct,rr}` and the fold `tool-sizing-more`.
+  **The pill shows on hover or selection only (`2547783a67`, engine
+  `1329.94`; driven 2026-11-25 on `ec531568de`, COINBASE BTC-USD 1h).** A
+  Long Position clicked once at `700 380`, its card opened with
+  `tqb-settings-btn` and `tool-sizing-more`, listed `Colors follow the
+  chart` (on), `Opacity`, `Always show labels` (off) and the `Labels` chips:
+  no `Result label` row and no `tool-position-result-label-toggle`. A click
+  on empty chart (`1100 700`) deselected it; the pointer parked at `1150 200`
+  showed both zones with no pill and no tag, and the pointer moved to `760
+  430` (inside the box) brought back `SL hit -250.00 R/R 1.00 Qty 0.1214` on
+  the entry line and the `TP +250.00` and `SL -250.00` tags. The card
+  needed `browser tab t1` first (the tab had drifted hidden). A saved
+  drawing that still holds `showResultLabel` loads and ignores it (source).
+  The block below is history: its switch no longer exists.
   **One line per row and the Result label (`cc33f124e1`, `a62e66e0e4`,
   `908ee0ff6c`, engine `1329.90`; driven 2026-11-24 on `8cd7ad448e`,
   COINBASE BTC-USD 1h).** A Long Position clicked once at `700 380` and
