@@ -11,7 +11,7 @@ playbooks, one router.
 ```mermaid
 flowchart TB
   subgraph hub["one repo, one source of truth"]
-    reg["registry.toml<br/>112 skills, 6 agents,<br/>a layer each"]
+    reg["registry.toml<br/>117 skills, 8 agents,<br/>a layer each"]
     ven["vendor.toml<br/>23 third-party entries,<br/>recorded, never copied"]
     lnk["bin/link<br/>symlinks, never copies"]
     doc["bin/doctor<br/>gates, citations, roles,<br/>playbook links, doc drift, budget"]
@@ -26,13 +26,15 @@ flowchart TB
   subgraph work["what one request runs"]
     router["$clanker-mode<br/>the router. used from Claude Code"]
     pb["1 of 26 playbooks<br/>plain .md inside the router.<br/>its steps become the todo list, verbatim"]
-    prin["38 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
+    prin["39 principles<br/>one rule each, cited by name.<br/>read the leaf or the citation is empty"]
     role["5 roles<br/>explore, executor, test-engineer,<br/>code-reviewer, verifier"]
-    craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, tutor, show-me"]
+    wrk["worker.md<br/>the operator's rules,<br/>read first by every delegate"]
+    craft["craft skills<br/>design, test-first, review,<br/>unslop, teach, tutor, reframe, show-me"]
     ship["opening-a-review, then landing<br/>evidence approved before anything ships"]
     router --> pb
     pb --> prin
     pb --> role
+    role --> wrk
     pb --> craft
     pb --> ship
   end
@@ -291,6 +293,13 @@ Two consequences worth knowing:
 Codex — tested, not assumed. A mode skill there would fire on description
 matches instead of waiting to be routed to. The operator works in Claude Code
 only, so Claude subagents implement and Codex install support is dormant.
+
+**Every delegate reads `worker.md` first.** The router is gated, so its rules
+never load in a subagent on their own.
+[`worker.md`](./skills/clanker-mode/worker.md) carries the operator's standing
+rules to every agent the router or a super-clanker Worker starts. One pass, no
+phases, a failing test first, scoped checks, reserved ports, no explanatory
+comments, no attribution, reviews opened ready.
 
 **Principles install on both** because a handoff cites them by name, and
 that citation only resolves if the leaf exists on the delegate's side. Codex

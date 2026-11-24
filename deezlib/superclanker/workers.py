@@ -181,9 +181,11 @@ def _playbook_line(playbook):
 
 
 def brief_text(hub_root, fields):
-    return _template(hub_root, "super-worker-brief.md").format_map(
-        {**fields, "playbook": _playbook_line(fields.get("playbook"))}
-    )
+    return _template(hub_root, "super-worker-brief.md").format_map({
+        **fields,
+        "playbook": _playbook_line(fields.get("playbook")),
+        "worker_rules": Path(fields["clanker_skill"]).with_name("worker.md"),
+    })
 
 
 def _resume_note(ticket, goal, playbook, cwd, branch, brief):

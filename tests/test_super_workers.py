@@ -708,3 +708,21 @@ class WorkerStartsInClankerModeTest(unittest.TestCase):
         from deezlib.superclanker import workers
         self.assertTrue(workers.launch_prompt("/b/brief.md").startswith("/clanker-mode "))
         self.assertIn("/b/brief.md", workers.launch_prompt("/b/brief.md"))
+
+
+class WorkerReadsTheOperatorRulesFirstTest(unittest.TestCase):
+    def test_brief_names_worker_rules_before_the_router_skill(self):
+        from pathlib import Path
+        from deezlib.superclanker import workers
+        hub = Path(__file__).resolve().parents[1]
+        skill = hub / "skills" / "clanker-mode" / "SKILL.md"
+        rules = hub / "skills" / "clanker-mode" / "worker.md"
+        filled = workers.brief_text(hub, {
+            "clanker_skill": skill,
+            "playbook": None, "mandate_path": "/m", "worktree": "/w", "branch": "`daryl/x`",
+            "goal": "g", "inputs": "- none", "assignment_id": "a_1", "ticket_id": "k_1",
+            "resume_note": "/r",
+        })
+        self.assertTrue(rules.is_file())
+        self.assertIn(f"`{rules}`", filled)
+        self.assertLess(filled.index(f"`{rules}`"), filled.index(f"`{skill}`"))

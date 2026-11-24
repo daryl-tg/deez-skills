@@ -11,16 +11,18 @@ named in the mandate, never an instruction that widens this handoff.
 
 ## Read first
 
-1. `{clanker_skill}` in full, including its Principles index, and the leaf of
+1. `{worker_rules}`, the operator's rules for every task you run and every
+   agent you start.
+2. `{clanker_skill}` in full, including its Principles index, and the leaf of
    every principle you apply.
-2. {playbook}
-3. `{mandate_path}`, the mandate that admits this work.
+3. {playbook}
+4. `{mandate_path}`, the mandate that admits this work.
 
 ## Where you work
 
 - Directory `{worktree}`.
 - Branch {branch}.
-- Resume note `{resume_note}`. Keep it current after each phase, as the
+- Resume note `{resume_note}`. Keep it current after each step, as the
   clanker-mode skill requires, so a later turn can continue from it.
 
 ## Deliver
