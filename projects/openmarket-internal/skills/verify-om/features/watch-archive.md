@@ -1,5 +1,7 @@
 # Watch archive and the auto-archive sweep
 
+*Re-checked 2026-11-25 (nightly), tree `d5ff40419` (origin/main, v0.497.0+internal), guest lane on 18188. `watch archive nd --format json` (`{"archived":[{"id":"nd","label":"nd","held":null}],"refused":[]}`; the verb takes no `--yes`), `watch list --archived` (`nd  nd  inbound  archived 2026-11-24 · by you`), `watch unarchive nd` (`Unarchived nd: paused`, `Resume: om watch resume nd`). (`cli/older-rechecks.txt`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261125/r1/`*
+
 *Re-driven 2026-11-24 (nightly), tree `26d502c689` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `watch archive tick` (`Archived tick (tick)`, `Undo: om watch unarchive <id>`), `watch list --archived` (`archived 2026-11-23 · by you`), `watch unarchive tick` (`Unarchived tick: paused`, `Resume: om watch resume tick`). Neither verb takes `--yes` (`unknown option '--yes'`, exit 1). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261124/r1/` (`cli/breadth/36-*`).*
 
 *Re-driven 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `watch archive steps-1122` answered `{archived: [{id, label, held: null}], refused: []}`; `watch list --archived` showed it under `archived` with `by: you`, `reason: manual`; `watch unarchive` returned it paused. Not re-driven: the sweep, a held archive, the dashboard row. (`cli/83-*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*

@@ -1,5 +1,7 @@
 # Site keys: a watch reads a site with your key
 
+*Source-checked 2026-11-25 (nightly) against origin/main `d5ff40419` (v0.497.0+internal): the page kit's handoff over MCP (#2693, driven live in [mcp-stdio.md](mcp-stdio.md)); doctor's repair of a pre-merge `site_keys` table is in [daemon-lifecycle-and-health.md](daemon-lifecycle-and-health.md) (`doctor-schema`). No site key was driven.*
+
 *Re-checked 2026-11-24 (nightly), tree `26d502c689` (origin/main), source only. #2664 fixes chat's kept-key report (below). Not driven: no key was saved or kept tonight.*
 
 *Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `setup key x --site http://example.com` exits 2 with `om: A site key is sent only over https; give the site as https://host.` before any prompt. The `no-escalation` line is corrected from source: only a keyed 401 or 403 answers `page_site_key_refused`. Not re-driven: the hidden prompt, the six ways of sending, a keyed read. (`cli/40-setup-key-http.*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
@@ -84,7 +86,7 @@ Change the key's way on the same site (`--header x-other`, answer y), then `cont
 ### Chat without a real model
 
 1. `harness/fake-model.ts` is an openai-compatible stand-in that emits scripted tool calls and logs every request body.
-2. `watch_page_add` loads only through `watch_kit {request: "<the URL alone>"}`.
+2. `watch_page_add` loads only through `watch_kit {request: "<the URL alone>"}` in chat. Over MCP the kit hands the page to the person instead (`door.handoff`: `Pages are not added over MCP. …`, live 2026-11-25, see [mcp-stdio.md](mcp-stdio.md)).
 3. The plain REPL is `OM_PLAIN_CHAT=1 control-om om -- chat` in the tmux pane. Count the stand-in's requests before and after each held line.
 
 ### The Firecrawl half
