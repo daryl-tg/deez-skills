@@ -1,5 +1,7 @@
 # The capability layer over MCP (stdio)
 
+*Re-driven 2026-11-26 (nightly), tree `1c10d34a9` (origin/main, v0.498.1+internal), guest lane on 18184 through `bootstrap.internal.ts`, one Bun driver over `control-om om -- mcp serve --stdio --no-fire-bridge`. `initialize` answered `serverInfo` `openmarket` `0.498.1` with `websiteUrl: "https://openmarket.xyz"` and one icon (`mimeType: "image/png"`, `sizes: ["128x128"]`, `src` a `data:image/png;base64,` URL) (#2719). The full face lists **500** tools (499 before): `watch_layout_save` is new (`cli/mcp-serverinfo.json`). Not driven: the lean and research faces, the hosted `/favicon.ico`.*
+
 *Re-driven 2026-11-25 (nightly), tree `d5ff40419` (origin/main, v0.497.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. The full face lists **499** tools (497 before): `package_want` and `watch_blank_set` are new; lean **8**, research **26**. First live proofs of #2693 on stdio: `service_status` answers `subscription_summary` (`{streams, adapters:[{adapter_id, streams, states, unhealthy, unhealthy_streams}], warnings:[{kind, streams, examples}]}`) and no `subscriptions` map, on a lane with one parked price stream; `watch_kit {"request":"tell me when BTC goes above 100000"}` leads with `watch_create {request}` then `schema_read` for `inbound_create`, `listener_create` and `condition_create`, and names no `watch_compose`; `watch_kit {"request":"https://example.com/x"}` answers `door.kind: page` with `handoff` ``Pages are not added over MCP. Ask the user to add the page from `om chat` or from a terminal (`om watch page-add https://example.com/x`).`` and a feed-only `watch_create` step. (`cli/mcp-*.json*`, `cli/mcp-tool-counts.txt`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261125/r1/`*
 
 *Re-driven 2026-11-24 (nightly), tree `26d502c689` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, one Bun driver, no non-JSON line on stdout on any face. The full face lists **497** tools (496 before): `watch_source_resolve` is new (f838c0d73b, [source-resolution.md](source-resolution.md)) and `web_research` is not on it. The lean face lists **8**. `--catalog research` now serves over stdio: **26** tools, and `catalog_operator_only` with `--face lean` or `--session` ([mcp-research-endpoint.md](mcp-research-endpoint.md)). Not re-driven: `watch_list` and `order_place` calls on the full face, the badge, arms, `capital_not_armed` from a plain terminal. (`cli/20` to `cli/23`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261124/r1/`*
@@ -71,7 +73,7 @@ mid-call never places an order on its own.
 
 ## Sub-features
 
-- `mcp-handshake`: `initialize` names the server and version.
+- `mcp-handshake`: `initialize` names the server and version. Since #2719 `serverInfo` also carries `websiteUrl` `https://openmarket.xyz` and `icons` (one 128x128 `image/png` data URL, the mascot) on `om mcp serve` (stdio and http) and the research server; the hosted service also answers `GET /favicon.ico` with the PNG and no key (source).
 - `mcp-catalog`: `tools/list` returns the registered actions (the full catalog
   by default, rooms tools included).
 - `mcp-read`: a read action such as `watch_list` runs and returns JSON text.

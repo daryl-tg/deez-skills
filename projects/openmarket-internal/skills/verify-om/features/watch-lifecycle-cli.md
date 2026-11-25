@@ -75,11 +75,13 @@ whole lifecycle is provable on a guest lane.
 - `event-tools` include `history`, `export`, `backfill`, `reclassify`,
   `rotate-token` and `amend` for stored inbound-watch events. This pass drove
   history and token rotation; the other forms remain unverified.
-- `backfill-action` (#2692, #2701, #2708; source only): the `watch_backfill`
+- `backfill-action` (#2692, #2701, #2708, #2713; source only but the setting): the `watch_backfill`
   action (chat, MCP, agent runs; no CLI flag) takes `max_llm_calls`,
   `estimate: true` and `feed`/`provider`. An estimate answers `{items,
   llm_calls, tokens, exact}` over the whole window (up to 10,000 items),
-  `tokens` counting 16,000 per model read; a `feed` call adds `feed:{provider,
+  `tokens` priced since #2713 at the largest of the watch's last 20 judge
+  reads (16,000 when it has none), and a cap past the window counting only
+  the window's reads; a `feed` call adds `feed:{provider,
   id, label, followed?}` (`news.backfill_follow` `auto` or `never`). A run
   report adds `model_tokens`, also in `om usage llm`, and a batch is judged as
   of its newest item's day. Inside an agent run a backfill that would pass the
@@ -87,6 +89,19 @@ whole lifecycle is provable on a guest lane.
   reads); L left …`, hint `Pass max_llm_calls <n> or fewer, with a narrower
   window.`), and one with no `max_llm_calls` `watch_backfill_cap_required`.
   An estimate needs the vendor's credential, so a guest lane cannot drive it.
+  Since #2713 `om watch backfill` also prints `Earliest: <iso>`, one
+  `Source <name>: N appended[, M already from another source][, from <iso>]`
+  row per source and `History short: <from> -> <until> unread, N fires[ of
+  <min_fires>]` (JSON `earliest_source_at`, `sources[]`, `history_short`;
+  the action takes `min_fires`), and `om news backtest` adds `first <iso> |
+  last <iso>[ | older fires not read]`. `news.backfill_fallback` (live
+  2026-11-26) picks where a backfill reads when the feed's vendor lacks the
+  history: `off`, `vendors` (the default, a keyless second vendor, GDELT) or
+  `web` (also the watch's own search leg, paid); another value is refused
+  `news.backfill_fallback must be one of: off, vendors, web.` Since #2709
+  backfilled rows (`data_mode: backfill`) stay in `/news` and
+  `watch_history` but count in neither "While you were away", `/catchup`, the
+  unread badge nor the read cursors (source).
 - `timer-days` (#2284): `watch create <label> --every '<5-field cron>' --tz <zone>` makes a timer on chosen days (`'0 7 * * 5'`, `'0 7 * * 1,4,6,0'`; `--every weekdays|daily|weekly` are words for `0 0 * * 1-5|*|1`). The create, arm and source-add cards (the chat lane) and the sidebar cadence say it in words (`timer, Fridays at 07:00 UTC`, `Mon, Thu, Sat and Sun at 07:00 UTC`, `weekdays at 00:00 UTC`); a cron no rhythm describes stays `timer (cron 0 0 */2 * * UTC)`. The CLI's `watch show` still prints the raw cron: `Reads: clock fires (0 7 * * 5 UTC)`. Asking om chat for "every Friday at 7" composes the same cron (needs a model). Monthly crons (#2300) pass through `--every` too: `'0 9 1,15 * *' --tz Asia/Kuala_Lumpur` and `'0 18 L * *' --tz UTC` are accepted, and the create JSON's `card` reads `timer · monthly on the 1st and 15th at 09:00 Asia/Kuala_Lumpur` and `timer · monthly on the last day at 18:00 UTC`, while `watch show` prints `Reads: clock fires (0 9 1,15 * * Asia/Kuala_Lumpur)`. Every-other-week timers (`every_weeks` 2 to 4 plus an `anchor` date on one of the chosen days) have no CLI flag; author them in om chat or as a timer `source` on MCP `watch_create` (driven 2026-11-10, see Driving). The create card says them in words (`every other Monday at 09:00 UTC`, `every 3 weeks on Mon and Thu at 09:00 UTC`), `watch show` reads `Reads: clock fires (0 9 * * 1 UTC, every 2 weeks from 2026-11-16)`, and neither `watch list` nor the dashboard (`timer 0 9 * * 1` label, `Schedule`) says the rhythm. A summary on chosen days (`notify.cadence` `{kind:"days"}`) has no CLI flag either (source only).
 - `upstream-stand-down` (#2310): a chain that reads another watch stands down when that watch is paused or removed. `watch pause <upstream> --format json` carries `readers_stood_down[]` (`{chain_id, watch, has_money, paused, declined, arm_command}`) and `cascade_note` `1 chain reading this watch's rows stood down (<reader>): each waits for its own arm; a resume re-arms nothing.`; the reader's `watch show` heads `<reader> · 2 things need you · source waiting · <upstream> is paused · … · <upstream> is gone · om watch arm <reader>` (the steps row says `is gone` for a pause too). `watch resume <upstream>` returns the same list with `cascade_note` `… is still down from its pause (<reader>): each waits for its own arm.`; `watch arm <reader> <step> --yes` brings it back. On `watch remove <upstream> --yes` a reader whose ONLY source was the upstream is removed with it (`cascade.removed[]` row `via: cascade`, `lost: [<upstream>]`); a reader with another source is repaired (`cascade.repaired[]` with `dropped`, `chains_to_arm`) and listed in `cascade.rearm`, and its `watch show` reads `<upstream> is gone … → om watch arm <reader>`. The non-terminal `remove` refusal (`confirmation_required`) names neither consequence (README gaps).
 - `watch-edit` changes goal, group, filters, classifier mode and caps.
