@@ -4,7 +4,13 @@ The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
 lock, settings and delete. A tool search (the `;` key or the magnifier at the
-top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-25 on
+top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-26 on
+`1d1a3e1410` (`origin/main`, 76 commits past `ec531568de`), lane `18108`,
+a guest JWT: a Shift+click Ruler started at the clicked price (engine
+`1329.103`, see `dt-ruler-shift`), and a Long Position under Lock all left
+no labels after a click inside it (`1329.101`, see `dt-position-lock`).
+Not driven: the entry label cleared by a close stop or target. Before
+that, last DRIVEN 2026-11-25 on
 `ec531568de` (`origin/main`, 142 commits past `8cd7ad448e`), lane `18107`,
 a guest JWT: **the `Result label` switch is gone** (`2547783a67`, engine
 `1329.94`). A Long Position's card, `tool-sizing-more` open, listed
@@ -200,6 +206,11 @@ the cancelled creation, the right-click menu and the magnet.
   on the entry line and the TP and SL labels show only while the drawing is
   hovered or selected; the card's `Always show labels` keeps all three at
   rest.
+- `dt-ruler-shift` a Shift+click starts a Ruler at the price under the click,
+  not the price where Shift went down (engine `1329.103`, `424010ef40`).
+- `dt-position-lock` under Lock all, a click inside a Long or Short Position
+  paints no TP, SL or entry label, and a stop or target close to the entry
+  clears the entry label (engine `1329.101`, `b8f014ae47`).
 - `dt-picker-settle` a picker tool (Emoji, Icon, Image) closed with nothing
   picked is put down, and the toolbar returns to the cursor.
 - `dt-magnifier-chip` on a phone, a `Magnifier` switch sits beside the `Draw
@@ -567,6 +578,30 @@ the top overlay cleared.
   when `isMobile` and the tool is constrainable (the fib retracement shows
   none). A desktop guest sees none of them (driven: `tqb-constrain-btn`
   absent).
+- **`dt-ruler-shift` (driven 2026-11-26 on `1d1a3e1410`, a guest JWT).**
+  agent-browser cannot hold a key, so send raw CDP `Input` events to the
+  page target: `mouseMoved` to `600 300`, `rawKeyDown` `Shift`
+  (`modifiers` 8), `mouseMoved` to `600 520`, `mousePressed` and
+  `mouseReleased` there with `modifiers` 8, then `keyUp` and a move away.
+  The engine's drawings are `window.tc[0].canvasChartController.tools`
+  (each `type` and `points[{time, price}]`); `getSelectedTools()` is empty
+  once a Ruler finishes. Reference prices come from plain Ruler clicks
+  (`toolbar-item-ruler`, two clicks): `y 300` read `63256.81` and `y 520`
+  `59342.43`. The Shift+click Ruler's first point read `59342.43`, the
+  click's own price; before `1329.103` it took the price where Shift went
+  down. `removeAllTools()` clears between tries. The page reloaded once
+  around the first such gesture (cause not traced): read
+  `performance.now()` before trusting a tool list.
+- **`dt-position-lock` (driven 2026-11-26 on `1d1a3e1410`, a guest JWT).**
+  Place a Long Position (`toolbar-item-longposition:tool-icon-btn`, one
+  click at `1000 330`), click empty plot to deselect: no pill or tags at
+  rest. Turn on Lock all with `toolbar-item-lock-icon-btn` (`tc[0].lockTools`
+  `true`, `lockToolsScope` `drawings`; the icon turns to a closed lock).
+  Click inside the body (`1180 280`) and move away: no TP, SL or entry
+  label stayed, no `.tool-quick-bar`, `getSelectedTools()` empty. Before
+  `1329.101` the click painted the labels and they stayed until a click
+  elsewhere. The same button turns the lock off. Not driven: a stop or
+  target set close to the entry clearing the entry label.
 - **The magnet remembers its strength (source, `38af41350d`; driven
   2026-11-02).** The toolbar magnet, `Shift+Alt+M` and the Super Search
   `magnet` toggle restore the last strength instead of always `weak`

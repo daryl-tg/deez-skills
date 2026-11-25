@@ -7,7 +7,14 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
-2026-11-25 against product tree `ec531568de` (`origin/main`, 142 commits
+2026-11-26 against product tree `1d1a3e1410` (`origin/main`, 76 commits
+past `ec531568de`), lane `18108`, a guest JWT: Super Search's `release
+notes` row opened Release Notes with 84 versions led by `4.61.0 Latest`
+(see `set-notes`), and the guest's `/chart/plans` showed the new `Strategy
+backtest` row and the Plus card's backtest line, with no `Custom
+intervals` line (see `plans-page`); `voice` listed no voice row. Not
+driven: the checkout buttons' busy look (signed-in). Before that, last
+DRIVEN on 2026-11-25 against product tree `ec531568de` (`origin/main`, 142 commits
 past `8cd7ad448e`), lane `18107`, a guest JWT: Super Search's `release
 notes` row opened Release Notes with 83 versions led by `4.59.0 Latest`
 (see `set-notes`), and the guest's `/chart/plans` drew no Black Friday sale
@@ -456,6 +463,21 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   switch and Remove rows do not.
 - **`set-notes`.** `find testid settings-pages-nav-notes-btn click`. Proof: the
   `release-notes-version-<ver>-btn` rows (81 on 2026-10-28, `4.49.0` newest).
+  **Driven 2026-11-26 on `1d1a3e1410` (a guest JWT)** from Super Search
+  (`release notes`, `Enter`): 84 rows led by `4.61.0 Latest` (`Custom
+  intervals, free on every plan.`, November 25, 2026), then `4.59.0`,
+  `4.53.0 Spotlight`, `4.49.0`; no `4.60.0` and no `4.58.0` row. `4.61.0`
+  has no audience, so every viewer sees it and it takes `Latest`. Its body
+  reads `Chart on candle sizes between the presets, like 18m, 90m and 2d,
+  on every plan, Free included. Open the interval menu, press Custom, type
+  a size and press Use.` and `Where they do not run yet: Alerts, Replay and
+  the order book heatmap stay on the regular intervals.` That last clause
+  is out of date: `3cacf4483d`, an hour later, runs the Order Book Heatmap
+  at seven custom sizes (a product copy gap). Count the rows with a quoted
+  prefix selector, `[data-testid^="release-notes-version-"]`, and re-read
+  before trusting a `0`: an unquoted prefix read three seconds after the
+  palette's `Enter` gave `0` while the page was up, and the quoted read a
+  minute later gave 84 (timing and quoting were not separated).
   **Driven 2026-11-25 on `ec531568de` (a guest JWT)** from Super Search
   (`release notes`, `Enter`): 83 rows led by `4.59.0 Latest` (`TPO chart,
   trading in replay and more.`, November 24, 2026, no spotlight badge),
@@ -727,6 +749,24 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   (source). Fill `clean look`: `settings:toggle:layout-look-clean-btn`
   (`Look: Clean OFF`, `d8a23b47d6`) is listed, and it acts only in a
   multi-chart layout, which a guest cannot open.
+- **`plans-page` states the backtest reach (`9bb0a4f8f7`, `c81044a554`;
+  driven 2026-11-26 on `1d1a3e1410`, a guest JWT).** The compare table's
+  Build group carries `console-subscription-compare-backtestCandles`
+  between Private scripts and Published layouts: `Strategy backtest` / `How
+  far back one test goes on a 1m chart, for a strategy added from
+  Indicators.` / `50,000 candles`. The Plus card's key features list
+  `console-subscription-plus-point-backtestCandles` `50,000 candles per
+  backtest`. A guest's page has one paid column (Plus); the source gives
+  Ultimate `100,000` and Free no line. A guest sees no `Custom intervals`
+  row or card line: both follow `typed-interval-widths`, which reads off for
+  a guest; a signed-in viewer sees the row on every plan since `7248dba544`
+  (source). Since `9fd6809fe0` a checkout button shows a spinner with
+  `aria-busy="true"` and, after 1 s, `Taking you to secure checkout`
+  (`BusyLabel.vue`, `CheckoutWaitLine.vue`; the Plus sheet, the bag's Pay
+  and the `/plus` confirm; source, signed-in). Since `62b247cf99` the Black
+  Friday headline reads the public campaign through an anonymous price-list
+  read, so a guest sees the same headline as a member while the campaign is
+  on (source; no sale on the guest page on 2026-11-26).
 - **`plans-page` moved and rebuilt (`7e88ad6552`, `2bf8b7cd57`,
   `c16023b51a`; driven 2026-11-21 on `92f4a841ef`, a guest JWT).** `open
   /chart/plus?ref=vk` landed on `/chart/plans?ref=vk`: the old address

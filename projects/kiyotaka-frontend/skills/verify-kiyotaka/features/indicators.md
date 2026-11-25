@@ -4,7 +4,22 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). This entry was last DRIVEN on 2026-11-25 against
+leave the chart at restore). Source read 2026-11-26 on `1d1a3e1410`
+(`origin/main`, 76 commits past `ec531568de`), not driven (a guest's Add is
+walled and the guest's VWAP is not a wrun, so no guest overlay reaches
+these): **a volume-reading script on a market with no volume now draws
+over volume 0 instead of pausing** (`5b11ef557e`), and its note ends `it
+reads volume 0 on every candle` (`e1b5ee0eea`; the chart candles' volume is
+a non-blocking input, so the row is never greyed); a typed Big Trades size
+is a stored `typed: true` mark on the row's `scriptInputs`, set on commit
+and cleared by reset, so a size typed equal to the default stays yours and
+follows the chart across candle sizes (`00304d5f4e`, `e5998b2417`,
+`4438311a1b`); the Order Book Heatmap runs at seven custom sizes on crypto
+and CME and the six volume profiles at custom sizes on CME and US stock
+sessions, while a refused candle-derived indicator holds no rows at a
+custom size (`3cacf4483d`, `e3aacfcdd0`, `6141fce90d`); a TPO row draws on
+the trades it holds (`7195312214`); the legend no longer crashes on a
+multi-venue row (`8807d871ac`). This entry was last DRIVEN on 2026-11-25 against
 product tree `ec531568de` (`origin/main`, 142 commits past `8cd7ad448e`),
 lane `18107`, a guest JWT: **a bare `/` on the chart opened the Indicators
 window with no sign-in card** (`b768f620ad`; `indicator-panel-v2`, then the

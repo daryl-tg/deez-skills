@@ -16,7 +16,7 @@ A person's own relay feed draws on the chart in two ways: as the main plot, by o
 
 ## How to get to it (user POV)
 
-- Symbol search's Yours tab lists the viewer's own feeds and targets `feed:scope/name:column` (signed in only; see symbol search).
+- Symbol search's Yours tab lists the viewer's own feeds and targets `feed:scope/name:column` (signed in only; see symbol search). Since `f12d6cbe15` a multi-column feed is one group row and a main chart pick offers Apply (the feed's saved layout) and Save as watch layout; since `bff3fb1f94` Apply replaces your own feeds' panes that the layout lacks; since `5655645375` a series view over several columns has one labelled legend cell per column, and a view titled as the feed is named by its columns. Source only on `1d1a3e1410` (2026-11-26), not driven: no relay rig and no signed-in owner.
 - The indicator dialog's feed picker adds a FEED pane (its search is production only).
 - The pane's legend gear opens the settings dialog: Draw as, Shows, Columns.
 - The ticker's chart-type button switches the main plot between Line and Candle.

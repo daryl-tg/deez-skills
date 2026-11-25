@@ -4,6 +4,13 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
+was last DRIVEN on 2026-11-26 against product tree `1d1a3e1410` (`origin/main`,
+76 commits past `ec531568de`), lane `18108`, a guest JWT: the interval dial
+held 17 options and no `Custom` for a guest; under the `typed-interval-widths`
+override a guest's Custom moment read `Use 20m` with no plan sentence (custom
+sizes are free on every plan since `7248dba544`), and the gateway refused the
+size (see `tb-interval`). Not driven: the Yours tab's feed groups and Apply
+(signed-in owners only). Before that, this entry
 was last DRIVEN on 2026-11-25 against product tree `ec531568de` (`origin/main`,
 142 commits past `8cd7ad448e`), lane `18107`, a guest JWT: the V2 dialog
 (`v2` 20, `legacy` 0) took `PEPE` (assets left, `32 venues` right; picked
@@ -331,6 +338,14 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   OR the viewer owns a feed (the owned list loads on every dialog open), a
   multi-column feed gives one row per column titled `Title: column`, and a
   feed row's pick writes the target `feed:<scope>/<name>:<column>` (source).
+  Since `f12d6cbe15` and `5655645375` a feed with two or more columns is one
+  group row (`YoursFeedGroup`: title, column count and a chevron over its
+  column rows), a column search hit opens its group, and a main chart pick
+  offers **Apply** (the feed's saved layout: its main column and up to 8
+  panes, one undo step, `Panes added: 2 of 3` when slots run out) and
+  **Save as watch layout**; since `bff3fb1f94` Apply first removes the
+  FEED panes of your own feeds that the layout does not hold (source,
+  `docs/features/indicators/feeds.md`; signed-in owners only).
   The plain All view still lists only pushed series. A guest owns no feed
   (`viewerFeedScope` is empty for a guest), so the guest lane still shows no
   tab (driven 2026-11-10); proving an owned feed row needs a signed-in owner.
@@ -623,7 +638,22 @@ Preconditions:
   sign-in card headed `Premium Features` (`guestLoginFeatureId`
   `default`) and the interval stayed `1h`. With the override, digits `2`
   then `0` listed `customIntervals:typed-width` (`Switch to 20m
-  Interval`) first in Super Search. Not driven: the Plus popup's title
+  Interval`) first in Super Search.
+  **Custom sizes are on every plan now (`7248dba544`; driven 2026-11-26 on
+  `1d1a3e1410` under the override).** `FEATURE_LIMITS.typedIntervalWidths`
+  is free and the plan wall is gone, so the sentence above is history: the
+  same override and `20` read `tb-interval-custom-say` `20 minutes`, `-act`
+  `data-verdict="use"` `Use 20m`, and `-use-btn` (no `-plus-btn`). Pressing
+  it as a guest drew no 20m: the console read `Backend error: not entitled
+  to [TRADE_SIDE_AGNOSTIC_AGG TRADE_AGG] at CUSTOM: requires the free tier`
+  four times and the chart sat on 15m (404 bars, 900000 ms apart); `1h`
+  and removing the override put it back. A guest without the override
+  still has no `Custom`. A signed-in Free account is the lane that proves
+  a custom size now. Since `3cacf4483d` the Order Book Heatmap runs at
+  `4m`, `6m`, `8m`, `20m`, `40m`, `90m` and `3h` on crypto and CME, and since
+  `e3aacfcdd0` the six volume profiles run at custom sizes on CME and US
+  stock sessions; a refused candle-derived indicator (VWAP) holds no rows
+  at a custom size (`6141fce90d`), all source. Not driven: the Plus popup's title
   for a signed-in free account (the same sentence, source), not `More
   Intervals`. A futures custom size no longer falls back to a history the
   browser builds: the server builds it, and a refusal keeps the market on

@@ -12,6 +12,8 @@ its pick. NOT driven: the microphone itself (hold key, click mic, listening pill
 Deepgram or Web Speech), the parser route (needs auth), trade, drawings and
 panels.
 
+**Re-driven 2026-11-26 on tree `1d1a3e1410` (`origin/main`, 76 commits past `ec531568de`), lane `18108`, a guest JWT: still unreachable.** No `voice-control-mic-btn`, `window.__voiceControl` `undefined`, a Super Search `voice` query listed only `symbols:open-search`, and no voice source changed in the range.
+
 **Re-driven 2026-11-25 on tree `ec531568de` (`origin/main`, 142 commits past `8cd7ad448e`), lane `18107`, a guest JWT: still unreachable.** No `voice-control-mic-btn`, `window.__voiceControl` `undefined`, and a Super Search `voice` query listed only `symbols:open-search`. The gate (`voice-control-gate.util.ts`) had no diff; the new `src/agent-bridge/voice/voice-interval.ts` is a pure interval-name fold that Ask also reads (source).
 
 **Re-driven 2026-11-24 on tree `8cd7ad448e` (`origin/main`, 269 commits past `92f4a841ef`), lane `18106`, a guest JWT: still unreachable.** A Super Search `voice` query listed no row; `window.__voiceControl` and the mic were not re-read that night.

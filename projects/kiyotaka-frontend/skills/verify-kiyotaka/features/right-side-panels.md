@@ -5,6 +5,13 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-26 against product tree `1d1a3e1410` (`origin/main`, 76
+commits past `ec531568de`), lane `18108`, a guest JWT: `tb-panels-row-heatmap`
+opened the heatmap popover (switch `aria-checked="false"`, `Order Book` and
+`Options` unpressed) and the switch raised `Order Book Heatmap`; the
+`Watchlist` button raised its wall (see `rp-heatmap`). Not driven: the
+heatmap's off-and-on look (walled for a guest) and the cTrader dock section
+(signed-in). Before that, last
 DRIVEN on 2026-11-25 against product tree `ec531568de` (`origin/main`, 142
 commits past `8cd7ad448e`), lane `18107`, a guest JWT: the Orderbook's
 Grouping list on COINBASE BTC-USD (`5` to `1000`) and on BINANCE.F
@@ -53,7 +60,10 @@ door. Close a panel with `panel-header-close-btn`: three later presses on
 (the cause was not looked into).
 Source only, not driven (all need a signed-in trading session, and
 cTrader its dark flag): a cTrader account traded from the chart behind
-`fx-ctrader` (`249761fa12`; doors `trading-hub-card-ctrader`,
+`fx-ctrader` (`249761fa12`; since `1134e7ccb7` the account sits in the
+shared account dock as `ctrader-dock-section` with `hl-account-scope-ctrader`
+and a `ctrader-scope-*` face on the header, behind the `one-account-dock`
+kill switch, on for a signed-in desktop session; doors `trading-hub-card-ctrader`,
 `connections-ctrader-card`, `ctrader-connect-dialog` and a `Link cTrader`
 palette row, all absent for a guest, whose flag read `false`); the broker
 ticket saying why the live quote is down with a `Resume` for a closed or
@@ -520,6 +530,20 @@ an open panel.
   `etf-screener-tab-{overview,performance,flows,dividends,holdings,risk,technicals}-btn`,
   `-add-filter-btn` and `etf-screener-sort-<column>-btn`. The rows come from
   `POST /api/v1/etf/screener`.
+- **`rp-heatmap`: open it from the Panels row on a fresh boot (driven
+  2026-11-26 on `1d1a3e1410`).** After a boot the ticker bar held only the
+  lazy frame `tb-panel-standin-heatmap-btn`, and `find testid
+  tb-heatmap-trigger-btn` found nothing; `Panels` then
+  `tb-panels-row-heatmap` mounted the real `tb-heatmap-trigger-btn` and
+  opened the popover. The switch raised `Order Book Heatmap`. **Off and on
+  keeps the look (source, `97c5eb846e`, `377e6d5d68`, `6c66014290`,
+  `9822a86129`; signed-in).** A heatmap switched off and on comes back as it
+  was (its look, `lastHeatmapLook`), its size handle returns, and a switch
+  the heatmap never set comes back off; the guest-only persist flag
+  (`heatmapShouldPersist`) is gone. The sensitivity bar's value labels never
+  print over each other: two handles close together share one row, or one
+  label when the text matches (`0263b9eef0`). The TP/SL heatmap follows a
+  symbol switch (`3747d6ac5a`, Hyperliquid).
 - **`rp-heatmap`.** `tb-heatmap-trigger-btn` opens a `Heatmap` popover. Since
   `8b8b211759` its `tb-heatmap-toggle-btn` is the app-wide pill: a
   `<button role="switch">` read by `aria-checked` (`false`, text `OFF`, driven

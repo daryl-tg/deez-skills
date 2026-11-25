@@ -3,6 +3,19 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
+entry was last DRIVEN on 2026-11-26 against product tree `1d1a3e1410`
+(`origin/main`, 76 commits past `ec531568de`), lane `18108`, a guest JWT
+with the backend answering and the gateway reached through the
+`KIYO_BROWSER_ARGS` map to `10.1.1.10` (both resolvers answered NXDOMAIN;
+`doctor` passed with the map). Boot drew 250 bars on COINBASE BTC-USD 1h
+25 s after `open`, with VWAP (`Indicators 1/3`), `Guest Mode` and the
+signup modal. **A guest's `/v3` page now opens no `/v2` socket:** a CDP
+capture of a reload over 45 s read the `/v3/` dial at 3.1 s and no `/v2/`
+socket (see Gotchas). On this dev lane `kiyotaka:v3-endpoint` read `null`:
+the `/v3-endpoint` discovery runs on production builds only. The slow pace
+at rest is gone (`887347c37c`). Not driven: the first-frame stand-in for
+a saved layout's native lines, the late-line price glide and an indicator
+pane's own decimals (see `boot-axis-decimals`). Before that, this
 entry was last DRIVEN on 2026-11-25 against product tree `ec531568de`
 (`origin/main`, 142 commits past `8cd7ad448e`), lane `18107`, a guest JWT
 with the backend answering (`doctor` passed twice in two on the tracked
@@ -266,6 +279,12 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   last hour first gets a quiet human check, then a `One quick check` card
   with a Turnstile box, then a `Guest limit` card that counts down and loads
   the chart by itself, with `Sign in` to skip the wait.
+- `boot-first-frame` a saved layout's native lines (VWAP, MA Ribbon) and
+  package child panes hold a stand-in picture on the first frame, so the
+  price range does not jump when VWAP lands, and the price fit glides when a
+  late line lands (`1a07d5df8a`, `38f7e54b74`; source, not driven: a warm
+  reload after a first boot, compared against `__disableKiyoNativeStandIn()`
+  from `src/utility/chart/native-standin.leaf.ts`).
 - `boot-axis-decimals` a quoted market (a US stock, a forex pair, a metal, a
   commodity, an index, an option) prints its own convention's decimals on
   the price axis at every zoom; crypto keeps the zoom's step.
@@ -610,7 +629,9 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   `tc[0].metadata[0].rawData`: an index 2, a US stock 2 from $1 and 4 below,
   GBP/JPY 3, EUR/USD 5, gold 2, silver 3 (source; only the index driven).
   Formula panes, Treasury yields and a Value Precision other than `Default`
-  keep their own rules. `Reset chart` puts the scale back.
+  keep their own rules. Since `d6bfa51f8a` an indicator pane keeps its own
+  decimals on every market (RSI `70.00`, not `70.00000` on GBP/JPY; source,
+  not driven: a guest's Add is walled). `Reset chart` puts the scale back.
 
 ## Gotchas
 
@@ -1070,8 +1091,20 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   Driven 2026-11-25 on `ec531568de`: `isOn('gateway-v3')` `true`, and a CDP
   capture of a reload's `Network.webSocketCreated` events (auto-attached to
   the workers) read `wss://tsdb-gateway…/v3/?dial=…` at 2.5 s, then
-  `wss://tsdb-gateway…/v2/?dial=…` at 3.6 s, so a v2 socket still opens
-  beside it. (From `b5d0fe6b0f` to `9d2bbbeaa0` a guest stayed on v2; a live
+  `wss://tsdb-gateway…/v2/?dial=…` at 3.6 s, so a v2 socket still opened
+  beside it then. **Since `ddfe3af943` a `/v3` page opens no `/v2` socket
+  for its session (driven 2026-11-26 on `1d1a3e1410`).** A v2 slot opens
+  only when a read needs it (the exchange list with no venue) and closes
+  after 120 s idle, and the page posts its login to the worker
+  (`V2_SET_TOKEN`) on each new token and every 30 s while a `/v3` lane is
+  open (`0d2da5f7c1`, source). Live: a CDP capture of a reload's
+  `Network.webSocketCreated` events over 45 s read the vite socket,
+  `wss://tsdb-gateway…/v3/?dial=…` at 3.1 s and the two `ap-sin3` sockets,
+  and no `/v2/` socket. Since `4f44df83b8` a production build reads the
+  `/v3` host from orange's `GET /api/v1/v3-endpoint` (kept 1 h in
+  `localStorage` `kiyotaka:v3-endpoint`); a dev lane skips the discovery
+  and dials the v2 host's `/v3` twin (`kiyotaka:v3-endpoint` read `null`
+  on 2026-11-26). (From `b5d0fe6b0f` to `9d2bbbeaa0` a guest stayed on v2; a live
   guest read `isOn('gateway-v3')` `false` on 2026-11-05.) Read a `—` in the live edge as
   a silent lane, or as a hidden tab (on 2026-11-05 the ticker's price slot read
   `—` while the tab was hidden and the price as soon as it was re-fronted).
