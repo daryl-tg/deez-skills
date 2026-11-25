@@ -11,7 +11,7 @@ who reacted.
 - **A reply to a poll** (`ccaa2b89`) is quoted as italic "Poll: <question>" with the composer's poll glyph (`[data-reply-glyph="poll"]`), on the room quote and the **Replying to** strip; see [message-actions.md](message-actions.md). Neither shell fixture seeds a poll in `#ops`, so this is unit-tested only.
 - **Poll composer** (`PollComposer.tsx`): a `Create poll in #<channel>` form with
   **Add option** and **Post poll**. (**Create another poll** is a gallery
-  control in `tools/visual/fixture.tsx:1197`, not part of the composer.)
+  control in `tools/visual/fixture.tsx:1190`, not part of the composer.)
 - **Closed-poll results** (`PollResultsDialog.tsx`): `Final results · N votes`
   with per-option percentages.
 - **Roster cache** (`#752`): reopening results in the same session does not
@@ -49,7 +49,7 @@ who reacted.
   `span.letter-tile[data-letter=L][role=img]` named **regional indicator L**,
   blue (`rgb(59, 136, 195)`, `--letter-tile-bg`), with the real 🇱 kept as its
   text so copy still yields the character (`lib/letter-tile.ts:39-51`,
-  `styles.css:9614-9639`). It renders in the picker cell, the reaction chip
+  `styles.css:9632-9657`). It renders in the picker cell, the reaction chip
   (`.chip-glyph`), the reactors header, the `:` autocomplete row and message
   text (see [composer-and-sending.md](composer-and-sending.md)).
 - **Reaction scenes** (`afabb11c`). When a visible chip's count rises, a scene
@@ -172,7 +172,7 @@ session.
 - None of these routes travel the wire. Reaction chip clicks change no count.
   On `surface=poll-ux`, however, a vote **does** settle locally: after a 700 ms
   timeout `ye 8 · 80%` becomes `ye 9 · 82%` (`PollUxFixture`'s `settleVote`,
-  `tools/visual/fixture.tsx:1151`). That proves the card's optimistic update,
+  `tools/visual/fixture.tsx:1144`). That proves the card's optimistic update,
   not delivery. Close the **Create poll in #chat** dialog (Escape) first: its
   backdrop covers the card and the click is refused. Vote and reaction
   persistence still need the daemon-pair lane. Live verification pending.
@@ -186,7 +186,7 @@ session.
   4–10 s, then mounts 1,896 buttons. A `snapshot -c` taken while it is open ran
   past 75 s and had to be killed. Assert with a targeted eval instead, e.g.
   `document.querySelector('[aria-label="Choose an emoji"]').querySelectorAll('button').length`.
-- **Every `fixture.html` gallery forces reduced motion.** `fixture.tsx:50` adds
+- **Every `fixture.html` gallery forces reduced motion.** `fixture.tsx:43` adds
   `reduced-motion` to `<html>` (only `surface=resizable-panel` removes it), and
   `reducedMotionActive` honours that class as well as the media query. So every
   scene there takes the reduced path and dies at 320 ms. A themed (non-shipped)
@@ -226,7 +226,9 @@ them tiles; `regional_indicator_q` → Q first.
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** new tonight: the letter tiles in the composer picker on `/rooms/` (18186) and `/chat/` (18187) (`l`, `letter`, `regional_indicator_q`), and a 🇱 reaction chip drawn as a tile in a `/rooms/` DM; the rest of the guide by the kept step runner. **Limitations:** a channel reaction chip is not drawn by the fixture; the tile's cap-height centring (`afd1b543`) was not measured; the reactors header tile was not opened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The DM letter-tile reaction was re-driven through **Add reaction** (the bubble button's title): `ana:m1:🇱` and an L tile chip. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** new tonight: the letter tiles in the composer picker on `/rooms/` (18186) and `/chat/` (18187) (`l`, `letter`, `regional_indicator_q`), and a 🇱 reaction chip drawn as a tile in a `/rooms/` DM; the rest of the guide by the kept step runner. **Limitations:** a channel reaction chip is not drawn by the fixture; the tile's cap-height centring (`afd1b543`) was not measured; the reactors header tile was not opened. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

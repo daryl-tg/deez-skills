@@ -63,7 +63,7 @@ picture to see it large and step through the others with the arrows.
 ## Driving it with control-om-chat
 
 The root shell fixture seeds 31 messages with one image each, and a document on
-every fourth (`tools/visual/shell-fixture.tsx:4685`, `:4761`). The seed needs
+every fourth (`tools/visual/shell-fixture.tsx:4656`, `:4732`). The seed needs
 no query parameter and answers the same for every conversation. Since
 `bc2ffd55` it logs each page it serves on `window.__fixtureAttachmentPages`,
 and `?mediaDelay=<ms>` makes each answer wait, so a proof can count the reads
@@ -128,7 +128,7 @@ agent-browser eval '(()=>{window.__om.search.attachmentsPage=async()=>({media:[]
 ### On `/chat/`
 
 The cloud fixture's search seam has no `attachmentsPage`
-(`apps/cloud/tools/visual/shell-fixture.tsx:1672`, `:2541-2562`). The menu row
+(`apps/cloud/tools/visual/shell-fixture.tsx:1667`, `:2536-2557`). The menu row
 is there, and choosing it opens nothing: the dialog throws
 "session.search.attachmentsPage is not a function" and its lazy-surface gate
 swallows the error. Only the lane log and the browser console show it. Assign
@@ -147,7 +147,7 @@ retry box.
 
 The page function returns `newest` and `oldest` (added 2026-11-21): the reopen
 merge reads them, as the root seed's pages now carry them
-(`tools/visual/shell-fixture.tsx:4807-4808`). With them, a reopen on `/chat/`
+(`tools/visual/shell-fixture.tsx:4778-4779`). With them, a reopen on `/chat/`
 kept 31 tiles on the first frame, and a counter in the page function read
 `[0,1,0]`.
 
@@ -186,7 +186,9 @@ kept 31 tiles on the first frame, and a counter in the page function read
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the **Files** tab is named **Files 8**; the step's exact match failed and the files tab was not re-proved tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the **Files** tab is named **Files 8**; the step's exact match failed and the files tab was not re-proved tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

@@ -55,9 +55,9 @@ Read the gotchas for where the line now falls.
   Since `6395fe4b` an agent refused only for `no_grant` is no longer dimmed:
   its detail reads "<name> can't post here yet · Enter allows it"
   (`lib/composer-complete.ts:687-689`), and Enter or a click grants the room,
-  rereads the roster and inserts `@name ` (`Composer.tsx:3398-3430`); a refused
+  rereads the roster and inserts `@name ` (`Composer.tsx:3381-3413`); a refused
   grant puts the refusal text in the row's detail. The row needs the
-  `instances.grant` capability (`Composer.tsx:1790`).
+  `instances.grant` capability (`Composer.tsx:1770`).
   Only your own agents are offered: a member agent is kept only when it posts
   from your account (agent handles are bare names, so ownership is the
   `userId`), and another member's agent is left out even for a typed
@@ -94,13 +94,13 @@ Read the gotchas for where the line now falls.
   `/rooms/` shell fixture's `#ops`, the list has 14 options: 5 members (ana,
   dax, kyle, mira, rho) and 9 roles (admin, Devops, everyone, Full Stack, here,
   member, mod, owner, traders). **Devops** came with the `roleEdit` seed's role
-  list (`f8baae2a`, `tools/visual/shell-fixture.tsx:3446`) and is listed whether
+  list (`f8baae2a`, `tools/visual/shell-fixture.tsx:3417`) and is listed whether
   or not `roleEdit=1` is set. The `/chat/` fixture has no Devops role and lists
   13. The old budget would have shown 10: 5 members plus 5 roles.
 - The `@` list is a sectioned picker (`022af9cd`). Its head is a
   `div.composer-autocomplete-tabs[role=group]` named like the listbox, holding
   one `button.composer-autocomplete-tab` per non-empty section: **Members N**,
-  **Roles N**, **Agents N** (`Composer.tsx:366-370`,
+  **Roles N**, **Agents N** (`Composer.tsx:367-371`,
   `ComposerAutocomplete.tsx:50-59`, `:240`). Rows always run members, then
   roles, then agents, with or without a query (`lib/composer-complete.ts:465`,
   `:660`, `:711`), under `div.composer-autocomplete-group[data-group]` eyebrows
@@ -112,7 +112,7 @@ Read the gotchas for where the line now falls.
   re-counts the tabs and drops an empty section's tab.
 - Server-wide `@` search (`82390825`, `e56940c9`). In a server channel on the
   public plane, a typed `@query` also asks the server's member search, app
-  accounts included (`Composer.tsx:2714-2721`; 150 ms after typing stops,
+  accounts included (`Composer.tsx:2698-2705`; 150 ms after typing stops,
   `lib/people.ts:87`). Hits pass the channel and private-topic walls, judged by
   each hit's own `roleIds`, with owners and admins passing both
   (`lib/composer-scope.ts:404-429`). Since `022af9cd` they join the **Members**
@@ -122,7 +122,7 @@ Read the gotchas for where the line now falls.
   search by itself; see the recipe below.
 - A member muted across a server loses the composer there (`591b1e11`). On the
   public plane, in any channel of that server, the whole composer is replaced by
-  `div[role=status][data-testid=space-muted-notice]` (`Composer.tsx:4970-4980`).
+  `div[role=status][data-testid=space-muted-notice]` (`Composer.tsx:4961-4971`).
   It reads "You're muted in this server until 3:40 PM.", "…until Nov 9, 3:40 PM."
   on another day, or "You're muted in this server." when a refusal named no time
   (`lib/space-mutes.ts:29-31`). DMs and group DMs are unaffected.
@@ -159,7 +159,7 @@ Read the gotchas for where the line now falls.
 - Delivery states: sending, delivered, *"Delivery could not be confirmed"*
   recovery, and the cross-tab draft lease.
 - Send disabled while empty; Enter-to-send versus newline. The **Send message**
-  button renders when `isMobile || showSendButton` (`Composer.tsx:7080`). The
+  button renders when `isMobile || showSendButton` (`Composer.tsx:7131`). The
   ordinary room and DM composer is therefore phone-width only, and desktop
   sends with Enter. Panes that pass `onSubmitText` (`ChatPane.tsx:444`) and the
   remote-control pane (`RemoteControlPane.tsx:384`) also show it on desktop,
@@ -189,7 +189,7 @@ Read the gotchas for where the line now falls.
   its unit tests; the recipe below drives a subset of them.
   The mode badge is
   `<span class="composer-vim-mode" data-vim-mode="normal|insert|visual|visual-line">`
-  (`VimModeLine.tsx`, mounted at `Composer.tsx:7166`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
+  (`VimModeLine.tsx`, mounted at `Composer.tsx:7217`) reading NORMAL / INSERT / VISUAL / VISUAL LINE, with
   a pending operator in `.composer-vim-pending`. Enter sends only in insert
   mode. Escape belongs to Vim, so it no longer cancels a reply. Outside insert
   mode a block cursor `span.vim-block-cursor[aria-hidden]` sits on the caret
@@ -216,9 +216,9 @@ Read the gotchas for where the line now falls.
   used to land after the sent text, and the box kept both. Now the sent prefix
   is dropped and the rest is kept with its leading whitespace trimmed; a box
   rewritten some other way is left alone, and a refused send keeps everything
-  (`Composer.tsx:4307-4318`). The fixture cannot open that window: both
+  (`Composer.tsx:4298-4309`). The fixture cannot open that window: both
   fixtures' `sendToActiveDurably` resolve at once
-  (`tools/visual/shell-fixture.tsx:3862`, `apps/cloud/tools/visual/shell-fixture.tsx:2103`),
+  (`tools/visual/shell-fixture.tsx:3833`, `apps/cloud/tools/visual/shell-fixture.tsx:2098`),
   so the proof is the unit test `packages/chat-ui/test/composer/dm-send-clears-while-typing.test.tsx`.
 - **Esc steps back out** and **image preview zoom and pan** (each in its own section below; `/rooms/` only).
 - **User links and base roles in message text** (`6577416f`, `a5354f9d`,
@@ -231,7 +231,7 @@ Read the gotchas for where the line now falls.
   `om://role/owner|admin|mod|member` read `.mention-pill.role-mention.no-target`
   **@admin** and so on. A link inside a code span stays literal text. A link to
   the viewer counts as a mention: the row takes `mention-wash`
-  (`MessageRow.tsx:2157`), and the ping, badge, channel peek and `mentions:`
+  (`MessageRow.tsx:2165`), and the ping, badge, channel peek and `mentions:`
   search follow it (source and unit tests). Clicking a named pill opens that
   person's card.
 - **Picks send links** (`ddb1bd65`, `ef005693`, `bc08428c`, `4a2eaf9b`). A
@@ -239,7 +239,7 @@ Read the gotchas for where the line now falls.
   `om://user/<id>` (`bindPickedPerson`, `lib/composer-pills.ts:744`; only a
   24-hex or `guest_<hex>` id is linkable, so the fixture's `u-ana` stays a plain
   `@ana`). A picked role shows `@<name> ` and sends `om://role/<id>` through
-  `session.bindMentionLinksFor` (`Composer.tsx:3479-3486`). Since `c4028edb`
+  `session.bindMentionLinksFor` (`Composer.tsx:3462-3469`). Since `c4028edb`
   and `ed73acae` a person picked in a DM binds the same link. Parked drafts and
   the message edit box keep the same bindings. Neither shell fixture defines
   `bindMentionLinksFor`, so there a role pick deletes the typed `@Dev` and
@@ -264,7 +264,7 @@ Read the gotchas for where the line now falls.
   `OM Inline Emoji` face at the head of `--font-message` (`shared/tokens.css:647`).
   A message of 1 to 27 emoji and nothing else gets `.jumbo-emoji` at 48 px
   (`--text-jumbo: 3rem`, `tokens.css:892`; `lib/jumbo-emoji.ts:5`;
-  `MessageRow.tsx:2476`). Graphemes count once, so a flag or a ZWJ family is
+  `MessageRow.tsx:2484`). Graphemes count once, so a flag or a ZWJ family is
   one. A 28th emoji drops the whole message back to inline size.
 - **Letter tiles** (`879a7e5c`, `afd1b543`). A lone regional indicator (🇦–🇿)
   in a message becomes a drawn `span.letter-tile` (`tileLoneLetters`,
@@ -358,7 +358,7 @@ agent-browser open ".../shell-fixture.html?view=room&draft=seeded%20draft%20text
 
 Related handles that do resolve. In the composer row itself:
 `"Summon your om here"` (on a private om lane the same button is `"Back to the room"`,
-`Composer.tsx:6326-6327`), `"Add attachment or action"`,
+`Composer.tsx:6345-6346`), `"Add attachment or action"`,
 `"Choose emoji or GIF"`, `"Toggle sealed mode"`, `"Toggle om approval mode"`.
 On a message or the recovery banner: `"Add reaction"`,
 `"Resend exact message"`, `"Discard & edit as new"`, `"Retry"`, `"Delete"`.
@@ -413,14 +413,14 @@ path-based: `/chat/room/ops`).
 
 ### GIF picker (added 2026-10-27)
 
-In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4832-4850`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
+In any room, click **Choose emoji or GIF**, which opens the **Choose an emoji** dialog. Then click the **GIFs** button. It is a `button`, not a `tab`, so `find role tab` fails. The dialog becomes **Choose a GIF**, with textbox **Search KLIPY** and a TRENDING section that stays empty offline: `klipyTrending` is not stubbed and calls the network. Driven on `/rooms/` and `/chat/`. `?view=gif` bypasses the Shell and renders h1 **GIF sizing stability** with **Reopen GIF** (`shell-fixture.tsx:4803-4821`). Sending a GIF is pending. Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 24).
 
 ### Chart card and cashtag pill (added 2026-10-28)
 
 - **Chart card:** send a message that is only a chart URI, such as `om://chart/BTC?i=15m`. The grammar is `CHART_URI_RE` (`lib/message-preview.ts:18`). The sent row renders a chart card reading **BTC**, **15m** and **Copy link**. Since `ad70e464` the card says **LIVE** only while candles are on its tape. On the fixtures no candle answer has rows, so the card reads **no chart data right now** in `[data-empty-box]` (420 × 120 px on `/rooms/`), with no `.cc-live` (both hosts, 2026-11-21). To see **LIVE** on `/rooms/`, answer `POST /rpc/v1/market/candles` with `{ok:true,data:{rows:[[ts,open,high,low,close,volume],…]}}` through the `window.fetch` getter/setter stub in [settings-and-appearance.md](settings-and-appearance.md) (Sealed Messages): with 40 rows the card read **BTC | 15m | LIVE** and drew its price axis. `/chat/` asks for no candles without a market token, so **LIVE** is not reachable there. An old daemon still reads "market data needs a newer daemon" (`ChartCard.tsx:209`; source only).
-- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2481-2485`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3279`), so the peek cannot be proved here.
-- **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture parses `?draft=` (`apps/cloud/tools/visual/shell-fixture.tsx:1253-1256`), but its composer still loads empty on a room or a DM (re-measured 2026-10-30), so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
-- **Not seeded:** `UnfurlCard` (no fixture seeds `entry.unfurls`, and a send never adds one) and `WebhookEmbedBlock` (it needs `metadata.embeds` on a webhook sender; the gallery's webhook rows have none, `tools/visual/fixture.tsx:1309-1369`).
+- **Cashtag pill:** send `$BTC looks strong`. The row renders a `.cashtag-pill` reading `$BTC`. Clicking the pill opens a peek in the product (`MessageRow.tsx:2489-2493`), but the fixture hard-codes `cashtagPeek: null` (`shell-fixture.tsx:3250`), so the peek cannot be proved here.
+- **How to send:** on `/rooms/`, seed the draft with `?draft=om%3A%2F%2Fchart%2FBTC%3Fi%3D15m` or `?draft=%24BTC%20looks%20strong`, focus `textarea[data-composer-input]` and press Enter. The `/chat/` fixture parses `?draft=` (`apps/cloud/tools/visual/shell-fixture.tsx:1248-1251`), but its composer still loads empty on a room or a DM (re-measured 2026-10-30), so use `agent-browser fill 'textarea[data-composer-input]' '<text>'` and press Enter there.
+- **Not seeded:** `UnfurlCard` (no fixture seeds `entry.unfurls`, and a send never adds one) and `WebhookEmbedBlock` (it needs `metadata.embeds` on a webhook sender; the gallery's webhook rows have none, `tools/visual/fixture.tsx:1302-1362`).
 
 Verified 2026-10-28 at `07f7d04c` on `/rooms/` and `/chat/` (scheduled maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261028/r1/` (`*-sent-*.png`).
 
@@ -453,7 +453,7 @@ shared converter in `@openmarket/rooms-client/shared/handle-mentions`).
   both fixtures answer `color: null` for every role, so no tint shows there.
   `@everyone` and `@here` still paint `composer-token-role`.
 - **On the wire and the tape.** `toWireText` rewrites the draft
-  (`Composer.tsx:4773-4777`), and the row draws `.mention-pill.role-mention`
+  (`Composer.tsx:4764-4768`), and the row draws `.mention-pill.role-mention`
   from the link. A name that does not convert is plain text on the tape
   (`Markdown.tsx:2055-2097`).
 - **The brake** reads the sent text, so a converted name is braked as its role
@@ -461,7 +461,7 @@ shared converter in `@openmarket/rooms-client/shared/handle-mentions`).
 
 The fixture roles: `/rooms/` has `traders` (`r-traders`), **Full Stack**
 (`01j8x4kq7m2v9p3r6t0w5y8z1a`) and **Devops** (`r-devops`)
-(`tools/visual/shell-fixture.tsx:3438-3448`). `/chat/` has `traders` and
+(`tools/visual/shell-fixture.tsx:3409-3419`). `/chat/` has `traders` and
 **Full Stack** only. No shim is needed for a plain conversion. Stub
 `spaceRolesFor`, `spaceRolesLoaded` or `spaceMembersFor` on the shim's
 `window.__om` and bump `__om.version` for the other cases.
@@ -604,11 +604,50 @@ Typing `/` in the composer opens the command list from `SLASH_COMMANDS`
 `/follow`. Typing `/shr` narrows it to `/shrug` ("Appends ¯\_(ツ)_/¯ …").
 Settings → **Slash Commands** (`settings-fixture.html?host=user&page=slash-commands`)
 renders the guide page **Slash commands**. Running a command is pending: the
-real handler is `ChatSession.handleSlash` (`lib/session.ts:41059`, called at
-`:13589`, `:13807`, `:14134` and `:14200`), and the fixture's send only appends the text, so `/nick`,
+real handler is `ChatSession.handleSlash` (`lib/session.ts:41061`, called at
+`:13592`, `:13810`, `:14137` and `:14203`), and the fixture's send only appends the text, so `/nick`,
 `/status`, `/mute` and the daemon-bound verbs (`/chart`, `/capture`,
 `/summarize`, `/brief`, `/agent`, `/reset`, `/arm`, `/disarm`) need an
 authenticated or daemon rig. Driven 2026-10-30 on `/rooms/` (frame 51).
+
+### App commands (added 2026-11-26)
+
+An app installed in the server publishes commands (`session.appCommandsFor(spaceId)`).
+They join the `/` list as rows with an **APP** chip, a hint `@<handle>`, and
+argument placeholders `<@name>` for a member and `[name]` for an optional
+text argument (`lib/composer-complete.ts:1878`). Picking one replaces the draft
+with `@<handle> /<command> `. When the first argument is a required member,
+it also appends `@` so the member list opens. Since `9b874942`:
+- A strip above the box (`[data-testid=app-command-slots]`,
+  `Composer.tsx:5747`) shows the command, then one chip per argument. A
+  required argument reads `name*`; an unfilled member argument adds
+  `: pick a member` and carries `data-missing`.
+- Sending with a required argument missing is blocked. A warn toast reads
+  `/<command> needs <args>` (`Composer.tsx:4158`) and the draft stays.
+- In the tape, a post that parses as an invocation of an app in that room's
+  server reads **used** with a `/<command>` chip, then its arguments as text
+  (`MessageRow.tsx:207`, `:2682`). Webhook posts are left as they are.
+- Sealed composers and an active private lane get no app rows.
+
+Both fixtures answer `appCommandsFor: () => []`
+(`tools/visual/shell-fixture.tsx:4119`; cloud `:2252`). Stub an app through
+the session-capture shim ([README.md](README.md), "Seed spelled-out keys with the session-capture shim"):
+
+```bash
+agent-browser eval '(()=>{const o=window.__om;o.appCommandsFor=()=>[{appUserId:"aaaaaaaaaaaaaaaaaaaaaaaa",handle:"modbot",commands:[{name:"page",description:"Page a member",args:[{name:"member",required:true,type:"user"},{name:"note"}]}]}];o.appCommandsLoaded=()=>true;window.__toasts=[];const t0=o.toast;o.toast=(...a)=>{window.__toasts.push(a);return t0?.(...a)};o.version=Number(o.version)+1;o.closeConfirm();return 1})()'
+# set textarea.composer-field to "/pag" (native value setter + input event)
+#   one option: "/page APP Page a member · <@member> [note] @modbot"
+agent-browser press Enter
+#   value "@modbot /page @"; slots ["/page","member*: pick a member" (data-missing),"note"]
+# set the value to "@modbot /page " and press Enter
+#   __toasts [["/page needs member","warn"]]; the draft stays; no row is added
+# append a copy of seq 104 with text "@modbot /page hello there" to __om.rooms.get("ops").entries (new array), bump version, closeConfirm()
+#   the row reads "used /page" then "hello there"
+```
+
+Driven 2026-11-26 at `0f3fd22c` on both hosts with these readouts. The member
+pick, the sent invocation and the app's reply need a store with an installed
+app.
 
 ### Paste: a link over a selection, an image into the composer (added 2026-11-01)
 
@@ -639,7 +678,7 @@ agent-browser eval '(()=>{const t=document.querySelector("textarea[data-composer
 #   "probe.png", and the region named "Message attachments" reads "probe.png Ready · 1 KB"
 ```
 
-That staged card is the fixture's `acceptFile` stub (`shell-fixture.tsx:4409-4429`)
+That staged card is the fixture's `acceptFile` stub (`shell-fixture.tsx:4380-4400`)
 pushing a pending attachment and stamping `data-fixture-attachment`; no upload
 or scan runs. OS drops onto the tape, the topic list or the library
 (`useFileDropZone.tsx`) still need a real file through `setInputFiles` or a CDP
@@ -672,7 +711,7 @@ a room's new-below count that high (`bulk=120` pads the tape but the reader
 sits at the bottom), so this is source-only. The banner itself mounts on
 `shell-fixture.html?view=room&history=detached&alerts=quiet` and reads **You're
 viewing older messages** with **Jump to present**, with no count, because the
-fixture room's `unread` is a constant 0 (`shell-fixture.tsx:1627-1632`; driven
+fixture room's `unread` is a constant 0 (`shell-fixture.tsx:1598-1603`; driven
 2026-11-03 on `/rooms/`). See
 [channel-and-topic-navigation.md](channel-and-topic-navigation.md) / Unread
 labels past 99.
@@ -759,14 +798,14 @@ with the value `a`. Typing `/` in `#ops` lists 28 commands: /dm, /help, /topic,
 /status, /chart, /me, /shrug, /spoiler, /tableflip, /unflip, /note, /template,
 /todo, /agent, /arm, /brief, /capture, /disarm, /reset and /summarize (driven
 2026-11-15 on both hosts). `/nudge` is hidden in a channel that is not on
-Projects (`Composer.tsx:1558`, `:2957`). The bare fixture's `#ops` is such a
+Projects (`Composer.tsx:1538`, `:2941`). The bare fixture's `#ops` is such a
 channel now that `f6a1c31b` reads an unstubbed Projects mode as off, so the
 29th entry is gone. `/draw` (`lib/slash-commands.ts:199`) is not listed in the
 fixture.
 
 **The legacy to-do grammar is text off Projects.** In a channel that is not on
 a Projects server, `/todo`, `/nudge`, `/assign` and `/unassign` post exactly as
-typed (`CHANNEL_TODO_FORMS`, `lib/session.ts:1916`, used at `:41072`). The one
+typed (`CHANNEL_TODO_FORMS`, `lib/session.ts:1918`, used at `:41074`). The one
 exception is `/todo <text> → me|here`, which still files to an Inbox. Typing `!`
 offers no verb list there either (`lib/composer-complete.ts:1673-1730`): a 1:1
 DM offers only `!nudge`, and a Projects channel offers the ticket verbs. Both
@@ -961,9 +1000,9 @@ link").
   (`1f4b7273`), an app's name or `@app /command` invocation (`430a7faf`), a
   name that wakes an agent, `@everyone` and `@here`, and a turn to an agent.
 - **Only the box converts** (`314a2f67`): `toWireText` rewrites the draft
-  (`Composer.tsx:4773-4777`) and the session posts what it is handed.
+  (`Composer.tsx:4764-4768`) and the session posts what it is handed.
 - **The non-member gate reads the link** (`lib/mention-audit.ts:44`,
-  `Composer.tsx:4265`). A converted name whose holder is on the server but not
+  `Composer.tsx:4256`). A converted name whose holder is on the server but not
   in the channel roster opens **Not in this channel** with **Back** and **Send
   Anyway** (`MentionWarnDialog.tsx:38`). A typed name that did not convert
   never warns.
@@ -1039,7 +1078,7 @@ allowlisted host were not driven.
 
 A send that waits on its own uploads shows `div.uploading-send-progress` under
 its row, reading **Uploading <name> · N%**, or **Uploading N files · N%**
-(`MessageRow.tsx:2791-2813`). The row must be yours, still pending (a negative
+(`MessageRow.tsx:2827-2849`). The row must be yours, still pending (a negative
 `seq`), with no delivery state, while `session.attachmentUploads` holds
 uploads for the room that have not failed. The fixture spells out
 `attachmentUploads: []`, so seed both through the shim:
@@ -1060,7 +1099,7 @@ several-files wording and the hand-off to the delivery state were not driven.
 ### Jumbo and inline emoji (added 2026-11-17)
 
 `/rooms/` has a seed: `shell-fixture.html?view=room&alerts=quiet&tape=emoji`
-(`tools/visual/shell-fixture.tsx:1349`) appends ana `😭`, dax `test 😭`, mira
+(`tools/visual/shell-fixture.tsx:1320`) appends ana `😭`, dax `test 😭`, mira
 `😭😭😭` and kyle 28 × `😭`. Read `.jumbo-emoji` and its computed `font-size`
 on each of the last four rows: 48px, none, 48px, none. dax's `<p>` has
 `font-family` starting `"OM Inline Emoji"` at 15px. `/chat/` has no `tape=`
@@ -1084,6 +1123,32 @@ needed (the fixtures echo sends):
 - The picker side (search, the 26 tiles, the reaction chip) is in
   [polls-and-reactions.md](polls-and-reactions.md).
 
+### Long drafts scroll in a wrapper (changed 2026-11-26)
+
+Since `4bef5710` the textarea no longer scrolls itself.
+- `div.composer-field-scroll` (`Composer.tsx:6365`, `styles.css:6834`) wraps the
+  textarea and its `.composer-backdrop` in one grid cell. It is capped at
+  `max-height: 320px` (295 px on a phone) and owns the scrollbar.
+- `applyComposerAutogrow` (`Composer.tsx:1024`) sets the textarea to its full
+  `scrollHeight` with `overflow: hidden` and `scrollTop` 0.
+- `.composer-backdrop` is `position: relative`.
+- The user-visible fix: a selection's highlight stays on its text while a long
+  draft scrolls.
+
+Read scroll state from the wrapper, never from the textarea:
+
+```bash
+# set textarea.composer-field to 40 lines (native value setter + input event)
+agent-browser eval '(()=>{const t=document.querySelector("textarea.composer-field"),s=t.closest(".composer-field-scroll");return JSON.stringify({tScroll:t.scrollTop,tOverflow:getComputedStyle(t).overflowY,sMax:getComputedStyle(s).maxHeight,sH:s.clientHeight,tH:t.offsetHeight,bPos:getComputedStyle(document.querySelector(".composer-backdrop")).position})})()'
+#   tScroll 0, tOverflow "hidden", sMax "320px", sH 320, tH 900, bPos "relative"
+# select all, then set the wrapper's scrollTop to 200: wrapper 200, textarea 0, selection [0, 310] kept
+```
+
+Driven 2026-11-26 at `0f3fd22c` on both hosts at 1440×900. The highlight
+drifting off its text on HiDPI happened on the compositor thread and cannot be
+seen headless. It is covered by `packages/chat-ui/test/ui/autogrow-scope.test.ts`
+and `test/composer-tall-mode.test.ts`.
+
 ### Agent cards, link previews and the download warning (added 2026-11-22)
 
 Three things a message or a download can draw that no fixture seeds. Each was
@@ -1093,7 +1158,7 @@ the last row, which is a system row).
 
 **Agent card.** An agent's message holding a fenced ` ```om-card ` JSON block
 draws a card instead of the code (`tryParseAgentCard`,
-`agent-md-components.tsx:81`; `MessageRow.tsx:2614`): title, description,
+`agent-md-components.tsx:81`; `MessageRow.tsx:2622`): title, description,
 fields, footer and action buttons. Pressing an action calls
 `session.runCardAction(<id>)`. The same fence from a person, and a fence whose
 JSON does not parse, stay code blocks.
@@ -1108,7 +1173,7 @@ agent-browser eval 'JSON.stringify(window.__card)'    # ["go"]
 
 **Link preview card.** A row whose entry carries `unfurls` draws
 `[data-unfurl-card]` under the text (`UnfurlCard.tsx:59`, gated on **Show link
-previews**, `MessageRow.tsx:1766`): `#msg-ops-304` above reads "Example /
+previews**, `MessageRow.tsx:1774`): `#msg-ops-304` above reads "Example /
 Example Domain / A preview of the page" and links to the URL. The same append
 also proves the screen-reader line: the tape's polite live region reads "4 new
 messages" for the four rows.
@@ -1149,7 +1214,7 @@ unfurl, the click that raises the dialog (`MessageText.tsx:702`,
 ## Gotchas
 
 - **The connection strip waits out a grace delay.** `?connection=reconnecting`
-  (`shell-fixture.tsx:2925`) renders **Reconnecting...** in the
+  (`shell-fixture.tsx:2896`) renders **Reconnecting...** in the
   `.ui-connection-strip` (`role=status`, `shared/ui/ConnectionStrip.tsx:93`),
   but only after `CONNECTION_GRACE_MS`: a read 2 s after load finds an empty
   `.ui-connection-strip-slot`, a read at 8 s finds the text (2026-10-31,
@@ -1164,7 +1229,7 @@ unfurl, the click that raises the dialog (`MessageText.tsx:702`,
   another tab"* and *"Delivery could not be confirmed"* sat above it. `#777`
   stubbed them — `composerDeliveryRecovery: () => null` and
   `composerLaneOwnedElsewhere: () => false`
-  (`tools/visual/shell-fixture.tsx:3848-3849`), with a comment naming the lock
+  (`tools/visual/shell-fixture.tsx:3819-3820`), with a comment naming the lock
   it was removing. Measured again on `9902d149`:
   `readOnly` is `false` in room, topic and DM, and neither banner renders.
 
@@ -1194,12 +1259,12 @@ unfurl, the click that raises the dialog (`MessageText.tsx:702`,
   only by `session.acceptFile` behind the real file input. The maintained
   `tools/visual/mobile-conversation.visual.ts:667` path drives the hidden input
   with `setInputFiles`, and the shell fixture accepts the file at
-  `tools/visual/shell-fixture.tsx:4409`. Preview/lightbox behavior still needs
+  `tools/visual/shell-fixture.tsx:4380`. Preview/lightbox behavior still needs
   preview-ready attachment metadata and is not established by that fixture
   path.
 - **The seeded room video is a stub and only proves the fallback ladder.** The
   default `#ops` tape carries dax's "recording of the retest, plus the notes"
-  (`msg-ops-110`, a 15.9 MB `.mov` plus a PDF; `shell-fixture.tsx:1161-1185`).
+  (`msg-ops-110`, a 15.9 MB `.mov` plus a PDF; `shell-fixture.tsx:1132-1156`).
   Its URL is a truncated `data:video/mp4` stub, so it never decodes. Driven at
   `6c15b0fb`: a fresh load shows the poster tile and `Play Screen Recording …
   .mov`. Play switches to the player with the Buffering chip at `readyState` 0,
@@ -1260,7 +1325,9 @@ unfurl, the click that raises the dialog (`MessageText.tsx:702`,
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** new tonight on `/rooms/` (18186) and `/chat/` (18187): the `:regional_indicator_l` autocomplete row with its tile and the inserted 🇱; a sent lone 🇱 drawn as a tile inline (24 px) and jumbo (55 px), a 🇺🇸 pair left native, and a code span left raw; the rest of the guide by the kept step runner. **Limitations:** sends are fixture echoes. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** new tonight on both hosts: app commands with `appCommandsFor` stubbed (the `/` row, the inserted invocation, the argument chips, the blocked send and toast, the **used** row) and the long-draft scroll wrapper. Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. **Limitations:** the member pick, a real app send and the HiDPI selection drift were not driven; in a topic the fixture echoes no sent row, so the `/chat/` role pill after a topic send cannot be read (the wire is right). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** new tonight on `/rooms/` (18186) and `/chat/` (18187): the `:regional_indicator_l` autocomplete row with its tile and the inserted 🇱; a sent lone 🇱 drawn as a tile inline (24 px) and jumbo (55 px), a 🇺🇸 pair left native, and a code span left raw; the rest of the guide by the kept step runner. **Limitations:** sends are fixture echoes. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** `/rooms/` (18186) and `/chat/` (18187): typed role names going out as role links (`@Full Stack` on both hosts; `@devops`, `@traders`, `@mod` on `/rooms/`), roles not loaded, two same-named roles, an app account's name, a DM; the same-named role rows with member counts; a typed `@nova` with the `isAppAccount` stub on both hosts; plus the core-path re-drive of the rest of the guide. **Limitations:** a pick from a same-named row, the role tint and the brake on a converted name were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

@@ -14,7 +14,7 @@ Open Your om and choose a recent conversation. Type without sending, choose anot
 
 ## Driving it with control-om-chat
 
-Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2655-2673` and binds local session switching/creation at `:2957-3009`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:528` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
+Use the assigned lane and run `control-om-chat doctor`. Open `/rooms/tools/visual/shell-fixture.html?view=agent&alerts=quiet&omSessions=drafts`. The fixture seeds Research A/B at `shell-fixture.tsx:2626-2644` and binds local session switching/creation at `:2928-2980`. These are local synthetic threads, but the running-om presence gate still applies: `ChatPane.tsx:528` renders "om isn't running" when `presence.running === false`, and the poll (`lib/om-health.ts`, `fetch(daemonUrl("/healthz"))`) turns any 404 or non-JSON 200 into `false`. The bare vite lane answers 404, so stub **both** health doors in the browser before opening the page:
 
 ```bash
 agent-browser network route "**/healthz*" --body '{"uptime_seconds":120,"pid":1,"version":"fixture","started_at":"2026-10-27T00:00:00Z","booting":false,"stalls":[],"channels":[],"loops":[]}'
@@ -43,14 +43,16 @@ With the `**/healthz*` stub in place on `?view=agent&alerts=quiet&omSessions=dra
 - **The fixture's New session path is stale.** The landing's first send calls
   `session.startNewOmSession()` (`ChatPane.tsx`, `prepareSend`; since
   `758ba4dd`), but the `omSessions=drafts` seed binds only `createOmSession`
-  (`tools/visual/shell-fixture.tsx:3002`). The unstubbed method resolves to INERT,
+  (`tools/visual/shell-fixture.tsx:2973`). The unstubbed method resolves to INERT,
   the active session never changes, and the send lands in the session that was
   already open (Research A in the 2026-10-27 drive). That is a fixture gap, not
   proof of a product carry bug. Prove the new-session send on a daemon origin.
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

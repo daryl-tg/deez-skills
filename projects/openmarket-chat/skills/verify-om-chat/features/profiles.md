@@ -21,7 +21,7 @@ says about them.
   **Unblock user** (`:803`). The `?profile=1` seed has no DM conversation id,
   so it shows **Block user** without **Report user**.
 - The DM header's identity button (`A Online ana`) opens the same drawer.
-- The floating identity card (`?card=1`, `shell-fixture.tsx:3251`): a `dialog`
+- The floating identity card (`?card=1`, `shell-fixture.tsx:3222`): a `dialog`
   named **Profile for ana** (`.profile-popover`) with the avatar, name, the
   about line, ROLES (traders), `2 mutual servers · 128 followers` and the
   buttons **View ana (ops)'s full profile**, **Message**, **Mention**,
@@ -68,8 +68,8 @@ agent-browser eval '(()=>JSON.stringify([...document.querySelectorAll("[aria-lab
 #   state dots img "working", "waiting", "blocked"; link "Open Backfilling CME options" (https)
 ```
 
-`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3258`, origin
-`dm:ana`) and sets `rightPanel` to `profile` (`:3316`). Use it on the DM view;
+`?profile=1` seeds the drawer for ana (`shell-fixture.tsx:3229`, origin
+`dm:ana`) and sets `rightPanel` to `profile` (`:3287`). Use it on the DM view;
 the room view has no matching origin. The user path is the header button:
 open `?view=dm&dm=ana&alerts=quiet` and click
 `find role button --name "A Online ana"`. `Close profile` appears.
@@ -96,7 +96,7 @@ relay.
 
 - The sections have no `role="tabpanel"`. A query for the panel finds nothing,
   so read the drawer's text instead.
-- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:3186`). It
+- The content is fixture seeding (`profileFor` at `shell-fixture.tsx:3157`). It
   proves layout and the tab and close mechanics, not that a real profile fetch
   works. Media was not asserted for content.
 - **Links lists the links a person posted, and skips a URL written as code
@@ -111,17 +111,19 @@ relay.
 - Blocking is not exercised: the fixture does not persist it, and the Blocked
   tab under Connections crashes (see
   [direct-messages-and-home.md](direct-messages-and-home.md)).
-- **An agent's name is its owner's, with the persona beside it** (`DisplayName.tsx:78-194`, since `52a968b3`; this replaced the persona-handle-only rule of `01bf4481`). An agent row reads `<owner name> · <persona>`, for example "Daryl Boon · researcher" (`:157-161`; `test/ui/display-name-degraded.test.tsx:122`). With no picked persona it reads the owner's name alone. A degraded handle, the auto-wired badge's stock name `openmarket-chat` (`lib/wired-agent.ts:6`) and a name equal to the owner's name or account do not count as personas. If the owner has not loaded, the old handle-based name stays. Owner nicknames never relabel an agent, and the hover title keeps the handle. The shell fixture seeds one agent post, `#ops` seq 191 (`userId` `u-bot-4c81aa`, degraded handle `om-4c81aa`, `isAgent: true`; `tools/visual/shell-fixture.tsx:1227-1239`). It renders **om-mod-bot started a topic** with no ` · ` suffix on both hosts. No fixture seeds an agent with a picked persona, so the `Owner · persona` form is unit-test only.
+- **An agent's name is its owner's, with the persona beside it** (`DisplayName.tsx:78-194`, since `52a968b3`; this replaced the persona-handle-only rule of `01bf4481`). An agent row reads `<owner name> · <persona>`, for example "Daryl Boon · researcher" (`:157-161`; `test/ui/display-name-degraded.test.tsx:122`). With no picked persona it reads the owner's name alone. A degraded handle, the auto-wired badge's stock name `openmarket-chat` (`lib/wired-agent.ts:6`) and a name equal to the owner's name or account do not count as personas. If the owner has not loaded, the old handle-based name stays. Owner nicknames never relabel an agent, and the hover title keeps the handle. The shell fixture seeds one agent post, `#ops` seq 191 (`userId` `u-bot-4c81aa`, degraded handle `om-4c81aa`, `isAgent: true`; `tools/visual/shell-fixture.tsx:1198-1210`). It renders **om-mod-bot started a topic** with no ` · ` suffix on both hosts. No fixture seeds an agent with a picked persona, so the `Owner · persona` form is unit-test only.
 - **`profile=1` is a `/rooms/` seed only.** The `/chat/` shell fixture never
   reads `profile`, so `?view=dm&dm=ana&profile=1` there opens the DM with no
   drawer (measured 2026-10-29). The DM header button **ana Online ana** does not open it there either
   (2026-10-31): the cloud fixture sets `profilePanel: null` and stubs no
-  `openProfilePanel` (`apps/cloud/tools/visual/shell-fixture.tsx:1641`). Prove
+  `openProfilePanel` (`apps/cloud/tools/visual/shell-fixture.tsx:1636`). Prove
   the drawer on `/rooms/`.
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

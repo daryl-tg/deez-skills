@@ -58,8 +58,8 @@ agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=ale
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=room` | Strip firing: `.alert-strip` text `store-5xx · check pods` |
-| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1493-1501`) |
-| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1505-1506`) |
+| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1464-1472`) |
+| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1476-1477`) |
 | `shell-fixture.html?view=room&alerts=quiet` | No strip: use this for every non-alert proof |
 | `fixture.html?surface=alert-card` | The alert card with its four actions |
 
@@ -74,7 +74,7 @@ The virtual **Alerts** group is gone. `om.chat.alertsGroupAuto` and
 `[data-alerts-group]` no longer exist. A channel with a live feed now stays in
 the category it is filed in. It carries its feed as a sub-row under the channel
 (`alertsRowForRoom`, `lib/alerts-group.ts:83`, rendered at
-`packages/chat-ui/src/components/Sidebar.tsx:4697-4705`).
+`packages/chat-ui/src/components/Sidebar.tsx:4698-4706`).
 
 To check the sub-row, open `shell-fixture.html?view=room&alerts=board`. On
 **both** hosts, `#ops` under **category Desk, 5 channels** carries
@@ -86,7 +86,7 @@ only `feeds.length > 0`. Under `alerts=quiet` there is no sub-row.
 
 A category can also be marked as an **alert category** (`alert: true` in the
 space's stored `categories`). It then shows `.category-alerts-mark` and its
-ringing count even while expanded (`Sidebar.tsx:4931-4937`, `:4953-4966`). A
+ringing count even while expanded (`Sidebar.tsx:4932-4938`, `:4954-4967`). A
 plain category shows counts only when collapsed. You mark one from the category
 header menu (**Mark as alert category**), or with the **Alert category** box in
 **Create Category**. The recipe, with the stubs that make it reachable, is in
@@ -97,8 +97,8 @@ and **1 ringing** while expanded. Driven 2026-11-19.
 
 ### The board's feed peek (added 2026-11-16)
 
-Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1528`,
-`apps/cloud/tools/visual/shell-fixture.tsx:568`), so the bare board shows the
+Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1499`,
+`apps/cloud/tools/visual/shell-fixture.tsx:563`), so the bare board shows the
 chart-less peek. `alertsStub` is a plain object, so the session-capture shim
 from [message-actions.md](message-actions.md) can replace the method:
 
@@ -118,6 +118,55 @@ Driven 2026-11-16 on both hosts. Without the shim the same hover gives
 **store-5xx**, **Ring**, **3 open** and no bars. A **Log** feed's trend line
 was not driven.
 
+### Convert to alerts is hidden on an alert channel (added 2026-11-26)
+
+Since `0f3fd22c`, **Convert to alerts...** is offered only on a channel that has
+no live, non-archived alert feed. The gate is `convertToAlertsOffered`
+(`packages/chat-ui/src/lib/convert-to-alerts.ts:34`), which reads
+`session.alerts.hasLiveFeedFor(room)`. It applies to three menus: the channel
+title menu, the header **More channel actions** `…`
+(`ChannelHeaderMenus.tsx:215-218`) and the sidebar row menu
+(`Sidebar.tsx:5338-5341`). A channel whose feeds are all archived is offered it
+again. The hosted session has no alerts store, so the entry never shows there
+in the product.
+
+Neither fixture's `alertsStub` defines `hasLiveFeedFor`
+(`tools/visual/shell-fixture.tsx:1459`; cloud
+`apps/cloud/tools/visual/shell-fixture.tsx:535`), so by default the fixtures
+offer **Convert to alerts...** everywhere, `#ops` included. Seed the live feed
+through the session-capture shim ([README.md](README.md), "Seed spelled-out keys with the session-capture shim"):
+
+```bash
+# open shell-fixture.html?view=room&alerts=quiet with the shim init script, then:
+agent-browser eval '(()=>{const o=window.__om;o.alerts.hasLiveFeedFor=r=>r==="ops";o.version=Number(o.version)+1;o.closeConfirm();return 1})()'
+agent-browser find role button click --name "More channel actions"
+#   #ops header menu: 13 items, no "Convert to alerts..." (14 with it before the seed)
+# right-click [data-row-key="room:ops"] .channel-row-identity
+#   #ops row menu: 11 items, no "Convert to alerts..."
+# right-click [data-row-key="room:signals"] .channel-row-identity
+#   #signals row menu: 12 items, "Convert to alerts..." still there
+```
+
+Driven 2026-11-26 at `0f3fd22c` on both hosts with exactly these counts.
+The same seed adds the dock's **Alerts** door (`[data-slot-tab="alerts"]`,
+after **Pins**) on both hosts, which the unseeded fixture never shows. Do not
+press it on the fixture: it opens the channel's Alerts tab, which blanks the
+shell (see Gotchas).
+
+The dialog (`settings/ConvertChannelHost.tsx`) changed in the same commit:
+- The title `Convert to alerts · #<channel>` sits on one line with an ellipsis
+  (`span.convert-channel-title`, `:102`).
+- The create state is 480 px wide.
+- The "Name the feed" line is gone while the name is empty.
+- If the dialog opens on an alert channel it shows only a refusal
+  (`p[data-convert-already-alerts]`, `:165`): "#ch is already an alert
+  channel. Add alerts from its Alerts tab, or bind more webhooks on the
+  channel's Webhooks page."
+
+The dialog is not reachable on the fixtures. `openConvertToAlerts` answers the
+inert stand-in, and `Shell.tsx` mounts the host from its own state.
+Live verification pending.
+
 ## Gotchas
 
 - **`surface=alert-card` mounts late.** 1.8 s after `open` none of the four
@@ -133,15 +182,15 @@ was not driven.
   Live verification pending.
 - Without `alerts=quiet` the strip shifts every surface below it. That is why
   the other guides add it.
-- **The shell fixture never imports `shared/alerts.css`** (only `src/main.tsx:22`,
-  `apps/cloud/src/main.tsx:25` and the two gallery `fixture.tsx` files do). Under
-  `alerts=board` the strip and board render as unstyled text. That has been
-  true since at least `5820fbea`, so do not judge alert visuals from the shell;
-  use `fixture.html?surface=alert-card` or the bundled app.
+- **The shell fixtures style alerts since `27156df5`.** They load
+  `shared/alerts.css` through `src/app-styles.ts`, like the apps. Under
+  `alerts=board` the strip reads `display: flex`, padding `7px 12px` and a
+  tinted band on both hosts (2026-11-26). Frames from before `27156df5` showed
+  the strip and board as unstyled text; do not compare against them.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
   channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:448-458`
   and opened in the product by `session.openAlertsTab`). The fixture's
-  plain-object `alertsStub` (`shell-fixture.tsx:1488`) lacks members the
+  plain-object `alertsStub` (`shell-fixture.tsx:1459`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,
   `setSelectedFeed`, `tapeFeedFilter` and `setTapeFeedFilter`. Which one throws
   first was not isolated. No error boundary wraps the panel, so `#root`
@@ -154,7 +203,9 @@ was not driven.
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the strip's third control is an icon-only **Dismiss this strip**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** new tonight on both hosts: **Convert to alerts...** left out of the `#ops` header and row menus with `alerts.hasLiveFeedFor` stubbed, kept on `#signals`; the dock **Alerts** door appearing under the same stub; the strip styled with no injection since `27156df5`. Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. **Limitations:** the convert dialog is unreachable on the fixtures; the dock door's panel was not opened (it blanks the shell). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the strip's third control is an icon-only **Dismiss this strip**. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

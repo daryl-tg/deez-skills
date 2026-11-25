@@ -28,20 +28,17 @@ however long the line is.
 
 The default `#ops` tape seeds one block: dax's
 `om alert list --room ops --since 24h` (`msg-ops-106`;
-`tools/visual/shell-fixture.tsx:1136`, and
-`apps/cloud/tools/visual/shell-fixture.tsx:351` on `/chat/`). To prove wrapping,
+`tools/visual/shell-fixture.tsx:1107`, and
+`apps/cloud/tools/visual/shell-fixture.tsx:346` on `/chat/`). To prove wrapping,
 send a long unbroken line from the composer, because no seed has one.
 
-**Neither shell fixture imports `code-block.css`.** Only the app entries do
-(`src/main.tsx:39`, `apps/cloud/src/main.tsx:42`). On the fixture lane the block
-renders with `white-space: pre` and an inline `<code>`, which looks like the
-pre-`2350a0fd` behavior. Load the real stylesheet into the page through vite
-before you measure:
+Both shell fixtures load `code-block.css` through `src/app-styles.ts` since
+`27156df5`, as the apps do. Measure on the page as it loads; no injection.
+On 2026-11-26 the seeded `msg-ops-106` block read `white-space: pre-wrap` with
+its **Copy** control on both hosts.
 
 ```bash
 agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=room&alerts=quiet')"
-agent-browser eval '(async()=>{await import("/rooms/src/components/code-block.css"); return 1})()'
-# /chat/ lane: import("/chat/src/components/code-block.css")
 # Fill the composer (textbox "Message #ops · $ for markets · /chart to post one") with
 # ```\n<300 unbroken characters>\n``` through the native value setter plus an input
 # event, then press Enter. The new row is the last [data-message-row] pre.
@@ -55,8 +52,8 @@ Expect `pre-wrap`, `fits: true` and `copyInside: true` at 1440×900 and at
 
 ## Gotchas
 
-- Without the injected stylesheet, the measurements describe the fixture, not
-  the product. Say in the manifest that you injected it.
+- Records before `27156df5` (2026-11-25 and earlier) measured with the
+  stylesheet injected, because the fixtures did not load it then.
 - `agent-browser type` into the composer does not reliably keep the newlines
   around a fence. Set the value with the native `HTMLTextAreaElement` setter and
   dispatch `input`, then press Enter.
@@ -67,7 +64,9 @@ Expect `pre-wrap`, `fits: true` and `copyInside: true` at 1440×900 and at
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the seeded block re-read on both hosts with no stylesheet injected (`pre-wrap` with **Copy**), since `27156df5` loads `code-block.css`. Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. **Limitations:** the wrapping send was not re-measured at 390. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

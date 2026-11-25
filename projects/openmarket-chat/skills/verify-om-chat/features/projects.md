@@ -145,7 +145,7 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   with the title kept; **Discard** closes it and shows the list (driven
   2026-11-24, `/rooms/`, `panel=todos`).
 - **Message menu entry.** In records mode a message's **More** menu lists
-  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1661-1673`),
+  **Ticket** (aria "Make a ticket from this message", `MessageRow.tsx:1669-1681`),
   and the hover toolbar shows the same button (`[data-add-todo]`). Off Projects
   there is no promote at all; see [message-actions.md](message-actions.md).
 - **Projects switch** (`ProjectsSettings.tsx:70-190`; `b29feb5a`, `8d2014cc`).
@@ -549,7 +549,9 @@ Projects stub the page falls to its error boundary, because the bare
 
 ## Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the ticket-open step was covered by a dialog backdrop and `ticketMuted=1` is a dead seed (carried); the ticket page was not re-opened tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The ticket drop zones were re-driven alone with a 400 ms wait: both `[data-drop]` zones show. This guide's source did not change in the delta. **Limitations:** the panel's ticket-page click is still blocked by the modal backdrop in the step (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the ticket-open step was covered by a dialog backdrop and `ticketMuted=1` is a dead seed (carried); the ticket page was not re-opened tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** `/rooms/` (18186) with the Projects stub and the shim: the ticket comment box chipping `@Devops` and `@traders` and not `@mod`; **Cancel** on a typed new ticket → **Discard this ticket?**, **Keep editing**, **Discard**; the pasted upload tile; the core-path re-drive. **Limitations:** the saved links behind the stubbed `todos.comment`, and the ticket role recount after an assignment, were not driven. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

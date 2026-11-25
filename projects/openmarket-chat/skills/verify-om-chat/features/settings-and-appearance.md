@@ -151,7 +151,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4888`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4859`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -196,9 +196,15 @@ truly `disabled` and points `aria-describedby` at the reason:
 agent-browser open "$(control-om-chat url 'tools/visual/settings-fixture.html?host=user&page=notifications')"
 agent-browser click '[aria-label="Enable quiet hours"]'
 agent-browser fill  '[aria-label="Quiet hours time zone"]' 'Mars/Olympus'
-#   "Unknown time zone; keeping Asia/Kuala_Lumpur"; Save disabled,
-#   described by "Enter a valid IANA time zone before saving"
+#   "Unknown time zone; keeping Asia/Kuala_Lumpur"; the unsaved bar's
+#   **Save Changes** disabled (aria-describedby "unsaved-save-disabled",
+#   "Enter a valid IANA time zone before saving"); **Reset** reads **Discard changes**
 ```
+
+The bar mounts only once the draft is dirty: the **Enable quiet hours** click
+alone shows **Reset** and **Save Changes**, both enabled (re-driven
+2026-11-26 on `/rooms/`). Match the button by **Save Changes**; an exact
+"Save" finds nothing.
 
 Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 `http://127.0.0.1:8098/verify-om-chat-maint-20261110/r1/` (frames 14-15, 19-22).
@@ -208,7 +214,7 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2646-2651`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2617-2622`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -709,7 +715,7 @@ code-expired and code-mismatch notes, and a real daemon.
 - **Notifications crashes the shell fixture's whole User settings surface.**
   `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:607`),
   and neither fixture's plain-object `alertsStub` has it
-  (`shell-fixture.tsx:1488`, `apps/cloud/tools/visual/shell-fixture.tsx:540`).
+  (`shell-fixture.tsx:1459`, `apps/cloud/tools/visual/shell-fixture.tsx:535`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
   settings could not load** / **Try again**. Any further page click finds no
   button, and **Try again** returns to My Account. Reload before driving the
@@ -783,7 +789,9 @@ code-expired and code-mismatch notes, and a real daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the quiet-hours **Save** state was not re-proved (step found no Save button). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The quiet-hours bar was re-driven alone: **Save Changes** disabled for `Mars/Olympus`. This guide's source did not change in the delta. **Limitations:** the step file matched an exact "Save" until tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the quiet-hours **Save** state was not re-proved (step found no Save button). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** the quiet-hours **Save** state with an unknown time zone was not re-proved: the step found no **Save** button, while "Unknown time zone" showed. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 

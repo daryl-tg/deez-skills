@@ -35,7 +35,7 @@ tools/visual/shell-fixture.html?view=room&alerts=quiet&quiet=on
 The entry is on the **server header menu**, not the channel header's **More
 channel actions** (earlier passes looked there and recorded an absence that
 was never the gate). On `/rooms/` the root host's `daemonFeatures` is true, so
-`Sidebar.tsx:5219` renders **Clean up topics** between **Open World** and
+`Sidebar.tsx:5220` renders **Clean up topics** between **Open World** and
 **Notification Settings**:
 
 ```bash
@@ -62,7 +62,7 @@ with topic triage. Do not target the operator daemon.
 ## Gotchas
 
 - `quiet=on` seeds the quiet followed topics the sheet lists and the bottom-rail
-  button **Quiet topics 20** (`shell-fixture.tsx:2366-2380`; `showQuiet=1` also
+  button **Quiet topics 20** (`shell-fixture.tsx:2337-2351`; `showQuiet=1` also
   seeds the shown state). Pressing the button flips `aria-pressed` and shows the
   hidden rows (the sidebar's level-2 treeitems went 15 → 35 on 2026-11-22 and 2026-11-02; 14 → 30 on 2026-10-31);
   read the attribute after the re-render, not in the click's own tick.
@@ -70,7 +70,7 @@ with topic triage. Do not target the operator daemon.
   writes the synced pref `om.chat.sidebarQuietTopics` (`"1"` while shown, key
   absent while hidden; `lib/prefs.ts`, `lib/quiet-topics.ts`). The shell
   fixture swaps `session.quietTopics` for a plain object that never reads or
-  writes the pref (`shell-fixture.tsx:2372-2379`), so a reload there cannot
+  writes the pref (`shell-fixture.tsx:2343-2350`), so a reload there cannot
   prove it. Use a real session: press **Quiet topics N**
   (`[data-quiet-topics-row]`, `aria-pressed`), read the key, reload. Source
   discovery 2026-10-30; live verification pending.
@@ -86,7 +86,9 @@ with topic triage. Do not target the operator daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the quiet-topic counts differ from the step's (20/15 and 35 here); counts depend on the fixture clock. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
+**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+
+**Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the quiet-topic counts differ from the step's (20/15 and 35 here); counts depend on the fixture clock. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
 **Previous record:** 2026-11-24 (nightly maintenance). **Product commit:** `9c697d6e` (GitLab origin/main; rooms-client 0.125.0; 22 commits past `4b6f42b4`). **Scope:** the scripted core-path re-drive of this guide's recipes (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world); every failed or disagreeing step was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261124/r1/`.
 
