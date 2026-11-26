@@ -1,0 +1,57 @@
+# Publish a package
+
+A publisher sends a package to the registry with `POST /v1/publish`: a manifest and a tarball whose
+`om-package.json` matches it, under a bearer the registry's verifier accepts. The answer names the
+package's page, and the version is then readable through the API and downloadable as a tarball.
+
+Last verified 2026-11-26 on openmarket-registry `c0fbc81` (fresh detached worktree, Bun 1.4.3, lane 18120, seed token `dev-token`). Scope: an ontology-pack publish with a seed token, the refusals without a valid bearer, the
+package read and the tarball download. Limitations: no listed kind (agent-plugin, wrun-indicator)
+was published; validate, drafts, yank, visibility and delete were not driven.
+
+## Sub-features
+
+- `publish-ok`: a valid publish answers 200 with `{"name","version","listing_url"}`.
+- `publish-refused`: no bearer, or a bearer the verifier does not know, answers 503
+  `verifier_not_configured` when the only verifier is seed tokens.
+- `package-read`: `GET /v1/packages/:scope/:name` returns kind, latest, publisher, owner,
+  `tarball_url`, `sha256` and the version list.
+- `tarball-download`: `GET /tarballs/:scope/:name/:version.tgz` returns the tarball as published.
+- `publish-validate`, drafts, yank, visibility and delete: live verification pending.
+
+## How to get to it (user POV)
+
+- A publisher runs `om publish` (or any client) against the registry with their key.
+- A reader runs `om install @scope/name` or downloads the tarball the package page names.
+
+## Driving it with control-om-registry
+
+Preconditions:
+
+- The lane was started with a seed token:
+  `OM_REGISTRY_STATIC_TOKENS='{"dev-token":{"account_id":"acct-dev","tier":"pro"}}' $CR up`.
+  Leave `OM_REGISTRY_PLATFORM_API_URL` and `OM_REGISTRY_AUTH_BASE_URL` unset so the first publish
+  may claim its scope.
+- `$CR doctor` passes.
+
+- **Build the package.** In a scratch directory write `om-package.json`:
+  `{"spec_version":"1.1","name":"@acme/btc-dip-alerts","version":"1.0.0","kind":"ontology-pack","description":"Alert recipes for BTC dip hunting","keywords":["btc","alerts"]}`,
+  then `tar -czf pkg.tgz om-package.json`.
+- **Publish.** `$CR cli -- curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:<port>/v1/publish -H 'authorization: Bearer dev-token' -F "manifest=$(cat om-package.json)" -F "tarball=@pkg.tgz;type=application/gzip"`.
+  Expect HTTP 200 and `"listing_url":"http://127.0.0.1:<port>/@acme/btc-dip-alerts"`.
+- **Refusal.** The same call with no `authorization` header, or `Bearer nope`, answers 503 with
+  `"code":"verifier_not_configured"`.
+- **Read it back.** `$CR cli -- curl -fsS http://127.0.0.1:<port>/v1/packages/acme/btc-dip-alerts`
+  shows `"kind":"ontology-pack"`, `"latest":"1.0.0"`, `"owner_account_id":"acct-dev"`.
+- **Download.** `curl -sS -o got.tgz http://127.0.0.1:<port>/tarballs/acme/btc-dip-alerts/1.0.0.tgz`
+  answers 200, and `tar -tzf got.tgz` lists `om-package.json`.
+- **Second view.** `curl -fsS http://127.0.0.1:<port+1>/metrics | grep publishes_total` shows
+  `om_registry_publishes_total{kind="ontology-pack"} 1`.
+
+## Gotchas
+
+- With only seed tokens configured, an unknown bearer is refused as 503 `verifier_not_configured`,
+  not 401. Read the code, not the status.
+- The manifest field and the tarball's `om-package.json` must match.
+- Tarballs land in `./data/tarballs` relative to the lane's working directory and survive a restart;
+  the metadata does not. Run the lane from a disposable worktree.
+- A `guest` tier token is refused unless `OM_REGISTRY_ALLOW_GUEST_PUBLISH=1`; use `pro`.

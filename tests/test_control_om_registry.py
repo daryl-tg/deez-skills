@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 REPO = Path(__file__).resolve().parents[1]
-CONTROL = REPO / "projects/openmarket-registry/skills/verify-registry/bin/control-registry"
+CONTROL = REPO / "projects/openmarket-registry/skills/verify-om-registry/bin/control-om-registry"
 FAKE_SERVER = """\
 import http.server, os, sys
 class Health(http.server.BaseHTTPRequestHandler):
