@@ -4,7 +4,19 @@ The left toolbar holds the drawing tools: trend line, Fibonacci, patterns,
 positions, brush, shapes, arrows, text, emoji and the ruler. A user picks a tool,
 clicks the chart to place it, and gets a floating toolbar for colour, width,
 lock, settings and delete. A tool search (the `;` key or the magnifier at the
-top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-26 on
+top of the toolbar) finds a tool by name. Last DRIVEN 2026-11-27 on
+`a79bf68710` (`origin/main`, 78 commits past `1d1a3e1410`), lane `18109`, a
+no-session lane: in light mode a Long Position's settings card read the
+`Position` heading (`.psh-title`) at `rgb(61, 63, 66)` on a white ground
+(`a979cf688a`), but the frame taken after showed the `LONG POSITION` card
+with a blank body, so the ink is a DOM read, not a pixel proof. A
+Fibonacci Retracement drawn with two clicks did not list in Objects (see the
+panels guide's `rp-objects`). Source, not driven: a drawing's bar opens on
+the first press on another chart (`238c1cef96`; needs two charts, walled
+by `multi-chart`), the Show on list covering custom sizes with a locked
+chip between two shown sizes (`acff1e2e3d`, `tool-show-on-chip-<label>`),
+and a typed `-0,382` reading as `-0.382` in a number field
+(`1f928202f8`). Before that, last DRIVEN 2026-11-26 on
 `1d1a3e1410` (`origin/main`, 76 commits past `ec531568de`), lane `18108`,
 a guest JWT: a Shift+click Ruler started at the clicked price (engine
 `1329.103`, see `dt-ruler-shift`), and a Long Position under Lock all left

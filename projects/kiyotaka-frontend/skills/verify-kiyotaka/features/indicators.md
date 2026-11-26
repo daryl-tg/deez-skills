@@ -4,7 +4,21 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). Source read 2026-11-26 on `1d1a3e1410`
+leave the chart at restore). Driven 2026-11-27 on `a79bf68710` (`origin/main`,
+78 commits past `1d1a3e1410`), lane `18109`, a no-session lane: `/` opened the
+Indicators window with no wall (`See all 168`, `Couldn't load all official
+indicators` with the backend down), an `RSI` search listed eight registry
+rows that all kept `Add` with Shift held, and the RSI `Add` raised `Verify
+your email to unlock Technical Indicators` with `Indicators 1/3` unchanged
+(see `ind-shift-all`). Source read the same night, not driven (signed-in or
+walled): an indicator's `No older history here` chip (`9454952ad7`), a
+refused script naming the chart size it needs (`Needs {interval} or finer`,
+`36e74c618f`), the Timeframe menu offering what the run accepts
+(`f44891f5f0`), a finer pinned interval drawing on a bigger chart
+(`0c83ab16eb`), the FRVP's `Volume by price is not available for this
+period` (`8c319c490e`), a private package with no `Package page` door
+(`739d74fa47`) and wrun rows recomputed after a wake heal (`3499a34f03`).
+Before that, source read 2026-11-26 on `1d1a3e1410`
 (`origin/main`, 76 commits past `ec531568de`), not driven (a guest's Add is
 walled and the guest's VWAP is not a wrun, so no guest overlay reaches
 these): **a volume-reading script on a market with no volume now draws
@@ -331,6 +345,12 @@ indicators were not driven.
   while the pointer is anywhere in its pane, not only on its name row, and a
   wheel over a button scrolls the column; the card is `pane-options-popover`.
   Side columns shrink before a side hides (engine contract v 9, source).
+- `ind-shift-all` with Shift held, a row's Add pill reads `Add to all` only
+  where the add lands on every chart of the layout: a native official row or
+  a built-in routed to its proven twin (RSI, the moving averages, Volume),
+  which mount on every chart as one undo step. Registry packages, community
+  scripts, feeds and setup doors keep `Add` (`34904b4ba8`). Every Add lane,
+  native official included, is walled for a guest; only the label shows.
 
 ## How to get to it (user POV)
 
@@ -779,6 +799,17 @@ Preconditions:
   `createIndicatorShareDeepLink` in
   `src/utility/sharing/indicator-share-link.util.ts`, wired in
   `src/pages/chart.vue`.
+- **`ind-shift-all` (driven 2026-11-27 on `a79bf68710`, a no-session lane,
+  half).** Press `/`, fill `indicator-search-bar-input` with `RSI`. The
+  pills are `official-indicator-add-official-indicator-<slug>-btn`. Hold
+  Shift (`browser keydown Shift`, or dispatch a `keydown` with `shiftKey:
+  true` on `window`: the app listens on `window` in the capture phase) and
+  read the pills: all eight rows, every one a registry package
+  (`relative-strength-index-rsi-openmarket` first), kept `Add`. The `Add to
+  all` half needs the official catalog, which needs the backend: on this
+  lane the window read `Couldn't load all official indicators`. Clicking
+  the RSI pill raised `Verify your email to unlock Technical Indicators`
+  (a guest JWT gets the `indicators` sign-in card).
 - **Proof.** Screenshot the pane with the legend visible, plus the engine-state
   read naming the overlay. Capture the settings dialog as its own frame if the
   claim is about settings.

@@ -8,7 +8,15 @@ the browser kScript engine and the kScript authoring lane are deleted, and
 since `4f7be7723c` (2026-11-01) **a kScript document opens nowhere**: every
 door refuses it with a warning toast (asked for 3 s, shown about 5 s since
 `eac2e5f2fb`, see Gotchas), the read-only viewer and its frozen bar are
-deleted too (source, read on `a4488341f6`). Re-driven 2026-11-26 against
+deleted too (source, read on `a4488341f6`). Re-driven 2026-11-27 against
+`a79bf68710` (`origin/main`, 78 commits past `1d1a3e1410`), lane `18109`, a
+no-session lane: `editor` in Super Search listed
+`super-search-result-panels:Editor-btn` (`Script Editor`), whose click
+opened the drawer with no wall (`kscript-run-btn`, no `kscript-save-btn`),
+and `tb-editor-toggle-btn` raised `Verify your email to unlock Indicator
+Editor`. Source, walled (`KATA`): a Pine conversion that hears nothing for
+15 minutes ends with `The conversion stopped responding` and Try again
+(`319ce4e7a0`). Before that, re-driven 2026-11-26 against
 `1d1a3e1410` (`origin/main`, 76 commits past `ec531568de`), lane `18108`, a
 guest JWT: `tb-editor-toggle-btn` raised the `Indicator Editor` wall again.
 Before that, re-driven 2026-11-25 against

@@ -5,6 +5,25 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-27 against product tree `a79bf68710` (`origin/main`, 78
+commits past `1d1a3e1410`), lane `18109`, a no-session lane: the Orderbook
+opened beside the chart with `Book`, `Delta` and `DOM`, a live ladder and
+its `Imbalance` line; while a side panel is open the ticker folds its
+Heatmap, Watchlist, Orderbook, News and Alerts buttons into `Panels` and
+shows `Market stats`, so `tb-orderbook-toggle-btn` is absent until the
+panel closes (`Close panel`). **Objects listed nothing after a drawing:** a
+Fibonacci Retracement drawn on the plot left `Nothing on this chart yet`
+through a close and reopen (not traced; a guest JWT listed trend lines on
+2026-11-25), so the folder fix (`bd95456a77`: `Drop here to ungroup` and
+`Remove folder` take every tool type out of its folder) is not driven.
+Source, walled for a guest (`orderbook-heatmap` on every door): the heatmap
+keeping its unit, tier and venues across off and on (`1d6da8cd63`), its
+refill on a session flip at a custom size (`ad2acacdc1`), the 1w heatmap's
+newest closed week and 2w to 8w (`80ca567e25`) and five custom day sizes on
+crypto (`36c844cae3`). Source, not driven: the Tape axis finer than one
+book row on CME (`1a33dedaa2`), a refused alert line drag toasting `Could
+not move the alert` (`9117629bac`) and a broker book loading only before
+its first frame (`923318edc3`). Before that, last
 DRIVEN on 2026-11-26 against product tree `1d1a3e1410` (`origin/main`, 76
 commits past `ec531568de`), lane `18108`, a guest JWT: `tb-panels-row-heatmap`
 opened the heatmap popover (switch `aria-checked="false"`, `Order Book` and

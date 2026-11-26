@@ -4,6 +4,15 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
+was last DRIVEN on 2026-11-27 against product tree `a79bf68710` (`origin/main`,
+78 commits past `1d1a3e1410`), lane `18109`, a no-session lane (the backend
+unreachable): the symbol dialog's star raises the `Favorites` wall and sends
+nothing (see `sym-star-wall`); a signed-out `/chart/new?symbol=` link opens
+the market on `/chart/` (see `sym-new-link`); under the dev override the
+`search-kind-rows` flag lists one row per kind of market (see
+`sym-kind-rows`); and under the `typed-interval-widths` override the Custom
+moment offers `Use 7h`, a day-restart size now on by default, while the
+signed-out chart landed on `4h` (see `tb-interval`). Before that, this entry
 was last DRIVEN on 2026-11-26 against product tree `1d1a3e1410` (`origin/main`,
 76 commits past `ec531568de`), lane `18108`, a guest JWT: the interval dial
 held 17 options and no `Custom` for a guest; under the `typed-interval-widths`
@@ -439,6 +448,20 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
   compare, an interval, a chart type, a chart setting, the session, the price
   scale or the Volume row, and name the step they will undo. Driven 2026-11-01
   and 2026-11-02 for symbol, interval and chart type; see Gotchas.
+- `sym-star-wall` a signed-out star on a symbol dialog row (asset, venue or
+  list row) raises the `Favorites` wall and sends no request (`6ea15ccc04`;
+  before, it sent an account write that answered `401`).
+- `sym-new-link` a signed-out `/chart/new?symbol=<EXCHANGE:SYMBOL>` link
+  lands on the person's own chart at `/chart/` with that market open
+  (`a16a420c79`; before, the market was dropped). Any other layout id stays
+  in the path.
+- `sym-kind-rows` behind the `search-kind-rows` flag (off for everyone
+  unless minted; a dev build's override turns it on), a typed name leads
+  with one row per kind of market (Perpetual, Spot, Futures, Stock, ...),
+  each saying what it gives (`Volume, order book, 24/7`) and how many
+  venues, and every other result sits under `OTHER MATCHES`; a need typed
+  after the name (`gold volume`) narrows the rows (`203418de6d`,
+  `8aee67f057`).
 
 ## How to get to it (user POV)
 
@@ -659,6 +682,15 @@ Preconditions:
   browser builds: the server builds it, and a refusal keeps the market on
   its standard size (`fc471acb6b`, source). A long window is read in pieces
   (`87c02566ac`, nothing to see).
+  **The day-restart sizes 5h, 7h, 9h, 10h and 11h are on by default
+  (`0432d8e8c4`, `87c56ef081`; driven 2026-11-27 on `a79bf68710`, a
+  no-session lane, under the `typed-interval-widths` override only).** Their
+  own kill switch `typed-interval-odd-hours` reads on unless minted off. In
+  the Custom moment, fill `7` and press `tb-interval-custom-unit-h-btn`:
+  `-say` read `7 hours`, `-act` `data-verdict="use"`, `Use 7h`. Pressing it
+  left the chart on `4h` (454 bars, 4 h apart, no toast and no console
+  line), the rung below, as the guest's `20m` sat on `15m` the night
+  before. These bars restart at 00:00 UTC with a short last bar (source).
   **The venue list opens on the Perp pill (driven 2026-11-21).** After a
   fill of `BTC-USD` or `BTCUSDT` the right-hand venue list held perp rows
   only (`venue-row-BINANCE_FUTURES|BTCUSDT-btn`, `-OKEX_SWAP|…`, 16 rows),
@@ -966,6 +998,32 @@ Preconditions:
   take. Restore `Default` after. The move pill keeps its own decimals and
   list rows are untouched (source). Close the panel with its `X` (top right
   of the panel); `Escape` leaves it open.
+- **`sym-star-wall` (driven 2026-11-27 on `a79bf68710`, a no-session
+  lane).** Open `tb-symbol-info-btn`, fill `btc`, then `find first
+  ".asset-row__fav" click` (the star has `aria-label` `Add to favorites`
+  and `aria-pressed`; `find css` is not a locator). The wall `Verify your
+  email to unlock Favorites` rose (a guest JWT gets the `Favorites` sign-in
+  card), `aria-pressed` stayed `false`, and `browser network requests`
+  listed no favorites call, only the `refresh-token` `502`. Press `Escape`
+  twice to clear the wall and the dialog.
+- **`sym-new-link` (driven 2026-11-27 on `a79bf68710`, a no-session lane).**
+  `browser open "<lane>/chart/new?symbol=BINANCE:ETHUSDT"`: the path became
+  `/chart/` with no query, the symbol button read `BINANCE ETHUSDT` and
+  `metadata[0]` drew 250 bars. One read during the switch showed `COINBASE
+  ETHUSDT` on the button; read it again after the candles land.
+- **`sym-kind-rows` (driven 2026-11-27 on `a79bf68710`, under the
+  override).** Set `localStorage['kiyo.flag-overrides']` to
+  `{"search-kind-rows":true}` and reload (the override is read on a dev
+  build or for an internal role only; remove the key after). Fill the
+  dialog and wait about 8 s: `btc` read Perpetual (`18 venues`), Spot (`81
+  venues`) and Futures (`Sun to Fri`) over `OTHER MATCHES`; `nvda` read
+  Stock (`Volume, trades`, `Delayed 15 minutes`) and Perpetual; `gold` read
+  Spot (`Price only, no volume`, `XAU/USD`) and Perpetual; `eurusd` read
+  Spot (`Price only, no volume`, `EUR/USD`) and Perpetual; `gold volume` put
+  Perpetual before Spot. Rows carry `data-kind-row="<kind>"`, captions
+  `asset-row-kind-caption`, the bar `asset-list-other-matches`. The Spot
+  row of `btc` landed after the first two, so read the rows again before
+  counting. Without the override no row carries `data-kind-row`.
 
 ## Gotchas
 

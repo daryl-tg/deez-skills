@@ -3,6 +3,18 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
+entry was last DRIVEN on 2026-11-27 against product tree `a79bf68710`
+(`origin/main`, 78 commits past `1d1a3e1410`), lane `18109`, a no-session
+lane: the backend host `dboons-nutz` had left the tailnet (NXDOMAIN on both
+resolvers, `refresh-token` answered `502`) while the gateway resolved, so
+`doctor` passed only on hub PR #26's wrapper. Boot drew 250 bars on COINBASE
+BTC-USD 1h 20 s after `open`, with VWAP (`Indicators 1/3`), no `Guest Mode`
+badge and no signup modal. **Forex charts now carry tick volume** (see
+`boot-fx-tick-volume`) and **a 1w bar opens on Monday 00:00 UTC** (see
+`boot-week-monday`), and **a US stock knows NYSE holidays** (see
+`boot-nyse-holiday`). Not driven: candles without WebGL, the expanded price
+pane across a reload, the reload placeholders' colours and the short-cell
+cards (source only). Before that, this
 entry was last DRIVEN on 2026-11-26 against product tree `1d1a3e1410`
 (`origin/main`, 76 commits past `ec531568de`), lane `18108`, a guest JWT
 with the backend answering and the gateway reached through the
@@ -288,6 +300,21 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
 - `boot-axis-decimals` a quoted market (a US stock, a forex pair, a metal, a
   commodity, an index, an option) prints its own convention's decimals on
   the price axis at every zoom; crypto keeps the zoom's step.
+- `boot-fx-tick-volume` a forex chart (FX_OTC) shows a `Tick vol` pane: the
+  number of price quotes in each bar, never traded size, wherever the gateway
+  serves the count; VWAP and other volume readers then accept the chart
+  (`043312f956`, kill switch `fx-tick-volume`, on unless minted off).
+- `boot-week-monday` every 1w bar opens on Monday 00:00 UTC, the forming bar
+  included (`0dabf0e89c`; before, week bars opened on Thursdays).
+- `boot-nyse-holiday` a US stock's status is closed all day on an NYSE
+  holiday and names the next real open; an early close ends at 13:00 ET
+  (`1904e61078`).
+- `boot-no-webgl` a browser that gives no WebGL still draws the candle bodies
+  (`e5e707c109`, engine `1329.106`; source, not driven: needs a browser
+  launched without WebGL).
+- `boot-pane-expanded` a double-clicked (expanded) price pane stays expanded
+  across a tab switch, a reload and a market switch (`5b43233522`; source,
+  not driven).
 
 ## How to get to it (user POV)
 
@@ -632,6 +659,35 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   keep their own rules. Since `d6bfa51f8a` an indicator pane keeps its own
   decimals on every market (RSI `70.00`, not `70.00000` on GBP/JPY; source,
   not driven: a guest's Add is walled). `Reset chart` puts the scale back.
+- **`boot-fx-tick-volume` (driven 2026-11-27 on `a79bf68710`, a no-session
+  lane).** Open the symbol dialog (`tb-symbol-info-btn`), fill `eur`, click
+  the row whose text holds `Euro Forex`, then the venue
+  `venue-row-FX_OTC|EUR/USD-btn` (a plain `EURUSD` search lists the
+  LIGHTER.F perp first; that is not forex). Switch to `5m` and read
+  `tc[0].metadata`: `Main`, `Tick vol`, `VWAP`. Every one of the last 30
+  rows of `metadata[0].rawData` was six wide with a count in `[5]` (`317`,
+  `255` on closed bars), and the forming bar's count rose from `55` to `105`
+  over a minute. The legend reads `Tick vol 115`, and
+  `localStorage['kiyo.fx.quote-counts-seen']` reads `'1'`. The product docs
+  say the gateway serves counts on 5m to 1w only, but on 2026-11-27 a 1m
+  chart held counts too (`[5]` on all of the last 30 rows), and the app
+  follows the data: a row five wide means the gateway served none, not a
+  broken chart.
+- **`boot-week-monday` (driven 2026-11-27 on `a79bf68710`).** `find testid
+  tb-interval-chevron-btn click`, then `tb-interval-option-1w-btn`. Eval
+  `tc[0].metadata[0].rawData.slice(-12).every(r=>{const ms=r[0]>1e11?r[0]:r[0]*1000;return new Date(ms).getUTCDay()===1&&ms%86400000===0})`:
+  `true` on COINBASE BTC-USD (469 bars; the last three opened 2026-11-09,
+  -16 and -23, the last one forming).
+- **`boot-nyse-holiday` (driven 2026-11-27 on `a79bf68710` at 20:33 UTC,
+  Thanksgiving in New York).** `browser open
+  "<lane>/chart/?symbol=POLYGON:AAPL/USD"`, wait for candles (the button
+  reads `EQUITIES · TRADES AAPL`; one early read said `COINBASE AAPL`).
+  A moon icon sits beside the pane's `AAPL`; hover it (`mouse move 118 116`
+  at 1440x900): the tip read `Closed · Reopens Fri, 9:30 AM EST · in 17h
+  57m`. `[data-testid=market-closure-note]` holds the same text at opacity
+  0 whatever the pointer does, so read its `textContent`, not its look.
+  Only a holiday or an early-close date shows it; dismiss the `Lite charts
+  is on.` notice with `Keep` first if it covers the plot.
 
 ## Gotchas
 

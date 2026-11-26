@@ -7,6 +7,16 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-27 against product tree `a79bf68710` (`origin/main`, 78 commits past
+`1d1a3e1410`), lane `18109`, a no-session lane: `dark` listed
+`super-search-result-themes:mode:dark-btn` (`Dark Mode OFF`) on a
+`body--light` page; `release notes` and `Enter` opened Release Notes with
+86 rows led by `4.61.0 Latest`, `4.59.0`, `4.53.0 Spotlight`, `4.50.0`
+(the guest JWT counted 84 the night before and named no `4.50.0`; the
+releases table has no diff, so the extra rows follow the viewer's audience,
+not traced); `editor` opened the Script Editor drawer with no wall; every
+wall read as the email card (`Verify your email to unlock <feature>`,
+empty address). Before that, last DRIVEN on
 2026-11-26 against product tree `1d1a3e1410` (`origin/main`, 76 commits
 past `ec531568de`), lane `18108`, a guest JWT: Super Search's `release
 notes` row opened Release Notes with 84 versions led by `4.61.0 Latest`
