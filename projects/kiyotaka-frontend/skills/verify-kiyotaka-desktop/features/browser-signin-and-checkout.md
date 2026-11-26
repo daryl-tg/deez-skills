@@ -16,7 +16,13 @@ the reason for one refused, and hands the app its `openmarket://return?id=ninjat
 Since `2bf8b7cd57` a market-data bag's checkout return (`product=md-bag`) must carry its `bag` id to read as paid, and
 since `07dd64063f` the shell keeps that id on the payment-status address it opens. Since `0d46716e6d` the page that
 address loads draws a market-data bag's return on the page ground in one column, with no card
-(`payment-status-page--bag`); the plain Stripe states keep theirs. On 2026-11-26, on tree `1d1a3e1410` (`origin/main`, 76 commits after `ec531568de`; `desktop/`, `src/pages/desktop/`, `src/utility/desktop/` and `desktop/tools/verify/` unchanged), Chromium on the dev lane read, one fresh page each: the return page valid, invalid for a non-app target and for a bad attempt id; the NinjaTrader linked state and its `cancelled` and `region_unavailable` lines; the four checkout-return states, a paid bag with its id, a paid bag without one (invalid) and a bag alone (cancelled); the signin page landing on `/chart/auth?redirect=/desktop/signin`; and `super-search-result-featureCommands:desktop-app-btn` as the only result for "desktop app". `9fd6809fe0` changed `stripe-handoff.util.ts`: a checkout or billing button now shows a busy look, which the shell frees at once after it opens Stripe in the system browser with its toast, and a web tab frees on `pageshow` or after 10 s (source-read; the hand-off itself is unchanged). The shell's checkout scratch drive was not repeated. On 2026-11-25, on tree `ec531568de` (`origin/main`;
+(`payment-status-page--bag`); the plain Stripe states keep theirs. Since `c588843264` (after `1d1a3e1410`) the return
+page also ends a cTrader sign-in a packaged app started in the browser (`return-ctrader-page`, `ctrader-link-shell`).
+On 2026-11-27, on tree `78e0c2f534` (`origin/main`, 81 commits after `1d1a3e1410`), no page was read: the dev lane's
+backend host did not resolve (`getaddrinfo ENOTFOUND`, `ping` "Unknown host"), so `doctor` failed on three tries over
+13 minutes and the lane was not driven. The cTrader states, the refactored payload reader and
+`LoginCodePanel.vue`'s moved bot-check line are source-read, with `return-target.util.spec.ts`, `return.page.spec.ts`
+and `ctrader-desktop-link.util.spec.ts` passing (77 tests). On 2026-11-26, on tree `1d1a3e1410` (`origin/main`, 76 commits after `ec531568de`; `desktop/`, `src/pages/desktop/`, `src/utility/desktop/` and `desktop/tools/verify/` unchanged), Chromium on the dev lane read, one fresh page each: the return page valid, invalid for a non-app target and for a bad attempt id; the NinjaTrader linked state and its `cancelled` and `region_unavailable` lines; the four checkout-return states, a paid bag with its id, a paid bag without one (invalid) and a bag alone (cancelled); the signin page landing on `/chart/auth?redirect=/desktop/signin`; and `super-search-result-featureCommands:desktop-app-btn` as the only result for "desktop app". `9fd6809fe0` changed `stripe-handoff.util.ts`: a checkout or billing button now shows a busy look, which the shell frees at once after it opens Stripe in the system browser with its toast, and a web tab frees on `pageshow` or after 10 s (source-read; the hand-off itself is unchanged). The shell's checkout scratch drive was not repeated. On 2026-11-25, on tree `ec531568de` (`origin/main`;
 `desktop/`, the four desktop pages and `src/utility/desktop/` unchanged; `PaymentStatus.vue` changed by `0d46716e6d`,
 `NinjaTraderConnectDialog.vue` by `2994fc9844`, `useTurnstile.ts` by `8dc63c5c5d`), Chromium on the dev lane (`doctor`
 exit 0, a priced BTC title) read, one fresh page each: the four checkout-return states, a paid bag with its id
@@ -143,9 +149,9 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   `auth/login?error=<provider>_auth_failed`. Live verification pending.
 - `signin-return-page` `/desktop/return#to=<openmarket://oauth/callback...>` reads "Signed in. Open OpenMarket to
   finish" (`desktop-return-title`) and "If OpenMarket didn't open by itself, click the button." (`desktop-return-desc`)
-  with `desktop-return-open`, and wipes the hash. Only that callback and a NinjaTrader return record pass
-  (`src/utility/desktop/return-target.util.ts`); any other `#to` shows `desktop-return-invalid` "This sign-in link
-  isn't valid. Start again from the app."
+  with `desktop-return-open`, and wipes the hash. Only that callback and a NinjaTrader or cTrader return record pass
+  (`src/utility/desktop/return-target.util.ts`; cTrader since `c588843264`); any other `#to` shows
+  `desktop-return-invalid` "This sign-in link isn't valid. Start again from the app."
 - `return-ninjatrader-page` `/desktop/return#to=<openmarket://return?id=ninjatrader.<32 hex>&payload=<base64url>>`
   (`a2c0975b7b`). A payload of `{"handoff":"<43 characters>"}` reads "Signed in to NinjaTrader. Open OpenMarket to
   finish linking" and "Press Open OpenMarket within 2 minutes. After that, connect again from the app." A payload of
@@ -156,8 +162,40 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   try again later."; `unavailable` "OpenMarket couldn't finish the link right now. Open OpenMarket and try again
   later."; any other code, or a payload that does not read, "Something went wrong. Open OpenMarket and connect again."
   Every state keeps `desktop-return-open`, because a refused link still goes back to the app, which waits on it. An
-  attempt id that is not 32 lower-case hex, or a return record whose id does not start `ninjatrader.`, shows
-  `desktop-return-invalid`. All live 2026-11-21 on `92f4a841ef` in Chromium on the dev lane.
+  attempt id that is not 32 lower-case hex, or a return record whose id starts neither `ninjatrader.` nor `ctrader.`,
+  shows `desktop-return-invalid`. All live 2026-11-21 on `92f4a841ef` in Chromium on the dev lane. Since `c588843264`
+  the payload is read by one reader for both brokers (`src/utility/desktop/link-return.util.ts`;
+  `src/ninjatrader/desktop-link.ts` re-exports it under its old names), with the same shapes and words (source-read
+  2026-11-27, `78e0c2f534`).
+- `return-ctrader-page` `/desktop/return#to=<openmarket://return?id=ctrader.<32 hex>&payload=<base64url>>`
+  (`c588843264`). A `{"handoff":"<43 characters>"}` payload reads "Signed in to cTrader. Open OpenMarket to finish
+  connecting" and "Press Open OpenMarket within 2 minutes. After that, connect again from the app." A `{"code":"<code>"}`
+  payload reads "cTrader wasn't connected" over one line per code (`desktopReturn.ctrader.*`, `CTRADER_REFUSAL_KEYS` in
+  `src/pages/desktop/return.page.vue`): `cancelled` "Access was not allowed on cTrader's page, so nothing was connected.
+  Open OpenMarket to go back."; `region_blocked` "cTrader trading is not available in your country. Open OpenMarket to
+  go back."; `expired` "The sign-in took too long. Open OpenMarket and connect again."; `wrong_user` "This browser is
+  signed in to another OpenMarket account, so nothing was connected. Sign out of OpenMarket here, or sign in to the
+  account the app uses, then open OpenMarket and connect again."; `disabled` and `unavailable` "OpenMarket couldn't
+  finish the sign-in right now. Open OpenMarket and try again later."; any other code, or a payload that does not read,
+  "Something went wrong. Open OpenMarket and connect again." Every state keeps `desktop-return-open`. NinjaTrader's
+  `region_unavailable` is not a cTrader code (it reads as the failure line here), and cTrader's is `region_blocked`.
+  Live verification pending: source-read 2026-11-27 on `78e0c2f534`; on that night the dev lane's backend host did not
+  resolve, so `doctor` failed and no page was read.
+- `ctrader-link-shell` in a shell whose bridge reports `browserSignIn` and with the flag `fx-ctrader-desktop` on
+  (`isCTraderDesktopLink`, `src/utility/ctrader/ctrader-desktop-link.util.ts`), the cTrader connect sheet's press opens
+  cTrader's sign-in in the system browser through `GET /api/v1/ctrader/link/start?client=desktop` and a
+  `/api/v1/ctrader/link/launch` URL, then waits: "cTrader's sign-in opens in your browser…"
+  (`ctrader.link.desktopWaitLead`), with **Open the browser again** (`desktopOpenAgain`) and a 25 s stalled line. The
+  page takes only its own `ctrader.<attempt>` record from `onReturn`; a `{ code }` record answers the wait and ends
+  nothing, and a handoff within 13 minutes is redeemed (`POST /api/v1/ctrader/link/redeem`,
+  `linkCTraderInDesktop` in `src/services/ctrader-link.service.ts`, `src/store/ctrader-trading.ts`). Any other shell
+  (the flag off, or no `browserSignIn`, as in an unpackaged launch) shows "cTrader can't be connected in this app yet.
+  Open openmarket.xyz in a browser to connect it." (`ctrader-connect-web-only`, `CTraderConnectDialog.vue`) in place of
+  the disclosure and its button, with no Add accounts. The contract is the web repo's `docs/features/ctrader/README.md`,
+  "The desktop app". Live verification pending: the desktop route needs a signed-in account with `fx-ctrader` and
+  `fx-ctrader-desktop` on, a packaged build and a cTrader ID; the web-only notice needs `fx-ctrader` on, which a guest
+  can light through `kiyo.flag-overrides` only in a dev build, so it needs the dev lane (source-read 2026-11-27,
+  `78e0c2f534`).
 - `ninjatrader-link-shell` in a shell whose bridge reports `browserSignIn` (packaged, not an AppImage), Connect in the
   NinjaTrader connect dialog opens NinjaTrader's sign-in in the system browser and the dialog waits. Since
   `2994fc9844` the dialog is a stepped card (`data-step`): on a first connect (`readConnectSeen('ninjatrader')` false)
@@ -183,7 +221,7 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   5 s for a token (`TURNSTILE_WAIT_MS`, `src/composables/useTurnstile.ts:114`; `abcb149af8` made it 10 s and
   `1b5ad78f88` put it back), showing only the button's loading state, while Cloudflare retries an error every 2 s
   (`retry: 'auto'`). Since `4fe6fb323e` (after `27fb2d4621`) a code auth-service refuses for its bot check
-  (`LOGIN_CODE_HUMAN_CHECK_REQUIRED`, `src/components/dialogs/LoginCodePanel.vue:498`, `leaveForHumanCheck`) shows the error toast "We
+  (`LOGIN_CODE_HUMAN_CHECK_REQUIRED`, `src/components/dialogs/LoginCodePanel.vue:530`, `leaveForHumanCheck`) shows the error toast "We
   couldn't confirm you're human. Complete the check on the sign-in screen and request a new code." and returns to the
   address step, instead of "invalid code". Placement live in Chromium on the dev lane; the disabled state, the wait,
   the code step's check and the bot-check refusal need a sitekey that asks or a refusing auth-service, so they are
@@ -252,6 +290,10 @@ Preconditions:
     (`eyJjb2RlIjoiY2FuY2VsbGVkIn0`) reads "NinjaTrader wasn't linked" with its line on `desktop-return-desc`. Swap the
     code for `region_unavailable`, `expired`, `disabled`, `paused`, `unavailable` or an unknown one. An id of `XYZ`
     reads `desktop-return-invalid`.
+  - The same with `id=ctrader.0123456789abcdef0123456789abcdef` (`return-ctrader-page`, not yet driven): a handoff
+    payload reads "Signed in to cTrader. Open OpenMarket to finish connecting"; `{"code":"cancelled"}` reads "cTrader
+    wasn't connected" with its line on `desktop-return-desc`. Swap the code for `region_blocked`, `expired`,
+    `wrong_user`, `disabled`, `unavailable` or an unknown one.
   - `.../desktop/signin`: lands on `/chart/auth?redirect=/desktop/signin`, "Sign in or create an account". A read
     before the account check settles sees the page itself, with no `desktop-` testids, so read again before calling
     it a miss.
