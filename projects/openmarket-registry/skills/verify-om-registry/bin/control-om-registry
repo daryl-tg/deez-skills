@@ -6,11 +6,11 @@ METRICS_PORT="$((PORT + 1))"
 ORIGIN="http://127.0.0.1:${PORT}"
 REVIEW_ORIGIN="http://127.0.0.1:8098"
 REVIEW_ROOT="${REGISTRY_REVIEW_ROOT:-$HOME/.local/state/om-chat-feature}"
-USAGE='usage: control-registry {up|down|doctor|browser <verb> [args...]|cli -- <command...>|evidence publish <run-id> <revision>}
+USAGE='usage: control-om-registry {up|down|doctor|browser <verb> [args...]|cli -- <command...>|evidence publish <run-id> <revision>}
   env: REGISTRY_LANE_PORT (default 18098, agent range 18097-18197; metrics on the next port),
        REGISTRY_REPO (default: the openmarket-registry checkout containing $PWD), ARTIFACTS (default <repo>/artifacts)'
 
-die() { printf 'control-registry: %s\n' "$*" >&2; exit 1; }
+die() { printf 'control-om-registry: %s\n' "$*" >&2; exit 1; }
 
 repo_root() {
   local root
@@ -109,7 +109,7 @@ doctor() {
 browser() { command -v agent-browser >/dev/null 2>&1 || die 'agent-browser is not installed'; exec agent-browser "$@"; }
 
 cli() {
-  [[ "${1:-}" == "--" ]] || die 'usage: control-registry cli -- <command...>'
+  [[ "${1:-}" == "--" ]] || die 'usage: control-om-registry cli -- <command...>'
   shift; [[ "$#" -gt 0 ]] || die 'provide the command after --'
   local tmp code; tmp="$(mktemp -d)"
   set +e; "$@" >"$tmp/stdout" 2>"$tmp/stderr"; code=$?; set -e
@@ -118,7 +118,7 @@ cli() {
 }
 
 evidence() {
-  [[ "${1:-}" == publish && "$#" -eq 3 ]] || die 'usage: control-registry evidence publish <run-id> <revision>'
+  [[ "${1:-}" == publish && "$#" -eq 3 ]] || die 'usage: control-om-registry evidence publish <run-id> <revision>'
   local run="$2" revision="$3" source="$ARTIFACTS/$2/$3"
   [[ -d "$source" ]] || die "no artifact pair at $source"
   [[ -f "$source/evidence-manifest.json" ]] || die "no evidence-manifest.json in $source"

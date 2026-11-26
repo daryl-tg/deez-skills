@@ -1,25 +1,26 @@
 ---
-name: verify-registry
-description: "Drive and verify the OpenMarket Registry server rendered catalog and HTTP API in a local Bun lane; use after registry changes that affect browsing, package pages, publishing, or reads."
+name: verify-om-registry
+description: "Drive and verify the OpenMarket registry (openmarket-registry: om packages, the catalog site and the /v1 API) in a local Bun lane: publish a fixture through the real API, then drive the catalog, package, scope and report pages. Use after registry changes that affect browsing, package pages, publishing or reads."
 ---
 
 # Verify OpenMarket Registry
 
-Use this skill to drive the registry as an anonymous browser user and verify its public HTTP behavior. The primary surface is the server rendered catalog and package pages; the `/v1` HTTP API is the machine client surface. This repo does not ship a first party `om` CLI.
+Use this skill to drive the registry as a visitor and as a publisher, and verify its public HTTP behavior. The primary surface is the server rendered catalog and package pages; the `/v1` HTTP API is the machine client surface. This repo does not ship a first party `om` CLI.
 
 ## Launch
 
-Everything goes through `control-registry`, the tracked wrapper beside this file at
-`bin/control-registry` in the hub. It is operator tooling, not app source: the product repo never
+Everything goes through `control-om-registry`, the tracked wrapper beside this file at
+`bin/control-om-registry` in the hub. It is operator tooling, not app source: the product repo never
 carries it. It resolves the checkout it drives from `REGISTRY_REPO`, or from
 `git rev-parse --show-toplevel` of the directory you call it from, so run it from inside the
 openmarket-registry checkout or worktree you mean to drive.
 
 ```sh
-CR=~/.claude/skills/verify-registry/bin/control-registry
+CR=~/.claude/skills/verify-om-registry/bin/control-om-registry
 cd ~/Gitlab/openmarket-registry        # or the worktree you drive
 $CR up                                 # default port 18098, metrics 18099
 REGISTRY_LANE_PORT=18120 $CR up        # another slot in 18097-18197; metrics on the next port
+OM_REGISTRY_STATIC_TOKENS='{"dev-token":{"account_id":"acct-dev","tier":"pro"}}' $CR up   # a lane that accepts publishes
 ```
 
 `up` runs `bun src/main.ts` with `PORT`, `METRICS_PORT`, `OM_REGISTRY_HOST=127.0.0.1` and
@@ -55,7 +56,25 @@ $CR browser open http://127.0.0.1:18098/
 $CR browser snapshot -i
 ```
 
-The anonymous registry has no seeded package rows. Read-only recipes can prove empty states and search behavior. Package detail and scope recipes require a public package already present in a separate disposable fixture lane; the verification memory lane cannot import records by calling internal setters. Each lane owns its port; take another slot with `REGISTRY_LANE_PORT`. Never drive a service you did not start or stop a process by name.
+A new lane is empty. To drive package, scope and report pages, start the lane with the seed token
+above and publish a fixture through the real `POST /v1/publish` route, as
+[Publish a package](./features/publish-a-package.md) shows: a `tar -czf` of an `om-package.json` and
+a `curl -F` with `Authorization: Bearer dev-token`. Never seed rows through internal setters or the
+repo's test helpers. An ontology-pack is the simplest fixture, but it is not a listed kind, so it
+never appears in the catalog, search or the scope's listing. Each lane owns its port; take another
+slot with `REGISTRY_LANE_PORT`. Never drive a service you did not start or stop a process by name.
+
+Traps that cost a run:
+
+- Two searchboxes share the name "Search packages" (header first, page form second);
+  `find role searchbox --name` fills the header one. Use the ref you mean.
+- A package page's tab radios sit under the cover image, so clicks by ref or label are refused as
+  covered. Click the label text: `$CR browser find text "1 Version" click --exact`.
+- `find role link --name "Report"` without `--exact` matches the footer's "Report abuse".
+- With only seed tokens configured, a missing or unknown bearer answers 503
+  `verifier_not_configured`, not 401.
+- The metrics port (lane port + 1) is the second view for writes: `om_registry_publishes_total`,
+  and `om_registry_kscript_write_attempts_total{op="putReport"}` for a report.
 
 For API reads, use the app surface through the wrapper so the command, output, and exit status are visible:
 
@@ -83,6 +102,17 @@ Add `evidence-manifest.json` to the artifact directory before publishing. It mus
 
 Run `$CR down` after every attempt, including a failed launch or browser iteration. It terminates only the PID that `up` recorded; it does not search by process name. Evidence under `artifacts/` survives teardown. Browser sessions started by this run can be closed with `$CR browser close`.
 
+## Helpers
+
+`bin/control-om-registry` is the one helper, executable in the hub:
+
+```sh
+$CR up | down | doctor
+$CR browser <agent-browser verb> [args...]
+$CR cli -- <command...>
+$CR evidence publish <run-id> <revision>
+```
+
 ## Maintenance
 
 Use `maintain-verification-skill` after user paths, startup requirements, stable handles, or evidence rules change.
@@ -93,7 +123,7 @@ After proving a map change, commit and push only the changed `features/*.md` str
 `main`:
 
 ```sh
-bin/deez sync-feature-maps openmarket-registry verify-registry <file.md>... [--repo <hub worktree>]
+bin/deez sync-feature-maps openmarket-registry verify-om-registry <file.md>... [--repo <hub worktree>]
 ```
 
 Pass `--repo` when you edited in an isolated hub worktree. This is the one standing push to `main`

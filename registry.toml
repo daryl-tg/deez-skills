@@ -716,7 +716,7 @@ layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]
 
-[skills.verify-registry]
+[skills.verify-om-registry]
 category = "infra"
 runtimes = ["claude", "codex"]
 project = "openmarket-registry"
