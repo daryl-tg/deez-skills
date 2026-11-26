@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PORT="${REGISTRY_LANE_PORT:-18098}"
+METRICS_PORT="$((PORT + 1))"
+ORIGIN="http://127.0.0.1:${PORT}"
+REVIEW_ORIGIN="http://127.0.0.1:8098"
+REVIEW_ROOT="${REGISTRY_REVIEW_ROOT:-$HOME/.local/state/om-chat-feature}"
+USAGE='usage: control-registry {up|down|doctor|browser <verb> [args...]|cli -- <command...>|evidence publish <run-id> <revision>}
+  env: REGISTRY_LANE_PORT (default 18098, agent range 18097-18197; metrics on the next port),
+       REGISTRY_REPO (default: the openmarket-registry checkout containing $PWD), ARTIFACTS (default <repo>/artifacts)'
+
+die() { printf 'control-registry: %s\n' "$*" >&2; exit 1; }
+
+repo_root() {
+  local root
+  if [[ -n "${REGISTRY_REPO:-}" ]]; then root="$REGISTRY_REPO"
+  else root="$(git rev-parse --show-toplevel 2>/dev/null)" || die 'run from an openmarket-registry checkout or set REGISTRY_REPO'
+  fi
+  [[ -f "$root/package.json" ]] && grep -q '"name": "@openmarket-xyz/registry"' "$root/package.json" \
+    || die "$root is not an openmarket-registry checkout (package.json name @openmarket-xyz/registry)"
+  (cd "$root" && pwd -P)
+}
+
+REPO="$(repo_root)"
+ARTIFACTS="${ARTIFACTS:-$REPO/artifacts}"
+PID_FILE="$ARTIFACTS/.registry-$PORT.pid"
+LOG_FILE="$ARTIFACTS/.registry-$PORT.log"
+
+in_agent_range() { [[ "$PORT" -ge 18097 && "$PORT" -le 18197 && "$METRICS_PORT" -le 18197 ]]; }
+listening() { lsof -nP -iTCP:"$1" -sTCP:LISTEN -t 2>/dev/null | sort -u | tr '\n' ' '; }
+pid_cwd() { lsof -a -p "$1" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' | head -1; }
+healthy() { curl -fsS --max-time "${1:-3}" "$ORIGIN/v1/health" >/dev/null 2>&1; }
+lane_pid() { [[ -f "$PID_FILE" ]] && cat "$PID_FILE"; }
+
+ours() {
+  local pid="$1" command
+  command="$(ps -p "$pid" -o command= 2>/dev/null || true)"
+  [[ "$command" == *"src/main.ts"* && "$(pid_cwd "$pid")" == "$REPO" ]]
+}
+
+up() {
+  in_agent_range || die "port $PORT (metrics $METRICS_PORT) is outside the agent range 18097-18197"
+  local pid
+  if pid="$(lane_pid)" && kill -0 "$pid" 2>/dev/null; then die "registry lane already has pid $pid"; fi
+  [[ -z "$(listening "$PORT")" ]] || die "assigned port $PORT is occupied; refusing to drive or stop its owner"
+  [[ -z "$(listening "$METRICS_PORT")" ]] || die "assigned metrics port $METRICS_PORT is occupied; refusing to start"
+  mkdir -p "$ARTIFACTS"
+  python3 - "$REPO" "$LOG_FILE" "$PID_FILE" "$PORT" "$METRICS_PORT" "$ORIGIN" <<'PY'
+import os
+import subprocess
+import sys
+
+root, log_path, pid_path, port, metrics_port, origin = sys.argv[1:]
+env = os.environ.copy()
+env.update({
+    "PORT": port,
+    "METRICS_PORT": metrics_port,
+    "OM_REGISTRY_HOST": "127.0.0.1",
+    "OM_REGISTRY_PUBLIC_URL": origin,
+})
+with open(log_path, "ab") as log:
+    process = subprocess.Popen(
+        ["bun", "src/main.ts"], cwd=root, env=env,
+        stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+with open(pid_path, "w") as pid_file:
+    pid_file.write(f"{process.pid}\n")
+PY
+  pid="$(lane_pid)"
+  for _ in $(seq 1 60); do
+    if healthy 1; then printf 'registry lane ready at %s (pid %s)\n' "$ORIGIN" "$pid"; return 0; fi
+    if ! kill -0 "$pid" 2>/dev/null; then cat "$LOG_FILE" >&2; rm -f "$PID_FILE"; die 'registry exited before it answered /v1/health'; fi
+    sleep 1
+  done
+  cat "$LOG_FILE" >&2
+  down
+  die "registry did not become ready at $ORIGIN"
+}
+
+down() {
+  local pid
+  if ! pid="$(lane_pid)"; then printf 'registry lane is already stopped\n'; return 0; fi
+  if ! kill -0 "$pid" 2>/dev/null; then rm -f "$PID_FILE"; printf 'registry lane process had already exited; artifacts kept\n'; return 0; fi
+  ours "$pid" || die "refusing to stop pid $pid: process does not match this checkout"
+  kill "$pid"
+  for _ in $(seq 1 30); do
+    if ! kill -0 "$pid" 2>/dev/null; then rm -f "$PID_FILE"; printf 'stopped registry lane pid %s; artifacts kept\n' "$pid"; return 0; fi
+    sleep 1
+  done
+  die "registry pid $pid did not exit after TERM; PID file retained"
+}
+
+doctor() {
+  local fail=0 pid
+  printf 'origin      %s\n' "$ORIGIN"
+  printf 'checkout    %s\n' "$REPO"
+  if healthy; then printf 'health      /v1/health answers\n'; else printf 'health      UNREACHABLE\n'; fail=1; fi
+  if pid="$(lane_pid)"; then
+    if ours "$pid" && [[ " $(listening "$PORT") " == *" $pid "* ]]; then
+      printf 'process     pid %s from this checkout owns port %s\n' "$pid" "$PORT"
+    else printf 'process     pid %s does not match this checkout and port %s\n' "$pid" "$PORT"; fail=1; fi
+  else printf 'process     no lane PID at %s\n' "$PID_FILE"; fail=1; fi
+  if command -v agent-browser >/dev/null 2>&1; then printf 'harness     agent-browser present\n'; else printf 'harness     MISSING\n'; fail=1; fi
+  [[ "$fail" -eq 0 ]] || die 'doctor failed; do not drive this instance'
+}
+
+browser() { command -v agent-browser >/dev/null 2>&1 || die 'agent-browser is not installed'; exec agent-browser "$@"; }
+
+cli() {
+  [[ "${1:-}" == "--" ]] || die 'usage: control-registry cli -- <command...>'
+  shift; [[ "$#" -gt 0 ]] || die 'provide the command after --'
+  local tmp code; tmp="$(mktemp -d)"
+  set +e; "$@" >"$tmp/stdout" 2>"$tmp/stderr"; code=$?; set -e
+  cat "$tmp/stdout"; cat "$tmp/stderr" >&2; printf 'exit %s\n' "$code" >&2
+  rm -rf "$tmp"; return "$code"
+}
+
+evidence() {
+  [[ "${1:-}" == publish && "$#" -eq 3 ]] || die 'usage: control-registry evidence publish <run-id> <revision>'
+  local run="$2" revision="$3" source="$ARTIFACTS/$2/$3"
+  [[ -d "$source" ]] || die "no artifact pair at $source"
+  [[ -f "$source/evidence-manifest.json" ]] || die "no evidence-manifest.json in $source"
+  REGISTRY_MANIFEST="$source/evidence-manifest.json" REGISTRY_ARTIFACTS="$source" bun -e '
+    const manifest = JSON.parse(await Bun.file(process.env.REGISTRY_MANIFEST).text());
+    const bad = [];
+    for (const key of ["runId", "revision", "goal", "capturedAt", "repository", "branch", "candidateCommit", "diffSha256"]) {
+      if (!manifest[key]) bad.push(`missing ${key}`);
+    }
+    const shots = manifest.capture?.screenshots;
+    if (!shots || Array.isArray(shots) || typeof shots !== "object" || Object.keys(shots).length === 0) bad.push("capture.screenshots must be a non-empty filename-to-caption map");
+    else for (const file of Object.keys(shots)) if (!(await Bun.file(`${process.env.REGISTRY_ARTIFACTS}/${file}`).exists())) bad.push(`missing screenshot ${file}`);
+    if (bad.length) { console.error(bad.join("\n")); process.exit(1); }
+  ' || die 'evidence manifest is invalid; correct it before publishing'
+  curl -fsS --max-time 5 -o /dev/null "$REVIEW_ORIGIN/_om-review-health" || die 'the existing review renderer is not answering on 8098; do not start it'
+  local destination="$REVIEW_ROOT/$run/$revision" gallery
+  [[ ! -e "$destination" ]] || die "review destination already exists: $destination"
+  mkdir -p "$(dirname "$destination")"
+  cp -R "$source" "$destination"
+  gallery="$(curl -fsS --max-time 10 "$REVIEW_ORIGIN/$run/$revision/" 2>/dev/null || true)"
+  case "$gallery" in
+    *"<img"*) ;;
+    "") die "gallery did not render at $REVIEW_ORIGIN/$run/$revision/" ;;
+    *) die 'gallery rendered without image frames; check capture.screenshots in the manifest' ;;
+  esac
+  printf 'MacBook review URL: %s/%s/%s/\n' "$REVIEW_ORIGIN" "$run" "$revision"
+}
+
+case "${1:-}" in
+  up) shift; up "$@" ;;
+  down) shift; down "$@" ;;
+  doctor) shift; doctor "$@" ;;
+  browser) shift; browser "$@" ;;
+  cli) shift; cli "$@" ;;
+  evidence) shift; evidence "$@" ;;
+  *) die "$USAGE" ;;
+esac

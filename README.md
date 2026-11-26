@@ -451,6 +451,7 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `logcli` |  | claude, codex | Live Loki log exports, per-pod splits, and saved Kubernetes or service log captures; not logs already on disk. |
 | `stackctl` |  | claude, codex | Live Grafana/Prometheus: dashboards, panels, variables, imports, validation, or PromQL through Grafana. |
 | `tsdbctl` |  | claude, codex | tsdb-gateway market data and research scripts. |
+| `verify-registry` |  | claude, codex | Drive and verify the OpenMarket Registry server rendered catalog and HTTP API in a local Bun lane; use after registry changes that affect browsing, package pag… |
 
 ### Kiyotaka / orange stack
 
@@ -544,4 +545,5 @@ description is not what makes a runtime truncate its catalogue; the total is.
 | `openmarket-chat` | [verify-om-chat](./projects/openmarket-chat/skills/verify-om-chat/SKILL.md) | [Feature map](./projects/openmarket-chat/skills/verify-om-chat/features/README.md) |
 | `openmarket-chat-app` | [verify-openfloor](./projects/openmarket-chat-app/skills/verify-openfloor/SKILL.md) | [Feature map](./projects/openmarket-chat-app/skills/verify-openfloor/features/README.md) |
 | `openmarket-internal` | [verify-om](./projects/openmarket-internal/skills/verify-om/SKILL.md) | [Feature map](./projects/openmarket-internal/skills/verify-om/features/README.md) |
+| `openmarket-registry` | [verify-registry](./projects/openmarket-registry/skills/verify-registry/SKILL.md) | [Feature map](./projects/openmarket-registry/skills/verify-registry/features/README.md) |
 

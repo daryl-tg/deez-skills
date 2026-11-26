@@ -715,3 +715,8 @@ project = "kiyotaka-frontend"
 layer    = "principle"
 category = "core"
 runtimes = ["claude", "codex"]
+
+[skills.verify-registry]
+category = "infra"
+runtimes = ["claude", "codex"]
+project = "openmarket-registry"
