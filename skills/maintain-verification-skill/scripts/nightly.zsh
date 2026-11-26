@@ -16,8 +16,9 @@ typeset -A REPO=(
   verify-om-chat   "$HOME/github/openmarket-chat"
   verify-kiyotaka  "$HOME/Gitlab/kiyotaka-frontend"
   verify-kiyotaka-desktop "$HOME/Gitlab/kiyotaka-frontend"
+  verify-om-registry "$HOME/Gitlab/openmarket-registry"
 )
-ORDER=(verify-om verify-om-chat verify-kiyotaka verify-kiyotaka-desktop)
+ORDER=(verify-om verify-om-chat verify-kiyotaka verify-kiyotaka-desktop verify-om-registry)
 SWEEP_TAGS=()
 if [[ ${1:-} == --sweep ]]; then shift; SWEEP_TAGS=("$@"); ORDER=()
 elif (( $# )); then ORDER=("$@"); fi
@@ -32,7 +33,7 @@ STATE=${VM_STATE:-"$HOME/.local/state/verify-maintenance"}
 SCRATCH="$STATE/scratch"
 ART=${VM_ART:-"$HOME/dev-notes-artifacts/maintain-verification-skill/run-artifacts"}
 HUB=${VM_HUB:-"$HOME/github/deez-skills"}
-PRODUCT_REPOS=("$HOME/github/openmarket-internal" "$HOME/gitlab/openmarket-chat" "$HOME/Gitlab/kiyotaka-frontend")
+PRODUCT_REPOS=("$HOME/github/openmarket-internal" "$HOME/gitlab/openmarket-chat" "$HOME/Gitlab/kiyotaka-frontend" "$HOME/Gitlab/openmarket-registry")
 [[ -n ${VM_PRODUCT_REPOS:-} ]] && PRODUCT_REPOS=(${=VM_PRODUCT_REPOS})
 KEEP_DAYS=${VM_KEEP_DAYS:-14}
 mkdir -p "$LOGS" "$REPORTS" "$STATE" "$SCRATCH" "$ART" "$HOME/.claude/.worktree-decisions"
