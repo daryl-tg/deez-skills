@@ -74,17 +74,17 @@ topics. The most-driven surface in the app and the cheapest one to prove.
   from the source fixture. See [topic-cleanup.md](topic-cleanup.md).
 - The right-panel **dock**, which is no longer in the header at all. `#694`
   moved it out to its own `nav` named **"Panel functions"**
-  (`packages/chat-ui/src/components/RightPanels.tsx:269`): a collapse/expand toggle plus one
+  (`packages/chat-ui/src/components/RightPanels.tsx:273`): a collapse/expand toggle plus one
   button per panel. In the seeded fixture room that is **four** — Library,
   Bookmarks, Members, Pins — carrying `data-slot-tab` values `library`,
   `bookmarks`, `members`, `pins`. The dock filters
-  `["todos","library","bookmarks","members","pins","alerts"]` (`RightPanels.tsx:253`)
+  `["todos","library","bookmarks","members","pins","alerts"]` (`RightPanels.tsx:257`)
   against what `rightSlotTabsFor` offers; `alerts` is admitted now, but the
   fixture offers none, so four is still the count here. **To-dos can never appear here**, and not because this room lacks
   one: the personal doors come from `session.rightRailTabs?.(room)`
   (`ChannelToolbar.tsx:229`), which the fixture never stubs, so it resolves
   through the `INERT` proxy — and `INERT[Symbol.iterator]` is an empty
-  generator (`shell-fixture.tsx:2716`, the iterator at `:2718-2719`), so
+  generator (`shell-fixture.tsx:2715`, the iterator at `:2717-2718`), so
   spreading it yields nothing for every room. Four is the ceiling in this lane, not a seeding accident.
   `"Show or hide side panel"` no longer exists anywhere in `src/`, and the old
   in-panel `tablist` is not merely hidden: every live render site passes
@@ -164,7 +164,7 @@ the navigation retargeted the *write* path, not only the read pane.
 
 ### Message deep link and New topic pane (added 2026-10-27)
 
-- **Deep link:** load `shell-fixture.html?alerts=quiet#/room/ops/msg/105` with the hash present **at load**; the fixture only seeds a hash when it is empty (`shell-fixture.tsx:2586`). Afterwards `document.documentElement.dataset.messageJump` is `"105"` and the hash is rewritten to `#/room/ops`. On `/chat/`, `messageJump` was also `"105"` but the hash came back empty. An unknown seq should toast "Message link: that message is gone" (`src/lib/routing.ts:655-657`); that was not driven. Push-tap delivery needs the daemon-served rig.
+- **Deep link:** load `shell-fixture.html?alerts=quiet#/room/ops/msg/105` with the hash present **at load**; the fixture only seeds a hash when it is empty (`shell-fixture.tsx:2585`). Afterwards `document.documentElement.dataset.messageJump` is `"105"` and the hash is rewritten to `#/room/ops`. On `/chat/`, `messageJump` was also `"105"` but the hash came back empty. An unknown seq should toast "Message link: that message is gone" (`src/lib/routing.ts:655-657`); that was not driven. Push-tap delivery needs the daemon-served rig.
 - **New topic pane:** `shell-fixture.html?view=room&alerts=quiet&panel=topic-draft` mounts an aside named **New topic**. Creating the topic was not driven.
   Since `09833498` and `c18cfa37` the intro a new topic posts from a message ("From … · om://msg/…" plus the quote) is defanged: user and role links become bare names, links in code stay as they are, and a copied provenance is read for links too (`lib/topic-create.ts`, `lib/mention-defang.ts`). The fixture's `submitTopicDraft` is inert, so this is unit-only (`packages/chat-ui/test/topic/draft-submit.test.ts`); live verification pending.
 
@@ -172,8 +172,8 @@ Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `h
 
 ### Topic inbox panel and Resolve (added 2026-10-28)
 
-- **Topic inbox:** `shell-fixture.html?view=room&topics=on&panel=inbox&alerts=quiet` mounts an `aside` named **Inbox** with `data-right-panel="inbox"` (`TopicInbox.tsx:376`, mounted from the `rightPanel === "inbox"` branch at `RightPanels.tsx:444`). It reads "Inbox 9", with a `#OPS` group, a stream row (4), **ETF flows, week of the 28th** (2) and **CPI print — Aug** (3). Its buttons are **Close inbox**, **Mark #ops read**, **Topic <name>, followed** and **Mark <name> read**, and its footer hints `⌘⇧U inbox`, `⌥⇧↓ next unread` and `Esc close`. `?inbox=open` only sets `session.inboxOpen` (`shell-fixture.tsx:3295-3297`), and the fixture's `toggleInbox` flips only that flag (`:3616`). So neither `?inbox=open` nor the **Inbox: 9 unread** button opens the panel here: use `panel=inbox`. `TopicCatchUp` is only the keyboard host for those chords and renders nothing. Driven on `/rooms/` and `/chat/`. The mark-read effects are fixture no-ops.
-- **Resolve a topic:** open a topic row's menu as described in Gotchas (Mark As Unread), then choose **Resolve <topic> (closes the conversation; the history stays)** (`TopicPill.tsx:146-149`). It opens a `dialog` named **Resolve <topic>**, for example **Resolve Funding flipped negative on Hyperliquid**. The dialog has an optional "What settled it?" note and **Resolve Topic** (`TopicResolvePopover.tsx:113-114`). The fixture implements `openTopicResolvePrompt` (`shell-fixture.tsx:3757`). **Resolve Topic** was pressed on 2026-10-31: the dialog closes with no toast and no row change, because the fixture's resolve is local. Driven on `/rooms/` and `/chat/`. **Add People...** needs three method stubs; see the next section.
+- **Topic inbox:** `shell-fixture.html?view=room&topics=on&panel=inbox&alerts=quiet` mounts an `aside` named **Inbox** with `data-right-panel="inbox"` (`TopicInbox.tsx:376`, mounted from the `rightPanel === "inbox"` branch at `RightPanels.tsx:448`). It reads "Inbox 9", with a `#OPS` group, a stream row (4), **ETF flows, week of the 28th** (2) and **CPI print — Aug** (3). Its buttons are **Close inbox**, **Mark #ops read**, **Topic <name>, followed** and **Mark <name> read**, and its footer hints `⌘⇧U inbox`, `⌥⇧↓ next unread` and `Esc close`. `?inbox=open` only sets `session.inboxOpen` (`shell-fixture.tsx:3294-3296`), and the fixture's `toggleInbox` flips only that flag (`:3615`). So neither `?inbox=open` nor the **Inbox: 9 unread** button opens the panel here: use `panel=inbox`. `TopicCatchUp` is only the keyboard host for those chords and renders nothing. Driven on `/rooms/` and `/chat/`. The mark-read effects are fixture no-ops.
+- **Resolve a topic:** open a topic row's menu as described in Gotchas (Mark As Unread), then choose **Resolve <topic> (closes the conversation; the history stays)** (`TopicPill.tsx:146-149`). It opens a `dialog` named **Resolve <topic>**, for example **Resolve Funding flipped negative on Hyperliquid**. The dialog has an optional "What settled it?" note and **Resolve Topic** (`TopicResolvePopover.tsx:113-114`). The fixture implements `openTopicResolvePrompt` (`shell-fixture.tsx:3756`). **Resolve Topic** was pressed on 2026-10-31: the dialog closes with no toast and no row change, because the fixture's resolve is local. Driven on `/rooms/` and `/chat/`. **Add People...** needs three method stubs; see the next section.
 
 Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frames 09, 36-37, 41, 43).
 
@@ -195,9 +195,9 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
   <group>**). Muted, it reads **Muted** (title "Muted until <time>") and the
   flyout adds **Unmute conversation**; a group's flyout adds an **Only
   @mentions** checkbox. The `/rooms/` shell fixture keeps DM mutes in memory
-  (`tools/visual/shell-fixture.tsx:1695-1701`, `:3971-3982`), so there the mute
+  (`tools/visual/shell-fixture.tsx:1694-1700`, `:3970-3981`), so there the mute
   is driven end to end; `?dmmuted=1` starts every DM muted. The `/chat/`
-  fixture's `setDmMuted` is a no-op (`apps/cloud/tools/visual/shell-fixture.tsx:2191`),
+  fixture's `setDmMuted` is a no-op (`apps/cloud/tools/visual/shell-fixture.tsx:2190`),
   so `/chat/` shows only the offer. Recipe in
   [direct-messages-and-home.md](direct-messages-and-home.md) / DM row menu.
 - **What the fixture can show:** only the offer. `session.setRoomAttention` is
@@ -207,7 +207,7 @@ Verified 2026-10-28 at `2dd7aad1` (nightly maintenance, fixture lane). Evidence:
   alert channel never opened this session) retries over REST after the relay's
   `NOT_IN_ROOM` refusal (`lib/session.ts:33572`, `:33667`). That path is
   covered only by `packages/chat-ui/test/ui/mute-durations.test.ts`. The topic
-  pill's mute is stubbed (`tools/visual/shell-fixture.tsx:3130-3140`, writes
+  pill's mute is stubbed (`tools/visual/shell-fixture.tsx:3129-3139`, writes
   `data-fixture-topic-attention`), but it is a different code path.
 - **Topic chevron on hover (`357b2df5`):** a row's right-edge cluster (badge,
   hover actions, topic chevron) is `shrink-0` (`Sidebar.tsx:3031`), so when the
@@ -240,7 +240,7 @@ drag, peeks are off (`Sidebar.tsx:2103-2106`).
   (`ChannelPeekPopover.tsx`) with an **Open** head (title "Open the channel"),
   **You're caught up**, the three topic rows and the footer "Peeking never
   marks as read". That is on `/rooms/`, where `peekChannel` is stubbed
-  (`shell-fixture.tsx:3006`). The `/chat/` fixture has no `peekChannel`, so the
+  (`shell-fixture.tsx:3005`). The `/chat/` fixture has no `peekChannel`, so the
   same hover leaves the popover on its **Loading preview** skeleton.
 - **DM peek:** hover the rail face **Direct message with ana, 2 unread**. This
   mounts dialog **Conversation with ana** (`DmPeekPopover.tsx`) with the two
@@ -259,7 +259,7 @@ Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance). Evidence: `http://127
 person off a **public** topic too; before, only private topics had removal.
 Who may remove, and the confirm's words, follow the topic kind
 (`lib/topic-member-remove.ts`). There are two doors: the roster row's hover
-button **Remove <handle> from this topic** (`RightPanels.tsx:1866-1890`) and
+button **Remove <handle> from this topic** (`RightPanels.tsx:1870-1894`) and
 the member menu item **Remove from Topic** (`UserContextMenu.tsx:766`). Since
 `82badafc` the menu item draws the person-minus glyph, not trash.
 
@@ -357,9 +357,9 @@ both fixtures, so the offer is proved and the effect is pending. Three
 exceptions: a stubbed `setSpaceCategories` reaches the category writes (see
 below); since `ab3dfb08` the `/rooms/` fixture keeps category and channel
 attention in memory (`setSpaceAttention`, `spaceAttentionFor`,
-`roomMutedFor`, `tools/visual/shell-fixture.tsx:3937`), so **Mute Category**
+`roomMutedFor`, `tools/visual/shell-fixture.tsx:3936`), so **Mute Category**
 really dims the header there; and `/rooms/` records `reorderChannel` calls in
-`html[data-fixture-channel-reorder]` (`:3020`) without moving any row. Sidebar
+`html[data-fixture-channel-reorder]` (`:3019`) without moving any row. Sidebar
 drag-and-drop (`text/om-channel` at `Sidebar.tsx:2930`, `text/om-category` from
 the `draggable` header at `:4893`, `text/om-server`) is not driveable with
 synthetic `DragEvent`s.
@@ -431,7 +431,7 @@ agent-browser find role menuitem click --name "Until I turn it back on"
 - Reopened, the menu reads **Unmute Category** in place of **Mute Category**;
   pressing it removes `.muted` and the `, muted` suffix.
 - `?catmuted=Desk&chanlevel=signals:mentions` seeds the state
-  (`shell-fixture.tsx:1706-1716`): the header reads muted, `ops` and `macro`
+  (`shell-fixture.tsx:1705-1715`): the header reads muted, `ops` and `macro`
   are muted, and `signals` keeps its own level.
 - `/chat/` defines none of the attention functions. Through the shim, stub
   `spaceAttentionFor`, `spaceMuteUntilFor`, `roomMutedFor` and a
@@ -460,7 +460,7 @@ link** shows. With `navigator.clipboard.writeText` stubbed by `eval`:
 ### Right panel slide-out (added 2026-11-25)
 
 Since `4453a6b9` a closing right panel slides out before it unmounts
-(`RightPanels.tsx:664-704`, `shared/right-panel.css:248-270`). The drawer's
+(`RightPanels.tsx:668-708`, `shared/right-panel.css:248-270`). The drawer's
 `data-state` reads `open`, `closing` or `closed`. While `closing` the drawer
 keeps its width (the conversation changes width once), is `inert` and
 `aria-hidden="true"`, and its child goes to `opacity: 0` and
@@ -499,11 +499,11 @@ third demo lives in the gallery (driven 2026-11-01 on `/rooms/` at `936f5b64`):
   **ArrowLeft** three times → 210, written to `om.chat.sidebarWidth`; **Home**
   → 200 (the minimum, not the default). This is the key the chevron recipe
   above seeds by hand.
-- **Resize the side panel** (`.column-resize`, `RightPanels.tsx:707`,
+- **Resize the side panel** (`.column-resize`, `RightPanels.tsx:711`,
   `ColumnResize`): present only while a right panel is open and not in overlay
   mode (`panel=pins` read 304, `panel=members` 324, `panel=search` 364; min
   224, max 464). The commit persists to `om.chat.rightPanelWidth`
-  (`RightPanels.tsx:63`, `:147`).
+  (`RightPanels.tsx:67`, `:151`).
 - `fixture.html?surface=resizable-panel` mounts the same `ColumnResize` as
   **Resize the side panel** (280–520, starts at 320) over a `#research` mock,
   with the gallery's `reduced-motion` class removed (`fixture.tsx:1439`).
@@ -627,16 +627,16 @@ list, **Needs you** and the new-ticket form are implemented.
 (`shared/components/HomeHub.tsx:694`), the channel peek's header and door
 (`ChannelPeekPopover.tsx:94`, `:118`: **99+ new since you last read** and
 **99+ unread · open #<title>**) and the older-messages banner
-(`ChatPane.tsx:3267`, **You're viewing older messages · 99+ new below**). Above
+(`ChatPane.tsx:3280`, **You're viewing older messages · 99+ new below**). Above
 99 the peek's remainder is zero, so its **+N more unread** line becomes
 **More unread · open #<title>** (`:82-83`, `:91`). The topic part of the
 sidebar label (**N unread in topics**) and the **N mentions** part stay raw.
 
 Only the headline is reachable on the fixture lane: no channel or topic seed
 exceeds 99 (`BASE_CHANNELS` tops out at macro's 12, `channels=many` at 20,
-topics at 3; `shell-fixture.tsx:1761-1794`, `:1835`, `:2262`), and the
+topics at 3; `shell-fixture.tsx:1760-1793`, `:1834`, `:2261`), and the
 session store is not on `window`, so a count cannot be raised from
-`agent-browser eval`. `rail=counts` seeds one DM at 120 (`:1980`): its
+`agent-browser eval`. `rail=counts` seeds one DM at 120 (`:1979`): its
 `.rail-badge` reads **99+** while the DM treeitem keeps **120 unread** in its
 name. See [direct-messages-and-home.md](direct-messages-and-home.md) / The 99+
 headline for the headline proof. A `channel("firehose", 150, 0)` seed in
@@ -759,8 +759,8 @@ Cmd+Shift+O and Alt+C call unstubbed openers; Cmd+Shift+M and Cmd+Shift+D need
 The topic row menu lists **Add People...** for a private topic when the
 viewer may manage the room (`TopicPill.tsx:336`). It calls
 `session.openTopicAddPicker`, which neither fixture spells out, and the
-fixtures set `topicAddPicker: null` (`tools/visual/shell-fixture.tsx:3468`,
-`apps/cloud/tools/visual/shell-fixture.tsx:1821`). Add an init script after
+fixtures set `topicAddPicker: null` (`tools/visual/shell-fixture.tsx:3467`,
+`apps/cloud/tools/visual/shell-fixture.tsx:1820`). Add an init script after
 the people stub. Inside it, `this` is the session proxy, so the assignment
 lands on the fixture state and `closeConfirm()` repaints:
 
@@ -897,7 +897,7 @@ the same rows with no catch-up. It was not driven.
 
 When the tape is scrolled away from its bottom, a round **Scroll to latest
 messages** button mounts at the lower right of the conversation
-(`[data-scroll-to-latest]`, `ChatPane.tsx:2430`). It is not in the DOM while
+(`[data-scroll-to-latest]`, `ChatPane.tsx:2443`). It is not in the DOM while
 the tape sits at the bottom.
 
 ```bash
@@ -917,7 +917,7 @@ Driven 2026-11-20 at `7e3f0cde` on `/rooms/` (frame 17).
 
 When your last-read position is older than the oldest message loaded, a pill
 floats at the top of the conversation instead of the **NEW** divider
-(`ChatPane.tsx:3058-3096`; the rule is `unreadDividerState`,
+(`ChatPane.tsx:3071-3109`; the rule is `unreadDividerState`,
 `lib/unread-divider.ts:102-124`). The pill is a `role="button"` named **Jump to
 last read message** that reads "Unread messages", and it holds a second button,
 **Mark read** (title **Mark all as read**). Clicking the pill, or pressing Enter
@@ -957,7 +957,7 @@ is a product question, recorded in the nightly report.
 
 **Mark Unread, the effect.** With `policy=off` and this stub, the message
 menu's **Mark Unread** moves the mark and the **NEW** divider
-(`.new-divider[data-oldest-unread]`, `ChatPane.tsx:2987`) appears above that
+(`.new-divider[data-oldest-unread]`, `ChatPane.tsx:3000`) appears above that
 message:
 
 ```bash
@@ -979,7 +979,7 @@ doors and its recipe are in [conversation-media.md](conversation-media.md).
 
 A topic's birth card in the channel tape ("<name> started a topic") reads as
 deleted when `topics.topicRefState(room, id)` is `"deleted"`
-(`MessageRow.tsx:1456`, `:1480`, `:1545`):
+(`MessageRow.tsx:1455`, `:1479`, `:1544`):
 - The row gains `is-dead-ref`.
 - The name is a plain `span.topic-created-name`.
 - A `span.topic-created-dead` reads **deleted** (**unavailable** for a walled-off topic).
@@ -1028,7 +1028,7 @@ Live verification pending.
 - **`panel=members` on a public topic blanks the whole shell, on both hosts.**
   `?view=topic&topic=cpi-print-aug&panel=members&topics=on` leaves `#root`
   empty. The thrown error, read on `/rooms/`, is `session.topicFollowers(...)?.then is not a
-  function` (`RightPanels.tsx:1476-1477`): the fixtures never stub
+  function` (`RightPanels.tsx:1480-1481`): the fixtures never stub
   `topicFollowers`, so the call answers `INERT`, whose `then` is not a
   function. No error boundary wraps `MemberList`. The same effect line was in
   `cdfb1b0f`, so this predates `2a49cebf`; it is a fixture gap, not that
@@ -1060,7 +1060,7 @@ Live verification pending.
 - The header has no Alerts control. The old beacon `button` (`Alerts: nothing
   firing`, `Alerts: 3 feeds are ringing`) has not mounted since `dc6a9a47`:
   nothing imports `AlertsBeacon` except the board, for a width constant
-  (`AlertsBoard.tsx:54`). This file listed the beacon as a fourth header
+  (`AlertsBoard.tsx:53`). This file listed the beacon as a fourth header
   mechanism until 2026-11-22. Alerts are reached through the strip, the board
   and the sidebar rows; see [alerts.md](alerts.md).
 - **The channel is drawn by one of two tapes, and they differ.** In a channel
@@ -1077,7 +1077,7 @@ Live verification pending.
   in both states at desktop width, because `#715` hoisted the dock into
   `ConversationRightRegion` where it renders unconditionally. The bare `nav`
   without its wrapper appears only under the mobile overlay
-  (`RightPanels.tsx:266`), which is a viewport distinction, not an open one.
+  (`RightPanels.tsx:270`), which is a viewport distinction, not an open one.
   Drive the stable hooks —
   `[data-slot-tab="members"]` and `[data-slot-tab="library"]`, reading
   `aria-pressed` for which panel is open. That pair still works: clicking
@@ -1090,7 +1090,7 @@ Live verification pending.
 
   `#715` rebuilt the toggle around a right *region* that stays open while the
   panel collapses, so the label now keys on `session.rightRegionOpen()`
-  (`RightPanels.tsx:259`) rather than on whether a panel is open. `#715` added
+  (`RightPanels.tsx:263`) rather than on whether a panel is open. `#715` added
   that seam and `#735` swapped its body to route through `rightRegionTenant`,
   which is why a docked note counts as open and a topic peek does not. The
   fixture stubs none of `rightRegionOpen`, `collapseRightRegion` or
@@ -1127,7 +1127,7 @@ Live verification pending.
     topic (heading `#ops/CPI print — Aug`, `/chat/room/ops/topic/cpi-print-aug`).
     The button (`TopicPeekPane.tsx:828-836`, accessible name **Open full**, title
     "Open this topic as the full view") calls `session.promoteTopicPeek`. Only
-    the `/chat/` fixture stubs that (`apps/cloud/tools/visual/shell-fixture.tsx:1858`).
+    the `/chat/` fixture stubs that (`apps/cloud/tools/visual/shell-fixture.tsx:1857`).
     The root fixture does not, so on `/rooms/` the call lands on `INERT`, and the
     pane stays open with heading `#ops`. Measured 2026-10-29 at `cdfb1b0f`, by
     role and by selector. This is a fixture gap, not a product fault; prove
@@ -1147,7 +1147,7 @@ Live verification pending.
 - "Search or jump to…" in the sidebar is **inert** in the fixture. Clicking it
   opens nothing — confirmed live. But that is a fact about the *control*, not
   about the surface: **`?switcher=open` mounts the quick-switcher**
-  (`shell-fixture.tsx:3213` seeds `palette`), and it comes up with real
+  (`shell-fixture.tsx:3212` seeds `palette`), and it comes up with real
   content — a `div.quick-switcher` carrying `role="combobox"`, an input
   placeheld `Search messages, or jump anywhere...`, and the empty state
   *"Nowhere recent yet. Type to search, or start with @, #, * or ."* with its
@@ -1170,7 +1170,7 @@ Live verification pending.
   unread) does not. Load `?policy=off` to see it on channel rows and after
   `Mark as read` in `More channel actions`. **Mark as read** does not clear the
   seeded unread either: the fixture stubs `markRoomRead` and `markUnreadFrom`
-  as `noop` (`shell-fixture.tsx:3628`, `:3768`). Prove the offer and its gating
+  as `noop` (`shell-fixture.tsx:3627`, `:3767`). Prove the offer and its gating
   here, never the state change. That needs the daemon-pair lane.
   A synthetic `contextmenu` dispatched on the `treeitem` itself opens nothing;
   dispatch it on the row's `.channel-row-identity` span. A topic `treeitem` is a
@@ -1195,7 +1195,9 @@ Live verification pending.
 
 ### Verification record
 
-**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** new tonight on both hosts: the deleted topic face with `topics.topicRefState` stubbed; the right panel's slide-out on `/chat/` with no stylesheet import (read from the panel child). Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. **Limitations:** the reload path of the deleted mark and the birth-row topic name are unit-tested only; the topics primer and the `d-moveto-effect`/`d-moveto-phone` blocks are step faults (the `d2-moveto-category` and `d4-phone` blocks passed). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+
+**Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** new tonight on both hosts: the deleted topic face with `topics.topicRefState` stubbed; the right panel's slide-out on `/chat/` with no stylesheet import (read from the panel child). Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. **Limitations:** the reload path of the deleted mark and the birth-row topic name are unit-tested only; the topics primer and the `d-moveto-effect`/`d-moveto-phone` blocks are step faults (the `d2-moveto-category` and `d4-phone` blocks passed). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 
 **Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** new tonight on `/rooms/` (18186) and `/chat/` (18187): **Move to...** with its **Category** flyout, the omitted moves, the reorder write, Escape and ArrowLeft one level at a time, and the 390 sheet (`/rooms/`); **Mute Category** with the dim and its `, muted` label, **Unmute Category**, and the `catmuted=` seed (`/rooms/`; `/chat/` through stubs); the exclusive read verbs on the row, the header ⋯ and the category header; **Copy topic link** with its clipboard text and toasts; the right panel slide-out (`data-state` closing, width held, inert), Escape and the overlay scrim. The rest of the guide was re-driven by the kept step runner. **Limitations:** the reorder, mute and copy writes are fixture stubs; the fixture does not move rows, so the move announcement counts the old order; **Mark As Unread** on a channel row needs `policy=off`; the slide-out runs under `reduced-motion`, so only end states were seen; the topics primer step (`[data-topic-view="topics"]`) missed again and was not re-proved. Product gap: keyboard focus does not enter the **Move to...** flyout on the first ArrowRight or Enter. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 

@@ -9,12 +9,12 @@ photos and videos as a grid, documents as a list (`7e3f0cde`, #chat 3391).
   actions** menu, between **Summon your om** and **Channel settings**. It reads
   **Media and files**, or **Topic media and files** while a topic is open
   (`packages/chat-ui/src/components/ConversationMediaEntry.tsx:44-52`,
-  `ChatPane.tsx:1309`). The topics list header carries the same row
+  `ChatPane.tsx:1322`). The topics list header carries the same row
   (`TopicListView.tsx:500`). The menu now has 14 items in `#ops`.
 - **The door in a DM or group DM** is a header icon button named **Media and
   files** (`[data-conversation-media]`, `aria-haspopup="dialog"`), after
   **Nudge** and before the search buttons (`ConversationMediaEntry.tsx:65-75`,
-  `ChatPane.tsx:1418`).
+  `ChatPane.tsx:1431`).
 - **On a phone** the row sits in the header's ⋯ sheet, and the dialog takes over
   the screen (`mobilePresentation="takeover"`,
   `ConversationMediaDialog.tsx:125`) with a three-column grid.
@@ -22,9 +22,9 @@ photos and videos as a grid, documents as a list (`7e3f0cde`, #chat 3391).
   and holds a tablist named **Shared in this conversation** (`:141`) with two
   tabs, **Media** and **Files**, each with a count. **Media** is selected first.
 - **Media** is a grid (`[data-media-grid]` of `.media-grid-tile`,
-  `MediaGallery.tsx:670-675`). A tile opens the lightbox on that item. The
+  `MediaGallery.tsx:724-729`). A tile opens the lightbox on that item. The
   lightbox pages across every loaded item with **Previous image** and **Next
-  image** (`MediaGallery.tsx:1806`, `:1815`), names the sender and time, and
+  image** (`MediaGallery.tsx:1873`, `:1882`), names the sender and time, and
   counts "1/25". **Escape** closes the lightbox and leaves the dialog open.
 - **Files** is a list (`.conversation-media-file`): the file card with its
   **Download <name>** link, then "sender · time".
@@ -48,7 +48,24 @@ photos and videos as a grid, documents as a list (`7e3f0cde`, #chat 3391).
   the conversation is forgotten, so **Retry** starts again from the newest
   page (`:228`).
 - **A tile that cannot load** shows "Image unavailable" with **Retry**
-  (`MediaRetryBox`, `MediaGallery.tsx:789-798`).
+  (`MediaRetryBox`, `MediaGallery.tsx:843-852`), but only once the sign has
+  really failed. Since `6eb6fe1d`, while a re-ask is armed (a relay 429 with
+  Retry-After, a pending scan, a ladder rung), `signingFailed` answers false
+  (`lib/attachments-seam.ts:1197`). The tile reads as loading
+  (`aria-label="Loading <name>"`, `data-loading`, `MediaGallery.tsx:1412-1414`).
+- **Image signing follows the viewport** (`6eb6fe1d`, `5662bc34`). On a cold
+  open the seam mints at most six signs at a time, newest waiting first
+  (`lib/newest-first-queue.ts`), so on-screen tiles sign first. A tile signs
+  only within 1200 px of the viewport, and stays near once near
+  (`lib/use-near-viewport.ts`, `lib/sign-demand.ts`, `MediaGallery.tsx:1197`).
+  The desktop's streamed tiles wait out a refused read on a 2/5/10 s ladder
+  before **Retry** (`lib/attachments.ts:31`). All of this is source and unit
+  tests only (`test/viewport-image-sign.test.tsx`,
+  `packages/chat-ui/test/attachment/cold-open-sign-order.test.ts`,
+  `test/desktop-image-retry-wait.test.tsx`). The fixtures never build the
+  real seam: `signedUrlFor` is a plain data-URL stub. On 2026-11-27, nulling
+  three tiles' URLs and stubbing `signingFailedFor` through the shim changed
+  nothing on `?tape=mosaic5`. Live verification pending.
 - The list comes from `session.search.attachmentsPage(target, cursor)`
   (`lib/search-seam.ts:318`, `:589`), which asks the store for messages with
   `has: attachment`. A topic narrows the request to that topic.
@@ -63,7 +80,7 @@ picture to see it large and step through the others with the arrows.
 ## Driving it with control-om-chat
 
 The root shell fixture seeds 31 messages with one image each, and a document on
-every fourth (`tools/visual/shell-fixture.tsx:4656`, `:4732`). The seed needs
+every fourth (`tools/visual/shell-fixture.tsx:4655`, `:4731`). The seed needs
 no query parameter and answers the same for every conversation. Since
 `bc2ffd55` it logs each page it serves on `window.__fixtureAttachmentPages`,
 and `?mediaDelay=<ms>` makes each answer wait, so a proof can count the reads
@@ -128,7 +145,7 @@ agent-browser eval '(()=>{window.__om.search.attachmentsPage=async()=>({media:[]
 ### On `/chat/`
 
 The cloud fixture's search seam has no `attachmentsPage`
-(`apps/cloud/tools/visual/shell-fixture.tsx:1667`, `:2536-2557`). The menu row
+(`apps/cloud/tools/visual/shell-fixture.tsx:1666`, `:2535-2556`). The menu row
 is there, and choosing it opens nothing: the dialog throws
 "session.search.attachmentsPage is not a function" and its lazy-surface gate
 swallows the error. Only the lane log and the browser console show it. Assign
@@ -147,7 +164,7 @@ retry box.
 
 The page function returns `newest` and `oldest` (added 2026-11-21): the reopen
 merge reads them, as the root seed's pages now carry them
-(`tools/visual/shell-fixture.tsx:4778-4779`). With them, a reopen on `/chat/`
+(`tools/visual/shell-fixture.tsx:4777-4778`). With them, a reopen on `/chat/`
 kept 31 tiles on the first frame, and a counter in the page function read
 `[0,1,0]`.
 
@@ -186,7 +203,9 @@ kept 31 tiles on the first frame, and a counter in the page function read
 
 ### Verification record
 
-**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** source only for tonight's image-signing changes (a shim stub of `signedUrlFor` and `signingFailedFor` changed nothing on `?tape=mosaic5`). Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** the loading-while-armed tile, near-viewport signing and the desktop retry ladder are pending; the earlier limitations stand. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+
+**Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 
 **Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the **Files** tab is named **Files 8**; the step's exact match failed and the files tab was not re-proved tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 

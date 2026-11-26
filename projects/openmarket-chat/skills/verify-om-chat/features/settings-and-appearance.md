@@ -62,8 +62,16 @@ interaction end to end.
   **Channel index**, and no to-do text).
   Webhooks also offers **Convert webhooks to alerts**. Its review step lets the
   owner select legacy webhooks; URLs and senders stay while deliveries become
-  alert cards in that channel's tape (`WebhooksPage.tsx:600`,
-  `ConvertWebhooksStepper.tsx:342,419`).
+  alert cards in that channel's tape (`WebhooksPage.tsx:629`,
+  `ConvertWebhooksStepper.tsx:335,419`). Since `a4fc84cb` each webhook row
+  holds one truncated line each for the name, the route chip
+  (`[data-webhook-binding]`, now under the name) and the meta line
+  (`[data-webhook-meta]`, the whole text in its title). The meta reads
+  "<room> chat · by <name> · <date> · never used", and drops "by" when the
+  creator names no one: the raw id, the `om-<last 6>` placeholder or the
+  unknown label (`settings/creator-name.ts`, `WebhooksPage.tsx:663-683`).
+  Integrations event-subscription rows follow the same rule
+  (`IntegrationsPage.tsx`).
 - Keyboard Shortcuts carries an **Editing** group with one switch, **Vim mode**
   (`UserSettings.tsx:1129`, `878049d8`/`b1ed7135`). It is off by default and
   stored as `localStorage["om.chat.vimMode"]` (`"true"`/`"false"`). It is synced and
@@ -111,6 +119,16 @@ agent-browser open "$(control-om-chat url \
 | `settings-fixture.html?host=channel&page=overview&perms=owner` | Channel overview |
 | `settings-fixture.html?host=channel&page=webhooks&perms=owner` | Webhooks, including the conversion review step |
 
+On the Webhooks route the two seeded rows read
+`bitcoin chat · by justintg · 7/2/2026 · never used` and
+`bitcoin chat · by ada · 6/18/2026 · never used` on `/rooms/`, with no raw
+creator id and a 288 px text column (driven 2026-11-27). On `/chat/` they read
+`by  ·` with a blank name. The cloud settings fixture's name lookup answers a
+blank but truthy value, most likely its `INERT` stand-in; the cause was not
+traced. Treat it as a fixture artefact until a real store shows it.
+A creator with no name was not seeded (it needs a `window.fetch` wrap), and
+Integrations seeds no subscription rows.
+
 On the Webhooks route, choose **Convert webhooks to alerts** and check the
 selection review and channel-tape explanation. Cancel to leave the fixture
 unchanged. The source fixture proves the wizard's UI; an authenticated server
@@ -151,7 +169,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4859`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4858`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -214,7 +232,7 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2617-2622`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2616-2621`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -461,7 +479,7 @@ chat background. Pick a PNG, JPEG or WebP picture."; a non-image renamed
 `.png` toasts "That file couldn't be read as a picture. Pick a PNG, JPEG or
 WebP image."; a real PNG reaches the upload and toasts "The picture could not
 be uploaded." because the fixtures' session has no `chatBackgroundHost`. A
-successful upload (`POST /users/chat-background`, `attachments-seam.ts:934`)
+successful upload (`POST /users/chat-background`, `attachments-seam.ts:942`)
 needs a live host and is **live verification pending**.
 
 To drive the set states with no upload, seed the pref with a loopback URL
@@ -789,7 +807,9 @@ code-expired and code-mismatch notes, and a real daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The quiet-hours bar was re-driven alone: **Save Changes** disabled for `Mars/Olympus`. This guide's source did not change in the delta. **Limitations:** the step file matched an exact "Save" until tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** new tonight: the Webhooks rows on `/rooms/` (`by justintg`, `by ada`, no raw id, one-line meta with its title); on `/chat/` they read `by  ·` (fixture artefact). Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** a creator who names no one and Integrations subscription rows were not seeded. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+
+**Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The quiet-hours bar was re-driven alone: **Save Changes** disabled for `Mars/Olympus`. This guide's source did not change in the delta. **Limitations:** the step file matched an exact "Save" until tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 
 **Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** the quiet-hours **Save** state was not re-proved (step found no Save button). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 

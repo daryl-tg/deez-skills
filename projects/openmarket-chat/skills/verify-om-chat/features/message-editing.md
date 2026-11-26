@@ -6,13 +6,13 @@
 - An unchanged save closes the editor without a transport request or new edit timestamp.
 - Changing text and restoring it before saving also closes without an edit.
 - A previously edited message keeps its existing edit metadata on an unchanged save.
-- Escape cancels; Shift+Enter adds a newline. A completion menu consumes these keys first. With Vim mode on (`4f2accbc`), Escape enters NORMAL instead, **Shift+Escape** cancels, and Enter in normal or visual mode is a motion that neither saves nor closes. The hint then reads "shift+escape to cancel • enter to save" with the mode badge `.inline-edit-hint .composer-vim-mode[data-vim-mode]` in front (`InlineMessageEditor.tsx:339`, `:777-778`), and a `.vim-block-cursor` shows outside insert mode.
-- Saving an empty edit does not save: it opens the **Delete Message** confirm ("This removes the message for everyone in the channel and cannot be undone.", **Delete**) through `requestRoomMessageDelete` (`MessageRow.tsx:469-499`, `:2459-2465`; `d3aebbb5`). A **CharCounter** (`span.composer-char-counter`) shows within 200 characters of the cap and an over-cap save is refused (`InlineMessageEditor.tsx:548`, `:786-787`). In a DM the cap is 10,000 characters (`ChatPane.tsx:4300`): driven 2026-11-21, see "The DM edit cap" below. The room cap is source only.
+- Escape cancels; Shift+Enter adds a newline. A completion menu consumes these keys first. With Vim mode on (`4f2accbc`), Escape enters NORMAL instead, **Shift+Escape** cancels, and Enter in normal or visual mode is a motion that neither saves nor closes. The hint then reads "shift+escape to cancel • enter to save" with the mode badge `.inline-edit-hint .composer-vim-mode[data-vim-mode]` in front (`InlineMessageEditor.tsx:341`, `:811-812`), and a `.vim-block-cursor` shows outside insert mode.
+- Saving an empty edit does not save: it opens the **Delete Message** confirm ("This removes the message for everyone in the channel and cannot be undone.", **Delete**) through `requestRoomMessageDelete` (`MessageRow.tsx:469-499`, `:2458-2464`; `d3aebbb5`). A **CharCounter** (`span.composer-char-counter`) shows within 200 characters of the cap and an over-cap save is refused (`InlineMessageEditor.tsx:550`, `:820-821`). In a DM the cap is 10,000 characters (`ChatPane.tsx:4313`): driven 2026-11-21, see "The DM edit cap" below. The room cap is source only.
 - Topic labels return to canonical references on save. Empty poll captions stay empty; clearing a nonempty caption remains a real edit.
-- A role mention edits as a snug `@Name` chip (`f8baae2a`). The edit box binds the message's `om://role/<id>` references with the room, so the value reads `@Devops` rather than the URI, and the chip is as wide as its name. A colored role gets `composer-token-role-colored` and `--role-color`; since `6a118e07` the colour is read from the link's role, `session.roleByRefId(id).color` (`InlineMessageEditor.tsx:302-303`, painted through `DraftBackdrop.tsx:40`). A role name typed into the edit box paints no chip, and neither does a mention inside code: with `roleEdit=1`, appending `` @traders and `@ana` `` leaves the three seeded chips (`@Devops`, `@ana`, `@dax`) and adds none (driven 2026-11-20 on `/rooms/`). Saving sends the `om://role/…` URI again, and a role picked from the edit box's `@` menu binds the same way.
+- A role mention edits as a snug `@Name` chip (`f8baae2a`). The edit box binds the message's `om://role/<id>` references with the room, so the value reads `@Devops` rather than the URI, and the chip is as wide as its name. A colored role gets `composer-token-role-colored` and `--role-color`; since `6a118e07` the colour is read from the link's role, `session.roleByRefId(id).color` (`InlineMessageEditor.tsx:304-305`, painted through `DraftBackdrop.tsx:40`). A role name typed into the edit box paints no chip, and neither does a mention inside code: with `roleEdit=1`, appending `` @traders and `@ana` `` leaves the three seeded chips (`@Devops`, `@ana`, `@dax`) and adds none (driven 2026-11-20 on `/rooms/`). Saving sends the `om://role/…` URI again, and a role picked from the edit box's `@` menu binds the same way.
 - Since `ef005693` and `bc08428c` a person picked in the edit box's `@` menu is bound to their id and saves as `om://user/<id>`, as in the composer (source and unit tests; not driven).
-- Since `3387846a` a typed `@username` saves as its holder's link too, by the composer's rule ([composer-and-sending.md](composer-and-sending.md), "A typed username goes out as its holder's link"). The box paints `composer-token-mention` on a name that will convert. A ticket's text resolves among the server's people, a room message among the room's, a DM message among the DM's. An unchanged save converts nothing and writes the text back as it was (`603275fc`; `InlineMessageEditor.tsx:532-540`).
-- The edit box's `@` menu offers only your own agents and greys them while your om is off (`d08eb47d`; `InlineMessageEditor.tsx:206-219`). With `?view=room&alerts=quiet&roleEdit=1&agentPicker=offline` on `/rooms/`, type ` @arg` at the end of **Edit message**: one option, `argue`, "offline · your om is off", `aria-disabled="true"`, and Tab inserts nothing. With `agentPicker=1` the same Tab leaves `@argue ` (driven 2026-11-18).
+- Since `3387846a` a typed `@username` saves as its holder's link too, by the composer's rule ([composer-and-sending.md](composer-and-sending.md), "A typed username goes out as its holder's link"). The box paints `composer-token-mention` on a name that will convert. A ticket's text resolves among the server's people, a room message among the room's, a DM message among the DM's. An unchanged save converts nothing and writes the text back as it was (`603275fc`; `InlineMessageEditor.tsx:534-542`).
+- The edit box's `@` menu offers only your own agents and greys them while your om is off (`d08eb47d`; `InlineMessageEditor.tsx:208-221`). With `?view=room&alerts=quiet&roleEdit=1&agentPicker=offline` on `/rooms/`, type ` @arg` at the end of **Edit message**: one option, `argue`, "offline · your om is off", `aria-disabled="true"`, and Tab inserts nothing. With `agentPicker=1` the same Tab leaves `@argue ` (driven 2026-11-18).
 
 ## How to get to it (user POV)
 
@@ -63,7 +63,7 @@ The 2026-09-09 unchanged-edit run attached actual ChatSession edit methods to th
 
 `?roleEdit=1` posts kyle's message "**Need from om://role/r-devops**" with a
 line of member mentions and opens it already in the edit box
-(`tools/visual/shell-fixture.tsx:1354-1365`, `:1688`). It exists on `/rooms/`
+(`tools/visual/shell-fixture.tsx:1354-1365`, `:1687`). It exists on `/rooms/`
 only; the `/chat/` fixture has no such seed.
 
 ```bash
@@ -77,7 +77,7 @@ agent-browser eval '(()=>{const t=document.querySelector("textarea[aria-label=\"
 Driven 2026-11-07 on `/rooms/`: the `@Devops` chip measured 70 px for 66 px
 of text with 2 px side padding, and the value held no `om://role`. Do not
 test the `@` pick with another role here: the fixture's role-name stub
-(`bindComposerUrisFor`, `shell-fixture.tsx:3682-3689`) knows only `r-devops`, so picking
+(`bindComposerUrisFor`, `shell-fixture.tsx:3681-3688`) knows only `r-devops`, so picking
 **@traders** shows `@role:r-trader` and the raw URI. That is the stub, not the
 product.
 
@@ -115,8 +115,8 @@ their names typed, and `@nova` saves as typed with no chip. Re-driven
 Since `5cbe2a54` a role name typed in the edit box chips and saves as the
 role's link, by the composer's rule ([composer-and-sending.md](composer-and-sending.md),
 "A typed role name goes out as the role's link"). The edit box reads a room
-message's roles, and a DM message has none (`InlineMessageEditor.tsx:228-245`,
-the save at `:539`). On `?view=room&alerts=quiet&roleEdit=1` (`/rooms/` only),
+message's roles, and a DM message has none (`InlineMessageEditor.tsx:230-247`,
+the save at `:541`). On `?view=room&alerts=quiet&roleEdit=1` (`/rooms/` only),
 append ` with @traders now` to the box and press Enter:
 
 ```text
@@ -126,6 +126,24 @@ __edits: "**Need from om://role/r-devops**\n- @ana @dax: please review the reten
 
 End the appended text with a word: Escape with no `@` list open cancels the
 edit. Driven 2026-11-24 at `9c697d6e` on `/rooms/`.
+
+### A pasted link in the edit box (added 2026-11-27)
+
+Since `82414b0d` the edit box binds a pasted user, role, topic or share link
+the way the composer does: `InlineMessageEditor.tsx:634-666` calls
+`boundPasteInto`, and the link lands as its name, bound to the link it saves
+as. Before this, the edit box bound nothing. On `?view=room&alerts=quiet`, with
+the session-capture shim, open the editor with `__om.beginEdit(104)`, put the
+caret at the end and paste ` om://role/r-devops`:
+
+```text
+prevented: true; the box now ends "… shorter than the backoff. @Devops"
+```
+
+Driven 2026-11-27 at `5acbd605` on `/rooms/`. A pasted user link needs the
+user-resolver stub from [composer-and-sending.md](composer-and-sending.md),
+"A pasted link lands as the name it reads as". The save of a pasted link was
+not driven. `/chat/` has no working `beginEdit`.
 
 ### The DM edit cap (added 2026-11-21)
 
@@ -180,13 +198,15 @@ Full server persistence and other clients receiving the edit require the local a
   (`[data-inline-edit-loading]`) shows first, then the textbox **Edit message**
   mounts. Wait for the textbox; do not assert it synchronously.
 - **`/chat/` cannot open the editor in the fixture.** The cloud shell fixture
-  stubs `beginEdit` as `noop` (`apps/cloud/tools/visual/shell-fixture.tsx:2011`),
+  stubs `beginEdit` as `noop` (`apps/cloud/tools/visual/shell-fixture.tsx:2010`),
   so **Edit** on `/chat/` does nothing there. That is a harness limit, not a
   product failure.
 
 ### Verification record
 
-**Last verified:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The typed-username edit was re-driven with `isAppAccount` stubbed: `__edits` ends `with om://user/6650a1b2c3d4e5f6a7b8c9d0`. This guide's source did not change in the delta. **Limitations:** the step file lacked the stub until tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
+**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** new tonight on `/rooms/`: a pasted `om://role/r-devops` in the edit box landing as `@Devops`. Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** saving a pasted link and `/chat/` (no working `beginEdit`). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+
+**Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The typed-username edit was re-driven with `isAppAccount` stubbed: `__edits` ends `with om://user/6650a1b2c3d4e5f6a7b8c9d0`. This guide's source did not change in the delta. **Limitations:** the step file lacked the stub until tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 
 **Previous record:** 2026-11-25 (nightly maintenance). **Product commit:** `557ee9ed` (GitLab origin/main; rooms-client 0.125.0; 11 commits past `9c697d6e`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; every failing step was re-run alone and compared with this guide. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261125/r1/`.
 
@@ -228,6 +248,6 @@ Full server persistence and other clients receiving the edit require the local a
 
 **Previous record (channel path):** 2026-10-28 (nightly maintenance). **Product commit:** `2dd7aad1` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-104` → **Edit** opened the **Edit message** textbox; a changed value plus **save** closed the editor, and the row read "edited by nightly 1028 (edited)". The first `hover` plus 0.6 s plus `find role button --name Edit --exact` reported no **Edit**, although `.msg-toolbar` held `button[title="Edit"]` and the row had grown to 81 px. A second hover succeeded. **Limitations:** The DM path and `/chat/` were not re-driven; this is local fixture edit state only. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261028/r1/` (frame 32).
 
-**Previous record (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3730`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3097`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:11741`, `:12120`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
+**Previous record (DM path):** 2026-10-27 (maintenance re-drive). **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/` `?view=dm&dm=ana`, hovering kyle's last bubble → **More** → menuitem **Edit Message** → textbox **Edit message** → **save** replaced the text and closed the editor. **Open question, not yet a product finding:** no `edited` label rendered on the DM bubble. The fixture's `commitDmEdit` sets top-level `message.editedAt` (`tools/visual/shell-fixture.tsx:3729`), and the bubble label is gated on `flags.bubbles && entry.editedAt` (`MessageRow.tsx:3096`). The session's real DM edit paths write `metadata.editedAt` instead (`lib/session.ts:11741`, `:12120`). Whether a real edited DM shows the label was not traced; prove it on the daemon-pair lane before reporting it. Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frame 15).
 
 **Previous record:** verified 2026-10-27. **Product commit:** `6c15b0fb286e9dc1b6cb130c9c97cd7e0afa9254` (origin/main). **Scope:** On `/rooms/`, kyle's `msg-ops-108` **Edit** showed **Loading message editor**, then the **Edit message** textbox; `save` closed it, and the row read the new text plus `(edited)`. On `/chat/`, **Edit** was a no-op (fixture `beginEdit: noop`). **Limitations:** The DM **More** → **Edit Message** path was not re-driven. Local fixture edit state only; relay persistence and other viewers are pending. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261027/r01/` (frames 18-19, 40). Previous record: 2026-10-26 at `5820fbea`.
