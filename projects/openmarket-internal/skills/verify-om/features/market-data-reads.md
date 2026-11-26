@@ -1,5 +1,7 @@
 # Market data reads
 
+*Verified 2026-11-27 (nightly), tree `68d49523c` (origin/main, v0.498.1+internal), guest lane on 18184 through `bootstrap.internal.ts`, booted with no guest 429. The new `data-transport` sub-feature, live: the four settings' defaults and refusals, a guest's candle read served on `data.transport v3`, `transport_fallback_off` on a `TPO_AGG` read under `data.fallback off`, `data.port off` still answering, and the daemon's `Points:`, `Shadow v3:` and `Mismatch:` rows from a condition watch's reads. Not driven: a sign-in's v3 default (#2728), the v2 stream, the `(points, v2 stream)` error suffix and the GUI's requests on the port (#2645). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261127/r1/` (`cli/data-*.txt`, `cli/status-*.txt`).*
+
 *Re-checked 2026-11-24 (nightly), tree `26d502c689` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `coins`, `exchanges`, `markets` and `enum --list` (`exchange_id` 38) answered; `tenors` is still 500 `server_error`; `hyperliquid dexes` lists the HIP-3 dexes and `hyperliquid balance` exits 4 `Hyperliquid is not paired.` Not re-driven: `points`, the v3 refusals, Polymarket. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261124/r1/` (`cli/breadth/31-*`, `cli/breadth/35-*`).*
 
 *Re-driven 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`, the guest sign-in minted at boot. `coins`, `exchanges`, `enum`, `metric list` (65 metrics), `block-sizes` (310 sizes), `resolve BTC` (bound to Hyperliquid `BTC perp`, `match: exact`), `points --type TRADE_SIDE_AGNOSTIC_AGG --exchange BINANCE --raw-symbol BTCUSDT --interval 1h --lookback 3h`; `tenors` still answers 500 `server_error`. New `venue-reads` sub-feature, first live proof: `hyperliquid dexes` lists ten HIP-3 dexes with no pairing; `hyperliquid balance` and `polymarket-account balance` exit 4 `venue_not_paired`; `polymarket platform-summary` and `polymarket leaderboard` exit 2 `tier_forbidden` for a guest; `normalized-symbols` with no `--type` exits 2 `invalid_options`; `option-chain DERIBIT BTC` and `instruments BINANCE_FUTURES BTCUSDT` exit 2 `invalid_query` off the v3 transport. Not re-driven: `markets`, `symbols`, `usage`, `metric get|series|screen`, the v3 transport, expiry filters. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/` (`cli/31-*`, `cli/84-points.out`, `cli/91-*`).*
@@ -69,6 +71,15 @@ lane's machine-minted key is enough for them.
   - `option-chain <exchange> <underlying>` and `instruments <exchange> [symbols...]` exit 2 `invalid_query` when the data transport is not v3; the hint names `om config set data.transport v3`.
   - `normalized-symbols` needs at least one `--type <data-type>`: without it, exit 2 `invalid_options`, `types: requires at least one type`.
   - A paired venue's reads, every order verb and `hyperliquid leverage|transfer|margin` are not driven: they need a venue account, and the lane has none.
+
+- `data-transport` (added 2026-11-27; #2593, #2625, #2626, #2645, #2728): four settings pick how market-data reads travel, and `om status` counts how the daemon's points reads went.
+  - `data.transport` (`OM_DATA_TRANSPORT`, default `auto`; `rest`, `v2`, `auto`, `v3`): `auto` reads HTTP on an API key and, since #2728, v3 on a sign-in whose token may go to the v3 host. A guest is an API-key home.
+  - `data.fallback` (`OM_DATA_FALLBACK`, default `on`): `off` refuses a points read the named stream passes on, with `transport_fallback_off`. It changes nothing on `auto` or `rest` for a key home.
+  - `data.shadow` (`OM_DATA_SHADOW`, default `off`; `off`, `v3`): on a key home, reads each REST or v2 points answer again on v3 in the background and counts the match. A sign-in runs no shadow.
+  - `data.port` (`OM_DATA_PORT`, default `on`): `off` is the rollback to the read path before the DataSource port.
+  - A bad value exits 2: `om: data.port must be on or off.` (the same for `data.fallback`), `om: data.shadow must be one of: off, v3.`, `om: data.transport must be one of: rest, v2, auto, v3.`
+  - `om status` prints `Points:` (for example `3 reads · rest 100%`) and `Shadow v3:` (`3 match · 3 mismatch · 1 skipped`) with a `Mismatch:` row (`TRADE_SIDE_AGNOSTIC_AGG BINANCE_FUTURES BTCUSDT · 1 rows only on rest · 1 only on v3`, then `0 counted differently` on the next line). Each row shows only when its count is above zero. JSON is under `data_transport.points` (`served`, `declined`, `routed`, `fell_back`, `refused`, `failed`, `reasons`, `shadow`).
+  - The counts are the daemon's. `om points` runs in the CLI process and never moves them, so drive daemon reads (a condition watch) to see the rows.
 
 ## How to get to it (user POV)
 
@@ -150,6 +161,29 @@ Preconditions:
 - **Symbol lists** (driven 2026-11-02): `symbols` needs `--type <data_type>`; the bare verb exits 2 `invalid_options` ("types: requires at least one type"), and `symbols --type TRADE_AGG --format json` returns `rawSymbols` (a very large array: keep a head, not the file). `normalized-symbols --type TRADE_AGG` returns `normalizedSymbols`, `block-sizes` returns `blockSizes`. `exchanges --format json` carries `exchanges`, `refusedTypes` (the data types the guest plan refuses: five on 2026-11-02) and `unselectable`.
 - **Proof.** Keep the exact command and the JSON (truncated to the first point
   or two is fine, but keep the full `id` block) plus the exit code.
+
+### Data transport settings and the Points rows (added 2026-11-27)
+
+```bash
+control-om om -- config get data.port            # unset (default: on); also data.fallback, data.shadow, data.transport
+control-om om -- config set data.port bogus      # exit 2: om: data.port must be on or off.
+control-om om -- config set data.transport v3
+control-om om -- config set data.fallback off
+control-om om -- points --type TRADE_SIDE_AGNOSTIC_AGG --lookback 2h --exchange BINANCE \
+  --raw-symbol BTCUSDT --interval HOUR --format json   # served on v3 on a guest key (2026-11-27)
+control-om om -- points --type TPO_AGG --lookback 4h --exchange BINANCE --raw-symbol BTCUSDT \
+  --interval HOUR --tpo-block-size-minutes 30 --format json
+#   {"error":"transport_fallback_off","message":"points: the v3 stream did not serve this read
+#    (v3 can't read this TPO_AGG request).", ... "details":{"transport":"v3","kind":"v3_param",...}}
+control-om om -- config set data.transport auto; control-om om -- config set data.fallback on
+control-om om -- watch create cond-probe --condition \
+  '{"metric":"price","selector":{"symbol":"BTCUSDT","exchange":"BINANCE_FUTURES","interval":"MINUTE"},"op":"gt","value":1000000}'
+control-om om -- config set data.shadow v3
+control-om om -- status            # after a minute: Points:, Shadow v3:, Mismatch:
+control-om om -- config set data.shadow off
+```
+
+Reset every setting you changed: they are the lane home's, and the daemon reads them at call time.
 
 ## Gotchas
 

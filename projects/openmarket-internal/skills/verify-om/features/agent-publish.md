@@ -1,5 +1,7 @@
 # Publish an agent you made (om agent publish, agent_publish)
 
+*Re-checked 2026-11-27 (nightly), tree `68d49523c` (origin/main, v0.498.1+internal), guest lane on 18184 through `bootstrap.internal.ts`. #2733's platform visibility rule, live on a fixture folder: `om publish <dir> --dry-run` on an `om-package.json` of kind `agent-plugin` named `@openmarket/held-agent` with no `visibility` exits 2 `visibility_required` before any network call; the same manifest with `"visibility":"private"` passes that check and stops at `plugin has no plugin.json`. Not driven: `om agent publish` itself (needs a registry stand-in), the engine-install trust ask (`--trust-publisher`). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261127/r1/` (`cli/guest-refusals.txt`).*
+
 *Verified: 2026-11-11, branch `daryl/agent-listing-publish` tree `c6944b91eb`, on main since #2458 (`f98a580314`, merged 2026-11-11; not re-driven on main), bare lane on 18131 from the feature worktree with one stand-in on 18132 answering `/auth/validate-api-key` and the fake model, `OM_REGISTRY_URL` at an in-memory registry preview on 18120 built from registry branch `daryl/agents-category`. Driven: `agent create --file draft.json --yes` with a `listing`, the staged files, `agent list --format json`, two `agent publish --dry-run` runs, the TTY publish card (declined), `agent publish --yes` twice, then the registry's `/agents` and the agent's page. Not driven: MCP `agent_publish` (needs `om mcp arm`), `--cover`, `--artwork`, a coding agent, a real registry. Evidence: `http://127.0.0.1:8098/registry-agents-category/r2/`.*
 
 `om agent publish <name>` puts an agent you created on the registry as `@<username>/<name>` in one step. It stages a copy of the agent's folder, writes `om-package.json` with the listing (display name, tagline, tags), and publishes behind one tier-3 card. The agent's own folder is never changed. The listing is set when the agent is created, through `listing` on the draft, and can be overridden at publish.
@@ -12,6 +14,11 @@
 - Version: the plugin's own version on a first publish, a patch bump of the registry's latest after that.
 - Card rows `Package`, `Version`, `Name`, `Tagline`, `Tags`; question `Publish agent <name> to the registry?`. A dry run raises no card.
 - Refusals: `not_local` (the agent did not come from this home), `not_found` (no staged folder), `package_deleted` (the coordinate was deleted on the registry).
+
+- `platform-visibility` (added 2026-11-27, #2733): an `agent-plugin` package under `@openmarket` or `@om-core` must name `visibility` to publish. `om publish`, `om watch publish` and `package_publish` (with `--dry-run` and `--validate` too) refuse it first:
+  - `{"error":"visibility_required","message":"@openmarket/held-agent names no visibility, so it would publish public.","hint":"Add \"visibility\" to om-package.json: \"private\", \"unlisted\" or \"public\"."}`, exit 2.
+  - Every other scope and kind keeps the public default.
+- `engine-any-publisher` (added 2026-11-27, #2733, source only): `om install` of an engine from a publisher that is not `@openmarket` or `@om-core` on a known registry asks `Not from OpenMarket. Install it at your own discretion?`. Only a TTY yes answers it; `--yes` alone answers `terminal_required`, and `--trust-publisher` lets a script through. An engine may ship as one JavaScript bundle (`bundle` in its manifest, #2741, source only).
 
 ## How to get to it (user POV)
 
@@ -34,6 +41,16 @@ control-om om -- agent publish <name> --yes                  # the next patch
 The card needs a TTY. Drive it with `expect`, wait for `Publish agent`, and answer `n` to leave nothing published.
 
 Prove the dry run posted nothing by reading `GET <registry>/v1/search?kind=agent-plugin&q=<name>` before and after. Prove the stage was removed by listing the temp directory for `om-agent-publish-*`.
+
+The platform rule needs no lane account. Write a fixture folder outside the repo:
+
+```sh
+mkdir -p "$SCRATCH/held-agent"
+echo '{"spec_version":"1.3","kind":"agent-plugin","name":"@openmarket/held-agent","version":"0.1.0"}' \
+  > "$SCRATCH/held-agent/om-package.json"
+control-om om -- publish "$SCRATCH/held-agent" --dry-run     # exit 2 visibility_required
+# add "visibility":"private" and run it again: the next refusal (plugin has no plugin.json) proves the rule passed
+```
 
 ## Gotchas
 

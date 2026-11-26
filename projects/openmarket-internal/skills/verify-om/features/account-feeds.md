@@ -1,5 +1,7 @@
 # Account feeds: log numbers, chart them, delete one, and the feed limit
 
+*Re-checked 2026-11-27 (nightly), tree `68d49523c` (origin/main, v0.498.1+internal), guest lane on 18184 through `bootstrap.internal.ts`. #2732's `om feed publish` signed out, live: `feed publish foo --dry-run` and `feed publish notagent --format json` both exit 2 `feed_signed_out` (`No signed-in account with a confirmed username, so there is no feed scope.`, hint `Run om login, then try again.`). Not driven: the publish itself, `--private`, the `Visibility:` rows and `feed_not_publishable`, which need a relay account. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261127/r1/` (`cli/guest-refusals.txt`).*
+
 *Source-checked 2026-11-25 (nightly) against origin/main `d5ff40419` (v0.497.0+internal): #2693's feed delete (`Stopped:` lines, no recreate) and held-feed (`Held:` row, `held_until`) notes added; not driven, they need a relay.*
 
 *Re-checked 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. Signed out: `series feeds --format json` answered `{relay: "signed_out", feeds: []}` and `feed key probe` exits 2 `feed_signed_out` with the `Run om login` hint, before any confirmation. One line cite corrected (`hosted/catalog.ts:283-284`). Not re-driven: everything that needs a relay or an account. (`cli/40-series-feeds.out`, `cli/40-feed-key.*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
@@ -61,6 +63,12 @@ A job or an assistant logs numbers to a feed on the owner's account and charts i
   - The daemon CLI, the MCP tool and the assistant door end `Delete one with om feed delete <name>, or move @rig to a bigger plan.`
   - The hosted charts face and the hosted om surface end `Remove one at your OpenMarket terminal, or move @rig to a bigger plan.`
 - `test-no-egress`: `packages/cli/test/inbound-readings-declaration.test.ts` pins `OM_LEDGER_ORIGIN` itself and makes no request off loopback (#2644).
+
+- `publish` (added 2026-11-27, #2732): `om feed publish <name> [--private] [--dry-run] [--yes]` makes an `agent.` feed public, and `--private` takes it back. It is a terminal verb, never an agent tool.
+  - It asks for a yes at a terminal; with no TTY and no `--yes` it answers `confirmation_required` (source).
+  - Rows: `Feed:`, then `Visibility: would be public (now private)` on a dry run, `public (was private)` after it, or `already public`. `om feed show` prints the feed's visibility.
+  - Refusals: `feed_not_publishable` (no `agent.` prefix, or another account's address), `feed_daemon_owned`, `feed_not_found` (source only).
+  - Signed out, every call stops first at `feed_signed_out` (driven 2026-11-27).
 
 ## How to get to it (user POV)
 
