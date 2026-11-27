@@ -5,12 +5,12 @@ package before publishing it, and manages what they published: yank and unyank a
 package's visibility, and delete a package for good. Every call is a `/v1` JSON route under
 `authenticate`, so a seed token drives all of it.
 
-Last verified 2026-11-27 on openmarket-registry `098a3de` (fresh detached worktree, Bun 1.3.14,
-lane 18120, seed token `dev-token`). Scope: `/v1/me`, `/v1/me/packages`, terms acceptance, the
-validate probe for an ontology-pack (refused) and a wrun-indicator (accepted), the draft refusal,
-yank, unyank, visibility, delete and the deleted name's refusal. Limitations: listing edits, plans,
-install receipts and grants were not driven; the visibility change was read back through the API,
-not through the catalog.
+Last verified 2026-11-28 on openmarket-registry `c263de6` (fresh detached worktree, Bun 1.3.14,
+lanes 18150 and 18152, seed token `dev-token`). Scope: `/v1/me`, `/v1/me/packages`, terms
+acceptance, the validate probe for an ontology-pack (refused) and a wrun-indicator (accepted), the
+draft refusal, yank, unyank, visibility, delete and the deleted name's refusal. Limitations: listing
+edits, plans, install receipts and grants were not driven; the visibility change was read back
+through `/v1/me/packages`, not through the catalog.
 
 ## Sub-features
 
@@ -61,7 +61,9 @@ Preconditions:
   Second view: `GET /v1/packages/acme/btc-dip-alerts/1.0.0` carries `"yanked":true` and the
   advisory. Restore with `…/1.0.0/unyank`.
 - **Visibility.** `curl -sS -X PATCH $O/v1/packages/acme/btc-dip-alerts -H "$H" -H 'content-type: application/json' -d '{"visibility":"unlisted"}'`.
-  Second view: `GET …/summary` reads `"visibility":"unlisted"`. Set it back to `public`.
+  Second view: `GET /v1/me/packages` with the bearer lists the package with
+  `"visibility":"unlisted"`; `…/summary` carries no visibility field. The package page still
+  answers 200. Set it back to `public`.
 - **Delete.** Publish a throwaway name and delete that, never the fixture the other guides use:
   `curl -sS -X DELETE $O/v1/packages/acme/throwaway -H "$H"`. Second view: `GET` answers 410
   `package_deleted`, and publishing the name again answers 410.

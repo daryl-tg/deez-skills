@@ -2,13 +2,14 @@
 
 Static pages explain how the marketplace works and its terms; the terms also read as JSON. The cover
 artwork collection is public, and the service reports its health and metrics, including a count and
-a timing of every API answer by route family.
+a timing of every answer, pages included, by route family.
 
-Last verified 2026-11-27 on openmarket-registry `098a3de` (fresh detached worktree, Bun 1.3.14, lane
-18120, seed token `dev-token`). Scope: the two pages, the terms API and redirect, the artwork
-listing and one image, health, the metrics listener and the request counter for `/v1/search`.
-Limitations: the cover editor and per-package artwork routes need an owner session and were not
-driven; a custom `METRICS_APP` was not set.
+Last verified 2026-11-28 on openmarket-registry `c263de6` (fresh detached worktree, Bun 1.3.14, lane
+18150, seed token `dev-token`). Scope: the two pages, the terms API and redirect, the artwork
+listing and one image, health, the metrics listener, the request counter and histogram for
+`/v1/search`, and the `unknown`, `preflight` and `/` families. Limitations: the cover editor and
+per-package artwork routes need an owner session and were not driven; a custom `METRICS_APP` was not
+set.
 
 ## Sub-features
 
@@ -22,9 +23,11 @@ driven; a custom `METRICS_APP` was not set.
   `/artwork/v1/night.webp`, served as `image/webp`.
 - `health`: `GET /v1/health` answers `{"ok":true,"contracts":"<version>"}`; metrics on the lane's
   metrics port at `/metrics`.
-- `request-metrics`: `om_registry_http_requests_total{app,method,path,status_code}` and the
-  histogram `om_registry_http_request_duration_ms` count every API answer; `path` is the route
-  family (`/v1/search`), not the raw URL.
+- `request-metrics`: `http_requests_total{app,method,path,status_code}` and the histogram
+  `http_request_duration_ms` count every answer, pages included; `path` is the route
+  template (`/v1/search`, `/`, `/guide/:page`), not the raw URL. Every 404
+  reads `path="unknown"`, and every OPTIONS request `path="preflight"`. There is no
+  `om_registry_http_*` series any more.
 - Every series carries `app="openmarket-registry"` first (from `METRICS_APP`).
 
 ## How to get to it (user POV)
@@ -49,9 +52,11 @@ Preconditions:
 - **Health.** `$CR doctor` already reads `/v1/health`; `curl -fsS http://127.0.0.1:<port+1>/metrics`
   answers in Prometheus text.
 - **Request metrics.** Read
-  `curl -fsS http://127.0.0.1:<port+1>/metrics | grep -F 'path="/v1/search"'`, send one
-  `GET /v1/search?q=x`, read again: the `status_code="200"` counter and the histogram count each
-  rise by one.
+  `curl -fsS http://127.0.0.1:<port+1>/metrics | grep -F 'path="/v1/search"' | grep -E '^http_requests_total|_count'`,
+  send one `GET /v1/search?q=x`, read again: `http_requests_total{…,status_code="200"}` and
+  `http_request_duration_ms_count` each rise by one. Then `curl $O/nope` and
+  `curl -X OPTIONS $O/v1/search` add `path="unknown",status_code="404"` and
+  `path="preflight",status_code="204"`.
 
 ## Gotchas
 
@@ -60,3 +65,5 @@ Preconditions:
   is 9464.
 - The request counter includes every earlier request on the lane. Read it before
   and after, never once.
+- Grep the request series by their bare names (`^http_requests_total`); the `om_registry_` prefix
+  stays only on the registry's own counters such as `om_registry_publishes_total`.

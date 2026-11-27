@@ -5,13 +5,13 @@ price and install command, the details and author cards, and Readme, Versions an
 Indicator's page adds its outputs, params and inputs. An agent-plugin is hidden from the public
 while the community is off.
 
-Last verified 2026-11-27 on openmarket-registry `098a3de` (fresh detached worktree, Bun 1.3.14, lane
-18120, seed token `dev-token`). Scope: an ontology-pack's page, its Versions tab, the author link,
-the share cards and preview tags, an Indicator's page reached from the catalog, and an agent-plugin
-behind the internal-only gate. Limitations: no private or managed package was driven; "Open in
-OpenMarket" and Copy were not pressed; the internal reader (SSO session, chart web token or a
-platform-internal bearer) was not driven. Watch packs have their own guide:
-[Watch pack page and trading record](./watch-pack-and-trading-record.md).
+Last verified 2026-11-28 on openmarket-registry `c263de6` (fresh detached worktree, Bun 1.3.14,
+lanes 18150 and 18152, seed token `dev-token`). Scope: an ontology-pack's page, its Versions tab,
+the author link, the share cards and preview tags, an Indicator's page reached from the catalog, and
+an agent-plugin behind the internal-only gate. Limitations: no private or managed package was
+driven; "Open in OpenMarket" and Copy were not pressed; the internal reader (SSO session, chart web
+token or a platform-internal bearer) was not driven. Watch packs have their own guide: [Watch pack
+page and trading record](./watch-pack-and-trading-record.md).
 
 ## Sub-features
 
@@ -67,6 +67,8 @@ Preconditions:
 - The tab radios sit under the cover image, so a click by ref or by label is refused as covered.
   Click the visible label text with `find text "<label>" click --exact`.
 - A new package gets a generated cover; the image is not the package's own artwork.
+- On a lane with `OM_REGISTRY_GUIDE=1` the site header gains a "Guide" link; it is not part of the
+  package page.
 - `find role link --name "Report"` without `--exact` matches the footer's "Report abuse".
 - A missing or hidden package page answers a JSON error body (`application/json`), not an HTML
   page, so a browser shows `{"error":{"code":"not_found",…}}` and there is no `main` to read.

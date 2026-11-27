@@ -4,12 +4,12 @@ The home catalog lists the publicly listed packages and lets a visitor search th
 description and filter by kind. The same search answers as JSON at `/v1/search`, and the Indicator
 store reads the same rows at `/v1/store/front` and `/v1/store/list`.
 
-Last verified 2026-11-27 on openmarket-registry `098a3de` (fresh detached worktree, Bun 1.3.14, lane
-18120, seed token `dev-token`; a bare lane, then `REGISTRY_WRUN_KINDS=on`, then watch-pack kinds
-on). Scope: the empty catalog, a no-match page search, the API search, an Indicator row, the
-Indicators kind filter, a search hit inside the filter, the store front and list, and the Watch
-packs card. Limitations: ranking between several rows, priced rows and the community catalog
-(`OM_REGISTRY_COMMUNITY=1`) were not driven.
+Last verified 2026-11-28 on openmarket-registry `c263de6` (fresh detached worktree, Bun 1.3.14,
+lanes 18150, 18152 and 18154, seed token `dev-token`; a bare lane, then `REGISTRY_WRUN_KINDS=on`
+with `OM_REGISTRY_GUIDE=1`, then watch-pack kinds on). Scope: the empty catalog, a no-match page
+search, the API search, an Indicator row, the Indicators kind filter, a search hit inside the
+filter, the store front and list, and the Watch packs card. Limitations: ranking between several
+rows, priced rows and the community catalog (`OM_REGISTRY_COMMUNITY=1`) were not driven.
 
 ## Sub-features
 
@@ -44,7 +44,8 @@ Preconditions:
 
 - **Open the home page.** `$CR browser open http://127.0.0.1:<port>/`, then `$CR browser snapshot -i -c`.
   Expect h1 "The OpenMarket registry", h2 "BROWSE" and "PACKAGES", and the links "all 0 packages"
-  and "Indicators 0 packages" on an empty lane. Save the snapshot and a screenshot.
+  and "Indicators 0 packages" on an empty lane. Save the snapshot and a screenshot. With
+  `OM_REGISTRY_GUIDE=1` the header also holds the link "Guide" ([The om guide](./om-guide.md)).
 - **Search from the page.** Two searchboxes share the name "Search packages": the header's comes
   first, the page form's second. Fill the page form's by its ref from a fresh snapshot
   (`$CR browser fill @eN btc`), then `$CR browser press Enter` and

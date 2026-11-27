@@ -3,11 +3,11 @@
 A publisher's page at `/@scope` names the scope and lists its public, listed packages, with a count.
 The scope's owner and claim state read at `/v1/scopes/:scope`, and the page has its own share card.
 
-Last verified 2026-11-27 on openmarket-registry `098a3de` (fresh detached worktree, Bun 1.3.14, lane
-18120, seed token `dev-token`). Scope: a scope whose only package is an ontology-pack, and a scope
-with a listed Indicator, each reached from the package page's author link; following a row to its
-package; the API read and the share card. Limitations: a scope with several rows, publisher marks
-and paid rows were not driven.
+Last verified 2026-11-28 on openmarket-registry `c263de6` (fresh detached worktree, Bun 1.3.14,
+lanes 18150 and 18152, seed token `dev-token`). Scope: a scope whose only package is an
+ontology-pack, and a scope with a listed Indicator, each reached from the package page's author
+link; following a row to its package; the API read and the share card. Limitations: a scope with
+several rows, publisher marks and paid rows were not driven.
 
 ## Sub-features
 

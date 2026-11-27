@@ -4,13 +4,13 @@ A publisher sends a package to the registry with `POST /v1/publish`: a manifest 
 `om-package.json` matches it, under a bearer the registry's verifier accepts. The answer names the
 package's page, and the version is then readable through the API and downloadable as a tarball.
 
-Last verified 2026-11-27 on openmarket-registry `098a3de` (fresh detached worktree, Bun 1.3.14, lane
-18120, seed token `dev-token`). Scope: an ontology-pack publish with a seed token, the refusals
-without a valid bearer, the package, summary, version, source and metadata reads, an alias miss, the
-tarball download and the metrics count; a wrun-indicator publish on `REGISTRY_WRUN_KINDS=on`; an
-agent-plugin publish. Limitations: paid packages and tarball custody rules were not driven; the
-owner routes (validate, yank, visibility, delete) are in
-[Owner account and package lifecycle](./owner-lifecycle.md).
+Last verified 2026-11-28 on openmarket-registry `c263de6` (fresh detached worktree, Bun 1.3.14,
+lanes 18150 and 18152, seed token `dev-token`). Scope: an ontology-pack publish with a seed token,
+the refusals without a valid bearer, the package, summary, version, source and metadata reads, an
+alias miss, the tarball download and the metrics count; a wrun-indicator publish on
+`REGISTRY_WRUN_KINDS=on`; an agent-plugin publish. Limitations: paid packages and tarball custody
+rules were not driven; the owner routes (validate, yank, visibility, delete) are in [Owner account
+and package lifecycle](./owner-lifecycle.md).
 
 ## Sub-features
 
@@ -21,8 +21,9 @@ owner routes (validate, yank, visibility, delete) are in
   agent-plugin publishes on any lane but stays internal-only while the community is off.
 - `package-read`: `GET /v1/packages/:scope/:name` returns kind, latest, publisher, owner,
   `tarball_url`, `sha256` and the version list.
-- `package-summary`: `GET …/summary` adds keywords, first and latest publish times, downloads and
-  visibility; `POST /v1/packages/metadata` with `{"targets":[{"package","version"}]}` answers
+- `package-summary`: `GET …/summary` adds keywords, first and latest publish times, downloads,
+  artwork and the version list, but not visibility (read that from `/v1/me/packages`);
+  `POST /v1/packages/metadata` with `{"targets":[{"package","version"}]}` answers
   `{"results":[…],"errors":[]}` with the same summary.
 - `version-read`: `GET …/:version` returns the manifest, tarball, sha and yank fields;
   `GET …/:version/source` answers 404 `source_not_available` for a version with no inline source.
@@ -81,3 +82,7 @@ Preconditions:
 - Tarballs land in `./data/tarballs` relative to the lane's working directory and survive a restart;
   the metadata does not. Run the lane from a disposable worktree.
 - A `guest` tier token is refused unless `OM_REGISTRY_ALLOW_GUEST_PUBLISH=1`; use `pro`.
+- From source, not driven: with the marketplace terms gate enforced (`parseTermsGateEnv` in
+  `src/main.ts`), a publish from an account that has not accepted the terms answers 403
+  `terms_required`; accept them first through `POST /v1/me/terms`. A lane leaves the gate off.
+- The tarball comes back byte for byte: `cmp got.tgz pkg.tgz` is silent.

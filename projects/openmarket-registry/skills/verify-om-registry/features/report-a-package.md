@@ -4,8 +4,8 @@ Anyone, signed in or not, can report a package from its page: pick a reason, add
 The page confirms the report and the package is queued for review. Clients send the same report as
 JSON, and each reporter gets a small budget of reports per minute.
 
-Last verified 2026-11-27 on openmarket-registry `098a3de` (fresh detached worktree, Bun 1.3.14, lane
-18120, seed token `dev-token`). Scope: an anonymous report through the form, the confirmation page,
+Last verified 2026-11-28 on openmarket-registry `c263de6` (fresh detached worktree, Bun 1.3.14, lane
+18150, seed token `dev-token`). Scope: an anonymous report through the form, the confirmation page,
 the JSON door with its update, rate limit and refusals, and the stored reports seen in metrics.
 Limitations: the moderation queue (`/admin/reports`) needs an admin account and was not read; a
 signed-in reporter was not driven.
