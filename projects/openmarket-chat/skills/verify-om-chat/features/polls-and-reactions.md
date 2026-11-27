@@ -49,7 +49,7 @@ who reacted.
   `span.letter-tile[data-letter=L][role=img]` named **regional indicator L**,
   blue (`rgb(59, 136, 195)`, `--letter-tile-bg`), with the real 🇱 kept as its
   text so copy still yields the character (`lib/letter-tile.ts:39-51`,
-  `styles.css:9632-9657`). It renders in the picker cell, the reaction chip
+  `styles.css:9652-9677`). It renders in the picker cell, the reaction chip
   (`.chip-glyph`), the reactors header, the `:` autocomplete row and message
   text (see [composer-and-sending.md](composer-and-sending.md)).
 - **Reaction scenes** (`afabb11c`). When a visible chip's count rises, a scene
@@ -226,7 +226,9 @@ them tiles; `regional_indicator_q` → Q first.
 
 ### Verification record
 
-**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+**Last verified:** 2026-11-28 (nightly maintenance). **Product commit:** `49bc8c00` (GitLab origin/main; rooms-client 0.126.0; 12 commits past `5acbd605`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with the `notesForRoom` init script on every session. Every step was compared mechanically with the 2026-11-27 logs at `5acbd605`; apart from timing, dates and the blocks that crashed then on the `notesForRoom` fixture bug, every step gave the same result, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261128/r1/`.
+
+**Previous record:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
 
 **Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The DM letter-tile reaction was re-driven through **Add reaction** (the bubble button's title): `ana:m1:🇱` and an L tile chip. This guide's source did not change in the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 

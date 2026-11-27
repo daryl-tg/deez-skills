@@ -65,6 +65,11 @@ in [settings-and-appearance.md](settings-and-appearance.md).
   keeps its own category and shows a `store-5xx · check pods` sub-row. A
   category marked as an alert category shows a mark and **N ringing** while
   expanded. The derived **Alerts** group is retired.
+- **Ring/Log from channel settings** (`68b52c02`, `9547c3aa`): on a
+  channel's **Webhooks** page, a row bound to a feed offers **Switch to Log**
+  or **Switch to Ring...** beside its ALERT FEED chip. Live on both hosts with
+  an init script; see [settings-and-appearance.md](settings-and-appearance.md),
+  "A webhook's Ring/Log switch".
 - Creating a feed (`AlertCreateDialog.tsx`) and the full alerts home
   (`#/alerts`, `AlertsPage.tsx`) exist in source. Neither is reachable in the
   fixture; see Gotchas.
@@ -90,10 +95,10 @@ agent-browser open "$(control-om-chat url 'tools/visual/fixture.html?surface=ale
 | Route | State |
 |---|---|
 | `shell-fixture.html?view=room` | Strip firing: `.alert-strip` text `store-5xx · check pods` |
-| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1464-1472`) |
-| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1476-1477`) |
+| `shell-fixture.html?view=room&alerts=board` | The board dialog open and pinned (`shell-fixture.tsx:1516-1524`) |
+| `shell-fixture.html?view=room&alerts=amber` | A second strip state (`tools/visual/shell-fixture.tsx:1528-1529`) |
 | `shell-fixture.html?view=room&alerts=quiet` | No strip: use this for every non-alert proof |
-| `fixture.html?surface=alert-card` | The alert card gallery: an open Firing card with **I'm on it**, **Silence**, **More actions** and **Graph in Prometheus**; Logged and grouped cards with only **More actions** |
+| `fixture.html?surface=alert-card` | The alert card gallery: an open Firing card with **I'm on it**, **Silence**, **More actions** and **Graph in Prometheus**; Logged and grouped cards with only **More actions**. Since `5d5a936e` a card's fields sit on one line (see "Card fields on one line") |
 | `shell-fixture.html?policy=off&alerts=board` | `ChatPane`'s own tape, with the header feed chips. Needs the `notesForRoom` init script (see Gotchas) |
 
 On the board, the feed buttons are named with their state, for example
@@ -107,7 +112,7 @@ The virtual **Alerts** group is gone. `om.chat.alertsGroupAuto` and
 `[data-alerts-group]` no longer exist. A channel with a live feed now stays in
 the category it is filed in. It carries its feed as a sub-row under the channel
 (`alertsRowForRoom`, `lib/alerts-group.ts:84`, rendered at
-`packages/chat-ui/src/components/Sidebar.tsx:4698-4706`).
+`packages/chat-ui/src/components/Sidebar.tsx:4722-4730`).
 
 To check the sub-row, open `shell-fixture.html?view=room&alerts=board`. On
 **both** hosts, `#ops` under **category Desk, 5 channels** carries
@@ -119,7 +124,7 @@ only `feeds.length > 0`. Under `alerts=quiet` there is no sub-row.
 
 A category can also be marked as an **alert category** (`alert: true` in the
 space's stored `categories`). It then shows `.category-alerts-mark` and its
-ringing count even while expanded (`Sidebar.tsx:4932-4938`, `:4954-4967`). A
+ringing count even while expanded (`Sidebar.tsx:4956-4962`, `:4978-4991`). A
 plain category shows counts only when collapsed. You mark one from the category
 header menu (**Mark as alert category**), or with the **Alert category** box in
 **Create Category**. The recipe, with the stubs that make it reachable, is in
@@ -130,7 +135,7 @@ and **1 ringing** while expanded. Driven 2026-11-19.
 
 ### The board's feed peek (added 2026-11-16)
 
-Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1499`,
+Both fixtures stub `seriesFor: () => null` (`tools/visual/shell-fixture.tsx:1551`,
 `apps/cloud/tools/visual/shell-fixture.tsx:563`), so the bare board shows the
 chart-less peek. `alertsStub` is a plain object, so the session-capture shim
 from [message-actions.md](message-actions.md) can replace the method:
@@ -198,12 +203,12 @@ no live, non-archived alert feed. The gate is `convertToAlertsOffered`
 `session.alerts.hasLiveFeedFor(room)`. It applies to three menus: the channel
 title menu, the header **More channel actions** `…`
 (`ChannelHeaderMenus.tsx:215-218`) and the sidebar row menu
-(`Sidebar.tsx:5338-5341`). A channel whose feeds are all archived is offered it
+(`Sidebar.tsx:5357-5360`). A channel whose feeds are all archived is offered it
 again. The hosted session has no alerts store, so the entry never shows there
 in the product.
 
 Neither fixture's `alertsStub` defines `hasLiveFeedFor`
-(`tools/visual/shell-fixture.tsx:1459`; cloud
+(`tools/visual/shell-fixture.tsx:1511`; cloud
 `apps/cloud/tools/visual/shell-fixture.tsx:535`), so by default the fixtures
 offer **Convert to alerts...** everywhere, `#ops` included. Seed the live feed
 through the session-capture shim ([README.md](README.md), "Seed spelled-out keys with the session-capture shim"):
@@ -240,15 +245,38 @@ section disappears during the webhook binding call. Since `5acbd605` it starts
 with an empty **Notes** box and saves it with `notesForSave`
 (`ConvertChannelHost.tsx:138`).
 
+Since `4bbad0f7` the result step opens on where posts show up:
+`p[data-convert-created]` (`role=status`, `:210-213`) reads "Posts show up as
+Ring cards in this channel and on the Alerts home." (Log for a Log feed).
+The posting URL and its curl example follow, then **Done**. The "<name> is
+live." headline and the "Repeats stack onto one card…" footnote are gone.
+
 The dialog is not reachable on the fixtures. `openConvertToAlerts` answers the
 inert stand-in, and `Shell.tsx` mounts the host from its own state.
 Live verification pending.
+
+### Card fields on one line (added 2026-11-28)
+
+Since `5d5a936e` a card's key/value list is a wrapping flex row, not a
+150 px column grid capped at 72ch (`shared/alerts.css:727-746`). `.alert-kv`
+is `display: flex; flex-wrap: wrap`, each `.alert-kv-cell` is as wide as its
+value, and a value breaks anywhere rather than overflowing. Fields sit side by
+side and move to a new row only when the card runs out of width; a fourth
+field such as Environment no longer drops to its own row.
+
+Driven 2026-11-28 on `/rooms/` (`fixture.html?surface=alert-card`, step
+blocks `d1128-alert-card-kv` and `-narrow`): every `[data-alert-kv]` computes
+`display: flex` and `flex-wrap: wrap`. At 1440 the Firing card's **Severity**,
+**Namespace** and **Environment** cells share one top (291 px) in a 748 px
+list; at 390 they still share one top (486 px), at 43, 61 and 68 px wide. The
+Logged cards carry one **Window** field. The gallery has no card with enough
+fields to wrap, so the wrap itself is pending. `/chat/` has no card gallery.
 
 ## Gotchas
 
 - **Since `5acbd605` every channel drawn by `ChatPane` crashes blank on both
   fixtures.** `ChatPane.tsx:1049` calls `session.alerts.notesForRoom(...)`, and
-  both `alertsStub` literals (`tools/visual/shell-fixture.tsx:1459`; cloud
+  both `alertsStub` literals (`tools/visual/shell-fixture.tsx:1511`; cloud
   `apps/cloud/tools/visual/shell-fixture.tsx:535`) are plain objects without it.
   The page shows `TypeError: session.alerts.notesForRoom is not a function` and
   `#root` empties. That is `?policy=off` (a channel with topics off). DMs (no
@@ -287,7 +315,7 @@ Live verification pending.
 - **`?panel=alerts` blanks the whole shell on both hosts.** It is the
   channel's Alerts tab (`AlertsPanel.tsx`, mounted at `RightPanels.tsx:452-462`
   and opened in the product by `session.openAlertsTab`). The fixture's
-  plain-object `alertsStub` (`shell-fixture.tsx:1459`) lacks members the
+  plain-object `alertsStub` (`shell-fixture.tsx:1511`) lacks members the
   panel reads, among them `feedViewClaimed`, `selectedFeedId`,
   `setSelectedFeed`, `tapeFeedFilter` and `setTapeFeedFilter`. Which one throws
   first was not isolated. No error boundary wraps the panel, so `#root`
@@ -309,7 +337,9 @@ Live verification pending.
 
 ### Verification record
 
-**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** new tonight: on `/rooms/` the card gallery's Firing card with **I'm on it**, **Silence**, **More actions** and a summary, its `⋯` menu (**Discuss**, **Mark fixed (close now)**), the **Silence this alert for everyone** menu, and **Graph in Prometheus** with two panels; on both hosts `?policy=off&alerts=board` with the init script: the header **Alert feeds** chips and a seeded **Notes:** line. Found: every `ChatPane` channel route blanks without the init script. Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** **Unsilence**, the silenced and acked faces, the grouped Alerts tab, the Notes box and the convert form stay pending; verbs have no effect on the gallery. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+**Last verified:** 2026-11-28 (nightly maintenance). **Product commit:** `49bc8c00` (GitLab origin/main; rooms-client 0.126.0; 12 commits past `5acbd605`). **Scope:** new tonight on `/rooms/`: the card's one-line kv at 1440 and 390; the Ring/Log switch is proved in settings-and-appearance.md; the Convert result step is source only. Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with the `notesForRoom` init script on every session. Every step was compared mechanically with the 2026-11-27 logs at `5acbd605`; apart from timing, dates and the blocks that crashed then on the `notesForRoom` fixture bug, every step gave the same result, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261128/r1/`.
+
+**Previous record:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** new tonight: on `/rooms/` the card gallery's Firing card with **I'm on it**, **Silence**, **More actions** and a summary, its `⋯` menu (**Discuss**, **Mark fixed (close now)**), the **Silence this alert for everyone** menu, and **Graph in Prometheus** with two panels; on both hosts `?policy=off&alerts=board` with the init script: the header **Alert feeds** chips and a seeded **Notes:** line. Found: every `ChatPane` channel route blanks without the init script. Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** **Unsilence**, the silenced and acked faces, the grouped Alerts tab, the Notes box and the convert form stay pending; verbs have no effect on the gallery. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
 
 **Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** new tonight on both hosts: **Convert to alerts...** left out of the `#ops` header and row menus with `alerts.hasLiveFeedFor` stubbed, kept on `#signals`; the dock **Alerts** door appearing under the same stub; the strip styled with no injection since `27156df5`. Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. **Limitations:** the convert dialog is unreachable on the fixtures; the dock door's panel was not opened (it blanks the shell). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 

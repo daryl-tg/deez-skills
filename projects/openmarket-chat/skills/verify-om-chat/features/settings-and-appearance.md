@@ -55,21 +55,43 @@ interaction end to end.
   Work Ledger, Library, Recovery, Import Vault, Danger. There is **no Access
   page on the server host** — Access is a channel page.
 - Channel settings: Overview, Access, Webhooks, Moderation, Danger — gated by
-  the viewer's role (`ChannelSettings.tsx:733-747`). Overview has no to-do
+  the viewer's role (`ChannelSettings.tsx:729-743`). Overview has no to-do
   control: `83b02ee4` retired the channel's "To-do widgets" dial and the
   per-viewer override with the legacy board (driven 2026-11-15 on both hosts:
   `host=channel&page=overview&perms=owner` shows **Overview**, **Topics** and
   **Channel index**, and no to-do text).
   Webhooks also offers **Convert webhooks to alerts**. Its review step lets the
   owner select legacy webhooks; URLs and senders stay while deliveries become
-  alert cards in that channel's tape (`WebhooksPage.tsx:629`,
+  alert cards in that channel's tape (`WebhooksPage.tsx:748`,
   `ConvertWebhooksStepper.tsx:335,419`). Since `a4fc84cb` each webhook row
   holds one truncated line each for the name, the route chip
   (`[data-webhook-binding]`, now under the name) and the meta line
   (`[data-webhook-meta]`, the whole text in its title). The meta reads
   "<room> chat · by <name> · <date> · never used", and drops "by" when the
   creator names no one: the raw id, the `om-<last 6>` placeholder or the
-  unknown label (`settings/creator-name.ts`, `WebhooksPage.tsx:663-683`).
+  unknown label (`settings/creator-name.ts`, `WebhooksPage.tsx:793-813`).
+  Since `68b52c02` and `9547c3aa` a row bound to an alert feed carries a
+  compact text action on the route chip's line
+  (`[data-webhook-route-line]`, `:842-891`; `.webhook-class-switch`,
+  `shared/alerts.css:513`). A Ring feed shows **Switch to Log**; a Log feed
+  shows **Switch to Ring...** (`:866`, `:877`). The chip shrinks first, and
+  the action group on the right holds only **Copy URL** and **Details**.
+  The chip drops the feed's name when it equals the row's name
+  (`routeChipText`, `:86`). The switch shows for the feed's owner or someone
+  with manage-room, on a live feed in the room's loaded feed list. **Switch to
+  Ring...** also needs the alarm gate (mass-mention or manage-room). **Switch
+  to Log** acts at once (`switchToLog`, `:239`): it toasts "<feed> now logs:
+  it posts cards and pages nobody". **Switch to Ring...** opens a dialog
+  (`[data-webhook-ring-dialog]`, `:1248`). The dialog reads "Ring pages every
+  member of <room> each time it fires. Log only posts cards. Switching clears
+  the feed's noisy and ignored flags.", has an optional **Notes** box prefilled
+  from the feed's action line, and offers **Cancel** and **Switch to Ring**.
+  A switch to Ring toasts "<feed> now rings <room> when it fires"
+  (`switchToRing`, `:254`); a failure shows inline in the dialog. Refusals
+  read through `classSwitchRefusal` (`:105`): permission, archived feed, or a
+  conflict ("The feed changed at the same time. Try again."). A switched row
+  repaints at once, and a feed list GET still in flight is replaced, so it
+  cannot undo the switch (`adoptFeedClass`, `:212`).
   Integrations event-subscription rows follow the same rule
   (`IntegrationsPage.tsx`).
 - Keyboard Shortcuts carries an **Editing** group with one switch, **Vim mode**
@@ -169,7 +191,7 @@ agent-browser find role tab      click --name "Direct message"   # preview toggl
 ### Shortcuts modal, Log Out confirm, invite link (added 2026-10-27)
 
 - **Shortcuts modal:** on any shell route, press `Meta+/` (mod is Meta on macOS). It opens dialog **Grammar & shortcuts**, which **Close shortcuts** dismisses. Both `/rooms/` and `/chat/` were driven. `Control+/` did not open it on `/chat/`, so use Meta.
-- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4858`), so real logout stays pending.
+- **Log Out:** `shell-fixture.html?view=settings&alerts=quiet` → button **Log Out** (`--exact`) opens alertdialog **Log Out**, reading "Are you sure you want to log out?", over the **Settings** dialog. Driven on both hosts. Confirming is a no-op (`onLogout={() => {}}`, `shell-fixture.tsx:4957`), so real logout stays pending.
 - **Invite link:** `shell-fixture.html?view=server-settings&settingsPage=invites&alerts=quiet` → **Create invite link** opens dialog **Invite link settings**, with expiry and max-uses controls. Creating a link is INERT. The inbound `InviteLanding` has no harness (it is mounted only by `src/App.tsx:738`).
 
 Verified 2026-10-27 at `6c15b0fb` (maintenance pass, fixture lane). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261027/r1/` (frames 22-23, 31, 40-41).
@@ -232,7 +254,7 @@ Driven on `/rooms/` at `eae9681d` (2026-11-10). Evidence:
 Open `shell-fixture.html?view=settings&alerts=quiet` (user) or
 `?view=server-settings&alerts=quiet` (server, space "Macro Lab"), then click the
 page's nav button. `?settingsPage=<id>` lands on a page directly
-(`shell-fixture.tsx:2616-2621`; the `/chat/` fixture reads the same param). Ids:
+(`shell-fixture.tsx:2701-2706`; the `/chat/` fixture reads the same param). Ids:
 `privacy`, `secrets`, `notifications`, `audio`, `accessibility`, `docs`,
 `draft-recovery`, `agent-guide`, `library-guide`, `apps-guide`,
 `slash-commands`, `moderation-guide`; server `overview`, `roles`, `members`,
@@ -286,12 +308,112 @@ manage the server or ticket labels (`settings/ServerSettings.tsx:207-210`,
 verification pending.
 
 There is no server **Access** page. Access is a channel page
-(`ChannelSettings.tsx:739`), reached only through
+(`ChannelSettings.tsx:735`), reached only through
 `settings-fixture.html?host=channel&perms=owner`. Toggles and saves on these
 pages call unstubbed session methods, so only the bodies are proved, not their
-effects.
+effects. Since `4b377801` the Access page's card (the Private switch, roles
+and members, the picker, the empty block and the self-lockout warning) lives
+in `settings/AccessListEditor.tsx`, which the category permissions dialog
+shares; see [channel-and-topic-navigation.md](channel-and-topic-navigation.md),
+"Edit Category Permissions and the channel sync line".
 
 Verified 2026-10-29 at `cdfb1b0f` (scheduled maintenance, both hosts). Evidence: `http://127.0.0.1:8098/verify-om-chat-maint-20261029/r1/` (`settings-*`, `server-settings-*`, `settings-fixture-notifications-*`).
+
+### The channel's category sync line (added 2026-11-28)
+
+Since `4b377801` (rooms-client 0.126.0) a channel's **Access** page says
+whether the channel follows its category's access list
+(`ChannelSettings.tsx:547`, `:1007-1042`). The line shows only when the
+channel sits in a category, its access is `"space"`, and the store sends a
+boolean `accessSynced`. A store that leaves `accessSynced` out shows no line.
+
+- Synced: "Synced with category **X**", then "Changes to the category's
+  permissions apply here. Changing this channel's own list stops the sync."
+- Not synced: "Not synced with category X", then "This channel keeps its own
+  list. Syncing replaces it with the category's.", and a **Sync with
+  category** button (`[data-category-sync-button]`, `:1034`). It is disabled
+  without manage-room, and while the page is busy, saving or has unsaved
+  access edits.
+- **Sync with category** asks first: **Sync with X?**, "This channel's own
+  access list is replaced by the X category's list, and it follows later
+  changes to that list. If the category has no list, the channel opens to
+  every member of this server.", confirmed by **Sync with category**
+  (`:575-580`). The sync calls `syncChannelToCategory`
+  (`lib/category-access.ts:69`), re-reads the channel's access and toasts
+  **Synced with X**.
+
+Neither settings fixture shows the line as it boots: every room has
+`category: null`, and `channelAccessMeta` sends no `access` or
+`accessSynced`. The kept init script `run-artifacts/vomc-tools/init/access-space.js`
+seeds it. Loaded after the session-capture shim, it wraps the capture, so the
+captured session gets a `"space"` access meta (with `accessSynced` from a
+`synced=1` query), `updateChannel`, `refreshChannelAccessMeta`, an
+`openConfirm` that records the sheet, a `socialConfig`, a toast recorder and
+a `fetch` answer for `/categories/` URLs. The meta must have the real
+`RoomAccessMeta` shape (`allowedRoleIds: null`, `allowedUserIds: null`,
+`postingRoles` with all four tiers); otherwise the page reads dirty at once
+and the button stays disabled. Then:
+
+```bash
+agent-browser --init-script "$T/init/shim.js" --init-script "$T/init/access-space.js" open about:blank
+agent-browser open "$(control-om-chat url 'tools/visual/settings-fixture.html?host=channel&page=overview&perms=owner')"
+agent-browser fill '#om-channel-category' Research
+agent-browser find role button click --name "Save Changes"
+agent-browser find role button click --name Access --exact
+```
+
+The step block is `d1128-access-sync` in `steps-delta-1128.txt`. Driven
+2026-11-28 on both hosts: the Access page reads "Not synced with category
+Research This channel keeps its own list. Syncing replaces it with the
+category's." with **Sync with category** enabled. The press records the sheet
+**Sync with Research?** with the body above and **Sync with category**.
+Confirming sends `POST /spaces/sp-market-desk/categories/sync`, toasts
+**Synced with Research**, and the line becomes "Synced with category
+Research Changes to the category's permissions apply here. Changing this
+channel's own list stops the sync." with no button. Still pending: the
+disabled button for a viewer without manage-room, a refused sync's toast
+(`categoryAccessError`), and a real store's `accessSynced`.
+
+### A webhook's Ring/Log switch (added 2026-11-28)
+
+The behaviour is in the channel settings list above (`68b52c02`, `9547c3aa`).
+The settings fixtures' seeded webhooks (`wh-1` Sentry, `wh-2` CPI print bot)
+carry no `alertFeedId`, and the fixture session has no `alerts`, so the bare
+page shows no ALERT FEED chip and no switch. The kept init script
+`run-artifacts/vomc-tools/init/webhook-feeds.js` reaches it. Loaded after the
+shim, it:
+
+- wraps the fixture's own `window.fetch` assignment with a getter and setter;
+- binds `wh-1` to a Ring feed and `wh-2` to a Log feed in the webhook list;
+- answers `/alerts/rooms/<room>/feeds` with both feeds, owned by `u-self`;
+- gives the captured session an `alerts` stub with a recording `patch`,
+  `effectiveRoomActionsFor` with manage-room, and a toast recorder.
+
+Open `settings-fixture.html?host=channel&page=webhooks&perms=owner` with
+`--init-script shim.js --init-script webhook-feeds.js`. The step block is
+`d1128-webhook-ring-log` in `steps-delta-1128.txt`.
+
+Driven 2026-11-28 on both hosts:
+
+- Each route line reads "Alert feed" and the switch: **Switch to Log** on the
+  Ring feed, **Switch to Ring...** on the Log feed. Each switch is centred on
+  its chip's line, and both action groups read **Copy URL** / **Details**
+  only. The chip text is just "Alert feed" because each feed is named like
+  its webhook.
+- **Switch to Log** patches `{"class":"diagnostic"}` and toasts "Sentry now
+  logs: it posts cards and pages nobody". Both rows then read **Switch to
+  Ring...** with no reload.
+- **Switch to Ring...** opens the dialog: "Ring pages every member of bitcoin
+  each time it fires. Log only posts cards. Switching clears the feed's noisy
+  and ignored flags.", **Notes** (optional, "Tell people what to do when this
+  alert fires. Shown in the channel header."), **Cancel** and **Switch to
+  Ring**. Submitting patches `{"class":"alarm","actionLine":"Check the
+  dashboard"}`, closes the dialog and toasts "Sentry now rings bitcoin when it
+  fires".
+
+Still pending: the switch hidden from a non-owner without manage-room, **Switch
+to Ring...** hidden without the alarm gate, the refusal copy, the inline
+dialog error, and the in-flight GET guard.
 
 ### Appearance switches, Profiles and Privacy handles (added 2026-10-31)
 
@@ -733,7 +855,7 @@ code-expired and code-mismatch notes, and a real daemon.
 - **Notifications crashes the shell fixture's whole User settings surface.**
   `ChannelStripRow` calls `alerts.stripEnabled()` (`NotificationSettings.tsx:607`),
   and neither fixture's plain-object `alertsStub` has it
-  (`shell-fixture.tsx:1459`, `apps/cloud/tools/visual/shell-fixture.tsx:535`).
+  (`shell-fixture.tsx:1511`, `apps/cloud/tools/visual/shell-fixture.tsx:535`).
   `LazySurfaceGate` then swaps the entire dialog, nav included, for **User
   settings could not load** / **Try again**. Any further page click finds no
   button, and **Try again** returns to My Account. Reload before driving the
@@ -807,7 +929,9 @@ code-expired and code-mismatch notes, and a real daemon.
 
 ### Verification record
 
-**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** new tonight: the Webhooks rows on `/rooms/` (`by justintg`, `by ada`, no raw id, one-line meta with its title); on `/chat/` they read `by  ·` (fixture artefact). Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** a creator who names no one and Integrations subscription rows were not seeded. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+**Last verified:** 2026-11-28 (nightly maintenance). **Product commit:** `49bc8c00` (GitLab origin/main; rooms-client 0.126.0; 12 commits past `5acbd605`). **Scope:** new tonight on both hosts: the channel's category sync line and **Sync with category** (`init/access-space.js`), and a webhook's Ring/Log switch with its dialog (`init/webhook-feeds.js`). Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with the `notesForRoom` init script on every session. Every step was compared mechanically with the 2026-11-27 logs at `5acbd605`; apart from timing, dates and the blocks that crashed then on the `notesForRoom` fixture bug, every step gave the same result, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261128/r1/`.
+
+**Previous record:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** new tonight: the Webhooks rows on `/rooms/` (`by justintg`, `by ada`, no raw id, one-line meta with its title); on `/chat/` they read `by  ·` (fixture artefact). Then the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** a creator who names no one and Integrations subscription rows were not seeded. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
 
 **Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The quiet-hours bar was re-driven alone: **Save Changes** disabled for `Mars/Olympus`. This guide's source did not change in the delta. **Limitations:** the step file matched an exact "Save" until tonight. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 

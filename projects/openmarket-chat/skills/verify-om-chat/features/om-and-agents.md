@@ -207,7 +207,7 @@ card, **+ Wire an agent** and "server apps live in server settings →".
   (`Shell.tsx:1561`; accessible names at `:3133`, `:3675`, `:3700`,
   `:3802`). The tooltips spell it with a colon instead, "Agents: connected
   remotely" (`:3084`, `:3784`), so match the name, not the tooltip. The shell fixture cannot show it: its session stub
-  answers `remoteControl: () => null` (`shell-fixture.tsx:4415`). The pane
+  answers `remoteControl: () => null` (`shell-fixture.tsx:4514`). The pane
   those labels point at is driven standalone; see **Remote control** below.
 
   `#846` made rail zone 1 customizable, which raises an obvious question about
@@ -787,8 +787,8 @@ for example when two owners each run a `debugger`, the line reads just
 button named "<name>, <owner>'s agent. View full profile" (`:116`,
 `[data-profile-door]`) that opens the agent's profile panel.
 
-`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1367-1387`; card
-handlers `openProfileCard` and `openMentionCard` at `:3580-3595`). The `/chat/`
+`/rooms/` seeds both cases (`tools/visual/shell-fixture.tsx:1419-1439`; card
+handlers `openProfileCard` and `openMentionCard` at `:3679-3694`). The `/chat/`
 fixture has neither the seed nor the handlers, so the card is `/rooms/` only.
 
 ```bash
@@ -803,7 +803,9 @@ agent-browser open "$(control-om-chat url 'tools/visual/shell-fixture.html?view=
 # click the LAST .agent-mention[data-handle=debugger]: the card reads "debugger AGENT agent", no door
 ```
 
-**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+**Last verified:** 2026-11-28 (nightly maintenance). **Product commit:** `49bc8c00` (GitLab origin/main; rooms-client 0.126.0; 12 commits past `5acbd605`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with the `notesForRoom` init script on every session. Every step was compared mechanically with the 2026-11-27 logs at `5acbd605`; apart from timing, dates and the blocks that crashed then on the `notesForRoom` fixture bug, every step gave the same result, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261128/r1/`.
+
+**Previous record:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
 
 **Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The header `…` menu note gains the live-feed exception (13 items). **Limitations:** **More channel actions** at `view=agent` is a step fault (no channel header there). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 

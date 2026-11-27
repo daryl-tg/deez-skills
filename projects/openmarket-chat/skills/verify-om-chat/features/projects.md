@@ -123,7 +123,7 @@ home chip. Needs you and every write are not proved yet; see [Gotchas](#gotchas)
   `#ops (archived)`. The table's CHANNEL column uses the same names.
 - **Channel panel** (`ChannelTodosPanel.tsx`, mounted by `RightPanels.tsx` when
   `rightPanel === "todos"` and the server is on Projects, `RightPanels.tsx:450-451`;
-  the lazy surface is named `Tickets`, `lazy-surfaces.tsx:233-236`). Off
+  the lazy surface is named `Tickets`, `lazy-surfaces.tsx:239-242`). Off
   Projects `panel=todos` opens nothing: since `05df35a7` there is no legacy
   to-dos panel to fall back to (driven 2026-11-15 on both hosts). It is the
   `complementary` region **Tickets in #ops**, with **New ticket in #ops** and
@@ -549,7 +549,9 @@ Projects stub the page falls to its error boundary, because the bare
 
 ## Verification record
 
-**Last verified:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
+**Last verified:** 2026-11-28 (nightly maintenance). **Product commit:** `49bc8c00` (GitLab origin/main; rooms-client 0.126.0; 12 commits past `5acbd605`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with the `notesForRoom` init script on every session. Every step was compared mechanically with the 2026-11-27 logs at `5acbd605`; apart from timing, dates and the blocks that crashed then on the `notesForRoom` fixture bug, every step gave the same result, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261128/r1/`.
+
+**Previous record:** 2026-11-27 (nightly maintenance). **Product commit:** `5acbd605` (GitLab origin/main; rooms-client 0.125.0; 27 commits past `0f3fd22c`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time, with a `notesForRoom` init script on every session (see alerts.md, Gotchas). Every block a judge flagged was re-run alone on this tree and on a baseline worktree at `0f3fd22c` (18189/18190); the results matched, so no regression came from the delta. **Limitations:** unchanged from the previous record. Evidence: `http://127.0.0.1:8098/vomc-nightly-20261127/r1/`.
 
 **Previous record:** 2026-11-26 (nightly maintenance). **Product commit:** `0f3fd22c` (GitLab origin/main; rooms-client 0.125.0; 7 commits past `557ee9ed`). **Scope:** the scripted re-drive of this guide's recipes by the kept step runner (`/rooms/` 18186, `/chat/` 18187 where the guide covers it, openscape 18188 for the world), motion blocks one session at a time; two read-only judges compared every result with its expectation and each flagged block was re-run alone. The ticket drop zones were re-driven alone with a 400 ms wait: both `[data-drop]` zones show. This guide's source did not change in the delta. **Limitations:** the panel's ticket-page click is still blocked by the modal backdrop in the step (carried). Evidence: `http://127.0.0.1:8098/vomc-nightly-20261126/r1/`.
 
