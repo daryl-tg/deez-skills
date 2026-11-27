@@ -447,7 +447,17 @@ Preconditions:
   `stocks-lanes`, open strategy testing, Cloud runs and every alert kind on
   their plane; a strategy or Cloud run on CME pauses only while `cme-lanes`
   is dark, and CME run output stays out of every AI sender (`4d8081f074`).
-  Source only.
+  Source only. **Since `b3dc63472c` the CME wall names the way out (source
+  on `511ce25e50`, signed-in, not driven):** a Cloud run reads `Cloud runs
+  can't read CME data. Choose {browser} under {runOn} to run this script
+  here.`, a Protected script reads that one `runs on our servers, which
+  can't read CME data` and runs here when published as Compiled or Open
+  source, and the publish menu's Protected option gains `Does not run on
+  CME charts.` (`sharing-code-hosted-cme-line`). The old `CME chart studies
+  run in the browser.` string is gone. In the wrun chart host, a script's
+  text can now be placed by location and a tint shifted by bars
+  (`b894000ccf`), and the missing-feed note names only an input the run
+  reads (`0cf1bceeea`); authored scripts only.
 - **The kScript stand-in paints on more charts (source, `f047751c9a`).** Stock,
   forex, commodity, DEX, index and CME charts now get the stand-in candles
   (`kscript-standin-chart.util.ts`). Not driven.

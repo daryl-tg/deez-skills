@@ -5,6 +5,23 @@ panels to the right of the chart: Orderbook, the Tape with its docked
 Liquidations, Alerts, Objects, the ETF screener, the heatmap switch and Options,
 among others. Some open for a guest and some stop at the sign-in wall, and a
 panel can open with no data when the backend has none. Created 2026-10-27; last
+DRIVEN on 2026-11-28 against product tree `511ce25e50` (`origin/main`, 125
+commits past `a79bf68710`), lane `18110`, a no-session lane: the Alerts
+panel's `alert-list-settings-btn` raised `Verify your email to unlock Price
+Alerts` (see `rp-alerts`). Source, not driven (signed-in, walled or a
+broker account): the alert line's new `Line Style` row (Solid, Dashed,
+Dotted; `e1b0b75496`); a locked-on `Show on` chip in Objects drawn at full
+strength (`33bb897862`) and a row dropped on `Drop here to ungroup` judged
+by the pointer's height across the whole row (`73939fcafa`); Rithmic's
+`Stay connected` login kept across a browser quit (`efd7b15b56`) and its
+worker opening a socket only to a Rithmic gateway (`b7342da924`);
+NinjaTrader candles going live before the order flow history lands
+(`3bc4d5ed82`) and its sign-in pause naming who paused it and for how long
+with the button held until then (`ac91429ffd`); the cTrader pane naming
+the broker while a kept session opens (`6ecf98e491`, `fx-ctrader` dark);
+Variational funding and open interest panes on `BTC-PERP` and `US500-PERP`
+(`905e807ca8`, a signed-in venue); the Hyperliquid ticket's Value field
+reading `,500` as `500` (`8982fab699`). Before that, last
 DRIVEN on 2026-11-27 against product tree `a79bf68710` (`origin/main`, 78
 commits past `1d1a3e1410`), lane `18109`, a no-session lane: the Orderbook
 opened beside the chart with `Book`, `Delta` and `DOM`, a live ladder and
@@ -438,6 +455,16 @@ an open panel.
   The menu item has no accessible role. Click it with
   `eval "document.querySelector('[data-testid=alert-add-menu-price-btn]').click()"`,
   because `find text "Price"` matches a covered element.
+  **`alert-list-settings-btn` is walled for a guest (driven 2026-11-28 on
+  `511ce25e50`, a no-session lane):** its click raised `Verify your email
+  to unlock Price Alerts` (a guest JWT gets the `alert` sign-in card) and
+  no settings sheet. Behind it, since `e1b0b75496`, the sheet has a `Line
+  Style` row (`alert-settings-line-style-row`, its menu
+  `alert-settings-line-style-dropdown-btn` with
+  `alert-settings-line-style-{solid,dashed,dotted}-btn`; a ComboBox on the
+  phone) saved by `alert-settings-save-btn`. An alert line keeps drawing
+  Solid until a person picks a style, and stays 1 px. The dash is only in
+  the pixels (signed-in, source; live verification pending).
   **The price box opens on the live price (driven 2026-11-16 on `6bfc742bc8`;
   `9674fb0847`, `e3687fbe7a`).** `Alt+A` on BINANCE.F ETHUSDT (pointer over
   the chart, no layer up) opened the dialog with

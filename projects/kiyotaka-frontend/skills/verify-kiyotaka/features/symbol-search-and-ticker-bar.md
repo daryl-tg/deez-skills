@@ -4,6 +4,16 @@ The ticker bar is the chart's primary control strip: the symbol picker, a varian
 chip, quick-interval buttons, the interval chevron, the chart-type picker, and the
 layout picker. Changing any of them re-drives the whole data plane, so each proof
 must show the chart actually reloaded — not just that a menu opened. This entry
+was last DRIVEN on 2026-11-28 against product tree `511ce25e50` (`origin/main`,
+125 commits past `a79bf68710`), lane `18110`, a no-session lane: the interval
+dial's one tray (see `tb-interval`), the empty-search line (see
+`sym-empty-copy`), and the price precision row's new home in Chart
+settings (see `tb-price-precision`). Not reached: the index venue (no guest
+flag table loads without a session, so `indices-otc` read off; under the
+`kiyo.flag-overrides` override `us500` still listed crypto rows only, its
+Indices tab answered `Network issue. Results may be out of date.` with the
+backend down, and `/chart/new?symbol=INDICES_OTC:US500` left BTC-USD open).
+Before that, this entry
 was last DRIVEN on 2026-11-27 against product tree `a79bf68710` (`origin/main`,
 78 commits past `1d1a3e1410`), lane `18109`, a no-session lane (the backend
 unreachable): the symbol dialog's star raises the `Favorites` wall and sends
@@ -451,6 +461,10 @@ the memecoin and Pulse rows (signed-in only) and the third interval menu in
 - `sym-star-wall` a signed-out star on a symbol dialog row (asset, venue or
   list row) raises the `Favorites` wall and sends no request (`6ea15ccc04`;
   before, it sent an account write that answered `401`).
+- `sym-empty-copy` a search that finds nothing reads `No results for
+  "<query>"`; since `30e71b1432` the line hides while an option contract
+  row, a formula row or a broker's own matches answer the typed words, and a
+  failed search still shows its error.
 - `sym-new-link` a signed-out `/chart/new?symbol=<EXCHANGE:SYMBOL>` link
   lands on the person's own chart at `/chart/` with that market open
   (`a16a420c79`; before, the market was dropped). Any other layout id stays
@@ -615,7 +629,11 @@ Preconditions:
   as `1m` and `1h` pressed at opacity `1` and the other fourteen at `0`. A
   click on `tb-interval-favorite-4h-btn` raised the sign-in card headed
   `Favorites` (`guestLoginFeatureId` `favorites`) and left `4h` unstarred:
-  a guest's star is a wall, not a toggle. The same commit made the cells
+  a guest's star is a wall, not a toggle. **Since `4d40aec14c` (driven
+  2026-11-28 on `511ce25e50`)** the big cells share one neutral tray and the
+  star sits beside the label (`1m ★`, `1h ★` in the frame), outlined on
+  hover and filled when starred; the read above still gave `4h`
+  `aria-pressed` `false` at opacity `0`. The same commit made the cells
   taller (`tb-interval-option-1h-btn` measured 44.6 px), the rail 53 px wide
   with a 36 by 28 `toolbar-hide-btn`, and a one-chart pane drew no box
   (`.tc-container::before` border `0px`).
@@ -989,8 +1007,15 @@ Preconditions:
 - **`tb-price-precision` (driven 2026-11-17 on `60b7e6b190`).** Right-click
   the chart (`mouse move 600 400`, `mouse down right`, `mouse up right`) and
   pick `chart-ctx-settings` (`Chart settings…`): the floating `Main` panel
-  opens on `Display`. `find role tab click --name "Source" --exact`, then the
-  second combobox (`Default`) holds `Default`, `Integer` and `Manual`. On
+  opens on its list of pages. **Since `1607afdb85` there are no tabs (driven
+  2026-11-28 on `511ce25e50`):** click `chart-settings-page-scales-btn`
+  (`Scales & Spacing`); the old Source tab is its `Chart data` section
+  (`chart-settings-section-source`), and the precision row sits in that
+  section's closed fold: click `chart-source-fold-toggle` (`Advanced`, `4
+  more`) to show `Detection Mode`, `Value Precision` (`Default`),
+  `Non-Live Price Pill` and `Compact Symbol Legend`. The `Value Precision`
+  combobox (the values below were driven 2026-11-17 on the old tab) holds
+  `Default`, `Integer` and `Manual`. On
   COINBASE BTC-USD `[data-testid=tb-ms] .tb-ms__price` and `document.title`
   read `64,882.08` at Default, `64,882` at Integer, `64,882.1` at Manual (its
   spinbutton starts at 1) and `64,882.0800` at Manual 4. Type the decimals
@@ -1006,6 +1031,15 @@ Preconditions:
   card), `aria-pressed` stayed `false`, and `browser network requests`
   listed no favorites call, only the `refresh-token` `502`. Press `Escape`
   twice to clear the wall and the dialog.
+- **`sym-empty-copy` (driven 2026-11-28 on `511ce25e50`, a no-session
+  lane; `30e71b1432`).** In the V2 dialog (`v2` 20, `legacy` 0) fill
+  `symbol-selection-search-input` with `zzqqxxvv`: `asset-list-empty` read
+  `No results for "ZZQQXXVV"` and `asset-list-empty-error` was absent. The
+  head-row case was not reached: `SPY261218C00600000` listed no
+  `asset-list-option-contract-btn` for 12 s on this lane (`opra` read off,
+  the guest flag table never loaded), so the empty line showed. Prove the
+  suppression where a contract row lists: `asset-list-empty` absent while
+  `asset-list-option-contract-btn` is present.
 - **`sym-new-link` (driven 2026-11-27 on `a79bf68710`, a no-session lane).**
   `browser open "<lane>/chart/new?symbol=BINANCE:ETHUSDT"`: the path became
   `/chart/` with no query, the symbol button read `BINANCE ETHUSDT` and

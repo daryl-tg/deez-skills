@@ -7,6 +7,14 @@ keyboard shortcuts, performance, language and release notes, and a guest can
 open all four.
 Every guest-walled control raises the same sign-in dialog, and this entry is
 where that shared wall is described. Created 2026-10-27; last DRIVEN on
+2026-11-28 against product tree `511ce25e50` (`origin/main`, 125 commits
+past `a79bf68710`), lane `18110`, a no-session lane: Chart settings is now
+a list of pages (`set-pages`), Super Search's `Price line width` row opened
+Scales & Spacing on that row, the settings search found `tooltips` but
+showed the row blank (see Gotchas), and Shift+T opened My layouts with no
+wall (`set-layouts`). Not driven: the Trading page (an account that draws
+on a chart), the Events rows (`market-events` flag), `Save as theme` past
+its wall. Before that, last DRIVEN on
 2026-11-27 against product tree `a79bf68710` (`origin/main`, 78 commits past
 `1d1a3e1410`), lane `18109`, a no-session lane: `dark` listed
 `super-search-result-themes:mode:dark-btn` (`Dark Mode OFF`) on a
@@ -267,10 +275,20 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
   first row after every keystroke, and words typed apart find one name.
 - `ss-typed-interval` the comma key, a number-row digit or a Numpad digit
   opens the palette to type an interval (`30e7cf86f1`).
-- `set-price-line` the Price axis page sets the last price line's width and
-  its bullish and bearish colours, and the palette finds each row.
-- `set-tooltips` one switch hides or shows the app's tooltips, on the Display
-  page and as a palette row.
+- `set-pages` Chart settings opens on a list of pages, Appearance, Scales &
+  Spacing, Trading Hours and On Screen (plus Trading for an account that
+  draws on a chart), then `On this chart` Indicators; each row opens its
+  page with a back arrow, and a search field finds a setting on any page.
+  The nine tabs are gone (`1607afdb85`).
+- `set-layouts` My layouts (Shift+T) lists the layouts by group with Select
+  and the sort in the list head; an empty search offers `Clear search`
+  (`6f7a1e7619`).
+- `set-price-line` the Scales & Spacing page (its Price axis group's
+  Advanced fold) sets the last price line's width and its bullish and
+  bearish colours, and the palette finds each row.
+- `set-tooltips` one switch hides or shows the app's tooltips, on the On
+  Screen page (the `Every chart` group's Advanced fold) and as a palette
+  row.
 - `ss-forex` a forex pair typed in the palette (`EURUSD`, `XAU/USD`) lists the
   pair and charts it.
 - `guest-refusal` a refused sign-in says so in the app's words, never the
@@ -284,7 +302,7 @@ Layouts window's template catalogue, `5db5e38f15`) raises the wall with
   purchase, which a guest meets as the `Purchases` wall.
 - `set-highlights` the chart's `Highlights` switch calms volume bars and bar
   indicators unless a bar stands far above its usual size; the palette row and
-  the Display page row toggle it.
+  the On Screen page row toggle it.
 - `plans-page` `/chart/plans` (moved from `/chart/plus`, which redirects,
   `7e88ad6552`) shows the plans, the live exchange data add-ons (CME
   futures, US stocks with a monthly or yearly switch, US options) with
@@ -303,6 +321,9 @@ The editor row is covered in [script editor](./script-editor-and-kscript.md)
   Preferences (the old Language page) and Release Notes.
 - Click any walled control as a guest (the camera, a multi-chart layout, the
   watchlist seat) to meet the sign-in dialog.
+- Right-click the chart and pick `Chart settings…` for the list of pages;
+  the magnifier in its head searches every page.
+- Press Shift+T for My layouts.
 
 ## Driving it with control-kiyotaka
 
@@ -637,7 +658,7 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `Lite charts off. Change it anytime in Settings. Undo` notice. Drive that
   notice's `Undo` by its row, not `find role button --name "Undo"`, which picks
   the footer's undo first. No gate: a guest reaches it. Not driven: the chart
-  settings Display page's copy of the row and the phone drawer's.
+  settings On Screen page's copy of the row and the phone drawer's.
   **Only the hardware class offers it now (`21126deb8b`, source).** The
   `Panning choppy?` ask after choppy drags is gone: measured stutter is
   telemetry only. A device the older boot-time probe alone had switched on,
@@ -695,10 +716,15 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 - **`set-price-line` (driven 2026-11-14 on `c7d4eccfac`; `fd7c368a8c`).** Fill
   `price line width` and click `super-search-result-axis:price-line-width-btn`
   (the palette also lists `Bullish price line` and `Bearish price line`; all
-  three open the page and toggle nothing). The docked settings card opens on
-  `chart-settings-page-priceAxis`, where `price-axis-line-width` (`Price line
-  width`, `1 px`), `price-axis-line-bullish` and `price-axis-line-bearish`
-  (colour pickers) sit under `Last price`. They show only while Last price is
+  three open the page and toggle nothing; the row's subtitle still reads
+  `Price axis`). **Since `1607afdb85` (driven 2026-11-28 on `511ce25e50`)**
+  the docked settings card opens on `chart-settings-page-scales`
+  (`chart-settings-page-title` `Scales & Spacing`), scrolled to the row, with
+  the Price axis group's Advanced fold (`price-axis-advanced`) already open;
+  `price-axis-line-width` (`Price line width`, `1 px`),
+  `price-axis-line-bullish` and `price-axis-line-bearish` (colour pickers)
+  sit in that fold under `Last price`. The old `chart-settings-page-priceAxis`
+  page is gone. They show only while Last price is
   `Line` or `Both`: its `segmented-label-btn` hid all three, and
   `segmented-line-btn` brought them back. The width is a scrub number whose
   value span covers its input, so a click on the input fails with `covered by
@@ -708,15 +734,66 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   `{"priceLineWidth":2}`; the card's `overlay-settings-reset-defaults-btn`
   cleared it to `{}`. An edit made while the tab is hidden never reaches the
   store (the write waits for an animation frame): re-front the tab first.
+- **`set-pages` (driven 2026-11-28 on `511ce25e50`; `1607afdb85`).** Open
+  Chart settings from the chart's context menu (`mouse move 400 400`,
+  `mouse down right`, `mouse up right`, then `find testid chart-ctx-settings
+  click`). The panel's head reads `Main` and the body is `chart-settings-root`:
+  `chart-settings-page-appearance-btn` (`Appearance`, value `Terracotta`),
+  `chart-settings-page-scales-btn` (`Scales & Spacing`),
+  `chart-settings-page-hours-btn` (`Trading Hours`),
+  `chart-settings-page-screen-btn` (`On Screen`), then under `On this chart`
+  `chart-settings-page-indicators-btn` (`Indicators`, value `1 indicator` in
+  `chart-settings-page-indicators-value`). A guest sees no
+  `chart-settings-page-trading-btn` (listed only for an account that draws on
+  a chart). A page row opens `chart-settings-page-<id>` with
+  `chart-settings-page-title` and `chart-settings-back-btn` back to the list.
+  The old tab ids live on as sections: `chart-settings-section-{style,
+  priceAxis,pane,source,sessions,timeAxis,events,display,trading}`
+  (Appearance holds `style`; Scales & Spacing holds `priceAxis`, `pane` and
+  `source`; Trading Hours holds `sessions`, `timeAxis` and `events`; On
+  Screen holds `display`). Less used rows sit in closed `Advanced` folds
+  (`price-axis-advanced`, `pane-space-advanced`, `chart-source-fold`,
+  `chart-style-{volume,chart}-fold`, `display-settings-fold-{chart,app}`),
+  each opened by its `<fold>-toggle` button (`Advanced`, `N more` while
+  shut). **Search:** `settings-search-btn` opens `settings-search-input`;
+  a match shows under a caption with its page's name
+  (`.i-settings-search-page`), and `zzqqxx` showed `settings-search-empty`
+  (`No settings match “zzqqxx”` / `Some settings show only when another
+  setting is on.`). `scale mode` showed the `Scale mode` row normally, but a
+  row inside a closed fold shows blank (see Gotchas). Close the panel with
+  `overlay-settings-close-btn`; `Escape` leaves it open. Not driven: the
+  Appearance theme tiles (`chart-settings-theme-<key>-btn`) and the live
+  `chart-style-preview`.
+- **`set-layouts` (driven 2026-11-28 on `511ce25e50`; `6f7a1e7619`).**
+  `press Shift+T` opened `layouts-dialog` on `layouts-my-layouts-pane` with
+  no wall for a guest (tabs `layouts-tab-my-workspaces` and
+  `layouts-tab-community-browse`, `layouts-search-input`,
+  `layouts-dialog-new-layout-btn`, `layouts-dialog-close-btn`). The list
+  head carries `layouts-select-btn` (`Select`) and `layouts-sort-btn`
+  (`Last Opened`) beside the group (`layouts-group-previous7`, `Previous 7
+  days`, `layouts-group-count` `1`); the `n layouts` total is gone. The
+  guest's one row is `layouts-row-guest-workspace` (`Guest Workspace BTC-USD
+  · 1h Active`) with `layouts-row-favorite-…` and `layouts-row-more-…`
+  (shown on hover). `Select` is `disabled` while the only row is the active
+  layout, so a guest cannot reach select mode (`layouts-select-toggle-all-btn`,
+  `layouts-select-done-btn` and the bottom bar are source only). Fill
+  `zzqqxx`: `layouts-my-layouts-empty` read `No layouts match` / `Try another
+  name, or clear the search.` with `layouts-clear-search-btn` (`Clear
+  search`), whose click emptied the field and brought the row back.
 - **`set-tooltips` (driven 2026-11-14; `af600b6397`).** Fill `tooltips`: the
   row `super-search-result-tooltips:global:tooltips-btn` reads `Tooltips Hide
   tooltips ON`. Its click wrote `localStorage['kiyotaka:tooltips:v1']` `off`
   and put `tips-off` on `document.body`; the row then read `Show tooltips
-  OFF`, and a second click wrote `on`. On the Display page
-  (`chart-settings-page-display-btn`) the group `display-settings-group-general`
-  (`General`) holds `tooltips-setting-row` (`Tooltips`, `The small box that
-  names a button when the pointer rests on it`) with an `on-off-toggle-btn`
-  (`aria-checked` `true`). Desktop only. The app now draws its own tooltip in
+  OFF`, and a second click wrote `on`. Since `1607afdb85` (driven
+  2026-11-28 on `511ce25e50`) the row lives on the On Screen page
+  (`chart-settings-page-screen-btn`), under the `Every chart` caption
+  (`display-settings-group-app`) inside its Advanced fold
+  `display-settings-fold-app`, shut by default and remembered per device
+  (the old `display-settings-group-general` and
+  `chart-settings-page-display-btn` are gone): `tooltips-setting-row`
+  (`Tooltips`, `The small box that names a button when the pointer rests on
+  it`) with an `on-off-toggle-btn` (`aria-checked` `true`). Desktop only.
+  The app now draws its own tooltip in
   place of the browser's `title` box.
 - **`ss-forex` (driven 2026-11-14; `40c9e7f45c`).** Fill `EURUSD`:
   `super-search-result-symbols:forex:EUR-btn` (`EURUSD Euro · Forex`) leads,
@@ -752,7 +829,8 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
   leads (`Highlights ON`); a click turned it to `Highlights OFF` and a second
   back on. The store field is the main pane's `axis.barHighlights`
   (`chartStore.setBarHighlights`); `window.tc[0].metadata[0]` does not carry
-  it, so read the row. The Display page row is
+  it, so read the row. The On Screen page row (the Display page before
+  `1607afdb85`; the settings search found it there on 2026-11-28) is
   `display-settings-row-barHighlights` after Momentum arrows (source). The
   same commit ends the VWAP line in a plate (`VWAP Session 64877.03` in
   every frame of the pass) with a `Label` switch in VWAP's Display group
@@ -898,6 +976,17 @@ DS="document.querySelector('#tc-container-0').__vueParentComponent.setupState"
 
 ## Gotchas
 
+- **The Chart settings search shows a row inside a closed `Advanced` fold
+  as a blank gap (product gap, driven 2026-11-28 on `511ce25e50`).** Fill
+  `tooltips` in `settings-search-input`: the `On Screen` caption shows and
+  `tooltips-setting-row` is in the DOM with its text, but the frame is
+  empty under the caption, because its fold's `.saf__rows` computes
+  `visibility: hidden`. The fold's scoped rule `.saf:not(.saf--open)
+  .saf__rows[data-v-…]` outranks `[data-settings-searching]
+  .saf__rows[data-v-…]` (`src/components/common/SettingsAdvancedFold.vue`).
+  A row outside a fold (`scale mode`) shows, and a fold the user opened
+  shows. Do not read a match off `offsetParent` or a DOM count; read the
+  computed `visibility` and open the PNG.
 - **The first settings nav click right after the dialog opens can be undone
   (driven 2026-11-20 on `7c937b0a1f`).** `press Meta+Slash`, a 1 s wait and
   a click on `settings-pages-nav-language-btn` (or `-notes-`) left

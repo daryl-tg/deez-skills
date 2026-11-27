@@ -3,6 +3,17 @@
 Opening `/chart/` mounts the chart engine, starts the Web Worker that owns every
 websocket, and draws candles for the last-used symbol. Every other proof in this
 map depends on this one working, so verify it first and never assume it. This
+entry was last DRIVEN on 2026-11-28 against product tree `511ce25e50`
+(`origin/main`, 125 commits past `a79bf68710`), lane `18110`, a no-session
+lane again (`dboons-nutz` NXDOMAIN, `refresh-token` `502`; the gateway name
+failed the system resolver, so the browser ran with
+`KIYO_BROWSER_ARGS='--host-resolver-rules=MAP
+tsdb-gateway.int.ore.kiyotaka.ai 10.1.1.10'` and PR #26's `doctor` passed
+twice). Boot drew 250 bars on COINBASE BTC-USD 1h within 40 s of `open`,
+with VWAP (`Indicators 1/3`) and the tab named `Guest Workspace`. **The
+candle countdown reads `00:01` in a bar's last second and is gone at the
+close** (see `boot-countdown`). Not reached: the US100 and US500 stand-in
+history (see `boot-index-stand-in`). Before that, this
 entry was last DRIVEN on 2026-11-27 against product tree `a79bf68710`
 (`origin/main`, 78 commits past `1d1a3e1410`), lane `18109`, a no-session
 lane: the backend host `dboons-nutz` had left the tailnet (NXDOMAIN on both
@@ -260,7 +271,14 @@ s). NOT driven: the process-suspend lane and a real machine sleep.
   says in words whether orders and prices arrive on time, slow or offline.
 - `boot-countdown` a chart with no stored choice shows the candle countdown
   under the last price; a chart where it was switched off stays off, and a
-  calendar interval or a delayed feed shows none.
+  calendar interval shows none. It reads `00:01` through a bar's last
+  second and disappears at the close, never `00:00` (`67ecabd28f`).
+- `boot-index-stand-in` US100 and US500 on the index venue draw older
+  candles than the vendor's 2026-09-24 intraday start, built from their
+  Hyperliquid perpetuals (`xyz:XYZ100` from trade date 2025-12-03,
+  `xyz:SP500` from 2026-03-20), for everyone, a guest included
+  (`61cd4089d2`, `c4b7be56ae`; `index-stand-in` is a kill switch that reads
+  on unless minted off).
 - `boot-footer-session` on a market with extended hours, the footer's `RTH` /
   `ETH` word opens a menu of both sessions with their hours.
 - `boot-notices` an admin's service notice shows as a banner over the chart,
@@ -994,8 +1012,21 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   Baseline preconditions), so no delayed tier applies. **Since `fc0f54ec54`
   a delayed feed shows the countdown too (source, not driven):** the engine
   reads a feed clock that is server time less the served delay (CME 10
-  minutes, the stocks tape 15), so the tag reaches `00:00` when the bar
-  closes on the user's screen. No word or tooltip beside it says so yet.
+  minutes, the stocks tape 15), so the tag runs out when the bar closes on
+  the user's screen. No word or tooltip beside it says so yet.
+  **Since engine `1329.115` (`67ecabd28f`, `aa3ffa1b18`; driven 2026-11-28
+  on `511ce25e50`) the tag never reads `00:00` while the bar is open:** it
+  reads `00:01` through the bar's last second and disappears at the close.
+  On COINBASE BTC-USD 1m, frames named by the shell clock read `00:02` at
+  `:58`, `00:01` at `:59.532`, nothing at `:00.246` and `00:58` at `:02`,
+  with `rawData.at(-1)[0]` stepping to the new minute between the `:00`
+  and `:01` reads. Take frames with millisecond names (a name per second
+  keeps only the last frame of that second), crop the price axis (`sips -c
+  900 90 --cropOffset 0 1350`), and read `document.visibilityState` first:
+  a tab that drifted hidden stalls the live bar and the tag stays away for
+  a minute or more. A weekly bar no longer reads `0d 00h` in its last hour,
+  and the Black Friday, market events and maintenance countdowns round up
+  the same way (source).
   The older claim here, that a delayed feed holds it off, is stale. Only a
   calendar interval (`1M`, `3M`, `6M`, `1Y`) still holds it off
   (`shownCandleCountdown` in `src/utility/chart/candle-countdown.util.ts`).
@@ -1005,6 +1036,19 @@ damaged slot, and a `main-heal-commit` with `reason: interior-change`.
   back on 1h the tag read `36:12`. The
   Super Search setting row and Apply to all charts read the same default
   (source).
+- **`boot-index-stand-in` (source on `511ce25e50`; live verification
+  pending).** Open INDEX US500 on `1D` and pan back to the first bar:
+  `window.tc[0].metadata[0].rawData[0][0]` should be the 2026-03-20 trade
+  date, and US100's the 2025-12-03 one; a 1h chart should hold bars before
+  2026-09-24, where it used to start. A first US500 bar on 2026-03-19 or
+  earlier means the old start is still pinned. The answer is cached in
+  `localStorage['kiyo:index-stand-in']` (`'1'` or `'0'`), and the table lives
+  in `INDEX_OTC_STAND_INS` (`packages/wrun-chart-host/src/utility/chart/index-otc.leaf.ts`;
+  product doc `docs/features/data/indices-otc.md`). Attempted 2026-11-28 on
+  a no-session lane: the venue never listed (the guest flag table does not
+  load without a session; under the `indices-otc` override the Indices tab
+  answered `Network issue`), and `/chart/new?symbol=INDICES_OTC:US500` left
+  BTC-USD open. It needs a guest JWT or a signed-in lane.
 - **`boot-intent-warm` is removed (`a8935a39a2`; absence driven 2026-11-21
   on `92f4a841ef`).** `src/utility/chart/market-intent-warm.request.ts` is
   deleted and the symbol dialog, Super Search and the watchlist no longer

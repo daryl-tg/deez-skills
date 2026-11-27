@@ -4,7 +4,19 @@ A user adds an indicator from the Indicators dialog; it mounts as an overlay wit
 an engine-drawn legend carrying a settings button, a visibility toggle, a close
 button, and a loading spinner. Overlays are either native (heatmap, volume, open
 interest) or script-backed (TypeScript Indicators; kScript rows are retired and
-leave the chart at restore). Driven 2026-11-27 on `a79bf68710` (`origin/main`,
+leave the chart at restore). Driven 2026-11-28 on `511ce25e50` (`origin/main`,
+125 commits past `a79bf68710`), lane `18110`, a no-session lane: `net drift`
+listed the official Net Flow first (see `ind-trader-names`), the
+`pane-sides` hint's `Right` moved VRVP to a side column with an `Undo`
+notice (see `ind-pane-sides`), and a held Shift still left every `rsi` pill
+at `Add` (see `ind-shift-all`). Source only, not driven: Bar Statistics now
+wears the chart's own candle colours after a colour pick, a theme switch
+and a reload (`40cf036e2c`, `d72a424ca7`; `chartStore.addIndicator
+('BAR_STATISTICS')` throws `no indicatorControl registered`, since it is a
+script indicator, and the dialog's Add is walled); Put/Call Ratio's coin and
+the Implied Volatility and Skew Deribit pins follow a symbol switch only
+onto BTC or ETH (`8437179436`); pane failure and timeout texts are
+translated (`a1d94cfa5d`). Before that, driven 2026-11-27 on `a79bf68710` (`origin/main`,
 78 commits past `1d1a3e1410`), lane `18109`, a no-session lane: `/` opened the
 Indicators window with no wall (`See all 168`, `Couldn't load all official
 indicators` with the backend down), an `RSI` search listed eight registry
@@ -243,7 +255,8 @@ chartless `?wrunRef=` package link, which a guest meets as the `indicators`
 wall. The Pine paste offer, the paid and Mine tabs, a real cap REFUSAL (the
 dialog path, so a signed-in session), the `Split` display option, the Options
 Heatmap's new node-size and ink sliders and its dealer-flow basis (OPRA or CME
-options data, signed-in), and the window doors of the built-in options
+options data, and since `e6a40b8063` a Deribit coin chain's live positions
+every 5 minutes, signed-in), and the window doors of the built-in options
 indicators were not driven.
 
 ## Sub-features
@@ -306,7 +319,16 @@ indicators were not driven.
   the words traders type (`923b75656e`, `src/constants/indicator-names.ts`).
   Driven 2026-11-16: `large lot tracker` listed
   `indicator-name-big-trades-official-big-trades`, and `cvd` listed
-  `indicator-name-cvd-official-cumulative-volume-delta` first.
+  `indicator-name-cvd-official-cumulative-volume-delta` first. **`net
+  drift` finds the official Net Flow (`2a95b44953`; driven 2026-11-28 on
+  `511ce25e50`, a no-session lane):** filling `indicator-search-bar-input`
+  with `net drift` listed `official-indicator-net-flow-openmarket` (`Net
+  Flow`, `matched net drift`, `Market data`, `Add`, `1 slot`) under
+  `Official` and above a community `Net Drift — OTM LEVELS A` row, even with
+  the `Couldn't load all official indicators` banner up. Kit `0.123.6`
+  (`be790f1b62`) describes Net Flow as `also called net drift`, adds a
+  `Calls minus puts` line and a `0DTE only` setting; those show after an
+  add, which is walled (source).
 - `ind-settings-search` a long built-in's settings card filters its rows in
   place from a search field.
 - `ind-session-default` a session volume profile on an intraday chart defaults
@@ -345,12 +367,36 @@ indicators were not driven.
   while the pointer is anywhere in its pane, not only on its name row, and a
   wheel over a button scrolls the column; the card is `pane-options-popover`.
   Side columns shrink before a side hides (engine contract v 9, source).
+  **The one-time hint moves the profile itself (`3da48c22d3`; driven
+  2026-11-28 on `511ce25e50` under the same override).** Clear
+  `localStorage['kiyo.paneSides.hintSeen']`, reload with the override, and
+  mount a profile (`chartStore.addIndicator('VISIBLE_RANGE_VOLUME_PROFILE',
+  {}, 0)` mounts on a guest lane). `pane-sides-hint` rose by the price
+  axis: `Move VRVP off the candles` / `Give it a column of its own beside
+  the chart. Its rows stay level with the prices.`, `pane-sides-hint-left`
+  (`Left`), `pane-sides-hint-right` (`Right`), `pane-sides-hint-close` (an
+  X; `Got it` is gone) and `Change it later from` with a `VRVP ⋯` chip
+  (`pane-sides-hint-mark`), while the VRVP legend row was outlined on the
+  chart. `pane-sides-hint-right` set the profile's `panePlace` to `{side:
+  right, look: classic, order: 0}`, closed the hint, wrote `hintSeen` `1`
+  and raised `VRVP moved to the right` with `Undo`; the `Undo` button put
+  it back to `{side: chart}`.
 - `ind-shift-all` with Shift held, a row's Add pill reads `Add to all` only
   where the add lands on every chart of the layout: a native official row or
   a built-in routed to its proven twin (RSI, the moving averages, Volume),
   which mount on every chart as one undo step. Registry packages, community
   scripts, feeds and setup doors keep `Add` (`34904b4ba8`). Every Add lane,
   native official included, is walled for a guest; only the label shows.
+  Since `1f3ae80fb2` a result row's Added menu names it too: with Shift
+  held, `indicator-add-another-<slug>-btn` reads `Add to all charts`
+  instead of `Add another` wherever the pill reads `Add to all`, on an open
+  menu too; a package keeps `Add another` (source). The app reads Shift
+  from `keydown` and `keyup` on `window`, so `eval "window.dispatchEvent(new
+  KeyboardEvent('keydown',{key:'Shift',shiftKey:true}))"` holds it for a
+  drive (send the matching `keyup` after). On 2026-11-28 on `511ce25e50`
+  that held Shift left every `rsi` row's pill at `Add` on a one-chart guest
+  layout, and the menu needs an added row, which a guest cannot make from
+  the dialog: live verification pending.
 
 ## How to get to it (user POV)
 
@@ -412,7 +458,8 @@ Preconditions:
   pane, `indicator-detail-apply-btn` is Add (`Add to chart`, driven
   2026-11-03), `indicator-detail-added-btn` is Added, and
   `indicator-detail-add-btn` is now that menu's `Add another` item, not the
-  Add button (`IndicatorDetailPanel.vue`).
+  Add button (`IndicatorDetailPanel.vue`); it keeps `Add another` with Shift
+  held, since `1f3ae80fb2` relabels the result row's menu only (source).
 
   **At 1100 px and wider the dialog is a split view (`c6aad32e02`; driven
   2026-11-03 at 1440).** `SPLIT_VIEW_MIN_WIDTH_PX` is `1100`

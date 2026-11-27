@@ -618,7 +618,19 @@ the top overlay cleared.
   2026-11-02).** The toolbar magnet, `Shift+Alt+M` and the Super Search
   `magnet` toggle restore the last strength instead of always `weak`
   (`useMagnetMode.ts`, localStorage `orange-tc-magnet-strength`): the first
-  press on a fresh profile wrote `weak`.
+  press on a fresh profile wrote `weak`. **Its reach changed with engine
+  `1329.112` (`43dcbc8c86`, source on `511ce25e50`; live verification
+  pending):** weak snaps to the nearest level within 50 CSS px on mouse and
+  touch (it was 8 or 24 px), strong snaps to the nearest level of the bar at
+  any distance, and the levels follow the plot type (H, L and C on HLC
+  Area, the close on a line type). Draw by holding
+  (`toolbar-item-ink-gesture`) now uses the same magnet (`b98d359e53`,
+  `src/utility/chart/ink-magnet.util.ts`); its stroke magnet still reaches
+  9 px. A guest recipe: magnet on and weak, click 40 px from a candle's high
+  and read the point's price (it equals the high), then 60 px (it stays
+  raw). Engine `1329.113` keeps a Line with Markers dot on its line when
+  the line leaves the pane, and `1329.114` lets a Path of 11 or more points
+  grab handle 10 and up (source).
 - **`dt-position-bar` (driven 2026-11-19 on `413f86e5af`; `a46a35a692`,
   `b899aa9439`, `90ebc15657`).** Arm the tool with `find testid
   "toolbar-item-longposition:tool-icon-btn" click` (the testid holds a
