@@ -77,7 +77,7 @@
 - `om publish <dir> --dry-run` is the fastest check that a hand-written pack parses. A bad blank pointer exits 2 with `blank_fill_unresolved` and the path.
 - A copy whose URL and recipe another watch on the same home already activated is told `om watch resume`, not the activation. That is correct: the terms are sealed per URL and recipe, not per watch.
 - A watch imported with a page source and activated a moment later reads `unreachable … page-fetch is not answering` until its next check. The daemon polled it once before the seal. It clears on the next cadence.
-- `om watch share --dry-run` prints its posts block twice. That is on main too.
+- Before #2756 `om watch share --dry-run` printed its posts block twice. On main `a5dfab1169` a one-watch dry run in text prints `Sends 1 kind of posts, up to 20 fires an hour` once (live 2026-11-28); a blanks pack was not re-driven.
 - Do not drive the lane against a publisher while a live benchmark reads the same publisher. Both share its rate limit and the benchmark's tail times carry the load.
 - A text blank's pattern key in a pack file is `pattern` (with `pattern_hint`), not `answer_pattern`; the latter is the summary's field in `om-package.json`.
 - Matching order is exact key, exact label, folded key, folded label (2026-11-13). A list where one row's key folds to another row's label refuses at share and at install. Accents fold only on Latin and Greek letters: पटना never matches पाटन, й never matches и.

@@ -1,5 +1,7 @@
 # Paper trading accounts
 
+*Re-driven 2026-11-28 (nightly), tree `a5dfab1169` (origin/main, v0.499.0+internal), guest lane on 18184 through `bootstrap.internal.ts`. `paper create vom-book --yes` (`cash 1000`, `desk: off`), `paper ls`, and an imported watch with one `book` step on that account (the `payload` and `channels` shape below), which reads `the book step is not approved yet · om watch arm book-probe` in `watch list`. Not driven: an arm, a booking, the Paper tab. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261128/r1/` (`cli/13`, `cli/15`, `cli/54`).*
+
 *Source-checked 2026-11-25 (nightly) against origin/main `d5ff40419` (v0.497.0+internal): #2707's late fence added as `paper-late-fence`; `paper ls` answered `{"accounts":[]}` on a guest lane. Nothing else driven.*
 
 *Re-driven 2026-11-22 (nightly), tree `01482928a5` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `paper create nightly-1122` without `--yes` exits 2 `confirmation_required`; with `--yes` it answered `{account: {id: pa_…, cash: 1000}, desk: "off"}`; `paper ls`, `paper show` (rules and fees) and `paper digest --format text` (`Cash: $1,000.00`, `Open: 0 lots`). Not re-driven: a hand lot, signals, fees on a fill, settlement, `paper.decision`, `paper.arm_from_chat`. (`cli/82-*`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261122/r1/`*
@@ -133,7 +135,12 @@ credential, no venue.
   `paper-desk-<uuid>` exits 2 `paper_desk_doorless` (`a paper account's desk takes hand trades only (om paper open); the event was NOT stored`, hint `Place a hand trade with paper_open or paper_close.`; the ingest door answers 409 with the same body).
   To drive a book step, import a watch with one inbound `accept_all`
   source and one money step `{"mode":"book","account","account_id"}` with no
-  `input`, then `watch arm <slug> --yes`. Its row text is parsed as the
+  `input`, then `watch arm <slug> --yes`. The step's fields go under the
+  action's `payload` (`{"id":"book","kind":"money","payload":{…}}`; flat
+  fields are `invalid_spec`), and on a home with no channel the action needs
+  `"channels": []`, else the import is `watching_action_destination_unresolved`
+  (both live 2026-11-28; the whole file is in
+  [watch-trading-record.md](watch-trading-record.md)). Its row text is parsed as the
   signal, or a JSON array of up to 10 signals, each booked as its own lot.
 - **Read the claims.** `sqlite3 <lane home>/om.sqlite "select root_row_id,
   signal_index, leg_index, state, json_extract(receipt,'$.outcome') from

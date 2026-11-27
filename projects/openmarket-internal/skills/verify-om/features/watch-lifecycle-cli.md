@@ -1,5 +1,7 @@
 # Watch lifecycle from the CLI
 
+*Re-driven 2026-11-28 (nightly), tree `a5dfab1169` (origin/main, v0.499.0+internal), guest lane on 18184 through `bootstrap.internal.ts`. `watch pause cond-probe` (`enabled: false`), `resume`, `archive` (`archived: [{id: cond-probe}]`; `--yes` is `unknown option`), `unarchive`, `watch list`. First live proof of #2756's Ctrl-D: `om watch remove cond-probe` in a private tmux showed the Warning box and `Permanently remove event watch cond-probe?`; Ctrl-D printed `Cancelled — nothing was changed.` and exited 130, and `watch list` still listed the watch. With no terminal the same remove exits 2 at once (`… It needs a yes.`, `Pass --yes (-y) to remove it, or run in a terminal to read the whole question.`). Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261128/r1/` (`cli/26`, `cli/27`, `cli/28`, `cli/57` to `cli/60`).*
+
 *Re-checked 2026-11-25 (nightly), tree `d5ff40419` (origin/main, v0.497.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `watch create --inbound`, `--inbound --cadence 1m --column a --column b`, a price `--condition` with `--yes`, `watch edit --classifier-mode accept_all`, `rotate-token`, `pause`, `resume` and `list` (a paused row; an AI step with no model reads `steps judging paused · no model to run the AI filter on · om init`). `watch_backfill`'s new arguments are source only. (`cli/older-rechecks.txt`.) Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261125/r1/`*
 
 *Re-driven 2026-11-24 (nightly), tree `26d502c689` (origin/main, v0.496.0+internal), guest lane on 18188 through `bootstrap.internal.ts`. `watch list`, `watch show`, `watch pause tick` (`enabled: false`) and `watch resume tick`, `watch history probe`, `watch roster`, `watch pacing` (`Every site takes om's full pace.`), `watch create downstream --upstream probe` and `watch create tick --every 1h`, `watch remove <w> --yes`. `om watch run-now` is not a verb (read as compose text); `om watch run now <w>` is. Evidence: `http://127.0.0.1:8098/verify-om-nightly-20261124/r1/` (`cli/breadth/32-*`).*
@@ -107,6 +109,7 @@ whole lifecycle is provable on a guest lane.
 - `watch-edit` changes goal, group, filters, classifier mode and caps.
 - `watch-pause` / `watch-resume` stop and restart a watch and its sources.
 - `watch-remove` deletes a watch and its sources.
+- `confirm-cancel` (#2756, live 2026-11-28): at `Share it?`, `Permanently remove …?` and every other yes or no question (`cmd/confirm.ts`), Ctrl-D cancels like Ctrl-C: `Cancelled — nothing was changed.`, exit 130. Before #2756 a closed input left om spinning on a full CPU core. A no is still exit 2 `Aborted by user.`; with no terminal, a pipe or `--format json` the question is not asked (`confirmation_required` or the verb's own `It needs a yes.` line, exit 2).
 - Guest-reachable maintenance verbs on a healthy watch: `retry`, `repair`, `source add/remove`, `unjudged`, `state show`/`state clear` on a condition watch (#2244: the clear also restarts a target package's record), the execute reads, the `/rpc/v1/watch/overview` roster; plus the refusals of `repair --rearm`, `lane retry`, `reclassify`, `backtest`, `arm-confirm`, and `state show`/`state clear` on a watch with no condition source.
 
 ## How to get to it (user POV)
@@ -318,8 +321,9 @@ at 09:00 UTC`. Pick an anchor that falls on one of the cron's days.
 - A watch whose source errored lists the part, the why and the fix in one STATUS
   cell, without printing the internal `broken` state name. Read the whole cell
   before reporting a failure; it usually names the credential it wants.
-- `watch remove` without `--yes` prompts, and a prompt in a non-interactive
-  drive looks like a hang.
+- `watch remove` without `--yes` prompts only at a terminal. With no terminal
+  it exits 2 with `It needs a yes.` (live 2026-11-28); in tmux, Ctrl-D at the
+  prompt cancels with exit 130.
 - Removal preserves the journal and reserves the slug. A re-create under the
   same label does not start from nothing — check `om event-journal list` before
   concluding a fresh watch inherited state from the change under test.

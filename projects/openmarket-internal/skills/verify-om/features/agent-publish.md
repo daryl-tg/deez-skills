@@ -18,7 +18,7 @@
 - `platform-visibility` (added 2026-11-27, #2733): an `agent-plugin` package under `@openmarket` or `@om-core` must name `visibility` to publish. `om publish`, `om watch publish` and `package_publish` (with `--dry-run` and `--validate` too) refuse it first:
   - `{"error":"visibility_required","message":"@openmarket/held-agent names no visibility, so it would publish public.","hint":"Add \"visibility\" to om-package.json: \"private\", \"unlisted\" or \"public\"."}`, exit 2.
   - Every other scope and kind keeps the public default.
-- `engine-any-publisher` (added 2026-11-27, #2733, source only): `om install` of an engine from a publisher that is not `@openmarket` or `@om-core` on a known registry asks `Not from OpenMarket. Install it at your own discretion?`. Only a TTY yes answers it; `--yes` alone answers `terminal_required`, and `--trust-publisher` lets a script through. An engine may ship as one JavaScript bundle (`bundle` in its manifest, #2741, source only).
+- `engine-any-publisher` (added 2026-11-27, #2733, source only): `om install` of an engine from a publisher that is not `@openmarket` or `@om-core` on a known registry asks `Not from OpenMarket. Install it at your own discretion?`. Only a TTY yes answers it; `--yes` alone answers `terminal_required`, and `--trust-publisher` lets a script through. Since #2746 an engine ships only as one JavaScript bundle: `engine.bundle` `{sha256, bytes}` in `om-package.json`, the file at `artifacts/bundle.js`, run by om's own Bun. A manifest that still carries a per-platform `artifacts` block is refused at install (`request_failed` `om-package.json: engine: Unrecognized key: "artifacts"`, live 2026-11-28), and `tool_engine_platform_unsupported` is gone.
 
 ## How to get to it (user POV)
 
