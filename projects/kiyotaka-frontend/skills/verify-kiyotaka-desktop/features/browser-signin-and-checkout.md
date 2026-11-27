@@ -166,7 +166,12 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   shows `desktop-return-invalid`. All live 2026-11-21 on `92f4a841ef` in Chromium on the dev lane. Since `c588843264`
   the payload is read by one reader for both brokers (`src/utility/desktop/link-return.util.ts`;
   `src/ninjatrader/desktop-link.ts` re-exports it under its old names), with the same shapes and words (source-read
-  2026-11-27, `78e0c2f534`).
+  2026-11-27, `78e0c2f534`). Since `ac91429ffd` a `code` payload may also carry `retryAfter` (a number, or up to 16
+  characters of `[a-z0-9_]`) and `gate` (the same shape) beside it, and nothing else; a handoff still takes no sibling.
+  Such a payload reads its code's line above, where before that commit it did not read and showed "Something went
+  wrong". The page shows no wait; the app reads it (source-read 2026-11-28, `511ce25e50`, with
+  `return-target.util.spec.ts`, `return.page.spec.ts` and `tests/ninjatrader/refusal-doors.spec.ts` passing; no page was
+  read because the dev lane's backend host did not resolve, and no spec reads the page with the new fields).
 - `return-ctrader-page` `/desktop/return#to=<openmarket://return?id=ctrader.<32 hex>&payload=<base64url>>`
   (`c588843264`). A `{"handoff":"<43 characters>"}` payload reads "Signed in to cTrader. Open OpenMarket to finish
   connecting" and "Press Open OpenMarket within 2 minutes. After that, connect again from the app." A `{"code":"<code>"}`
@@ -206,9 +211,14 @@ shell half of sign-in and checkout (the button, the waiting screen, the exchange
   OpenMarket within 2 minutes.", with `ninjatrader-connect-browser-cancel`); the page takes its own
   `ninjatrader.<attempt>` record from `onReturn` and redeems it. The wait ends after ten minutes; a handoff older than
   two minutes reads "That NinjaTrader sign-in can't be used anymore..." (`src/services/ninjatrader.service.ts`
-  `linkInDesktop`, `src/store/ninjatrader-trading.ts`, `src/ninjatrader/desktop-link.ts`). Live verification pending:
-  it needs a signed-in account with futures trading and the NinjaTrader flag on, a packaged build, and a NinjaTrader
-  account.
+  `linkInDesktop`, `src/store/ninjatrader-trading.ts`, `src/ninjatrader/desktop-link.ts`). Since `ac91429ffd` a
+  refused record's `retryAfter` and `gate` reach the dialog: an `unavailable` refusal names who paused the sign-in
+  ("NinjaTrader is limiting sign-ins right now." for `throttle`, "OpenMarket has paused new NinjaTrader sign-ins for a
+  short time." for `links` or `all`, "Too many NinjaTrader sign-ins failed in the last hour." for `user`, "NinjaTrader
+  sign-ins are paused for a short time." with no gate), then "Try again in {wait}." or "Try again later.", and Connect
+  stays held until the wait runs out (`src/ninjatrader/refusal-copy.ts`, `refusal-hold.ts`,
+  `NinjaTraderConnectDialog.vue`). Live verification pending: it needs a signed-in account with futures trading and
+  the NinjaTrader flag on, a packaged build, and a NinjaTrader account.
 - `signin-start-page` `/desktop/signin` reads "Sign in to the OpenMarket app" and "Checking your sign-in…" while it
   checks the account, then sends a signed-out visitor to `/auth?redirect=/desktop/signin`.
 - `signin-no-passkey` the shell's sign-in screen has no Passkey pill; Chromium's does (`login-signup-passkey-btn`).

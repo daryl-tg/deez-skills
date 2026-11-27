@@ -101,7 +101,7 @@ Preconditions:
   `titlebarBack`, `gpuReported`, `offlineLaunchScreenShown`, `reloadAfterOfflineLaunch`,
   `screenGoneAfterOfflineReload`, `firstResponseHeld`, `earlyDeathComesBack` and `screenGoneAfterEarlyDeath`, and
   `pass: true`. If `reloadedAfterKill` fails the lane returns after the first stage with only its checks.
-- **Read.** `firstReportAfterMs` (1315 ms on 2026-11-06, 1435 ms on 2026-11-13, 1388 ms on 2026-11-14, 1280 ms on 2026-11-17, 1360 ms on 2026-11-18, 1358 ms on 2026-11-19, 1373 ms on 2026-11-20, 1425 ms on 2026-11-21), `dump` (`sentry[release]`
+- **Read.** `firstReportAfterMs` (1315 ms on 2026-11-06, 1435 ms on 2026-11-13, 1388 ms on 2026-11-14, 1280 ms on 2026-11-17, 1360 ms on 2026-11-18, 1358 ms on 2026-11-19, 1373 ms on 2026-11-20, 1425 ms on 2026-11-21, 1333 ms on 2026-11-28 on `511ce25e50`, 34 of 34 in 44 s on the first run), `dump` (`sentry[release]`
   `openmarket-desktop@<desktop/package.json version>`: 0.1.11 since `286ae64e72` (read 2026-11-20), 0.1.10 since
   `920afc7199`, 0.1.9 on 2026-11-06,
   `sentry[environment]` `desktop-dev`, a minidump of about 770 KB), `crashLoop` (one `reportId` per round, each with
